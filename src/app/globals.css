@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Sidebar (stays dark, matches GHL) ─────────────────── */
+  --color-sidebar:        #1a1a2e;
+  --color-sidebar-hover:  #252547;
+  --color-sidebar-active: #2d2d58;
+
+  /* ── KeepSharing Gold (logo + revenue numbers only) ────── */
+  --color-gold-300: #f5d87a;
+  --color-gold-400: #f0c040;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #c9a227;
+  --color-gold-700: #a8891f;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+  background-color: #f4f5f7;
+  color: #111827;
+}
+
+/* Light-mode scrollbars for content */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+/* Dark scrollbars inside the sidebar */
+aside {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: white !important;
+    color: #111 !important;
+    font-size: 11px;
+  }
+  /* Full-bleed table for print */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    border: 1px solid #d1d5db;
+    padding: 3px 6px;
+    font-size: 9.5px;
+  }
+  thead {
+    background: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Hide the flex wrapper overflow so table prints fully */
+  .flex-1.overflow-auto { overflow: visible !important; }
+  /* Sidebar already hidden via .no-print — also ensure main fills page */
+  main { width: 100% !important; }
+}

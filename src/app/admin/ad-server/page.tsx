@@ -1,0 +1,403 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { Monitor, Plus, Filter, BarChart2, ExternalLink, Upload, X, Check, Eye, EyeOff, Trash2, ChevronDown } from 'lucide-react'
+import { MOCK_ADS, AD_ZONES, getMockClicksByZone, type AdRecord } from '@/lib/mock-ads'
+import { formatCurrency } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+
+const PUBLICATIONS = ['RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
+
+const ZONE_COLORS: Record<string, string> = {
+  'header-leaderboard':   'bg-blue-50 text-blue-700 ring-blue-200',
+  'article-inline-top':   'bg-green-50 text-green-700 ring-green-200',
+  'article-inline-mid':   'bg-teal-50 text-teal-700 ring-teal-200',
+  'article-inline-bottom':'bg-purple-50 text-purple-700 ring-purple-200',
+  'guide-sidebar':        'bg-orange-50 text-orange-700 ring-orange-200',
+  'email-banner':         'bg-rose-50 text-rose-700 ring-rose-200',
+  'event-sponsor':        'bg-amber-50 text-amber-700 ring-amber-200',
+}
+
+const TABS = ['Active Ads', 'Upload New', 'Analytics', 'Zones']
+
+export default function AdServerPage() {
+  const [activeTab, setActiveTab]     = useState('Active Ads')
+  const [ads, setAds]                 = useState<AdRecord[]>(MOCK_ADS)
+  const [filterZone, setFilterZone]   = useState<string>('all')
+  const [filterPub, setFilterPub]     = useState<string>('all')
+  const [selectedAd, setSelectedAd]   = useState<AdRecord | null>(null)
+  const fileRef                       = useRef<HTMLInputElement>(null)
+
+  // Upload form state
+  const [uploadForm, setUploadForm] = useState({
+    businessName: '', zone: 'header-leaderboard', publication: 'RRP',
+    destinationUrl: '', startDate: '', endDate: '', imageFile: null as File | null,
+  })
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+
+  const filtered = ads.filter((ad) => {
+    if (filterZone !== 'all' && ad.zone !== filterZone) return false
+    if (filterPub !== 'all' && ad.publication !== filterPub) return false
+    return true
+  })
+
+  const totalClicks      = filtered.reduce((s, a) => s + a.totalClicks, 0)
+  const totalImpressions = filtered.reduce((s, a) => s + a.totalImpressions, 0)
+  const zoneStats        = getMockClicksByZone('RRP')
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setUploading(true)
+    // Simulate upload delay
+    await new Promise((r) => setTimeout(r, 1200))
+    const newAd: AdRecord = {
+      id:               `ad${Date.now()}`,
+      businessName:     uploadForm.businessName,
+      publication:      uploadForm.publication,
+      zone:             uploadForm.zone,
+      imageUrl:         uploadPreview,
+      destinationUrl:   uploadForm.destinationUrl,
+      startDate:        uploadForm.startDate,
+      endDate:          uploadForm.endDate,
+      active:           true,
+      totalClicks:      0,
+      totalImpressions: 0,
+      createdAt:        new Date().toISOString().slice(0,10),
+    }
+    setAds((prev) => [newAd, ...prev])
+    setUploading(false)
+    setUploadSuccess(true)
+    setTimeout(() => { setUploadSuccess(false); setActiveTab('Active Ads') }, 2000)
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">Ad Server</h1>
+          <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full ring-1 ring-blue-200">
+            {ads.filter((a) => a.active).length} active
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-gray-500">{totalImpressions.toLocaleString()} impressions</span>
+          <span className="text-gray-300">·</span>
+          <span className="font-semibold text-gray-900">{totalClicks.toLocaleString()} clicks</span>
+          <span className="text-gray-300">·</span>
+          <span className="text-gray-500">{totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0.00'}% CTR</span>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+        <div className="flex items-center gap-1">
+          {TABS.map((tab) => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === tab ? 'text-blue-600 border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+              }`}
+            >{tab}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Active Ads Tab ───────────────────────────────── */}
+      {activeTab === 'Active Ads' && (
+        <>
+          {/* Toolbar */}
+          <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 shrink-0">
+            <select value={filterZone} onChange={(e) => setFilterZone(e.target.value)}
+              className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-blue-400">
+              <option value="all">All Zones</option>
+              {AD_ZONES.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
+            </select>
+            <select value={filterPub} onChange={(e) => setFilterPub(e.target.value)}
+              className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-blue-400">
+              <option value="all">All Publications</option>
+              {PUBLICATIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <div className="ml-auto">
+              <button onClick={() => setActiveTab('Upload New')}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                <Plus size={14} /> Upload Ad
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="flex-1 overflow-auto bg-white">
+            <table className="w-full text-sm border-collapse">
+              <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+                <tr>
+                  {['Ad', 'Zone', 'Publication', 'Active Dates', 'Clicks', 'Impr.', 'CTR', 'Status', ''].map((h) => (
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filtered.map((ad) => {
+                  const zone = AD_ZONES.find((z) => z.id === ad.zone)
+                  const ctr  = ad.totalImpressions > 0 ? ((ad.totalClicks / ad.totalImpressions) * 100).toFixed(2) : '0.00'
+                  const isExpired = ad.endDate && new Date(ad.endDate) < new Date()
+
+                  return (
+                    <tr key={ad.id} className="hover:bg-gray-50 cursor-pointer transition-colors group" onClick={() => setSelectedAd(ad)}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {/* Ad thumbnail placeholder */}
+                          <div
+                            className="rounded border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0"
+                            style={{ width: zone ? Math.min(zone.width / 6, 72) : 48, height: zone ? Math.min(zone.height / 6, 36) : 24 }}
+                          >
+                            <Monitor size={12} />
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{ad.businessName}</div>
+                            <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{ad.destinationUrl}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                          {zone?.name ?? ad.zone}
+                        </span>
+                        {zone && <div className="text-[10px] text-gray-400 mt-0.5">{zone.width}×{zone.height}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-700">{ad.publication}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                        <div>{ad.startDate}</div>
+                        <div className="text-gray-300">→ {ad.endDate}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">{ad.totalClicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{ad.totalImpressions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{ctr}%</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${
+                          isExpired ? 'bg-red-50 text-red-600 ring-red-200' :
+                          ad.active ? 'bg-green-50 text-green-700 ring-green-200' :
+                          'bg-gray-50 text-gray-500 ring-gray-200'
+                        }`}>
+                          {isExpired ? 'Expired' : ad.active ? 'Active' : 'Paused'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <a href={`/api/ads/click/${ad.id}?dest=${encodeURIComponent(ad.destinationUrl)}`}
+                          target="_blank" onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                          <ExternalLink size={13} />
+                        </a>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* ── Upload Tab ──────────────────────────────────── */}
+      {activeTab === 'Upload New' && (
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-lg mx-auto">
+            {uploadSuccess ? (
+              <div className="text-center py-12">
+                <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-4">
+                  <Check size={24} className="text-green-500" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Ad Uploaded!</h2>
+                <p className="text-sm text-gray-500 mt-1">Returning to Active Ads…</p>
+              </div>
+            ) : (
+              <form onSubmit={handleUpload} className="space-y-5">
+                <h2 className="text-lg font-semibold text-gray-900">Upload New Ad</h2>
+
+                {/* Drop zone */}
+                <div onClick={() => fileRef.current?.click()}
+                  className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                  {uploadPreview ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={uploadPreview} alt="Preview" className="max-h-32 object-contain rounded" />
+                      <p className="text-xs text-blue-600 font-medium">{uploadForm.imageFile?.name}</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload size={28} className="text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-gray-700">Click to upload ad graphic</p>
+                      <p className="text-xs text-gray-400 mt-1">WebP preferred · JPG/PNG accepted · Max 100KB</p>
+                    </>
+                  )}
+                  <input ref={fileRef} type="file" accept="image/webp,image/jpeg,image/png" className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (!f) return
+                      setUploadForm((p) => ({ ...p, imageFile: f }))
+                      const reader = new FileReader()
+                      reader.onload = (ev) => setUploadPreview(ev.target?.result as string)
+                      reader.readAsDataURL(f)
+                    }} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advertiser / Business Name</label>
+                    <input type="text" required value={uploadForm.businessName}
+                      onChange={(e) => setUploadForm((p) => ({ ...p, businessName: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ad Zone</label>
+                    <select value={uploadForm.zone} onChange={(e) => setUploadForm((p) => ({ ...p, zone: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400">
+                      {AD_ZONES.map((z) => <option key={z.id} value={z.id}>{z.name} ({z.width}×{z.height})</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Publication</label>
+                    <select value={uploadForm.publication} onChange={(e) => setUploadForm((p) => ({ ...p, publication: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400">
+                      {PUBLICATIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Destination URL</label>
+                    <input type="url" required value={uploadForm.destinationUrl}
+                      onChange={(e) => setUploadForm((p) => ({ ...p, destinationUrl: e.target.value }))}
+                      placeholder="https://advertiserwebsite.com"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Start Date</label>
+                    <input type="date" required value={uploadForm.startDate}
+                      onChange={(e) => setUploadForm((p) => ({ ...p, startDate: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">End Date</label>
+                    <input type="date" required value={uploadForm.endDate}
+                      onChange={(e) => setUploadForm((p) => ({ ...p, endDate: e.target.value }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400" />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={uploading}
+                  className="w-full py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60">
+                  {uploading ? 'Uploading…' : 'Upload Ad'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Analytics Tab ────────────────────────────────── */}
+      {activeTab === 'Analytics' && (
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">Clicks by Zone — RRP All Time</h2>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {['Zone', '# Ads', 'Total Clicks', 'Impressions', 'Avg CTR'].map((h) => (
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {zoneStats.map((row) => (
+                    <tr key={row.zone} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{row.zone}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.ads}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-900">{row.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.impressions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-600">{row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(2) : '0.00'}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">Per-Advertiser Performance</h2>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {['Advertiser', 'Zone', 'Pub', 'Clicks', 'Impressions', 'CTR', 'Status'].map((h) => (
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {ads.sort((a, b) => b.totalClicks - a.totalClicks).map((ad) => {
+                    const ctr = ad.totalImpressions > 0 ? ((ad.totalClicks / ad.totalImpressions) * 100).toFixed(2) : '0.00'
+                    return (
+                      <tr key={ad.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium text-gray-900">{ad.businessName}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-gray-50 text-gray-600 ring-gray-200'}`}>
+                            {AD_ZONES.find((z) => z.id === ad.zone)?.name ?? ad.zone}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-bold text-gray-600">{ad.publication}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-900">{ad.totalClicks.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-600">{ad.totalImpressions.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-gray-600">{ctr}%</td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-green-50 text-green-700 ring-green-200">Active</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Zones Tab ────────────────────────────────────── */}
+      {activeTab === 'Zones' && (
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {AD_ZONES.map((zone) => {
+              const zoneAds = ads.filter((a) => a.zone === zone.id)
+              return (
+                <div key={zone.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">{zone.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">{zone.position}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[zone.id] ?? 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                      {zoneAds.length} ads
+                    </span>
+                  </div>
+                  {zone.width > 0 && (
+                    <div
+                      className="rounded border border-gray-100 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-mono mb-3"
+                      style={{ width: '100%', height: Math.min(zone.height / 4, 60) }}
+                    >
+                      {zone.width} × {zone.height} · max {zone.maxKb}KB
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500">
+                    {zoneAds.map((a) => (
+                      <div key={a.id} className="py-1 border-b border-gray-50 last:border-0 truncate">{a.businessName}</div>
+                    ))}
+                    {zoneAds.length === 0 && <div className="text-gray-300">No ads in this zone</div>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

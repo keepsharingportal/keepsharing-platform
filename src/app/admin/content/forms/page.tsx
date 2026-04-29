@@ -1,0 +1,155 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { ExternalLink, RefreshCw } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+type Submission = {
+  id: string
+  form_type: string
+  publication: string
+  name: string | null
+  email: string | null
+  form_data: Record<string, string>
+  ai_article: string | null
+  status: string
+  created_at: string
+}
+
+const FORM_META: Record<string, { label: string; pub: string; path: string; color: string }> = {
+  'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-rose-50 text-rose-700 ring-rose-200' },
+  'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-green-50 text-green-700 ring-green-200' },
+  'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-purple-50 text-purple-700 ring-purple-200' },
+  'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-teal-50 text-teal-700 ring-teal-200' },
+}
+
+const STATUS_CONFIG: Record<string, string> = {
+  pending:  'bg-amber-50 text-amber-700 ring-amber-200',
+  reviewed: 'bg-blue-50 text-blue-700 ring-blue-200',
+  approved: 'bg-green-50 text-green-700 ring-green-200',
+  rejected: 'bg-red-50 text-red-700 ring-red-200',
+  published:'bg-slate-50 text-slate-700 ring-slate-200',
+}
+
+export default function FormsAdminPage() {
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [filter, setFilter]           = useState<string>('all')
+  const [expanded, setExpanded]       = useState<string | null>(null)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const url = filter !== 'all' ? `/api/submissions?formType=${filter}` : '/api/submissions'
+      const res = await fetch(url)
+      setSubmissions(res.ok ? await res.json() : [])
+    } finally { setLoading(false) }
+  }
+
+  useEffect(() => { load() }, [filter])
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Submission Forms</h1>
+          <p className="text-xs text-gray-500 mt-0.5">All public form submissions across RRP and Boom</p>
+        </div>
+        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">
+          <RefreshCw size={12} /> Refresh
+        </button>
+      </div>
+
+      <div className="p-6 space-y-4">
+        {/* Form directory */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+          {Object.entries(FORM_META).map(([type, meta]) => (
+            <div key={type} className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+              <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 block mb-2', meta.color)}>{meta.pub}</span>
+              <div className="text-xs font-semibold text-gray-800 mb-2 leading-tight">{meta.label}</div>
+              <a href={meta.path} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1 text-[10px] text-blue-600 hover:underline">
+                <ExternalLink size={9} /> View Form
+              </a>
+            </div>
+          ))}
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-1 flex-wrap">
+          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+            All
+          </button>
+          {Object.entries(FORM_META).map(([type, meta]) => (
+            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+              {meta.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {loading ? (
+            <div className="p-8 text-center text-sm text-gray-400">Loading submissions…</div>
+          ) : submissions.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400">No submissions yet.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {submissions.map(s => {
+                const meta = FORM_META[s.form_type]
+                const isOpen = expanded === s.id
+                return (
+                  <div key={s.id}>
+                    <button className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50 transition-colors"
+                      onClick={() => setExpanded(isOpen ? null : s.id)}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {meta && <span className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-semibold ring-1', meta.color)}>{meta.label}</span>}
+                          <span className="text-sm font-semibold text-gray-900">{s.name ?? 'Anonymous'}</span>
+                          <span className="text-xs text-gray-400">{s.email}</span>
+                          {s.ai_article && <span className="text-[10px] text-green-600 font-medium">✦ AI article</span>}
+                        </div>
+                      </div>
+                      <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 shrink-0', STATUS_CONFIG[s.status] ?? STATUS_CONFIG.pending)}>
+                        {s.status}
+                      </span>
+                      <span className="text-xs text-gray-400 shrink-0">
+                        {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-4 bg-gray-50/50 border-t border-gray-100 space-y-3">
+                        <div className="pt-3 grid grid-cols-2 gap-2 text-xs">
+                          {Object.entries(s.form_data).map(([k, v]) => (
+                            <div key={k} className={cn(v && String(v).length > 60 ? 'col-span-2' : '')}>
+                              <div className="text-[10px] text-gray-400 uppercase tracking-wide">{k.replace(/_/g, ' ')}</div>
+                              <div className="text-gray-800 mt-0.5">{String(v)}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {s.ai_article && (
+                          <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                            <div className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1">AI-Generated Article Draft</div>
+                            <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{s.ai_article.slice(0, 400)}{s.ai_article.length > 400 ? '…' : ''}</p>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Link href="/admin/content/editorial-board" className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                            View in Editorial Board →
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
