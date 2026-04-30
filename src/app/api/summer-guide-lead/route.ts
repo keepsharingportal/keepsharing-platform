@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { onSelfServeBookingComplete } from '@/lib/ghl'
+import { upsertContact } from '@/lib/ghl'
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json()
@@ -14,10 +14,11 @@ export async function POST(req: NextRequest) {
 
   // Tag in GHL as Summer Guide lead
   try {
-    const { upsertContact, addTags, getLocationId } = await import('@/lib/ghl')
-    const locationId = getLocationId('RRP')
-    const contactId = await upsertContact(locationId, { email, tags: ['summer-guide-2026'] })
-    if (contactId) await addTags(contactId, ['summer-guide-2026', 'rrp-prospect'])
+    await upsertContact({
+      publicationSlug: 'rrp',
+      email,
+      tags: ['summer-guide-2026', 'rrp-prospect'],
+    })
   } catch { /* non-blocking */ }
 
   return NextResponse.json({ ok: true })

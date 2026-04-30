@@ -1,5 +1,5 @@
 import { AdvertiseLanding } from '@/components/advertise/AdvertiseLanding'
-import { AdBookingPublic } from '@/components/advertise/AdBookingPublic'
+import { SpotPicker } from '@/components/advertise/SpotPicker'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export default function AdvertisePage() {
   return (
     <>
       <AdvertiseLanding />
-      <AdBookingPublic />
+      <SpotPicker />
     </>
   )
 }

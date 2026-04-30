@@ -870,3 +870,86 @@ Paste this at the top of any new conversation:
 *Document created April 29, 2026.*
 *Save to: Dropbox/KeepSharing Docs/Knowledge Base/keepsharing-knowledge-base.md*
 *Also save: keepsharing-session-summary.md, boom-content-strategy.md, keepsharing-sop-library.html*
+
+
+---
+
+## GHL INTEGRATION — LOCKED CONFIGURATION
+
+**Auth model:** Sub-account Private Integration Tokens (NOT agency-level).
+Agency PITs only have admin scopes — they cannot access contacts/conversations/tags/workflows.
+Each publication has its own PIT created from inside that sub-account with all operational scopes selected.
+
+**Required environment variables (per publication):**
+- `GHL_PIT_<SLUG>` — sub-account PIT (`pit-...`)
+- `GHL_LOCATION_ID_<SLUG>` — sub-account location ID
+
+**Slugs in use:** RRP, BOOM, AOP, MBP, ESP, GPP
+
+**Required headers on every API call:**
+- `Authorization: Bearer <pit>`
+- `Version: 2021-07-28`
+- `Accept: application/json`
+- `Content-Type: application/json`
+
+**Base URL:** `https://services.leadconnectorhq.com`
+
+**Body format for /contacts/upsert:** include `locationId` field — sub-account PITs do NOT need a Location-Id header.
+
+**Test endpoint:** `/api/test/ghl-ping?pub=<slug>` — verifies upsert succeeds and contact appears in the GHL UI for that sub-account.
+
+**Verified working:** April 30, 2026
+
+
+---
+
+## NEWCOMER / FAMILY GUIDE — STRATEGIC DECISIONS (April 30, 2026)
+
+### Brand and naming
+
+- **Master print/digital title:** "The River Region Family Guide"
+- **Subtitle on cover:** "Your trusted resource for raising kids in Montgomery, Prattville, Wetumpka, Pike Road, Millbrook, and Eastchase"
+- **Positioning line:** "The only guide families turn to — whether you're new to the area or have lived here for years"
+- **Web URL:** `/newcomer-guide` (primary, for SEO capture on "moving to" searches)
+- **Web URL aliases (redirect to primary):** `/family-guide`, `/new-to-river-region`, `/newcomer`
+- **Menu label in main nav:** "Family Guide"
+- **Inside framing:** Sections still use newcomer language where appropriate ("Your First 30 Days Here," "If you're new to the River Region…"). Newcomer positioning is preserved as content theme, not as the brand cap.
+
+### Format decisions
+
+- **2026 (June press deadline):** Family Guide stays embedded in June issue of River Region Parents magazine. June 2026 ships as strongest version yet of the embedded guide using Option B (category cleanup + Schools section sponsor + Pediatric Care section sponsor).
+- **2026 web launch:** Permanent `/newcomer-guide` page on riverregionparents.com goes live alongside June print. Lives in main navigation. Continuously updated. Articles added rolling through summer/fall.
+- **2027 evolution (planning starts Q4 2026):** Standalone 9x6 annual publication. Distributed via partner network — Realtors, hospitals, Chamber of Commerce, school admissions offices, military relocation desks, OBGYN offices. Annual print run, evergreen content, lives on partner desks for 12 months.
+
+### Content philosophy
+
+- **Web is the asset that compounds; print is the curated showcase.** The digital Family Guide is the long-lived publication. Print issues each June pull forward the strongest digital content + the directory + Featured Listings.
+- **Advertiser quotes are the editorial engine.** Existing advertisers are interviewed via short question prompts. Their answers become article content and elevate them from "advertiser" to "expert featured by River Region Parents." Continuous content factory at near-zero cost.
+- **Categories grow over time.** Web has unlimited capacity. Editorial pieces get added rolling — first batch ships by June press, additions through summer/fall. June 2027 print is built off the strongest content from 12 months of digital guide.
+
+### Audience pattern this enables
+
+- 11 existing guides (Newcomer, Birthday, After School Activities, Special Needs, Fall Event, Holiday Happenings, Education, Healthy Families, Summer Camp, Child Care, Summer Fun) all migrate to the same pattern over time: each becomes a permanent menu item with its own evergreen destination URL, refreshed seasonally for print but lived-in continuously online.
+
+### Active span
+
+- **Family Guide is evergreen — 365 days a year.** Unlike seasonal guides (Summer Fun, Holiday Happenings) that lose meaning when the season passes, the Family Guide is always relevant because families relocate, change schools, have new babies, and start new chapters year-round. This justifies premium 12-month advertiser commitments and higher rates than seasonal guides.
+
+---
+
+## 2027 STANDALONE PUBLICATION ROADMAP — DOCUMENTED FOR LATER
+
+Standalone 9x6 "River Region Family Guide" annual publication. Strategic project for 2027 launch (June 2027 or possibly Jan 2027 standalone drop).
+
+**Why this matters:** Nobody in the Montgomery / River Region market currently has a dedicated, distributable family resource publication. Realtors, hospitals, the Chamber of Commerce, school admissions offices, military relocation offices, and OBGYN offices have nothing to give relocating families. KeepSharing owning that category creates a moat no Facebook page or local website can compete with — physical distribution through trusted channels.
+
+**Decisions to make in Q4 2026 with data from 2026 digital guide:**
+- Page count and trim size (9x6 standard, but page count flexes with content density)
+- Annual production cost vs. annual ad revenue model
+- Distribution partnership network — who gets crates of copies and when
+- Pricing for Featured Listings (annual, not monthly — different sales motion)
+- Editorial calendar (evergreen content vs. dated content like "best of 2026")
+- Press timing — drop in early summer like the magazine, or January for "new year, new town"?
+- Whether the magazine's June issue still carries any newcomer framing or fully cedes it to the standalone
+
+**Revisit date:** October 2026. Before then, focus on building the digital guide and gathering reader/advertiser data.

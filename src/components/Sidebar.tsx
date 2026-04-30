@@ -34,6 +34,7 @@ const NAV = [
       { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs' },
       { name: 'Businesses',         href: '/admin/advertisers/businesses' },
       { name: 'Intelligence',       href: '/admin/advertisers/intelligence', accent: true },
+      { name: 'Segments',           href: '/admin/advertisers/segments',    accent: true },
       { name: 'Import Data',        href: '/admin/import', accent: true },
     ],
   },

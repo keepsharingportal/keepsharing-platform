@@ -28,13 +28,13 @@ export default function AdvertiseSuccessPage() {
           </div>
 
           <h1 className="text-xl font-black text-gray-900 mb-2">
-            You&apos;re officially on your way.
+            You&apos;re in. Welcome to River Region Parents.
           </h1>
           <p className="text-sm text-gray-600 mb-2 leading-relaxed">
-            Your campaign has been confirmed and your payment is complete.
+            Your spot is reserved and your payment is complete. We are glad to have you.
           </p>
           <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-            A member of our team will reach out within 1 business day to confirm your campaign details, review your ad design brief, and get everything started.
+            A member of our team will reach out within 1 business day to review your ad, finalize your design brief, and make sure everything looks great before it goes live.
           </p>
 
           <div className="space-y-2 text-left mb-7 bg-[#fdf9f5] rounded-xl p-4">

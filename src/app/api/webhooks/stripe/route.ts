@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
-import { onSelfServeBookingComplete } from '@/lib/ghl'
+import { onSelfServeBookingComplete, upsertContact, addTag, triggerWorkflow } from '@/lib/ghl'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2026-04-22.dahlia',
 })
+
+function fmt$(cents: number) { return '$' + ((cents ?? 0) / 100).toFixed(0) }
 
 export async function POST(req: NextRequest) {
   const body      = await req.text()
@@ -163,6 +165,64 @@ export async function POST(req: NextRequest) {
         })
       } catch (err) {
         console.error('sfg_enhanced_upgrade webhook error:', err)
+      }
+    }
+
+    // ── Self-serve spot booking (new /advertise spot picker flow) ─────────────
+    if (meta.type === 'spot_booking') {
+      try {
+        const supabase = await createClient()
+
+        // 1. Confirm the booking row
+        if (meta.booking_id) {
+          await supabase
+            .from('bookings')
+            .update({ status: 'confirmed', stripe_session_id: session.id })
+            .eq('id', meta.booking_id)
+        }
+
+        // 2. GHL: upsert contact with publication + tier tags
+        const adSizeTag = `${(meta.ad_size ?? 'unknown').toLowerCase()}-advertiser`
+        const tags: string[] = ['advertiser', 'rrp-advertiser', adSizeTag, 'new-advertiser', 'self-serve']
+
+        // 3. Newcomer Issue 2026 tag — any booking that includes June 2026
+        const includesJune = meta.include_june_2026 === 'true'
+        if (includesJune) tags.push('newcomer-issue-2026')
+
+        const ghlRes = await upsertContact({
+          publicationSlug: 'rrp',
+          email:           meta.email ?? session.customer_email ?? '',
+          firstName:       meta.first_name ?? meta.business_name ?? '',
+          lastName:        meta.last_name  ?? undefined,
+          businessName:    meta.business_name ?? '',
+          tags,
+        })
+
+        // 4. Trigger welcome workflow (logs pending until real ID is set)
+        if (ghlRes.success && ghlRes.contactId) {
+          await triggerWorkflow({
+            publicationSlug: 'rrp',
+            contactId:       ghlRes.contactId,
+            workflowId:      process.env.GHL_WORKFLOW_ADVERTISER_WELCOME ?? 'wf_new_advertiser_welcome',
+          })
+
+          // Store GHL contact ID on the booking
+          if (meta.booking_id) {
+            await supabase.from('bookings').update({ ghl_contact_id: ghlRes.contactId }).eq('id', meta.booking_id)
+          }
+        }
+
+        // 5. Notify VA in Today screen
+        await supabase.from('notifications').insert({
+          type:        'new_advertiser',
+          title:       `New advertiser booked — ${meta.business_name}`,
+          body:        `${meta.ad_size?.toUpperCase() ?? '?'} page · ${meta.months ?? ''} · ${fmt$(session.amount_total ?? 0)}${includesJune ? ' · Newcomer Issue' : ''}`,
+          urgency:     'incoming',
+          publication: meta.publication ?? 'RRP',
+          metadata:    meta,
+        })
+      } catch (err) {
+        console.error('[webhook] spot_booking error:', err)
       }
     }
 
