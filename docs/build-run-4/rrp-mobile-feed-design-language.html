@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>River Region Parents</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;0,900;1,300;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a2744;
+  --sky: #4a90d9;
+  --sky-light: #e8f2fc;
+  --sage: #5a8a6a;
+  --sage-light: #edf5f0;
+  --terra: #c4622d;
+  --terra-light: #fdf0eb;
+  --gold: #d4a843;
+  --gold-light: #fdf6e3;
+  --blush: #e8a0a0;
+  --cream: #faf8f5;
+  --white: #ffffff;
+  --text: #1a1a1a;
+  --mid: #666;
+  --dim: #999;
+  --border: rgba(0,0,0,0.07);
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* TOP NAV */
+.topnav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+}
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.nav-logo span { color: var(--sky); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nav-icon:hover { background: var(--cream); }
+.nav-location {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sky);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* FILTER STRIP */
+.filter-strip {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  height: 44px;
+  align-items: center;
+}
+.filter-strip::-webkit-scrollbar { display: none; }
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--mid);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.filter-pill.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: white;
+}
+.filter-pill:not(.active):hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+/* HERO CARD */
+.hero-card {
+  margin: 12px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.hero-card:active { transform: scale(0.98); }
+.hero-img {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, #1a2744 0%, #4a90d9 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+.hero-img-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=600&q=80') center/cover;
+  opacity: 0.5;
+}
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(26,39,68,0.95) 0%, rgba(26,39,68,0.2) 60%, transparent 100%);
+}
+.hero-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--terra);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  z-index: 2;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 16px;
+}
+.hero-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.hero-title {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.hero-tease {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hero-footer {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+}
+.hero-meta { font-size: 11px; color: var(--dim); }
+.read-more {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sky);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* SECTION LABEL */
+.section-label {
+  padding: 16px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-all {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sky);
+  cursor: pointer;
+}
+
+/* EVENT CARDS — horizontal scroll */
+.event-scroll {
+  padding: 0 16px 4px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.event-scroll::-webkit-scrollbar { display: none; }
+.event-card {
+  flex-shrink: 0;
+  width: 200px;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.event-card:active { transform: scale(0.97); }
+.event-img {
+  height: 100px;
+  background: linear-gradient(135deg, #4a90d9 0%, #1a2744 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+.event-card-body { padding: 10px 12px 12px; }
+.event-date-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 5px;
+}
+.event-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.event-card-detail {
+  font-size: 11px;
+  color: var(--dim);
+}
+.event-free { background: var(--sage-light); color: var(--sage); }
+.event-paid { background: var(--gold-light); color: #8b6a1a; }
+.event-family { background: var(--sky-light); color: var(--sky); }
+
+/* CONTENT CARDS — vertical feed */
+.feed { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.content-card {
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  gap: 0;
+}
+.content-card:active { transform: scale(0.99); }
+
+/* Horizontal card */
+.content-card.horizontal { flex-direction: row; align-items: stretch; }
+.content-card.horizontal .card-img {
+  width: 110px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #edf5f0 0%, #5a8a6a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  position: relative;
+  overflow: hidden;
+}
+.content-card.horizontal .card-body { padding: 12px 14px; flex: 1; }
+
+/* Vertical card */
+.content-card.vertical { flex-direction: column; }
+.content-card.vertical .card-img {
+  height: 160px;
+  background: linear-gradient(135deg, #1a2744 0%, #4a90d9 100%);
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+.content-card.vertical .card-body { padding: 14px 16px 16px; }
+
+/* Large feature card */
+.content-card.feature {
+  flex-direction: column;
+  border-radius: 16px;
+}
+.content-card.feature .card-img {
+  height: 180px;
+  background: linear-gradient(135deg, #c4622d 0%, #d4a843 100%);
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+.content-card.feature .card-body { padding: 16px; }
+
+.card-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=400&q=70') center/cover;
+  opacity: 0.35;
+}
+.card-img-overlay.school { background-image: url('https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=70'); opacity: 0.4; }
+.card-img-overlay.mom { background-image: url('https://images.unsplash.com/photo-1531983412531-1f49a365ffed?w=400&q=70'); opacity: 0.4; }
+.card-img-overlay.summer { background-image: url('https://images.unsplash.com/photo-1541692641319-981cc79ee10a?w=400&q=70'); opacity: 0.4; }
+.card-img-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); }
+
+.card-type {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.type-community { color: var(--sage); }
+.type-events { color: var(--sky); }
+.type-spotlight { color: var(--terra); }
+.type-guide { color: var(--gold); }
+.type-school { color: var(--navy); }
+
+.card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+.card-title.light { color: white; }
+
+.card-tease {
+  font-size: 12px;
+  color: var(--mid);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-tease.light { color: rgba(255,255,255,0.75); }
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.card-meta { font-size: 10px; color: var(--dim); }
+.card-action {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sky);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* SPOTLIGHT STRIP */
+.spotlight-strip {
+  padding: 0 16px 4px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.spotlight-strip::-webkit-scrollbar { display: none; }
+.spotlight-bubble {
+  flex-shrink: 0;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.spotlight-bubble:active { transform: scale(0.95); }
+.spotlight-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sky) 0%, var(--navy) 100%);
+  margin: 0 auto 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.spotlight-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid var(--terra);
+}
+.spotlight-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 64px;
+  line-height: 1.2;
+}
+.spotlight-type {
+  font-size: 9px;
+  color: var(--dim);
+}
+
+/* ADVERTISER CARD — native/inline */
+.advertiser-card {
+  margin: 0 16px;
+  background: linear-gradient(135deg, #fdf6e3 0%, #fdf0eb 100%);
+  border: 1.5px solid rgba(212,168,67,0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.advertiser-card:active { transform: scale(0.99); }
+.ad-logo {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.ad-body { flex: 1; }
+.ad-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.ad-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 1px; }
+.ad-offer { font-size: 12px; color: var(--mid); }
+.ad-cta {
+  background: var(--navy);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* BIRTHDAY CARD */
+.birthday-card {
+  margin: 0 16px;
+  background: var(--white);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  border-left: 4px solid var(--terra);
+}
+.bday-emoji { font-size: 32px; flex-shrink: 0; }
+.bday-body { flex: 1; }
+.bday-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terra); margin-bottom: 2px; }
+.bday-name { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: var(--text); }
+.bday-age { font-size: 12px; color: var(--mid); }
+.bday-share {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--terra);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* GUIDE ROW */
+.guide-row {
+  padding: 0 16px 4px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.guide-row::-webkit-scrollbar { display: none; }
+.guide-chip {
+  flex-shrink: 0;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+.guide-chip:active { transform: scale(0.97); }
+.guide-chip-icon { font-size: 20px; }
+.guide-chip-text {}
+.guide-chip-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.guide-chip-count { font-size: 10px; color: var(--dim); }
+
+/* NEWSLETTER CTA */
+.newsletter-cta {
+  margin: 8px 16px;
+  background: var(--navy);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.newsletter-cta::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  background: rgba(74,144,217,0.2);
+  border-radius: 50%;
+}
+.nl-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.nl-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: white; margin-bottom: 6px; line-height: 1.2; }
+.nl-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 14px; }
+.nl-input-row { display: flex; gap: 8px; }
+.nl-input {
+  flex: 1;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: white;
+  outline: none;
+}
+.nl-input::placeholder { color: rgba(255,255,255,0.35); }
+.nl-btn {
+  background: var(--terra);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  height: 60px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  z-index: 100;
+}
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 8px 0;
+  border-top: 2px solid transparent;
+}
+.bottom-nav-item.active { border-top-color: var(--sky); }
+.bottom-nav-item.active .bnav-icon { color: var(--sky); }
+.bottom-nav-item.active .bnav-label { color: var(--sky); font-weight: 700; }
+.bnav-icon { font-size: 20px; color: var(--dim); transition: color 0.15s; }
+.bnav-label { font-size: 9px; font-weight: 500; color: var(--dim); letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* SPACER FOR BOTTOM NAV */
+.bottom-spacer { height: 80px; }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-card { animation: fadeUp 0.4s ease both; }
+.content-card:nth-child(1) { animation: fadeUp 0.4s 0.05s ease both; }
+.content-card:nth-child(2) { animation: fadeUp 0.4s 0.1s ease both; }
+.content-card:nth-child(3) { animation: fadeUp 0.4s 0.15s ease both; }
+.content-card:nth-child(4) { animation: fadeUp 0.4s 0.2s ease both; }
+
+/* CARD EXPAND ANIMATION */
+.card-expandable { transition: all 0.25s ease; }
+.card-expandable.expanded .card-tease { -webkit-line-clamp: unset; }
+
+/* SCROLL REVEAL */
+.reveal { opacity: 0; transform: translateY(16px); transition: all 0.4s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div>
+    <div class="nav-logo">River Region <span>Parents</span></div>
+    <div class="nav-location">📍 Montgomery, AL</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-icon">🔔</div>
+    <div class="nav-icon">🔍</div>
+  </div>
+</nav>
+
+<!-- FILTER STRIP -->
+<div class="filter-strip">
+  <div class="filter-pill active">✨ For You</div>
+  <div class="filter-pill">📅 This Weekend</div>
+  <div class="filter-pill">🏫 Schools</div>
+  <div class="filter-pill">☀️ Summer</div>
+  <div class="filter-pill">👶 Under 5</div>
+  <div class="filter-pill">🎓 Tweens</div>
+  <div class="filter-pill">💑 Date Night</div>
+  <div class="filter-pill">🎂 Free</div>
+</div>
+
+<!-- HERO CARD -->
+<div class="hero-card" onclick="this.style.opacity='0.9';setTimeout(()=>this.style.opacity='1',150)">
+  <div class="hero-img">
+    <div class="hero-img-bg"></div>
+    <div class="hero-gradient"></div>
+    <span class="hero-badge">Summer Fun Guide</span>
+    <div class="hero-content">
+      <div class="hero-tag">This Month's Feature</div>
+      <div class="hero-title">Inexpensive Micro Summer Adventures for Busy Families</div>
+      <div class="hero-tease">You don't need a week-long vacation. These 12 local ideas create the moments your kids will actually remember — without the planning stress.</div>
+    </div>
+  </div>
+  <div class="hero-footer">
+    <div class="hero-meta">DeAnne Watson · May 2026 · 3 min read</div>
+    <div class="read-more">Read → </div>
+  </div>
+</div>
+
+<!-- EVENTS THIS WEEKEND -->
+<div class="section-label reveal">
+  <div class="section-title">📅 This Weekend</div>
+  <div class="section-all">See all →</div>
+</div>
+<div class="event-scroll reveal">
+  <div class="event-card">
+    <div class="event-img" style="background:linear-gradient(135deg,#edf5f0,#5a8a6a)">🎨</div>
+    <div class="event-card-body">
+      <div class="event-date-pill event-free">Free · Sat May 3</div>
+      <div class="event-card-title">Spring Family Art Festival</div>
+      <div class="event-card-detail">Montgomery Museum · All ages</div>
+    </div>
+  </div>
+  <div class="event-card">
+    <div class="event-img" style="background:linear-gradient(135deg,#e8f2fc,#4a90d9)">🌱</div>
+    <div class="event-card-body">
+      <div class="event-date-pill event-family">Sat · 7am–noon</div>
+      <div class="event-card-title">Eastchase Farmers Market</div>
+      <div class="event-card-detail">7274 EastChase Pkwy</div>
+    </div>
+  </div>
+  <div class="event-card">
+    <div class="event-img" style="background:linear-gradient(135deg,#fdf6e3,#d4a843)">⚽</div>
+    <div class="event-card-body">
+      <div class="event-date-pill event-paid">Sun · $8/child</div>
+      <div class="event-card-title">Youth Soccer Open Registration</div>
+      <div class="event-card-detail">River Region YMCA</div>
+    </div>
+  </div>
+  <div class="event-card">
+    <div class="event-img" style="background:linear-gradient(135deg,#fdf0eb,#c4622d)">🎭</div>
+    <div class="event-card-body">
+      <div class="event-date-pill event-free">Free · Sat 10am</div>
+      <div class="event-card-title">Story Time at the Library</div>
+      <div class="event-card-detail">Pike Road Library · Ages 3–6</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMUNITY SPOTLIGHTS -->
+<div class="section-label reveal" style="margin-top:8px;">
+  <div class="section-title">👑 Spotlights</div>
+  <div class="section-all">Nominate →</div>
+</div>
+<div class="spotlight-strip reveal">
+  <div class="spotlight-bubble">
+    <div class="spotlight-avatar">
+      <div class="spotlight-ring"></div>
+      👩
+    </div>
+    <div class="spotlight-name">Hayley Denny</div>
+    <div class="spotlight-type">Mom to Mom</div>
+  </div>
+  <div class="spotlight-bubble">
+    <div class="spotlight-avatar" style="background:linear-gradient(135deg,#edf5f0,#5a8a6a)">
+      <div class="spotlight-ring" style="border-color:var(--sage)"></div>
+      🍎
+    </div>
+    <div class="spotlight-name">Mrs. Johnson</div>
+    <div class="spotlight-type">Teacher</div>
+  </div>
+  <div class="spotlight-bubble">
+    <div class="spotlight-avatar" style="background:linear-gradient(135deg,#fdf6e3,#d4a843)">
+      <div class="spotlight-ring" style="border-color:var(--gold)"></div>
+      👴
+    </div>
+    <div class="spotlight-name">Pop Watson</div>
+    <div class="spotlight-type">Grands</div>
+  </div>
+  <div class="spotlight-bubble">
+    <div class="spotlight-avatar" style="background:linear-gradient(135deg,#e8f2fc,#4a90d9)">
+      <div class="spotlight-ring" style="border-color:var(--sky)"></div>
+      🏫
+    </div>
+    <div class="spotlight-name">ACA Field Day</div>
+    <div class="spotlight-type">School</div>
+  </div>
+  <div class="spotlight-bubble">
+    <div class="spotlight-avatar" style="background:linear-gradient(135deg,#fdf0eb,#c4622d)">
+      <div class="spotlight-ring" style="border-color:var(--terra)"></div>
+      ➕
+    </div>
+    <div class="spotlight-name">Nominate Someone</div>
+    <div class="spotlight-type">You know one!</div>
+  </div>
+</div>
+
+<!-- CONTENT FEED -->
+<div class="section-label reveal" style="margin-top:8px;">
+  <div class="section-title">📖 Latest</div>
+  <div class="section-all">All articles →</div>
+</div>
+
+<div class="feed">
+
+  <!-- Feature card -->
+  <div class="content-card feature reveal" onclick="">
+    <div class="card-img">
+      <div class="card-img-overlay summer"></div>
+      <div class="card-img-gradient"></div>
+      <div style="position:relative;z-index:2;padding:14px 16px;">
+        <div class="card-type type-guide" style="color:var(--gold);">Summer 2026</div>
+        <div class="card-title light">12 Tips for the Best College Campus Visit — Start Planning Now</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-tease">Your junior is ready but are you? Local families share what they wished they'd known before hitting the campus circuit this summer.</div>
+      <div class="card-footer">
+        <div class="card-meta">5 min read · College Prep</div>
+        <div class="card-action">Read →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advertiser — native inline -->
+  <div class="advertiser-card reveal">
+    <div class="ad-logo">🏥</div>
+    <div class="ad-body">
+      <div class="ad-label">Community Partner</div>
+      <div class="ad-name">Baptist Health Pediatrics</div>
+      <div class="ad-offer">New patient appointments available now</div>
+    </div>
+    <button class="ad-cta">Book →</button>
+  </div>
+
+  <!-- Horizontal card -->
+  <div class="content-card horizontal reveal" onclick="">
+    <div class="card-img" style="background:linear-gradient(135deg,#1a2744,#4a90d9);">
+      <div class="card-img-overlay"></div>
+      <div style="position:absolute;bottom:8px;left:8px;font-size:24px;">📱</div>
+    </div>
+    <div class="card-body">
+      <div class="card-type type-community">Parenting</div>
+      <div class="card-title">How AI Technology Is Capturing Your Child's Attention</div>
+      <div class="card-tease">What every River Region parent should know — and what actually works.</div>
+      <div class="card-footer">
+        <div class="card-meta">4 min read</div>
+        <div class="card-action">Read →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Birthday spotlight -->
+  <div class="birthday-card reveal">
+    <div class="bday-emoji">🎂</div>
+    <div class="bday-body">
+      <div class="bday-label">Birthday Spotlight</div>
+      <div class="bday-name">Happy 7th, Emma Rodriguez! 🎉</div>
+      <div class="bday-age">From the Rodriguez family in Prattville</div>
+    </div>
+    <div class="bday-share">Share ♥</div>
+  </div>
+
+  <!-- Horizontal card -->
+  <div class="content-card horizontal reveal" onclick="">
+    <div class="card-img" style="background:linear-gradient(135deg,#edf5f0,#5a8a6a);">
+      <div class="card-img-overlay mom"></div>
+      <div style="position:absolute;bottom:8px;left:8px;font-size:24px;">👩</div>
+    </div>
+    <div class="card-body">
+      <div class="card-type type-spotlight">Mom to Mom</div>
+      <div class="card-title">Hayley Denny on Running a Business and Raising Three Kids</div>
+      <div class="card-tease">The Prattville mom shares her honest take on balance, boundaries, and coffee.</div>
+      <div class="card-footer">
+        <div class="card-meta">3 min read</div>
+        <div class="card-action">Read →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Local Guides row -->
+  <div class="section-label reveal" style="padding:16px 0 8px;">
+    <div class="section-title">📚 Local Guides</div>
+    <div class="section-all">All guides →</div>
+  </div>
+
+</div>
+
+<div class="guide-row reveal">
+  <div class="guide-chip">
+    <div class="guide-chip-icon">☀️</div>
+    <div class="guide-chip-text">
+      <div class="guide-chip-name">Summer Camps</div>
+      <div class="guide-chip-count">2026 Guide</div>
+    </div>
+  </div>
+  <div class="guide-chip">
+    <div class="guide-chip-icon">👶</div>
+    <div class="guide-chip-text">
+      <div class="guide-chip-name">Child Care</div>
+      <div class="guide-chip-count">48 listed</div>
+    </div>
+  </div>
+  <div class="guide-chip">
+    <div class="guide-chip-icon">🏫</div>
+    <div class="guide-chip-text">
+      <div class="guide-chip-name">Private Schools</div>
+      <div class="guide-chip-count">22 schools</div>
+    </div>
+  </div>
+  <div class="guide-chip">
+    <div class="guide-chip-icon">😁</div>
+    <div class="guide-chip-text">
+      <div class="guide-chip-name">Orthodontists</div>
+      <div class="guide-chip-count">Top picks</div>
+    </div>
+  </div>
+</div>
+
+<!-- More feed -->
+<div class="feed" style="margin-top:10px;">
+
+  <!-- School bits card -->
+  <div class="content-card horizontal reveal" onclick="">
+    <div class="card-img" style="background:linear-gradient(135deg,#e8f2fc,#1a2744);">
+      <div class="card-img-overlay school"></div>
+      <div style="position:absolute;bottom:8px;left:8px;font-size:24px;">🏆</div>
+    </div>
+    <div class="card-body">
+      <div class="card-type type-school">School News</div>
+      <div class="card-title">ACA Field Day — Students Go All Out</div>
+      <div class="card-tease">Alabama Christian Academy upper school brought the energy for their annual field day celebration.</div>
+      <div class="card-footer">
+        <div class="card-meta">School Bits · May</div>
+        <div class="card-action">See more →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second advertiser -->
+  <div class="advertiser-card reveal" style="background:linear-gradient(135deg,#edf5f0,#d4edd9);border-color:rgba(90,138,106,0.3);">
+    <div class="ad-logo">😁</div>
+    <div class="ad-body">
+      <div class="ad-label" style="color:var(--sage);">Community Partner</div>
+      <div class="ad-name">Chapman Orthodontics</div>
+      <div class="ad-offer">Free consultation for new patients this month</div>
+    </div>
+    <button class="ad-cta" style="background:var(--sage);">Book →</button>
+  </div>
+
+  <!-- Newsletter -->
+  <div class="newsletter-cta reveal">
+    <div class="nl-eyebrow">Free Newsletter</div>
+    <div class="nl-title">What's happening for families this week</div>
+    <div class="nl-sub">Events, guides, spotlights — delivered free every other Tuesday</div>
+    <div class="nl-input-row">
+      <input type="email" class="nl-input" placeholder="your@email.com">
+      <button class="nl-btn">Join Free</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-spacer"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-item active">
+    <div class="bnav-icon">🏠</div>
+    <div class="bnav-label">Home</div>
+  </div>
+  <div class="bottom-nav-item">
+    <div class="bnav-icon">📅</div>
+    <div class="bnav-label">Events</div>
+  </div>
+  <div class="bottom-nav-item">
+    <div class="bnav-icon">📖</div>
+    <div class="bnav-label">Guides</div>
+  </div>
+  <div class="bottom-nav-item">
+    <div class="bnav-icon">👑</div>
+    <div class="bnav-label">Spotlights</div>
+  </div>
+  <div class="bottom-nav-item">
+    <div class="bnav-icon">🔍</div>
+    <div class="bnav-label">Search</div>
+  </div>
+</nav>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Filter pills
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Bottom nav
+document.querySelectorAll('.bottom-nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
