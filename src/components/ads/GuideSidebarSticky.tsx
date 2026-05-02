@@ -12,18 +12,38 @@ export async function GuideSidebarSticky({ guideUrlSlug }: Props) {
   const ad = ads[0]
 
   return (
-    <aside className="ad-sidebar-sticky">
-      <p className="ad-eyebrow">{ad.ad_eyebrow ?? 'Sponsored'}</p>
+    <aside className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-wider text-primary px-4 pt-4 pb-0">
+        {ad.ad_eyebrow ?? 'Sponsored'}
+      </p>
       {ad.ad_image_url && (
-        <div style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 'var(--ed-radius-sm)', overflow: 'hidden', marginBottom: 'var(--ed-space-md)' }}>
-          <Image src={ad.ad_image_url} alt={ad.ad_headline ?? 'Sponsored'} fill style={{ objectFit: 'cover' }} unoptimized sizes="300px" />
+        <div className="relative aspect-[4/3] overflow-hidden mt-3">
+          <Image
+            src={ad.ad_image_url}
+            alt={ad.ad_headline ?? 'Sponsored'}
+            fill
+            style={{ objectFit: 'cover' }}
+            unoptimized
+            sizes="300px"
+          />
         </div>
       )}
-      {ad.ad_headline && <h3 className="ad-headline">{ad.ad_headline}</h3>}
-      {ad.ad_description && <p className="ad-description">{ad.ad_description}</p>}
-      {ad.ad_cta_label && ad.ad_link && (
-        <Link href={ad.ad_link} className="ad-cta">{ad.ad_cta_label} →</Link>
-      )}
+      <div className="p-4">
+        {ad.ad_headline && (
+          <h3 className="font-bold text-foreground mb-2 leading-snug">{ad.ad_headline}</h3>
+        )}
+        {ad.ad_description && (
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{ad.ad_description}</p>
+        )}
+        {ad.ad_cta_label && ad.ad_link && (
+          <Link
+            href={ad.ad_link}
+            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            {ad.ad_cta_label} →
+          </Link>
+        )}
+      </div>
     </aside>
   )
 }

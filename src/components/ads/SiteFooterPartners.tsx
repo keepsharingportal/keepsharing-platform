@@ -6,12 +6,14 @@ export async function SiteFooterPartners() {
   if (!ads.length) return null
 
   return (
-    <div className="ad-footer-partners">
+    <div className="flex flex-wrap gap-4 items-center">
       {ads.map(ad => (
-        <Link key={ad.id} href={ad.ad_link ?? '#'} className="ad-footer-partner-logo" style={{ textDecoration: 'none' }}>
-          <p style={{ fontSize: 'var(--ed-text-caption)', fontWeight: 600, color: 'var(--ed-text-soft)' }}>
-            {ad.ad_headline ?? ad.advertiser_name ?? 'Partner'}
-          </p>
+        <Link
+          key={ad.id}
+          href={ad.ad_link ?? '#'}
+          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {ad.ad_headline ?? (ad as unknown as { advertiser_name?: string }).advertiser_name ?? 'Partner'}
         </Link>
       ))}
     </div>

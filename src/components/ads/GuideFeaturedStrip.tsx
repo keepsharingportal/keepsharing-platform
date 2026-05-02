@@ -11,18 +11,35 @@ export async function GuideFeaturedStrip({ guideUrlSlug }: Props) {
   if (!ads.length) return null
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--ed-space-md)' }}>
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
       {ads.map(ad => (
-        <Link key={ad.id} href={ad.ad_link ?? '#'} style={{ textDecoration: 'none', color: 'inherit', display: 'block', borderRadius: 'var(--ed-radius-md)', overflow: 'hidden', border: '1px solid var(--ed-border)', backgroundColor: 'var(--ed-bg)' }}>
+        <Link
+          key={ad.id}
+          href={ad.ad_link ?? '#'}
+          className="block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow no-underline"
+        >
           {ad.ad_image_url && (
-            <div style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden' }}>
-              <Image src={ad.ad_image_url} alt={ad.ad_headline ?? 'Featured Partner'} fill style={{ objectFit: 'cover' }} unoptimized sizes="280px" />
+            <div className="relative aspect-video overflow-hidden">
+              <Image
+                src={ad.ad_image_url}
+                alt={ad.ad_headline ?? 'Featured Partner'}
+                fill
+                style={{ objectFit: 'cover' }}
+                unoptimized
+                sizes="280px"
+              />
             </div>
           )}
-          <div style={{ padding: 'var(--ed-space-md)' }}>
-            <p className="ad-eyebrow">{ad.ad_eyebrow ?? 'Featured'}</p>
-            {ad.ad_headline && <p className="ad-headline" style={{ fontSize: 'var(--ed-text-small)' }}>{ad.ad_headline}</p>}
-            {ad.ad_cta_label && <p className="ad-cta" style={{ marginTop: 4 }}>{ad.ad_cta_label} →</p>}
+          <div className="p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">
+              {ad.ad_eyebrow ?? 'Featured'}
+            </p>
+            {ad.ad_headline && (
+              <p className="font-semibold text-sm text-foreground mb-1">{ad.ad_headline}</p>
+            )}
+            {ad.ad_cta_label && (
+              <p className="text-xs text-primary font-semibold mt-1">{ad.ad_cta_label} →</p>
+            )}
           </div>
         </Link>
       ))}

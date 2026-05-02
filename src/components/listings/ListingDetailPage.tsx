@@ -4,6 +4,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { ListingBadges } from '@/components/listings/ListingBadges'
+import { ListingMap } from '@/components/listings/ListingMap'
+import { ListingMessageForm } from '@/components/listings/ListingMessageForm'
+import { SectionRenderer } from '@/components/listings/sections/SectionRenderer'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,7 +34,6 @@ export async function generateListingMetadata(listingSlug: string): Promise<Meta
   }
 }
 
-// Guide-type field labels
 const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
   'private-school': { grade: 'Grades', leadership: 'Head of School', mission: 'Mission', extracurricula: 'Activities' },
   'childcare':      { ages: 'Ages Served', hours: 'Hours', meals: 'Meals', staff_ratio: 'Staff Ratio' },
@@ -42,7 +45,7 @@ const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
 }
 
 interface Props {
-  urlSlug: string
+  urlSlug:     string
   listingSlug: string
 }
 
@@ -57,7 +60,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
 
   if (!acct) notFound()
 
-  // Find guide by url_slug
   const { data: guide } = await supabase
     .from('guide_types')
     .select('slug, display_name, url_slug')
@@ -80,7 +82,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
     .eq('is_active', true)
     .order('display_order', { ascending: true })
 
-  // Related listings (same guide, up to 5)
   const { data: related } = await supabase
     .from('guide_listings')
     .select(`
@@ -93,15 +94,17 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
     .order('listing_tier', { ascending: true })
     .limit(5)
 
-  const guideData    = (listing?.guide_data ?? {}) as Record<string, string>
-  const isFeatured   = ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'].includes(listing?.listing_tier ?? '')
-  const fieldLabels  = GUIDE_FIELD_LABELS[guideSlug] ?? {}
+  const guideData   = (listing?.guide_data ?? {}) as Record<string, string>
+  const isFeatured  = ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'].includes(listing?.listing_tier ?? '')
+  const fieldLabels = GUIDE_FIELD_LABELS[guideSlug] ?? {}
 
   const phone   = (acct.office_phone ?? acct.contact_phone ?? acct.mobile_phone ?? null) as string | null
   const website = (acct.website_url ?? null) as string | null
   const address = (acct.address ?? null) as string | null
   const cityZip = (acct.city_state_zip ?? null) as string | null
   const email   = (acct.contact_email ?? acct.email ?? null) as string | null
+
+  const showMessageForm = acct.accepts_messages !== false && acct.id
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -111,11 +114,22 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
       <div className="relative bg-primary/5 border-b border-border overflow-hidden">
         {acct.hero_photo_url && (
           <div className="absolute inset-0">
-            <Image src={acct.hero_photo_url} alt={acct.business_name} fill style={{ objectFit: 'cover' }} className="opacity-15" sizes="100vw" unoptimized />
+            <Image
+              src={acct.hero_photo_url}
+              alt={acct.business_name}
+              fill
+              style={{ objectFit: 'cover' }}
+              className="opacity-15"
+              sizes="100vw"
+              unoptimized
+            />
           </div>
         )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14 relative">
-          <Link href={`/${urlSlug}`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 mb-5 font-medium">
+          <Link
+            href={`/${urlSlug}`}
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 mb-5 font-medium"
+          >
             <ArrowLeft className="h-4 w-4" />
             {guide?.display_name ?? 'Back to Guide'}
           </Link>
@@ -125,11 +139,20 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
               {acct.business_name}
             </h1>
             {acct.card_hook && (
-              <p className="text-lg text-muted-foreground">{acct.card_hook}</p>
+              <p className="text-lg text-muted-foreground mb-3">{acct.card_hook}</p>
             )}
             {listing?.category && (
-              <Badge variant="outline" className="mt-3">{listing.category}</Badge>
+              <Badge variant="outline" className="mb-3">{listing.category}</Badge>
             )}
+            {/* Badges — Military discount, Veteran-owned, etc. */}
+            <ListingBadges
+              hasMilitaryDiscount={acct.has_military_discount}
+              isVeteranOwned={acct.is_veteran_owned}
+              isWomanOwned={acct.is_woman_owned}
+              isMinorityOwned={acct.is_minority_owned}
+              isLocallyOwned={acct.is_locally_owned}
+              className="mt-3"
+            />
           </div>
         </div>
       </div>
@@ -144,7 +167,14 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
             {acct.hero_photo_url && (
               <Card className="overflow-hidden">
                 <div className="aspect-video relative">
-                  <Image src={acct.hero_photo_url} alt={acct.business_name} fill style={{ objectFit: 'cover' }} sizes="800px" unoptimized />
+                  <Image
+                    src={acct.hero_photo_url}
+                    alt={acct.business_name}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="800px"
+                    unoptimized
+                  />
                 </div>
               </Card>
             )}
@@ -186,37 +216,9 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
               </Card>
             )}
 
-            {/* Flexible sections */}
+            {/* Flexible sections — rendered via SectionRenderer for all 7 types */}
             {sections?.map(section => (
-              <Card key={section.id}>
-                <CardContent className="p-6 md:p-8">
-                  {section.headline && <h3 className="text-xl font-bold mb-3 text-foreground">{section.headline}</h3>}
-                  {section.subheadline && <p className="text-muted-foreground mb-4">{section.subheadline}</p>}
-                  {section.body_content && (
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{section.body_content}</p>
-                  )}
-                  {Array.isArray(section.bullet_points) && section.bullet_points.length > 0 && (
-                    <ul className="mt-3 space-y-2">
-                      {(section.bullet_points as string[]).map((pt, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="text-primary mt-0.5">✓</span>{pt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {section.offer_text && (
-                    <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                      <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">Special Offer</p>
-                      <p className="text-foreground text-sm leading-relaxed">{section.offer_text}</p>
-                      {section.offer_cta_label && website && (
-                        <Button asChild size="sm" className="mt-3 rounded-full">
-                          <a href={website} target="_blank" rel="noopener noreferrer">{section.offer_cta_label}</a>
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <SectionRenderer key={section.id} section={section} />
             ))}
           </div>
 
@@ -235,22 +237,30 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                     </div>
                   )}
                   {phone && (
-                    <a href={`tel:${phone.replace(/[^0-9]/g, '')}`}
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors">
+                    <a
+                      href={`tel:${phone.replace(/[^0-9]/g, '')}`}
+                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                    >
                       <Phone className="h-4 w-4 text-primary shrink-0" />
                       {phone}
                     </a>
                   )}
                   {website && (
-                    <a href={website} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors">
+                    <a
+                      href={website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                    >
                       <Globe className="h-4 w-4 text-primary shrink-0" />
                       <span className="truncate">{website.replace(/^https?:\/\//, '')}</span>
                     </a>
                   )}
                   {email && (
-                    <a href={`mailto:${email}`}
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors">
+                    <a
+                      href={`mailto:${email}`}
+                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                    >
                       <Mail className="h-4 w-4 text-primary shrink-0" />
                       {email}
                     </a>
@@ -262,6 +272,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                       <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
                     </Button>
                   )}
+                  {showMessageForm && (
+                    <Button variant="outline" asChild className="w-full rounded-full">
+                      <a href="#message-form">Send a Message</a>
+                    </Button>
+                  )}
                   <Button variant="outline" asChild className="w-full rounded-full">
                     <Link href={`/${urlSlug}`}>
                       <ArrowLeft className="h-4 w-4" />
@@ -271,6 +286,22 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Map widget */}
+            <ListingMap
+              address={address}
+              cityStateZip={cityZip}
+              businessName={acct.business_name}
+            />
+
+            {/* Send Message form */}
+            {showMessageForm && (
+              <ListingMessageForm
+                advertiserAccountId={acct.id}
+                advertiserName={acct.business_name}
+                guideTypeSlug={guideSlug}
+              />
+            )}
 
             {/* More in this guide */}
             {related && related.length > 0 && (
@@ -284,8 +315,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                       } | null
                       if (!ra) return null
                       return (
-                        <Link key={r.id} href={`/${urlSlug}/listings/${ra.slug}`}
-                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors">
+                        <Link
+                          key={r.id}
+                          href={`/${urlSlug}/listings/${ra.slug}`}
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors"
+                        >
                           <div>
                             <p className="font-medium text-sm text-foreground">{ra.business_name}</p>
                             {(ra.neighborhood ?? ra.city_state_zip) && (

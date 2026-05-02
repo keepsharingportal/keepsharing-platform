@@ -10,16 +10,30 @@ export async function ArticleFooterListings({ articleSlug }: Props) {
   if (!ads.length) return null
 
   return (
-    <section style={{ borderTop: '1px solid var(--ed-border)', paddingTop: 'var(--ed-space-xl)', marginTop: 'var(--ed-space-xl)' }}>
-      <p className="ed-eyebrow" style={{ marginBottom: 'var(--ed-space-md)' }}>Mentioned in This Article</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ed-space-sm)' }}>
+    <section className="border-t border-border pt-8 mt-8">
+      <p className="text-xs font-bold uppercase tracking-wider text-primary mb-4">
+        Mentioned in This Article
+      </p>
+      <div className="flex flex-col gap-3">
         {ads.map(ad => (
-          <Link key={ad.id} href={ad.ad_link ?? '#'} style={{ textDecoration: 'none', display: 'flex', gap: 'var(--ed-space-md)', padding: 'var(--ed-space-md)', border: '1px solid var(--ed-border)', borderRadius: 'var(--ed-radius-md)', alignItems: 'center' }}>
-            <div>
-              <p className="ad-eyebrow" style={{ marginBottom: 2 }}>{ad.ad_eyebrow ?? 'Partner'}</p>
-              {ad.ad_headline && <p style={{ fontFamily: 'var(--ed-font-serif)', fontWeight: 600, fontSize: 'var(--ed-text-small)', color: 'var(--ed-text)' }}>{ad.ad_headline}</p>}
+          <Link
+            key={ad.id}
+            href={ad.ad_link ?? '#'}
+            className="flex items-center gap-4 p-4 border border-border rounded-2xl bg-card hover:shadow-sm transition-shadow no-underline"
+          >
+            <div className="flex-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                {ad.ad_eyebrow ?? 'Partner'}
+              </p>
+              {ad.ad_headline && (
+                <p className="font-semibold text-sm text-foreground">{ad.ad_headline}</p>
+              )}
             </div>
-            {ad.ad_cta_label && <span className="ad-cta" style={{ marginLeft: 'auto', flexShrink: 0 }}>{ad.ad_cta_label} →</span>}
+            {ad.ad_cta_label && (
+              <span className="shrink-0 text-sm font-semibold text-primary">
+                {ad.ad_cta_label} →
+              </span>
+            )}
           </Link>
         ))}
       </div>

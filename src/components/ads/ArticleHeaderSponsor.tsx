@@ -11,12 +11,20 @@ export async function ArticleHeaderSponsor({ articleSlug }: Props) {
   const ad = ads[0]
 
   return (
-    <div className="ad-article-header">
-      <p className="ad-eyebrow">{ad.ad_eyebrow ?? 'Presented by'}</p>
-      {ad.ad_headline && ad.ad_link
-        ? <Link href={ad.ad_link} className="ad-headline" style={{ fontSize: 'var(--ed-text-small)', textDecoration: 'none' }}>{ad.ad_headline}</Link>
-        : ad.ad_headline && <span className="ad-headline" style={{ fontSize: 'var(--ed-text-small)' }}>{ad.ad_headline}</span>
-      }
+    <div className="flex items-center gap-3 py-2 border-b border-border mb-6">
+      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        {ad.ad_eyebrow ?? 'Presented by'}
+      </span>
+      {ad.ad_headline && ad.ad_link ? (
+        <Link
+          href={ad.ad_link}
+          className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+        >
+          {ad.ad_headline}
+        </Link>
+      ) : ad.ad_headline ? (
+        <span className="text-sm font-semibold text-foreground">{ad.ad_headline}</span>
+      ) : null}
     </div>
   )
 }

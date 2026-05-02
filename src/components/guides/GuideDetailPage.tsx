@@ -4,12 +4,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { SectionSponsorBanner } from '@/components/guides/SectionSponsorBanner'
+import { GuideMapCard } from '@/components/guides/GuideMapCard'
+import { ListingBadges } from '@/components/listings/ListingBadges'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Star, MapPin, Phone, Globe, BookOpen, Filter,
-  ChevronRight, Users, Clock,
+  Star, MapPin, Globe, BookOpen, Filter,
+  ChevronRight,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -49,12 +52,16 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
 
   if (!guide) notFound()
 
-  // Featured listings
+  // Featured listings — pull badge fields
   const { data: featured } = await supabase
     .from('guide_listings')
     .select(`
       id, listing_tier, category, guide_data,
-      advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip, website_url, office_phone )
+      advertiser_accounts (
+        id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip,
+        website_url, office_phone,
+        has_military_discount, is_veteran_owned, is_woman_owned, is_minority_owned, is_locally_owned
+      )
     `)
     .eq('guide_type_slug', guide.slug)
     .eq('is_published', true)
@@ -75,7 +82,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     .order('display_order', { ascending: true })
 
   if (categoryFilter) stdQuery = stdQuery.eq('category', categoryFilter)
-  const { data: standard, count: totalCount } = await stdQuery.range(0, 23)
+  const { data: standard } = await stdQuery.range(0, 23)
 
   // Category counts
   const { data: catRows } = await supabase
@@ -91,7 +98,17 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
   }
   const categories = Object.entries(catMap).sort((a, b) => b[1] - a[1])
 
-  // Active ad for directory
+  // Check for active section sponsor for this guide
+  const { data: sectionSponsor } = await supabase
+    .from('ad_placements')
+    .select('*, advertiser:advertiser_accounts(business_name, slug)')
+    .eq('placement_type', 'section_sponsor')
+    .eq('is_active', true)
+    .ilike('placement_context', `%${guide.slug}%`)
+    .limit(1)
+    .maybeSingle()
+
+  // Active inline ad
   const { data: ad } = await supabase
     .from('ad_placements')
     .select('*, advertiser:advertiser_accounts(business_name, slug)')
@@ -113,6 +130,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     .maybeSingle()
 
   const totalListings = (featured?.length ?? 0) + (standard?.length ?? 0)
+  const guideName = (guide.display_name as string).replace(' Guide', '').replace(' guide', '')
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -151,6 +169,21 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
           {/* ── Main column ───────────────────────────────────── */}
           <div className="lg:col-span-8 space-y-12">
 
+            {/* Section sponsor banner — shown ABOVE featured providers */}
+            {sectionSponsor ? (
+              // Paid sponsor — show their branding
+              <div className="flex items-center gap-3 py-2.5 px-4 rounded-2xl bg-accent/10 border border-accent/20">
+                <span className="text-xs font-bold uppercase tracking-wider text-accent shrink-0">Section Sponsor</span>
+                <span className="w-px h-4 bg-accent/30 shrink-0" />
+                <span className="text-sm font-semibold text-foreground">
+                  {(sectionSponsor.advertiser as { business_name?: string } | null)?.business_name ?? sectionSponsor.ad_headline}
+                </span>
+              </div>
+            ) : (
+              // No sponsor — show "available" CTA
+              <SectionSponsorBanner guideName={guideName} guideUrlSlug={urlSlug} />
+            )}
+
             {/* Featured providers */}
             {featured && featured.length > 0 && (
               <section>
@@ -161,9 +194,11 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                 <div className="space-y-5">
                   {featured.map(l => {
                     const a = l.advertiser_accounts as unknown as {
-                      slug: string; business_name: string; card_hook?: string | null;
+                      id: string; slug: string; business_name: string; card_hook?: string | null;
                       hero_photo_url?: string | null; neighborhood?: string | null;
-                      city_state_zip?: string | null; website_url?: string | null; office_phone?: string | null
+                      city_state_zip?: string | null; website_url?: string | null; office_phone?: string | null;
+                      has_military_discount?: boolean | null; is_veteran_owned?: boolean | null;
+                      is_woman_owned?: boolean | null; is_minority_owned?: boolean | null; is_locally_owned?: boolean | null;
                     } | null
                     if (!a) return null
                     const gd = (l.guide_data ?? {}) as Record<string, string>
@@ -192,6 +227,15 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                                 {a.card_hook ?? gd.description}
                               </p>
                             )}
+                            {/* Badges */}
+                            <ListingBadges
+                              hasMilitaryDiscount={a.has_military_discount}
+                              isVeteranOwned={a.is_veteran_owned}
+                              isWomanOwned={a.is_woman_owned}
+                              isMinorityOwned={a.is_minority_owned}
+                              isLocallyOwned={a.is_locally_owned}
+                              className="mb-3"
+                            />
                             <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
                               {(a.neighborhood ?? a.city_state_zip) && (
                                 <span className="flex items-center gap-1">
@@ -212,7 +256,9 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                               </Button>
                               {a.website_url && (
                                 <Button variant="outline" size="sm" asChild>
-                                  <a href={a.website_url} target="_blank" rel="noopener noreferrer">Website</a>
+                                  <a href={a.website_url} target="_blank" rel="noopener noreferrer">
+                                    <Globe className="h-3.5 w-3.5" /> Website
+                                  </a>
                                 </Button>
                               )}
                             </div>
@@ -328,13 +374,16 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
               </Card>
             )}
 
+            {/* Map card */}
+            <GuideMapCard guideName={guideName} listingCount={totalListings} />
+
             {/* Editorial intro */}
             {guide.editorial_intro && (
               <Card>
                 <CardContent className="p-5">
                   <h3 className="font-bold mb-3 text-foreground">About This Guide</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed line-clamp-6">
-                    {guide.editorial_intro.split('\n\n')[0]}
+                    {(guide.editorial_intro as string).split('\n\n')[0]}
                   </p>
                 </CardContent>
               </Card>

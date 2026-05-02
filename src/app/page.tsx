@@ -3,12 +3,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
-import { Card, CardContent } from '@/components/ui/card'
+import { NewsletterSignup } from '@/components/NewsletterSignup'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  CalendarDays, MapPin, Clock, BookOpen, Star, ArrowRight,
-  ChevronRight,
+  TrendingUp, CalendarDays, MapPin, Clock, BookOpen, Star,
+  ArrowRight, Users, Briefcase, Map,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -19,20 +20,6 @@ export const metadata: Metadata = {
   description: 'Local guides, community events, and family resources for the River Region. Schools, childcare, camps, health, and more.',
 }
 
-const GUIDE_EMOJIS: Record<string, string> = {
-  newcomer:       '🏡', 'private-school': '📚', 'summer-camp': '⛺',
-  childcare:      '🧸', 'healthy-kids': '🩺', 'summer-fun': '☀️',
-  'birthday-party':'🎂', afterschool: '🎨', 'special-needs': '💙',
-}
-
-const TRENDING = [
-  { emoji: '☀️', label: '2026 Summer Camp Guide is Live', href: '/summer-camp-guide' },
-  { emoji: '📖', label: 'May 2026 Digital Issue',          href: '/local-guides' },
-  { emoji: '🏆', label: 'Nominate a Teacher of the Month', href: '/local-guides' },
-  { emoji: '🎪', label: "Mother's Day Weekend Events",    href: '/calendar' },
-  { emoji: '🍎', label: 'School Year Wind-Down Tips',      href: '/newcomer-guide/articles' },
-]
-
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,297 +27,565 @@ function getSupabase() {
   )
 }
 
-async function getData() {
+async function getHomepageData() {
   const supabase = getSupabase()
-  const today    = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
 
-  const [guidesRes, eventsRes, articlesRes, featuredRes] = await Promise.all([
-    supabase
-      .from('guide_types')
-      .select('slug, url_slug, display_name, short_description, hero_image_url')
-      .not('url_slug', 'is', null)
-      .order('display_order', { ascending: true })
-      .limit(6),
-    supabase
-      .from('calendar_events')
-      .select('id, slug, title, start_date, start_time, location_name, is_free, category')
-      .eq('status', 'published')
-      .gte('start_date', today)
-      .order('start_date', { ascending: true })
-      .limit(4),
-    supabase
-      .from('guide_articles')
+  const [
+    trendingRes,
+    mainFeatureRes,
+    summerCampRes,
+    spotlightsRes,
+    eventsRes,
+    miniEventsRes,
+    articlesRes,
+    inlineAdRes,
+    sidebarAdRes,
+    businessSpotlightRes,
+  ] = await Promise.all([
+    supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
+    supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, excerpt, category')
+      .eq('category', 'mom-to-mom')
       .eq('editorial_review_status', 'approved')
       .order('created_at', { ascending: false })
-      .limit(4),
-    supabase
-      .from('guide_listings')
-      .select(`
-        id, listing_tier, guide_type_slug,
-        advertiser_accounts ( slug, business_name, card_hook, hero_photo_url, city_state_zip ),
-        guide_types ( display_name, url_slug )
-      `)
-      .in('listing_tier', ['featured', 'tier-1-featured-listing'])
-      .eq('is_published', true)
-      .limit(1),
+      .limit(1).maybeSingle(),
+    supabase.from('guide_types')
+      .select('slug, url_slug, display_name, hero_image_url, pitch')
+      .eq('slug', 'summer-camp').maybeSingle(),
+    supabase.from('community_spotlights')
+      .select('*').eq('is_active', true).order('display_order').limit(3),
+    supabase.from('calendar_events')
+      .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
+      .eq('status', 'published').gte('start_date', today)
+      .order('start_date').limit(3),
+    supabase.from('calendar_events')
+      .select('id, slug, title, start_date, start_time, location_name')
+      .eq('status', 'published').gte('start_date', today)
+      .order('start_date').limit(3),
+    supabase.from('guide_articles')
+      .select('id, title, slug, hero_image_url, excerpt, category')
+      .eq('editorial_review_status', 'approved')
+      .neq('category', 'mom-to-mom')
+      .order('created_at', { ascending: false }).limit(4),
+    supabase.from('ad_placements')
+      .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
+      .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
+      .order('display_priority', { ascending: false })
+      .limit(1).maybeSingle(),
+    supabase.from('ad_placements')
+      .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
+      .eq('placement_type', 'homepage_sidebar_ad').eq('is_active', true)
+      .order('display_priority', { ascending: false })
+      .limit(1).maybeSingle(),
+    supabase.from('ad_placements')
+      .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
+      .eq('placement_type', 'homepage_business_spotlight').eq('is_active', true)
+      .order('display_priority', { ascending: false })
+      .limit(1).maybeSingle(),
   ])
 
   return {
-    guides:   guidesRes.data ?? [],
-    events:   eventsRes.data ?? [],
-    articles: articlesRes.data ?? [],
-    featured: featuredRes.data ?? [],
+    trending:          trendingRes.data ?? [],
+    mainFeature:       mainFeatureRes.data ?? null,
+    summerCamp:        summerCampRes.data ?? null,
+    spotlights:        spotlightsRes.data ?? [],
+    events:            eventsRes.data ?? [],
+    miniEvents:        miniEventsRes.data ?? [],
+    articles:          articlesRes.data ?? [],
+    inlineAd:          inlineAdRes.data ?? null,
+    sidebarAd:         sidebarAdRes.data ?? null,
+    businessSpotlight: businessSpotlightRes.data ?? null,
   }
 }
 
+function fmtDate(d: string) {
+  const dt = new Date(d + 'T12:00:00')
+  return {
+    month: dt.toLocaleDateString('en-US', { month: 'short' }),
+    day:   dt.getDate(),
+    full:  dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+  }
+}
+
+const SPOTLIGHT_CONFIG = [
+  { label: 'Teacher of the Month', emoji: '🍎', badge: 'text-amber-700 bg-amber-50 border-amber-200' },
+  { label: 'Student Spotlight',    emoji: '🌟', badge: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
+  { label: 'Grands Are Great',     emoji: '💛', badge: 'text-rose-700 bg-rose-50 border-rose-200' },
+]
+
 export default async function HomePage() {
-  const { guides, events, articles, featured } = await getData()
-  const featuredOne = featured[0] ?? null
-  const fa = featuredOne?.advertiser_accounts as unknown as {
-    slug: string; business_name: string; card_hook?: string | null;
-    hero_photo_url?: string | null; city_state_zip?: string | null
-  } | null
-  const fg = featuredOne?.guide_types as unknown as { display_name: string; url_slug: string } | null
+  const { trending, mainFeature, summerCamp, spotlights, events, miniEvents, articles, inlineAd, sidebarAd, businessSpotlight } = await getHomepageData()
+
+  const fallbackTrending = [
+    { id: '1', label: '2026 Summer Camp Guide is Live',     href: '/summer-camp-guide',  emoji: '⛺' },
+    { id: '2', label: 'May 2026 Digital Issue',              href: '/local-guides',        emoji: '📖' },
+    { id: '3', label: 'Nominate a Teacher of the Month',    href: '/local-guides',        emoji: '🏆' },
+    { id: '4', label: "Mother's Day Weekend Events",         href: '/calendar',            emoji: '🌸' },
+  ]
+  const trendingItems = trending.length > 0 ? trending : fallbackTrending
 
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Trending ticker */}
-      <div className="bg-primary text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2">
+      {/* ── Trending ticker — bg-primary/10 (light peach, NOT solid) ── */}
+      <div className="bg-primary/10 border-b border-primary/20 py-2 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-4 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-            <span className="text-xs font-bold uppercase tracking-wider opacity-80 whitespace-nowrap shrink-0">Trending</span>
-            <div className="w-px h-4 bg-white/30 shrink-0" />
-            {TRENDING.map((t, i) => (
-              <Link key={i} href={t.href}
-                className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity shrink-0 whitespace-nowrap">
-                <span>{t.emoji}</span>
-                <span className="font-medium">{t.label}</span>
-                {i < TRENDING.length - 1 && <span className="text-white/40 ml-2">·</span>}
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary whitespace-nowrap shrink-0">
+              <TrendingUp className="h-3.5 w-3.5" />
+              Trending:
+            </span>
+            <div className="w-px h-3.5 bg-primary/30 shrink-0" />
+            {trendingItems.slice(0, 4).map((t: { id?: string; emoji?: string; label?: string; text?: string; href?: string; url?: string }, i) => (
+              <Link
+                key={t.id ?? i}
+                href={t.href ?? t.url ?? '#'}
+                className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors shrink-0 whitespace-nowrap"
+              >
+                {t.emoji && <span>{t.emoji}</span>}
+                <span className="font-medium">{t.label ?? t.text}</span>
+                {i < 3 && <span className="text-primary/30 ml-2">·</span>}
               </Link>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Hero */}
-      <div className="border-b border-border" style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(250,248,245,1) 40%, rgba(44,122,123,0.06) 100%)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 lg:py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <Badge variant="secondary" className="mb-5">May 2026 Issue Now Live</Badge>
-              <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-5">
-                Everything for
-                <span className="block text-primary">River Region Families.</span>
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                Local guides, community events, and trusted recommendations — built by families who actually live here.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button asChild size="lg" className="rounded-full">
-                  <Link href="/local-guides">Browse All Guides <ArrowRight className="h-4 w-4" /></Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="rounded-full">
-                  <Link href="/calendar">This Month&apos;s Events</Link>
-                </Button>
+      {/* ── Top featured area — 12-col grid ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
+        <div className="grid lg:grid-cols-12 gap-6">
+
+          {/* Main feature — full-bleed photo with overlay (lg:col-span-8) */}
+          <div className="lg:col-span-8">
+            <div className="relative rounded-3xl overflow-hidden min-h-[320px] lg:min-h-[500px] bg-foreground/10">
+              {mainFeature?.hero_image_url ? (
+                <Image
+                  src={mainFeature.hero_image_url}
+                  alt={mainFeature.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  unoptimized
+                  sizes="900px"
+                  priority
+                />
+              ) : (
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.85) 0%, rgba(44,122,123,0.75) 100%)' }}
+                />
+              )}
+              {/* Gradient overlay for text legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+              {/* Mom-to-Mom badge — top left */}
+              <div className="absolute top-4 left-4">
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 text-xs font-bold">
+                  Mom to Mom
+                </Badge>
+              </div>
+
+              {/* Content — bottom left */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+                {mainFeature ? (
+                  <>
+                    <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
+                      {mainFeature.category ?? 'Featured Story'}
+                    </p>
+                    <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
+                      {mainFeature.title}
+                    </h2>
+                    {mainFeature.excerpt && (
+                      <p className="text-white/80 text-sm leading-relaxed mb-4 max-w-lg line-clamp-2">
+                        {mainFeature.excerpt}
+                      </p>
+                    )}
+                    <Button asChild size="sm" className="rounded-full bg-white text-foreground hover:bg-white/90">
+                      <Link href={`/newcomer-guide/articles/${mainFeature.slug}`}>
+                        Read Story <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-3">
+                      Mom to Mom interviews coming soon
+                    </Badge>
+                    <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
+                      Real stories from River Region moms
+                    </h2>
+                    <p className="text-white/80 text-sm mb-4">
+                      Subscribe to get notified when our first interview publishes.
+                    </p>
+                    <Button asChild size="sm" className="rounded-full bg-white text-foreground hover:bg-white/90">
+                      <Link href="#newsletter">Subscribe</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Side features — stacked (lg:col-span-4) */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
+
+            {/* Summer Camp Guide card */}
+            <div className="relative rounded-3xl overflow-hidden h-[200px] lg:h-[240px] bg-secondary/20 flex-shrink-0">
+              {summerCamp?.hero_image_url ? (
+                <Image
+                  src={summerCamp.hero_image_url}
+                  alt={summerCamp.display_name ?? 'Summer Camp Guide'}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  unoptimized
+                  sizes="400px"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(135deg, rgba(44,122,123,0.9) 0%, rgba(212,168,67,0.7) 100%)' }}
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute top-4 left-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,168,67,0.9)' }}>
+                  <Map className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <h3 className="text-white font-bold text-lg leading-tight mb-1">
+                  {summerCamp?.display_name ?? '2026 Summer Camp Guide'}
+                </h3>
+                <p className="text-white/70 text-xs mb-3 line-clamp-1">
+                  {summerCamp?.pitch ?? 'Find the perfect summer camp for your child.'}
+                </p>
+                <Link
+                  href={`/${summerCamp?.url_slug ?? 'summer-camp-guide'}`}
+                  className="text-white text-xs font-bold hover:text-accent transition-colors flex items-center gap-1"
+                >
+                  Explore Guide <ArrowRight className="h-3 w-3" />
+                </Link>
               </div>
             </div>
 
-            {fa && fg ? (
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative aspect-video bg-muted">
-                  {fa.hero_photo_url ? (
-                    <Image src={fa.hero_photo_url} alt={fa.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="600px" />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.2) 0%, rgba(44,122,123,0.2) 100%)' }}>
-                      <span className="text-6xl font-bold text-primary/30">{fa.business_name[0]}</span>
+            {/* Community Spotlights card */}
+            <Card className="flex-1 rounded-3xl border overflow-hidden">
+              <CardHeader className="pb-2 pt-4 px-5">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Community Spotlights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 space-y-3">
+                {SPOTLIGHT_CONFIG.map((cfg, i) => {
+                  const s = spotlights[i]
+                  return (
+                    <div key={cfg.label} className="flex items-center gap-3">
+                      {/* Avatar */}
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-primary/10">
+                        <span className="text-sm">{cfg.emoji}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.badge} mb-0.5`}>
+                          {cfg.label}
+                        </span>
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {s?.honoree_name ?? '— Nominations open'}
+                        </p>
+                        {s?.honoree_context && (
+                          <p className="text-xs text-muted-foreground truncate">{s.honoree_context}</p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="absolute top-3 left-3">
-                    <Badge variant="accent">Featured Partner</Badge>
-                  </div>
-                </div>
-                <CardContent className="p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">{fg.display_name}</p>
-                  <h3 className="text-xl font-bold text-foreground mb-2">{fa.business_name}</h3>
-                  {fa.card_hook && <p className="text-sm text-muted-foreground mb-4">{fa.card_hook}</p>}
-                  <Button asChild size="sm" className="rounded-full">
-                    <Link href={`/${fg.url_slug}/listings/${fa.slug}`}>View Profile</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="overflow-hidden">
-                <div className="p-10 text-center" style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(44,122,123,0.06) 100%)' }}>
-                  <BookOpen className="h-16 w-16 text-primary/30 mx-auto mb-4" />
-                  <p className="font-bold text-foreground text-lg mb-2">9 Local Guides</p>
-                  <p className="text-sm text-muted-foreground mb-5">Schools, childcare, camps, health, activities & more</p>
-                  <Button asChild variant="outline" className="rounded-full">
-                    <Link href="/local-guides">Browse Guides</Link>
-                  </Button>
-                </div>
-              </Card>
-            )}
+                  )
+                })}
+                <Button asChild variant="outline" size="sm" className="w-full rounded-full mt-2">
+                  <Link href="/local-guides">Nominate Someone</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-16">
-        {events.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold text-foreground">Upcoming Events</h2>
-              </div>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/calendar">View all <ChevronRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {events.map(ev => (
-                <Link key={ev.id} href={`/calendar/events/${ev.slug ?? ev.id}`} className="group block">
-                  <Card className="hover:shadow-md transition-shadow h-full">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        {ev.start_date && (
-                          <div className="shrink-0 text-center w-12 bg-muted rounded-lg p-1.5">
-                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                              {new Date(ev.start_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
-                            </p>
-                            <p className="text-xl font-bold text-foreground leading-none">
-                              {new Date(ev.start_date + 'T12:00:00').getDate()}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-sm text-foreground line-clamp-2 leading-snug mb-1">{ev.title}</h4>
-                          {ev.start_time && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />{ev.start_time}
-                            </p>
-                          )}
-                          {ev.location_name && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />{ev.location_name}
-                            </p>
-                          )}
-                          {ev.is_free && <Badge className="mt-1.5 text-[10px] py-0">Free</Badge>}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+      {/* ── Portal two-column layout ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="grid lg:grid-cols-12 gap-10">
 
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
-              <h2 className="text-2xl font-bold text-foreground">Local Guides</h2>
-            </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/local-guides">All 9 Guides <ChevronRight className="h-4 w-4" /></Link>
-            </Button>
+          {/* ── Main content column (lg:col-span-8) ── */}
+          <div className="lg:col-span-8 space-y-10">
+
+            {/* Upcoming Events */}
+            {events.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-primary" />
+                    Upcoming Events
+                  </h2>
+                  <Button asChild variant="outline" size="sm" className="rounded-full">
+                    <Link href="/calendar">Full Calendar <ArrowRight className="h-3 w-3" /></Link>
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {events.map((ev, i) => {
+                    const dt = ev.start_date ? fmtDate(ev.start_date) : null
+                    const isFirst = i === 0
+                    return (
+                      <Link
+                        key={ev.id}
+                        href={`/calendar/events/${ev.slug ?? ev.id}`}
+                        className="group block"
+                      >
+                        <div className={`flex items-start gap-4 p-4 rounded-2xl border transition-shadow hover:shadow-sm ${isFirst ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'}`}>
+                          {/* Date stamp box */}
+                          {dt && (
+                            <div className="shrink-0 h-20 w-20 bg-primary/10 rounded-2xl flex flex-col items-center justify-center text-center">
+                              <p className="text-xs font-bold uppercase tracking-wider text-primary">{dt.month}</p>
+                              <p className="text-3xl font-bold text-foreground leading-none">{dt.day}</p>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-foreground leading-snug mb-1 group-hover:text-primary transition-colors">
+                              {ev.title}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                              {ev.start_time && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />{ev.start_time}
+                                </span>
+                              )}
+                              {ev.location_name && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />{ev.location_name}
+                                </span>
+                              )}
+                              {ev.is_free && (
+                                <Badge className="text-[10px] py-0">Free</Badge>
+                              )}
+                            </div>
+                          </div>
+                          {/* Optional thumbnail */}
+                          {ev.hero_image_url && (
+                            <div className="hidden sm:block shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
+                              <img
+                                src={ev.hero_image_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* In-Feed Ad Spot */}
+            {inlineAd && (
+              <div className="relative bg-muted/50 border border-border rounded-2xl p-6 overflow-hidden">
+                {/* Decorative blur */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="relative flex items-start gap-4">
+                  <div className="shrink-0 w-12 h-12 bg-card rounded-xl flex items-center justify-center shadow-sm">
+                    <Star className="h-6 w-6 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Sponsored</p>
+                    {inlineAd.ad_headline && (
+                      <h3 className="font-bold text-foreground mb-1">{inlineAd.ad_headline}</h3>
+                    )}
+                    {inlineAd.ad_description && (
+                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{inlineAd.ad_description}</p>
+                    )}
+                    {inlineAd.ad_cta_label && inlineAd.ad_link && (
+                      <Button asChild size="sm" className="rounded-full">
+                        <Link href={inlineAd.ad_link}>{inlineAd.ad_cta_label}</Link>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Parenting & Lifestyle — 2×2 article grid */}
+            {articles.length > 0 && (
+              <section>
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-5">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  Parenting &amp; Lifestyle
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {articles.slice(0, 4).map(a => (
+                    <Link key={a.id} href={`/newcomer-guide/articles/${a.slug}`} className="group block">
+                      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
+                        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+                          {a.hero_image_url ? (
+                            <Image
+                              src={a.hero_image_url}
+                              alt={a.title}
+                              fill
+                              style={{ objectFit: 'cover' }}
+                              className="group-hover:scale-105 transition-transform duration-500"
+                              sizes="400px"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
+                          )}
+                          {a.category && (
+                            <div className="absolute top-3 left-3">
+                              <Badge className="text-xs">{a.category}</Badge>
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-4 flex-1">
+                          <h3 className="font-bold text-lg text-foreground leading-snug line-clamp-2 mb-2">
+                            {a.title}
+                          </h3>
+                          {a.excerpt && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {guides.slice(0, 6).map(g => {
-              const emoji   = GUIDE_EMOJIS[g.slug] ?? '📖'
-              const urlSlug = g.url_slug ?? g.slug
-              return (
-                <Link key={g.slug} href={`/${urlSlug}`} className="group block">
-                  <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
-                    <div className="relative h-36 bg-muted overflow-hidden">
-                      {g.hero_image_url ? (
-                        <Image src={g.hero_image_url} alt={g.display_name} fill style={{ objectFit: 'cover' }}
-                          className="group-hover:scale-105 transition-transform duration-500" sizes="400px" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-4xl"
-                          style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.1) 0%, rgba(44,122,123,0.1) 100%)' }}>
-                          {emoji}
+
+          {/* ── Sidebar (lg:col-span-4) ── */}
+          <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-20 lg:self-start">
+
+            {/* Sidebar Ad — aspect-square rounded-3xl */}
+            {sidebarAd ? (
+              <div className="relative aspect-square rounded-3xl overflow-hidden bg-secondary/10 flex flex-col">
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Advertisement</p>
+                  <div className="w-12 h-12 bg-card rounded-xl flex items-center justify-center shadow-sm mb-4">
+                    <BookOpen className="h-6 w-6 text-secondary" />
+                  </div>
+                  {sidebarAd.ad_headline && (
+                    <h3 className="font-bold text-foreground mb-2 leading-tight">{sidebarAd.ad_headline}</h3>
+                  )}
+                  {sidebarAd.ad_description && (
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{sidebarAd.ad_description}</p>
+                  )}
+                  {sidebarAd.ad_cta_label && sidebarAd.ad_link && (
+                    <Button asChild className="w-full rounded-full">
+                      <Link href={sidebarAd.ad_link}>{sidebarAd.ad_cta_label}</Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="aspect-square rounded-3xl bg-secondary/10 flex flex-col items-center justify-center p-6 text-center">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Advertisement</p>
+                <div className="w-12 h-12 bg-card rounded-xl flex items-center justify-center shadow-sm mb-4">
+                  <BookOpen className="h-6 w-6 text-secondary" />
+                </div>
+                <p className="font-bold text-foreground mb-2">Your Ad Here</p>
+                <p className="text-sm text-muted-foreground mb-4">Reach River Region families every week.</p>
+                <Button asChild className="w-full rounded-full">
+                  <Link href="/advertise">Learn More</Link>
+                </Button>
+              </div>
+            )}
+
+            {/* Mini Calendar Widget */}
+            <Card className="border">
+              <CardHeader className="pb-2 pt-4 px-5">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  Upcoming Events
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-4 space-y-1">
+                {miniEvents.length > 0 ? miniEvents.map(ev => {
+                  const dt = ev.start_date ? fmtDate(ev.start_date) : null
+                  return (
+                    <Link
+                      key={ev.id}
+                      href={`/calendar/events/${ev.slug ?? ev.id}`}
+                      className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-muted/60 transition-colors group"
+                    >
+                      {dt && (
+                        <div className="shrink-0 text-center w-10">
+                          <p className="text-[10px] font-bold uppercase text-muted-foreground">{dt.month}</p>
+                          <p className="text-xl font-bold text-foreground leading-none">{dt.day}</p>
                         </div>
                       )}
-                    </div>
-                    <CardContent className="p-4 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-bold text-foreground mb-1">{g.display_name}</h3>
-                        <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{g.short_description}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-
-        {articles.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-accent fill-accent" />
-                <h2 className="text-2xl font-bold text-foreground">Latest Articles</h2>
-              </div>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/newcomer-guide/articles">All Articles <ChevronRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {articles.map(a => (
-                <Link key={a.id} href={`/newcomer-guide/articles/${a.slug}`} className="group block">
-                  <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
-                    {a.hero_image_url && (
-                      <div className="relative aspect-video overflow-hidden bg-muted">
-                        <Image src={a.hero_image_url} alt={a.title} fill style={{ objectFit: 'cover' }}
-                          className="group-hover:scale-105 transition-transform duration-500" sizes="320px" />
-                      </div>
-                    )}
-                    <CardContent className="p-4 flex-1">
-                      {a.category && <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">{a.category}</p>}
-                      <h3 className="font-bold text-sm text-foreground line-clamp-3 leading-snug">{a.title}</h3>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section>
-          <Card className="overflow-hidden bg-primary">
-            <CardContent className="p-8 md:p-10">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div className="text-white">
-                  <Badge className="mb-4 bg-white/20 text-white border-white/30">Free Newsletter</Badge>
-                  <h2 className="text-3xl font-bold mb-3">Join 2,000+ River Region families</h2>
-                  <p className="text-white/80 leading-relaxed">
-                    What&apos;s happening this weekend. Which guides are freshly updated. Events worth circling. Every week, free.
-                  </p>
+                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                        {ev.title}
+                      </p>
+                    </Link>
+                  )
+                }) : (
+                  <p className="text-sm text-muted-foreground py-3">No upcoming events.</p>
+                )}
+                <div className="pt-2">
+                  <Button asChild variant="outline" size="sm" className="w-full rounded-full">
+                    <Link href="/calendar">View Full Calendar</Link>
+                  </Button>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    className="flex-1 h-11 px-4 rounded-full bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-white/50 text-sm"
-                  />
-                  <Link
-                    href="/newsletter"
-                    className="h-11 px-6 rounded-full font-semibold text-sm whitespace-nowrap bg-white text-primary hover:bg-white/90 transition-colors flex items-center justify-center"
-                  >
-                    Subscribe Free
+              </CardContent>
+            </Card>
+
+            {/* Business Spotlight — dark card */}
+            {businessSpotlight ? (
+              <div className="relative bg-foreground text-background rounded-3xl p-5 overflow-hidden">
+                <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl translate-x-1/2 translate-y-1/2 pointer-events-none" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">Business Spotlight</p>
+                  </div>
+                  {businessSpotlight.ad_headline && (
+                    <h3 className="font-bold text-lg text-background mb-1">{businessSpotlight.ad_headline}</h3>
+                  )}
+                  {businessSpotlight.ad_description && (
+                    <p className="text-sm text-background/70 leading-relaxed mb-4">{businessSpotlight.ad_description}</p>
+                  )}
+                  {businessSpotlight.ad_link && (
+                    <Link
+                      href={businessSpotlight.ad_link}
+                      className="text-primary text-sm font-semibold hover:text-primary/80 transition-colors flex items-center gap-1"
+                    >
+                      Read their story <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="relative bg-foreground text-background rounded-3xl p-5 overflow-hidden">
+                <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl translate-x-1/2 translate-y-1/2 pointer-events-none" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">Business Spotlight</p>
+                  </div>
+                  <h3 className="font-bold text-lg text-background mb-1">Feature Your Business</h3>
+                  <p className="text-sm text-background/70 leading-relaxed mb-4">
+                    The Business Spotlight reaches River Region families who are actively looking for local services.
+                  </p>
+                  <Link href="/advertise" className="text-primary text-sm font-semibold hover:text-primary/80 transition-colors flex items-center gap-1">
+                    Learn about sponsorship <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
+            )}
+
+            {/* Newsletter Signup — sidebar variant */}
+            <div id="newsletter">
+              <NewsletterSignup variant="sidebar" source="homepage-sidebar" />
+            </div>
+          </aside>
+        </div>
+      </div>
 
       <PublicFooter />
     </div>

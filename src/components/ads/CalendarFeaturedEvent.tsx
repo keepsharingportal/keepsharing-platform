@@ -8,18 +8,34 @@ export async function CalendarFeaturedEvent() {
   const ad = ads[0]
 
   return (
-    <div className="ad-calendar-featured" style={{ marginBottom: 'var(--ed-space-xl)' }}>
+    <div className="rounded-2xl border border-secondary/20 bg-secondary/5 overflow-hidden mb-6">
       {ad.ad_image_url && (
-        <div style={{ position: 'relative', overflow: 'hidden', minHeight: 180 }}>
-          <Image src={ad.ad_image_url} alt={ad.ad_headline ?? 'Sponsor Spotlight'} fill style={{ objectFit: 'cover' }} unoptimized sizes="600px" />
+        <div className="relative overflow-hidden" style={{ minHeight: 180 }}>
+          <Image
+            src={ad.ad_image_url}
+            alt={ad.ad_headline ?? 'Sponsor Spotlight'}
+            fill
+            style={{ objectFit: 'cover' }}
+            unoptimized
+            sizes="600px"
+          />
         </div>
       )}
-      <div style={{ padding: 'var(--ed-space-lg)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <p className="ad-eyebrow">{ad.ad_eyebrow ?? 'Sponsor Spotlight'}</p>
-        {ad.ad_headline && <h3 className="ad-headline">{ad.ad_headline}</h3>}
-        {ad.ad_description && <p className="ad-description">{ad.ad_description}</p>}
+      <div className="p-6">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">
+          {ad.ad_eyebrow ?? 'Sponsor Spotlight'}
+        </p>
+        {ad.ad_headline && (
+          <h3 className="font-bold text-foreground text-lg mb-2 leading-snug">{ad.ad_headline}</h3>
+        )}
+        {ad.ad_description && (
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{ad.ad_description}</p>
+        )}
         {ad.ad_cta_label && ad.ad_link && (
-          <Link href={ad.ad_link} className="ad-cta" style={{ marginTop: 'var(--ed-space-sm)' }}>
+          <Link
+            href={ad.ad_link}
+            className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-secondary text-white text-sm font-semibold hover:bg-secondary/90 transition-colors"
+          >
             {ad.ad_cta_label} →
           </Link>
         )}
