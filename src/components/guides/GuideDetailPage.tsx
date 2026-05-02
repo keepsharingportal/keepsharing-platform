@@ -1,0 +1,404 @@
+import { createClient } from '@supabase/supabase-js'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Navigation } from '@/components/Navigation'
+import { PublicFooter } from '@/components/PublicFooter'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Star, MapPin, Phone, Globe, BookOpen, Filter,
+  ChevronRight, Users, Clock,
+} from 'lucide-react'
+import type { Metadata } from 'next'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
+
+export async function generateGuideDetailMetadata(urlSlug: string): Promise<Metadata> {
+  const { data } = await getSupabase()
+    .from('guide_types')
+    .select('display_name, short_description')
+    .eq('url_slug', urlSlug)
+    .single()
+  if (!data) return { title: 'Guide Not Found' }
+  return {
+    title:       `${data.display_name} | River Region Parents`,
+    description: data.short_description ?? undefined,
+  }
+}
+
+interface Props {
+  urlSlug: string
+  categoryFilter?: string
+}
+
+export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
+  const supabase = getSupabase()
+
+  const { data: guide } = await supabase
+    .from('guide_types')
+    .select('*')
+    .eq('url_slug', urlSlug)
+    .single()
+
+  if (!guide) notFound()
+
+  // Featured listings
+  const { data: featured } = await supabase
+    .from('guide_listings')
+    .select(`
+      id, listing_tier, category, guide_data,
+      advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip, website_url, office_phone )
+    `)
+    .eq('guide_type_slug', guide.slug)
+    .eq('is_published', true)
+    .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'])
+    .order('display_order', { ascending: true })
+    .limit(3)
+
+  // Standard listings
+  let stdQuery = supabase
+    .from('guide_listings')
+    .select(`
+      id, listing_tier, category, guide_data,
+      advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip )
+    `)
+    .eq('guide_type_slug', guide.slug)
+    .eq('is_published', true)
+    .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
+    .order('display_order', { ascending: true })
+
+  if (categoryFilter) stdQuery = stdQuery.eq('category', categoryFilter)
+  const { data: standard, count: totalCount } = await stdQuery.range(0, 23)
+
+  // Category counts
+  const { data: catRows } = await supabase
+    .from('guide_listings')
+    .select('category')
+    .eq('guide_type_slug', guide.slug)
+    .eq('is_published', true)
+    .not('category', 'is', null)
+
+  const catMap: Record<string, number> = {}
+  for (const r of catRows ?? []) {
+    if (r.category) catMap[r.category] = (catMap[r.category] ?? 0) + 1
+  }
+  const categories = Object.entries(catMap).sort((a, b) => b[1] - a[1])
+
+  // Active ad for directory
+  const { data: ad } = await supabase
+    .from('ad_placements')
+    .select('*, advertiser:advertiser_accounts(business_name, slug)')
+    .eq('placement_type', 'guide_directory_inline_ad')
+    .eq('is_active', true)
+    .lte('starts_at', new Date().toISOString())
+    .or(`ends_at.is.null,ends_at.gte.${new Date().toISOString()}`)
+    .order('display_priority', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Related article
+  const { data: article } = await supabase
+    .from('guide_articles')
+    .select('id, title, slug, hero_image_url, excerpt')
+    .eq('editorial_review_status', 'approved')
+    .ilike('category', `%${guide.slug}%`)
+    .limit(1)
+    .maybeSingle()
+
+  const totalListings = (featured?.length ?? 0) + (standard?.length ?? 0)
+
+  return (
+    <div className="min-h-screen bg-background public-page">
+      <Navigation />
+
+      {/* Header band */}
+      <div className="bg-primary/5 border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
+          <div className="max-w-3xl">
+            <Badge className="mb-4">2026 Edition</Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground leading-tight">
+              {guide.display_name}
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              {guide.pitch ?? guide.hub_intro_paragraph ?? guide.short_description}
+            </p>
+            <div className="flex items-center gap-4 mt-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4 text-primary" />
+                {totalListings} listings
+              </span>
+              {categories.length > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Filter className="h-4 w-4 text-primary" />
+                  {categories.length} categories
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+        <div className="grid lg:grid-cols-12 gap-10">
+
+          {/* ── Main column ───────────────────────────────────── */}
+          <div className="lg:col-span-8 space-y-12">
+
+            {/* Featured providers */}
+            {featured && featured.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-6">
+                  <Star className="h-5 w-5 text-accent fill-accent" />
+                  <h2 className="text-2xl font-bold text-foreground">Featured Providers</h2>
+                </div>
+                <div className="space-y-5">
+                  {featured.map(l => {
+                    const a = l.advertiser_accounts as unknown as {
+                      slug: string; business_name: string; card_hook?: string | null;
+                      hero_photo_url?: string | null; neighborhood?: string | null;
+                      city_state_zip?: string | null; website_url?: string | null; office_phone?: string | null
+                    } | null
+                    if (!a) return null
+                    const gd = (l.guide_data ?? {}) as Record<string, string>
+                    return (
+                      <Card key={l.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row">
+                          {/* Image */}
+                          <div className="sm:w-52 sm:shrink-0 bg-muted relative aspect-video sm:aspect-auto">
+                            {a.hero_photo_url
+                              ? <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="208px" />
+                              : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                                  <span className="text-4xl font-bold text-primary/50">{a.business_name[0]}</span>
+                                </div>
+                            }
+                          </div>
+                          {/* Content */}
+                          <CardContent className="p-5 flex-1">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <Badge variant="accent" className="mb-2 text-xs">Featured Partner</Badge>
+                                <h3 className="text-xl font-bold text-foreground">{a.business_name}</h3>
+                              </div>
+                            </div>
+                            {(a.card_hook ?? gd.description) && (
+                              <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+                                {a.card_hook ?? gd.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
+                              {(a.neighborhood ?? a.city_state_zip) && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {a.neighborhood ?? a.city_state_zip}
+                                </span>
+                              )}
+                              {l.category && (
+                                <span className="flex items-center gap-1">
+                                  <Filter className="h-3 w-3" />
+                                  {l.category}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button asChild size="sm">
+                                <Link href={`/${urlSlug}/listings/${a.slug}`}>View Profile</Link>
+                              </Button>
+                              {a.website_url && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <a href={a.website_url} target="_blank" rel="noopener noreferrer">Website</a>
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Directory */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">
+                  {categoryFilter ? `${categoryFilter} Listings` : 'All Listings'}
+                </h2>
+                {categoryFilter && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/${urlSlug}`}>Show All ×</Link>
+                  </Button>
+                )}
+              </div>
+
+              {standard && standard.length > 0 ? (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {standard.map((l, i) => {
+                    const a = l.advertiser_accounts as unknown as {
+                      slug: string; business_name: string; card_hook?: string | null;
+                      hero_photo_url?: string | null; neighborhood?: string | null; city_state_zip?: string | null
+                    } | null
+                    if (!a) return null
+                    const gd = (l.guide_data ?? {}) as Record<string, string>
+                    const hook = a.card_hook ?? gd.description ?? null
+                    return (
+                      <div key={l.id}>
+                        {/* Inline ad after 4th listing */}
+                        {i === 4 && ad && (
+                          <Card key="inline-ad" className="col-span-full mb-0 border-secondary/30 bg-secondary/5">
+                            <CardContent className="p-4">
+                              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">AD</p>
+                              {ad.ad_headline && <p className="font-semibold text-sm text-foreground mb-1">{ad.ad_headline}</p>}
+                              {ad.ad_description && <p className="text-xs text-muted-foreground mb-2">{ad.ad_description}</p>}
+                              {ad.ad_cta_label && ad.ad_link && (
+                                <Button asChild size="sm" variant="secondary" className="rounded-full">
+                                  <Link href={ad.ad_link}>{ad.ad_cta_label}</Link>
+                                </Button>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )}
+                        <Card className="hover:shadow-sm transition-shadow h-full flex flex-col">
+                          {a.hero_photo_url && (
+                            <div className="relative aspect-video overflow-hidden rounded-t-2xl">
+                              <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="320px" />
+                            </div>
+                          )}
+                          <CardContent className="p-4 flex-1 flex flex-col">
+                            <h3 className="font-bold text-foreground mb-1">{a.business_name}</h3>
+                            {(a.neighborhood ?? a.city_state_zip) && (
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                                <MapPin className="h-3 w-3" />{a.neighborhood ?? a.city_state_zip}
+                              </p>
+                            )}
+                            {hook && (
+                              <p className="text-sm text-muted-foreground leading-relaxed mb-3 flex-1 line-clamp-2">{hook}</p>
+                            )}
+                            <Button asChild variant="outline" size="sm" className="mt-auto">
+                              <Link href={`/${urlSlug}/listings/${a.slug}`}>
+                                View Details <ChevronRight className="h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-10 text-center text-muted-foreground">
+                    {categoryFilter ? `No listings found in "${categoryFilter}".` : 'Listings coming soon.'}
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+          </div>
+
+          {/* ── Sidebar ───────────────────────────────────────── */}
+          <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-20 lg:self-start">
+
+            {/* Category filter */}
+            {categories.length > 0 && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="font-bold mb-3 flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-primary" />Filter by Category
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/${urlSlug}`}>
+                      <Badge variant={!categoryFilter ? 'default' : 'outline'} className="cursor-pointer">All</Badge>
+                    </Link>
+                    {categories.map(([cat, cnt]) => (
+                      <Link key={cat} href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}>
+                        <Badge variant={categoryFilter === cat ? 'default' : 'outline'} className="cursor-pointer">
+                          {cat} ({cnt})
+                        </Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Editorial intro */}
+            {guide.editorial_intro && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="font-bold mb-3 text-foreground">About This Guide</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-6">
+                    {guide.editorial_intro.split('\n\n')[0]}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Insider tips */}
+            {Array.isArray(guide.insider_tips) && guide.insider_tips.length > 0 && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="font-bold mb-3 text-foreground flex items-center gap-2">
+                    <Star className="h-4 w-4 text-accent fill-accent" />Insider Tips
+                  </h3>
+                  <ul className="space-y-3">
+                    {(guide.insider_tips as Array<{ tip: string }>).slice(0, 4).map((t, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex gap-2 leading-relaxed">
+                        <span className="text-primary font-bold mt-0.5 shrink-0">✦</span>
+                        {t.tip}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Related article */}
+            {article && (
+              <Card className="overflow-hidden">
+                <div className="p-4 border-b border-border">
+                  <p className="text-xs font-bold uppercase tracking-wider text-primary">Editor&apos;s Pick</p>
+                </div>
+                {article.hero_image_url && (
+                  <div className="relative aspect-video">
+                    <Image src={article.hero_image_url} alt={article.title} fill style={{ objectFit: 'cover' }} sizes="320px" unoptimized />
+                  </div>
+                )}
+                <CardContent className="p-5">
+                  <h4 className="font-bold text-foreground mb-2 leading-snug">{article.title}</h4>
+                  {article.excerpt && (
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{article.excerpt}</p>
+                  )}
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link href={`/newcomer-guide/articles/${article.slug}`}>Read Article</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Advertise CTA */}
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-5 text-center">
+                <p className="font-bold text-foreground mb-2">List Your Business</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Reach thousands of River Region families searching in this guide.
+                </p>
+                <Button asChild className="w-full rounded-full">
+                  <Link href="/advertise">Learn About Listing →</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+      </main>
+
+      <PublicFooter />
+    </div>
+  )
+}

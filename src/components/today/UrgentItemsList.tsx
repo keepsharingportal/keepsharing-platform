@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Phone, Mail, ChevronDown, ChevronUp, Copy, CheckCheck, ExternalLink, X } from 'lucide-react'
 
 export interface UrgentItem {
-  id: number
+  id: string | number
   name: string
   note: string
   phone: string
@@ -22,12 +22,12 @@ interface Props {
 }
 
 export function UrgentItemsList({ items, urgency }: Props) {
-  const [expandedId, setExpandedId]   = useState<number | null>(null)
-  const [editedDrafts, setEditedDrafts] = useState<Record<number, string>>({})
-  const [copied, setCopied]           = useState<number | null>(null)
-  const [dismissed, setDismissed]     = useState<Set<number>>(new Set())
+  const [expandedId, setExpandedId]   = useState<string | number | null>(null)
+  const [editedDrafts, setEditedDrafts] = useState<Record<string, string>>({})
+  const [copied, setCopied]           = useState<string | number | null>(null)
+  const [dismissed, setDismissed]     = useState<Set<string | number>>(new Set())
 
-  const dismiss = (id: number, e: React.MouseEvent) => {
+  const dismiss = (id: string | number, e: React.MouseEvent) => {
     e.stopPropagation()
     setDismissed((prev) => new Set([...prev, id]))
     if (expandedId === id) setExpandedId(null)
@@ -38,7 +38,7 @@ export function UrgentItemsList({ items, urgency }: Props) {
     ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
     : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'
 
-  const handleCopy = (id: number, text: string) => {
+  const handleCopy = (id: string | number, text: string) => {
     navigator.clipboard.writeText(text)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
@@ -107,11 +107,11 @@ export function UrgentItemsList({ items, urgency }: Props) {
                     {item.emailSubject}
                   </span>
                   <button
-                    onClick={() => handleCopy(item.id * 100, item.emailSubject)}
+                    onClick={() => handleCopy(String(item.id) + '-subject', item.emailSubject)}
                     className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
                     title="Copy subject"
                   >
-                    {copied === item.id * 100 ? <CheckCheck size={13} className="text-green-500" /> : <Copy size={13} />}
+                    {copied === String(item.id) + '-subject' ? <CheckCheck size={13} className="text-green-500" /> : <Copy size={13} />}
                   </button>
                 </div>
 

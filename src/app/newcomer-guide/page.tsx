@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronRight, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -8,6 +9,8 @@ import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
 import { FreeListing } from '@/components/family-guide/FreeListing'
 import { SponsorBanner } from '@/components/family-guide/SponsorBanner'
 import { GuideDirectory } from './GuideDirectory'
+import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup'
+import { NewsletterPopupTrigger } from '@/components/newsletter/NewsletterPopupTrigger'
 
 export const metadata: Metadata = {
   title: 'River Region Family Resource Guide',
@@ -107,50 +110,53 @@ function ArticleHeroCard({ article }: { article: GuideArticle }) {
   return (
     <Link href={`/newcomer-guide/articles/${article.slug}`}
       className="group block rounded-2xl overflow-hidden bg-white"
-      style={{ boxShadow: 'var(--fg-shadow)', transition: 'box-shadow 0.2s' }}>
-      {/* 16:9 image area */}
-      <div style={{ aspectRatio: '16/9', position: 'relative', overflow: 'hidden' }}>
-        {hasImage ? (
-          <>
-            <div style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: `url(${article.hero_image_url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }} />
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(26,39,68,0.85) 0%, rgba(26,39,68,0.15) 60%, transparent 100%)',
-            }} />
-          </>
-        ) : (
+      style={{ boxShadow: 'var(--fg-shadow)', transition: 'box-shadow 0.2s, transform 0.2s' }}>
+      {/* 16:9 image area — gradient background always present as fallback */}
+      <div style={{
+        position: 'relative',
+        aspectRatio: '16/9',
+        overflow: 'hidden',
+        background: hasImage
+          ? 'var(--fg-navy)'
+          : 'linear-gradient(135deg, var(--fg-cream, #faf8f5) 0%, var(--fg-sage-light, #edf5f0) 100%)',
+      }}>
+        {hasImage && (
+          <Image
+            src={article.hero_image_url!}
+            alt={article.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        )}
+        {/* Dark gradient overlay for text readability (only when image present) */}
+        {hasImage && (
           <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(135deg, var(--fg-navy) 0%, var(--fg-sky) 100%)',
+            position: 'absolute', inset: 0, zIndex: 1,
+            background: 'linear-gradient(to top, rgba(26,39,68,0.88) 0%, rgba(26,39,68,0.2) 55%, transparent 100%)',
           }} />
         )}
         {/* ARTICLE badge */}
         <span style={{
-          position: 'absolute', top: 10, left: 10,
+          position: 'absolute', top: 10, left: 10, zIndex: 2,
           backgroundColor: 'var(--fg-terra)',
-          color: 'white',
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          padding: '3px 8px',
-          borderRadius: 3,
+          color: 'white', fontSize: 9, fontWeight: 700,
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          padding: '3px 8px', borderRadius: 3,
         }}>Article</span>
-        {/* Title overlay on image */}
-        <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-gold)', marginBottom: 4 }}>
+        {/* Title — overlaid on image or in gradient area */}
+        <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14, zIndex: 2 }}>
+          <p style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: hasImage ? 'var(--fg-gold)' : 'var(--fg-sage)',
+            marginBottom: 4,
+          }}>
             {article.author_name}
           </p>
           <h3 style={{
             fontFamily: 'var(--font-fraunces, serif)',
-            fontSize: 16,
-            fontWeight: 700,
-            color: 'white',
+            fontSize: 17, fontWeight: 700,
+            color: hasImage ? 'white' : 'var(--fg-navy)',
             lineHeight: 1.25,
           }}>
             {article.title}
@@ -158,9 +164,13 @@ function ArticleHeroCard({ article }: { article: GuideArticle }) {
         </div>
       </div>
       {/* Footer */}
-      <div style={{ padding: '10px 14px 12px', borderTop: '1px solid var(--fg-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--fg-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         {article.excerpt && (
-          <p style={{ fontSize: 11, color: 'var(--fg-mid)', lineHeight: 1.5, flex: 1, marginRight: 8, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const }}>
+          <p style={{
+            fontSize: 11, color: 'var(--fg-mid)', lineHeight: 1.5, flex: 1,
+            overflow: 'hidden', display: '-webkit-box',
+            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+          }}>
             {article.excerpt}
           </p>
         )}
@@ -299,20 +309,28 @@ export default async function NewcomerGuidePage() {
               {startHereArticles.map(a => <ArticleHeroCard key={a.slug} article={a} />)}
             </div>
           ) : (
-            /* Fallback if articles not yet seeded */
+            /* Fallback if articles not yet seeded — gradient placeholder cards, no emoji */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
               {[
-                { title: 'Your First 30 Days Checklist', icon: '📋', href: '#first-30-days', desc: 'The practical to-do list — week by week, nothing missed.' },
-                { title: 'Choosing a School', icon: '🏫', href: '/newcomer-guide/articles/choosing-the-right-school-district', desc: 'Six public districts, dozens of private options. How to decide.' },
-                { title: 'Finding Your Community', icon: '🤝', href: '/newcomer-guide/articles/where-to-find-your-people', desc: 'The fastest ways to find your people in the River Region.' },
+                { title: 'Your First 30 Days in the River Region', href: '#first-30-days', desc: 'The practical checklist — week by week, nothing missed.', grad: 'linear-gradient(135deg, var(--fg-cream) 0%, var(--fg-sage-light) 100%)' },
+                { title: 'Choosing a School in the River Region', href: '/newcomer-guide/articles/choosing-the-right-school-district', desc: 'Six public districts, dozens of private options. How to decide.', grad: 'linear-gradient(135deg, var(--fg-sky-light) 0%, #d4e8f8 100%)' },
+                { title: 'Where to Find Your People', href: '/newcomer-guide/articles/where-to-find-your-people', desc: 'The fastest ways to find your community in the River Region.', grad: 'linear-gradient(135deg, var(--fg-terra-light) 0%, #fde8d8 100%)' },
               ].map(card => (
                 <Link key={card.title} href={card.href}
-                  style={{ display: 'block', background: 'white', borderRadius: 16, padding: 24, textDecoration: 'none', boxShadow: 'var(--fg-shadow)' }}>
-                  <div style={{ fontSize: 32, marginBottom: 12 }}>{card.icon}</div>
-                  <h3 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 16, fontWeight: 700, color: 'var(--fg-navy)', marginBottom: 6 }}>
-                    {card.title}
-                  </h3>
-                  <p style={{ fontSize: 12, color: 'var(--fg-mid)', lineHeight: 1.5 }}>{card.desc}</p>
+                  className="group block rounded-2xl overflow-hidden"
+                  style={{ textDecoration: 'none', boxShadow: 'var(--fg-shadow)' }}>
+                  <div style={{ aspectRatio: '16/9', background: card.grad, position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--fg-terra)', color: 'white', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 3 }}>Article</span>
+                    <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14 }}>
+                      <h3 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 17, fontWeight: 700, color: 'var(--fg-navy)', lineHeight: 1.25 }}>
+                        {card.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--fg-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, backgroundColor: 'white' }}>
+                    <p style={{ fontSize: 11, color: 'var(--fg-mid)', lineHeight: 1.5, flex: 1 }}>{card.desc}</p>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--fg-sky)', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>Read <ChevronRight size={12} /></span>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -456,6 +474,18 @@ export default async function NewcomerGuidePage() {
         </section>
 
         {/* ── ADVERTISE CTA ─────────────────────────────────────────────────── */}
+        {/* Newsletter signup */}
+        <NewsletterSignup
+          variant="inline"
+          source="newcomer-guide-footer"
+          headline="Stay in the Loop"
+          subheadline="Get our weekly email with what's new, what's coming up, and what local moms are talking about."
+          cta_label="Subscribe"
+        />
+
+        {/* Popup trigger */}
+        <NewsletterPopupTrigger source="newcomer-guide-popup" />
+
         <section>
           <div style={{
             borderRadius: 20,

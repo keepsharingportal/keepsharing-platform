@@ -9,11 +9,9 @@ interface SponsorBannerProps {
 
 const DEFAULT_PITCHES: Record<string, string> = {
   Schools:
-    'Be the first name families see when they choose where to send their kids. ' +
-    'One school earns exclusive section sponsor status each year.',
+    'Be the school local families see first. When they\'re choosing where to send their kids, our Schools Section Sponsor is the trusted name they meet first. One school per year. Includes year-round Featured presence, custom landing page, dedicated editorial integration.',
   'Pediatric Care':
-    'When a newcomer family chooses their child\'s first doctor, your practice is what they see first. ' +
-    'One practice earns section sponsor status each year.',
+    'When a newcomer family chooses their child\'s first doctor, your practice is the one we put in front of them. One pediatric practice per year as Section Sponsor. Year-round presence, custom landing page, dedicated editorial integration.',
 }
 
 export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBannerProps) {
@@ -37,7 +35,7 @@ export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBanne
   }
 
   const message = pitch ?? DEFAULT_PITCHES[sectionLabel] ??
-    `This section is available for sponsorship. Be the trusted name families see when they look for ${sectionLabel.toLowerCase()} resources.`
+    `This section is available for sponsorship. Be the trusted name families see when they look for ${sectionLabel.toLowerCase()} resources. River Region Parents is the biggest community influencer for parents in the River Region.`
 
   return (
     <div style={{
@@ -59,7 +57,7 @@ export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBanne
             color: 'var(--fg-terra, #c4622d)',
             marginBottom: 4,
           }}>
-            {sectionLabel} — sponsorship available
+            {sectionLabel} — Section Sponsorship Available
           </p>
           <p style={{ fontSize: 13, color: '#555', lineHeight: 1.55 }}>{message}</p>
         </div>

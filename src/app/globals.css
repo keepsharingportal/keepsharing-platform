@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Sidebar (stays dark, matches GHL) ─────────────────── */
+  /* ── Sidebar (admin — stays dark) ───────────────────────── */
   --color-sidebar:        #1a1a2e;
   --color-sidebar-hover:  #252547;
   --color-sidebar-active: #2d2d58;
 
-  /* ── KeepSharing Gold (logo + revenue numbers only) ────── */
+  /* ── KeepSharing Gold (logo + revenue numbers) ────────────── */
   --color-gold-300: #f5d87a;
   --color-gold-400: #f0c040;
   --color-gold-500: #d4af37;
@@ -15,27 +15,56 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ── GHL Design System — Public pages ────────────────────── */
+  --color-primary:            #c4622d;   /* terracotta */
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary:            #2c7a7b; /* deep teal */
+  --color-secondary-foreground: #ffffff;
+
+  --color-accent:            #d4a843;  /* warm gold */
+  --color-accent-foreground: #1a1a1a;
+
+  --color-background:  #faf8f5;   /* warm cream */
+  --color-foreground:  #1f1b16;   /* warm near-black */
+
+  --color-muted:            #f4f0e8;
+  --color-muted-foreground: #6b5e52;
+
+  --color-border:              #e5ddd0;
+  --color-card:                #ffffff;
+  --color-card-foreground:     #1f1b16;
+  --color-destructive:         #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  /* radius tokens */
+  --radius: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
 }
 
-html,
-body {
+/* ── base ──────────────────────────────────────────────────── */
+html, body {
   height: 100%;
   background-color: #f4f5f7;
   color: #111827;
 }
 
-/* Light-mode scrollbars for content */
 * {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db #f3f4f6;
 }
 
-/* Dark scrollbars inside the sidebar */
 aside {
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
 }
 
-/* ── Family Guide / Public site design tokens ───────────────────────────── */
+/* ── Family Guide / Newcomer guide legacy tokens ────────────── */
 :root {
   --fg-navy:       #1a2744;
   --fg-sky:        #4a90d9;
@@ -55,35 +84,22 @@ aside {
   --fg-shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
 }
 
+/* ── Public page base (GHL design system) ──────────────────── */
+.public-page {
+  background-color: #faf8f5;
+  color: #1f1b16;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Print ──────────────────────────────────────────────────── */
 @media print {
-  .no-print {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  body {
-    background: white !important;
-    color: #111 !important;
-    font-size: 11px;
-  }
-  /* Full-bleed table for print */
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-  th, td {
-    border: 1px solid #d1d5db;
-    padding: 3px 6px;
-    font-size: 9.5px;
-  }
-  thead {
-    background: #f9fafb !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  /* Hide the flex wrapper overflow so table prints fully */
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white !important; color: #111 !important; font-size: 11px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #d1d5db; padding: 3px 6px; font-size: 9.5px; }
+  thead { background: #f9fafb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .flex-1.overflow-auto { overflow: visible !important; }
-  /* Sidebar already hidden via .no-print — also ensure main fills page */
   main { width: 100% !important; }
 }

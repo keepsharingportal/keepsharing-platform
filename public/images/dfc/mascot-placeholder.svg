@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140" width="200" height="140">
+  <!-- Chew-Chew Train Mascot Placeholder -->
+  <!-- Replace with official Dentistry for Children artwork -->
+
+  <!-- Track -->
+  <rect x="10" y="115" width="180" height="6" rx="3" fill="#4a90d9" opacity="0.4"/>
+  <rect x="10" y="118" width="180" height="2" rx="1" fill="#1a3d7c" opacity="0.3"/>
+
+  <!-- Wheels -->
+  <circle cx="50" cy="108" r="16" fill="#1a3d7c"/>
+  <circle cx="50" cy="108" r="10" fill="#4a90d9"/>
+  <circle cx="50" cy="108" r="4" fill="white"/>
+  <circle cx="130" cy="108" r="16" fill="#1a3d7c"/>
+  <circle cx="130" cy="108" r="10" fill="#4a90d9"/>
+  <circle cx="130" cy="108" r="4" fill="white"/>
+  <circle cx="165" cy="112" r="10" fill="#1a3d7c"/>
+  <circle cx="165" cy="112" r="6" fill="#4a90d9"/>
+  <circle cx="165" cy="112" r="2.5" fill="white"/>
+
+  <!-- Train body -->
+  <rect x="25" y="70" width="120" height="42" rx="8" fill="#1a3d7c"/>
+  <rect x="30" y="75" width="110" height="32" rx="6" fill="#4a90d9"/>
+
+  <!-- Windows -->
+  <rect x="42" y="80" width="26" height="20" rx="4" fill="white" opacity="0.9"/>
+  <rect x="78" y="80" width="26" height="20" rx="4" fill="white" opacity="0.9"/>
+  <rect x="114" y="80" width="22" height="20" rx="4" fill="white" opacity="0.9"/>
+
+  <!-- Smiley face in main window -->
+  <circle cx="55" cy="89" r="2" fill="#1a3d7c"/>
+  <circle cx="63" cy="89" r="2" fill="#1a3d7c"/>
+  <path d="M52 93 Q59 98 66 93" stroke="#1a3d7c" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Tooth icon in middle window -->
+  <path d="M88 83 Q91 83 93 86 L93 94 Q91 95 91 93 Q90 95 89 93 Q88 95 87 93 Q87 95 85 94 L85 86 Q87 83 88 83Z" fill="#1a3d7c"/>
+
+  <!-- Star in right window -->
+  <text x="125" y="94" font-size="14" fill="#f4a261" text-anchor="middle">⭐</text>
+
+  <!-- Smokestack -->
+  <rect x="120" y="48" width="18" height="26" rx="5" fill="#1a3d7c"/>
+  <ellipse cx="129" cy="48" rx="12" ry="6" fill="#4a90d9"/>
+  <!-- Smoke puffs -->
+  <circle cx="129" cy="36" r="8" fill="#e8f2fc" opacity="0.7"/>
+  <circle cx="124" cy="26" r="6" fill="#e8f2fc" opacity="0.5"/>
+  <circle cx="133" cy="20" r="5" fill="#e8f2fc" opacity="0.3"/>
+
+  <!-- Engine front -->
+  <rect x="145" y="78" width="35" height="34" rx="8" fill="#1a3d7c"/>
+  <rect x="150" y="83" width="25" height="24" rx="5" fill="#4a90d9"/>
+  <circle cx="162" cy="95" r="8" fill="white" opacity="0.9"/>
+  <text x="162" y="99" font-size="10" fill="#1a3d7c" text-anchor="middle" font-weight="bold">🦷</text>
+
+  <!-- Headlight -->
+  <circle cx="180" cy="88" r="5" fill="#f4a261"/>
+  <circle cx="180" cy="88" r="3" fill="white" opacity="0.9"/>
+
+  <!-- Coupler -->
+  <rect x="17" y="95" width="12" height="6" rx="2" fill="#1a3d7c"/>
+
+  <!-- Brand text -->
+  <text x="100" y="135" font-size="9" fill="#1a3d7c" text-anchor="middle" font-family="serif" opacity="0.6">Chew-Chew Train · Dentistry for Children</text>
+</svg>

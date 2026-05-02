@@ -1,5 +1,5 @@
 # KeepSharing Platform — Complete Knowledge Base
-## Master Reference Document · Last Updated: April 29, 2026
+## Master Reference Document · Last Updated: May 2, 2026
 ## Save to Dropbox: /KeepSharing Docs/Knowledge Base/
 
 ---
@@ -953,3 +953,314 @@ Standalone 9x6 "River Region Family Guide" annual publication. Strategic project
 - Whether the magazine's June issue still carries any newcomer framing or fully cedes it to the standalone
 
 **Revisit date:** October 2026. Before then, focus on building the digital guide and gathering reader/advertiser data.
+## Marketing Formula Foundation
+
+The KeepSharing platform is built on the 23 Points Proven Ad Formula, a 25-year distillation of conversion-driven advertising science. Located at `/docs/marketing-formula/23-point-proven-ad-formula.md`.
+
+Every conversion surface — partner offer pages, /advertise sales page, /get-media-kit lead magnet, and onboarding forms — must follow this formula. Future builds reference this document as the source of truth for what makes pages convert.
+
+
+## BUILD RUN #10 — DEPLOYED May 2026
+
+### What shipped:
+- Operations Dashboard wired to live data (action_items, print_placements, real incoming queues)
+- Proposal Generator at /admin/proposals + public /proposal/[token] with accept/question CTAs
+- Partner Backend Dashboard at /partners/[slug]/admin with magic-link auth, 3-tab UI
+- Multi-tenant audit complete + publications table seeded with all 6 markets
+- Polish pass — TypeScript errors fixed
+
+### New tables (migrations 021-024):
+- 021: action_items, print_placements, business_spotlight_submissions, nominations, birthday_spotlight_orders
+- 022: proposals
+- 023: partner_auth_tokens + partner_leads reminder columns
+- 024: publications (RRP, Boom, AOP, MBP, ESP, GPP)
+
+### Boom launch readiness: READY (1 week of prep)
+- See /docs/launch-checklist-boom.md
+- See /docs/multi-tenant-audit-results.md
+
+### Pending GHL wiring:
+- Magic link email delivery (logged to console — needs GHL email action)
+- Partner reminder emails (logged — needs GHL workflow)
+- Proposal accepted notification
+
+
+## BUILD RUN #11 — DEPLOYED May 2026
+
+### What shipped:
+- Article import engine (npm run import-articles) — extracts articles from magazine PDFs using Claude Haiku
+- Editorial review queue at /admin/articles/review (approve/reject/needs-edit)
+- Article editor at /admin/articles/[id]/edit (fix extraction errors, save & approve)
+- Newsletter signup forms (3 variants: inline, compact, popup) across platform
+- NewsletterPopupTrigger (60% scroll + 30s dwell, localStorage dismissal)
+- LeadMagnetSignup component (3 lead magnets: newcomer-guide, saturday-checklist, school-workbook)
+- /api/newsletter/subscribe wired to GHL upsertContact with rrp-main-email tag
+- /admin/newsletter subscriber list with CSV export
+
+### New tables (migrations 025-026):
+- 025: guide_articles new columns (source_pdf_filename, source_pdf_page, source_issue_month, import_status, editorial_review_status, editorial_notes, imported_at) + import_log table
+- 026: newsletter_subscribers (email, source, tags, ghl_contact_id, is_subscribed)
+
+### Newsletter placement:
+- Article pages: inline signup + popup trigger
+- /newcomer-guide page: inline signup + popup trigger
+- Newcomer guide layout footer: compact signup bar
+
+### Lead magnet GHL tags:
+- rrp-main-email (all subscribers)
+- lead-magnet-newcomer-guide
+- lead-magnet-saturday-checklist
+- lead-magnet-school-workbook
+
+### Pending Jason actions:
+- Drop magazine PDFs in /imports/magazines/ and run npm run import-articles
+- Review extracted articles at /admin/articles/review
+- Create actual lead magnet PDFs (welcome guide, saturday checklist, school workbook)
+- Place /public/lead-magnets/ PDFs and configure GHL email delivery workflow
+- Set up GHL workflows for lead magnet email delivery
+
+### Documentation:
+- /docs/article-import-guide.md — complete import instructions
+
+---
+
+## Build Run #12 — Editorial Design System + Family Resource Guide (May 2, 2026)
+
+### Editorial design system:
+- Added `--ed-*` CSS tokens to globals.css (additive, not replacing existing styles)
+- `.editorial` body class toggles editorial mode
+- Typography scale: --ed-text-display through --ed-text-eyebrow
+- Spacing scale: --ed-space-xs through --ed-space-3xl
+- Fonts: Fraunces (serif) + DM Sans (sans)
+
+### New editorial components (/src/components/editorial/):
+- EditorialLayout — adds .editorial body class, font variables
+- EditorialHeader — sticky, wordmark + guide name + desktop/mobile nav
+- EditorialHero — full-width image with gradient overlay OR cream text hero
+- EditorialSection — section wrapper with eyebrow/headline/subhead
+- CategoryGrid — 3-col guide cards with emoji fallbacks
+- ListingCard — listing card with featured tier border, logo/initial fallback, card_hook in italic serif
+- AdSlot — "Sponsored" label + editorial-quality sponsored card
+- CrossLinkBlock — "Related Resources" with eyebrow + ArrowRight links
+- CategoryFilterStrip — sticky URL-state filter pills (uses useRouter + useSearchParams)
+- index.ts barrel export
+
+### New routes (/src/app/family-resource-guide/):
+- layout.tsx — EditorialLayout + EditorialHeader + footer
+- page.tsx — Hub page with 9-guide CategoryGrid + newsletter signup
+- [slug]/page.tsx — Dynamic category page with hero, filter strip, ListingCards, AdSlot, CrossLinkBlock, newsletter
+- [slug]/listings/[listingSlug]/page.tsx — Listing detail with hero, at-a-glance facts, flexible sections, contact sidebar
+
+### New components:
+- /src/components/listings/GuideSpecificFields.tsx — guide-type-aware dl/dt/dd at-a-glance block
+
+### New migrations:
+- 028_guide_architecture.sql — guide_types (9 rows), guide_listings, listing_sections, calendar_events, guide_ad_slots; ADD COLUMNs to advertiser_accounts
+- 029_dfc_guide_seeding.sql — Dentistry for Children card_hook, detail_lead, healthy-kids listing, 3 listing_sections
+
+### Import script:
+- /scripts/import-guides.ts — imports 7 guide CSVs + calendar into guide_listings + calendar_events
+- npm run import-guides
+
+### Pending Jason actions (Build Run #12):
+1. Run migration 028 in Supabase SQL editor
+2. Run migration 029 in Supabase SQL editor (after DFC advertiser_account exists)
+3. Run `npm run import-guides` to import 7 guide CSVs + calendar
+4. Run migration 028 first — guide_listings table must exist before import
+5. Verify /family-resource-guide loads and shows all 9 guide cards
+6. AI-generate card_hooks for 10-15 prominent imported businesses (admin task)
+
+### Guide CSV sources:
+- imports/guides/private-school-guide.csv (col: advertiser, category, business, grade, mission, extracurricula, etc.)
+- imports/guides/childcare-guide.csv (col: ages, hours, meals, staff_ratio)
+- imports/guides/healthy-kids-guide.csv (col: category, description)
+- imports/guides/summer-fun-guide.csv (col: category, ages, description)
+- imports/guides/birthday-party-guide.csv (col: category, description)
+- imports/guides/afterschool-guide.csv (col: category, ages, description)
+- imports/guides/special-needs-guide.csv (col: category, description)
+- imports/calendar/may-2026-calendar.csv (col: title, start_date, start_time, location, cost, description)
+
+---
+
+## Build Run #13 — URL Restructure + Magazine TOC + Calendar System (May 2, 2026)
+
+### Architectural Changes:
+- Each guide is now its own top-level URL destination (NOT nested under /family-resource-guide/[slug])
+- /local-guides is the magazine table of contents page with all 9 guides
+- Family Resource Guide = renamed Newcomer Guide, lives at /family-resource-guide
+- Old URLs (/family-resource-guide/private-school, etc.) redirect permanently to new URLs
+- CRITICAL: [neighborhood] dynamic route already exists at src/app/ — cannot add [guideSlug] at same level
+  So each guide has its own static directory delegating to shared components
+
+### New Migrations:
+- 030_url_slugs_and_rename.sql — adds url_slug + pitch columns to guide_types, renames newcomer→Family Resource Guide
+- 031_editorial_content_fields.sql — adds editorial_intro + insider_tips to guide_types; og_image columns to calendar_events; seeds ALL 9 guides with full editorial intro paragraphs and 6 insider tips each
+
+### New Shared Components:
+- GuideMagnificentIssue (src/components/editorial/) — full guide page: editorial intro, articles, listings, insider tips sidebar, calendar peek, related guides, newsletter
+- GuideListingDetail (src/components/listings/) — listing detail page shared by all guides
+- GuideShowcase (src/components/editorial/) — reusable guide cards, 3 density modes (compact/standard/full), 2 layouts (grid/horizontal-strip)
+
+### New Routes:
+- /local-guides — magazine table of contents with all 9 guides (full density)
+- /family-resource-guide — rewritten to use GuideMagnificentIssue (was hub, now newcomer guide)
+- /private-school-guide, /summer-camp-guide, /childcare-guide, /healthy-kids-guide
+- /summer-fun-guide, /birthday-party-guide, /afterschool-guide, /special-needs-guide
+- Each guide has: page.tsx + listings/[listingSlug]/page.tsx
+- /calendar — list + gallery views, sticky filter bar (date/free/category), view toggle persists in URL
+- /calendar/events/[slug] — event detail with date, venue, map link, related events
+- /api/calendar/events — REST endpoint for calendar with filter/pagination
+
+### Navigation:
+- EditorialHeader updated: Local Guides mega-dropdown (hover), all 9 guides with emoji, mobile accordion
+- Calendar and Articles links in main nav
+- Wordmark links to /local-guides
+
+### New Scripts:
+- npm run fetch-event-images — fetches OG images from event websites for events missing hero_image_url
+
+### Pending Jason Actions:
+1. Run migrations 030 and 031 in Supabase SQL editor (in order)
+2. Run migrations 028, 029 if not already done
+3. Run npm run import-guides to populate guide_listings
+4. Run npm run fetch-event-images to auto-fetch event hero images from their websites
+5. Visit /local-guides to verify magazine TOC loads correctly
+6. Click each guide card to verify guide pages load with editorial intro + listings
+7. Visit /calendar to verify list view and gallery view with filter bar
+8. Test a redirect: /family-resource-guide/private-school should redirect to /private-school-guide
+
+### Documentation:
+- /docs/url-architecture.md — full URL map, route implementation, adding new guides
+
+---
+
+## Build Run #14 — Magnificent Issue Restoration (May 2, 2026)
+
+### What Shipped:
+- **FeaturedListingsStrip** — paid partner showcase at top of each guide page
+- **GuideMagnificentIssue** fully rebuilt: editorial intro → featured articles → FeaturedListingsStrip → CategoryFilterStrip → two-column (listings with interleaved ads + sticky sidebar with insider tips + CalendarPeek + related guides) → MomToMomSection → newsletter
+- **ListingsWithAds helper** — interleaves AdSlot every 9 listings (or mid-page if <18)
+- **CalendarPeek** component — 4 relevant events in sidebar per guide, keyword-matched via guide-event-relevance.ts
+- **getEventsRelevantToGuide()** — keyword scoring utility (src/lib/guide-event-relevance.ts)
+- **MomToMomSection** — editorial quote cards with large quote marks, Fraunces serif
+- **WhereToStart** — numbered step cards cross-linking to guides (used on Family Resource Guide)
+- **Family Resource Guide** custom rebuilt — editorial guide, no "listings coming soon", has WhereToStart + articles + insider tips + calendar peek + GuideShowcase + mom-to-mom
+- **CalendarGalleryView** fixed — now 'use client' with EventCardImage sub-component using onError + unoptimized prop
+- **next.config.ts** — wildcard image hostname added for community calendar images
+- CSS classes added to globals.css: .guide-issue-layout, .guide-issue-sidebar, .featured-card, .where-to-start-card
+
+### New Migrations:
+- 032_seed_featured_card_hooks.sql — 12 card_hooks for top featured listings
+- 033_mom_to_mom_quotes.sql — creates table + seeds 24 quotes across all 9 guides (3 per guide)
+
+### Pending Jason Actions:
+1. Run migrations 032 and 033 in Supabase SQL editor
+2. Verify /private-school-guide shows Featured in This Guide strip (requires featured listings imported + card_hooks seeded)
+3. Verify /family-resource-guide shows WhereToStart section (no "listings coming soon")
+4. Verify /calendar?view=gallery loads without crashing with mix of images and gradient fallbacks
+
+---
+
+## Build Run #15 — Make May 2026 Real (May 2, 2026)
+
+### Part 1 — Polish:
+- 11 hero images downloaded to /public/images/heroes/ (10 successful, family-resource used photo-1476703993599)
+- Migration 034: guide_types.hero_image_url updated to local /images/heroes/ paths
+- /local-guides, /calendar, /family-resource-guide page-level hero URLs updated to local paths
+- FeaturedListingsStrip: letter avatar replaced with branded color blocks per guide (GUIDE_ACCENT_COLORS map)
+- WhereToStart: redesigned with 64×64 Fraunces serif numbered circles, hover states via .where-to-start-card CSS
+- MomToMomSection: 7rem decorative quote marks, avatar circles with brand colors, center card elevated
+
+### Part 2 — Ad Placement System:
+- src/lib/get-active-ads.ts — shared server utility for querying ad_placements table
+- 12 ad placement components in src/components/ads/:
+  GuideSidebarSticky, GuideInlineAd, GuideInlineSponsored, GuideFeaturedStrip,
+  ArticleHeaderSponsor, ArticleInlineRecommendation, ArticleFooterListings,
+  CalendarFeaturedEvent, CalendarInlinePromotion, NewsletterSponsorSlot,
+  HomepageHeroRotator, SiteFooterPartners
+- Migration 035: ad_placements table + increment_ad_impression/increment_ad_click functions + DFC (3) + RRP (5) seeded
+- /admin/ads page: live table with toggle active/pause + delete + CTR tracking
+- /admin/ads/new: create form with all 12 placement types + advertiser autocomplete
+- /api/ads/impression + /api/ads/click: increment tracking routes
+- Ad wired into GuideMagnificentIssue: MonthlySpotlight (top of sidebar) + GuideSidebarSticky (bottom) + GuideInlineSponsored (after editorial intro)
+- CalendarFeaturedEvent wired into /calendar page above event list
+
+### Part 3 — May 2026 Contextual Content:
+- EditorsNote component — signed "DeAnne Watson, Editor, River Region Parents"
+- MayHighlights component — 4 cards: Mother's Day, Memorial Day, End of School, Summer Prep
+- MonthlySpotlight component — sidebar callout, queries guide_monthly_spotlights for current month/year
+- Migration 036: guide_monthly_spotlights table + all 9 May 2026 spotlights seeded
+- Footer date stamp ".footer-issue-stamp" CSS class — "May 2026 Issue · Updated [date]" on family-resource-guide layout and local-guides
+- All new components exported from editorial barrel (index.ts)
+
+### Pending Jason Actions:
+1. Run migrations 034, 035, 036 in Supabase SQL editor (in order)
+2. Visit /local-guides — verify Editor's Note + May Highlights sections appear
+3. Visit /healthy-kids-guide — verify DFC sidebar sticky ad appears in sidebar
+4. Visit /calendar — verify DFC sponsor spotlight appears above event list
+5. Visit /admin/ads — verify 8 seeded ad placements show in table
+6. Run npm run download-heroes if images not already in /public/images/heroes/
+
+---
+
+## Build Run #16 — The Great Realignment (May 2, 2026)
+
+### What This Build Did:
+Recovery build. Replaced the magazine-issue editorial design language (BR12-15) with the GHL Studio community portal design system. All public pages now use Tailwind utility classes, shadcn-compatible UI components, and the terracotta/teal/gold color system.
+
+### What Was Deleted:
+- /src/components/editorial/ (entire directory — 20+ components)
+- /src/components/calendar/ (CalendarListView, CalendarGalleryView, CalendarFilterBar)
+- /src/components/listings/GuideListingDetail.tsx (old version with editorial imports)
+- All --ed-* CSS custom properties and editorial utility classes from globals.css
+
+### What Was Built:
+
+**Design Foundation:**
+- Tailwind v4 @theme tokens: --color-primary (#c4622d), --color-secondary (#2c7a7b), --color-accent (#d4a843), --color-background (#faf8f5), --color-muted, --color-border, --color-card
+- /src/components/ui/button.tsx — minimal shadcn-compatible Button (rounded-full, 5 variants)
+- /src/components/ui/card.tsx — Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter
+- /src/components/ui/badge.tsx — Badge (5 variants including accent)
+- /src/components/ui/input.tsx — Input with rounded-xl
+- /src/components/Navigation.tsx — sticky nav with Local Guides dropdown, mobile hamburger
+- /src/components/PublicFooter.tsx — dark footer with guide links grid
+
+**Pages (all using GHL design language):**
+- /src/app/page.tsx — homepage with trending ticker, hero, events, guides strip, articles, newsletter CTA
+- /src/app/local-guides/page.tsx — guides index with Featured Partners + 9 guide cards
+- /src/app/calendar/page.tsx — client component with grid/list toggle, filter pills, real data
+- /src/app/calendar/events/[slug]/page.tsx — event detail with sidebar contact card
+- All 9 guide pages — thin wrappers delegating to GuideDetailPage
+- All 9 guide listing pages — thin wrappers delegating to ListingDetailPage
+
+**Shared Components:**
+- /src/components/guides/GuideDetailPage.tsx — featured horizontal cards + directory grid + sidebar (filter, insider tips, related article)
+- /src/components/listings/ListingDetailPage.tsx — listing detail with contact sidebar + guide-specific fields + related listings
+
+**Migration:**
+- 037_homepage_tables.sql — trending_items + community_spotlights tables + homepage ad placement seeds
+
+### Design Rules Now Locked:
+- Sans-serif throughout (no Fraunces, no serif headers)
+- rounded-2xl on cards, rounded-full on buttons
+- Tailwind utility classes only (no --ed-* custom properties)
+- Primary (terracotta #c4622d), secondary (teal #2c7a7b), accent (gold #d4a843)
+- Photography-forward: hero images on every card
+- Two-column lg:col-span-8 / lg:col-span-4 layout pattern on guide pages
+
+### What Survived the Redesign:
+- All database data (601 listings, 113 events, 24 mom_to_mom_quotes, etc.)
+- Migrations 001-036 schema
+- /src/components/ads/ (12 ad placement components — still reference old --ed-* CSS but render gracefully)
+- Admin pages unchanged
+- newcomer-guide (legacy) unchanged
+- partner engine pages unchanged
+
+### Pending Jason Actions:
+1. Run migration 037 in Supabase SQL editor
+2. Visit / (homepage) — verify trending ticker, hero, events, guides strip
+3. Visit /local-guides — verify 9 guide cards with images and counts
+4. Visit /private-school-guide — verify featured listings + directory grid
+5. Visit /calendar — verify list/grid toggle with 113 events
+6. Visit /healthy-kids-guide/listings/dentistry-for-children — verify listing detail
+7. The ads components in /src/components/ads/ may need CSS updates (they reference --ed-* classes that were removed) — flag if ads appear unstyled

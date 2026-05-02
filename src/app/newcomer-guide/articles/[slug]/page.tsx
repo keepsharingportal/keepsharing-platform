@@ -6,6 +6,9 @@ import type { Metadata } from 'next'
 import type { GuideArticle, GuideListing } from '@/components/family-guide/types'
 import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
+import { InlineSubmissionWidget } from '@/components/community/InlineSubmissionWidget'
+import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup'
+import { NewsletterPopupTrigger } from '@/components/newsletter/NewsletterPopupTrigger'
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -165,7 +168,7 @@ export default async function ArticlePage({ params }: Props) {
         )}
         <div style={{ position: 'relative', maxWidth: 780, margin: '0 auto', padding: '56px 20px 52px' }}>
           <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white', marginBottom: 18 }}>
-            Article
+            Family Resource Guide · Article
           </span>
           <h1 style={{
             fontFamily: 'var(--font-fraunces, serif)',
@@ -197,8 +200,8 @@ export default async function ArticlePage({ params }: Props) {
       </div>
 
       {/* Article body */}
-      <div style={{ maxWidth: 780, margin: '0 auto', padding: '48px 20px 80px' }}>
-        <article style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 64 }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 20px 80px' }}>
+        <article style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 64, fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
           {article.body ? renderMarkdown(article.body) : (
             <p style={{ color: '#aaa', fontStyle: 'italic', fontSize: 15 }}>Full article coming soon.</p>
           )}
@@ -246,6 +249,37 @@ export default async function ArticlePage({ params }: Props) {
             </div>
           </div>
         )}
+
+        {/* Newsletter signup — inline after article body */}
+        <NewsletterSignup
+          variant="inline"
+          source="article-footer"
+          context={{ article_slug: article.slug }}
+          headline="Want more like this?"
+          subheadline="Get the best of River Region Parents in your inbox every Friday morning."
+          cta_label="Send Me the Newsletter"
+        />
+
+        {/* Mom Insiders inline widget */}
+        <InlineSubmissionWidget
+          contextQuestion={`Tell us how YOUR family experienced what this article is about`}
+          contextPlaceholder="Share your story — where you went, what helped, what you'd tell a new family..."
+          source="inline-widget"
+          sourceArticle={article.slug}
+        />
+
+        {/* Popup trigger — fires at 60% scroll + 30s on page */}
+        <NewsletterPopupTrigger source="article-popup" context={{ article_slug: article.slug }} />
+
+        {/* Business CTA */}
+        <div style={{ marginBottom: 32, padding: '18px 20px', borderRadius: 14, backgroundColor: 'var(--fg-sky-light, #e8f2fc)', border: '1px solid rgba(74,144,217,0.2)' }}>
+          <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6 }}>
+            Are you a local business families need to know about?{' '}
+            <Link href="/advertise" style={{ color: 'var(--fg-sky, #4a90d9)', fontWeight: 700, textDecoration: 'none' }}>
+              See how we partner with businesses →
+            </Link>
+          </p>
+        </div>
 
         {/* Back nav */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>

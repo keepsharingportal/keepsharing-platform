@@ -1,136 +1,18 @@
-import { AlertCircle, Clock, Inbox, Activity, Phone } from 'lucide-react'
-import { PUBLICATIONS, getMarketStats } from '@/lib/mock-data'
+import { AlertCircle, Clock, Inbox, Activity } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
 import { UrgentItemsList, type UrgentItem } from '@/components/today/UrgentItemsList'
 import { DistributionWidget } from '@/components/distribution/DistributionWidget'
+import { fillEmailTemplate } from '@/lib/email-templates'
 
-const URGENT_ITEMS: UrgentItem[] = [
-  {
-    id: 1,
-    name: 'Courtyard by Marriott',
-    note: 'March contract expires end of month — renewal not confirmed',
-    phone: '(334) 555-0191',
-    email: 'gm@courtyardmontgomery.com',
-    action: 'Renew contract',
-    urgency: 'urgent',
-    emailSubject: 'Your River Region Parents Advertising — March Renewal',
-    emailDraft: `Hi [Contact Name],
-
-I hope March has been a great month for you! I wanted to reach out because your advertising agreement with River Region Parents expires at the end of the month, and I'd love to get you locked in for April and beyond.
-
-Your quarter-page ad has been running well, and we have some great editorial content coming up in April that would pair nicely with your placement — including our Child Care Guide and the Newcomers feature.
-
-Can we lock in your April ad this week? Same rate, same placement. I can have an agreement over to you same day.
-
-Just reply here or give me a call at (334) 555-0100 and we'll get it done quickly.
-
-Talk soon,
-Jason Watson
-River Region Parents`,
-  },
-  {
-    id: 2,
-    name: 'Prattville Christian Academy',
-    note: 'DropBox art not verified — must send to Tim today',
-    phone: '(334) 555-0142',
-    email: 'admissions@prattvillechristian.org',
-    action: 'Check Dropbox',
-    urgency: 'urgent',
-    emailSubject: 'Ad Artwork for March Issue — Quick Confirmation Needed',
-    emailDraft: `Hi Principal Ford,
-
-Quick follow-up on the March ad for River Region Parents — we have new artwork in our Dropbox folder but wanted to confirm it's the final version before we send it to our designer.
-
-Could you take 2 minutes to confirm: is the artwork in Dropbox dated 2/28 the version you want to run in March? Or is there an updated file coming?
-
-Our deadline to Tim is today, so any response by noon is extremely helpful.
-
-Thank you!
-Jason Watson
-River Region Parents`,
-  },
-  {
-    id: 3,
-    name: 'Camp Cheaha',
-    note: 'New advertiser — agreement not yet signed',
-    phone: '(334) 555-0188',
-    email: 'director@campCheaha.com',
-    action: 'Send agreement',
-    urgency: 'urgent',
-    emailSubject: 'Welcome to River Region Parents — Agreement Ready to Sign',
-    emailDraft: `Hi Director Weaver,
-
-Welcome to River Region Parents! We're excited to have Camp Cheaha in the March issue.
-
-I have your advertising agreement ready and waiting for your signature. It covers your quarter-page ad in March, May, and June (our Summer Camp Guide issue — perfect timing for your enrollment push).
-
-I'll send the agreement link in a separate email momentarily. It takes about 2 minutes to review and sign digitally — no printing needed.
-
-If you have any questions on the terms or want to discuss the ad design brief, I'm at (334) 555-0100 anytime this week.
-
-Looking forward to a great partnership!
-Jason Watson
-River Region Parents`,
-  },
-]
-
-const REVIEW_ITEMS: UrgentItem[] = [
-  {
-    id: 4,
-    name: 'Imagination Station',
-    note: 'Art in Dropbox needs verification before layout',
-    phone: '(334) 555-0177',
-    email: 'info@imaginationstation.com',
-    action: 'Verify art',
-    urgency: 'review',
-    days: 5,
-    emailSubject: 'Ad Artwork Verification — River Region Parents March Issue',
-    emailDraft: `Hi Greg,
-
-Checking in on your March ad for River Region Parents — we have what appears to be your artwork in our Dropbox folder, but want to confirm before sending to our designer.
-
-Please take a look and let me know: is the file in Dropbox your current, approved artwork for this month's run?
-
-If you'd like to make any changes before we go to print, this week is the time to do it. After Friday we're locked in with the designer.
-
-Thanks for your quick reply!
-Jason Watson
-River Region Parents`,
-  },
-  {
-    id: 5,
-    name: 'Craig Eye Center',
-    note: 'New ad design in progress with Tim — confirm deadline',
-    phone: '(334) 555-0133',
-    email: 'jennifer@craigeyecenter.com',
-    action: 'Confirm deadline',
-    urgency: 'review',
-    days: 6,
-    emailSubject: 'New Ad Design Update — Craig Eye Center',
-    emailDraft: `Hi Jennifer,
-
-Quick update on your new ad design for River Region Parents — Tim is working on it now based on the creative brief we discussed.
-
-I wanted to make sure we're aligned on timeline: Tim's draft will be ready for your review by end of this week, and we'll need your approval by next Wednesday to make the March issue.
-
-Does that timeline work for you? And is there anything you want to add to the brief before Tim gets too far along?
-
-Looking forward to showing you what he comes up with!
-Jason Watson
-River Region Parents`,
-  },
-]
-
-const INCOMING = [
-  { id: 6, type: 'Spotlight', label: 'Business Spotlight submission — Montgomery YMCA', time: '2 hours ago' },
-  { id: 7, type: 'Nomination', label: 'Mom to Mom nomination — Keisha Thompson', time: '4 hours ago' },
-  { id: 8, type: 'Orders', label: '3 new Birthday Spotlight orders ($135 total)', time: 'This morning' },
-]
-
-const ACTIVITY = [
-  'GHL renewal sequence triggered for 4 advertisers expiring in 30 days',
-  'Monthly offer email queued for April 1 send — 312 recipients',
-  '14 social posts approved and scheduled in GHL for this week',
+// ── Publication list (static config, data comes from DB) ─────────────────────
+const PUBLICATIONS = [
+  { abbrev: 'RRP', name: 'River Region Parents', slug: 'rrp' },
+  { abbrev: 'MBP', name: 'Mobile Bay Parents', slug: 'mbp' },
+  { abbrev: 'AOP', name: 'Auburn Opelika Parents', slug: 'aop' },
+  { abbrev: 'ESP', name: 'Eastern Shore Parents', slug: 'esp' },
+  { abbrev: 'GPP', name: 'Greater Pensacola Parents', slug: 'gpp' },
+  { abbrev: 'RRB', name: 'River Region Boom', slug: 'boom' },
 ]
 
 const PUB_COLORS: Record<string, string> = {
@@ -147,119 +29,227 @@ function SectionHeader({ icon: Icon, label, color }: { icon: React.ElementType; 
   )
 }
 
-export default function TodayPage() {
+// ── Data fetchers ─────────────────────────────────────────────────────────────
+
+async function getMarketPulse() {
+  const supabase = await createClient()
+  const thisMonth = new Date()
+  thisMonth.setDate(1)
+  const monthStr = thisMonth.toISOString().split('T')[0]
+
+  try {
+    const { data: placements } = await supabase
+      .from('print_placements')
+      .select('publication_slug, page_size_fraction, monthly_revenue')
+      .eq('issue_month', monthStr)
+
+    const stats: Record<string, { count: number; pages: number; revenue: number }> = {}
+    for (const p of placements ?? []) {
+      const raw = (p.publication_slug ?? 'rrp').toUpperCase()
+      const abbrev = raw === 'BOOM' ? 'RRB' : raw
+      if (!stats[abbrev]) stats[abbrev] = { count: 0, pages: 0, revenue: 0 }
+      stats[abbrev].count++
+      stats[abbrev].pages += p.page_size_fraction ?? 0
+      stats[abbrev].revenue += p.monthly_revenue ?? 0
+    }
+    return stats
+  } catch {
+    return {} as Record<string, { count: number; pages: number; revenue: number }>
+  }
+}
+
+async function getActionItems(): Promise<{ urgent: UrgentItem[]; review: UrgentItem[] }> {
+  const supabase = await createClient()
+
+  try {
+    const { data } = await supabase
+      .from('action_items')
+      .select('*')
+      .eq('completed', false)
+      .order('due_date', { ascending: true })
+      .limit(20)
+
+    const urgent: UrgentItem[] = []
+    const review: UrgentItem[] = []
+
+    for (const item of data ?? []) {
+      const filled = item.email_template_slug
+        ? fillEmailTemplate(item.email_template_slug, {
+            businessName: item.target_business_name,
+            contactName:  item.target_contact_name,
+          })
+        : null
+
+      const urgentItem: UrgentItem = {
+        id:           item.id,
+        name:         item.target_business_name ?? item.title,
+        note:         item.title,
+        phone:        item.target_phone ?? '',
+        email:        item.target_email ?? undefined,
+        action:       (item.action_type ?? 'action').replace(/_/g, ' '),
+        urgency:      item.urgency === 'urgent' ? 'urgent' : 'review',
+        days:         item.due_date
+          ? Math.max(0, Math.ceil((new Date(item.due_date).getTime() - Date.now()) / 86400000))
+          : undefined,
+        emailSubject: filled?.subject ?? `Action required — ${item.target_business_name ?? item.title}`,
+        emailDraft:   filled?.body ?? `Hi ${item.target_contact_name ?? 'there'},\n\n${item.notes ?? item.title}\n\nJason\nRiver Region Parents`,
+      }
+
+      if (item.urgency === 'urgent') urgent.push(urgentItem)
+      else review.push(urgentItem)
+    }
+
+    return { urgent, review }
+  } catch {
+    return { urgent: [], review: [] }
+  }
+}
+
+async function getIncoming() {
+  const supabase = await createClient()
+  const items: Array<{ id: string; type: string; label: string; time: string }> = []
+
+  function timeAgo(ts: string) {
+    const diff = Date.now() - new Date(ts).getTime()
+    const hours = Math.floor(diff / 3600000)
+    if (hours < 1) return 'Just now'
+    if (hours < 24) return `${hours}h ago`
+    return `${Math.floor(hours / 24)}d ago`
+  }
+
+  try {
+    const [spotsRes, nomRes, bdayRes] = await Promise.all([
+      supabase.from('business_spotlight_submissions').select('id, business_name, created_at').eq('status', 'new').order('created_at', { ascending: false }).limit(3),
+      supabase.from('nominations').select('id, nominee_name, nomination_type, created_at').eq('status', 'new').order('created_at', { ascending: false }).limit(3),
+      supabase.from('birthday_spotlight_orders').select('id, child_name, amount_paid, created_at').order('created_at', { ascending: false }).limit(3),
+    ])
+    for (const s of spotsRes.data ?? []) {
+      items.push({ id: s.id, type: 'Spotlight', label: `Business Spotlight — ${s.business_name}`, time: timeAgo(s.created_at) })
+    }
+    for (const n of nomRes.data ?? []) {
+      items.push({ id: n.id, type: 'Nomination', label: `${n.nomination_type ?? 'Nomination'} — ${n.nominee_name}`, time: timeAgo(n.created_at) })
+    }
+    if ((bdayRes.data ?? []).length > 0) {
+      const count = bdayRes.data!.length
+      const total = bdayRes.data!.reduce((s, r) => s + (r.amount_paid ?? 0), 0)
+      items.push({ id: 'bday', type: 'Orders', label: `${count} Birthday Spotlight order${count > 1 ? 's' : ''} (${formatCurrency(total)})`, time: timeAgo(bdayRes.data![0].created_at) })
+    }
+  } catch { /* return empty */ }
+
+  return items
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default async function TodayPage() {
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
-  const marketStats = PUBLICATIONS.map((pub) => ({
-    pub,
-    stats: getMarketStats(pub.abbrev, `${pub.abbrev} MAR26`),
-  }))
+
+  const [marketStats, actionItems, incoming] = await Promise.all([
+    getMarketPulse(),
+    getActionItems(),
+    getIncoming(),
+  ])
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {/* Page header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-900">Good morning, Jason.</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{today} · March 2026 issue in progress</p>
+        <p className="text-sm text-gray-500 mt-0.5">{today}</p>
       </div>
 
       <div className="p-6 space-y-6">
         {/* Market Pulse */}
         <section>
-          <SectionHeader icon={Activity} label="Market Pulse — March 2026" color="text-gray-400" />
+          <SectionHeader icon={Activity} label="Market Pulse — This Month" color="text-gray-400" />
           <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-            {marketStats.map(({ pub, stats }) => (
-              <div key={pub.abbrev} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PUB_COLORS[pub.abbrev] }} />
-                    <span className="text-xs font-bold text-gray-400">{pub.abbrev}</span>
+            {PUBLICATIONS.map(pub => {
+              const stats = marketStats[pub.abbrev]
+              return (
+                <div key={pub.abbrev} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PUB_COLORS[pub.abbrev] }} />
+                      <span className="text-xs font-bold text-gray-400">{pub.abbrev}</span>
+                    </div>
+                    {stats && stats.count > 0 && (
+                      <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded-full">Live</span>
+                    )}
                   </div>
-                  {stats.count > 0 && (
-                    <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded-full">Live</span>
+                  <div className="text-sm font-semibold text-gray-800 mb-2 truncate">{pub.name}</div>
+                  {stats && stats.count > 0 ? (
+                    <div className="grid grid-cols-3 gap-1 text-center">
+                      <div>
+                        <div className="text-xl font-bold text-gray-900">{stats.count}</div>
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Ads</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-gray-900">{stats.pages.toFixed(1)}</div>
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Pages</div>
+                      </div>
+                      <div>
+                        <div className="text-base font-bold" style={{ color: 'var(--color-gold-600)' }}>
+                          {formatCurrency(stats.revenue)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Revenue</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400">No placements this month</p>
                   )}
                 </div>
-                <div className="text-sm font-semibold text-gray-800 mb-2 truncate">{pub.name}</div>
-                {stats.count > 0 ? (
-                  <div className="grid grid-cols-3 gap-1 text-center">
-                    <div>
-                      <div className="text-xl font-bold text-gray-900">{stats.count}</div>
-                      <div className="text-[10px] text-gray-400 uppercase tracking-wide">Ads</div>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold text-gray-900">{stats.pages.toFixed(1)}</div>
-                      <div className="text-[10px] text-gray-400 uppercase tracking-wide">Pages</div>
-                    </div>
-                    <div>
-                      <div className="text-base font-bold" style={{ color: 'var(--color-gold-600)' }}>
-                        {formatCurrency(stats.revenue)}
-                      </div>
-                      <div className="text-[10px] text-gray-400 uppercase tracking-wide">Revenue</div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400">No data yet</p>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Urgent — click any item to expand email draft */}
           <section>
             <SectionHeader icon={AlertCircle} label="Urgent — Click to Draft Email" color="text-red-500" />
-            <UrgentItemsList items={URGENT_ITEMS} urgency="urgent" />
+            {actionItems.urgent.length > 0
+              ? <UrgentItemsList items={actionItems.urgent} urgency="urgent" />
+              : <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">No urgent items — inbox clear ✓</div>
+            }
           </section>
 
           <div className="space-y-5">
-            {/* Review this week */}
             <section>
               <SectionHeader icon={Clock} label="Review This Week — Click to Draft" color="text-amber-500" />
-              <UrgentItemsList items={REVIEW_ITEMS} urgency="review" />
+              {actionItems.review.length > 0
+                ? <UrgentItemsList items={actionItems.review} urgency="review" />
+                : <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">Nothing due this week</div>
+              }
             </section>
 
-            {/* Incoming */}
             <section>
               <SectionHeader icon={Inbox} label="Incoming" color="text-blue-500" />
-              <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-                {INCOMING.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium ring-1 ring-blue-100">
-                        {item.type}
-                      </span>
-                      <span className="text-sm text-gray-700">{item.label}</span>
+              {incoming.length > 0 ? (
+                <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                  {incoming.map(item => (
+                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium ring-1 ring-blue-100">
+                          {item.type}
+                        </span>
+                        <span className="text-sm text-gray-700">{item.label}</span>
+                      </div>
+                      <span className="text-xs text-gray-400 shrink-0 ml-3">{item.time}</span>
                     </div>
-                    <span className="text-xs text-gray-400 shrink-0 ml-3">{item.time}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">
+                  No new submissions yet — they&apos;ll appear here as they come in
+                </div>
+              )}
             </section>
           </div>
         </div>
 
-        {/* Distribution Portal */}
         <section>
           <SectionHeader icon={Activity} label="Distribution Portal — drivers.keepsharing.com" color="text-blue-500" />
           <DistributionWidget />
-        </section>
-
-        {/* Automation Activity */}
-        <section>
-          <SectionHeader icon={Activity} label="Automation Activity" color="text-gray-400" />
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-            {ACTIVITY.map((text, i) => (
-              <div key={i} className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0 mt-1.5" />
-                  <span className="text-sm text-gray-700">{text}</span>
-                </div>
-                <span className="text-xs text-gray-400 shrink-0 ml-4">{i === 2 ? 'Yesterday' : '6:00 AM'}</span>
-              </div>
-            ))}
-          </div>
         </section>
       </div>
     </div>

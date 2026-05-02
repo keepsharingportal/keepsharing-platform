@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\docs\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(curl -sf \"https://vibe.filesafe.space/1775055608176231096/attachments/302b4a04-01a4-4cc7-a2fd-9d68c70b25ad.png\" -o \"public/images/advertise/rrp-logo.png\")",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"require\\('@anthropic-ai/sdk'\\); console.log\\('anthropic OK'\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\admin\\\\today\\\\\" -Force)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\components\\\\\" -Depth 0 -ErrorAction SilentlyContinue | Select-Object Name, PSIsContainer)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\family-resource-guide\\\\\" -Force | Select-Object Name, @{Name=\"IsDirectory\";Expression={$_.PSIsContainer}})",
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(ls \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\" | where { $_.PSIsContainer })",
+      "Bash(grep -E \"\\(editorial|GuideMagnific|GuideShowcase|GuideList|calendar|local-guides|guide$\\)\")",
+      "Bash(npx tsx *)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

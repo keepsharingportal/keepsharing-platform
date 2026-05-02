@@ -1,11 +1,14 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Phone, Globe, Mail, MapPin, Clock, Navigation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import type { GuideListing, GuideCategory } from '@/components/family-guide/types'
 import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
+import { ListingMessageForm } from '@/components/family-guide/ListingMessageForm'
+import { InlineSubmissionWidget } from '@/components/community/InlineSubmissionWidget'
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -61,7 +64,18 @@ export default async function ListingDetailPage({ params }: Props) {
   const listing = await getListing(slug)
   if (!listing) notFound()
 
-  const related = await getRelated(listing.category_id, slug)
+  const supabase = await createClient()
+
+  // Fetch photos and advertiser account in parallel
+  const [related, photosRes, accountRes] = await Promise.all([
+    getRelated(listing.category_id, slug),
+    supabase.from('advertiser_listing_photos').select('*').eq('listing_id', listing.id).order('display_order').limit(20),
+    supabase.from('advertiser_accounts').select('id').eq('listing_id', listing.id).maybeSingle(),
+  ])
+
+  const photos = (photosRes.data ?? []) as { id: string; photo_url: string; alt_text?: string }[]
+  const advertiserId = accountRes.data?.id ?? null
+
   const featuredRelated = related.filter(l => l.listing_tier === 'featured')
   const enhancedRelated = related.filter(l => l.listing_tier === 'enhanced')
 
@@ -189,6 +203,24 @@ export default async function ListingDetailPage({ params }: Props) {
           {/* Main content */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+            {/* Photo gallery */}
+            {photos.length > 0 && (
+              <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ position: 'relative', aspectRatio: '16/9', backgroundColor: 'var(--fg-cream)' }}>
+                  <Image src={photos[0].photo_url} alt={photos[0].alt_text ?? listing.business_name} fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 100vw, 620px" />
+                </div>
+                {photos.length > 1 && (
+                  <div style={{ display: 'flex', gap: 4, padding: '4px', backgroundColor: 'white', overflowX: 'auto' }}>
+                    {photos.slice(1, 10).map(p => (
+                      <div key={p.id} style={{ position: 'relative', width: 72, height: 54, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
+                        <Image src={p.photo_url} alt={p.alt_text ?? listing.business_name} fill style={{ objectFit: 'cover' }} sizes="72px" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {listing.description && (
               <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1px solid rgba(0,0,0,0.06)', padding: 24 }}>
                 <p style={{ fontSize: 15, color: '#333', lineHeight: 1.7 }}>{listing.description}</p>
@@ -280,6 +312,13 @@ export default async function ListingDetailPage({ params }: Props) {
               </div>
             )}
 
+            {/* Send a Message form */}
+            <ListingMessageForm
+              listingSlug={slug}
+              listingName={listing.business_name}
+              advertiserId={advertiserId}
+            />
+
             {!isFeatured && (
               <div style={{ borderRadius: 14, padding: 18, textAlign: 'center', backgroundColor: 'var(--fg-terra-light, #fdf0eb)', border: '1px solid rgba(196,98,45,0.15)' }}>
                 <p style={{ fontSize: 12, color: '#666', lineHeight: 1.55, marginBottom: 12 }}>
@@ -292,6 +331,14 @@ export default async function ListingDetailPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        {/* Mom Insiders inline widget */}
+        <InlineSubmissionWidget
+          contextQuestion={`Have you been to ${listing.business_name}? What should new families know?`}
+          contextPlaceholder={`e.g. "The staff is incredibly patient, and they're great with anxious kids. Book at least 2 weeks ahead."`}
+          source="inline-widget"
+          sourceListing={listing.id}
+        />
 
         {/* Related */}
         {(featuredRelated.length > 0 || enhancedRelated.length > 0) && (
