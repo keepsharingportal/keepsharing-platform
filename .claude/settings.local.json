@@ -14,7 +14,9 @@
       "PowerShell(ls \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\" | where { $_.PSIsContainer })",
       "Bash(grep -E \"\\(editorial|GuideMagnific|GuideShowcase|GuideList|calendar|local-guides|guide$\\)\")",
       "Bash(npx tsx *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(exit 0)"
     ]
   }
 }

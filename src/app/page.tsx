@@ -11,9 +11,13 @@ import {
   TrendingUp, CalendarDays, MapPin, Clock, BookOpen, Star,
   ArrowRight, Users, Briefcase, Map,
 } from 'lucide-react'
+import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
 export const revalidate = 1800
+
+const ISSUU_URL = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
+const MAY_COVER_URL = '/images/issues/may-2026-cover.jpg'
 
 export const metadata: Metadata = {
   title:       'River Region Parents — Local Family Guides & Events',
@@ -45,8 +49,8 @@ async function getHomepageData() {
   ] = await Promise.all([
     supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, category')
-      .eq('category', 'mom-to-mom')
+      .select('id, title, slug, hero_image_url, excerpt, category, column_slug, author_name')
+      .eq('column_slug', 'mom-to-mom')
       .eq('editorial_review_status', 'approved')
       .order('created_at', { ascending: false })
       .limit(1).maybeSingle(),
@@ -64,10 +68,10 @@ async function getHomepageData() {
       .eq('status', 'published').gte('start_date', today)
       .order('start_date').limit(3),
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, category')
+      .select('id, title, slug, hero_image_url, excerpt, category, column_slug, author_name')
       .eq('editorial_review_status', 'approved')
-      .neq('category', 'mom-to-mom')
-      .order('created_at', { ascending: false }).limit(4),
+      .neq('column_slug', 'mom-to-mom')
+      .order('created_at', { ascending: false }).limit(8),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
@@ -108,11 +112,6 @@ function fmtDate(d: string) {
   }
 }
 
-const SPOTLIGHT_CONFIG = [
-  { label: 'Teacher of the Month', emoji: '🍎', badge: 'text-amber-700 bg-amber-50 border-amber-200' },
-  { label: 'Student Spotlight',    emoji: '🌟', badge: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
-  { label: 'Grands Are Great',     emoji: '💛', badge: 'text-rose-700 bg-rose-50 border-rose-200' },
-]
 
 export default async function HomePage() {
   const { trending, mainFeature, summerCamp, spotlights, events, miniEvents, articles, inlineAd, sidebarAd, businessSpotlight } = await getHomepageData()
@@ -153,6 +152,56 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* ── This Month's Issue — cover spotlight ── */}
+      <div className="bg-foreground text-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Cover thumbnail */}
+            <a
+              href={ISSUU_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 group"
+              aria-label="Read May 2026 issue on Issuu"
+            >
+              <div className="relative w-32 h-44 rounded-xl overflow-hidden shadow-2xl ring-2 ring-white/20 group-hover:ring-primary/60 transition-all duration-300">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={MAY_COVER_URL}
+                  alt="River Region Parents — May 2026 Cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <div className="absolute bottom-2 left-0 right-0 text-center">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-white/90">May 2026</span>
+                </div>
+              </div>
+            </a>
+            {/* Copy */}
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Now Available</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-background leading-tight mb-2">
+                May 2026 Issue<br className="hidden sm:block" />{' '}
+                <span className="text-primary">Is Here</span>
+              </h2>
+              <p className="text-background/70 text-sm leading-relaxed mb-4 max-w-md">
+                Mom to Mom with Hayley Denny · Grands are the Greatest · Inexpensive Micro Summer Adventures · Teacher of the Month Bebe Campbell · College Visit Tips
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                <Button asChild className="rounded-full bg-primary hover:bg-primary/90 text-white">
+                  <a href={ISSUU_URL} target="_blank" rel="noopener noreferrer">
+                    Read Digital Edition <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button asChild variant="outline" className="rounded-full border-white/20 text-background hover:bg-white/10">
+                  <Link href="/newcomer-guide/articles">Browse All Articles</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Top featured area — 12-col grid ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
         <div className="grid lg:grid-cols-12 gap-6">
@@ -160,22 +209,15 @@ export default async function HomePage() {
           {/* Main feature — full-bleed photo with overlay (lg:col-span-8) */}
           <div className="lg:col-span-8">
             <div className="relative rounded-3xl overflow-hidden min-h-[320px] lg:min-h-[500px] bg-foreground/10">
-              {mainFeature?.hero_image_url ? (
-                <Image
-                  src={mainFeature.hero_image_url}
-                  alt={mainFeature.title}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  unoptimized
-                  sizes="900px"
-                  priority
-                />
-              ) : (
-                <div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(135deg, rgba(196,98,45,0.85) 0%, rgba(44,122,123,0.75) 100%)' }}
-                />
-              )}
+              <Image
+                src={mainFeature?.hero_image_url || getFallbackByContext('parenting', mainFeature?.slug ?? 'mom-to-mom')}
+                alt={mainFeature?.title ?? 'Mom to Mom'}
+                fill
+                style={{ objectFit: 'cover' }}
+                unoptimized
+                sizes="900px"
+                priority
+              />
               {/* Gradient overlay for text legibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
@@ -232,21 +274,14 @@ export default async function HomePage() {
 
             {/* Summer Camp Guide card */}
             <div className="relative rounded-3xl overflow-hidden h-[200px] lg:h-[240px] bg-secondary/20 flex-shrink-0">
-              {summerCamp?.hero_image_url ? (
-                <Image
-                  src={summerCamp.hero_image_url}
-                  alt={summerCamp.display_name ?? 'Summer Camp Guide'}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  unoptimized
-                  sizes="400px"
-                />
-              ) : (
-                <div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(135deg, rgba(44,122,123,0.9) 0%, rgba(212,168,67,0.7) 100%)' }}
-                />
-              )}
+              <Image
+                src={summerCamp?.hero_image_url || getFallbackByContext('summer-camp', 'summer-camp-guide')}
+                alt={summerCamp?.display_name ?? 'Summer Camp Guide'}
+                fill
+                style={{ objectFit: 'cover' }}
+                unoptimized
+                sizes="400px"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute top-4 left-4">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(212,168,67,0.9)' }}>
@@ -277,29 +312,46 @@ export default async function HomePage() {
                   Community Spotlights
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-5 pb-5 space-y-3">
-                {SPOTLIGHT_CONFIG.map((cfg, i) => {
-                  const s = spotlights[i]
+              <CardContent className="px-5 pb-5 space-y-4">
+                {spotlights.length > 0 ? spotlights.map((sp) => {
+                  const tint = sp.spotlight_type === 'teacher'       ? 'border-primary/20'
+                             : sp.spotlight_type === 'student'       ? 'border-secondary/20'
+                             : sp.spotlight_type === 'grands'        ? 'border-accent/30'
+                             : 'border-primary/20'
+                  const labelTint = sp.spotlight_type === 'teacher'  ? 'text-primary border-primary/30'
+                                  : sp.spotlight_type === 'student'  ? 'text-secondary border-secondary/30'
+                                  : sp.spotlight_type === 'grands'   ? 'text-foreground border-accent/40 bg-accent/10'
+                                  : 'text-primary border-primary/30'
+                  const labelText = sp.spotlight_type === 'teacher'  ? 'Teacher of the Month'
+                                  : sp.spotlight_type === 'student'  ? 'Student Spotlight'
+                                  : sp.spotlight_type === 'grands'   ? 'Grands are the Greatest'
+                                  : 'Community Spotlight'
+                  const avatarSrc = sp.hero_image_url || getFallback(
+                    sp.spotlight_type === 'grands'  ? 'person_grandparent'
+                      : sp.spotlight_type === 'student' ? 'person_kid'
+                      : 'person_woman',
+                    sp.id,
+                  )
                   return (
-                    <div key={cfg.label} className="flex items-center gap-3">
-                      {/* Avatar */}
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-primary/10">
-                        <span className="text-sm">{cfg.emoji}</span>
-                      </div>
+                    <div key={sp.id} className="flex items-center gap-4 group cursor-pointer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={avatarSrc}
+                        alt={sp.honoree_name}
+                        className={`w-16 h-16 rounded-full object-cover group-hover:scale-105 transition-transform border-2 shrink-0 ${tint}`}
+                      />
                       <div className="flex-1 min-w-0">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.badge} mb-0.5`}>
-                          {cfg.label}
-                        </span>
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {s?.honoree_name ?? '— Nominations open'}
-                        </p>
-                        {s?.honoree_context && (
-                          <p className="text-xs text-muted-foreground truncate">{s.honoree_context}</p>
+                        <Badge variant="outline" className={`text-[10px] mb-1 ${labelTint}`}>{labelText}</Badge>
+                        <h3 className="font-bold text-sm leading-none mb-1 truncate">{sp.honoree_name}</h3>
+                        {sp.honoree_context && (
+                          <p className="text-xs text-muted-foreground truncate">{sp.honoree_context}</p>
                         )}
                       </div>
                     </div>
                   )
-                })}
+                }) : (
+                  <p className="text-sm text-muted-foreground py-2">Spotlights coming soon.</p>
+                )}
                 <Button asChild variant="outline" size="sm" className="w-full rounded-full mt-2">
                   <Link href="/local-guides">Nominate Someone</Link>
                 </Button>
@@ -347,6 +399,9 @@ export default async function HomePage() {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
+                            {isFirst && (
+                              <Badge className="mb-2 bg-primary text-primary-foreground text-xs">Featured Event</Badge>
+                            )}
                             <h4 className="font-bold text-foreground leading-snug mb-1 group-hover:text-primary transition-colors">
                               {ev.title}
                             </h4>
@@ -366,16 +421,15 @@ export default async function HomePage() {
                               )}
                             </div>
                           </div>
-                          {/* Optional thumbnail */}
-                          {ev.hero_image_url && (
-                            <div className="hidden sm:block shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
-                              <img
-                                src={ev.hero_image_url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
+                          {/* Thumbnail — always shown with Unsplash fallback */}
+                          <div className="hidden sm:block shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={ev.hero_image_url || getFallbackByContext(ev.category, ev.slug ?? ev.id)}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         </div>
                       </Link>
                     )
@@ -419,23 +473,28 @@ export default async function HomePage() {
                   Parenting &amp; Lifestyle
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {articles.slice(0, 4).map(a => (
+                  {/* Dedupe by column_slug so each column appears at most once */}
+                  {(() => {
+                    const seen = new Set<string>()
+                    return articles.filter(a => {
+                      const key = (a as { column_slug?: string | null }).column_slug ?? a.id
+                      if (seen.has(key)) return false
+                      seen.add(key)
+                      return true
+                    }).slice(0, 4)
+                  })().map(a => (
                     <Link key={a.id} href={`/newcomer-guide/articles/${a.slug}`} className="group block">
                       <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                         <div className="relative aspect-[3/2] overflow-hidden bg-muted">
-                          {a.hero_image_url ? (
-                            <Image
-                              src={a.hero_image_url}
-                              alt={a.title}
-                              fill
-                              style={{ objectFit: 'cover' }}
-                              className="group-hover:scale-105 transition-transform duration-500"
-                              sizes="400px"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
-                          )}
+                          <Image
+                            src={a.hero_image_url || getFallbackByContext(a.category, a.slug ?? a.id)}
+                            alt={a.title}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                            className="group-hover:scale-105 transition-transform duration-500"
+                            sizes="400px"
+                            unoptimized
+                          />
                           {a.category && (
                             <div className="absolute top-3 left-3">
                               <Badge className="text-xs">{a.category}</Badge>
@@ -447,7 +506,12 @@ export default async function HomePage() {
                             {a.title}
                           </h3>
                           {a.excerpt && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{a.excerpt}</p>
+                          )}
+                          {(a as { author_name?: string | null }).author_name && (
+                            <p className="text-xs text-primary font-medium">
+                              By {(a as { author_name?: string | null }).author_name}
+                            </p>
                           )}
                         </CardContent>
                       </Card>

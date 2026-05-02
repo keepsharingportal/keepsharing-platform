@@ -16,31 +16,35 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* ── GHL Design System — Public pages ────────────────────── */
-  --color-primary:            #c4622d;   /* terracotta */
+  /* ── GHL Studio Vibe AI — Public pages (EXACT MATCH) ────── */
+  --color-primary:            #ef6442;   /* vibrant coral terracotta — was muddy #c4622d */
   --color-primary-foreground: #ffffff;
 
-  --color-secondary:            #2c7a7b; /* deep teal */
+  --color-secondary:            #3d8e8e; /* lighter teal — was darker #2c7a7b */
   --color-secondary-foreground: #ffffff;
 
-  --color-accent:            #d4a843;  /* warm gold */
-  --color-accent-foreground: #1a1a1a;
+  --color-accent:            #f3bf24;   /* vibrant gold — was muted #d4a843 */
+  --color-accent-foreground: #2b2420;
 
-  --color-background:  #faf8f5;   /* warm cream */
-  --color-foreground:  #1f1b16;   /* warm near-black */
+  --color-background:  #fbfaf8;          /* cooler cream — was warmer #faf8f5 */
+  --color-foreground:  #2b2420;          /* warmer text — was darker #1f1b16 */
 
-  --color-muted:            #f4f0e8;
-  --color-muted-foreground: #6b5e52;
+  --color-muted:            #eae7e0;
+  --color-muted-foreground: #70645b;
 
-  --color-border:              #e5ddd0;
+  --color-border:              #e0dbd1;
+  --color-input:               #e0dbd1;
   --color-card:                #ffffff;
-  --color-card-foreground:     #1f1b16;
+  --color-card-foreground:     #2b2420;
+  --color-popover:             #ffffff;
+  --color-popover-foreground:  #2b2420;
   --color-destructive:         #dc2626;
   --color-destructive-foreground: #ffffff;
+  --color-ring:                #ef6442;
 
   /* radius tokens */
-  --radius: 0.75rem;
-  --radius-sm: 0.375rem;
+  --radius: 1rem;
+  --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
@@ -71,7 +75,7 @@ aside {
   --fg-sky-light:  #e8f2fc;
   --fg-sage:       #5a8a6a;
   --fg-sage-light: #edf5f0;
-  --fg-terra:      #c4622d;
+  --fg-terra:      #ef6442;
   --fg-terra-light:#fdf0eb;
   --fg-gold:       #d4a843;
   --fg-gold-light: #fdf6e3;

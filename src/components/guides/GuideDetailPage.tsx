@@ -14,6 +14,7 @@ import {
   Star, MapPin, Globe, BookOpen, Filter,
   ChevronRight,
 } from 'lucide-react'
+import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
 function getSupabase() {
@@ -205,14 +206,16 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                     return (
                       <Card key={l.id} className="overflow-hidden hover:shadow-md transition-shadow">
                         <div className="flex flex-col sm:flex-row">
-                          {/* Image */}
+                          {/* Image — always shown with Unsplash fallback */}
                           <div className="sm:w-52 sm:shrink-0 bg-muted relative aspect-video sm:aspect-auto">
-                            {a.hero_photo_url
-                              ? <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="208px" />
-                              : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                                  <span className="text-4xl font-bold text-primary/50">{a.business_name[0]}</span>
-                                </div>
-                            }
+                            <Image
+                              src={a.hero_photo_url || getFallbackByContext(guide.slug, a.slug)}
+                              alt={a.business_name}
+                              fill
+                              style={{ objectFit: 'cover' }}
+                              unoptimized
+                              sizes="208px"
+                            />
                           </div>
                           {/* Content */}
                           <CardContent className="p-5 flex-1">

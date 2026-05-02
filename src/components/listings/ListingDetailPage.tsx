@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Phone, Globe, Mail, ChevronRight, ArrowLeft } from 'lucide-react'
+import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
 function getSupabase() {
@@ -163,21 +164,19 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
           {/* ── Main column ───────────────────────────────────── */}
           <div className="lg:col-span-8 space-y-8">
 
-            {/* Hero photo */}
-            {acct.hero_photo_url && (
-              <Card className="overflow-hidden">
-                <div className="aspect-video relative">
-                  <Image
-                    src={acct.hero_photo_url}
-                    alt={acct.business_name}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="800px"
-                    unoptimized
-                  />
-                </div>
-              </Card>
-            )}
+            {/* Hero photo — always shown with Unsplash fallback */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video relative">
+                <Image
+                  src={acct.hero_photo_url || getFallbackByContext(guideSlug, acct.slug)}
+                  alt={acct.business_name}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="800px"
+                  unoptimized
+                />
+              </div>
+            </Card>
 
             {/* About */}
             {acct.detail_lead && (
