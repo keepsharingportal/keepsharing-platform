@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X, ChevronDown } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { BrandLogo } from '@/components/BrandLogo'
 
 const GUIDES = [
   { label: 'Family Resource Guide',  href: '/family-resource-guide' },
@@ -21,7 +22,14 @@ const GUIDES = [
 export function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [guidesOpen, setGuidesOpen] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pathname = usePathname()
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
+  }, [])
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + '/')
@@ -32,45 +40,59 @@ export function Navigation() {
       <div className="container flex items-center justify-between h-20">
 
         {/* Wordmark */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-            <BookOpen className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-foreground">
-            River Region <span className="text-primary">Parents</span>
-          </span>
-        </Link>
+        <BrandLogo size="md" withTagline={false} />
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
 
           {/* Guides dropdown */}
-          <div className="relative" onMouseLeave={() => setGuidesOpen(false)}>
+          <div
+            className="relative"
+            onMouseEnter={() => {
+              if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current)
+                closeTimerRef.current = null
+              }
+              setGuidesOpen(true)
+            }}
+            onMouseLeave={() => {
+              closeTimerRef.current = setTimeout(() => setGuidesOpen(false), 200)
+            }}
+          >
             <button
-              onMouseEnter={() => setGuidesOpen(true)}
               onClick={() => setGuidesOpen(o => !o)}
-              className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-2"
             >
-              Guides <ChevronDown className="h-3.5 w-3.5" />
+              Guides <ChevronDown className={`h-3.5 w-3.5 transition-transform ${guidesOpen ? 'rotate-180' : ''}`} />
             </button>
+
             {guidesOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-card border border-border rounded-2xl shadow-lg p-2 z-50">
-                {GUIDES.map(g => (
-                  <Link
-                    key={g.href}
-                    href={g.href}
-                    onClick={() => setGuidesOpen(false)}
-                    className="block px-3 py-2 rounded-xl text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
-                  >
-                    {g.label}
-                  </Link>
-                ))}
-                <div className="border-t border-border mt-1 pt-1">
-                  <Link href="/local-guides" onClick={() => setGuidesOpen(false)} className="block px-3 py-2 rounded-xl text-sm font-semibold text-primary hover:bg-muted transition-colors">
-                    View All Local Guides →
-                  </Link>
+              <>
+                {/* Invisible bridge — prevents gap from closing dropdown */}
+                <div className="absolute top-full left-0 right-0 h-2" />
+
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-card border border-border rounded-2xl shadow-lg p-2 z-50">
+                  {GUIDES.map(g => (
+                    <Link
+                      key={g.href}
+                      href={g.href}
+                      onClick={() => setGuidesOpen(false)}
+                      className="block px-3 py-2 rounded-xl text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
+                    >
+                      {g.label}
+                    </Link>
+                  ))}
+                  <div className="border-t border-border mt-1 pt-1">
+                    <Link
+                      href="/local-guides"
+                      onClick={() => setGuidesOpen(false)}
+                      className="block px-3 py-2 rounded-xl text-sm font-semibold text-primary hover:bg-muted transition-colors"
+                    >
+                      View All Local Guides →
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 

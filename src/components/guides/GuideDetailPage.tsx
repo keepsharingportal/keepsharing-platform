@@ -141,11 +141,11 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
       <div className="bg-primary/5 border-b border-border">
         <div className="container py-12 lg:py-16">
           <div className="max-w-3xl">
-            <Badge className="mb-4">2026 Edition</Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground leading-tight">
+            <Badge className="mb-4 bg-primary text-primary-foreground">2026 Edition</Badge>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground leading-tight">
               {guide.display_name}
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-xl text-muted-foreground">
               {guide.pitch ?? guide.hub_intro_paragraph ?? guide.short_description}
             </p>
             <div className="flex items-center gap-4 mt-6 text-sm text-muted-foreground">
@@ -204,10 +204,10 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                     if (!a) return null
                     const gd = (l.guide_data ?? {}) as Record<string, string>
                     return (
-                      <Card key={l.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="flex flex-col sm:flex-row">
-                          {/* Image — always shown with Unsplash fallback */}
-                          <div className="sm:w-52 sm:shrink-0 bg-muted relative aspect-video sm:aspect-auto">
+                      <Card key={l.id} className="overflow-hidden border-accent/30 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col md:flex-row">
+                          {/* Image */}
+                          <div className="md:w-1/3 relative aspect-video md:aspect-auto">
                             <Image
                               src={a.hero_photo_url || getFallbackByContext(guide.slug, a.slug)}
                               alt={a.business_name}
@@ -216,13 +216,13 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                               unoptimized
                               sizes="208px"
                             />
+                            <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">Premium Sponsor</Badge>
                           </div>
                           {/* Content */}
-                          <CardContent className="p-5 flex-1">
+                          <CardContent className="p-6 md:w-2/3 flex flex-col justify-center">
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div>
-                                <Badge variant="accent" className="mb-2 text-xs">Featured Partner</Badge>
-                                <h3 className="text-xl font-bold text-foreground">{a.business_name}</h3>
+                                <h3 className="text-2xl font-bold mb-2">{a.business_name}</h3>
                               </div>
                             </div>
                             {(a.card_hook ?? gd.description) && (
@@ -357,10 +357,8 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
             {/* Category filter */}
             {categories.length > 0 && (
               <Card>
-                <CardContent className="p-5">
-                  <h3 className="font-bold mb-3 flex items-center gap-2">
-                    <Filter className="h-4 w-4 text-primary" />Filter by Category
-                  </h3>
+                <CardContent className="p-6">
+                  <h3 className="font-bold mb-4">Filter Results</h3>
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/${urlSlug}`}>
                       <Badge variant={!categoryFilter ? 'default' : 'outline'} className="cursor-pointer">All</Badge>
@@ -399,11 +397,11 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   <h3 className="font-bold mb-3 text-foreground flex items-center gap-2">
                     <Star className="h-4 w-4 text-accent fill-accent" />Insider Tips
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                     {(guide.insider_tips as Array<{ tip: string }>).slice(0, 4).map((t, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex gap-2 leading-relaxed">
-                        <span className="text-primary font-bold mt-0.5 shrink-0">✦</span>
-                        {t.tip}
+                      <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
+                        <span className="text-primary font-bold shrink-0">→</span>
+                        <span>{t.tip}</span>
                       </li>
                     ))}
                   </ul>
@@ -413,22 +411,23 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
 
             {/* Related article */}
             {article && (
-              <Card className="overflow-hidden">
-                <div className="p-4 border-b border-border">
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary">Editor&apos;s Pick</p>
-                </div>
+              <Card className="bg-secondary/5 border-secondary/20 overflow-hidden">
                 {article.hero_image_url && (
-                  <div className="relative aspect-video">
+                  <div className="aspect-video relative">
                     <Image src={article.hero_image_url} alt={article.title} fill style={{ objectFit: 'cover' }} sizes="320px" unoptimized />
                   </div>
                 )}
-                <CardContent className="p-5">
-                  <h4 className="font-bold text-foreground mb-2 leading-snug">{article.title}</h4>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-secondary font-bold text-sm mb-3">
+                    <BookOpen className="h-4 w-4" />
+                    Editor&apos;s Pick
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 leading-tight">{article.title}</h3>
                   {article.excerpt && (
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{article.excerpt}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{article.excerpt}</p>
                   )}
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <Link href={`/newcomer-guide/articles/${article.slug}`}>Read Article</Link>
+                  <Button variant="link" className="p-0 h-auto text-secondary hover:text-secondary/80" asChild>
+                    <Link href={`/newcomer-guide/articles/${article.slug}`}>Read Full Article →</Link>
                   </Button>
                 </CardContent>
               </Card>

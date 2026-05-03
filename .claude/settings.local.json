@@ -25,7 +25,10 @@
       "Bash(node -e \"const pkg = require\\('./node_modules/lucide-react/package.json'\\); console.log\\(pkg.version\\)\")",
       "Bash(node -e \"const icons = require\\('./node_modules/lucide-react'\\); const social = Object.keys\\(icons\\).filter\\(k => /facebook|twitter|share|social/i.test\\(k\\)\\); console.log\\(social.slice\\(0,20\\)\\)\")",
       "PowerShell(Set-Location \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -RedirectStandardOutput \"$env:TEMP\\\\nextdev.log\" -RedirectStandardError \"$env:TEMP\\\\nextdev.err\"; Start-Sleep 15; Get-Content \"$env:TEMP\\\\nextdev.log\" -Tail 10; Get-Content \"$env:TEMP\\\\nextdev.err\" -Tail 10)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)"
     ]
   }
 }

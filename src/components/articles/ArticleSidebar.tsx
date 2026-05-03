@@ -37,7 +37,15 @@ export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
           <CardContent className="p-8">
             <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-4">Ad</span>
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📰</span>
+              <span className="text-2xl">
+                {(() => {
+                  const name = stickyAd.advertiser_name.toLowerCase()
+                  if (name.includes('dent')) return '🦷'
+                  if (name.includes('school') || name.includes('academy')) return '🎓'
+                  if (name.includes('camp')) return '⛺'
+                  return '📰'
+                })()}
+              </span>
             </div>
             <h4 className="font-bold text-xl mb-3 text-foreground">{stickyAd.advertiser_name}</h4>
             <p className="text-sm text-muted-foreground mb-6">{stickyAd.description}</p>
@@ -71,8 +79,8 @@ export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
             {trending.map((post, i) => (
               <Link href={post.href} key={post.id} className={`flex gap-4 group ${i > 0 ? 'pt-5' : ''}`}>
                 {post.hero_image_url && (
-                  <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-border/50">
-                    <Image src={post.hero_image_url} alt={post.title} fill style={{ objectFit: 'cover' }} sizes="80px" unoptimized />
+                  <div className="relative w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-border/50 shadow-sm">
+                    <Image src={post.hero_image_url} alt={post.title} fill style={{ objectFit: 'cover' }} sizes="96px" unoptimized />
                   </div>
                 )}
                 <div className="flex flex-col justify-center min-w-0">

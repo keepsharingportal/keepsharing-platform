@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -162,7 +162,7 @@ export default async function HomePage() {
 
           {/* Main feature — full-bleed photo with overlay (lg:col-span-8) */}
           <div className="lg:col-span-8 group cursor-pointer">
-            <div className="relative rounded-3xl overflow-hidden min-h-[320px] lg:min-h-[500px] bg-foreground/10">
+            <div className="relative rounded-3xl overflow-hidden aspect-[16/9] lg:aspect-auto h-full lg:min-h-[500px] bg-foreground/10">
               <Image
                 src={mainFeature?.hero_image_url || getFallbackByContext('parenting', mainFeature?.slug ?? 'mom-to-mom')}
                 alt={mainFeature?.title ?? 'Mom to Mom'}
@@ -184,7 +184,7 @@ export default async function HomePage() {
               </div>
 
               {/* Content — bottom left */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                 {mainFeature ? (
                   <>
                     <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
@@ -228,7 +228,10 @@ export default async function HomePage() {
           <div className="lg:col-span-4 flex flex-col gap-4">
 
             {/* Summer Camp Guide card */}
-            <div className="relative rounded-3xl overflow-hidden h-[200px] lg:h-[240px] bg-secondary/20 flex-shrink-0 group cursor-pointer">
+            <Link
+              href={`/${summerCamp?.url_slug ?? 'summer-camp-guide'}`}
+              className="relative rounded-3xl overflow-hidden h-[240px] shrink-0 group cursor-pointer block"
+            >
               <Image
                 src={summerCamp?.hero_image_url || getFallbackByContext('summer-camp', 'summer-camp-guide')}
                 alt={summerCamp?.display_name ?? 'Summer Camp Guide'}
@@ -251,24 +254,21 @@ export default async function HomePage() {
                 <p className="text-white/70 text-xs mb-3 line-clamp-1">
                   {summerCamp?.pitch ?? 'Find the perfect summer camp for your child.'}
                 </p>
-                <Link
-                  href={`/${summerCamp?.url_slug ?? 'summer-camp-guide'}`}
-                  className="text-white text-xs font-bold hover:text-accent transition-colors flex items-center gap-1"
-                >
+                <span className="text-white text-xs font-bold flex items-center gap-1">
                   Explore Guide <ArrowRight className="h-3 w-3" />
-                </Link>
+                </span>
               </div>
-            </div>
+            </Link>
 
             {/* Community Spotlights card */}
-            <Card className="flex-1 rounded-3xl border overflow-hidden">
-              <CardHeader className="pb-2 pt-4 px-5">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
+            <Card className="flex-1 bg-card rounded-3xl border border-border/50 p-6 flex flex-col shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Users className="h-5 w-5 text-secondary" />
                   Community Spotlights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 space-y-4">
+                </h2>
+              </div>
+              <div className="flex flex-col gap-5 justify-center flex-1">
                 {spotlights.length > 0 ? spotlights.map((sp) => {
                   const tint = sp.spotlight_type === 'teacher'       ? 'border-primary/20'
                              : sp.spotlight_type === 'student'       ? 'border-secondary/20'
@@ -308,10 +308,10 @@ export default async function HomePage() {
                 }) : (
                   <p className="text-sm text-muted-foreground py-2">Spotlights coming soon.</p>
                 )}
-                <Button asChild variant="outline" size="sm" className="w-full rounded-full mt-2">
-                  <Link href="/local-guides">Nominate Someone</Link>
-                </Button>
-              </CardContent>
+              </div>
+              <Button asChild variant="outline" size="sm" className="w-full rounded-full mt-4">
+                <Link href="/local-guides">Nominate Someone</Link>
+              </Button>
             </Card>
           </div>
         </div>
@@ -322,7 +322,7 @@ export default async function HomePage() {
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* ── Main content column (lg:col-span-8) ── */}
-          <div className="lg:col-span-8 space-y-10">
+          <div className="lg:col-span-8 space-y-12">
 
             {/* Upcoming Events */}
             {events.length > 0 && (
@@ -400,8 +400,8 @@ export default async function HomePage() {
                 {/* Decorative blur */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="relative flex items-start gap-4">
-                  <div className="shrink-0 w-12 h-12 bg-card rounded-xl flex items-center justify-center shadow-sm">
-                    <Star className="h-6 w-6 text-accent" />
+                  <div className="shrink-0 w-16 h-16 bg-background rounded-xl shadow-sm flex items-center justify-center z-10 border">
+                    <Star className="h-8 w-8 text-secondary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Sponsored</p>
@@ -491,7 +491,7 @@ export default async function HomePage() {
           </div>
 
           {/* ── Sidebar (lg:col-span-4) ── */}
-          <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <aside className="lg:col-span-4 space-y-8">
 
             {/* Sidebar Ad — aspect-square rounded-3xl */}
             {sidebarAd ? (

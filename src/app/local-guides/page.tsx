@@ -6,8 +6,7 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { BookOpen, MapPin, Search, Star, ChevronRight, Users } from 'lucide-react'
+import { BookOpen, MapPin, Star } from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -72,22 +71,14 @@ export default async function LocalGuidesPage() {
       <Navigation />
 
       {/* Header */}
-      <div className="bg-secondary/10 border-b border-border">
-        <div className="container py-12 lg:py-16 text-center">
-          <Badge variant="secondary" className="mb-4">River Region Parents</Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 text-foreground leading-tight">
-            Local Resources.<br />
-            <span className="text-primary">Real Recommendations.</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Nine guides covering the full arc of family life in the River Region. Built by the families who actually live here.
+      <div className="bg-secondary/10 border-b py-16 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="container relative z-10 text-center">
+          <Badge className="mb-4 bg-secondary text-secondary-foreground hover:bg-secondary/90">Local Resources</Badge>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Community Guides</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Your comprehensive directories for everything family-related in the River Region. Curated, trusted, and always up-to-date.
           </p>
-          <div className="max-w-md mx-auto flex gap-2">
-            <Input placeholder="Search guides and listings..." className="rounded-full" />
-            <Button className="rounded-full px-5 shrink-0">
-              <Search className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -97,8 +88,8 @@ export default async function LocalGuidesPage() {
         {featured.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center gap-2 mb-6">
-              <Star className="h-5 w-5 text-accent fill-accent" />
-              <h2 className="text-2xl font-bold text-foreground">Featured Partners</h2>
+              <Star className="h-5 w-5 text-accent" fill="currentColor" />
+              <h2 className="text-xl font-bold">Featured Partners</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-5">
               {featured.map(f => {
@@ -109,11 +100,11 @@ export default async function LocalGuidesPage() {
                 const gt = f.guide_types as unknown as { display_name: string; url_slug: string } | null
                 if (!a || !gt) return null
                 return (
-                  <Card key={f.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="flex">
-                      <div className="w-40 shrink-0 bg-muted relative">
+                  <Card key={f.id} className="overflow-hidden group cursor-pointer border-accent/20 hover:border-accent/50 transition-colors">
+                    <div className="flex h-32">
+                      <div className="w-1/3 relative overflow-hidden">
                         {a.hero_photo_url
-                          ? <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="160px" />
+                          ? <Image src={a.hero_photo_url} alt={a.business_name} fill style={{ objectFit: 'cover' }} unoptimized sizes="160px" className="group-hover:scale-105 transition-transform" />
                           : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                               <span className="text-4xl font-bold text-primary/40">{a.business_name[0]}</span>
                             </div>
@@ -123,16 +114,13 @@ export default async function LocalGuidesPage() {
                         <Badge variant="accent" className="mb-2 text-xs">Featured</Badge>
                         <h3 className="font-bold text-foreground mb-1">{a.business_name}</h3>
                         {a.card_hook && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{a.card_hook}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{a.card_hook}</p>
                         )}
                         {a.city_state_zip && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1 mb-3">
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <MapPin className="h-3 w-3" />{a.city_state_zip}
                           </p>
                         )}
-                        <Button asChild size="sm" variant="outline" className="rounded-full">
-                          <Link href={`/${gt.url_slug}/listings/${a.slug}`}>View Profile</Link>
-                        </Button>
                       </CardContent>
                     </div>
                   </Card>
@@ -144,24 +132,23 @@ export default async function LocalGuidesPage() {
 
         {/* All 9 Guide Cards */}
         <section>
-          <h2 className="text-2xl font-bold text-foreground mb-6">Browse All Guides</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {guides.map(g => {
               const emoji   = GUIDE_EMOJIS[g.slug] ?? '📖'
               const urlSlug = g.url_slug ?? g.slug
 
               return (
                 <Link key={g.slug} href={`/${urlSlug}`} className="group block">
-                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 h-full flex flex-col">
+                  <Card className="overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-lg transition-all h-full flex flex-col">
                     {/* Hero image */}
-                    <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+                    <div className="relative aspect-[4/3] overflow-hidden">
                       {g.hero_image_url
                         ? <Image
                             src={g.hero_image_url}
                             alt={g.display_name}
                             fill
                             style={{ objectFit: 'cover' }}
-                            className="group-hover:scale-105 transition-transform duration-500"
+                            className="group-hover:scale-105 transition-transform duration-700"
                             sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         : <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-5xl">
@@ -171,21 +158,17 @@ export default async function LocalGuidesPage() {
                     </div>
 
                     {/* Card content */}
-                    <CardContent className="p-5 flex-1 flex flex-col">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold text-foreground text-lg leading-snug">{g.display_name}</h3>
-                        <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+                    <CardContent className="p-6 flex flex-col flex-1">
+                      <div className="flex items-center gap-2 text-primary text-sm mb-3 font-medium">
+                        <BookOpen className="h-4 w-4" />
+                        {g.count} Listings
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3 flex-1">
+                      <h3 className="text-xl font-bold text-foreground leading-tight mb-2 group-hover:text-primary transition-colors">
+                        {g.display_name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {g.pitch ?? g.short_description}
                       </p>
-                      <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {g.count} listings
-                        </span>
-                        <Badge variant="outline" className="text-xs">2026 Edition</Badge>
-                      </div>
                     </CardContent>
                   </Card>
                 </Link>

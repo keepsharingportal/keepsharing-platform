@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import { BrandLogo } from '@/components/BrandLogo'
 
 export function PublicFooter() {
   const year = new Date().getFullYear()
@@ -8,11 +8,8 @@ export function PublicFooter() {
       <div className="container py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div className="md:col-span-1">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <BookOpen className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-white">River Region Parents</span>
+          <div className="mb-4">
+            <BrandLogo size="lg" withTagline={true} href="/" variant="footer" />
           </div>
           <p className="text-sm text-white/60 leading-relaxed">
             Local family media serving the River Region since 2001.

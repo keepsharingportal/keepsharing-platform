@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
-import { Badge } from '@/components/ui/badge'
 import { CalendarClient } from '@/components/calendar/CalendarClient'
 import type { Metadata } from 'next'
 
@@ -41,15 +40,12 @@ export default async function CalendarPage() {
       <Navigation />
 
       {/* Header — server-rendered for SEO */}
-      <div className="bg-secondary/10 border-b border-border">
-        <div className="container py-10 lg:py-14">
-          <div className="max-w-3xl">
-            <Badge variant="secondary" className="mb-3">River Region Family Calendar</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-3 text-foreground">What&apos;s Happening</h1>
-            <p className="text-lg text-muted-foreground">
-              Events, festivals, workshops, and activities for River Region families — updated weekly.
-            </p>
-          </div>
+      <div className="bg-primary/5 border-b py-12">
+        <div className="container text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Community Calendar</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Find the best local events, festivals, and activities for your family in the River Region.
+          </p>
         </div>
       </div>
 

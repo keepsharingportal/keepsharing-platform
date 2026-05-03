@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Phone, Globe, Mail, ChevronRight, ArrowLeft, CheckCircle2, Clock } from 'lucide-react'
+import { StructuredFieldValue } from '@/components/listings/StructuredFieldValue'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
@@ -164,12 +165,12 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                 )}
                 {/* Key facts row from guide_data */}
                 {Object.keys(fieldLabels).length > 0 && (
-                  <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-border/50">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border/50">
                     {Object.entries(fieldLabels).slice(0, 4).map(([key, label]) => {
                       const val = guideData[key]
                       if (!val) return null
                       return (
-                        <div key={key} className="text-center min-w-[80px]">
+                        <div key={key} className="text-center">
                           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
                           <p className="text-sm font-semibold text-foreground">{val}</p>
                         </div>
@@ -184,7 +185,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                   isWomanOwned={acct.is_woman_owned}
                   isMinorityOwned={acct.is_minority_owned}
                   isLocallyOwned={acct.is_locally_owned}
-                  className="mt-4"
+                  className="mt-6"
                 />
               </CardContent>
             </Card>
@@ -211,14 +212,14 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                       return (
                         <div key={key} className="bg-muted/50 rounded-xl p-3">
                           <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</dt>
-                          <dd className="text-sm text-foreground">{val}</dd>
+                          <dd><StructuredFieldValue value={val as string} /></dd>
                         </div>
                       )
                     })}
                     {guideData.description && (
                       <div className="sm:col-span-2 bg-muted/50 rounded-xl p-3">
                         <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</dt>
-                        <dd className="text-sm text-foreground leading-relaxed">{guideData.description}</dd>
+                        <dd><StructuredFieldValue value={guideData.description as string} pillThreshold={6} /></dd>
                       </div>
                     )}
                   </dl>
@@ -237,7 +238,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                     <h2 className="text-2xl font-bold mb-6 text-foreground">{headline}</h2>
                     <ul className="grid sm:grid-cols-2 gap-4">
                       {featuresSection.bullet_points.map((feature: string, i: number) => (
-                        <li key={i} className="flex items-center gap-3 text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+                        <li key={i} className="flex items-center gap-3 text-muted-foreground bg-muted/20 p-3 rounded-lg border border-border/50">
                           <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
                           <span className="font-medium text-foreground">{feature}</span>
                         </li>
@@ -344,7 +345,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                     </a>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {website && (
                     <Button asChild className="w-full rounded-full">
                       <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
@@ -377,7 +378,9 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                   {Object.entries(acct.hours_of_operation as Record<string, string>).map(([day, hours], i, arr) => (
                     <div key={day} className={`flex justify-between items-center ${i < arr.length - 1 ? 'border-b border-border/50 pb-2' : ''}`}>
                       <span className="text-muted-foreground capitalize">{day.replace(/_/g, ' ')}</span>
-                      <span className={hours.toLowerCase() === 'closed' ? 'text-muted-foreground' : 'font-bold text-foreground'}>{hours}</span>
+                      <span className={hours.toLowerCase() === 'closed' ? 'font-normal text-muted-foreground' : 'font-bold text-foreground'}>
+                        {hours}
+                      </span>
                     </div>
                   ))}
                 </CardContent>

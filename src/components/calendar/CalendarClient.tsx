@@ -216,7 +216,7 @@ export function CalendarClient({ initialEvents }: Props) {
                 onClick={() => handleFilterChange(f)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === f
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground hover:text-foreground'
                 }`}
               >
