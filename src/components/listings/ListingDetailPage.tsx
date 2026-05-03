@@ -111,71 +111,82 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Hero band */}
-      <div className="relative bg-primary/5 border-b border-border overflow-hidden">
-        {acct.hero_photo_url && (
-          <div className="absolute inset-0">
-            <Image
-              src={acct.hero_photo_url}
-              alt={acct.business_name}
-              fill
-              style={{ objectFit: 'cover' }}
-              className="opacity-15"
-              sizes="100vw"
-              unoptimized
-            />
-          </div>
-        )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14 relative">
+      {/* Full-bleed hero image */}
+      <div className="h-64 md:h-96 w-full relative">
+        <Image
+          src={acct.hero_photo_url || getFallbackByContext(guideSlug, acct.slug)}
+          alt={acct.business_name}
+          fill
+          style={{ objectFit: 'cover' }}
+          sizes="100vw"
+          priority
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {/* Back link overlay */}
+        <div className="absolute top-4 left-4 sm:left-8">
           <Link
             href={`/${urlSlug}`}
-            className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 mb-5 font-medium"
+            className="inline-flex items-center gap-1.5 text-sm font-medium bg-background/80 backdrop-blur-sm text-foreground hover:text-primary px-3 py-1.5 rounded-full border border-border/50 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3.5 w-3.5" />
             {guide?.display_name ?? 'Back to Guide'}
           </Link>
-          <div className="max-w-3xl">
-            {isFeatured && <Badge variant="accent" className="mb-3">Featured Partner</Badge>}
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-3 leading-tight">
-              {acct.business_name}
-            </h1>
-            {acct.card_hook && (
-              <p className="text-lg text-muted-foreground mb-3">{acct.card_hook}</p>
-            )}
-            {listing?.category && (
-              <Badge variant="outline" className="mb-3">{listing.category}</Badge>
-            )}
-            {/* Badges — Military discount, Veteran-owned, etc. */}
-            <ListingBadges
-              hasMilitaryDiscount={acct.has_military_discount}
-              isVeteranOwned={acct.is_veteran_owned}
-              isWomanOwned={acct.is_woman_owned}
-              isMinorityOwned={acct.is_minority_owned}
-              isLocallyOwned={acct.is_locally_owned}
-              className="mt-3"
-            />
-          </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 -mt-24 relative z-10">
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* ── Main column ───────────────────────────────────── */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-6">
 
-            {/* Hero photo — always shown with Unsplash fallback */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video relative">
-                <Image
-                  src={acct.hero_photo_url || getFallbackByContext(guideSlug, acct.slug)}
-                  alt={acct.business_name}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="800px"
-                  unoptimized
+            {/* Overlap info card */}
+            <Card className="overflow-hidden shadow-md">
+              <CardContent className="p-6 md:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {isFeatured && <Badge variant="accent" className="text-xs">Featured Partner</Badge>}
+                    {listing?.category && <Badge variant="outline" className="text-xs">{listing.category}</Badge>}
+                  </div>
+                  {(address ?? cityZip) && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                      {address ?? cityZip}
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 leading-tight">
+                  {acct.business_name}
+                </h1>
+                {acct.card_hook && (
+                  <p className="text-lg text-muted-foreground mb-4">{acct.card_hook}</p>
+                )}
+                {/* Key facts row from guide_data */}
+                {Object.keys(fieldLabels).length > 0 && (
+                  <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-border/50">
+                    {Object.entries(fieldLabels).slice(0, 4).map(([key, label]) => {
+                      const val = guideData[key]
+                      if (!val) return null
+                      return (
+                        <div key={key} className="text-center min-w-[80px]">
+                          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
+                          <p className="text-sm font-semibold text-foreground">{val}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {/* Ownership / special badges */}
+                <ListingBadges
+                  hasMilitaryDiscount={acct.has_military_discount}
+                  isVeteranOwned={acct.is_veteran_owned}
+                  isWomanOwned={acct.is_woman_owned}
+                  isMinorityOwned={acct.is_minority_owned}
+                  isLocallyOwned={acct.is_locally_owned}
+                  className="mt-4"
                 />
-              </div>
+              </CardContent>
             </Card>
 
             {/* About */}

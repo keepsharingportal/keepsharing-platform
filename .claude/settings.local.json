@@ -16,7 +16,11 @@
       "Bash(npx tsx *)",
       "Bash(node -e ' *)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(exit 0)"
+      "Bash(exit 0)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\columns\\\\[column]\\\\[slug]\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\columns\\\\[column]\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\articles\\\\[slug]\")",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('share'\\) || k.toLowerCase\\(\\).includes\\('face'\\) || k.toLowerCase\\(\\).includes\\('twit'\\) || k.toLowerCase\\(\\).includes\\('social'\\)\\).join\\(', '\\)\\)\")"
     ]
   }
 }

@@ -12,12 +12,22 @@ import {
   ArrowRight, Users, Briefcase, Map,
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
+import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
 import type { Metadata } from 'next'
 
 export const revalidate = 1800
 
 const ISSUU_URL = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
 const MAY_COVER_URL = '/images/issues/may-2026-cover.jpg'
+
+const COLUMN_LABELS: Record<string, string> = {
+  'mom-to-mom':           'Mom to Mom',
+  'grands-greatest':      'Grands are the Greatest',
+  'teacher-of-month':     'Teacher of the Month',
+  'meeting-kids':         'Meeting Kids Where They Are',
+  'dave-says':            'Dave Says',
+  'teens-tweens-screens': 'Teens, Tweens & Screens',
+}
 
 export const metadata: Metadata = {
   title:       'River Region Parents — Local Family Guides & Events',
@@ -41,7 +51,6 @@ async function getHomepageData() {
     summerCampRes,
     spotlightsRes,
     eventsRes,
-    miniEventsRes,
     articlesRes,
     inlineAdRes,
     sidebarAdRes,
@@ -63,14 +72,10 @@ async function getHomepageData() {
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published').gte('start_date', today)
       .order('start_date').limit(3),
-    supabase.from('calendar_events')
-      .select('id, slug, title, start_date, start_time, location_name')
-      .eq('status', 'published').gte('start_date', today)
-      .order('start_date').limit(3),
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, category, column_slug, author_name')
+      .select('id, title, slug, hero_image_url, excerpt, guide_slug, column_slug, author_name, created_at')
       .eq('editorial_review_status', 'approved')
-      .neq('column_slug', 'mom-to-mom')
+      .or('column_slug.neq.mom-to-mom,column_slug.is.null')
       .order('created_at', { ascending: false }).limit(8),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
@@ -95,7 +100,6 @@ async function getHomepageData() {
     summerCamp:        summerCampRes.data ?? null,
     spotlights:        spotlightsRes.data ?? [],
     events:            eventsRes.data ?? [],
-    miniEvents:        miniEventsRes.data ?? [],
     articles:          articlesRes.data ?? [],
     inlineAd:          inlineAdRes.data ?? null,
     sidebarAd:         sidebarAdRes.data ?? null,
@@ -114,7 +118,7 @@ function fmtDate(d: string) {
 
 
 export default async function HomePage() {
-  const { trending, mainFeature, summerCamp, spotlights, events, miniEvents, articles, inlineAd, sidebarAd, businessSpotlight } = await getHomepageData()
+  const { trending, mainFeature, summerCamp, spotlights, events, articles, inlineAd, sidebarAd, businessSpotlight } = await getHomepageData()
 
   const fallbackTrending = [
     { id: '1', label: '2026 Summer Camp Guide is Live',     href: '/summer-camp-guide',  emoji: '⛺' },
@@ -148,56 +152,6 @@ export default async function HomePage() {
                 {i < 3 && <span className="text-primary/30 ml-2">·</span>}
               </Link>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── This Month's Issue — cover spotlight ── */}
-      <div className="bg-foreground text-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Cover thumbnail */}
-            <a
-              href={ISSUU_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 group"
-              aria-label="Read May 2026 issue on Issuu"
-            >
-              <div className="relative w-32 h-44 rounded-xl overflow-hidden shadow-2xl ring-2 ring-white/20 group-hover:ring-primary/60 transition-all duration-300">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={MAY_COVER_URL}
-                  alt="River Region Parents — May 2026 Cover"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                <div className="absolute bottom-2 left-0 right-0 text-center">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-white/90">May 2026</span>
-                </div>
-              </div>
-            </a>
-            {/* Copy */}
-            <div className="flex-1 text-center sm:text-left">
-              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Now Available</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-background leading-tight mb-2">
-                May 2026 Issue<br className="hidden sm:block" />{' '}
-                <span className="text-primary">Is Here</span>
-              </h2>
-              <p className="text-background/70 text-sm leading-relaxed mb-4 max-w-md">
-                Mom to Mom with Hayley Denny · Grands are the Greatest · Inexpensive Micro Summer Adventures · Teacher of the Month Bebe Campbell · College Visit Tips
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-                <Button asChild className="rounded-full bg-primary hover:bg-primary/90 text-white">
-                  <a href={ISSUU_URL} target="_blank" rel="noopener noreferrer">
-                    Read Digital Edition <ArrowRight className="h-4 w-4" />
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="rounded-full border-white/20 text-background hover:bg-white/10">
-                  <Link href="/newcomer-guide/articles">Browse All Articles</Link>
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -244,7 +198,7 @@ export default async function HomePage() {
                       </p>
                     )}
                     <Button asChild size="sm" className="rounded-full bg-white text-foreground hover:bg-white/90">
-                      <Link href={`/newcomer-guide/articles/${mainFeature.slug}`}>
+                      <Link href={`/columns/mom-to-mom/${mainFeature.slug.replace(/^mom-to-mom-/, '')}`}>
                         Read Story <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -468,26 +422,40 @@ export default async function HomePage() {
             {/* Parenting & Lifestyle — 2×2 article grid */}
             {articles.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-5">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  Parenting &amp; Lifestyle
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between mb-5 border-b pb-4">
+                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    Parenting &amp; Lifestyle
+                  </h2>
+                  <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                    <Link href="/articles">View All</Link>
+                  </Button>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6">
                   {/* Dedupe by column_slug so each column appears at most once */}
                   {(() => {
                     const seen = new Set<string>()
                     return articles.filter(a => {
-                      const key = (a as { column_slug?: string | null }).column_slug ?? a.id
+                      const cs = (a as { column_slug?: string | null }).column_slug
+                      const key = cs ?? a.id
                       if (seen.has(key)) return false
                       seen.add(key)
                       return true
                     }).slice(0, 4)
-                  })().map(a => (
-                    <Link key={a.id} href={`/newcomer-guide/articles/${a.slug}`} className="group block">
-                      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
-                        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+                  })().map(a => {
+                    const cs = (a as { column_slug?: string | null }).column_slug
+                    const gs = (a as { guide_slug?: string | null }).guide_slug
+                    const articleUrl = cs
+                      ? `/columns/${cs}/${a.slug.replace(new RegExp(`^${cs}-`), '')}`
+                      : `/articles/${a.slug}`
+                    const categoryLabel = cs
+                      ? (COLUMN_LABELS[cs] ?? cs)
+                      : (gs ?? 'Feature')
+                    return (
+                      <Link key={a.id} href={articleUrl} className="group flex flex-col gap-3 cursor-pointer">
+                        <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-muted">
                           <Image
-                            src={a.hero_image_url || getFallbackByContext(a.category, a.slug ?? a.id)}
+                            src={a.hero_image_url || getFallbackByContext(cs ?? gs ?? 'parenting', a.slug ?? a.id)}
                             alt={a.title}
                             fill
                             style={{ objectFit: 'cover' }}
@@ -495,28 +463,26 @@ export default async function HomePage() {
                             sizes="400px"
                             unoptimized
                           />
-                          {a.category && (
-                            <div className="absolute top-3 left-3">
-                              <Badge className="text-xs">{a.category}</Badge>
-                            </div>
-                          )}
+                          <div className="absolute top-3 left-3">
+                            <Badge variant="secondary" className="bg-background/90 text-foreground backdrop-blur text-xs">
+                              {categoryLabel}
+                            </Badge>
+                          </div>
                         </div>
-                        <CardContent className="p-4 flex-1">
-                          <h3 className="font-bold text-lg text-foreground leading-snug line-clamp-2 mb-2">
-                            {a.title}
-                          </h3>
-                          {a.excerpt && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{a.excerpt}</p>
-                          )}
-                          {(a as { author_name?: string | null }).author_name && (
-                            <p className="text-xs text-primary font-medium">
-                              By {(a as { author_name?: string | null }).author_name}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                        <h3 className="font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                          {a.title}
+                        </h3>
+                        {a.excerpt && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
+                        )}
+                        {(a as { author_name?: string | null }).author_name && (
+                          <p className="text-xs text-muted-foreground font-medium">
+                            By {(a as { author_name?: string | null }).author_name}
+                          </p>
+                        )}
+                      </Link>
+                    )
+                  })}
                 </div>
               </section>
             )}
@@ -560,44 +526,13 @@ export default async function HomePage() {
               </div>
             )}
 
-            {/* Mini Calendar Widget */}
-            <Card className="border">
-              <CardHeader className="pb-2 pt-4 px-5">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  Upcoming Events
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-4 space-y-1">
-                {miniEvents.length > 0 ? miniEvents.map(ev => {
-                  const dt = ev.start_date ? fmtDate(ev.start_date) : null
-                  return (
-                    <Link
-                      key={ev.id}
-                      href={`/calendar/events/${ev.slug ?? ev.id}`}
-                      className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-muted/60 transition-colors group"
-                    >
-                      {dt && (
-                        <div className="shrink-0 text-center w-10">
-                          <p className="text-[10px] font-bold uppercase text-muted-foreground">{dt.month}</p>
-                          <p className="text-xl font-bold text-foreground leading-none">{dt.day}</p>
-                        </div>
-                      )}
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                        {ev.title}
-                      </p>
-                    </Link>
-                  )
-                }) : (
-                  <p className="text-sm text-muted-foreground py-3">No upcoming events.</p>
-                )}
-                <div className="pt-2">
-                  <Button asChild variant="outline" size="sm" className="w-full rounded-full">
-                    <Link href="/calendar">View Full Calendar</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* This Month's Issue — sidebar spotlight */}
+            <IssueSpotlightSidebar
+              coverImageUrl={MAY_COVER_URL}
+              issueLabel="May 2026 Issue"
+              issueTagline="Summer Fun Issue: 100+ camps, day trips, and adventures"
+              issuuUrl={ISSUU_URL}
+            />
 
             {/* Business Spotlight — dark card */}
             {businessSpotlight ? (
