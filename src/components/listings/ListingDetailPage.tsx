@@ -8,10 +8,11 @@ import { ListingBadges } from '@/components/listings/ListingBadges'
 import { ListingMap } from '@/components/listings/ListingMap'
 import { ListingMessageForm } from '@/components/listings/ListingMessageForm'
 import { SectionRenderer } from '@/components/listings/sections/SectionRenderer'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Phone, Globe, Mail, ChevronRight, ArrowLeft, CheckCircle2, Clock } from 'lucide-react'
+import { ContentCard, SidebarWidget } from '@/components/theme'
 import { StructuredFieldValue } from '@/components/listings/StructuredFieldValue'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
@@ -192,39 +193,35 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
 
             {/* About */}
             {acct.detail_lead && (
-              <Card>
-                <CardContent className="p-6 md:p-8">
-                  <h2 className="text-2xl font-bold mb-4 text-foreground">About {acct.business_name}</h2>
-                  <p className="text-muted-foreground leading-relaxed">{acct.detail_lead}</p>
-                </CardContent>
-              </Card>
+              <ContentCard size="lg">
+                <h2 className="text-2xl font-bold mb-4 text-foreground">About {acct.business_name}</h2>
+                <p className="text-muted-foreground leading-relaxed">{acct.detail_lead}</p>
+              </ContentCard>
             )}
 
             {/* Guide-specific details */}
             {Object.keys(fieldLabels).length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-4 text-foreground">Details</h3>
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {Object.entries(fieldLabels).map(([key, label]) => {
-                      const val = guideData[key]
-                      if (!val) return null
-                      return (
-                        <div key={key} className="bg-muted/50 rounded-xl p-3">
-                          <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</dt>
-                          <dd><StructuredFieldValue value={val as string} /></dd>
-                        </div>
-                      )
-                    })}
-                    {guideData.description && (
-                      <div className="sm:col-span-2 bg-muted/50 rounded-xl p-3">
-                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</dt>
-                        <dd><StructuredFieldValue value={guideData.description as string} pillThreshold={6} /></dd>
+              <ContentCard>
+                <h3 className="text-lg font-bold mb-4 text-foreground">Details</h3>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(fieldLabels).map(([key, label]) => {
+                    const val = guideData[key]
+                    if (!val) return null
+                    return (
+                      <div key={key} className="bg-muted/50 rounded-xl p-3">
+                        <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</dt>
+                        <dd><StructuredFieldValue value={val as string} /></dd>
                       </div>
-                    )}
-                  </dl>
-                </CardContent>
-              </Card>
+                    )
+                  })}
+                  {guideData.description && (
+                    <div className="sm:col-span-2 bg-muted/50 rounded-xl p-3">
+                      <dt className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</dt>
+                      <dd><StructuredFieldValue value={guideData.description as string} pillThreshold={6} /></dd>
+                    </div>
+                  )}
+                </dl>
+              </ContentCard>
             )}
 
             {/* Camp Features — dedicated 2-col checkbox grid from features_bullets section */}
@@ -233,25 +230,22 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
               if (!featuresSection || !featuresSection.bullet_points || featuresSection.bullet_points.length === 0) return null
               const headline = featuresSection.headline || `${guide?.display_name?.replace(' Guide', '') ?? 'Listing'} Features`
               return (
-                <Card>
-                  <CardContent className="p-6 md:p-8">
-                    <h2 className="text-2xl font-bold mb-6 text-foreground">{headline}</h2>
-                    <ul className="grid sm:grid-cols-2 gap-4">
-                      {featuresSection.bullet_points.map((feature: string, i: number) => (
-                        <li key={i} className="flex items-center gap-3 text-muted-foreground bg-muted/20 p-3 rounded-lg border border-border/50">
-                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                          <span className="font-medium text-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <ContentCard size="lg">
+                  <h2 className="text-2xl font-bold mb-6 text-foreground">{headline}</h2>
+                  <ul className="grid sm:grid-cols-2 gap-4">
+                    {featuresSection.bullet_points.map((feature: string, i: number) => (
+                      <li key={i} className="flex items-center gap-3 text-muted-foreground bg-muted/20 p-3 rounded-lg border border-border/50">
+                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                        <span className="font-medium text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </ContentCard>
               )
             })()}
 
             {/* Gallery — hero photo + 3 deterministic fallbacks in 2x2 grid */}
-            <Card>
-              <CardContent className="p-6 md:p-8">
+            <ContentCard size="lg">
                 <h2 className="text-2xl font-bold mb-6 text-foreground">Gallery</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -273,8 +267,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+            </ContentCard>
 
             {/* Flexible sections — skip features_bullets (rendered above as dedicated card) */}
             {sections?.filter(s => s.section_type !== 'features_bullets').map(section => (
@@ -283,21 +276,19 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
 
             {/* Inline Contact form Card */}
             {showMessageForm && (
-              <Card className="border-primary/20 shadow-sm overflow-hidden" id="message-form">
-                <CardHeader className="bg-primary/5 border-b border-primary/10">
-                  <CardTitle className="text-xl flex items-center gap-2">
+              <ContentCard variant="tinted" id="message-form">
+                <div className="bg-primary/5 -mx-6 -mt-6 px-6 py-4 mb-6 border-b border-primary/10">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
                     <Mail className="h-5 w-5 text-primary" />
                     Contact {acct.business_name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <ListingMessageForm
-                    advertiserAccountId={acct.id}
-                    advertiserName={acct.business_name}
-                    guideTypeSlug={guideSlug}
-                  />
-                </CardContent>
-              </Card>
+                  </h3>
+                </div>
+                <ListingMessageForm
+                  advertiserAccountId={acct.id}
+                  advertiserName={acct.business_name}
+                  guideTypeSlug={guideSlug}
+                />
+              </ContentCard>
             )}
           </div>
 
@@ -305,76 +296,69 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
           <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-20 lg:self-start">
 
             {/* Contact card */}
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-bold text-foreground mb-4">{acct.business_name}</h3>
-                <div className="space-y-3 text-sm mb-5">
-                  {(address ?? cityZip) && (
-                    <div className="flex items-start gap-2.5 text-muted-foreground">
-                      <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      <span>{address}{address && cityZip ? `, ${cityZip}` : cityZip}</span>
-                    </div>
-                  )}
-                  {phone && (
-                    <a
-                      href={`tel:${phone.replace(/[^0-9]/g, '')}`}
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Phone className="h-4 w-4 text-primary shrink-0" />
-                      {phone}
-                    </a>
-                  )}
-                  {website && (
-                    <a
-                      href={website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Globe className="h-4 w-4 text-primary shrink-0" />
-                      <span className="truncate">{website.replace(/^https?:\/\//, '')}</span>
-                    </a>
-                  )}
-                  {email && (
-                    <a
-                      href={`mailto:${email}`}
-                      className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Mail className="h-4 w-4 text-primary shrink-0" />
-                      {email}
-                    </a>
-                  )}
-                </div>
-                <div className="space-y-2.5">
-                  {website && (
-                    <Button asChild className="w-full rounded-full">
-                      <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                    </Button>
-                  )}
-                  {showMessageForm && (
-                    <Button variant="outline" asChild className="w-full rounded-full">
-                      <a href="#message-form">Send a Message</a>
-                    </Button>
-                  )}
-                  <Button variant="outline" asChild className="w-full rounded-full">
-                    <Link href={`/${urlSlug}`}>
-                      <ArrowLeft className="h-4 w-4" />
-                      Back to {guide?.display_name ?? 'Guide'}
-                    </Link>
+            <SidebarWidget>
+              <h3 className="font-bold text-foreground mb-4">{acct.business_name}</h3>
+              <div className="space-y-3 text-sm mb-5">
+                {(address ?? cityZip) && (
+                  <div className="flex items-start gap-2.5 text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <span>{address}{address && cityZip ? `, ${cityZip}` : cityZip}</span>
+                  </div>
+                )}
+                {phone && (
+                  <a
+                    href={`tel:${phone.replace(/[^0-9]/g, '')}`}
+                    className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Phone className="h-4 w-4 text-primary shrink-0" />
+                    {phone}
+                  </a>
+                )}
+                {website && (
+                  <a
+                    href={website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Globe className="h-4 w-4 text-primary shrink-0" />
+                    <span className="truncate">{website.replace(/^https?:\/\//, '')}</span>
+                  </a>
+                )}
+                {email && (
+                  <a
+                    href={`mailto:${email}`}
+                    className="flex items-center gap-2.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Mail className="h-4 w-4 text-primary shrink-0" />
+                    {email}
+                  </a>
+                )}
+              </div>
+              <div className="space-y-2.5">
+                {website && (
+                  <Button asChild className="w-full rounded-full">
+                    <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                )}
+                {showMessageForm && (
+                  <Button variant="outline" asChild className="w-full rounded-full">
+                    <a href="#message-form">Send a Message</a>
+                  </Button>
+                )}
+                <Button variant="outline" asChild className="w-full rounded-full">
+                  <Link href={`/${urlSlug}`}>
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to {guide?.display_name ?? 'Guide'}
+                  </Link>
+                </Button>
+              </div>
+            </SidebarWidget>
 
             {/* Hours of Operation */}
             {acct.hours_of_operation && (
-              <Card>
-                <CardHeader className="py-4 border-b bg-muted/30">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" /> Hours of Operation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-5 space-y-3 text-sm">
+              <SidebarWidget title="Hours of Operation" icon={Clock}>
+                <div className="space-y-3 text-sm">
                   {Object.entries(acct.hours_of_operation as Record<string, string>).map(([day, hours], i, arr) => (
                     <div key={day} className={`flex justify-between items-center ${i < arr.length - 1 ? 'border-b border-border/50 pb-2' : ''}`}>
                       <span className="text-muted-foreground capitalize">{day.replace(/_/g, ' ')}</span>
@@ -383,8 +367,8 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
                       </span>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </SidebarWidget>
             )}
 
             {/* Map widget */}
@@ -396,37 +380,34 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
 
             {/* More in this guide */}
             {related && related.length > 0 && (
-              <Card>
-                <CardContent className="p-5">
-                  <h3 className="font-bold text-foreground mb-3">More in {guide?.display_name ?? 'This Guide'}</h3>
-                  <div className="space-y-2">
-                    {related.map(r => {
-                      const ra = r.advertiser_accounts as unknown as {
-                        slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null
-                      } | null
-                      if (!ra) return null
-                      return (
-                        <Link
-                          key={r.id}
-                          href={`/${urlSlug}/listings/${ra.slug}`}
-                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors"
-                        >
-                          <div>
-                            <p className="font-medium text-sm text-foreground">{ra.business_name}</p>
-                            {(ra.neighborhood ?? ra.city_state_zip) && (
-                              <p className="text-xs text-muted-foreground">{ra.neighborhood ?? ra.city_state_zip}</p>
-                            )}
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                        </Link>
-                      )
-                    })}
-                  </div>
-                  <Button variant="outline" asChild className="w-full mt-3 rounded-full">
-                    <Link href={`/${urlSlug}`}>View Full Guide</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+              <SidebarWidget title={`More in ${guide?.display_name ?? 'This Guide'}`}>
+                <div className="space-y-2">
+                  {related.map(r => {
+                    const ra = r.advertiser_accounts as unknown as {
+                      slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null
+                    } | null
+                    if (!ra) return null
+                    return (
+                      <Link
+                        key={r.id}
+                        href={`/${urlSlug}/listings/${ra.slug}`}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-muted transition-colors"
+                      >
+                        <div>
+                          <p className="font-medium text-sm text-foreground">{ra.business_name}</p>
+                          {(ra.neighborhood ?? ra.city_state_zip) && (
+                            <p className="text-xs text-muted-foreground">{ra.neighborhood ?? ra.city_state_zip}</p>
+                          )}
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </Link>
+                    )
+                  })}
+                </div>
+                <Button variant="outline" asChild className="w-full mt-3 rounded-full">
+                  <Link href={`/${urlSlug}`}>View Full Guide</Link>
+                </Button>
+              </SidebarWidget>
             )}
           </aside>
         </div>

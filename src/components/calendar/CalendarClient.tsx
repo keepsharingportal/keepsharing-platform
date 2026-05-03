@@ -6,9 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  CalendarDays, MapPin, Clock, LayoutGrid, List, Search, ChevronRight,
-} from 'lucide-react'
+import { MapPin, Clock, LayoutGrid, List, Search, ChevronRight } from 'lucide-react'
+import { EventCard } from '@/components/theme'
 
 export interface CalEvent {
   id: string
@@ -33,92 +32,6 @@ interface Props {
 
 const FILTERS = ['All Events', 'Festivals', 'Education', 'Arts', 'Outdoors', 'Family', 'Sports']
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  festival:  'from-yellow-100 to-orange-100',
-  arts:      'from-purple-100 to-pink-100',
-  music:     'from-blue-100 to-cyan-100',
-  education: 'from-indigo-100 to-purple-100',
-  outdoors:  'from-green-100 to-emerald-100',
-  sports:    'from-teal-100 to-green-100',
-  family:    'from-rose-100 to-orange-100',
-  default:   'from-amber-100 to-yellow-100',
-}
-
-function getCategoryGradient(cat?: string | null) {
-  if (!cat) return CATEGORY_GRADIENTS.default
-  const k = cat.toLowerCase()
-  for (const [key, val] of Object.entries(CATEGORY_GRADIENTS)) {
-    if (k.includes(key)) return val
-  }
-  return CATEGORY_GRADIENTS.default
-}
-
-function formatDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-}
-
-function EventCardImage({ event }: { event: CalEvent }) {
-  const [error, setError] = useState(false)
-  if (!event.hero_image_url || error) {
-    return (
-      <div className={`w-full h-full bg-gradient-to-br ${getCategoryGradient(event.category)} flex items-center justify-center`}>
-        <CalendarDays className="h-12 w-12 text-foreground/20" />
-      </div>
-    )
-  }
-  return (
-    <img
-      src={event.hero_image_url}
-      alt={event.title}
-      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      onError={() => setError(true)}
-    />
-  )
-}
-
-function GridCard({ ev }: { ev: CalEvent }) {
-  const href = `/calendar/events/${ev.slug ?? ev.id}`
-  return (
-    <Link href={href} className="group block">
-      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <EventCardImage event={ev} />
-          {ev.start_date && (
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-lg">
-              {formatDate(ev.start_date)}
-            </div>
-          )}
-          {ev.is_free && (
-            <div className="absolute top-2 right-2 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
-              Free
-            </div>
-          )}
-        </div>
-        <CardContent className="p-4 flex-1 flex flex-col">
-          {ev.category && (
-            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">{ev.category}</p>
-          )}
-          <h3 className="font-bold text-foreground leading-snug mb-2 line-clamp-2">{ev.title}</h3>
-          <div className="space-y-1 text-xs text-muted-foreground mb-3">
-            {ev.start_time && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />{ev.start_time}{ev.end_time && ` – ${ev.end_time}`}
-              </div>
-            )}
-            {ev.location_name && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />{ev.location_name}
-              </div>
-            )}
-          </div>
-          {!ev.is_free && ev.cost_text && (
-            <p className="text-xs text-muted-foreground mt-auto">{ev.cost_text}</p>
-          )}
-        </CardContent>
-      </Card>
-    </Link>
-  )
-}
 
 function ListRow({ ev }: { ev: CalEvent }) {
   const [open, setOpen] = useState(false)
@@ -262,7 +175,7 @@ export function CalendarClient({ initialEvents }: Props) {
           </Card>
         ) : view === 'grid' ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {events.map(ev => <GridCard key={ev.id} ev={ev} />)}
+            {events.map(ev => <EventCard key={ev.id} event={ev} />)}
           </div>
         ) : (
           <Card>

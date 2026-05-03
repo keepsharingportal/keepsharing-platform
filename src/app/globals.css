@@ -50,6 +50,17 @@
   --radius-xl: 1.5rem;
   --radius-2xl: 1rem;
   --radius-full: 9999px;
+
+  /* ── Semantic spacing tokens ── */
+  --space-section:        3rem;     /* py-12 — section spacing in main column */
+  --space-section-lg:     4rem;     /* py-16 — hero band spacing */
+  --space-card:           1.5rem;   /* p-6 — standard card padding */
+  --space-card-lg:        2rem;     /* p-8 — large card padding */
+  --space-card-sm:        1.25rem;  /* p-5 — sidebar widget padding */
+  --space-stack-tight:    0.75rem;  /* space-y-3 — tight vertical stack */
+  --space-stack-normal:   1.25rem;  /* space-y-5 — normal vertical stack */
+  --space-stack-loose:    2rem;     /* space-y-8 — loose vertical stack */
+  --space-stack-section:  3rem;     /* space-y-12 — between major sections */
 }
 
 /* ── Container — max-width 1400px centered with 2rem padding ── */

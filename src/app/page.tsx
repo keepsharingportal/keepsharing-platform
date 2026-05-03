@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
+import { ArticleCard, SectionHeader, EventRow } from '@/components/theme'
 import type { Metadata } from 'next'
 
 export const revalidate = 1800
@@ -58,7 +59,7 @@ async function getHomepageData() {
   ] = await Promise.all([
     supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, category, column_slug, author_name')
+      .select('id, title, slug, hero_image_url, excerpt, column_slug, author_name')
       .eq('column_slug', 'mom-to-mom')
       .eq('editorial_review_status', 'approved')
       .order('created_at', { ascending: false })
@@ -188,7 +189,7 @@ export default async function HomePage() {
                 {mainFeature ? (
                   <>
                     <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
-                      {mainFeature.category ?? 'Featured Story'}
+                      Featured Story
                     </p>
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                       {mainFeature.title}
@@ -327,69 +328,20 @@ export default async function HomePage() {
             {/* Upcoming Events */}
             {events.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-5 border-b pb-4">
-                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                    <CalendarDays className="h-6 w-6 text-primary" />
-                    Upcoming Events
-                  </h2>
-                  <Button asChild variant="outline" size="sm" className="rounded-full">
-                    <Link href="/calendar">Full Calendar <ArrowRight className="h-3 w-3" /></Link>
-                  </Button>
-                </div>
+                <SectionHeader
+                  title="Upcoming Events"
+                  icon={CalendarDays}
+                  iconColor="primary"
+                  action={
+                    <Button asChild variant="outline" size="sm" className="rounded-full">
+                      <Link href="/calendar">Full Calendar <ArrowRight className="h-3 w-3" /></Link>
+                    </Button>
+                  }
+                />
                 <div className="space-y-3">
-                  {events.map((ev, i) => {
-                    const dt = ev.start_date ? fmtDate(ev.start_date) : null
-                    const isFirst = i === 0
-                    return (
-                      <Link
-                        key={ev.id}
-                        href={`/calendar/events/${ev.slug ?? ev.id}`}
-                        className="group block"
-                      >
-                        <div className={`flex items-start gap-4 p-4 rounded-2xl border transition-shadow hover:shadow-sm ${isFirst ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'}`}>
-                          {/* Date stamp box */}
-                          {dt && (
-                            <div className="shrink-0 h-20 w-20 bg-primary/10 rounded-2xl flex flex-col items-center justify-center text-center">
-                              <p className="text-xs font-bold uppercase tracking-wider text-primary">{dt.month}</p>
-                              <p className="text-3xl font-bold text-foreground leading-none">{dt.day}</p>
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            {isFirst && (
-                              <Badge className="mb-2 bg-primary text-primary-foreground text-xs">Featured Event</Badge>
-                            )}
-                            <h4 className="font-bold text-foreground leading-snug mb-1 group-hover:text-primary transition-colors">
-                              {ev.title}
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                              {ev.start_time && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />{ev.start_time}
-                                </span>
-                              )}
-                              {ev.location_name && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />{ev.location_name}
-                                </span>
-                              )}
-                              {ev.is_free && (
-                                <Badge className="text-[10px] py-0">Free</Badge>
-                              )}
-                            </div>
-                          </div>
-                          {/* Thumbnail — always shown with Unsplash fallback */}
-                          <div className="hidden sm:block shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={ev.hero_image_url || getFallbackByContext(ev.category, ev.slug ?? ev.id)}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                      </Link>
-                    )
-                  })}
+                  {events.map((ev, i) => (
+                    <EventRow key={ev.id} event={ev} featured={i === 0} />
+                  ))}
                 </div>
               </section>
             )}
@@ -424,15 +376,16 @@ export default async function HomePage() {
             {/* Parenting & Lifestyle — 2×2 article grid */}
             {articles.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-5 border-b pb-4">
-                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                    <BookOpen className="h-6 w-6 text-primary" />
-                    Parenting &amp; Lifestyle
-                  </h2>
-                  <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
-                    <Link href="/articles">View All</Link>
-                  </Button>
-                </div>
+                <SectionHeader
+                  title="Parenting & Lifestyle"
+                  icon={BookOpen}
+                  iconColor="primary"
+                  action={
+                    <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                      <Link href="/articles">View All</Link>
+                    </Button>
+                  }
+                />
                 <div className="grid sm:grid-cols-2 gap-6">
                   {/* Dedupe by column_slug so each column appears at most once */}
                   {(() => {
@@ -444,47 +397,12 @@ export default async function HomePage() {
                       seen.add(key)
                       return true
                     }).slice(0, 4)
-                  })().map(a => {
-                    const cs = (a as { column_slug?: string | null }).column_slug
-                    const gs = (a as { guide_slug?: string | null }).guide_slug
-                    const articleUrl = cs
-                      ? `/columns/${cs}/${a.slug.replace(new RegExp(`^${cs}-`), '')}`
-                      : `/articles/${a.slug}`
-                    const categoryLabel = cs
-                      ? (COLUMN_LABELS[cs] ?? cs)
-                      : (gs ?? 'Feature')
-                    return (
-                      <Link key={a.id} href={articleUrl} className="group flex flex-col gap-3 cursor-pointer">
-                        <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-muted">
-                          <Image
-                            src={a.hero_image_url || getFallbackByContext(cs ?? gs ?? 'parenting', a.slug ?? a.id)}
-                            alt={a.title}
-                            fill
-                            style={{ objectFit: 'cover' }}
-                            className="group-hover:scale-105 transition-transform duration-500"
-                            sizes="400px"
-                            unoptimized
-                          />
-                          <div className="absolute top-3 left-3">
-                            <Badge variant="secondary" className="bg-background/90 text-foreground backdrop-blur text-xs">
-                              {categoryLabel}
-                            </Badge>
-                          </div>
-                        </div>
-                        <h3 className="font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                          {a.title}
-                        </h3>
-                        {a.excerpt && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{a.excerpt}</p>
-                        )}
-                        {(a as { author_name?: string | null }).author_name && (
-                          <p className="text-xs text-muted-foreground font-medium">
-                            By {(a as { author_name?: string | null }).author_name}
-                          </p>
-                        )}
-                      </Link>
-                    )
-                  })}
+                  })().map(a => (
+                    <ArticleCard
+                      key={a.id}
+                      article={a as Parameters<typeof ArticleCard>[0]['article']}
+                    />
+                  ))}
                 </div>
               </section>
             )}

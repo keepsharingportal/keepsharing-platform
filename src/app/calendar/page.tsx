@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { CalendarClient } from '@/components/calendar/CalendarClient'
+import { PageHeader } from '@/components/theme'
 import type { Metadata } from 'next'
 
 export const revalidate = 900
@@ -39,15 +40,12 @@ export default async function CalendarPage() {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Header — server-rendered for SEO */}
-      <div className="bg-primary/5 border-b py-12">
-        <div className="container text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Community Calendar</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Find the best local events, festivals, and activities for your family in the River Region.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Community Calendar"
+        subtitle="Find the best local events, festivals, and activities for your family in the River Region."
+        variant="primary"
+        align="center"
+      />
 
       {/* SSR event list for crawlers — visible without JavaScript */}
       <noscript>

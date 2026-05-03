@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
+import { SidebarWidget } from '@/components/theme'
 
 interface TrendingItem {
   id: string
@@ -28,35 +29,35 @@ interface Props {
   trending: TrendingItem[]
 }
 
+function adEmoji(name: string) {
+  const n = name.toLowerCase()
+  if (n.includes('dent')) return '🦷'
+  if (n.includes('school') || n.includes('academy')) return '🎓'
+  if (n.includes('camp')) return '⛺'
+  return '📰'
+}
+
 export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
   return (
     <aside className="lg:col-span-4 space-y-8">
       {/* Sticky Sidebar Ad */}
       {stickyAd && (
-        <Card className="bg-muted/30 border-border/50 shadow-sm text-center overflow-hidden">
-          <CardContent className="p-8">
-            <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-4">Ad</span>
+        <SidebarWidget>
+          <div className="text-center">
+            <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-4">Advertisement</span>
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">
-                {(() => {
-                  const name = stickyAd.advertiser_name.toLowerCase()
-                  if (name.includes('dent')) return '🦷'
-                  if (name.includes('school') || name.includes('academy')) return '🎓'
-                  if (name.includes('camp')) return '⛺'
-                  return '📰'
-                })()}
-              </span>
+              <span className="text-2xl">{adEmoji(stickyAd.advertiser_name)}</span>
             </div>
             <h4 className="font-bold text-xl mb-3 text-foreground">{stickyAd.advertiser_name}</h4>
             <p className="text-sm text-muted-foreground mb-6">{stickyAd.description}</p>
-            <Button asChild className="w-full shadow-sm">
+            <Button asChild className="w-full rounded-full">
               <a href={stickyAd.cta_url} target="_blank" rel="noopener noreferrer">{stickyAd.cta_label}</a>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </SidebarWidget>
       )}
 
-      {/* Newsletter — primary color card */}
+      {/* Newsletter — intentionally bold primary card, not normalized to SidebarWidget */}
       <Card className="bg-primary text-primary-foreground border-none shadow-md overflow-hidden relative">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
         <CardContent className="p-8 relative z-10">
@@ -70,7 +71,7 @@ export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
 
       {/* Trending */}
       {trending.length > 0 && (
-        <div className="bg-card border rounded-2xl p-6 shadow-sm">
+        <SidebarWidget>
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
             Trending Now
@@ -92,21 +93,23 @@ export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
               </Link>
             ))}
           </div>
-        </div>
+        </SidebarWidget>
       )}
 
       {/* Sponsored CTA */}
       {sponsoredAd && (
-        <div className="bg-accent/10 border border-accent/20 rounded-2xl p-8 text-center relative shadow-sm">
-          <span className="absolute top-3 right-3 text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-background/80 px-2 py-1 rounded backdrop-blur border border-border/50">
-            Sponsored
-          </span>
-          <h4 className="font-bold text-xl text-foreground mb-3 mt-4">{sponsoredAd.headline}</h4>
-          <p className="text-sm text-muted-foreground mb-6">{sponsoredAd.description}</p>
-          <Button asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm font-bold">
-            <a href={sponsoredAd.cta_url} target="_blank" rel="noopener noreferrer">{sponsoredAd.cta_label}</a>
-          </Button>
-        </div>
+        <SidebarWidget variant="accent">
+          <div className="text-center relative">
+            <span className="absolute -top-1 right-0 text-[10px] text-muted-foreground font-bold uppercase tracking-widest bg-background/80 px-2 py-0.5 rounded backdrop-blur border border-border/50">
+              Sponsored
+            </span>
+            <h4 className="font-bold text-xl text-foreground mb-3 mt-4">{sponsoredAd.headline}</h4>
+            <p className="text-sm text-muted-foreground mb-6">{sponsoredAd.description}</p>
+            <Button asChild className="w-full rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm font-bold">
+              <a href={sponsoredAd.cta_url} target="_blank" rel="noopener noreferrer">{sponsoredAd.cta_label}</a>
+            </Button>
+          </div>
+        </SidebarWidget>
       )}
     </aside>
   )

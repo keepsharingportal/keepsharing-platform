@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BookOpen, MapPin, Star } from 'lucide-react'
+import { PageHeader, SectionHeader, ContentCard } from '@/components/theme'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -70,27 +71,21 @@ export default async function LocalGuidesPage() {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Header */}
-      <div className="bg-secondary/10 border-b py-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="container relative z-10 text-center">
-          <Badge className="mb-4 bg-secondary text-secondary-foreground hover:bg-secondary/90">Local Resources</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Community Guides</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Your comprehensive directories for everything family-related in the River Region. Curated, trusted, and always up-to-date.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Community Guides"
+        subtitle="Your comprehensive directories for everything family-related in the River Region. Curated, trusted, and always up-to-date."
+        badge={{ text: 'Local Resources', variant: 'secondary' }}
+        variant="cream"
+        align="center"
+        withBlur={true}
+      />
 
       <main className="container py-12">
 
         {/* Featured Partners — shown if we have featured listings */}
         {featured.length > 0 && (
           <section className="mb-12">
-            <div className="flex items-center gap-2 mb-6">
-              <Star className="h-5 w-5 text-accent" fill="currentColor" />
-              <h2 className="text-xl font-bold">Featured Partners</h2>
-            </div>
+            <SectionHeader title="Featured Partners" icon={Star} iconColor="accent" />
             <div className="grid md:grid-cols-2 gap-5">
               {featured.map(f => {
                 const a = f.advertiser_accounts as unknown as {
@@ -179,8 +174,8 @@ export default async function LocalGuidesPage() {
 
         {/* Bottom CTA */}
         <section className="mt-14 text-center">
-          <Card className="bg-primary/5 border-primary/20 max-w-xl mx-auto">
-            <CardContent className="p-8">
+          <div className="max-w-xl mx-auto">
+            <ContentCard variant="tinted" size="lg">
               <BookOpen className="h-10 w-10 text-primary mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-foreground mb-2">Get your business listed</h3>
               <p className="text-muted-foreground mb-6">
@@ -189,8 +184,8 @@ export default async function LocalGuidesPage() {
               <Button asChild className="rounded-full">
                 <Link href="/advertise">Learn About Partnerships →</Link>
               </Button>
-            </CardContent>
-          </Card>
+            </ContentCard>
+          </div>
         </section>
       </main>
 
