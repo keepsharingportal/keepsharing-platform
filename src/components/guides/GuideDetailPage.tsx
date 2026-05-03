@@ -139,7 +139,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
 
       {/* Header band */}
       <div className="bg-primary/5 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
+        <div className="container py-12 lg:py-16">
           <div className="max-w-3xl">
             <Badge className="mb-4">2026 Edition</Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground leading-tight">
@@ -164,7 +164,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+      <main className="container py-10 lg:py-14">
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* ── Main column ───────────────────────────────────── */}

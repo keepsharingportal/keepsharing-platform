@@ -5,7 +5,7 @@ export function PublicFooter() {
   const year = new Date().getFullYear()
   return (
     <footer className="bg-foreground text-white mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div className="md:col-span-1">
           <div className="flex items-center gap-2 mb-3">
@@ -67,7 +67,7 @@ export function PublicFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-white/40">© {year} KeepSharing LLC. All rights reserved.</p>
           <p className="text-xs text-white/40">May 2026 Issue</p>
         </div>

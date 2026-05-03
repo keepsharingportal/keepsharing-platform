@@ -76,7 +76,7 @@ export default async function EventDetailPage({ params }: Props) {
         <div className="relative h-64 md:h-80 bg-muted overflow-hidden">
           <Image src={ev.hero_image_url} alt={ev.title} fill style={{ objectFit: 'cover' }} className="opacity-80" sizes="100vw" unoptimized priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 max-w-7xl mx-auto">
+          <div className="absolute bottom-0 left-0 right-0 p-6 container">
             <Link href="/calendar" className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm mb-3">
               <ArrowLeft className="h-4 w-4" />Back to Calendar
             </Link>
@@ -84,7 +84,7 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       ) : (
         <div className="bg-secondary/10 border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="container py-8">
             <Link href="/calendar" className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 text-sm mb-4">
               <ArrowLeft className="h-4 w-4" />Back to Calendar
             </Link>
@@ -92,7 +92,7 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <main className="container py-10">
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* Main */}

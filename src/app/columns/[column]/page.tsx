@@ -54,7 +54,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <main className="container py-8 md:py-12">
         <div className="max-w-3xl mb-10">
           <Badge className="bg-primary text-primary-foreground mb-4">Column</Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">

@@ -134,7 +134,7 @@ export default async function HomePage() {
 
       {/* ── Trending ticker — bg-primary/10 (light peach, NOT solid) ── */}
       <div className="bg-primary/10 border-b border-primary/20 py-2 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="container">
           <div className="flex items-center gap-4 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary whitespace-nowrap shrink-0">
               <TrendingUp className="h-3.5 w-3.5" />
@@ -157,11 +157,11 @@ export default async function HomePage() {
       </div>
 
       {/* ── Top featured area — 12-col grid ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
+      <div className="container pt-6 lg:pt-8">
         <div className="grid lg:grid-cols-12 gap-6">
 
           {/* Main feature — full-bleed photo with overlay (lg:col-span-8) */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 group cursor-pointer">
             <div className="relative rounded-3xl overflow-hidden min-h-[320px] lg:min-h-[500px] bg-foreground/10">
               <Image
                 src={mainFeature?.hero_image_url || getFallbackByContext('parenting', mainFeature?.slug ?? 'mom-to-mom')}
@@ -171,6 +171,7 @@ export default async function HomePage() {
                 unoptimized
                 sizes="900px"
                 priority
+                className="group-hover:scale-105 transition-transform duration-700"
               />
               {/* Gradient overlay for text legibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -189,11 +190,11 @@ export default async function HomePage() {
                     <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
                       {mainFeature.category ?? 'Featured Story'}
                     </p>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                       {mainFeature.title}
                     </h2>
                     {mainFeature.excerpt && (
-                      <p className="text-white/80 text-sm leading-relaxed mb-4 max-w-lg line-clamp-2">
+                      <p className="text-white/90 text-lg max-w-2xl hidden md:block mb-4" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                         {mainFeature.excerpt}
                       </p>
                     )}
@@ -208,7 +209,7 @@ export default async function HomePage() {
                     <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-3">
                       Mom to Mom interviews coming soon
                     </Badge>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                       Real stories from River Region moms
                     </h2>
                     <p className="text-white/80 text-sm mb-4">
@@ -227,7 +228,7 @@ export default async function HomePage() {
           <div className="lg:col-span-4 flex flex-col gap-4">
 
             {/* Summer Camp Guide card */}
-            <div className="relative rounded-3xl overflow-hidden h-[200px] lg:h-[240px] bg-secondary/20 flex-shrink-0">
+            <div className="relative rounded-3xl overflow-hidden h-[200px] lg:h-[240px] bg-secondary/20 flex-shrink-0 group cursor-pointer">
               <Image
                 src={summerCamp?.hero_image_url || getFallbackByContext('summer-camp', 'summer-camp-guide')}
                 alt={summerCamp?.display_name ?? 'Summer Camp Guide'}
@@ -235,6 +236,7 @@ export default async function HomePage() {
                 style={{ objectFit: 'cover' }}
                 unoptimized
                 sizes="400px"
+                className="group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute top-4 left-4">
@@ -316,7 +318,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── Portal two-column layout ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+      <div className="container mt-8 pb-16">
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* ── Main content column (lg:col-span-8) ── */}
@@ -325,9 +327,9 @@ export default async function HomePage() {
             {/* Upcoming Events */}
             {events.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5 text-primary" />
+                <div className="flex items-center justify-between mb-5 border-b pb-4">
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                    <CalendarDays className="h-6 w-6 text-primary" />
                     Upcoming Events
                   </h2>
                   <Button asChild variant="outline" size="sm" className="rounded-full">
@@ -423,8 +425,8 @@ export default async function HomePage() {
             {articles.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-5 border-b pb-4">
-                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                    <BookOpen className="h-6 w-6 text-primary" />
                     Parenting &amp; Lifestyle
                   </h2>
                   <Button asChild variant="ghost" size="sm" className="hidden sm:flex">

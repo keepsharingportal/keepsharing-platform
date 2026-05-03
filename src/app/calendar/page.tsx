@@ -42,7 +42,7 @@ export default async function CalendarPage() {
 
       {/* Header — server-rendered for SEO */}
       <div className="bg-secondary/10 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+        <div className="container py-10 lg:py-14">
           <div className="max-w-3xl">
             <Badge variant="secondary" className="mb-3">River Region Family Calendar</Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-3 text-foreground">What&apos;s Happening</h1>
@@ -55,7 +55,7 @@ export default async function CalendarPage() {
 
       {/* SSR event list for crawlers — visible without JavaScript */}
       <noscript>
-        <ul className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-4 list-none">
+        <ul className="container py-8 space-y-4 list-none">
           {initialEvents.map(ev => (
             <li key={ev.id} className="border-b pb-4">
               <a href={`/calendar/events/${ev.slug ?? ev.id}`} className="font-bold text-foreground">

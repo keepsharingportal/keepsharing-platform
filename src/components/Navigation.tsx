@@ -28,15 +28,15 @@ export function Navigation() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60">
+      <div className="container flex items-center justify-between h-20">
 
         {/* Wordmark */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
             <BookOpen className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-foreground">
+          <span className="text-xl font-bold text-foreground">
             River Region <span className="text-primary">Parents</span>
           </span>
         </Link>
@@ -104,7 +104,7 @@ export function Navigation() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-border bg-card">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+          <div className="container py-4 flex flex-col gap-1">
             <button
               className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-foreground rounded-xl hover:bg-muted"
               onClick={() => setGuidesOpen(o => !o)}

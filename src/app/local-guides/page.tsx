@@ -73,7 +73,7 @@ export default async function LocalGuidesPage() {
 
       {/* Header */}
       <div className="bg-secondary/10 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:py-16 text-center">
+        <div className="container py-12 lg:py-16 text-center">
           <Badge variant="secondary" className="mb-4">River Region Parents</Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-4 text-foreground leading-tight">
             Local Resources.<br />
@@ -91,7 +91,7 @@ export default async function LocalGuidesPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <main className="container py-12">
 
         {/* Featured Partners — shown if we have featured listings */}
         {featured.length > 0 && (

@@ -155,7 +155,7 @@ export default async function ArticlePage({ params }: PageParams) {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <main className="container py-8 md:py-12">
         <ArticleHeader
           category={categoryLabel}
           categoryHref={`/columns/${column}`}

@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Share2, Link as LinkIcon, Bookmark } from 'lucide-react'
+import { Link as LinkIcon, Bookmark } from 'lucide-react'
 import { useState } from 'react'
 
 interface Props {
@@ -46,6 +46,7 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
         </div>
       </div>
       <div className="flex items-center gap-2">
+        {/* Facebook share */}
         <Button variant="outline" size="icon" className="rounded-full bg-background" asChild>
           <a
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
@@ -53,9 +54,27 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
             rel="noopener noreferrer"
             aria-label="Share on Facebook"
           >
-            <Share2 className="h-4 w-4" />
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+            </svg>
           </a>
         </Button>
+
+        {/* Twitter/X share */}
+        <Button variant="outline" size="icon" className="rounded-full bg-background" asChild>
+          <a
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share on Twitter"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
+        </Button>
+
+        {/* Copy link */}
         <Button
           variant="outline"
           size="icon"

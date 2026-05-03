@@ -52,6 +52,13 @@
   --radius-full: 9999px;
 }
 
+/* ── Container — max-width 1400px centered with 2rem padding ── */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  max-width: 1400px;
+}
+
 /* ── base ──────────────────────────────────────────────────── */
 html, body {
   height: 100%;

@@ -207,8 +207,8 @@ export function CalendarClient({ initialEvents }: Props) {
   return (
     <>
       {/* Sticky filter bar */}
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 overflow-x-auto">
+      <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="container py-3 flex items-center gap-3 overflow-x-auto">
           <div className="flex gap-2 shrink-0">
             {FILTERS.map(f => (
               <button
@@ -251,7 +251,7 @@ export function CalendarClient({ initialEvents }: Props) {
       </div>
 
       {/* Events */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="container py-8">
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Loading events…</div>
         ) : events.length === 0 ? (

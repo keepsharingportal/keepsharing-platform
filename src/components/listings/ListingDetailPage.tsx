@@ -8,10 +8,10 @@ import { ListingBadges } from '@/components/listings/ListingBadges'
 import { ListingMap } from '@/components/listings/ListingMap'
 import { ListingMessageForm } from '@/components/listings/ListingMessageForm'
 import { SectionRenderer } from '@/components/listings/sections/SectionRenderer'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, Phone, Globe, Mail, ChevronRight, ArrowLeft } from 'lucide-react'
+import { MapPin, Phone, Globe, Mail, ChevronRight, ArrowLeft, CheckCircle2, Clock } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
@@ -135,7 +135,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 -mt-24 relative z-10">
+      <main className="container pb-16 -mt-24 relative z-10">
         <div className="grid lg:grid-cols-12 gap-10">
 
           {/* ── Main column ───────────────────────────────────── */}
@@ -226,10 +226,78 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
               </Card>
             )}
 
-            {/* Flexible sections — rendered via SectionRenderer for all 7 types */}
-            {sections?.map(section => (
+            {/* Camp Features — dedicated 2-col checkbox grid from features_bullets section */}
+            {(() => {
+              const featuresSection = sections?.find(s => s.section_type === 'features_bullets' && s.is_active)
+              if (!featuresSection || !featuresSection.bullet_points || featuresSection.bullet_points.length === 0) return null
+              const headline = featuresSection.headline || `${guide?.display_name?.replace(' Guide', '') ?? 'Listing'} Features`
+              return (
+                <Card>
+                  <CardContent className="p-6 md:p-8">
+                    <h2 className="text-2xl font-bold mb-6 text-foreground">{headline}</h2>
+                    <ul className="grid sm:grid-cols-2 gap-4">
+                      {featuresSection.bullet_points.map((feature: string, i: number) => (
+                        <li key={i} className="flex items-center gap-3 text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                          <span className="font-medium text-foreground">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )
+            })()}
+
+            {/* Gallery — hero photo + 3 deterministic fallbacks in 2x2 grid */}
+            <Card>
+              <CardContent className="p-6 md:p-8">
+                <h2 className="text-2xl font-bold mb-6 text-foreground">Gallery</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    acct.hero_photo_url || getFallbackByContext(guideSlug, `${acct.slug}-1`),
+                    getFallbackByContext(guideSlug, `${acct.slug}-2`),
+                    getFallbackByContext(guideSlug, `${acct.slug}-3`),
+                    getFallbackByContext(guideSlug, `${acct.slug}-4`),
+                  ].map((src, i) => (
+                    <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border/50 shadow-sm group">
+                      <Image
+                        src={src}
+                        alt={`${acct.business_name} ${i + 1}`}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 640px) 50vw, 33vw"
+                        unoptimized
+                        className="group-hover:scale-105 transition-transform duration-700"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Flexible sections — skip features_bullets (rendered above as dedicated card) */}
+            {sections?.filter(s => s.section_type !== 'features_bullets').map(section => (
               <SectionRenderer key={section.id} section={section} />
             ))}
+
+            {/* Inline Contact form Card */}
+            {showMessageForm && (
+              <Card className="border-primary/20 shadow-sm overflow-hidden" id="message-form">
+                <CardHeader className="bg-primary/5 border-b border-primary/10">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" />
+                    Contact {acct.business_name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <ListingMessageForm
+                    advertiserAccountId={acct.id}
+                    advertiserName={acct.business_name}
+                    guideTypeSlug={guideSlug}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* ── Sidebar ───────────────────────────────────────── */}
@@ -297,21 +365,31 @@ export async function ListingDetailPage({ urlSlug, listingSlug }: Props) {
               </CardContent>
             </Card>
 
+            {/* Hours of Operation */}
+            {acct.hours_of_operation && (
+              <Card>
+                <CardHeader className="py-4 border-b bg-muted/30">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" /> Hours of Operation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 space-y-3 text-sm">
+                  {Object.entries(acct.hours_of_operation as Record<string, string>).map(([day, hours], i, arr) => (
+                    <div key={day} className={`flex justify-between items-center ${i < arr.length - 1 ? 'border-b border-border/50 pb-2' : ''}`}>
+                      <span className="text-muted-foreground capitalize">{day.replace(/_/g, ' ')}</span>
+                      <span className={hours.toLowerCase() === 'closed' ? 'text-muted-foreground' : 'font-bold text-foreground'}>{hours}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Map widget */}
             <ListingMap
               address={address}
               cityStateZip={cityZip}
               businessName={acct.business_name}
             />
-
-            {/* Send Message form */}
-            {showMessageForm && (
-              <ListingMessageForm
-                advertiserAccountId={acct.id}
-                advertiserName={acct.business_name}
-                guideTypeSlug={guideSlug}
-              />
-            )}
 
             {/* More in this guide */}
             {related && related.length > 0 && (

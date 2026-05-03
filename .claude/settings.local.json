@@ -20,7 +20,12 @@
       "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\columns\\\\[column]\\\\[slug]\")",
       "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\columns\\\\[column]\")",
       "Bash(mkdir -p \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\\\\src\\\\app\\\\articles\\\\[slug]\")",
-      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('share'\\) || k.toLowerCase\\(\\).includes\\('face'\\) || k.toLowerCase\\(\\).includes\\('twit'\\) || k.toLowerCase\\(\\).includes\\('social'\\)\\).join\\(', '\\)\\)\")"
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('share'\\) || k.toLowerCase\\(\\).includes\\('face'\\) || k.toLowerCase\\(\\).includes\\('twit'\\) || k.toLowerCase\\(\\).includes\\('social'\\)\\).join\\(', '\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('tailwindcss:', p.dependencies?.tailwindcss || p.devDependencies?.tailwindcss\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/lucide-react/package.json'\\); console.log\\(pkg.version\\)\")",
+      "Bash(node -e \"const icons = require\\('./node_modules/lucide-react'\\); const social = Object.keys\\(icons\\).filter\\(k => /facebook|twitter|share|social/i.test\\(k\\)\\); console.log\\(social.slice\\(0,20\\)\\)\")",
+      "PowerShell(Set-Location \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -RedirectStandardOutput \"$env:TEMP\\\\nextdev.log\" -RedirectStandardError \"$env:TEMP\\\\nextdev.err\"; Start-Sleep 15; Get-Content \"$env:TEMP\\\\nextdev.log\" -Tail 10; Get-Content \"$env:TEMP\\\\nextdev.err\" -Tail 10)",
+      "Bash(npm run *)"
     ]
   }
 }
