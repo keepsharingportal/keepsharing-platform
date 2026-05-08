@@ -39,7 +39,7 @@ export interface AnchorArticle {
 
 export interface GuidePageLayoutProps {
   guideSlug: string
-  heroImageUrl: string
+  heroImageUrl: string | null
   heroEyebrow: string
   heroTitle: string
   heroSubtitle: string
@@ -125,6 +125,8 @@ export function GuidePageLayout({
   newsletter,
   sponsorCta,
 }: GuidePageLayoutProps) {
+  const hasHeroImage = !!heroImageUrl
+
   return (
     <div style={{ backgroundColor: 'var(--fg-cream, #faf8f5)', minHeight: '100vh', fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
 
@@ -133,18 +135,25 @@ export function GuidePageLayout({
         className="relative overflow-hidden flex flex-col justify-end min-h-[55vh] md:min-h-[70vh]"
         aria-label="Guide hero"
       >
-        {/* Hero image */}
-        <Image
-          src={heroImageUrl}
-          alt={heroTitle}
-          fill
-          priority
-          sizes="100vw"
-          style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
-          unoptimized
-        />
-        {/* Gradient overlay: transparent top → dark bottom */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.72) 100%)' }} />
+        {hasHeroImage ? (
+          <>
+            {/* Hero image */}
+            <Image
+              src={heroImageUrl!}
+              alt={heroTitle}
+              fill
+              priority
+              sizes="100vw"
+              style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
+              unoptimized
+            />
+            {/* Gradient overlay: transparent top → dark bottom */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.72) 100%)' }} />
+          </>
+        ) : (
+          /* Gradient hero band — brand navy (top-left) to brand gold (bottom-right) */
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, var(--fg-navy, #1a2744) 0%, #2a4a7f 50%, var(--fg-gold, #d4a847) 100%)' }} />
+        )}
 
         {/* Issue label chip — top left */}
         <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>

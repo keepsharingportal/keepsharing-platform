@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // /newcomer-guide → /family-resource-guide (retiring the newcomer-guide URL)
+      { source: "/newcomer-guide",           destination: "/family-resource-guide",        permanent: true },
+      { source: "/newcomer-guide/:path*",    destination: "/family-resource-guide/:path*", permanent: true },
+
       // Legacy newcomer guide redirects
       { source: "/family-guide",            destination: "/newcomer-guide",        permanent: true },
       { source: "/family-guide/:path*",     destination: "/newcomer-guide/:path*", permanent: true },
