@@ -49,7 +49,9 @@
       "PowerShell(cd \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"theme|CalendarClient|ArticleSidebar|GuideDetail|ListingDetail|local-guides|calendar\" })",
       "PowerShell(cd \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; $out = npx tsc --noEmit 2>&1; $out | Where-Object { $_ -notmatch \"admin|partner|newcomer|api/listing\" } | Select-Object -First 30)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\" -Force)",
-      "Bash(Select-Object Name, FullName)"
+      "Bash(Select-Object Name, FullName)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
