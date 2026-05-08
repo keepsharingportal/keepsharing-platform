@@ -51,7 +51,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\" -Force)",
       "Bash(Select-Object Name, FullName)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npx eslint *)"
     ]
   }
 }
