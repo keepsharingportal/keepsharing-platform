@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, ArrowRight } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 
 interface Props {
   coverImageUrl: string
@@ -14,20 +14,22 @@ interface Props {
 export function IssueSpotlightSidebar({ coverImageUrl, issueLabel, issueTagline, issuuUrl }: Props) {
   return (
     <Card className="overflow-hidden border-border shadow-sm">
-      {/* Cover image */}
-      <div className="relative aspect-[3/4] bg-muted">
-        <Image
-          src={coverImageUrl}
-          alt={`${issueLabel} cover`}
-          fill
-          style={{ objectFit: 'cover' }}
-          sizes="(max-width: 1024px) 100vw, 320px"
-          unoptimized
-        />
-        <div className="absolute top-3 left-3">
-          <Badge className="bg-primary text-primary-foreground shadow-sm">
-            {issueLabel}
-          </Badge>
+      {/* Cover image with padding around it */}
+      <div className="p-5 pb-0">
+        <div className="relative aspect-[3/4] bg-muted rounded-xl overflow-hidden">
+          <Image
+            src={coverImageUrl}
+            alt={`${issueLabel} cover`}
+            fill
+            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 1024px) 100vw, 280px"
+            unoptimized
+          />
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-primary text-primary-foreground shadow-sm">
+              {issueLabel}
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -44,9 +46,14 @@ export function IssueSpotlightSidebar({ coverImageUrl, issueLabel, issueTagline,
         <p className="text-xs text-muted-foreground leading-relaxed mb-4">
           Read every story, photo, and advertiser in the digital edition.
         </p>
-        <Button asChild size="sm" className="w-full rounded-full">
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="w-full rounded-full bg-white hover:bg-muted/50 border-border"
+        >
           <a href={issuuUrl} target="_blank" rel="noopener noreferrer">
-            Read Digital Edition <ArrowRight className="h-3 w-3" />
+            Read Digital Edition
           </a>
         </Button>
       </CardContent>

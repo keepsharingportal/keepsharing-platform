@@ -5,7 +5,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { BrandLogo } from '@/components/BrandLogo'
 
 const GUIDES = [
   { label: 'Family Resource Guide',  href: '/family-resource-guide' },
@@ -22,7 +21,7 @@ const GUIDES = [
 export function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [guidesOpen, setGuidesOpen] = useState(false)
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -37,15 +36,23 @@ export function Navigation() {
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60">
-      <div className="container flex items-center justify-between h-20">
+      <div className="container flex items-center justify-between py-5">
 
-        {/* Wordmark */}
-        <BrandLogo size="md" withTagline={false} />
+        {/* Wordmark + tagline */}
+        <Link href="/" className="flex flex-col shrink-0 hover:opacity-90 transition-opacity">
+          <span className="text-2xl md:text-3xl font-black tracking-tight leading-none">
+            <span className="text-foreground">River Region </span>
+            <span className="text-primary">Parents</span>
+          </span>
+          <span className="text-xs md:text-sm font-medium text-muted-foreground tracking-wide mt-1 hidden sm:block">
+            The Go-To Resource for River Region Families
+          </span>
+        </Link>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
 
-          {/* Guides dropdown */}
+          {/* Guides dropdown — hover-bridge fix */}
           <div
             className="relative"
             onMouseEnter={() => {
@@ -68,7 +75,7 @@ export function Navigation() {
 
             {guidesOpen && (
               <>
-                {/* Invisible bridge — prevents gap from closing dropdown */}
+                {/* Invisible bridge — covers the gap between trigger and dropdown */}
                 <div className="absolute top-full left-0 right-0 h-2" />
 
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-card border border-border rounded-2xl shadow-lg p-2 z-50">
@@ -103,8 +110,8 @@ export function Navigation() {
             Calendar
           </Link>
           <Link
-            href="/newcomer-guide/articles"
-            className={`text-sm font-medium transition-colors ${isActive('/newcomer-guide/articles') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+            href="/articles"
+            className={`text-sm font-medium transition-colors ${isActive('/articles') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
           >
             Articles
           </Link>
@@ -136,20 +143,28 @@ export function Navigation() {
             {guidesOpen && (
               <div className="pl-4 flex flex-col gap-0.5">
                 {GUIDES.map(g => (
-                  <Link key={g.href} href={g.href} onClick={() => { setMobileOpen(false); setGuidesOpen(false) }}
-                    className="block px-3 py-2 text-sm text-muted-foreground hover:text-primary rounded-lg">
+                  <Link
+                    key={g.href}
+                    href={g.href}
+                    onClick={() => { setMobileOpen(false); setGuidesOpen(false) }}
+                    className="block px-3 py-2 text-sm text-muted-foreground hover:text-primary rounded-lg"
+                  >
                     {g.label}
                   </Link>
                 ))}
               </div>
             )}
             {[
-              { href: '/calendar',                label: 'Calendar' },
-              { href: '/newcomer-guide/articles', label: 'Articles' },
-              { href: '/advertise',               label: 'Partner With Us' },
+              { href: '/calendar',  label: 'Calendar' },
+              { href: '/articles',  label: 'Articles' },
+              { href: '/advertise', label: 'Partner With Us' },
             ].map(item => (
-              <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-xl">
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-xl"
+              >
                 {item.label}
               </Link>
             ))}

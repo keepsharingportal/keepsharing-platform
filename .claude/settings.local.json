@@ -47,7 +47,9 @@
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/columns/mom-to-mom/hayley-denny-may-2026\" -UseBasicParsing -TimeoutSec 40 2>&1; if \\($?\\) { \"Status: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"Hayley Denny\"\\) { \"Hayley title found in HTML: YES\" } else { \"Hayley title found in HTML: NO\" } } else { \"ERROR\" })",
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 40 2>&1; if \\($r.Content -match \"Hayley Denny\"\\) { \"Hayley in homepage HTML: YES\" } else { \"Hayley in homepage HTML: NO - may be JS-rendered or query still failing\" })",
       "PowerShell(cd \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"theme|CalendarClient|ArticleSidebar|GuideDetail|ListingDetail|local-guides|calendar\" })",
-      "PowerShell(cd \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; $out = npx tsc --noEmit 2>&1; $out | Where-Object { $_ -notmatch \"admin|partner|newcomer|api/listing\" } | Select-Object -First 30)"
+      "PowerShell(cd \"c:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\"; $out = npx tsc --noEmit 2>&1; $out | Where-Object { $_ -notmatch \"admin|partner|newcomer|api/listing\" } | Select-Object -First 30)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jwats\\\\OneDrive\\\\Desktop\\\\keepsharing-platform\" -Force)",
+      "Bash(Select-Object Name, FullName)"
     ]
   }
 }

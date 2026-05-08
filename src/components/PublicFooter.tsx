@@ -1,72 +1,51 @@
 import Link from 'next/link'
-import { BrandLogo } from '@/components/BrandLogo'
 
 export function PublicFooter() {
-  const year = new Date().getFullYear()
   return (
-    <footer className="bg-foreground text-white mt-16">
-      <div className="container py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Brand */}
-        <div className="md:col-span-1">
-          <div className="mb-4">
-            <BrandLogo size="lg" withTagline={true} href="/" variant="footer" />
+    <footer className="bg-muted pt-16 pb-8 border-t mt-12">
+      <div className="container">
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
+          <div className="md:col-span-2">
+            <div className="flex flex-col mb-6">
+              <div className="leading-none mb-2">
+                <span className="text-3xl font-black tracking-tight text-foreground whitespace-nowrap">
+                  River Region <span className="text-primary">Parents</span>
+                </span>
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">The Go-To Resource for River Region Families</span>
+            </div>
+            <p className="text-muted-foreground max-w-sm mb-6">
+              Your hyper-local hub for family fun, support, and connection in the River Region.
+            </p>
           </div>
-          <p className="text-sm text-white/60 leading-relaxed">
-            Local family media serving the River Region since 2001.
-          </p>
+
+          <div>
+            <h4 className="font-semibold mb-4">Explore</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li><Link href="/local-guides" className="hover:text-primary transition-colors">Local Guides</Link></li>
+              <li><Link href="/calendar" className="hover:text-primary transition-colors">Event Calendar</Link></li>
+              <li><Link href="/articles" className="hover:text-primary transition-colors">Articles</Link></li>
+              <li><Link href="/columns/mom-to-mom" className="hover:text-primary transition-colors">Mom to Mom</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4">Connect</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li><Link href="/advertise" className="hover:text-primary transition-colors">Advertise with Us</Link></li>
+              <li><Link href="/calendar/submit" className="hover:text-primary transition-colors">Submit an Event</Link></li>
+              <li><Link href="/nominate" className="hover:text-primary transition-colors">Nominate Someone</Link></li>
+              <li><a href="https://instagram.com/riverregionparents" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Instagram</a></li>
+            </ul>
+          </div>
         </div>
 
-        {/* Guides */}
-        <div>
-          <p className="font-semibold text-sm mb-3 text-white/80 uppercase tracking-wider">Local Guides</p>
-          <ul className="space-y-2">
-            {[
-              ['Family Resource Guide', '/family-resource-guide'],
-              ['Private School Guide', '/private-school-guide'],
-              ['Summer Camp Guide', '/summer-camp-guide'],
-              ['Childcare Guide', '/childcare-guide'],
-              ['Healthy Kids Guide', '/healthy-kids-guide'],
-            ].map(([label, href]) => (
-              <li key={href}><Link href={href} className="text-sm text-white/60 hover:text-white transition-colors">{label}</Link></li>
-            ))}
-          </ul>
-        </div>
-
-        {/* More guides */}
-        <div>
-          <p className="font-semibold text-sm mb-3 text-white/80 uppercase tracking-wider">More Guides</p>
-          <ul className="space-y-2">
-            {[
-              ['Summer Fun Guide', '/summer-fun-guide'],
-              ['Birthday Party Guide', '/birthday-party-guide'],
-              ['After-School Guide', '/afterschool-guide'],
-              ['Special Needs Guide', '/special-needs-guide'],
-              ['Local Guides Index', '/local-guides'],
-            ].map(([label, href]) => (
-              <li key={href}><Link href={href} className="text-sm text-white/60 hover:text-white transition-colors">{label}</Link></li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Company */}
-        <div>
-          <p className="font-semibold text-sm mb-3 text-white/80 uppercase tracking-wider">Company</p>
-          <ul className="space-y-2">
-            {[
-              ['Advertise With Us', '/advertise'],
-              ['Calendar', '/calendar'],
-              ['Articles', '/newcomer-guide/articles'],
-            ].map(([label, href]) => (
-              <li key={href}><Link href={href} className="text-sm text-white/60 hover:text-white transition-colors">{label}</Link></li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="border-t border-white/10">
-        <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-white/40">© {year} KeepSharing LLC. All rights reserved.</p>
-          <p className="text-xs text-white/40">May 2026 Issue</p>
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} River Region Parents. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>

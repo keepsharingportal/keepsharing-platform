@@ -206,20 +206,21 @@ export default async function ArticlePage({ params }: PageParams) {
               </div>
             )}
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mt-12 pt-8 border-t border-border/60">
-              <Badge variant="secondary" className="px-3 py-1 bg-muted">{categoryLabel}</Badge>
-              {article.guide_slug && (
-                <Badge variant="secondary" className="px-3 py-1 bg-muted">
-                  {String(article.guide_slug).replace(/-/g, ' ')}
-                </Badge>
-              )}
-              {article.issue_year && article.issue_month && (
-                <Badge variant="secondary" className="px-3 py-1 bg-muted">
-                  {new Date(Number(article.issue_year), Number(article.issue_month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </Badge>
-              )}
-            </div>
+            {/* Tags — category removed (already shown in header eyebrow) */}
+            {(article.guide_slug || (article.issue_year && article.issue_month)) && (
+              <div className="flex flex-wrap gap-2 mt-12 pt-8 border-t border-border/60">
+                {article.guide_slug && (
+                  <Badge variant="secondary" className="px-3 py-1 bg-muted">
+                    {String(article.guide_slug).replace(/-/g, ' ')}
+                  </Badge>
+                )}
+                {article.issue_year && article.issue_month && (
+                  <Badge variant="secondary" className="px-3 py-1 bg-muted">
+                    {new Date(Number(article.issue_year), Number(article.issue_month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </Badge>
+                )}
+              </div>
+            )}
 
             {/* Back to column link */}
             <div className="mt-8">
