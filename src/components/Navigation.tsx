@@ -35,11 +35,11 @@ export function Navigation() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60 font-sans">
       <div className="container flex items-center justify-between py-5">
 
-        {/* Wordmark + tagline */}
-        <Link href="/" className="flex flex-col shrink-0 hover:opacity-90 transition-opacity">
+        {/* Wordmark + tagline — font-sans locks to Geist regardless of page context */}
+        <Link href="/" className="flex flex-col shrink-0 hover:opacity-90 transition-opacity font-sans">
           <span className="text-2xl md:text-3xl font-black tracking-tight leading-none">
             <span className="text-foreground">River Region </span>
             <span className="text-primary">Parents</span>
@@ -116,8 +116,29 @@ export function Navigation() {
             Articles
           </Link>
 
+          <Link
+            href="/summer-fun-guide"
+            className={`text-sm font-medium transition-colors ${isActive('/summer-fun-guide') || isActive('/summer-camp-guide') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Summer Fun
+          </Link>
+
+          <Link
+            href="/school-zone"
+            className={`text-sm font-medium transition-colors ${isActive('/school-zone') || isActive('/school-bits') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            School Zone
+          </Link>
+
+          <Link
+            href="/partners"
+            className={`text-sm font-medium transition-colors ${isActive('/partners') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Partner With Us
+          </Link>
+
           <Button asChild size="sm" className="rounded-full">
-            <Link href="/advertise">Partner With Us</Link>
+            <Link href="/partners#strategy-call">Get Listed</Link>
           </Button>
         </div>
 
@@ -155,9 +176,12 @@ export function Navigation() {
               </div>
             )}
             {[
-              { href: '/calendar',  label: 'Calendar' },
-              { href: '/articles',  label: 'Articles' },
-              { href: '/advertise', label: 'Partner With Us' },
+              { href: '/calendar',        label: 'Calendar'       },
+              { href: '/articles',        label: 'Articles'       },
+              { href: '/summer-fun-guide', label: 'Summer Fun'    },
+              { href: '/school-zone',     label: 'School Zone'    },
+              { href: '/partners',        label: 'Partner With Us'},
+              { href: '/partners#strategy-call', label: 'Get Listed' },
             ].map(item => (
               <Link
                 key={item.href}

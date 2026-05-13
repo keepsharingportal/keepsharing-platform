@@ -1,4 +1,6 @@
 import { Fraunces, DM_Sans } from 'next/font/google'
+import { Navigation } from '@/components/Navigation'
+import { PublicFooter } from '@/components/PublicFooter'
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -17,8 +19,12 @@ const dmSans = DM_Sans({
 
 export default function PartnersLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${fraunces.variable} ${dmSans.variable}`} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
-      {children}
+    <div className={`${fraunces.variable} ${dmSans.variable} bg-background min-h-screen`}>
+      <Navigation />
+      <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', WebkitFontSmoothing: 'antialiased' }}>
+        {children}
+      </div>
+      <PublicFooter />
     </div>
   )
 }

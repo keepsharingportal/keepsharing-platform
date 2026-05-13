@@ -1,9 +1,14 @@
-import { AlertCircle, Clock, Inbox, Activity } from 'lucide-react'
+import { AlertCircle, Clock, Inbox, Activity, LayoutGrid } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
 import { UrgentItemsList, type UrgentItem } from '@/components/today/UrgentItemsList'
+import { OpsCommandGrid } from '@/components/today/OpsCommandGrid'
+import { EcosystemHealthBar } from '@/components/today/EcosystemHealthBar'
+import { PublisherFocusPanel, FocusHeader } from '@/components/today/PublisherFocusPanel'
 import { DistributionWidget } from '@/components/distribution/DistributionWidget'
 import { fillEmailTemplate } from '@/lib/email-templates'
+import { getOpsSnapshot } from '@/lib/queries/operations'
+import { deriveEcosystemHealth, deriveFocusActions } from '@/lib/queries/health'
 
 // ── Publication list (static config, data comes from DB) ─────────────────────
 const PUBLICATIONS = [
@@ -146,11 +151,17 @@ export default async function TodayPage() {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
 
-  const [marketStats, actionItems, incoming] = await Promise.all([
+  const supabase = await createClient()
+
+  const [marketStats, actionItems, incoming, opsSnapshot] = await Promise.all([
     getMarketPulse(),
     getActionItems(),
     getIncoming(),
+    getOpsSnapshot(supabase).catch(() => null),
   ])
+
+  const ecosystemHealth = opsSnapshot ? deriveEcosystemHealth(opsSnapshot) : null
+  const focusActions    = opsSnapshot ? deriveFocusActions(opsSnapshot)    : null
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -160,6 +171,18 @@ export default async function TodayPage() {
       </div>
 
       <div className="p-6 space-y-6">
+
+        {/* Publisher Command Center — Focus + Health */}
+        {focusActions && ecosystemHealth && (
+          <section>
+            <FocusHeader />
+            <div className="space-y-3">
+              <PublisherFocusPanel actions={focusActions} />
+              <EcosystemHealthBar health={ecosystemHealth} />
+            </div>
+          </section>
+        )}
+
         {/* Market Pulse */}
         <section>
           <SectionHeader icon={Activity} label="Market Pulse — This Month" color="text-gray-400" />
@@ -203,6 +226,14 @@ export default async function TodayPage() {
             })}
           </div>
         </section>
+
+        {/* Ops Command Grid */}
+        {opsSnapshot && (
+          <section>
+            <SectionHeader icon={LayoutGrid} label="Ops Command" color="text-gray-400" />
+            <OpsCommandGrid snapshot={opsSnapshot} />
+          </section>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section>

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import DOMPurify from 'isomorphic-dompurify'
+import { markdownToHtml } from '@/lib/markdown-to-html'
 
 interface Props {
   body: string
@@ -8,25 +9,24 @@ interface Props {
   inlineCta?: ReactNode
 }
 
-/**
- * Renders article body as sanitized HTML with magazine-style typography.
- *
- * Body is HTML (post migration 044). Supports paragraphs, h2/h3,
- * figures with captions and alignment, blockquotes, lists, and links.
- *
- * Pull quotes from pull_quotes JSONB are inserted at evenly-spaced positions.
- * Inline ad/CTA are inserted at strategic offsets.
- */
+function isHtml(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
+
 export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Props) {
-  const cleanHtml = DOMPurify.sanitize(body, {
+  // Imported articles may have markdown body until edited in the rich editor.
+  // Convert to HTML so they render correctly on the public site.
+  const rawHtml = isHtml(body) ? body : markdownToHtml(body)
+
+  const cleanHtml = DOMPurify.sanitize(rawHtml, {
     ALLOWED_TAGS: [
       'p', 'br', 'span', 'div',
       'h2', 'h3', 'h4',
-      'strong', 'em', 'b', 'i', 'u',
+      'strong', 'em', 'b', 'i', 'u', 's',
       'a',
       'ul', 'ol', 'li',
       'blockquote',
       'figure', 'figcaption', 'img',
+      'code', 'pre',
+      'hr',
     ],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
@@ -81,16 +81,35 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
       <style>{`
         .article-body .article-chunk p {
           color: hsl(var(--foreground) / 0.85);
-          font-size: 1.125rem;
-          line-height: 1.7;
-          margin-bottom: 1.25rem;
+          font-size: 1rem;
+          line-height: 1.75;
+          margin-bottom: 1.125rem;
+        }
+        @media (min-width: 640px) {
+          .article-body .article-chunk p {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+          }
         }
         .article-body .article-lede p {
           color: hsl(var(--foreground));
-          font-size: 1.375rem;
+          font-size: 1.125rem;
           font-weight: 500;
-          line-height: 1.5;
+          line-height: 1.6;
           margin-bottom: 1.5rem;
+        }
+        @media (min-width: 640px) {
+          .article-body .article-lede p {
+            font-size: 1.25rem;
+            line-height: 1.55;
+          }
+        }
+        @media (min-width: 1024px) {
+          .article-body .article-lede p {
+            font-size: 1.375rem;
+            line-height: 1.5;
+          }
         }
         .article-body h2 {
           font-size: 1.875rem;
@@ -140,49 +159,114 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           background: hsl(var(--primary) / 0.05);
           border-radius: 0 0.75rem 0.75rem 0;
         }
-        /* Figures (images with captions) */
-        .article-body figure { margin: 2rem 0; }
-        .article-body figure img {
-          border-radius: 0.75rem;
-          width: 100%;
+        /* ── Images and figures ─────────────────────────────────── */
+        .article-body img {
+          max-width: 100%;
           height: auto;
+          border-radius: 0.75rem;
           display: block;
+          margin: 1.75rem auto;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
-        .article-body figure figcaption {
-          font-size: 0.875rem;
-          color: hsl(var(--muted-foreground));
-          font-style: italic;
-          margin-top: 0.5rem;
-          text-align: center;
+        /* Tiptap data-align attribute (editor-inserted images) */
+        .article-body img[data-align="full"] {
+          width: 100%;
+          margin: 1.75rem 0;
         }
-        /* WordPress-style alignment classes */
-        .article-body figure.alignleft,
-        .article-body img.alignleft {
+        .article-body img[data-align="center"] {
+          max-width: 78%;
+          margin: 1.75rem auto;
+        }
+        .article-body img[data-align="left"] {
+          float: left;
+          margin: 0.5rem 1.75rem 1rem 0;
+          max-width: 45%;
+        }
+        .article-body img[data-align="right"] {
+          float: right;
+          margin: 0.5rem 0 1rem 1.75rem;
+          max-width: 45%;
+        }
+        /* WordPress legacy alignment classes */
+        .article-body figure.alignleft, .article-body img.alignleft {
           float: left;
           margin: 0.5rem 1.5rem 1rem 0;
-          max-width: 50%;
+          max-width: 45%;
+          border-radius: 0.75rem;
         }
-        .article-body figure.alignright,
-        .article-body img.alignright {
+        .article-body figure.alignright, .article-body img.alignright {
           float: right;
           margin: 0.5rem 0 1rem 1.5rem;
-          max-width: 50%;
+          max-width: 45%;
+          border-radius: 0.75rem;
         }
-        .article-body figure.aligncenter,
-        .article-body img.aligncenter {
+        .article-body figure.aligncenter, .article-body img.aligncenter {
           margin-left: auto;
           margin-right: auto;
           display: block;
         }
+        /* Figures with captions */
+        .article-body figure { margin: 1.75rem 0; }
+        .article-body figure img { margin: 0; }
+        .article-body figcaption, .article-body figure figcaption {
+          font-size: 0.825rem;
+          color: hsl(var(--muted-foreground));
+          font-style: italic;
+          margin-top: 0.5rem;
+          text-align: center;
+          line-height: 1.5;
+        }
+        /* ── Inline code + preformatted ────────────────────── */
+        .article-body code {
+          font-family: ui-monospace, 'Cascadia Code', monospace;
+          font-size: 0.875em;
+          background: hsl(var(--muted));
+          color: hsl(var(--foreground));
+          padding: 0.15em 0.4em;
+          border-radius: 0.3rem;
+        }
+        .article-body pre {
+          background: hsl(var(--muted));
+          padding: 1rem 1.25rem;
+          border-radius: 0.75rem;
+          overflow-x: auto;
+          margin: 1.5rem 0;
+          font-size: 0.875rem;
+          line-height: 1.6;
+        }
+        .article-body pre code {
+          background: none;
+          padding: 0;
+          font-size: inherit;
+        }
+        /* ── Strikethrough ──────────────────────────────────── */
+        .article-body s { text-decoration: line-through; opacity: 0.6; }
+        /* ── Horizontal rule ────────────────────────────────── */
+        .article-body hr {
+          border: none;
+          border-top: 2px solid hsl(var(--border));
+          margin: 2.5rem 0;
+        }
+        /* Italic paragraph after image = Tiptap caption */
+        .article-body img + p > em:only-child {
+          font-size: 0.825rem;
+          color: hsl(var(--muted-foreground));
+          display: block;
+          text-align: center;
+          margin-top: -1.25rem;
+          margin-bottom: 1.5rem;
+        }
+        /* Mobile — collapse all floats */
         @media (max-width: 640px) {
+          .article-body img[data-align="left"],
+          .article-body img[data-align="right"],
           .article-body figure.alignleft,
           .article-body figure.alignright,
           .article-body img.alignleft,
           .article-body img.alignright {
             float: none;
             max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 1.5rem auto;
           }
         }
         /* Clear floats at end */

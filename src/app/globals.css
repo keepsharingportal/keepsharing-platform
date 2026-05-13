@@ -63,11 +63,17 @@
   --space-stack-section:  3rem;     /* space-y-12 — between major sections */
 }
 
-/* ── Container — max-width 1400px centered with 2rem padding ── */
+/* ── Container — max-width 1400px centered with responsive padding ── */
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: 1rem;
   max-width: 1400px;
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
 }
 
 /* ── base ──────────────────────────────────────────────────── */
@@ -108,9 +114,9 @@ aside {
 
 /* ── Public page base (GHL design system) ──────────────────── */
 .public-page {
-  background-color: #faf8f5;
-  color: #1f1b16;
-  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--color-background);  /* #fbfaf8 — design token, not hardcoded */
+  color: var(--color-foreground);             /* #2b2420 — design token, not hardcoded */
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
 }
 

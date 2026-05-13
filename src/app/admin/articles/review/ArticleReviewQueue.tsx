@@ -30,19 +30,29 @@ type FilterStatus = 'all' | 'pending' | 'needs_edit' | 'approved' | 'rejected'
 function ArticleCard({ article, onAction }: { article: Article; onAction: (id: string, status: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const [acting, setActing] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [notes, setNotes] = useState(article.editorial_notes ?? '')
 
   async function act(status: string) {
     setActing(true)
+    setActionError(null)
     try {
-      await fetch('/api/admin/articles/review', {
+      const res = await fetch('/api/admin/articles/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ articleId: article.id, status, notes }),
       })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setActionError(json.error ?? `Server error ${res.status}`)
+        return
+      }
       onAction(article.id, status)
-    } catch { onAction(article.id, status) }
-    setActing(false)
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Network error')
+    } finally {
+      setActing(false)
+    }
   }
 
   const issueMonth = article.source_issue_month
@@ -73,7 +83,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href={`/newcomer-guide/articles/${article.slug}`}
+            href={`/articles/${article.slug}`}
             target="_blank"
             onClick={e => e.stopPropagation()}
             className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
@@ -108,6 +118,12 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
                 />
               </div>
 
+              {actionError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+                  ⚠ Approval failed: {actionError}
+                </p>
+              )}
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => act('approved')}
@@ -135,7 +151,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
           )}
 
           {article.editorial_review_status === 'approved' && (
-            <p className="text-xs text-green-700 font-medium">✓ Published at /newcomer-guide/articles/{article.slug}</p>
+            <p className="text-xs text-green-700 font-medium">✓ Published at /articles/{article.slug}</p>
           )}
         </div>
       )}

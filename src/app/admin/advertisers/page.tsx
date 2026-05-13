@@ -63,6 +63,22 @@ export default async function AdvertisersPage({ searchParams }: Props) {
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Table2 size={14} /> Layout Sheet
           </Link>
+          <Link href="/admin/advertisers/onboarding"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Onboarding
+          </Link>
+          <Link href="/admin/advertisers/proposals"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Proposals
+          </Link>
+          <Link href="/admin/advertisers/sponsor-inventory"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Sponsor Inventory
+          </Link>
+          <Link href="/admin/advertisers/partner-ops"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Partner Ops
+          </Link>
           <button className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
             <Plus size={14} /> Add Advertiser
           </button>

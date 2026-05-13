@@ -37,7 +37,7 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-8 border-b border-border/60">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-6 border-b border-border/60">
       <div className="flex items-center gap-3">
         {isPublication ? (
           <div className="flex items-center gap-3">
@@ -65,7 +65,7 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Button
           variant="outline"
           size="icon"

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       leadId?: string
     }
 
-    const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
     const supabase = await createClient()
 
     let leadId = body.leadId

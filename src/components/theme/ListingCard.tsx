@@ -2,11 +2,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ChevronRight } from 'lucide-react'
+import { MapPin, Phone, Globe, ChevronRight, Star } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { ListingBadges } from '@/components/listings/ListingBadges'
 
-interface ListingData {
+export interface ListingData {
   id:                     string
   slug:                   string
   business_name:          string
@@ -14,6 +14,8 @@ interface ListingData {
   hero_photo_url?:        string | null
   neighborhood?:          string | null
   city_state_zip?:        string | null
+  website_url?:           string | null
+  office_phone?:          string | null
   has_military_discount?: boolean | null
   is_veteran_owned?:      boolean | null
   is_woman_owned?:        boolean | null
@@ -22,86 +24,153 @@ interface ListingData {
 }
 
 interface Props {
-  listing:        ListingData
-  guideUrlSlug:   string
-  guideContext:   string
-  variant?:       'standard' | 'featured'
+  listing:      ListingData
+  guideUrlSlug: string
+  guideContext: string
+  variant?:     'standard' | 'featured'
+}
+
+function fmtPhone(p: string | null | undefined): string | null {
+  if (!p) return null
+  const digits = p.replace(/\D/g, '')
+  if (digits.length === 10) return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`
+  if (digits.length === 11 && digits[0] === '1') return `(${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`
+  return p
+}
+
+function rootDomain(url: string | null | undefined): string | null {
+  if (!url) return null
+  try { return new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace(/^www\./, '') }
+  catch { return url }
 }
 
 export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'standard' }: Props) {
   const heroSrc = listing.hero_photo_url || getFallbackByContext(guideContext, listing.slug)
+  const phone   = fmtPhone(listing.office_phone)
+  const domain  = rootDomain(listing.website_url)
+  const location = listing.neighborhood ?? listing.city_state_zip ?? null
 
+  /* ── Featured / Partner ───────────────────────────────────────────────── */
   if (variant === 'featured') {
     return (
-      <div className="overflow-hidden rounded-2xl border border-accent/30 shadow-sm hover:shadow-md transition-shadow bg-card">
+      <div className="overflow-hidden rounded-2xl border border-accent/50 shadow-md hover:shadow-lg transition-shadow bg-card">
+        {/* Accent top stripe — visually separates featured from standard */}
+        <div className="h-1 bg-gradient-to-r from-accent via-accent/80 to-accent/50" />
         <div className="flex flex-col md:flex-row">
-          <div className="md:w-1/3 relative aspect-video md:aspect-auto">
+          <div className="md:w-2/5 relative aspect-video md:aspect-auto min-h-[180px]">
             <Image
-              src={heroSrc}
-              alt={listing.business_name}
-              fill
-              style={{ objectFit: 'cover' }}
-              unoptimized
-              sizes="(max-width: 768px) 100vw, 33vw"
+              src={heroSrc} alt={listing.business_name} fill
+              style={{ objectFit: 'cover' }} unoptimized sizes="(max-width: 768px) 100vw, 40vw"
             />
-            <Badge variant="accent" className="absolute top-3 left-3">Featured Partner</Badge>
+            <Badge variant="accent" className="absolute top-3 left-3 shadow-sm">
+              <Star className="h-3 w-3 mr-1 fill-current" /> Featured Partner
+            </Badge>
           </div>
-          <div className="p-6 md:w-2/3 flex flex-col">
-            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">{listing.business_name}</h3>
+          <div className="p-5 md:w-3/5 flex flex-col gap-3">
+            <div>
+              <h3 className="text-xl font-bold text-foreground">{listing.business_name}</h3>
+              {location && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                  <MapPin className="h-3 w-3 shrink-0" /> {location}
+                </p>
+              )}
+            </div>
+
             {listing.card_hook && (
-              <p className="text-muted-foreground text-sm leading-relaxed mb-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 flex-1">
                 {listing.card_hook}
               </p>
             )}
+
             <ListingBadges
               hasMilitaryDiscount={listing.has_military_discount}
               isVeteranOwned={listing.is_veteran_owned}
               isWomanOwned={listing.is_woman_owned}
               isMinorityOwned={listing.is_minority_owned}
               isLocallyOwned={listing.is_locally_owned}
-              className="mb-3"
+              className="flex-wrap"
             />
-            {(listing.neighborhood ?? listing.city_state_zip) && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mb-4">
-                <MapPin className="h-3 w-3" />
-                {listing.neighborhood ?? listing.city_state_zip}
-              </p>
-            )}
-            <Button asChild size="sm" className="self-start rounded-full">
-              <Link href={`/${guideUrlSlug}/listings/${listing.slug}`}>View Profile</Link>
-            </Button>
+
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+              {phone && (
+                <a href={`tel:${listing.office_phone}`} onClick={e => e.stopPropagation()}
+                  className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                  <Phone className="h-3.5 w-3.5" /> {phone}
+                </a>
+              )}
+              {domain && listing.website_url && (
+                <a href={listing.website_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                  className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
+                  <Globe className="h-3.5 w-3.5" /> {domain}
+                </a>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 mt-auto">
+              <Button asChild size="sm" className="rounded-full">
+                <Link href={`/${guideUrlSlug}/listings/${listing.slug}`}>View Full Profile</Link>
+              </Button>
+              {listing.website_url && (
+                <Button asChild size="sm" variant="outline" className="rounded-full">
+                  <a href={listing.website_url} target="_blank" rel="noopener noreferrer">Visit Website</a>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
+  /* ── Standard ─────────────────────────────────────────────────────────── */
   return (
     <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} className="group block h-full">
       <div className="overflow-hidden rounded-2xl border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col h-full">
-        <div className="relative aspect-video overflow-hidden bg-muted">
+        {/* Image */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted shrink-0">
           <Image
-            src={heroSrc}
-            alt={listing.business_name}
-            fill
+            src={heroSrc} alt={listing.business_name} fill
             style={{ objectFit: 'cover' }}
             className="group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, 33vw"
-            unoptimized
+            sizes="(max-width: 640px) 100vw, 33vw" unoptimized
           />
         </div>
-        <div className="p-4 flex-1 flex flex-col">
-          <h3 className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{listing.business_name}</h3>
-          {(listing.neighborhood ?? listing.city_state_zip) && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-              <MapPin className="h-3 w-3" />
-              {listing.neighborhood ?? listing.city_state_zip}
+
+        {/* Content */}
+        <div className="p-4 flex flex-col flex-1 gap-1.5">
+          <h3 className="font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
+            {listing.business_name}
+          </h3>
+
+          {location && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-3 w-3 shrink-0" /> {location}
             </p>
           )}
+
           {listing.card_hook && (
-            <p className="text-sm text-muted-foreground leading-relaxed mb-3 flex-1 line-clamp-2">{listing.card_hook}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+              {listing.card_hook}
+            </p>
           )}
-          <span className="text-primary text-sm font-medium flex items-center gap-1 mt-auto">
+
+          {/* Contact row */}
+          {(phone || domain) && (
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground pt-1 border-t border-border/40">
+              {phone && (
+                <span className="flex items-center gap-1">
+                  <Phone className="h-3 w-3" /> {phone}
+                </span>
+              )}
+              {domain && (
+                <span className="flex items-center gap-1 truncate max-w-[150px]">
+                  <Globe className="h-3 w-3 shrink-0" /> {domain}
+                </span>
+              )}
+            </div>
+          )}
+
+          <span className="text-primary text-sm font-semibold flex items-center gap-1 mt-auto pt-1">
             View Details <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
           </span>
         </div>

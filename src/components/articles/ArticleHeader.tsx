@@ -13,7 +13,7 @@ interface Props {
 export function ArticleHeader({ category, categoryHref, publishedDate, readTimeMinutes, title }: Props) {
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         {categoryHref ? (
           <Link href={categoryHref}>
             <Badge className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm px-3 py-1 cursor-pointer">
@@ -33,7 +33,7 @@ export function ArticleHeader({ category, categoryHref, publishedDate, readTimeM
           <span>{readTimeMinutes} min read</span>
         </div>
       </div>
-      <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight text-foreground">
         {title}
       </h1>
     </>

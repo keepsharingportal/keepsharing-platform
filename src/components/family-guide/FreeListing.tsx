@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Phone, Globe } from 'lucide-react'
 import type { GuideListing } from './types'
 
@@ -5,7 +6,13 @@ function fmt(phone: string): string {
   return phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
 }
 
-export function FreeListing({ listing }: { listing: GuideListing }) {
+export function FreeListing({
+  listing,
+  guideUrlSlug = 'family-resource-guide',
+}: {
+  listing: GuideListing
+  guideUrlSlug?: string
+}) {
   return (
     <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 transition-all group">
       <div className="flex-1 min-w-0">
@@ -36,6 +43,12 @@ export function FreeListing({ listing }: { listing: GuideListing }) {
             <span className="hidden sm:inline">Website</span>
           </a>
         )}
+        <Link
+          href={`/${guideUrlSlug}/listings/${listing.slug}`}
+          className="text-xs font-semibold text-primary hover:underline whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          Profile →
+        </Link>
       </div>
     </div>
   )

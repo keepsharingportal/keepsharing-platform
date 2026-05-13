@@ -6,7 +6,13 @@ function fmt(phone: string): string {
   return phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
 }
 
-export function EnhancedListing({ listing }: { listing: GuideListing }) {
+export function EnhancedListing({
+  listing,
+  guideUrlSlug = 'family-resource-guide',
+}: {
+  listing: GuideListing
+  guideUrlSlug?: string
+}) {
   return (
     <div style={{
       backgroundColor: 'white',
@@ -86,7 +92,7 @@ export function EnhancedListing({ listing }: { listing: GuideListing }) {
               <Globe size={10} /> Website
             </a>
           )}
-          <Link href={`/newcomer-guide/listings/${listing.slug}`} style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: 'var(--fg-sky, #4a90d9)', textDecoration: 'none' }}>
+          <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: 'var(--fg-sky, #4a90d9)', textDecoration: 'none' }}>
             Profile →
           </Link>
         </div>

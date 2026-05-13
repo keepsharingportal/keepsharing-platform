@@ -9,7 +9,7 @@ import { GuideMapCard } from '@/components/guides/GuideMapCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Star, BookOpen, Filter } from 'lucide-react'
+import { Star, BookOpen, Filter, Building2, ArrowRight, Crown } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import type { Metadata } from 'next'
@@ -122,7 +122,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
   const { data: article } = await supabase
     .from('guide_articles')
     .select('id, title, slug, hero_image_url, excerpt')
-    .eq('editorial_review_status', 'approved')
+    .eq('published', true)
     .eq('guide_slug', guide.slug)
     .limit(1)
     .maybeSingle()
@@ -137,7 +137,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
       <PageHeader
         title={guide.display_name}
         subtitle={guide.pitch ?? guide.hub_intro_paragraph ?? guide.short_description}
-        badge={{ text: '2026 Edition', variant: 'default' }}
+        badge={{ text: `${new Date().getFullYear()} Edition`, variant: 'default' }}
         variant="primary"
         size="lg"
       >
@@ -163,14 +163,33 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
 
             {/* Section sponsor banner — shown ABOVE featured providers */}
             {sectionSponsor ? (
-              // Paid sponsor — show their branding
-              <div className="flex items-center gap-3 py-2.5 px-4 rounded-2xl bg-accent/10 border border-accent/20">
-                <span className="text-xs font-bold uppercase tracking-wider text-accent shrink-0">Section Sponsor</span>
-                <span className="w-px h-4 bg-accent/30 shrink-0" />
-                <span className="text-sm font-semibold text-foreground">
-                  {(sectionSponsor.advertiser as { business_name?: string } | null)?.business_name ?? sectionSponsor.ad_headline}
-                </span>
-              </div>
+              // Paid sponsor — premium "Presented By" banner
+              (() => {
+                const adv = sectionSponsor.advertiser as { business_name?: string; slug?: string } | null
+                const sponsorName = adv?.business_name ?? sectionSponsor.ad_headline ?? 'Our Sponsor'
+                const sponsorHref = adv?.slug ? `/${urlSlug}/listings/${adv.slug}` : null
+                return (
+                  <div className="flex items-center justify-between gap-4 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-accent/20 via-accent/10 to-accent/5 border border-accent/35">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Crown className="h-4 w-4 text-accent shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-accent/80 leading-none mb-1">
+                          Proudly Presented By
+                        </p>
+                        <p className="font-bold text-foreground leading-tight truncate">{sponsorName}</p>
+                      </div>
+                    </div>
+                    {sponsorHref && (
+                      <Link
+                        href={sponsorHref}
+                        className="shrink-0 text-xs font-bold text-primary hover:text-primary/80 transition-colors whitespace-nowrap flex items-center gap-1"
+                      >
+                        View Profile <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    )}
+                  </div>
+                )
+              })()
             ) : (
               // No sponsor — show "available" CTA
               <SectionSponsorBanner guideName={guideName} guideUrlSlug={urlSlug} />
@@ -249,11 +268,33 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   })}
                 </div>
               ) : (
-                <Card>
-                  <CardContent className="p-10 text-center text-muted-foreground">
-                    {categoryFilter ? `No listings found in "${categoryFilter}".` : 'Listings coming soon.'}
-                  </CardContent>
-                </Card>
+                <div className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 px-8 py-14 text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                    <Building2 className="h-7 w-7 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    {categoryFilter
+                      ? `No listings yet in "${categoryFilter}"`
+                      : `Be the first listed in the ${guideName} Guide`}
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
+                    {categoryFilter
+                      ? `We're still building out this category. Know a business that belongs here?`
+                      : `River Region families are already searching here. Get your business in front of them before your competitors do.`}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button asChild className="rounded-full">
+                      <Link href="/advertise">
+                        List Your Business <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    {categoryFilter && (
+                      <Button asChild variant="outline" className="rounded-full">
+                        <Link href={`/${urlSlug}`}>View All Categories</Link>
+                      </Button>
+                    )}
+                  </div>
+                </div>
               )}
             </section>
           </div>
@@ -325,23 +366,27 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{article.excerpt}</p>
                 )}
                 <Button variant="link" className="p-0 h-auto text-secondary hover:text-secondary/80" asChild>
-                  <Link href={`/newcomer-guide/articles/${article.slug}`}>Read Full Article →</Link>
+                  <Link href={`/articles/${article.slug}`}>Read Full Article →</Link>
                 </Button>
               </SidebarWidget>
             )}
 
             {/* Advertise CTA */}
-            <SidebarWidget variant="tinted">
-              <div className="text-center">
-                <p className="font-bold text-foreground mb-2">List Your Business</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Reach thousands of River Region families searching in this guide.
-                </p>
-                <Button asChild className="w-full rounded-full">
-                  <Link href="/advertise">Learn About Listing →</Link>
-                </Button>
-              </div>
-            </SidebarWidget>
+            <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white text-center shadow-md">
+              <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Get Listed</p>
+              <p className="font-bold text-xl leading-snug mb-2">
+                Reach families actively searching the {guideName}
+              </p>
+              <p className="text-sm text-white/75 mb-5 leading-relaxed">
+                Featured placements, standard listings, and exclusive section sponsorships available.
+              </p>
+              <Button asChild size="sm" className="w-full rounded-full bg-white text-primary hover:bg-white/90 font-bold mb-3">
+                <Link href="/advertise">Get Listed Today →</Link>
+              </Button>
+              <p className="text-[11px] text-white/50 leading-snug">
+                Founding advertiser rates available — limited spots
+              </p>
+            </div>
           </aside>
         </div>
       </main>

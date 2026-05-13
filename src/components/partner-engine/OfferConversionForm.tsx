@@ -52,11 +52,12 @@ export function OfferConversionForm({ data }: { data: PartnerPageData }) {
     setError(null)
 
     try {
+      const safeOffer = offer!
       const payload = {
-        offerId: offer.id,
+        offerId: safeOffer.id,
         advertiserId: account.id,
         advertiserSlug: account.slug,
-        offerType: offer.offer_type,
+        offerType: safeOffer.offer_type,
         leadFirstName: form.firstName || form.infoName.split(' ')[0],
         leadLastName: form.lastName || form.infoName.split(' ').slice(1).join(' '),
         leadEmail: form.email || form.discountEmail || form.infoEmail,
@@ -82,8 +83,8 @@ export function OfferConversionForm({ data }: { data: PartnerPageData }) {
       if (!res.ok) throw new Error('Server error')
       const data = await res.json()
 
-      if (offer.offer_type === 'booking_link' && offer.booking_url) {
-        setTimeout(() => { window.location.href = offer.booking_url! }, 2000)
+      if (safeOffer.offer_type === 'booking_link' && safeOffer.booking_url) {
+        setTimeout(() => { window.location.href = safeOffer.booking_url! }, 2000)
       }
 
       setDone(true)

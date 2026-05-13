@@ -1,0 +1,333 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
+import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
+import { COLUMNS, GUIDES } from '@/lib/content-taxonomy'
+
+function slugify(text: string) {
+  return text.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 80)
+}
+
+type SaveMode = 'draft' | 'pending' | 'publish'
+
+export default function NewArticlePage() {
+  const router = useRouter()
+
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const [form, setForm] = useState({
+    title:          '',
+    slug:           '',
+    subtitle:       '',
+    excerpt:        '',
+    body:           '',
+    hero_image_url: '',
+    author_byline:  '',
+    column_slug:    '',
+    guide_slug:     '',
+    source_issue_month: '',
+    editorial_notes: '',
+  })
+
+  const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
+  const sel = `${inp} cursor-pointer`
+
+  function setField<K extends keyof typeof form>(k: K, v: string) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+
+  function handleTitle(title: string) {
+    setForm(f => ({
+      ...f,
+      title,
+      slug: f.slug === slugify(f.title) || !f.slug ? slugify(title) : f.slug,
+    }))
+  }
+
+  function handleColumnChange(colSlug: string) {
+    setForm(f => ({
+      ...f,
+      column_slug: colSlug,
+      guide_slug:  colSlug || f.guide_slug,
+    }))
+  }
+
+  async function save(mode: SaveMode) {
+    if (!form.title.trim()) { setSaveMsg({ text: 'Title is required.', ok: false }); return }
+    if (!form.slug.trim())  { setSaveMsg({ text: 'URL slug is required.', ok: false }); return }
+
+    setSaving(true)
+    setSaveMsg(null)
+
+    const published    = mode === 'publish'
+    const editStatus   = mode === 'draft' ? 'draft' : mode === 'publish' ? 'approved' : 'pending'
+    const published_at = published ? new Date().toISOString() : null
+
+    try {
+      const res = await fetch('/api/admin/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          editorial_review_status: editStatus,
+          published,
+          published_at,
+        }),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        setSaveMsg({ text: json.error ?? `Error ${res.status}`, ok: false })
+        return
+      }
+
+      if (published) {
+        router.push(`/admin/articles/${json.id}/edit`)
+      } else if (mode === 'pending') {
+        router.push('/admin/articles/review')
+      } else {
+        router.push(`/admin/articles/${json.id}/edit`)
+      }
+    } catch (e) {
+      setSaveMsg({ text: e instanceof Error ? e.message : 'Network error', ok: false })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {/* Sticky header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/articles" className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <ArrowLeft size={13} /> Articles
+          </Link>
+          <h1 className="text-xl font-semibold text-gray-900">New Article</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {saveMsg && (
+            <span className={`text-sm font-medium ${saveMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+              {saveMsg.text}
+            </span>
+          )}
+          {form.slug && (
+            <Link
+              href={`/articles/${form.slug}`}
+              target="_blank"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+            >
+              <Eye size={13} /> Preview
+            </Link>
+          )}
+          <button
+            onClick={() => save('draft')}
+            disabled={saving}
+            className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+          >
+            Save Draft
+          </button>
+          <button
+            onClick={() => save('pending')}
+            disabled={saving}
+            className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+          >
+            Save for Review
+          </button>
+          <button
+            onClick={() => save('publish')}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40"
+          >
+            {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> Publish Now</>}
+          </button>
+        </div>
+      </div>
+
+      <div className="p-6 grid lg:grid-cols-[1fr_280px] gap-6 max-w-6xl">
+
+        {/* Main content column */}
+        <div className="space-y-5">
+          {/* Title */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <input
+              className="w-full text-2xl font-bold text-gray-900 outline-none placeholder:text-gray-300 border-none bg-transparent"
+              value={form.title}
+              onChange={e => handleTitle(e.target.value)}
+              placeholder="Article title…"
+            />
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-gray-400">URL slug:</span>
+              <input
+                className="flex-1 text-xs text-gray-500 outline-none bg-transparent border-b border-gray-200 focus:border-blue-400 py-0.5"
+                value={form.slug}
+                onChange={e => setField('slug', e.target.value)}
+                placeholder="auto-generated-from-title"
+              />
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Subtitle / Lead Paragraph</label>
+            <textarea
+              className={`${inp} resize-none`}
+              rows={2}
+              value={form.subtitle}
+              onChange={e => setField('subtitle', e.target.value)}
+              placeholder="A compelling opening sentence shown in article listings and search results…"
+            />
+          </div>
+
+          {/* Body */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Article Body</label>
+            <RichArticleEditor
+              key="new-article"
+              initialContent=""
+              onChange={html => setField('body', html)}
+              placeholder="Start writing your article… Use the toolbar for headings, bold, images, links, quotes, and lists."
+            />
+          </div>
+        </div>
+
+        {/* Sidebar meta column */}
+        <div className="space-y-4">
+
+          {/* Publish status */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Save As</h3>
+            <div className="space-y-2">
+              {[
+                { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-gray-200 text-gray-700 hover:bg-gray-50' },
+                { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-amber-700 hover:bg-amber-50 bg-amber-50' },
+                { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-green-50' },
+              ].map(opt => (
+                <button
+                  key={opt.mode}
+                  onClick={() => save(opt.mode)}
+                  disabled={saving}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-40 ${opt.color}`}
+                >
+                  {opt.label}
+                  <span className="block text-xs font-normal opacity-60 mt-0.5">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Author */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Author</h3>
+            <input
+              className={inp}
+              value={form.author_byline}
+              onChange={e => setField('author_byline', e.target.value)}
+              placeholder="Author name or byline"
+            />
+          </div>
+
+          {/* Hero image */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Hero Image</h3>
+            <input
+              className={inp}
+              value={form.hero_image_url}
+              onChange={e => setField('hero_image_url', e.target.value)}
+              placeholder="https://..."
+            />
+            {form.hero_image_url && (
+              <div className="mt-2 rounded-lg overflow-hidden border border-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.hero_image_url} alt="Hero preview" className="w-full h-24 object-cover" />
+              </div>
+            )}
+            {!form.hero_image_url && (
+              <p className="mt-2 text-xs text-orange-500 font-medium">⚠ Add an image — articles without images look blank on the site.</p>
+            )}
+          </div>
+
+          {/* Section / Column */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Section</h3>
+            <select
+              className={sel}
+              value={form.column_slug}
+              onChange={e => handleColumnChange(e.target.value)}
+            >
+              <option value="">— Choose a section —</option>
+              {COLUMNS.map(c => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Guide */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Guide / Resource</h3>
+            <select
+              className={sel}
+              value={form.guide_slug}
+              onChange={e => setField('guide_slug', e.target.value)}
+            >
+              <option value="">— Not a guide article —</option>
+              {GUIDES.map(g => (
+                <option key={g.slug} value={g.slug}>{g.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Issue month */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Issue Month</h3>
+            <input
+              type="month"
+              className={inp}
+              value={form.source_issue_month ? form.source_issue_month.slice(0, 7) : ''}
+              onChange={e => setField('source_issue_month', e.target.value ? `${e.target.value}-01` : '')}
+            />
+            <p className="text-[11px] text-gray-400 mt-1.5">The magazine issue this article is from (optional)</p>
+          </div>
+
+          {/* Editorial notes */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Editorial Notes</h3>
+            <textarea
+              className={`${inp} resize-none`}
+              rows={3}
+              value={form.editorial_notes}
+              onChange={e => setField('editorial_notes', e.target.value)}
+              placeholder="Internal notes for the team…"
+            />
+          </div>
+
+        </div>
+      </div>
+
+      {/* Bottom save bar */}
+      <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-2">
+        <Link href="/admin/articles" className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors">
+          Cancel
+        </Link>
+        <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40">
+          Save Draft
+        </button>
+        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
+          Send for Review
+        </button>
+        <button onClick={() => save('publish')} disabled={saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40">
+          {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> Publish Now</>}
+        </button>
+      </div>
+    </div>
+  )
+}

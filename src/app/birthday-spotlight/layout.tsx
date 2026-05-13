@@ -8,7 +8,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <div className="text-lg font-bold text-rose-700 leading-tight">River Region Parents</div>
             <div className="text-xs text-gray-400">Montgomery's Family Magazine</div>
           </div>
-          <div className="text-xs text-gray-500">Questions? Call (334) 555-0100</div>
+          <div className="text-xs text-gray-500">River Region Parents</div>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-6 py-10">

@@ -1,3 +1,9 @@
+// ⚠️  DEMO DATA — NOT PRODUCTION METRICS  ⚠️
+// This file contains fabricated ad records for UI development only.
+// Real ad tracking lives in the ad_placements table (migration 035).
+// Real click/impression data is served by /admin/ads (not /admin/ad-server).
+// TODO: Replace /admin/ad-server page with real ad_placements queries (Phase 3).
+
 export interface AdZone {
   id: string
   name: string

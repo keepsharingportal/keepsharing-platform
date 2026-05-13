@@ -4,12 +4,12 @@ import { getActiveAds } from '@/lib/get-active-ads'
 
 export async function HomepageHeroRotator() {
   const ads = await getActiveAds('homepage_hero_rotator', null, 1)
-  if (!ads.length) return null
-  const ad = ads[0]
+  const ad = ads.find(a => a.ad_link)
+  if (!ad) return null
 
   return (
     <Link
-      href={ad.ad_link ?? '#'}
+      href={ad.ad_link!}
       className="block rounded-2xl border border-border overflow-hidden hover:shadow-md transition-shadow"
     >
       {ad.ad_image_url && (

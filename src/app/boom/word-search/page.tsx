@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { WordSearchGame, generateGrid } from '@/components/boom/WordSearchGame'
 import Link from 'next/link'

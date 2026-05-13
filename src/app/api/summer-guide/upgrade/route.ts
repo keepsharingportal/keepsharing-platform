@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Business name and email are required' }, { status: 400 })
     }
 
-    const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 
     // Save pending upgrade record
     try {

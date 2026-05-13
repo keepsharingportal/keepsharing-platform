@@ -26,7 +26,7 @@ async function getListing(slug: string): Promise<(GuideListing & { category?: Gu
       .maybeSingle()
     if (!data) return null
     const { guide_categories: cat, ...listing } = data as GuideListing & { guide_categories: GuideCategory }
-    return { ...listing, category: cat }
+    return { ...listing, category: cat as unknown as string & typeof cat }
   } catch {
     return null
   }
@@ -68,7 +68,7 @@ export default async function ListingDetailPage({ params }: Props) {
 
   // Fetch photos and advertiser account in parallel
   const [related, photosRes, accountRes] = await Promise.all([
-    getRelated(listing.category_id, slug),
+    getRelated(listing.category_id ?? '', slug),
     supabase.from('advertiser_listing_photos').select('*').eq('listing_id', listing.id).order('display_order').limit(20),
     supabase.from('advertiser_accounts').select('id').eq('listing_id', listing.id).maybeSingle(),
   ])

@@ -10,12 +10,15 @@ export async function GuideFeaturedStrip({ guideUrlSlug }: Props) {
   const ads = await getActiveAds('guide_featured_strip', guideUrlSlug, 3)
   if (!ads.length) return null
 
+  const linkableAds = ads.filter(ad => ad.ad_link)
+  if (!linkableAds.length) return null
+
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
-      {ads.map(ad => (
+      {linkableAds.map(ad => (
         <Link
           key={ad.id}
-          href={ad.ad_link ?? '#'}
+          href={ad.ad_link!}
           className="block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-md transition-shadow no-underline"
         >
           {ad.ad_image_url && (

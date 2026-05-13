@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     const totalCents = basePrice * 100 + (body.designHelp ? DESIGN_HELP_PRICE : 0)
 
-    const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 
     // Create draft booking in DB
     const supabase = await createClient()

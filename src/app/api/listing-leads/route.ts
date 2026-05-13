@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     // Click count tracking
     if (listingSlug) {
-      await supabase.rpc('increment_listing_click', { p_slug: listingSlug, p_field: 'message' }).catch(() => null)
+      try { await supabase.rpc('increment_listing_click', { p_slug: listingSlug, p_field: 'message' }) } catch { /* non-critical */ }
     }
 
     // TODO: send email to advertiser's contact_email when email service configured

@@ -1,5 +1,10 @@
 'use client'
 
+// ⚠️  DEMO DATA PAGE — Numbers below are fabricated for UI development.
+// Real ad tracking lives in the ad_placements table (migration 035).
+// Visit /admin/ads for live impression_count + click_count data.
+// This page will be migrated to real ad_placements queries in Phase 3.
+
 import { useState, useRef } from 'react'
 import { Monitor, Plus, Filter, BarChart2, ExternalLink, Upload, X, Check, Eye, EyeOff, Trash2, ChevronDown } from 'lucide-react'
 import { MOCK_ADS, AD_ZONES, getMockClicksByZone, type AdRecord } from '@/lib/mock-ads'
@@ -74,6 +79,16 @@ export default function AdServerPage() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Demo Data Warning Banner */}
+      <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center justify-between shrink-0">
+        <p className="text-xs font-semibold text-amber-800">
+          ⚠️ Demo Data — Numbers on this page are fabricated for UI development, not real tracking.
+        </p>
+        <a href="/admin/ads" className="text-xs font-bold text-amber-700 hover:underline shrink-0">
+          View real ad data at /admin/ads →
+        </a>
+      </div>
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
@@ -81,6 +96,7 @@ export default function AdServerPage() {
           <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full ring-1 ring-blue-200">
             {ads.filter((a) => a.active).length} active
           </span>
+          <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded ring-1 ring-amber-200">Demo Data</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-gray-500">{totalImpressions.toLocaleString()} impressions</span>

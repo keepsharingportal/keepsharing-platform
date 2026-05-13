@@ -1,19 +1,27 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArticleReviewQueue } from './ArticleReviewQueue'
 
 export const metadata: Metadata = { title: 'Article Review Queue — Admin' }
 
+function supabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
+
 export default async function ArticleReviewPage() {
-  const supabase = await createClient()
+  const supabase = supabaseAdmin()
 
   const { data: articles } = await supabase
     .from('guide_articles')
-    .select('id, title, slug, subtitle, author_byline, source_pdf_filename, source_issue_month, editorial_review_status, editorial_notes, imported_at, published_at')
+    .select('id, title, slug, subtitle, author_byline, source_pdf_filename, source_issue_month, editorial_review_status, editorial_notes, imported_at, published_at, published')
+    .in('editorial_review_status', ['pending', 'needs_edit', 'approved', 'rejected'])
     .order('source_issue_month', { ascending: false, nullsFirst: false })
     .order('imported_at', { ascending: false })
-    .limit(100)
+    .limit(200)
 
   const pending   = (articles ?? []).filter(a => a.editorial_review_status === 'pending')
   const needsEdit = (articles ?? []).filter(a => a.editorial_review_status === 'needs_edit')
@@ -29,7 +37,7 @@ export default async function ArticleReviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/newcomer-guide/articles" className="text-sm text-blue-600 hover:text-blue-800">
+          <Link href="/articles" className="text-sm text-blue-600 hover:text-blue-800">
             View live articles ↗
           </Link>
         </div>

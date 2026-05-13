@@ -67,7 +67,7 @@ export default async function PartnerReviewPage({ params }: Props) {
               ) : null)}
             </section>
 
-            {progress.offerHeadline && (
+            {!!progress.offerHeadline && (
               <section style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Offer</h3>
                 {[
@@ -82,7 +82,7 @@ export default async function PartnerReviewPage({ params }: Props) {
                     <p style={{ color: '#333', marginTop: 2 }}>{v as string}</p>
                   </div>
                 ) : null)}
-                {progress.offerValue && (
+                {!!progress.offerValue && (
                   <div style={{ fontSize: 13, marginBottom: 8 }}>
                     <span style={{ color: '#888', fontSize: 11, fontWeight: 600, textTransform: 'uppercase' }}>Value statement</span>
                     <p style={{ color: '#333', marginTop: 2, lineHeight: 1.55 }}>{progress.offerValue as string}</p>
@@ -91,14 +91,14 @@ export default async function PartnerReviewPage({ params }: Props) {
               </section>
             )}
 
-            {progress.missionStatement && (
+            {!!progress.missionStatement && (
               <section style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Mission</h3>
                 <p style={{ fontSize: 13, color: '#333', lineHeight: 1.55 }}>{progress.missionStatement as string}</p>
               </section>
             )}
 
-            {progress.notes && (
+            {!!progress.notes && (
               <section style={{ marginBottom: 20 }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Notes from partner</h3>
                 <p style={{ fontSize: 13, color: '#333', lineHeight: 1.55 }}>{progress.notes as string}</p>

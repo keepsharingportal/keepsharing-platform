@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     const adSizeLabel = body.adSize.charAt(0).toUpperCase() + body.adSize.slice(1)
     const monthsLabel = body.months.map(fmtMonth).join(', ')
 
-    const origin = req.headers.get('origin') ?? 'http://localhost:3000'
+    const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lineItems: any[] = [

@@ -11,7 +11,7 @@ export function PartnerSEO({ data }: { data: PartnerPageData }) {
     '@context': 'https://schema.org',
     '@type': account.category === 'healthcare' ? 'Dentist' : account.category === 'education' ? 'School' : 'LocalBusiness',
     name: account.business_name,
-    url: `https://www.riverregionparents.com/partners/${account.slug}`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'}/partners/${account.slug}`,
     telephone: account.contact_phone ?? undefined,
     address: primary ? {
       '@type': 'PostalAddress',

@@ -470,7 +470,8 @@ export default async function NewcomerGuidePage() {
           <p style={{ fontSize: 14, color: 'var(--fg-mid)', marginBottom: 24 }}>
             {allCategories.length} categories · {totalListings} listings — filter by area, category, or specialty.
           </p>
-          <GuideDirectory categories={allCategories} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <GuideDirectory categories={allCategories as any} />
         </section>
 
         {/* ── ADVERTISE CTA ─────────────────────────────────────────────────── */}

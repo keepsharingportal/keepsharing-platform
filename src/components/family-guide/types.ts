@@ -2,7 +2,8 @@ export type ListingTier = 'free' | 'enhanced' | 'featured'
 
 export type GuideListing = {
   id: string
-  category_id: string
+  category_id?: string
+  category?: string | null
   slug: string
   business_name: string
   address?: string | null

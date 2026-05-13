@@ -13,7 +13,7 @@ import { InArticleAd } from '@/components/articles/InArticleAd'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import type { Metadata } from 'next'
 
-export const revalidate = 1800
+export const revalidate = 600
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 
@@ -39,7 +39,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .select('*')
       .eq('slug', fullSlug)
       .eq('column_slug', columnSlug)
-      .eq('editorial_review_status', 'approved')
+      .eq('published', true)
       .maybeSingle(),
     supabase.from('monthly_columns')
       .select('*')
@@ -47,7 +47,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .maybeSingle(),
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, column_slug, guide_slug, created_at')
-      .eq('editorial_review_status', 'approved')
+      .eq('published', true)
       .neq('slug', fullSlug)
       .order('created_at', { ascending: false })
       .limit(3),
@@ -102,7 +102,7 @@ export default async function ArticlePage({ params }: PageParams) {
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'May 2026'
+    : ''
 
   const wordCount = (article.body as string | null)?.split(/\s+/).length ?? 0
   const readTimeMinutes = article.read_time_minutes ?? Math.max(1, Math.round(wordCount / 200))
@@ -123,27 +123,29 @@ export default async function ArticlePage({ params }: PageParams) {
   })
 
   // Map ad_placements to sidebar shape (using actual DB column names)
-  const stickyAdMapped = stickyAd ? {
+  // Suppress sidebar ads that have no destination URL — a '#' link confuses users
+  const stickyAdMapped = (stickyAd && stickyAd.ad_link) ? {
     id:             stickyAd.id,
     headline:       stickyAd.ad_headline ?? '',
     description:    stickyAd.ad_description ?? '',
     cta_label:      stickyAd.ad_cta_label ?? 'Learn More',
-    cta_url:        stickyAd.ad_link ?? '#',
+    cta_url:        stickyAd.ad_link,
     advertiser_name: (stickyAd.advertiser as { business_name?: string } | null)?.business_name ?? stickyAd.ad_headline ?? '',
   } : null
 
-  const sponsoredAdMapped = sponsoredAd ? {
+  const sponsoredAdMapped = (sponsoredAd && sponsoredAd.ad_link) ? {
     id:             sponsoredAd.id,
     headline:       sponsoredAd.ad_headline ?? '',
     description:    sponsoredAd.ad_description ?? '',
     cta_label:      sponsoredAd.ad_cta_label ?? 'Learn More',
-    cta_url:        sponsoredAd.ad_link ?? '#',
+    cta_url:        sponsoredAd.ad_link,
     advertiser_name: (sponsoredAd.advertiser as { business_name?: string } | null)?.business_name ?? sponsoredAd.ad_headline ?? '',
   } : null
 
   const heroImageUrl = article.hero_image_url || getFallbackByContext(column, article.id)
   const shareUrl = `${SITE_URL}/columns/${column}/${slug}`
-  const categoryLabel = columnData?.display_name ?? column
+  const categoryLabel = columnData?.display_name
+    ?? column.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
   // pull_quotes stored as JSON array of strings in migration 018 format
   const rawPullQuotes = article.pull_quotes
@@ -152,7 +154,7 @@ export default async function ArticlePage({ params }: PageParams) {
     : []
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background public-page">
       <Navigation />
 
       <main className="container py-8 md:py-12">
@@ -171,7 +173,7 @@ export default async function ArticlePage({ params }: PageParams) {
           shareUrl={shareUrl}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
             {/* Hero image */}
             <div className="relative w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">

@@ -54,7 +54,7 @@ export function OfferLocations({ data }: { data: PartnerPageData }) {
                 </div>
                 {loc.address_line_1 && (
                   <p style={{ fontSize: 13, color: '#555', lineHeight: 1.5, marginBottom: 8 }}>
-                    {loc.address_line_1}{loc.address_line_2 ? `, ${loc.address_line_2}` : ''}<br />
+                    {loc.address_line_1}{(loc as unknown as Record<string, unknown>).address_line_2 ? `, ${(loc as unknown as Record<string, unknown>).address_line_2 as string}` : ''}<br />
                     {loc.city}{loc.zip ? `, AL ${loc.zip}` : ', AL'}
                   </p>
                 )}

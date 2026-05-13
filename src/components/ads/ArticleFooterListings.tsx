@@ -9,16 +9,19 @@ export async function ArticleFooterListings({ articleSlug }: Props) {
   const ads = await getActiveAds('article_footer_listings', articleSlug ?? null, 3)
   if (!ads.length) return null
 
+  const linkableAds = ads.filter(ad => ad.ad_link)
+  if (!linkableAds.length) return null
+
   return (
     <section className="border-t border-border pt-8 mt-8">
       <p className="text-xs font-bold uppercase tracking-wider text-primary mb-4">
         Mentioned in This Article
       </p>
       <div className="flex flex-col gap-3">
-        {ads.map(ad => (
+        {linkableAds.map(ad => (
           <Link
             key={ad.id}
-            href={ad.ad_link ?? '#'}
+            href={ad.ad_link!}
             className="flex items-center gap-4 p-4 border border-border rounded-2xl bg-card hover:shadow-sm transition-shadow no-underline"
           >
             <div className="flex-1">

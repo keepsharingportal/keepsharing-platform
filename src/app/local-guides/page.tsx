@@ -154,9 +154,12 @@ export default async function LocalGuidesPage() {
 
                     {/* Card content */}
                     <CardContent className="p-6 flex flex-col flex-1">
-                      <div className="flex items-center gap-2 text-primary text-sm mb-3 font-medium">
-                        <BookOpen className="h-4 w-4" />
-                        {g.count} Listings
+                      <div className="flex items-center gap-2 text-sm mb-3 font-medium">
+                        <BookOpen className="h-4 w-4 text-primary" />
+                        {g.count > 0
+                          ? <span className="text-primary">{g.count} {g.count === 1 ? 'Listing' : 'Listings'}</span>
+                          : <span className="text-muted-foreground">Coming Soon</span>
+                        }
                       </div>
                       <h3 className="text-xl font-bold text-foreground leading-tight mb-2 group-hover:text-primary transition-colors">
                         {g.display_name}

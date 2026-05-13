@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     })
 
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
     const magicLink = `${baseUrl}/partners/${slug}/admin?token=${token}`
 
     // Log the link (in production, send via GHL or email service)

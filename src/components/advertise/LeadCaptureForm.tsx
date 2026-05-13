@@ -48,7 +48,7 @@ const lbl = {
   letterSpacing: '0.01em',
 } as const
 
-export function LeadCaptureForm() {
+export function LeadCaptureForm({ sourcePage = '/advertise' }: { sourcePage?: string } = {}) {
   const [form, setForm] = useState({
     first_name: '', last_name: '', business_name: '',
     email: '', phone: '', business_type: '',
@@ -85,7 +85,7 @@ export function LeadCaptureForm() {
           businessType: form.business_type,
           interests: form.interests,
           notes: form.notes,
-          sourcePage: '/advertise',
+          sourcePage,
         }),
       })
       if (!res.ok) throw new Error('Server error')

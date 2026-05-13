@@ -174,6 +174,13 @@ export function PartnerDashboard({ account, initialLeads, token }: { account: Ac
             <BarChart2 size={14} style={{ display: 'inline', marginRight: 6 }} />
             Stats
           </button>
+          {/* Performance report link */}
+          <a
+            href={`/partners/${account.slug}/performance`}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#c4622d', textDecoration: 'none', borderBottom: '2px solid transparent', marginLeft: 'auto' }}
+          >
+            View Full Report →
+          </a>
         </div>
       </div>
 

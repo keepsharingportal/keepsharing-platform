@@ -7,7 +7,7 @@ export default function BusinessSpotlightLayout({ children }: { children: React.
             <div className="text-lg font-bold text-blue-700">River Region Parents</div>
             <div className="text-xs text-gray-400">Montgomery's Family Magazine</div>
           </div>
-          <div className="text-xs text-gray-500">Questions? Call (334) 555-0100</div>
+          <div className="text-xs text-gray-500">River Region Parents</div>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-6 py-10">{children}</main>

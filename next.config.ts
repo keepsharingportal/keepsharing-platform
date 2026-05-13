@@ -26,6 +26,33 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // ── WordPress URL preservation ──────────────────────────────────────────
+      // Articles: /YYYY/MM/DD/slug → /articles/slug (common WP permalink format)
+      { source: "/:year(\\d{4})/:month(\\d{2})/:day(\\d{2})/:slug",
+        destination: "/articles/:slug", permanent: true },
+      // Articles: /YYYY/MM/slug → /articles/slug
+      { source: "/:year(\\d{4})/:month(\\d{2})/:slug",
+        destination: "/articles/:slug", permanent: true },
+      // Category archives: /category/school-bits → /articles?category=school-bits
+      { source: "/category/:cat",
+        destination: "/articles", permanent: false },
+      // WP tag archives → /articles
+      { source: "/tag/:tag",
+        destination: "/articles", permanent: false },
+      // WP author archives → /articles
+      { source: "/author/:author",
+        destination: "/articles", permanent: false },
+      // WP page → drop /page/ prefix
+      { source: "/page/:num",
+        destination: "/", permanent: false },
+      // WP search → /articles
+      { source: "/search/:term*",
+        destination: "/articles", permanent: false },
+      // Common WP admin/login paths → redirect away
+      { source: "/wp-admin",        destination: "/admin", permanent: false },
+      { source: "/wp-admin/:path*", destination: "/admin", permanent: false },
+      { source: "/wp-login.php",    destination: "/admin", permanent: false },
+
       // /newcomer-guide → /family-resource-guide (retiring the newcomer-guide URL)
       { source: "/newcomer-guide",           destination: "/family-resource-guide",        permanent: true },
       { source: "/newcomer-guide/:path*",    destination: "/family-resource-guide/:path*", permanent: true },

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, CalendarDays, MapPin, Clock, Globe, Phone, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
 
-export const revalidate = 3600
+export const revalidate = 1800
 
 interface Props {
   params: Promise<{ slug: string }>

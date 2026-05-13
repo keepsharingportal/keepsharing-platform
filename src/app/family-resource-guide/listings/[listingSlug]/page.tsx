@@ -14,5 +14,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FamilyResourceGuideListingPage({ params }: Props) {
   const { listingSlug } = await params
-  return <ListingDetailPage urlSlug="family-resource-guide" listingSlug={listingSlug} />
+  // includeShell={false} — FRG layout already renders Navigation + PublicFooter
+  return <ListingDetailPage urlSlug="family-resource-guide" listingSlug={listingSlug} includeShell={false} />
 }

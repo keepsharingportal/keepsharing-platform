@@ -36,7 +36,7 @@ export async function sendPartnerNotification(params: PartnerNotificationParams)
   if (params.offerType === 'schedule_consult') {
     if (params.leadMetadata?.childName) metaLines.push(`Child's name: ${params.leadMetadata.childName}`)
     if (params.leadMetadata?.childAge) metaLines.push(`Child's age: ${params.leadMetadata.childAge}`)
-    if (params.leadMetadata?.preferredDays?.length) metaLines.push(`Preferred days: ${(params.leadMetadata.preferredDays as string[]).join(', ')}`)
+    if ((params.leadMetadata?.preferredDays as string[] | undefined)?.length) metaLines.push(`Preferred days: ${(params.leadMetadata?.preferredDays as string[]).join(', ')}`)
     if (params.leadMetadata?.insuranceCarrier) metaLines.push(`Insurance: ${params.leadMetadata.insuranceCarrier}`)
     if (params.leadMetadata?.notes) metaLines.push(`Notes: ${params.leadMetadata.notes}`)
   }

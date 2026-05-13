@@ -5,8 +5,10 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
-  ChevronDown, ChevronRight, LogOut, Upload,
-  Monitor, Megaphone, HelpCircle,
+  ChevronDown, ChevronRight, LogOut,
+  Monitor, Megaphone, HelpCircle, Activity, Star, Newspaper, Globe, Bot,
+  Image as ImageIcon, TrendingUp, Sparkles,
+  PenLine, BookOpen, Heart, Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -19,69 +21,161 @@ const PUBLICATIONS = [
   { abbrev: 'RRB', name: 'River Region Boom',         market: 'Montgomery',    state: 'AL', color: '#eab308' },
 ]
 
-const NAV = [
-  { name: 'Today',      href: '/admin/today',   icon: Zap },
-  { name: 'My Markets', href: '/admin/markets', icon: LayoutGrid },
+// ── NAV item types ─────────────────────────────────────────────────────────
+
+type ChildItem = { name: string; href: string; accent?: boolean }
+
+type NavItem =
+  | { section: string }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }> }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[] }
+
+// ── Navigation structure ───────────────────────────────────────────────────
+
+const NAV: NavItem[] = [
+  // ── Pulse (no section header) ──────────────────────────────────────────
+  { name: 'Today',        href: '/admin/today',        icon: Zap       },
+  { name: 'Intelligence', href: '/admin/intelligence', icon: Sparkles  },
+  { name: 'Operations',   href: '/admin/operations',   icon: Activity  },
+  { name: 'My Markets',   href: '/admin/markets',      icon: LayoutGrid },
+
+  // ── PUBLISHING ────────────────────────────────────────────────────────
+  { section: 'PUBLISHING' },
+
   {
-    name: 'Advertisers',
+    name: 'Editorial',
+    href: '/admin/editorial',
+    icon: PenLine,
+    children: [
+      { name: 'Approval Queue',          href: '/admin/articles/review'            },
+      { name: 'Drafts',                  href: '/admin/articles?filter=draft'      },
+      { name: 'Needs Revision',          href: '/admin/articles?filter=needs_revision' },
+      { name: 'School News',             href: '/admin/school-news'                },
+      { name: 'Teacher of the Month',    href: '/admin/nominations?type=teacher-of-month', accent: true },
+      { name: 'Contributor Submissions', href: '/admin/submissions'                },
+      { name: 'Community Content',       href: '/admin/community'                  },
+      { name: 'Editorial Calendar',      href: '/admin/content/calendar'           },
+    ],
+  },
+
+  {
+    name: 'Articles',
+    href: '/admin/articles',
+    icon: Newspaper,
+    children: [
+      { name: 'All Articles',  href: '/admin/articles'          },
+      { name: 'New Article',   href: '/admin/articles/new',     accent: true },
+      { name: 'Columns',       href: '/admin/articles/columns'  },
+      { name: 'Authors',       href: '/admin/articles/authors'  },
+      { name: 'Imports',       href: '/admin/content/imports'   },
+    ],
+  },
+
+  {
+    name: 'Media',
+    href: '/admin/assets',
+    icon: ImageIcon,
+    children: [
+      { name: 'Media Library',  href: '/admin/assets'                             },
+      { name: 'Upload Photos',  href: '/admin/assets?view=submissions', accent: true },
+      { name: 'Design Queue',   href: '/admin/assets?view=design'                 },
+      { name: 'Bulk Uploads',   href: '/admin/content/imports'                    },
+      { name: 'Media Library',  href: '/admin/media'                              },
+    ],
+  },
+
+  // ── AUDIENCE ──────────────────────────────────────────────────────────
+  { section: 'AUDIENCE' },
+
+  {
+    name: 'Guides',
+    href: '/admin/guides',
+    icon: BookOpen,
+    children: [
+      { name: 'Guide Dashboard', href: '/admin/guides'                           },
+      { name: 'Events',          href: '/admin/content/events-import'            },
+      { name: 'Imports',         href: '/admin/content/guide-listings-import',   accent: true },
+    ],
+  },
+
+  {
+    name: 'Community',
+    href: '/admin/community',
+    icon: Heart,
+    children: [
+      { name: 'Submissions',      href: '/admin/community'           },
+      { name: 'Nominations',      href: '/admin/nominations'         },
+      { name: 'Family Favorites', href: '/admin/family-favorites',   accent: true },
+      { name: 'Forms',            href: '/admin/content/forms'       },
+    ],
+  },
+
+  // ── REVENUE ───────────────────────────────────────────────────────────
+  { section: 'REVENUE' },
+
+  {
+    name: 'Advertising',
     href: '/admin/advertisers',
     icon: Users,
     children: [
-      { name: 'Active Advertisers', href: '/admin/advertisers' },
-      { name: 'Layout Sheet',       href: '/admin/advertisers/layout-sheet' },
-      { name: 'Pipeline',           href: '/admin/advertisers/pipeline' },
-      { name: 'Agreements',         href: '/admin/advertisers/agreements' },
-      { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs' },
-      { name: 'Businesses',         href: '/admin/advertisers/businesses' },
-      { name: 'Intelligence',       href: '/admin/advertisers/intelligence', accent: true },
-      { name: 'Segments',           href: '/admin/advertisers/segments',    accent: true },
-      { name: 'Import Data',        href: '/admin/import', accent: true },
+      { name: 'Active Advertisers', href: '/admin/advertisers'                           },
+      { name: 'Onboarding',         href: '/admin/advertisers/onboarding',  accent: true },
+      { name: 'Proposals',          href: '/admin/advertisers/proposals',   accent: true },
+      { name: 'Sponsor Inventory',  href: '/admin/advertisers/sponsor-inventory'         },
+      { name: 'Partner Ops',        href: '/admin/advertisers/partner-ops'               },
+      { name: 'Pipeline',           href: '/admin/advertisers/pipeline'                  },
+      { name: 'Agreements',         href: '/admin/advertisers/agreements'                },
+      { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs'                 },
+      { name: 'Ad Manager',         href: '/admin/ad-server'                             },
+      { name: 'Businesses',         href: '/admin/advertisers/businesses'                },
+      { name: 'Layout Sheet',       href: '/admin/advertisers/layout-sheet'              },
+      { name: 'Import Data',        href: '/admin/import',              accent: true     },
     ],
   },
+
+  // ── REACH ──────────────────────────────────────────────────────────────
+  { section: 'REACH' },
+
   {
-    name: 'Content',
-    href: '/admin/content',
-    icon: FileText,
+    name: 'Distribution',
+    href: '/admin/distribution',
+    icon: Send,
     children: [
-      { name: 'Social Queue',      href: '/admin/social' },
-      { name: 'School News',       href: '/admin/school-news' },
-      { name: 'Nominations',       href: '/admin/nominations' },
-      { name: 'Guides',            href: '/admin/guides' },
-      { name: 'Geocode Tool',      href: '/admin/guides/geocode',        accent: true },
-      { name: 'Summer Import',    href: '/admin/guides/summer-import',  accent: true },
-      { name: 'Content Calendar',  href: '/admin/content/calendar',        accent: true },
-      { name: 'Editorial Board',   href: '/admin/content/editorial-board', accent: true },
-      { name: 'Word Search',       href: '/admin/content/word-search',     accent: true },
-      { name: 'Submission Forms',  href: '/admin/content/forms',           accent: true },
-      { name: 'Ask the Doctor',    href: '/admin/content/ask-doctor',      accent: true },
-      { name: 'Anniversaries',     href: '/admin/content/anniversaries',   accent: true },
-      { name: 'New Content',       href: '/admin/content/new',             accent: true },
+      { name: 'Distribution Center', href: '/admin/distribution'                           },
+      { name: 'Social Queue',        href: '/admin/social'                                  },
+      { name: 'Newsletter',          href: '/admin/newsletter'                              },
+      { name: 'Social Export',       href: '/admin/distribution/social-export', accent: true },
+      { name: 'Engagement',          href: '/admin/engagement'                              },
     ],
   },
-  {
-    name: 'Ad Server',
-    href: '/admin/ad-server',
-    icon: Monitor,
-    children: [
-      { name: 'Ad Manager',   href: '/admin/ad-server' },
-      { name: 'Inventory',    href: '/admin/ad-server/inventory' },
-      { name: 'Dropbox Scan', href: '/admin/ad-server/scan', accent: true },
-    ],
-  },
-  { name: 'Marketing', href: '/admin/marketing-system', icon: Megaphone },
-  { name: 'Settings',  href: '/admin/settings',          icon: Settings },
-  { name: 'Help',      href: '/admin/help',              icon: HelpCircle },
+
+  // ── SYSTEM ─────────────────────────────────────────────────────────────
+  { section: 'SYSTEM' },
+
+  { name: 'AI Tasks',    href: '/admin/ai-tasks',          icon: Bot        },
+  { name: 'Marketing',   href: '/admin/marketing-system',  icon: Megaphone  },
+  { name: 'Settings',    href: '/admin/settings',          icon: Settings   },
+  { name: 'Help',        href: '/admin/help',              icon: HelpCircle },
 ]
+
+// ── Component ─────────────────────────────────────────────────────────────
 
 export function Sidebar() {
   const pathname = usePathname()
   const [pubOpen, setPubOpen]         = useState(false)
   const [activePub, setActivePub]     = useState(PUBLICATIONS[0])
-  const [expandedNav, setExpandedNav] = useState<string | null>('Advertisers')
+  const [expandedNav, setExpandedNav] = useState<string | null>('Editorial')
 
-  const isActive = (href: string) => {
-    if (href === '/admin/advertisers') return pathname === href
-    return pathname.startsWith(href)
+  function isActive(href: string) {
+    const path = href.split('?')[0]
+    if (path === '/admin/advertisers') return pathname === path
+    return pathname === path || pathname.startsWith(path + '/')
+  }
+
+  function isGroupActive(item: { href: string; children?: ChildItem[] }) {
+    if (!item.children) return isActive(item.href)
+    return pathname.startsWith(item.href) ||
+      item.children.some(c => pathname.startsWith(c.href.split('?')[0] + '/') || pathname === c.href.split('?')[0])
   }
 
   return (
@@ -99,12 +193,8 @@ export function Sidebar() {
           <span className="w-[5px] rounded-t-sm" style={{ height: '40%', backgroundColor: 'rgba(212,168,67,0.55)' }} />
         </div>
         <div>
-          <div className="text-sm font-bold text-white leading-tight tracking-tight">
-            KeepSharing
-          </div>
-          <div className="text-[9px] font-medium text-white/35 leading-tight">
-            Admin Platform
-          </div>
+          <div className="text-sm font-bold text-white leading-tight tracking-tight">KeepSharing</div>
+          <div className="text-[9px] font-medium text-white/35 leading-tight">Publishing Platform</div>
         </div>
       </div>
 
@@ -114,8 +204,10 @@ export function Sidebar() {
           onClick={() => setPubOpen(!pubOpen)}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/6"
         >
-          <div className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ backgroundColor: activePub.color + '25', border: `1px solid ${activePub.color}40` }}>
+          <div
+            className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
+            style={{ backgroundColor: activePub.color + '25', border: `1px solid ${activePub.color}40` }}
+          >
             <span style={{ color: activePub.color }}>{activePub.abbrev.slice(0, 2)}</span>
           </div>
           <div className="flex-1 min-w-0">
@@ -126,11 +218,13 @@ export function Sidebar() {
         </button>
 
         {pubOpen && (
-          <div className="mt-1 rounded-xl overflow-hidden border border-white/10 shadow-2xl"
-            style={{ backgroundColor: '#0e0e24' }}>
+          <div className="mt-1 rounded-xl overflow-hidden border border-white/10 shadow-2xl" style={{ backgroundColor: '#0e0e24' }}>
             {PUBLICATIONS.map((pub) => (
-              <button key={pub.abbrev} onClick={() => { setActivePub(pub); setPubOpen(false) }}
-                className={cn('w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-white/5', activePub.abbrev === pub.abbrev && 'bg-white/5')}>
+              <button
+                key={pub.abbrev}
+                onClick={() => { setActivePub(pub); setPubOpen(false) }}
+                className={cn('w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-white/5', activePub.abbrev === pub.abbrev && 'bg-white/5')}
+              >
                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: pub.color }} />
                 <span className="font-semibold text-white/70 w-9 shrink-0">{pub.abbrev}</span>
                 <span className="text-white/40 truncate text-[11px]">{pub.name}</span>
@@ -142,60 +236,97 @@ export function Sidebar() {
 
       {/* ── Navigation ───────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
-        {NAV.map((item) => {
-          const parentActive = item.children
-            ? pathname.startsWith(item.href) || item.children.some((c) => pathname.startsWith(c.href))
-            : pathname === item.href
-          const isExpanded = expandedNav === item.name
+        {NAV.map((item, idx) => {
+          // Section divider
+          if ('section' in item) {
+            return (
+              <div key={`section-${idx}`} className="px-2.5 pt-5 pb-1">
+                <span className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  {item.section}
+                </span>
+              </div>
+            )
+          }
 
-          return (
-            <div key={item.name}>
-              {item.children ? (
+          // Group with children
+          if ('children' in item) {
+            const groupActive = isGroupActive(item)
+            const isExpanded  = expandedNav === item.name
+
+            return (
+              <div key={item.name}>
                 <button
                   onClick={() => setExpandedNav(isExpanded ? null : item.name)}
                   className={cn(
                     'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
-                    parentActive ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'
-                  )}>
+                    groupActive ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'
+                  )}
+                >
                   <item.icon size={15} className="shrink-0" />
                   <span className="flex-1 text-left">{item.name}</span>
-                  {isExpanded ? <ChevronDown size={12} className="shrink-0 opacity-40" /> : <ChevronRight size={12} className="shrink-0 opacity-40" />}
+                  {isExpanded
+                    ? <ChevronDown size={12} className="shrink-0 opacity-40" />
+                    : <ChevronRight size={12} className="shrink-0 opacity-40" />}
                 </button>
-              ) : (
-                <Link href={item.href}
-                  className={cn(
-                    'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
-                    isActive(item.href) ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'
-                  )}>
-                  <item.icon size={15} className="shrink-0" />
-                  {item.name}
-                </Link>
-              )}
 
-              {/* Sub-items — text only (GHL style) */}
-              {item.children && isExpanded && (
-                <div className="ml-5 mt-0.5 pl-3 border-l border-white/8 space-y-0.5">
-                  {item.children.map((child) => {
-                    const childActive = pathname === child.href
-                    const accent = 'accent' in child && child.accent
-                    return (
-                      <Link key={child.href} href={child.href}
-                        className={cn(
-                          'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] transition-colors',
-                          accent
-                            ? childActive ? 'text-amber-400 font-semibold' : 'text-amber-400/60 hover:text-amber-400 hover:bg-white/5'
-                            : childActive ? 'text-white font-semibold bg-white/6' : 'text-white/40 hover:text-white hover:bg-white/5'
-                        )}>
-                        {accent && <Upload size={11} className="shrink-0" />}
-                        {child.name}
-                      </Link>
-                    )
-                  })}
-                </div>
+                {isExpanded && (
+                  <div className="ml-5 mt-0.5 pl-3 border-l border-white/8 space-y-0.5">
+                    {item.children.map((child) => {
+                      const childPath   = child.href.split('?')[0]
+                      const childActive = pathname === childPath || pathname.startsWith(childPath + '/')
+                      const accent      = child.accent === true
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] transition-colors',
+                            accent
+                              ? childActive
+                                ? 'text-amber-400 font-semibold'
+                                : 'text-amber-400/60 hover:text-amber-400 hover:bg-white/5'
+                              : childActive
+                                ? 'text-white font-semibold bg-white/6'
+                                : 'text-white/40 hover:text-white hover:bg-white/5'
+                          )}
+                        >
+                          {child.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
+          // Single link
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
+                active ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'
               )}
-            </div>
+            >
+              <item.icon size={15} className="shrink-0" />
+              {item.name}
+            </Link>
           )
         })}
+
+        {/* Phase 1 status — subtle system link at bottom of nav */}
+        <div className="pt-4">
+          <Link
+            href="/admin/phase1-status"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-white/20 hover:text-white/50 hover:bg-white/5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500/60 shrink-0" />
+            Phase 1 Status
+          </Link>
+        </div>
       </nav>
 
       {/* ── User ─────────────────────────────────────────── */}
