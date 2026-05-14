@@ -82,7 +82,7 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
     return (
       <Link href={url} className="group flex gap-3 items-start">
         <div className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-muted">
-          <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover' }}
+          <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
             className="group-hover:scale-105 transition-transform duration-500" sizes="80px" unoptimized />
         </div>
         <div className="min-w-0 flex-1">
@@ -103,7 +103,7 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
           src={heroSrc}
           alt={article.title}
           fill
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', objectPosition: 'center top' }}
           className="group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, 33vw"
           unoptimized

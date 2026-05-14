@@ -294,7 +294,14 @@ export function GuidePageLayout({
           </section>
         )}
 
-        {/* ── 4. EDITORIAL ARTICLE GRID ─────────────────────────────────── */}
+        {/* ── 4. DIRECTORY SLOT ─────────────────────────────────────────── */}
+        {/* Directory comes before editorial articles so users who clicked a
+            category tile land on real listings, not "Reads to Get You Going". */}
+        <section id="directory" style={{ marginBottom: 64 }}>
+          {directorySlot}
+        </section>
+
+        {/* ── 5. EDITORIAL ARTICLE GRID ─────────────────────────────────── */}
         {articles && articles.length > 0 && (
           <section style={{ marginBottom: 64 }}>
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 6 }}>
@@ -308,11 +315,6 @@ export function GuidePageLayout({
             </div>
           </section>
         )}
-
-        {/* ── 5. DIRECTORY SLOT ─────────────────────────────────────────── */}
-        <section id="directory" style={{ marginBottom: 64 }}>
-          {directorySlot}
-        </section>
 
         {/* ── 6. NEWSLETTER BAND ────────────────────────────────────────── */}
         <section style={{ marginBottom: 64 }}>

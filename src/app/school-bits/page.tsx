@@ -206,7 +206,7 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
                         src={imgSrc}
                         alt={article.title}
                         fill
-                        style={{ objectFit: 'cover' }}
+                        style={{ objectFit: 'cover', objectPosition: 'center top' }}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         className="group-hover:scale-105 transition-transform duration-500"
                         unoptimized

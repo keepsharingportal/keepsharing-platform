@@ -123,7 +123,7 @@ function SmallCard({ article }: { article: Article }) {
       className="group flex gap-3 p-3 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-muted/20 transition-all"
     >
       <div className="relative shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden bg-primary/5">
-        <Image src={imgSrc} alt={article.title} fill style={{ objectFit: 'cover' }}
+        <Image src={imgSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
           sizes="72px" className="group-hover:scale-105 transition-transform duration-500" unoptimized />
       </div>
       <div className="flex flex-col justify-center min-w-0 flex-1">

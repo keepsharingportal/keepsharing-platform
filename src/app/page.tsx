@@ -194,17 +194,22 @@ export default async function HomePage() {
               Trending:
             </span>
             <div className="w-px h-3.5 bg-primary/30 shrink-0" />
-            {trendingItems.slice(0, 4).map((t: { id?: string; emoji?: string; label?: string; text?: string; href?: string; url?: string }, i) => (
-              <Link
-                key={t.id ?? i}
-                href={t.href ?? t.url ?? '#'}
-                className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors shrink-0 whitespace-nowrap"
-              >
-                {t.emoji && <span>{t.emoji}</span>}
-                <span className="font-medium">{t.label ?? t.text}</span>
-                {i < 3 && <span className="text-primary/30 ml-2">·</span>}
-              </Link>
-            ))}
+            {trendingItems.slice(0, 4).map((t: { id?: string; emoji?: string; label?: string; text?: string; href?: string; url?: string; link?: string }, i) => {
+              // DB column is `link`; fallback config uses `href`. Accept either.
+              const dest = t.link ?? t.href ?? t.url
+              if (!dest) return null   // never render an un-clickable trending item
+              return (
+                <Link
+                  key={t.id ?? i}
+                  href={dest}
+                  className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors shrink-0 whitespace-nowrap"
+                >
+                  {t.emoji && <span>{t.emoji}</span>}
+                  <span className="font-medium">{t.label ?? t.text}</span>
+                  {i < 3 && <span className="text-primary/30 ml-2">·</span>}
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>

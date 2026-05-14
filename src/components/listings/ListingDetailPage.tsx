@@ -49,10 +49,23 @@ const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
   'private-school': { grade: 'Grades', leadership: 'Head of School', mission: 'Mission', extracurricula: 'Activities' },
   'childcare':      { ages: 'Ages Served', hours: 'Hours', meals: 'Meals', staff_ratio: 'Staff Ratio' },
   'healthy-kids':   { ages: 'Ages Served', hours: 'Hours' },
-  'summer-fun':     { ages: 'Ages', cost: 'Cost' },
+  'summer-fun':     { ages: 'Ages', activity_type: 'Activity', city: 'Location' },
+  'summer-camp':    { ages: 'Ages', dates: 'Dates', cost: 'Cost', camp_type: 'Type' },
   'birthday-party': { capacity: 'Capacity', price_range: 'Price Range' },
   'afterschool':    { ages: 'Ages', hours: 'Hours' },
   'special-needs':  { ages: 'Ages Served' },
+}
+
+// Branded gradient backgrounds when a listing has no real hero photo. Keyed by
+// guide_types.slug. Better than serving a random Unsplash image that may not
+// match the listing's actual character (e.g. a library getting a beach photo).
+const GUIDE_GRADIENTS: Record<string, string> = {
+  'summer-fun':     'linear-gradient(135deg, #4c1d0d 0%, #9a3412 45%, #d97706 100%)',
+  'summer-camp':    'linear-gradient(135deg, #064e3b 0%, #047857 45%, #10b981 100%)',
+  'private-school': 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 45%, #3b82f6 100%)',
+  'childcare':      'linear-gradient(135deg, #581c87 0%, #7c3aed 45%, #a855f7 100%)',
+  'healthy-kids':   'linear-gradient(135deg, #14532d 0%, #16a34a 45%, #22c55e 100%)',
+  'newcomer':       'linear-gradient(135deg, #7c2d12 0%, #c2410c 45%, #f97316 100%)',
 }
 
 // Used to resolve display names / URL slugs for "Featured in Guides" chips.
@@ -189,24 +202,38 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     .map(([key, label]) => ({ key, label, val: guideData[key] }))
     .filter(f => f.val)
 
-  const heroImg = acct.hero_photo_url || getFallbackByContext(guideSlug, acct.slug)
+  const heroImg     = acct.hero_photo_url || null
+  const heroGradient = GUIDE_GRADIENTS[guideSlug] ?? 'linear-gradient(135deg, #1f2937, #374151, #6b7280)'
+  const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
+  const hasRealGallery = !!heroImg || galleryImgs.length > 0
 
   return (
     <div className="min-h-screen bg-background font-sans">
       {includeShell && <Navigation />}
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="h-64 md:h-96 w-full relative">
-        <Image
-          src={heroImg}
-          alt={acct.business_name}
-          fill
-          style={{ objectFit: 'cover' }}
-          sizes="100vw"
-          priority
-          unoptimized
-        />
+      <div className="h-64 md:h-96 w-full relative" style={!heroImg ? { background: heroGradient } : undefined}>
+        {heroImg && (
+          <Image
+            src={heroImg}
+            alt={acct.business_name}
+            fill
+            style={{ objectFit: 'cover' }}
+            sizes="100vw"
+            priority
+            unoptimized
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {/* When there's no photo, show the business name large in the gradient */}
+        {!heroImg && (
+          <div className="absolute inset-x-0 bottom-12 md:bottom-16 px-6 text-center pointer-events-none">
+            <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">{guide?.display_name ?? 'Local Listing'}</p>
+            <h2 className="text-white text-3xl md:text-5xl font-black leading-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+              {acct.business_name}
+            </h2>
+          </div>
+        )}
 
         {/* Back link — deep-links to category anchor when category is known */}
         <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -349,7 +376,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                   <p className="text-muted-foreground text-lg leading-relaxed">{acct.detail_lead}</p>
                 )}
                 {guideData.description && (
-                  <p className="text-muted-foreground text-base leading-relaxed">{guideData.description}</p>
+                  <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{guideData.description}</p>
                 )}
               </div>
             )}
@@ -376,30 +403,29 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               )
             })()}
 
-            {/* Gallery — square grid, 4-across on md+ */}
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-foreground">Gallery</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  acct.hero_photo_url || getFallbackByContext(guideSlug, `${acct.slug}-1`),
-                  getFallbackByContext(guideSlug, `${acct.slug}-2`),
-                  getFallbackByContext(guideSlug, `${acct.slug}-3`),
-                  getFallbackByContext(guideSlug, `${acct.slug}-4`),
-                ].map((src, i) => (
-                  <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-border/50 shadow-sm group cursor-zoom-in">
-                    <Image
-                      src={src}
-                      alt={`${acct.business_name} ${i + 1}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      unoptimized
-                      className="group-hover:scale-105 transition-transform duration-700"
-                    />
-                  </div>
-                ))}
+            {/* Gallery — only when the listing has real photos. No more random
+                Unsplash fillers that don't match the listing (e.g. tennis shoes
+                under a library). */}
+            {hasRealGallery && (
+              <div className="space-y-6">
+                <h2 className="text-3xl font-bold text-foreground">Gallery</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[heroImg, ...galleryImgs].filter(Boolean).slice(0, 4).map((src, i) => (
+                    <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-border/50 shadow-sm group cursor-zoom-in">
+                      <Image
+                        src={src!}
+                        alt={`${acct.business_name} ${i + 1}`}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                        unoptimized
+                        className="group-hover:scale-105 transition-transform duration-700"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Related editorial articles from the same guide */}
             {guideArticles && guideArticles.length > 0 && (
