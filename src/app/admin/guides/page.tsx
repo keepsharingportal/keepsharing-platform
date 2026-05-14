@@ -5,7 +5,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { BookOpen, ChevronRight, Image as ImageIcon, ExternalLink, Mail, AlertCircle } from 'lucide-react'
 
 export const metadata = { title: 'Guides — KeepSharing Admin' }
@@ -30,7 +30,9 @@ interface ConfigRow {
 }
 
 export default async function GuidesAdminPage() {
-  const supabase = await createClient()
+  // Admin pages use the service-role client so RLS on guide_types doesn't
+  // hide the catalog from authenticated admins.
+  const supabase = createAdminClient()
 
   const [
     { data: guides },

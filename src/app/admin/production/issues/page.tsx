@@ -3,7 +3,7 @@
 // with article counts and a link into the filtered Articles view.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { ArrowLeft, Plus, ArrowRight } from 'lucide-react'
 
@@ -26,7 +26,7 @@ function fmtMonth(ym: string): string {
 }
 
 export default async function IssuesPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data } = await supabase
     .from('guide_articles')

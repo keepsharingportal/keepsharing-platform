@@ -4,7 +4,7 @@
 // into Articles filtered by publication.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 
@@ -21,7 +21,7 @@ const PUBLICATIONS = [
 ]
 
 export default async function MarketAssignmentsPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data } = await supabase
     .from('guide_articles')

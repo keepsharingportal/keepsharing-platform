@@ -11,7 +11,7 @@
 
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { GuideEditClient } from './GuideEditClient'
 
@@ -22,7 +22,7 @@ interface Props { params: Promise<{ slug: string }> }
 
 export default async function GuideEditPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // ── Guide identity + editorial fields ─────────────────────────────────────
   const { data: guide } = await supabase

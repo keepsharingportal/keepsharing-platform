@@ -4,7 +4,7 @@
 // have everything print needs (hero image, byline, body length).
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { ArrowLeft, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react'
 
@@ -29,7 +29,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
   const month = rawMonth ?? thisMonth()
   const pub   = rawPub   ?? 'RRP'
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: articles } = await supabase
     .from('guide_articles')

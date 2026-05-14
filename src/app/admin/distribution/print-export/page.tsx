@@ -3,7 +3,7 @@
 // Lists each in-flight issue with a one-click manifest download.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { ArrowLeft, Download, Printer, ArrowRight } from 'lucide-react'
 
@@ -16,7 +16,7 @@ function fmtMonth(ym: string) {
 }
 
 export default async function PrintExportPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: articles } = await supabase
     .from('guide_articles')

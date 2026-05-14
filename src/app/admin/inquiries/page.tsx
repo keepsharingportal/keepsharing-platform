@@ -3,7 +3,7 @@
 // pages. Each inquiry is in listing_messages; admin marks them read or replied.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { Inbox, ExternalLink } from 'lucide-react'
 import { InquiriesClient } from './InquiriesClient'
@@ -35,7 +35,7 @@ export interface InquiryRow {
 }
 
 export default async function InquiriesPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('listing_messages')

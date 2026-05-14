@@ -4,7 +4,7 @@
 // "package" button (downloads a manifest of titles + slugs + image URLs).
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { ArrowLeft, Download, Package } from 'lucide-react'
 
@@ -17,7 +17,7 @@ function fmtMonth(ym: string) {
 }
 
 export default async function ExportPackagesPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: articles } = await supabase
     .from('guide_articles')

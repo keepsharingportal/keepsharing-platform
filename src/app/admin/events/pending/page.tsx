@@ -3,7 +3,7 @@
 // where status='pending', with approve/reject actions inline.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { Inbox } from 'lucide-react'
 import { PendingEventsClient } from './PendingEventsClient'
@@ -34,7 +34,7 @@ export interface PendingEvent {
 }
 
 export default async function PendingEventsPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: events, error } = await supabase
     .from('calendar_events')

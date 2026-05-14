@@ -3,7 +3,7 @@
 // Surfaces the six core production activities and recent issue activity.
 
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import {
   BookOpen, Sparkles, Printer, Map, Package, Calendar, LayoutGrid, ArrowRight,
@@ -23,7 +23,7 @@ const TILES = [
 ]
 
 export default async function ProductionHubPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Pull recent issues (distinct source_issue_month) and article counts
   const { data: recentArticles } = await supabase
