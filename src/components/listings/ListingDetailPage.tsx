@@ -481,16 +481,17 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               <SectionRenderer key={section.id} section={section} />
             ))}
 
-            {/* Contact form */}
+            {/* Contact form — wording is honest about what happens (admin forwards
+                to the business); we never claim to email the business directly. */}
             {showMessageForm && (
               <Card className="border-primary/20 shadow-xl overflow-hidden rounded-[2rem]" id="message-form">
                 <CardHeader className="bg-primary text-white p-8">
                   <CardTitle className="text-2xl flex items-center gap-3">
                     <MessageCircle className="h-7 w-7" />
-                    Inquire Now
+                    Request Info
                   </CardTitle>
                   <p className="text-white/80 mt-2">
-                    Interested in {acct.business_name}? Send them a direct message and they&apos;ll be in touch quickly.
+                    Send your question and our team will pass it to {acct.business_name} within 1 business day.
                   </p>
                 </CardHeader>
                 <CardContent className="p-8">
@@ -514,9 +515,17 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               businessName={acct.business_name}
             />
 
-            {/* Contact card — icon-box links + CTAs */}
+            {/* Contact card — icon-box links + CTAs. Renders only what's
+                available. No phone/website/email/form → shows a friendly
+                "coming soon" message instead of dead buttons. */}
             <Card className="rounded-[2rem] border-border/50 shadow-sm overflow-hidden">
               <CardContent className="p-8 space-y-5">
+                {!phone && !website && !email && !showMessageForm && (
+                  <div className="text-center py-2">
+                    <p className="text-sm font-semibold text-foreground mb-1">Contact info coming soon</p>
+                    <p className="text-xs text-muted-foreground">We&apos;re updating this listing. Check back shortly or browse other options below.</p>
+                  </div>
+                )}
                 {phone && (
                   <a
                     href={`tel:${phone.replace(/[^0-9]/g, '')}`}
@@ -561,7 +570,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                   )}
                   {showMessageForm && (
                     <Button variant="outline" asChild className="w-full rounded-full">
-                      <a href="#message-form">Send a Message</a>
+                      <a href="#message-form">Request Info Through Us</a>
                     </Button>
                   )}
                   <Button variant="outline" asChild className="w-full rounded-full">
@@ -611,7 +620,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                 </p>
                 {showMessageForm ? (
                   <Button className="w-full bg-white text-secondary hover:bg-white/90 rounded-xl font-bold h-12" asChild>
-                    <a href="#message-form">Send a Message</a>
+                    <a href="#message-form">Request Info</a>
                   </Button>
                 ) : website ? (
                   <Button className="w-full bg-white text-secondary hover:bg-white/90 rounded-xl font-bold h-12" asChild>

@@ -1,5 +1,14 @@
 'use client'
 
+// Inquiry form for guide listings.
+//
+// IMPORTANT — what this actually does today:
+//   - Saves the inquiry to listing_messages
+//   - Triggers an admin notification (see /api/listings/message)
+//   - Admin forwards to the business
+// It does NOT send a direct email to the business. The copy below reflects
+// that — we don't claim to email the business directly.
+
 import { useState, FormEvent } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,8 +17,8 @@ import { Mail, CheckCircle2, AlertCircle } from 'lucide-react'
 
 interface Props {
   advertiserAccountId: string
-  advertiserName: string
-  guideTypeSlug: string
+  advertiserName:      string
+  guideTypeSlug:       string
 }
 
 export function ListingMessageForm({ advertiserAccountId, advertiserName, guideTypeSlug }: Props) {
@@ -40,7 +49,7 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error((data as { error?: string }).error ?? 'Failed to send message')
+        throw new Error((data as { error?: string }).error ?? 'Failed to submit')
       }
       setStatus('success')
       setName(''); setEmail(''); setPhone(''); setMessage('')
@@ -55,9 +64,9 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
       <Card>
         <CardContent className="p-6 text-center">
           <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
-          <h3 className="font-bold text-foreground mb-2">Message sent!</h3>
-          <p className="text-sm text-muted-foreground">
-            {advertiserName} will reach out within 24 hours.
+          <h3 className="font-bold text-foreground mb-2">Thanks — we&apos;ve got it.</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> and follow up within 1 business day. If you included a phone number, expect a call from a local 334 area code.
           </p>
         </CardContent>
       </Card>
@@ -69,10 +78,10 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
       <CardContent className="p-6">
         <h3 className="font-bold text-foreground mb-1 flex items-center gap-2">
           <Mail className="h-4 w-4 text-primary" />
-          Send {advertiserName} a message
+          Request Info Through River Region Parents
         </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          They&apos;ll get an email and respond directly.
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> within 1 business day. Prefer to reach them directly? Use the contact links above.
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
@@ -99,7 +108,7 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
             disabled={status === 'submitting'}
           />
           <textarea
-            placeholder={`Tell ${advertiserName} what you're looking for...`}
+            placeholder={`What would you like to know about ${advertiserName}?`}
             value={message}
             onChange={e => setMessage(e.target.value)}
             required
@@ -112,7 +121,7 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
             disabled={status === 'submitting'}
             className="w-full rounded-full"
           >
-            {status === 'submitting' ? 'Sending...' : 'Send Message'}
+            {status === 'submitting' ? 'Submitting…' : 'Send Request'}
           </Button>
           {status === 'error' && (
             <div className="flex items-start gap-2 text-xs text-destructive">

@@ -115,6 +115,7 @@ const NAV: NavItem[] = [
   // ── COMMUNITY ───────────────────────────────────────────────────────────
   { section: 'COMMUNITY' },
   { name: 'Submissions',      href: '/admin/submissions',           icon: Inbox         },
+  { name: 'Listing Inquiries', href: '/admin/inquiries',            icon: Mail          },
   { name: 'Nominations',      href: '/admin/nominations',           icon: Award         },
   {
     name: 'Events',

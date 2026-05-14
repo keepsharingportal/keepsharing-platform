@@ -9,7 +9,7 @@ import { GuideMapCard } from '@/components/guides/GuideMapCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Star, BookOpen, Filter, Building2, ArrowRight, Crown } from 'lucide-react'
+import { Star, BookOpen, Filter, Building2, ArrowRight, Crown, CalendarDays, Megaphone } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import type { Metadata } from 'next'
@@ -118,14 +118,18 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     .limit(1)
     .maybeSingle()
 
-  // Related article — filter by guide_slug (category column doesn't exist in guide_articles)
-  const { data: article } = await supabase
+  // Related articles — fetch up to 4 for the editorial grid. Try both slug
+  // variants since older articles were tagged with the URL slug ("summer-fun-guide")
+  // and newer ones with the internal slug ("summer-fun").
+  const { data: articlesRaw } = await supabase
     .from('guide_articles')
-    .select('id, title, slug, hero_image_url, excerpt')
+    .select('id, title, slug, hero_image_url, excerpt, column_slug')
     .eq('published', true)
-    .eq('guide_slug', guide.slug)
-    .limit(1)
-    .maybeSingle()
+    .in('guide_slug', [guide.slug, urlSlug])
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(4)
+  const articles = articlesRaw ?? []
+  const article  = articles[0] ?? null   // sidebar "Editor's Pick"
 
   const totalListings = (featured?.length ?? 0) + (standard?.length ?? 0)
   const guideName = (guide.display_name as string).replace(' Guide', '').replace(' guide', '')
@@ -195,6 +199,40 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
               <SectionSponsorBanner guideName={guideName} guideUrlSlug={urlSlug} />
             )}
 
+            {/* Quick category navigation — main column, prominent.
+                Only when there are 4+ categories worth surfacing. */}
+            {categories.length >= 4 && (
+              <section>
+                <SectionHeader title="Browse by Category" icon={Filter} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                  {categories.slice(0, 8).map(([cat, cnt]) => {
+                    const active = categoryFilter === cat
+                    return (
+                      <Link
+                        key={cat}
+                        href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}
+                        className={`flex items-center justify-between px-3.5 py-3 rounded-xl border transition-colors ${
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-card border-border hover:border-primary/40 hover:bg-primary/5'
+                        }`}
+                      >
+                        <span className="text-sm font-semibold leading-tight truncate">{cat}</span>
+                        <span className={`text-xs font-bold tabular-nums shrink-0 ml-2 ${active ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                          {cnt}
+                        </span>
+                      </Link>
+                    )
+                  })}
+                </div>
+                {categories.length > 8 && (
+                  <p className="text-xs text-muted-foreground mt-3">
+                    {categories.length - 8} more {categories.length - 8 === 1 ? 'category' : 'categories'} in the sidebar filter.
+                  </p>
+                )}
+              </section>
+            )}
+
             {/* Featured providers */}
             {featured && featured.length > 0 && (
               <section>
@@ -211,6 +249,37 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                         guideContext={guide.slug}
                         variant="featured"
                       />
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Editorial highlights — main-column article grid.
+                Only when this guide has multiple articles; sidebar still shows
+                the "Editor's Pick" as well. */}
+            {articles.length >= 2 && (
+              <section>
+                <SectionHeader title="Editorial" icon={BookOpen} />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {articles.slice(0, 4).map(a => {
+                    const href = a.column_slug
+                      ? `/columns/${a.column_slug}/${a.slug.replace(new RegExp(`^${a.column_slug}-`), '')}`
+                      : `/articles/${a.slug}`
+                    const img  = a.hero_image_url || getFallbackByContext(guide.slug, a.slug)
+                    return (
+                      <Link key={a.id} href={href} className="group rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col">
+                        <div className="relative aspect-video bg-muted">
+                          <Image src={img} alt={a.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 640px) 100vw, 320px" unoptimized className="group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                        <div className="p-4 flex flex-col flex-1 gap-2">
+                          <h4 className="font-bold text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">{a.title}</h4>
+                          {a.excerpt && <p className="text-sm text-muted-foreground line-clamp-2 flex-1">{a.excerpt}</p>}
+                          <span className="text-xs font-semibold text-primary inline-flex items-center gap-1 mt-auto pt-1">
+                            Read article <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                          </span>
+                        </div>
+                      </Link>
                     )
                   })}
                 </div>
@@ -296,6 +365,55 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   </div>
                 </div>
               )}
+            </section>
+
+            {/* Calendar / events tie-in — lightweight link, no fake data */}
+            <section className="rounded-2xl border border-secondary/30 bg-secondary/5 p-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
+                  <CalendarDays className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-foreground leading-tight">Events on the community calendar</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Family-friendly events across the River Region — updated weekly.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button asChild variant="outline" size="sm" className="rounded-full">
+                  <Link href="/calendar">View Calendar</Link>
+                </Button>
+                <Button asChild size="sm" className="rounded-full">
+                  <Link href="/calendar/submit">Submit Event</Link>
+                </Button>
+              </div>
+            </section>
+
+            {/* Business closing CTA — main-column, larger than the sidebar version */}
+            <section className="rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/15 via-accent/8 to-primary/5 p-7">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-10 w-10 rounded-xl bg-accent/20 flex items-center justify-center text-accent shrink-0">
+                  <Megaphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-accent/80 mb-1">For Local Businesses</p>
+                  <h3 className="text-xl font-bold text-foreground leading-tight">
+                    Reach families browsing the {guideName} Guide
+                  </h3>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+                Get a featured listing, upgrade your existing listing, or claim the section sponsorship to put your business in front of every family planning their summer.
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                <Button asChild className="rounded-full">
+                  <Link href={`/advertise/${urlSlug}`}>Get Listed</Link>
+                </Button>
+                <Button asChild variant="outline" className="rounded-full">
+                  <Link href={`/advertise/${urlSlug}#sponsor`}>Sponsor This Guide</Link>
+                </Button>
+              </div>
             </section>
           </div>
 
