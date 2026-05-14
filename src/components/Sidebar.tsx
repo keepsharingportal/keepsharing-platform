@@ -6,9 +6,12 @@ import { useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
   ChevronDown, ChevronRight, LogOut,
-  Monitor, Megaphone, HelpCircle, Activity, Star, Newspaper, Globe, Bot,
+  Megaphone, HelpCircle, Activity, Star, Newspaper, Bot,
   Image as ImageIcon, TrendingUp, Sparkles,
-  PenLine, BookOpen, Heart, Send,
+  BookOpen, Heart, Send,
+  GraduationCap, Printer, Map, Package, Calendar,
+  Home, Mail, Share2, Crown, RefreshCw,
+  Inbox, Award, Upload, MapPin, Search, ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,131 +34,100 @@ type NavItem =
   | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[] }
 
 // ── Navigation structure ───────────────────────────────────────────────────
+// Designed around the actual publishing workflow:
+//   Dashboard → Content (library) → Production (planning) → Distribution (output)
+//   Guides + Revenue + Community + Tools as supporting sections.
 
 const NAV: NavItem[] = [
-  // ── Pulse (no section header) ──────────────────────────────────────────
-  { name: 'Today',        href: '/admin/today',        icon: Zap       },
-  { name: 'Intelligence', href: '/admin/intelligence', icon: Sparkles  },
-  { name: 'Operations',   href: '/admin/operations',   icon: Activity  },
-  { name: 'My Markets',   href: '/admin/markets',      icon: LayoutGrid },
+  // ── DASHBOARD ───────────────────────────────────────────────────────────
+  { section: 'DASHBOARD' },
+  { name: 'Today',         href: '/admin/today',   icon: Zap      },
+  { name: 'Market Health', href: '/admin/markets', icon: Activity },
 
-  // ── PUBLISHING ────────────────────────────────────────────────────────
-  { section: 'PUBLISHING' },
-
-  {
-    name: 'Editorial',
-    href: '/admin/editorial',
-    icon: PenLine,
-    children: [
-      { name: 'Approval Queue',          href: '/admin/articles/review'            },
-      { name: 'Drafts',                  href: '/admin/articles?filter=draft'      },
-      { name: 'Needs Revision',          href: '/admin/articles?filter=needs_revision' },
-      { name: 'School News',             href: '/admin/school-news'                },
-      { name: 'Teacher of the Month',    href: '/admin/nominations?type=teacher-of-month', accent: true },
-      { name: 'Contributor Submissions', href: '/admin/submissions'                },
-      { name: 'Community Content',       href: '/admin/community'                  },
-      { name: 'Editorial Calendar',      href: '/admin/content/calendar'           },
-    ],
-  },
-
+  // ── CONTENT (the central library) ───────────────────────────────────────
+  { section: 'CONTENT' },
   {
     name: 'Articles',
     href: '/admin/articles',
     icon: Newspaper,
     children: [
-      { name: 'All Articles',  href: '/admin/articles'          },
-      { name: 'New Article',   href: '/admin/articles/new',     accent: true },
-      { name: 'Columns',       href: '/admin/articles/columns'  },
-      { name: 'Authors',       href: '/admin/articles/authors'  },
-      { name: 'Imports',       href: '/admin/content/imports'   },
+      { name: 'All Articles',   href: '/admin/articles'                          },
+      { name: 'New Article',    href: '/admin/articles/new', accent: true        },
+      { name: 'Approval Queue', href: '/admin/articles/review'                   },
+      { name: 'Drafts',         href: '/admin/articles?filter=draft'             },
+      { name: 'Needs Revision', href: '/admin/articles?filter=needs_revision'    },
+      { name: 'Columns',        href: '/admin/articles/columns'                  },
+      { name: 'Authors',        href: '/admin/articles/authors'                  },
     ],
   },
+  { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
+  { name: 'School Zone',       href: '/admin/school-news', icon: GraduationCap },
+  { name: 'Community Content', href: '/admin/community',   icon: Heart         },
 
-  {
-    name: 'Media',
-    href: '/admin/assets',
-    icon: ImageIcon,
-    children: [
-      { name: 'Media Library',  href: '/admin/assets'                             },
-      { name: 'Upload Photos',  href: '/admin/assets?view=submissions', accent: true },
-      { name: 'Design Queue',   href: '/admin/assets?view=design'                 },
-      { name: 'Bulk Uploads',   href: '/admin/content/imports'                    },
-      { name: 'Media Library',  href: '/admin/media'                              },
-    ],
-  },
+  // ── PRODUCTION (orchestration between content and channels) ─────────────
+  { section: 'PRODUCTION' },
+  { name: 'Issues',              href: '/admin/production/issues',             icon: BookOpen   },
+  { name: 'Monthly Themes',      href: '/admin/production/themes',             icon: Sparkles   },
+  { name: 'Print Planning',      href: '/admin/production/print-planning',     icon: Printer    },
+  { name: 'Layout Queue',        href: '/admin/advertisers/layout-sheet',      icon: LayoutGrid },
+  { name: 'Market Assignments',  href: '/admin/production/market-assignments', icon: Map        },
+  { name: 'Export Packages',     href: '/admin/production/export-packages',    icon: Package    },
+  { name: 'Production Calendar', href: '/admin/content/calendar',              icon: Calendar   },
 
-  // ── AUDIENCE ──────────────────────────────────────────────────────────
-  { section: 'AUDIENCE' },
+  // ── GUIDES ──────────────────────────────────────────────────────────────
+  { section: 'GUIDES' },
+  { name: 'Guide Listings',    href: '/admin/guides',                                   icon: BookOpen  },
+  { name: 'Featured Listings', href: '/admin/guides?tier=featured',                     icon: Star      },
+  { name: 'Guide Sponsors',    href: '/admin/advertisers/sponsor-inventory?type=guide', icon: Crown     },
+  { name: 'Guide Imports',     href: '/admin/content/guide-listings-import',            icon: Upload    },
+  { name: 'Update Requests',   href: '/admin/guides?view=updates',                      icon: RefreshCw },
 
-  {
-    name: 'Guides',
-    href: '/admin/guides',
-    icon: BookOpen,
-    children: [
-      { name: 'Guide Dashboard', href: '/admin/guides'                           },
-      { name: 'Events',          href: '/admin/content/events-import'            },
-      { name: 'Imports',         href: '/admin/content/guide-listings-import',   accent: true },
-    ],
-  },
+  // ── DISTRIBUTION (output channels — content ready to place) ─────────────
+  { section: 'DISTRIBUTION' },
+  { name: 'Distribution Queue', href: '/admin/distribution?view=queue',      icon: Send    },
+  { name: 'Homepage',           href: '/admin/distribution?view=homepage',   icon: Home    },
+  { name: 'Newsletter',         href: '/admin/distribution?view=newsletter', icon: Mail    },
+  { name: 'Social',             href: '/admin/distribution?view=social',     icon: Share2  },
+  { name: 'Print Export',       href: '/admin/distribution/print-export',    icon: Printer },
+  { name: 'Sponsor Placements', href: '/admin/distribution?view=sponsors',   icon: Crown   },
 
-  {
-    name: 'Community',
-    href: '/admin/community',
-    icon: Heart,
-    children: [
-      { name: 'Submissions',      href: '/admin/community'           },
-      { name: 'Nominations',      href: '/admin/nominations'         },
-      { name: 'Family Favorites', href: '/admin/family-favorites',   accent: true },
-      { name: 'Forms',            href: '/admin/content/forms'       },
-    ],
-  },
-
-  // ── REVENUE ───────────────────────────────────────────────────────────
+  // ── REVENUE ─────────────────────────────────────────────────────────────
   { section: 'REVENUE' },
-
   {
-    name: 'Advertising',
+    name: 'Advertisers',
     href: '/admin/advertisers',
     icon: Users,
     children: [
-      { name: 'Active Advertisers', href: '/admin/advertisers'                           },
-      { name: 'Onboarding',         href: '/admin/advertisers/onboarding',  accent: true },
-      { name: 'Proposals',          href: '/admin/advertisers/proposals',   accent: true },
-      { name: 'Sponsor Inventory',  href: '/admin/advertisers/sponsor-inventory'         },
-      { name: 'Partner Ops',        href: '/admin/advertisers/partner-ops'               },
-      { name: 'Pipeline',           href: '/admin/advertisers/pipeline'                  },
-      { name: 'Agreements',         href: '/admin/advertisers/agreements'                },
-      { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs'                 },
-      { name: 'Ad Manager',         href: '/admin/ad-server'                             },
-      { name: 'Businesses',         href: '/admin/advertisers/businesses'                },
-      { name: 'Layout Sheet',       href: '/admin/advertisers/layout-sheet'              },
-      { name: 'Import Data',        href: '/admin/import',              accent: true     },
+      { name: 'Active Advertisers', href: '/admin/advertisers'                            },
+      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true   },
+      { name: 'Pipeline',           href: '/admin/advertisers/pipeline'                   },
+      { name: 'Agreements',         href: '/admin/advertisers/agreements'                 },
+      { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs'                  },
+      { name: 'Partner Ops',        href: '/admin/advertisers/partner-ops'                },
+      { name: 'Businesses',         href: '/admin/advertisers/businesses'                 },
     ],
   },
+  { name: 'Campaigns',         href: '/admin/marketing-system',              icon: Megaphone   },
+  { name: 'Sponsor Inventory', href: '/admin/advertisers/sponsor-inventory', icon: Star        },
+  { name: 'Proposals',         href: '/admin/advertisers/proposals',         icon: FileText    },
+  { name: 'Analytics',         href: '/admin/advertisers/intelligence',      icon: TrendingUp  },
 
-  // ── REACH ──────────────────────────────────────────────────────────────
-  { section: 'REACH' },
+  // ── COMMUNITY ───────────────────────────────────────────────────────────
+  { section: 'COMMUNITY' },
+  { name: 'Submissions',      href: '/admin/submissions',           icon: Inbox         },
+  { name: 'Nominations',      href: '/admin/nominations',           icon: Award         },
+  { name: 'Events',           href: '/admin/content/events-import', icon: Calendar      },
+  { name: 'Family Favorites', href: '/admin/family-favorites',      icon: Heart         },
+  { name: 'Forms',            href: '/admin/content/forms',         icon: ClipboardList },
 
-  {
-    name: 'Distribution',
-    href: '/admin/distribution',
-    icon: Send,
-    children: [
-      { name: 'Distribution Center', href: '/admin/distribution'                           },
-      { name: 'Social Queue',        href: '/admin/social'                                  },
-      { name: 'Newsletter',          href: '/admin/newsletter'                              },
-      { name: 'Social Export',       href: '/admin/distribution/social-export', accent: true },
-      { name: 'Engagement',          href: '/admin/engagement'                              },
-    ],
-  },
-
-  // ── SYSTEM ─────────────────────────────────────────────────────────────
-  { section: 'SYSTEM' },
-
-  { name: 'AI Tasks',    href: '/admin/ai-tasks',          icon: Bot        },
-  { name: 'Marketing',   href: '/admin/marketing-system',  icon: Megaphone  },
-  { name: 'Settings',    href: '/admin/settings',          icon: Settings   },
-  { name: 'Help',        href: '/admin/help',              icon: HelpCircle },
+  // ── TOOLS ───────────────────────────────────────────────────────────────
+  { section: 'TOOLS' },
+  { name: 'Imports',     href: '/admin/content/imports',     icon: Upload     },
+  { name: 'Geocode',     href: '/admin/guides/geocode',      icon: MapPin     },
+  { name: 'Word Search', href: '/admin/content/word-search', icon: Search     },
+  { name: 'AI Tasks',    href: '/admin/ai-tasks',            icon: Bot        },
+  { name: 'Settings',    href: '/admin/settings',            icon: Settings   },
+  { name: 'Help',        href: '/admin/help',                icon: HelpCircle },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -164,7 +136,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const [pubOpen, setPubOpen]         = useState(false)
   const [activePub, setActivePub]     = useState(PUBLICATIONS[0])
-  const [expandedNav, setExpandedNav] = useState<string | null>('Editorial')
+  const [expandedNav, setExpandedNav] = useState<string | null>('Articles')
 
   function isActive(href: string) {
     const path = href.split('?')[0]
@@ -198,8 +170,13 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* ── Publication Switcher ─────────────────────────── */}
+      {/* ── MARKETS — primary context selector for the platform ──────────── */}
       <div className="px-3 pt-3 pb-1">
+        <div className="px-2.5 pb-1.5">
+          <span className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            MARKETS
+          </span>
+        </div>
         <button
           onClick={() => setPubOpen(!pubOpen)}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/6"
