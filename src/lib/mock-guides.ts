@@ -27,7 +27,7 @@ export const GUIDE_CALENDAR: { month: number; name: string; topCategories: strin
   { month: 3,  name: 'Summer Camp Guide',        topCategories: ['Camps', 'Recreation', 'Sports', 'Arts'] },
   { month: 4,  name: 'Child Care Guide',         topCategories: ['Daycares', 'Preschools', 'Pediatricians'] },
   { month: 5,  name: 'Summer Fun + VBS',         topCategories: ['Churches', 'Pools', 'Recreation', 'Travel'] },
-  { month: 6,  name: 'Newcomers Guide',          topCategories: ['Real estate', 'Pediatricians', 'Schools'] },
+  { month: 6,  name: 'Family Resource Guide',    topCategories: ['Real estate', 'Pediatricians', 'Schools'] },
   { month: 7,  name: 'Birthday Guide',           topCategories: ['Party venues', 'Bakeries', 'Entertainment'] },
   { month: 8,  name: 'Back to School',           topCategories: ['Schools', 'Tutoring', 'Sports', 'Uniforms'] },
   { month: 9,  name: 'Special Needs Guide',      topCategories: ['Therapy', 'Specialists', 'Adaptive sports'] },

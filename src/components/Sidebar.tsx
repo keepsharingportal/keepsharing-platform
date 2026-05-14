@@ -76,11 +76,10 @@ const NAV: NavItem[] = [
 
   // ── GUIDES ──────────────────────────────────────────────────────────────
   { section: 'GUIDES' },
-  { name: 'Guide Listings',    href: '/admin/guides',                                   icon: BookOpen  },
-  { name: 'Featured Listings', href: '/admin/guides?tier=featured',                     icon: Star      },
+  { name: 'Guide Editor',      href: '/admin/guides',                                   icon: BookOpen  },
   { name: 'Guide Sponsors',    href: '/admin/advertisers/sponsor-inventory?type=guide', icon: Crown     },
   { name: 'Guide Imports',     href: '/admin/content/guide-listings-import',            icon: Upload    },
-  { name: 'Update Requests',   href: '/admin/guides?view=updates',                      icon: RefreshCw },
+  { name: 'Outreach Tracker',  href: '/admin/guides/outreach',                          icon: RefreshCw },
 
   // ── DISTRIBUTION (output channels — content ready to place) ─────────────
   { section: 'DISTRIBUTION' },
