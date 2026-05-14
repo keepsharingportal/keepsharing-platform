@@ -50,8 +50,10 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
 
   if (!guide) notFound()
 
-  // Featured listings — pull badge fields
-  const { data: featured } = await supabase
+  // Featured listings — pull badge fields. We pull every featured listing
+  // for this guide (or category when filtered) and pick the display set in
+  // JS so the home page can rotate them.
+  let featuredQuery = supabase
     .from('guide_listings')
     .select(`
       id, listing_tier, category, guide_data,
@@ -65,22 +67,51 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     .eq('is_published', true)
     .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'])
     .order('display_order', { ascending: true })
-    .limit(3)
 
-  // Standard listings
-  let stdQuery = supabase
-    .from('guide_listings')
-    .select(`
-      id, listing_tier, category, guide_data,
-      advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip )
-    `)
-    .eq('guide_type_slug', guide.slug)
-    .eq('is_published', true)
-    .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
-    .order('display_order', { ascending: true })
+  if (categoryFilter) featuredQuery = featuredQuery.eq('category', categoryFilter)
+  const { data: featuredAll } = await featuredQuery
 
-  if (categoryFilter) stdQuery = stdQuery.eq('category', categoryFilter)
-  const { data: standard } = await stdQuery.range(0, 23)
+  // Home view rotates featured (Fisher-Yates shuffle, then 3 shown).
+  // Category view shows every featured listing for that category.
+  function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr]
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+  const featured = categoryFilter
+    ? (featuredAll ?? [])
+    : shuffle(featuredAll ?? []).slice(0, 3)
+
+  // Standard listings — only loaded when a category is selected. On the guide
+  // home page we intentionally don't show the standard directory; users pick
+  // a category first.
+  type StandardRow = {
+    id: string; listing_tier: string; category: string | null
+    guide_data: Record<string, unknown> | null
+    advertiser_accounts: {
+      slug: string; business_name: string; card_hook?: string | null
+      hero_photo_url?: string | null; neighborhood?: string | null; city_state_zip?: string | null
+    } | null
+  }
+  let standard: StandardRow[] | null = null
+  if (categoryFilter) {
+    const { data } = await supabase
+      .from('guide_listings')
+      .select(`
+        id, listing_tier, category, guide_data,
+        advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip )
+      `)
+      .eq('guide_type_slug', guide.slug)
+      .eq('is_published', true)
+      .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
+      .eq('category', categoryFilter)
+      .order('display_order', { ascending: true })
+      .range(0, 49)
+    standard = (data ?? null) as unknown as StandardRow[] | null
+  }
 
   // Category counts
   const { data: catRows } = await supabase
@@ -131,7 +162,8 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
   const articles = articlesRaw ?? []
   const article  = articles[0] ?? null   // sidebar "Editor's Pick"
 
-  const totalListings = (featured?.length ?? 0) + (standard?.length ?? 0)
+  // True guide-wide total (independent of any active category filter).
+  const totalListings = (catRows ?? []).length
   const guideName = (guide.display_name as string).replace(' Guide', '').replace(' guide', '')
 
   return (
@@ -233,10 +265,15 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
               </section>
             )}
 
-            {/* Featured providers */}
+            {/* Featured providers. Home view rotates 3 from the full pool;
+                category view shows every featured listing in that category. */}
             {featured && featured.length > 0 && (
               <section>
-                <SectionHeader title="Featured Providers" icon={Star} iconColor="accent" />
+                <SectionHeader
+                  title={categoryFilter ? `Featured in ${categoryFilter}` : 'Featured Providers'}
+                  icon={Star}
+                  iconColor="accent"
+                />
                 <div className="space-y-5">
                   {featured.map(l => {
                     const a = l.advertiser_accounts as unknown as Parameters<typeof ListingCard>[0]['listing'] | null
@@ -286,17 +323,31 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
               </section>
             )}
 
-            {/* Directory */}
+            {/* Directory — only shown when a category is selected. On the
+                guide home page the directory is replaced by a "pick a
+                category" prompt above (the Browse by Category cards) so
+                featured listings are the only listings users see at first. */}
+            {!categoryFilter && (
+              <section className="rounded-2xl border border-primary/20 bg-primary/5 p-7 text-center">
+                <Filter className="h-6 w-6 text-primary mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-foreground mb-1">
+                  Pick a category to browse all listings
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  {totalListings.toLocaleString()} listings across {categories.length} categories. Tap any category above to see every business in that section.
+                </p>
+              </section>
+            )}
+
+            {categoryFilter && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-foreground">
-                  {categoryFilter ? `${categoryFilter} Listings` : 'All Listings'}
+                  More in {categoryFilter}
                 </h2>
-                {categoryFilter && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/${urlSlug}`}>Show All ×</Link>
-                  </Button>
-                )}
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/${urlSlug}`}>Show All ×</Link>
+                </Button>
               </div>
 
               {standard && standard.length > 0 ? (
@@ -366,6 +417,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                 </div>
               )}
             </section>
+            )}
 
             {/* Calendar / events tie-in — lightweight link, no fake data */}
             <section className="rounded-2xl border border-secondary/30 bg-secondary/5 p-6 flex flex-wrap items-center justify-between gap-4">
