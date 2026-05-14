@@ -116,7 +116,15 @@ const NAV: NavItem[] = [
   { section: 'COMMUNITY' },
   { name: 'Submissions',      href: '/admin/submissions',           icon: Inbox         },
   { name: 'Nominations',      href: '/admin/nominations',           icon: Award         },
-  { name: 'Events',           href: '/admin/content/events-import', icon: Calendar      },
+  {
+    name: 'Events',
+    href: '/admin/events/pending',
+    icon: Calendar,
+    children: [
+      { name: 'Pending Events', href: '/admin/events/pending', accent: true   },
+      { name: 'Event Imports',  href: '/admin/content/events-import'           },
+    ],
+  },
   { name: 'Family Favorites', href: '/admin/family-favorites',      icon: Heart         },
   { name: 'Forms',            href: '/admin/content/forms',         icon: ClipboardList },
 

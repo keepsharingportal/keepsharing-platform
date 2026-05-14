@@ -199,11 +199,11 @@ export async function SchoolBitsBlock() {
             <SmallCard key={a.id} article={a} />
           ))}
           <Link
-            href="/school-bits"
+            href="/school-zone"
             className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/25 text-primary text-sm font-semibold hover:bg-primary/5 transition-colors mt-auto"
           >
             <GraduationCap className="h-4 w-4" />
-            All School Bits Stories →
+            All School Zone Stories →
           </Link>
         </div>
       </div>

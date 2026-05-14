@@ -144,7 +144,7 @@ export async function SummerFunBlock() {
             {topCategories.map(tile => (
               <Link
                 key={tile.slug}
-                href={`/summer-fun-guide?category=${tile.slug}#directory`}
+                href={`/summer-fun-guide?category=${tile.slug}`}
                 className="flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-white/15 bg-white/95 backdrop-blur-sm hover:bg-white hover:shadow-md transition-all"
               >
                 <span className="text-2xl shrink-0">{tile.emoji}</span>

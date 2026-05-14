@@ -93,13 +93,13 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
 
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
               {phone && (
-                <a href={`tel:${listing.office_phone}`} onClick={e => e.stopPropagation()}
+                <a href={`tel:${listing.office_phone}`}
                   className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                   <Phone className="h-3.5 w-3.5" /> {phone}
                 </a>
               )}
               {domain && listing.website_url && (
-                <a href={listing.website_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                <a href={listing.website_url} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                   <Globe className="h-3.5 w-3.5" /> {domain}
                 </a>
