@@ -4,11 +4,12 @@ import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Check, RefreshCw, Eye, ExternalLink,
-  ChevronDown, ChevronUp, AlertTriangle,
+  ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { COLUMNS, GUIDES } from '@/lib/content-taxonomy'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import DOMPurify from 'isomorphic-dompurify'
 
 // ── Types & constants ─────────────────────────────────────────────────────────
@@ -488,19 +489,11 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Hero image ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Hero Image URL</label>
-              <input className={inp} value={form.hero_image_url} onChange={e => setField('hero_image_url', e.target.value)} placeholder="https://..." />
-              {form.hero_image_url ? (
-                <div className="mt-2 rounded-lg overflow-hidden border border-gray-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={form.hero_image_url} alt="Hero" className="w-full h-28 object-cover" />
-                </div>
-              ) : (
-                <div className="mt-2 flex items-start gap-2 p-2.5 rounded-lg bg-orange-50 border border-orange-200">
-                  <AlertTriangle size={13} className="text-orange-500 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-orange-700 leading-relaxed">Missing image — articles without a hero photo look blank in listings.</p>
-                </div>
-              )}
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Hero Image</label>
+              <HeroImageUpload
+                value={form.hero_image_url}
+                onChange={url => setField('hero_image_url', url)}
+              />
             </div>
 
             {/* ── Section (column_slug) ── */}

@@ -14,7 +14,7 @@ import { ContributorArticleLayout } from '@/components/articles/templates/Contri
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
-import { columnLabel, guideLabel } from '@/lib/content-taxonomy'
+import { columnLabel, guideLabel, verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -139,14 +139,27 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const isTeacher      = columnSlug === 'teacher-of-month'
   const isContributor  = ['mom-to-mom', 'grumpy-but-grateful', 'grands-greatest', 'dave-says', 'meeting-kids', 'teens-tweens-screens'].includes(columnSlug ?? '')
 
-  const categoryLabel = isSchoolBits ? 'School Bits'
-    : columnSlug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-    ?? guideSlug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  // Section badge prefers the column's parent vertical (e.g. "School Zone")
+  // and shows the column as a sub-chip (e.g. "School Bits"). Falls back to
+  // column-only when no vertical, then to guide-only, then to "Feature".
+  const vertical     = verticalForColumn(columnSlug)
+  const verticalLink = vertical ? verticalHref(vertical.slug) : null
+
+  const categoryLabel = vertical?.label
+    ?? (columnSlug ? columnLabel(columnSlug) : null)
+    ?? (guideSlug  ? guideLabel(guideSlug)   : null)
     ?? 'Feature'
 
-  const categoryHref = isSchoolBits ? '/school-bits'
+  const categoryHref = vertical && verticalLink
+    ? verticalLink
     : columnSlug ? `/columns/${columnSlug}`
     : undefined
+
+  // Sub-chip only when we have BOTH a vertical and a column to show under it.
+  const subCategoryLabel = vertical && columnSlug ? columnLabel(columnSlug) : null
+  const subCategoryHref  = vertical && columnSlug
+    ? (columnSlug === 'school-bits' ? '/school-bits' : `/columns/${columnSlug}`)
+    : null
 
   const relatedLabel  = columnSlug
     ? `More ${columnLabel(columnSlug)}`
@@ -173,6 +186,8 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
         <ArticleHeader
           category={categoryLabel}
           categoryHref={categoryHref}
+          subCategory={subCategoryLabel}
+          subCategoryHref={subCategoryHref}
           publishedDate={publishedDate}
           readTimeMinutes={readTimeMinutes}
           title={article.title}

@@ -11,6 +11,7 @@ import { ArticleBody } from '@/components/articles/ArticleBody'
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
 import type { Metadata } from 'next'
 
 export const revalidate = 600
@@ -144,8 +145,19 @@ export default async function ArticlePage({ params }: PageParams) {
 
   const heroImageUrl = article.hero_image_url || getFallbackByContext(column, article.id)
   const shareUrl = `${SITE_URL}/columns/${column}/${slug}`
-  const categoryLabel = columnData?.display_name
+  const columnDisplay = columnData?.display_name
     ?? column.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+
+  // Same section/sub-chip pattern as /articles/[slug]: show the vertical
+  // (e.g. "School Zone") as the section badge, with the column as a sub-chip.
+  const vertical     = verticalForColumn(column)
+  const verticalLink = vertical ? verticalHref(vertical.slug) : null
+  const categoryLabel    = vertical?.label ?? columnDisplay
+  const categoryHref     = (vertical && verticalLink) ? verticalLink : `/columns/${column}`
+  const subCategoryLabel = vertical ? columnDisplay : null
+  const subCategoryHref  = vertical
+    ? (column === 'school-bits' ? '/school-bits' : `/columns/${column}`)
+    : null
 
   // pull_quotes stored as JSON array of strings in migration 018 format
   const rawPullQuotes = article.pull_quotes
@@ -160,7 +172,9 @@ export default async function ArticlePage({ params }: PageParams) {
       <main className="container py-8 md:py-12">
         <ArticleHeader
           category={categoryLabel}
-          categoryHref={`/columns/${column}`}
+          categoryHref={categoryHref}
+          subCategory={subCategoryLabel}
+          subCategoryHref={subCategoryHref}
           publishedDate={publishedDate}
           readTimeMinutes={readTimeMinutes}
           title={article.title}

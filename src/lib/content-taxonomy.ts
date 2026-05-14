@@ -158,6 +158,27 @@ export function verticalLabel(slug: string | null): string {
   return VERTICALS.find(v => v.slug === slug)?.label ?? slug
 }
 
+// Resolve the parent vertical for a given column. Used by article pages to
+// show the section badge ("School Zone") with the column ("School Bits") as a
+// secondary chip — School Bits is a column inside the School Zone vertical,
+// not the section itself.
+export function verticalForColumn(columnSlug: string | null): VerticalDef | null {
+  if (!columnSlug) return null
+  const col = COLUMNS.find(c => c.slug === columnSlug)
+  if (!col) return null
+  return VERTICALS.find(v => v.slug === col.vertical) ?? null
+}
+
+// URL slug for a vertical's public landing page. School Zone is the only one
+// with a real archive page today; the rest fall back to their column page.
+const VERTICAL_HREFS: Record<string, string> = {
+  'school-zone': '/school-zone',
+}
+export function verticalHref(verticalSlug: string | null): string | null {
+  if (!verticalSlug) return null
+  return VERTICAL_HREFS[verticalSlug] ?? null
+}
+
 export function editorialStatusInfo(status: string | null) {
   return EDITORIAL_STATUSES.find(s => s.value === status)
     ?? { value: status ?? '', label: status ?? '—', color: 'bg-gray-100 text-gray-500' }

@@ -45,15 +45,20 @@ export async function generateListingMetadata(listingSlug: string): Promise<Meta
 
 // ── Static data maps ──────────────────────────────────────────────────────────
 
+// Guide-specific fact labels surfaced in the key-facts row near the title.
+// Order matters — the first 4 with data are shown as icon chips. Anything not
+// listed here still lives in `guide_data` and renders in the long-form sections.
+// Keep these tight: they're the headline facts a parent needs at a glance.
 const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
-  'private-school': { grade: 'Grades', leadership: 'Head of School', mission: 'Mission', extracurricula: 'Activities' },
-  'childcare':      { ages: 'Ages Served', hours: 'Hours', meals: 'Meals', staff_ratio: 'Staff Ratio' },
-  'healthy-kids':   { ages: 'Ages Served', hours: 'Hours' },
-  'summer-fun':     { ages: 'Ages', activity_type: 'Activity', city: 'Location' },
-  'summer-camp':    { ages: 'Ages', dates: 'Dates', cost: 'Cost', camp_type: 'Type' },
-  'birthday-party': { capacity: 'Capacity', price_range: 'Price Range' },
-  'afterschool':    { ages: 'Ages', hours: 'Hours' },
-  'special-needs':  { ages: 'Ages Served' },
+  'summer-fun':     { activity_type: 'Activity', ages: 'Ages', city: 'Location', registration_url: 'Register' },
+  'summer-camp':    { camp_type: 'Type', ages: 'Ages', dates: 'Dates', cost: 'Cost', registration_url: 'Register' },
+  'childcare':      { ages: 'Ages Served', hours: 'Hours', programs: 'Programs', license: 'License', accreditation: 'Accreditation', teacher_ratio: 'Teacher Ratio' },
+  'private-school': { grade: 'Grades', enrollment: 'Enrollment', tuition: 'Tuition', religious_affiliation: 'Affiliation', accreditation: 'Accreditation', leadership: 'Head of School' },
+  'healthy-kids':   { specialty: 'Specialty', providers: 'Providers', accepts_new_patients: 'New Patients', insurance: 'Insurance', ages: 'Ages Served', hours: 'Hours' },
+  'newcomer':       { category: 'Category', services: 'Services', area_served: 'Area Served', hours: 'Hours' },
+  'birthday-party': { capacity: 'Capacity', ages: 'Ages', price_range: 'Price Range', includes: 'Includes' },
+  'afterschool':    { ages: 'Ages', hours: 'Hours', pickup_schools: 'Pickup From', programs: 'Programs' },
+  'special-needs':  { ages: 'Ages Served', specialty: 'Specialty', services: 'Services', insurance: 'Insurance' },
 }
 
 // Branded gradient backgrounds when a listing has no real hero photo. Keyed by

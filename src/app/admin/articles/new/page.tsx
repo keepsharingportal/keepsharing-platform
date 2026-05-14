@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { COLUMNS, GUIDES } from '@/lib/content-taxonomy'
 
 function slugify(text: string) {
@@ -239,21 +240,10 @@ export default function NewArticlePage() {
           {/* Hero image */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Hero Image</h3>
-            <input
-              className={inp}
+            <HeroImageUpload
               value={form.hero_image_url}
-              onChange={e => setField('hero_image_url', e.target.value)}
-              placeholder="https://..."
+              onChange={url => setField('hero_image_url', url)}
             />
-            {form.hero_image_url && (
-              <div className="mt-2 rounded-lg overflow-hidden border border-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.hero_image_url} alt="Hero preview" className="w-full h-24 object-cover" />
-              </div>
-            )}
-            {!form.hero_image_url && (
-              <p className="mt-2 text-xs text-orange-500 font-medium">⚠ Add an image — articles without images look blank on the site.</p>
-            )}
           </div>
 
           {/* Section / Column */}
