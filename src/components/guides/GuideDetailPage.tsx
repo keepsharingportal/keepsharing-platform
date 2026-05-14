@@ -176,15 +176,16 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
         badge={{ text: `${new Date().getFullYear()} Edition`, variant: 'default' }}
         variant="primary"
         size="lg"
+        heroImageUrl={guide.hero_image_url}
       >
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className={`flex items-center gap-4 text-sm ${guide.hero_image_url ? 'text-white/85' : 'text-muted-foreground'}`}>
           <span className="flex items-center gap-1.5">
-            <BookOpen className="h-4 w-4 text-primary" />
+            <BookOpen className={`h-4 w-4 ${guide.hero_image_url ? 'text-white' : 'text-primary'}`} />
             {totalListings} listings
           </span>
           {categories.length > 0 && (
             <span className="flex items-center gap-1.5">
-              <Filter className="h-4 w-4 text-primary" />
+              <Filter className={`h-4 w-4 ${guide.hero_image_url ? 'text-white' : 'text-primary'}`} />
               {categories.length} categories
             </span>
           )}
