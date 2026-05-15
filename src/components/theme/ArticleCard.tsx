@@ -81,13 +81,13 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
 
   if (variant === 'compact') {
     return (
-      <Link href={url} className="group flex gap-3 items-start">
-        <div className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-muted">
+      <Link href={url} className="group flex gap-3.5 items-start">
+        <div className="relative shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden bg-muted">
           <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
-            className="group-hover:scale-105 transition-transform duration-500" sizes="80px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
+            className="group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 96px, 112px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+          <p className="font-semibold text-sm md:text-base leading-snug line-clamp-3 group-hover:text-primary transition-colors">
             {article.title}
           </p>
           {dateStr && <p className="text-xs text-muted-foreground mt-1">{dateStr}</p>}

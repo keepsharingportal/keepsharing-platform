@@ -68,12 +68,12 @@ export function EventRow({ event, featured = false }: Props) {
             )}
           </div>
         </div>
-        <div className="hidden sm:block shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-muted">
+        <div className="hidden sm:block shrink-0 w-24 md:w-28 h-24 md:h-28 rounded-xl overflow-hidden bg-muted">
           <Image
             src={heroSrc}
             alt=""
-            width={80}
-            height={80}
+            width={112}
+            height={112}
             className="w-full h-full object-cover"
             unoptimized
           />

@@ -120,24 +120,24 @@ function SmallCard({ article }: { article: Article }) {
   return (
     <Link
       href={articleHref(article.slug, article.column_slug)}
-      className="group flex gap-3 p-3 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-muted/20 transition-all"
+      className="group flex gap-4 p-3 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-muted/20 transition-all"
     >
-      <div className="relative shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden bg-primary/5">
+      <div className="relative shrink-0 w-28 h-28 md:w-[140px] md:h-[140px] rounded-xl overflow-hidden bg-primary/5">
         <Image src={imgSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
-          sizes="72px" className="group-hover:scale-105 transition-transform duration-500" unoptimized />
+          sizes="(max-width: 768px) 112px, 140px" className="group-hover:scale-105 transition-transform duration-500" unoptimized />
       </div>
       <div className="flex flex-col justify-center min-w-0 flex-1">
         {chip && (
-          <div className="flex items-center gap-1 mb-1">
-            <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${chip.cls}`}>
+          <div className="flex items-center gap-1 mb-1.5">
+            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${chip.cls}`}>
               {chipIcon} {chip.label}
             </span>
           </div>
         )}
-        <h4 className="font-semibold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
+        <h4 className="font-semibold text-sm md:text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-3">
           {article.title}
         </h4>
-        <span className="text-[11px] text-muted-foreground mt-1">{fmtDate(article.published_at)}</span>
+        <span className="text-[11px] text-muted-foreground mt-1.5">{fmtDate(article.published_at)}</span>
       </div>
     </Link>
   )

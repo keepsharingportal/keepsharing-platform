@@ -794,13 +794,13 @@ export default async function HomePage() {
                             className="p-4 hover:bg-muted/50 transition-colors group flex gap-3 items-start"
                           >
                             {article.hero_image_url && (
-                              <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-primary/5">
+                              <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden shrink-0 bg-primary/5">
                                 <Image
                                   src={article.hero_image_url}
                                   alt={article.title}
                                   fill
                                   style={{ objectFit: 'cover' }}
-                                  sizes="56px"
+                                  sizes="(max-width: 768px) 80px, 96px"
                                   unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
                                 />
                               </div>
