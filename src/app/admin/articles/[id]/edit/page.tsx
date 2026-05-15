@@ -8,15 +8,18 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
-import { COLUMNS, GUIDES, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { COLUMNS, GUIDES, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
-import { HelpTip, FieldHint } from '@/components/admin/AdminHelp'
+import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 import DOMPurify from 'isomorphic-dompurify'
 
 const VERTICAL_LABELS: Record<string, string> = {
   'school-zone':    'School Zone',
   'mom-knows-best': 'Mom Knows Best',
 }
+
+// Memoize the grouped section list — same on every render
+const SECTION_GROUPS = columnsByVertical()
 
 // ── Types & constants ─────────────────────────────────────────────────────────
 
@@ -525,25 +528,56 @@ export default function ArticleEditPage({ params }: Props) {
               <p className="text-[11px] text-gray-400 mt-1">Square/portrait of the honoree. Used in the homepage Community Spotlights sidebar. Falls back to the hero image when empty.</p>
             </div>
 
+            {/* ── How this article gets placed ── */}
+            <SectionHelp variant="info" title="Where will this article appear?">
+              Three fields work together: <strong>Section</strong> = which editorial
+              column it belongs to. <strong>Guide / Resource</strong> = which Guide
+              landing page it shows up on (if any). <strong>Issue Month</strong> = the
+              print issue this is from (optional).
+            </SectionHelp>
+
             {/* ── Section (column_slug) ── */}
             <div>
               <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                 Section
-                <HelpTip text="The editorial column this article belongs to (School Bits, Teacher of the Month, Mom Knows Best, etc.). Determines which vertical it shows up under on the public site." />
+                <HelpTip text="The editorial column this article belongs to. Pick the one that matches the kind of piece you're writing — the description below shows where it surfaces on the public site." />
               </label>
               <select className={sel} value={form.column_slug} onChange={e => handleColumnChange(e.target.value)}>
-                <option value="">— Choose section —</option>
-                {COLUMNS.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                <option value="">— Choose a section —</option>
+                {SECTION_GROUPS.map(group => (
+                  <optgroup key={group.vertical.slug} label={group.vertical.label}>
+                    {group.columns.map(c => (
+                      <option key={c.slug} value={c.slug}>{c.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
+
               {(() => {
-                const v = columnToVerticalRowSlug(form.column_slug)
-                if (!v) return null
-                const label = VERTICAL_LABELS[v] ?? v
+                const col = findColumn(form.column_slug)
+                if (!col) {
+                  return (
+                    <FieldHint className="mt-1.5">
+                      Sections are grouped by vertical (School Zone, Mom Life, etc.).
+                      Pick the one that best matches the article — the description will
+                      tell you exactly where it&apos;ll appear.
+                    </FieldHint>
+                  )
+                }
+                const v        = columnToVerticalRowSlug(form.column_slug)
+                const vLabel   = v ? (VERTICAL_LABELS[v] ?? v) : null
                 return (
-                  <FieldHint className="mt-1.5">
-                    Will appear on the <strong>{label}</strong> vertical page and in any
-                    &quot;Related from {label}&quot; blocks.
-                  </FieldHint>
+                  <div className="mt-1.5 px-3 py-2 rounded-lg bg-blue-50/50 border border-blue-100 space-y-1">
+                    {col.description && (
+                      <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
+                    )}
+                    {vLabel && (
+                      <p className="text-[11px] text-gray-500">
+                        Surfaces on the <strong className="text-gray-700">{vLabel}</strong> vertical page
+                        + any &quot;Related from {vLabel}&quot; blocks.
+                      </p>
+                    )}
+                  </div>
                 )
               })()}
             </div>
@@ -565,11 +599,18 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Guide (guide_slug) ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Guide / Resource</label>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Guide / Resource
+                <HelpTip text="If this article belongs to a specific guide (Family Resource, Summer Fun, Summer Camp, etc.), pick it here. The article appears on that guide's landing page in the Editorial Highlights section. Leave as 'Not a guide article' for standalone pieces." />
+              </label>
               <select className={sel} value={form.guide_slug} onChange={e => setField('guide_slug', e.target.value)}>
                 <option value="">— Not a guide article —</option>
                 {GUIDES.map(g => <option key={g.slug} value={g.slug}>{g.label}</option>)}
               </select>
+              <FieldHint className="mt-1.5">
+                Optional. Pick a guide only if this article should appear on that
+                guide&apos;s landing page (e.g. a swim-camp article on the Summer Camp Guide).
+              </FieldHint>
             </div>
 
             {/* ── School region (only shown for school-bits) ── */}

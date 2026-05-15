@@ -3,7 +3,7 @@
 
 // ── Base types ─────────────────────────────────────────────────────────────
 
-export interface ColumnDef        { slug: string; label: string; vertical: string }
+export interface ColumnDef        { slug: string; label: string; vertical: string; description?: string }
 export interface GuideDef         { slug: string; label: string }
 export interface VerticalDef      { slug: string; label: string }
 export interface ContentTypeDef   { slug: string; label: string; description: string }
@@ -14,33 +14,54 @@ export interface LifeStageDef     { slug: string; label: string; description: st
 
 export const COLUMNS: ColumnDef[] = [
   // ── School Zone ──────────────────────────────────
-  { slug: 'school-bits',             label: 'School Bits',               vertical: 'school-zone' },
-  { slug: 'teacher-of-month',        label: 'Teacher of the Month',      vertical: 'school-zone' },
-  { slug: 'education-matters',       label: 'Education Matters',         vertical: 'school-zone' },
-  { slug: 'student-spotlights',      label: 'Student Spotlights',        vertical: 'school-zone' },
-  { slug: 'superintendent-updates',  label: 'Superintendent Updates',    vertical: 'school-zone' },
-  { slug: 'student-athletes',        label: 'Student Athletes',          vertical: 'school-zone' },
-  { slug: 'counselor-corner',        label: 'Counselor Corner',          vertical: 'school-zone' },
-  { slug: 'arts-performances',       label: 'Arts & Performances',       vertical: 'school-zone' },
+  { slug: 'school-bits',             label: 'School Bits',               vertical: 'school-zone',
+    description: 'Roundup of school news, awards, and community wins for one school region. Appears on /school-bits and the School Zone landing.' },
+  { slug: 'teacher-of-month',        label: 'Teacher of the Month',      vertical: 'school-zone',
+    description: 'Profile of one outstanding River Region educator. Appears in the Teacher of the Month spot on School Zone.' },
+  { slug: 'education-matters',       label: 'Education Matters',         vertical: 'school-zone',
+    description: 'Bigger-picture education topics — policy, how-to, district news. Sits in the Education Matters section of School Zone.' },
+  { slug: 'student-spotlights',      label: 'Student Spotlights',        vertical: 'school-zone',
+    description: 'Individual student profile — accomplishments, hobbies, what makes them stand out.' },
+  { slug: 'superintendent-updates',  label: 'Superintendent Updates',    vertical: 'school-zone',
+    description: 'District-level updates voiced by a superintendent. Appears alongside Education Matters.' },
+  { slug: 'student-athletes',        label: 'Student Athletes',          vertical: 'school-zone',
+    description: 'Sports profiles, team coverage, and season previews.' },
+  { slug: 'counselor-corner',        label: 'Counselor Corner',          vertical: 'school-zone',
+    description: 'Mental health, social-emotional learning, and family advice from school counselors.' },
+  { slug: 'arts-performances',       label: 'Arts & Performances',       vertical: 'school-zone',
+    description: 'School arts, plays, music, dance recitals — anything performance-related.' },
   // ── Mom Life ─────────────────────────────────────
-  { slug: 'mom-knows-best',          label: 'Mom Knows Best',            vertical: 'mom-life'    },
-  { slug: 'mom-to-mom',              label: 'Mom to Mom',                vertical: 'mom-life'    },
-  { slug: 'grumpy-but-grateful',     label: 'Grumpy but Grateful',       vertical: 'mom-life'    },
+  { slug: 'mom-knows-best',          label: 'Mom Knows Best',            vertical: 'mom-life',
+    description: 'Blog post from a Mom Knows Best contributor. You must assign a blogger so the byline + profile link work.' },
+  { slug: 'mom-to-mom',              label: 'Mom to Mom',                vertical: 'mom-life',
+    description: 'Q&A or essay-style column written by a local mom, for local moms.' },
+  { slug: 'grumpy-but-grateful',     label: 'Grumpy but Grateful',       vertical: 'mom-life',
+    description: 'Honest, humorous monthly mom-life column.' },
   // ── Family ───────────────────────────────────────
-  { slug: 'grands-greatest',         label: 'Grands are the Greatest',   vertical: 'family-fun'  },
-  { slug: 'play-ball',               label: 'Play Ball',                 vertical: 'family-fun'  },
-  { slug: 'dave-says',               label: 'Dave Says',                 vertical: 'family-fun'  },
-  { slug: 'teens-tweens-screens',    label: 'Teens, Tweens & Screens',   vertical: 'family-fun'  },
+  { slug: 'grands-greatest',         label: 'Grands are the Greatest',   vertical: 'family-fun',
+    description: 'Profile or essay celebrating River Region grandparents.' },
+  { slug: 'play-ball',               label: 'Play Ball',                 vertical: 'family-fun',
+    description: 'Youth sports column — leagues, tournaments, coaching, getting your kid started.' },
+  { slug: 'dave-says',               label: 'Dave Says',                 vertical: 'family-fun',
+    description: 'Recurring expert column from Dave (financial advice for families).' },
+  { slug: 'teens-tweens-screens',    label: 'Teens, Tweens & Screens',   vertical: 'family-fun',
+    description: 'Navigating older kids, technology, and growing up.' },
   // ── Health ───────────────────────────────────────
-  { slug: 'meeting-kids',            label: 'Meeting Kids Where They Are', vertical: 'health'    },
-  { slug: 'ask-the-doctor',          label: 'Ask the Doctor',            vertical: 'health'      },
+  { slug: 'meeting-kids',            label: 'Meeting Kids Where They Are', vertical: 'health',
+    description: 'Special-needs parenting column — practical advice and personal stories.' },
+  { slug: 'ask-the-doctor',          label: 'Ask the Doctor',            vertical: 'health',
+    description: 'Reader Q&A answered by a local doctor or specialist.' },
   // ── Summer ───────────────────────────────────────
-  { slug: 'summer-fun',              label: 'Summer Fun',                vertical: 'summer'      },
+  { slug: 'summer-fun',              label: 'Summer Fun',                vertical: 'summer',
+    description: 'Article that fits the Summer Fun Guide — camps, activities, splash pads, summer parenting.' },
   // ── Family Resource Guide ────────────────────────
-  { slug: 'frg-best-of',             label: 'Best of the Region',        vertical: 'guides'      },
-  { slug: 'frg-newcomer',            label: 'Newcomer Stories',          vertical: 'guides'      },
+  { slug: 'frg-best-of',             label: 'Best of the Region',        vertical: 'guides',
+    description: 'Curated "Best Of" list — Best Parks, Best Day Trips, Sweet Treats, etc. Appears on the Family Resource Guide home as a featured editorial card.' },
+  { slug: 'frg-newcomer',            label: 'Newcomer Stories',          vertical: 'guides',
+    description: 'Newcomer-focused story or guide — moving in, first-month tips, getting connected. Surfaces on the FRG getting-connected sub-page.' },
   // ── General ──────────────────────────────────────
-  { slug: 'feature',                 label: 'Feature Article',           vertical: 'general'     },
+  { slug: 'feature',                 label: 'Feature Article',           vertical: 'general',
+    description: 'Standalone feature article without a specific column. Use when nothing else fits.' },
 ]
 
 // ── Guides ────────────────────────────────────────────────────────────────
@@ -96,6 +117,24 @@ const COLUMN_TO_VERTICAL_ROW: Record<string, string> = {
 export function columnToVerticalRowSlug(columnSlug: string | null | undefined): string | null {
   if (!columnSlug) return null
   return COLUMN_TO_VERTICAL_ROW[columnSlug] ?? null
+}
+
+// ── Section dropdown helpers ───────────────────────────────────────────────
+// Used by the article editor to group the Section dropdown by vertical and
+// look up the human-readable description for the currently-selected column.
+
+export function findColumn(slug: string | null | undefined): ColumnDef | null {
+  if (!slug) return null
+  return COLUMNS.find(c => c.slug === slug) ?? null
+}
+
+export function columnsByVertical(): Array<{ vertical: VerticalDef; columns: ColumnDef[] }> {
+  return VERTICALS
+    .map(v => ({
+      vertical: v,
+      columns: COLUMNS.filter(c => c.vertical === v.slug),
+    }))
+    .filter(group => group.columns.length > 0)
 }
 
 // ── Content Types ──────────────────────────────────────────────────────────
