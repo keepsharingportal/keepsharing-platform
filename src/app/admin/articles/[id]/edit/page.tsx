@@ -135,8 +135,16 @@ export default function ArticleEditPage({ params }: Props) {
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
     body: '', hero_image_url: '', profile_image_url: '', column_slug: '', guide_slug: '',
-    source_issue_month: '',
+    source_issue_month: '', author_blogger_id: '',
   })
+
+  // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
+  const [bloggers, setBloggers] = useState<Array<{ id: string; slug: string; display_name: string }>>([])
+  useEffect(() => {
+    fetch('/api/admin/bloggers').then(r => r.json()).then(j => {
+      if (j?.bloggers) setBloggers(j.bloggers)
+    }).catch(() => { /* non-critical */ })
+  }, [])
 
   // ── Load ────────────────────────────────────────────────────────────────────
 
@@ -165,6 +173,7 @@ export default function ArticleEditPage({ params }: Props) {
           column_slug:        data.column_slug     ?? '',
           guide_slug:         data.guide_slug      ?? '',
           source_issue_month: data.source_issue_month ?? '',
+          author_blogger_id:  data.author_blogger_id ?? '',
         })
         setBaseNotes(cleaned)
         setSchoolRegion(region)
@@ -225,6 +234,7 @@ export default function ArticleEditPage({ params }: Props) {
       published,
       editorial_notes,
       source_issue_month:      form.source_issue_month        || null,
+      author_blogger_id:       form.author_blogger_id         || null,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -517,6 +527,21 @@ export default function ArticleEditPage({ params }: Props) {
                 {COLUMNS.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
               </select>
             </div>
+
+            {/* ── Blogger (only when column is Mom Knows Best) ── */}
+            {form.column_slug === 'mom-knows-best' && (
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Blogger</label>
+                <select className={sel} value={form.author_blogger_id} onChange={e => setField('author_blogger_id', e.target.value)}>
+                  <option value="">— Choose a blogger —</option>
+                  {bloggers.map(b => <option key={b.id} value={b.id}>{b.display_name}</option>)}
+                </select>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Required for Mom Knows Best posts so they link to her profile.
+                  Manage bloggers at <a href="/admin/bloggers" className="text-blue-600 hover:underline">/admin/bloggers</a>.
+                </p>
+              </div>
+            )}
 
             {/* ── Guide (guide_slug) ── */}
             <div>

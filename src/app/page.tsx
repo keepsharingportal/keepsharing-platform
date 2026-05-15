@@ -67,7 +67,8 @@ async function getHomepageData() {
     sidebarAdRes,
     businessSpotlightRes,
     bottomAdRes,
-    momColumnsRes,
+    momKnowsPostsRes,
+    bloggersRes,
   ] = await Promise.all([
     supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
     // 4-column rotation: latest published article from each rotation column.
@@ -94,7 +95,11 @@ async function getHomepageData() {
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, excerpt, guide_slug, column_slug, author_name, published_at, created_at')
       .eq('published', true)
-      .not('column_slug', 'in', '(mom-to-mom,school-bits,teacher-of-month)')
+      // Exclude every column that already has dedicated homepage real estate:
+      //   - 4 rotation columns surface in the hero + Community Spotlights sidebar
+      //   - school-bits has its own School Zone block
+      //   - mom-knows-best has its own dedicated sidebar block
+      .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,grands-greatest,play-ball,school-bits,mom-knows-best)')
       .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
@@ -116,12 +121,21 @@ async function getHomepageData() {
       .eq('placement_type', 'homepage_bottom_ad').eq('is_active', true)
       .order('display_priority', { ascending: false })
       .limit(1).maybeSingle(),
+    // Mom Knows Best — sidebar block on the homepage. Pulls the 3 most
+    // recent published blogger posts. When empty, the render falls back to
+    // the Meet the Moms grid (bloggersRes below).
     supabase.from('guide_articles')
-      .select('id, slug, title, author_name, published_at, hero_image_url')
-      .eq('column_slug', 'mom-to-mom')
+      .select('id, slug, title, author_name, published_at, hero_image_url, profile_image_url, author_blogger_id')
+      .eq('column_slug', 'mom-knows-best')
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(4),
+      .limit(3),
+    supabase.from('bloggers')
+      .select('id, slug, display_name, tagline, profile_image_url')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .order('display_name', { ascending: true })
+      .limit(8),
   ])
 
   // ── Featured guide tile (top-right) — picked by current-month rule ─────────
@@ -195,7 +209,8 @@ async function getHomepageData() {
   return {
     trending:          trendingRes.data ?? [],
     mainFeature,
-    momColumns:        momColumnsRes.data ?? [],
+    momKnowsPosts:     momKnowsPostsRes.data ?? [],
+    bloggers:          bloggersRes.data ?? [],
     featuredGuide,
     spotlights,
     events:            eventsRes.data ?? [],
@@ -218,7 +233,7 @@ function fmtEventDate(d: string) {
 export default async function HomePage() {
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
-    inlineAd, sidebarAd, businessSpotlight, bottomAd, momColumns,
+    inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
   } = await getHomepageData()
 
   const fallbackTrending = [
@@ -770,48 +785,56 @@ export default async function HomePage() {
               issuuUrl={CURRENT_ISSUE_URL}
             />
 
-            {/* Mom to Mom column — shows real articles when published, clean CTA when empty */}
+            {/* Mom Knows Best — sidebar card.
+                When bloggers have published posts, show the 3 most recent.
+                When no posts yet, fall back to a "Meet the Moms" mini-grid
+                so the spot isn't a hollow CTA. */}
             <Card className="border-border/50 shadow-sm overflow-hidden">
               <CardHeader className="border-b border-border/50 bg-muted/30 pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  Mom to Mom
+                  Mom Knows Best
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {momColumns.length > 0 ? (
+                {momKnowsPosts.length > 0 ? (
                   <>
                     <div className="divide-y divide-border/50">
-                      {momColumns.map((article) => {
-                        const articleSlug = article.slug.replace(/^mom-to-mom-/, '')
-                        const dateLabel = article.published_at
-                          ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      {momKnowsPosts.map((post) => {
+                        const postSlug = post.slug.replace(/^mom-knows-best-/, '')
+                        const blogger = post.author_blogger_id
+                          ? bloggers.find((b: { id: string }) => b.id === post.author_blogger_id)
+                          : null
+                        const byline   = blogger?.display_name ?? post.author_name ?? ''
+                        const dateLabel = post.published_at
+                          ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                           : ''
+                        const imgSrc = post.profile_image_url || blogger?.profile_image_url || post.hero_image_url
                         return (
                           <Link
-                            key={article.id}
-                            href={`/columns/mom-to-mom/${articleSlug}`}
+                            key={post.id}
+                            href={`/columns/mom-knows-best/${postSlug}`}
                             className="p-4 hover:bg-muted/50 transition-colors group flex gap-3 items-start"
                           >
-                            {article.hero_image_url && (
+                            {imgSrc && (
                               <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden shrink-0 bg-primary/5">
                                 <Image
-                                  src={article.hero_image_url}
-                                  alt={article.title}
+                                  src={imgSrc}
+                                  alt={post.title}
                                   fill
-                                  style={{ objectFit: 'cover' }}
+                                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
                                   sizes="(max-width: 768px) 80px, 96px"
-                                  unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
+                                  unoptimized={shouldSkipNextOptimizer(imgSrc)}
                                 />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-semibold text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
-                                {article.title}
+                                {post.title}
                               </h4>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {article.author_name && <span className="font-medium">{article.author_name}</span>}
-                                {article.author_name && dateLabel && <span> · </span>}
+                                {byline && <span className="font-medium">{byline}</span>}
+                                {byline && dateLabel && <span> · </span>}
                                 {dateLabel}
                               </p>
                             </div>
@@ -821,7 +844,48 @@ export default async function HomePage() {
                     </div>
                     <div className="p-4 border-t border-border/50 bg-muted/10">
                       <Button asChild variant="outline" className="w-full text-sm rounded-full">
-                        <Link href="/columns/mom-to-mom">View All Mom to Mom Posts</Link>
+                        <Link href="/mom-knows-best">View All Mom Knows Best Posts</Link>
+                      </Button>
+                    </div>
+                  </>
+                ) : bloggers.length > 0 ? (
+                  <>
+                    <p className="px-5 pt-4 text-[11px] font-bold uppercase tracking-widest text-primary">Meet the Moms</p>
+                    <div className="grid grid-cols-2 gap-3 p-4">
+                      {bloggers.slice(0, 4).map((b: {
+                        id: string; slug: string; display_name: string;
+                        tagline: string | null; profile_image_url: string | null;
+                      }) => (
+                        <Link
+                          key={b.id}
+                          href={`/mom-knows-best/${b.slug}`}
+                          className="group flex flex-col gap-2 rounded-xl border border-border/40 p-2 hover:border-primary/30 hover:bg-muted/30 transition-all"
+                        >
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                            {b.profile_image_url ? (
+                              <Image
+                                src={b.profile_image_url}
+                                alt={b.display_name}
+                                fill
+                                sizes="120px"
+                                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                                unoptimized={shouldSkipNextOptimizer(b.profile_image_url)}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center text-lg font-black text-primary/30">
+                                {b.display_name.slice(0, 1).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-bold text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-1">
+                            {b.display_name}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="p-4 border-t border-border/50 bg-muted/10">
+                      <Button asChild variant="outline" className="w-full text-sm rounded-full">
+                        <Link href="/mom-knows-best">Visit Mom Knows Best</Link>
                       </Button>
                     </div>
                   </>
@@ -830,12 +894,12 @@ export default async function HomePage() {
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                       <Users className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="font-semibold text-sm text-foreground mb-1">Community Columns</p>
+                    <p className="font-semibold text-sm text-foreground mb-1">Mom Knows Best</p>
                     <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                      Local mom perspectives, real stories, and family advice — published monthly.
+                      Our network of local mom bloggers — coming soon.
                     </p>
                     <Button asChild variant="outline" size="sm" className="rounded-full w-full">
-                      <Link href="/columns/mom-to-mom">Explore the Column</Link>
+                      <Link href="/mom-knows-best">Learn More</Link>
                     </Button>
                   </div>
                 )}

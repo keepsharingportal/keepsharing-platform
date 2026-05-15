@@ -23,6 +23,7 @@ export const COLUMNS: ColumnDef[] = [
   { slug: 'counselor-corner',        label: 'Counselor Corner',          vertical: 'school-zone' },
   { slug: 'arts-performances',       label: 'Arts & Performances',       vertical: 'school-zone' },
   // ── Mom Life ─────────────────────────────────────
+  { slug: 'mom-knows-best',          label: 'Mom Knows Best',            vertical: 'mom-life'    },
   { slug: 'mom-to-mom',              label: 'Mom to Mom',                vertical: 'mom-life'    },
   { slug: 'grumpy-but-grateful',     label: 'Grumpy but Grateful',       vertical: 'mom-life'    },
   // ── Family ───────────────────────────────────────

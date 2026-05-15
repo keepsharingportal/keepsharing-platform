@@ -62,6 +62,7 @@ const NAV: NavItem[] = [
   },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
   { name: 'School Zone',       href: '/admin/school-news', icon: GraduationCap },
+  { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },
   { name: 'Community Content', href: '/admin/community',   icon: Heart         },
 
   // ── PRODUCTION (orchestration between content and channels) ─────────────

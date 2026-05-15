@@ -67,7 +67,7 @@ function FeaturedCard({ article }: { article: Article }) {
   return (
     <Link
       href={articleHref(article.slug, article.column_slug)}
-      className="group relative flex flex-col justify-end rounded-2xl overflow-hidden min-h-[320px] md:min-h-[380px]"
+      className="group relative flex flex-col justify-end rounded-2xl overflow-hidden min-h-[320px] md:min-h-[380px] md:h-full"
     >
       <Image src={imgSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
         sizes="(max-width: 768px) 100vw, 58vw"
