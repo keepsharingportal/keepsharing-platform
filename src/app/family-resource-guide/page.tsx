@@ -153,11 +153,11 @@ export default async function FamilyResourceGuidePage() {
 
     // Best Of articles
     supabase.from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, published_at')
+      .select('id, slug, title, subtitle, excerpt, hero_image_url, published_at')
       .eq('column_slug', 'frg-best-of')
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(4),
+      .limit(6),
 
     // Latest 3 Mom Knows Best posts
     supabase.from('guide_articles')
@@ -262,7 +262,7 @@ export default async function FamilyResourceGuidePage() {
 
   // ── Best Of articles ─────────────────────────────────────────────────────
   const bestOf = (bestOfData ?? []) as Array<{
-    id: string; slug: string; title: string; excerpt: string | null
+    id: string; slug: string; title: string; subtitle: string | null; excerpt: string | null
     hero_image_url: string | null; published_at: string | null
   }>
 
