@@ -1,10 +1,14 @@
 import Link from 'next/link'
 import { ArrowRight, Crown, Zap } from 'lucide-react'
+import { TrackedImpression } from '@/components/tracking/TrackedImpression'
+import { TrackedLink } from '@/components/tracking/TrackedLink'
 
 interface SponsorInfo {
   businessName: string
   slug:         string | null
   headline:     string | null
+  /** ad_placements.id — required for impression/click tracking. */
+  placementId?: string | null
 }
 
 interface Props {
@@ -17,8 +21,9 @@ interface Props {
 
 export function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel, sponsor }: Props) {
   const pitchHref = verticalSlug ? `/advertise/${verticalSlug}` : '/advertise'
+
   if (sponsor) {
-    return (
+    const content = (
       <div className="relative overflow-hidden rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/15 via-accent/8 to-primary/8">
         <div className="absolute top-0 right-0 w-40 h-40 bg-accent/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
         <div className="relative px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -41,16 +46,30 @@ export function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel
             </div>
           </div>
           {sponsor.slug && (
-            <Link
-              href={`/business/${sponsor.slug}`}
-              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-accent/30 text-foreground rounded-full text-sm font-bold hover:bg-accent/5 transition-colors whitespace-nowrap"
-            >
-              Visit Sponsor <ArrowRight className="h-4 w-4" />
-            </Link>
+            sponsor.placementId ? (
+              <TrackedLink
+                adPlacementId={sponsor.placementId}
+                href={`/business/${sponsor.slug}`}
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-accent/30 text-foreground rounded-full text-sm font-bold hover:bg-accent/5 transition-colors whitespace-nowrap"
+              >
+                Visit Sponsor <ArrowRight className="h-4 w-4" />
+              </TrackedLink>
+            ) : (
+              <Link
+                href={`/business/${sponsor.slug}`}
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-accent/30 text-foreground rounded-full text-sm font-bold hover:bg-accent/5 transition-colors whitespace-nowrap"
+              >
+                Visit Sponsor <ArrowRight className="h-4 w-4" />
+              </Link>
+            )
           )}
         </div>
       </div>
     )
+
+    return sponsor.placementId
+      ? <TrackedImpression adPlacementId={sponsor.placementId}>{content}</TrackedImpression>
+      : content
   }
 
   return (

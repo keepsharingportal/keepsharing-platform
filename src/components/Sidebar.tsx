@@ -12,6 +12,7 @@ import {
   GraduationCap, Printer, Map, Package, Calendar,
   Home, Mail, Share2, Crown, RefreshCw,
   Inbox, Award, Upload, MapPin, Search, ClipboardList,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -114,6 +115,7 @@ const NAV: NavItem[] = [
   { name: 'Campaigns',         href: '/admin/marketing-system',              icon: Megaphone   },
   { name: 'Sponsor Inventory', href: '/admin/advertisers/sponsor-inventory', icon: Star        },
   { name: 'Proposals',         href: '/admin/advertisers/proposals',         icon: FileText    },
+  { name: 'Client Reports',    href: '/admin/reports',                       icon: BarChart3   },
   { name: 'Analytics',         href: '/admin/advertisers/intelligence',      icon: TrendingUp  },
 
   // ── COMMUNITY ───────────────────────────────────────────────────────────

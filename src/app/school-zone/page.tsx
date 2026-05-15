@@ -139,7 +139,7 @@ export default async function SchoolZonePage() {
       .maybeSingle(),
 
     supabase.from('ad_placements')
-      .select('ad_headline, advertiser:advertiser_accounts(business_name, slug)')
+      .select('id, ad_headline, advertiser:advertiser_accounts(business_name, slug)')
       .eq('placement_type', 'section_sponsor')
       .eq('is_active', true)
       .ilike('placement_context', '%school-zone%')
@@ -208,6 +208,7 @@ export default async function SchoolZonePage() {
   } | null
 
   const sponsorRow = sponsorRes.data as {
+    id:          string
     ad_headline: string | null
     advertiser:  { business_name?: string | null; slug?: string | null } | null
   } | null
@@ -216,6 +217,7 @@ export default async function SchoolZonePage() {
         businessName: sponsorRow.advertiser.business_name,
         slug:         sponsorRow.advertiser.slug ?? null,
         headline:     sponsorRow.ad_headline ?? null,
+        placementId:  sponsorRow.id,
       }
     : null
 

@@ -3,8 +3,14 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, ImageOff, CheckCircle, RefreshCw, Archive, FileText } from 'lucide-react'
+import {
+  Eye, ImageOff, CheckCircle, RefreshCw, Archive, FileText,
+  ChevronUp, ChevronDown, ArrowUpDown, BarChart3,
+  ChevronLeft, ChevronRight,
+} from 'lucide-react'
 import { editorialStatusInfo, columnLabel, guideLabel } from '@/lib/content-taxonomy'
+
+export type SortKey = 'newest' | 'oldest' | 'views' | 'title'
 
 export interface ArticleRow {
   id: string
@@ -18,10 +24,17 @@ export interface ArticleRow {
   hero_image_url: string | null
   published_at: string | null
   source_issue_month: string | null
+  view_count: number | null
 }
 
 interface Props {
-  articles: ArticleRow[]
+  articles:     ArticleRow[]
+  total:        number
+  page:         number
+  pageSize:     number
+  totalPages:   number
+  activeSort:   SortKey
+  activeFilter: string
 }
 
 type BulkAction = 'approve' | 'archive' | 'draft'
@@ -32,18 +45,35 @@ const BULK_LABELS: Record<BulkAction, string> = {
   draft:   'Move to Draft',
 }
 
-export function ArticleBulkActionsTable({ articles }: Props) {
+function fmtViews(n: number | null): string {
+  if (!n || n <= 0) return '—'
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
+  return n.toString()
+}
+
+function buildQuery(opts: { filter: string; sort: SortKey; page: number }) {
+  const params = new URLSearchParams()
+  if (opts.filter !== 'all') params.set('filter', opts.filter)
+  if (opts.sort   !== 'newest') params.set('sort', opts.sort)
+  if (opts.page   !== 1)      params.set('page', String(opts.page))
+  const qs = params.toString()
+  return qs ? `/admin/articles?${qs}` : '/admin/articles'
+}
+
+export function ArticleBulkActionsTable({
+  articles, total, page, pageSize, totalPages, activeSort, activeFilter,
+}: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  const [selected,   setSelected]   = useState<Set<string>>(new Set())
-  const [acting,     setActing]      = useState(false)
-  const [resultMsg,  setResultMsg]   = useState<{ text: string; ok: boolean } | null>(null)
+  const [selected,  setSelected]  = useState<Set<string>>(new Set())
+  const [acting,    setActing]    = useState(false)
+  const [resultMsg, setResultMsg] = useState<{ text: string; ok: boolean } | null>(null)
 
   // ── Selection ──────────────────────────────────────────────────────────
 
-  const allIds     = articles.map(a => a.id)
-  const allChecked = allIds.length > 0 && allIds.every(id => selected.has(id))
+  const allIds      = articles.map(a => a.id)
+  const allChecked  = allIds.length > 0 && allIds.every(id => selected.has(id))
   const someChecked = selected.size > 0 && !allChecked
 
   function toggleAll() {
@@ -85,6 +115,20 @@ export function ArticleBulkActionsTable({ articles }: Props) {
     }
   }
 
+  // ── Sort helpers ───────────────────────────────────────────────────────
+  // Top-views filter locks the sort, so we hide the indicator there.
+  const sortLocked = activeFilter === 'top-views'
+
+  function sortHref(next: SortKey) {
+    return buildQuery({ filter: activeFilter, sort: next, page: 1 })
+  }
+
+  // Click "Date" toggles newest ↔ oldest. Click "Views" sets views. Title toggles in.
+  const dateNextSort: SortKey = activeSort === 'newest' ? 'oldest' : 'newest'
+  const showDateIndicator = activeSort === 'newest' || activeSort === 'oldest'
+  const showViewsIndicator = activeSort === 'views'
+  const showTitleIndicator = activeSort === 'title'
+
   // ── Empty state ────────────────────────────────────────────────────────
 
   if (articles.length === 0) {
@@ -99,6 +143,8 @@ export function ArticleBulkActionsTable({ articles }: Props) {
   }
 
   const busy = acting || isPending
+  const rangeStart = (page - 1) * pageSize + 1
+  const rangeEnd   = Math.min(page * pageSize, total)
 
   return (
     <div>
@@ -155,11 +201,20 @@ export function ArticleBulkActionsTable({ articles }: Props) {
         </div>
       )}
 
-      <p className="text-xs text-gray-400 mb-3 px-1">{articles.length} article{articles.length !== 1 ? 's' : ''}</p>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <p className="text-xs text-gray-400">
+          {total === 0
+            ? 'No articles'
+            : `Showing ${rangeStart}–${rangeEnd} of ${total} article${total !== 1 ? 's' : ''}`}
+        </p>
+        {totalPages > 1 && (
+          <p className="text-[11px] text-gray-400">Page {page} of {totalPages}</p>
+        )}
+      </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
+        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
@@ -171,10 +226,44 @@ export function ArticleBulkActionsTable({ articles }: Props) {
             />
           </div>
           <div className="w-5" />
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Title</div>
+          <Link
+            href={sortHref('title')}
+            scroll={false}
+            className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-blue-600 inline-flex items-center gap-1"
+            title="Sort by title A→Z"
+          >
+            Title
+            {showTitleIndicator
+              ? <ChevronDown size={11} />
+              : <ArrowUpDown size={10} className="opacity-40" />}
+          </Link>
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden md:block">Status</div>
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:block">Section</div>
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden xl:block">Date</div>
+          <Link
+            href={sortHref('views')}
+            scroll={false}
+            className={`text-[11px] font-semibold uppercase tracking-wider hidden md:inline-flex items-center gap-1 ${
+              showViewsIndicator ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'
+            }`}
+            title="Sort by views (highest first)"
+          >
+            <BarChart3 size={10} />
+            Views
+            {showViewsIndicator && <ChevronDown size={11} />}
+          </Link>
+          <Link
+            href={sortLocked ? '#' : sortHref(dateNextSort)}
+            scroll={false}
+            className={`text-[11px] font-semibold uppercase tracking-wider hidden xl:inline-flex items-center gap-1 ${
+              sortLocked ? 'opacity-40 pointer-events-none' : showDateIndicator ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'
+            }`}
+            title={activeSort === 'newest' ? 'Sort oldest first' : 'Sort newest first'}
+          >
+            Date
+            {showDateIndicator
+              ? (activeSort === 'newest' ? <ChevronDown size={11} /> : <ChevronUp size={11} />)
+              : <ArrowUpDown size={10} className="opacity-40" />}
+          </Link>
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Actions</div>
         </div>
 
@@ -198,7 +287,7 @@ export function ArticleBulkActionsTable({ articles }: Props) {
             return (
               <div
                 key={a.id}
-                className={`grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto] gap-x-3 items-center px-4 py-3 transition-colors ${
+                className={`grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-3 transition-colors ${
                   isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
               >
@@ -239,6 +328,15 @@ export function ArticleBulkActionsTable({ articles }: Props) {
                   <span className="text-xs text-gray-500 whitespace-nowrap">{sec}</span>
                 </div>
 
+                {/* Views */}
+                <div className="hidden md:block tabular-nums text-right">
+                  <span className={`text-xs whitespace-nowrap ${
+                    (a.view_count ?? 0) > 0 ? 'text-gray-700 font-semibold' : 'text-gray-300'
+                  }`}>
+                    {fmtViews(a.view_count)}
+                  </span>
+                </div>
+
                 {/* Date */}
                 <div className="hidden xl:block">
                   <span className="text-xs text-gray-400 whitespace-nowrap">{date}</span>
@@ -277,6 +375,41 @@ export function ArticleBulkActionsTable({ articles }: Props) {
           })}
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <Link
+            href={page > 1 ? buildQuery({ filter: activeFilter, sort: activeSort, page: page - 1 }) : '#'}
+            scroll={false}
+            aria-disabled={page <= 1}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
+              page <= 1
+                ? 'border-gray-200 text-gray-300 pointer-events-none'
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <ChevronLeft size={12} /> Previous
+          </Link>
+
+          <span className="text-[11px] text-gray-500">
+            Page <strong className="text-gray-700">{page}</strong> of {totalPages}
+          </span>
+
+          <Link
+            href={page < totalPages ? buildQuery({ filter: activeFilter, sort: activeSort, page: page + 1 }) : '#'}
+            scroll={false}
+            aria-disabled={page >= totalPages}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
+              page >= totalPages
+                ? 'border-gray-200 text-gray-300 pointer-events-none'
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Next <ChevronRight size={12} />
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

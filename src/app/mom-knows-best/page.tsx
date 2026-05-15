@@ -77,7 +77,7 @@ export default async function MomKnowsBestPage() {
       .eq('is_active', true)
       .maybeSingle(),
     supabase.from('ad_placements')
-      .select('ad_headline, advertiser:advertiser_accounts(business_name, slug)')
+      .select('id, ad_headline, advertiser:advertiser_accounts(business_name, slug)')
       .eq('placement_type', 'section_sponsor')
       .eq('is_active', true)
       .ilike('placement_context', '%mom-knows-best%')
@@ -96,6 +96,7 @@ export default async function MomKnowsBestPage() {
   } | null
 
   const sponsorAd = sponsorRow as {
+    id:          string
     ad_headline: string | null
     advertiser:  { business_name?: string | null; slug?: string | null } | null
   } | null
@@ -104,6 +105,7 @@ export default async function MomKnowsBestPage() {
         businessName: sponsorAd.advertiser.business_name,
         slug:         sponsorAd.advertiser.slug ?? null,
         headline:     sponsorAd.ad_headline ?? null,
+        placementId:  sponsorAd.id,
       }
     : null
 

@@ -14,6 +14,7 @@ import { ContributorArticleLayout } from '@/components/articles/templates/Contri
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
+import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
@@ -181,6 +182,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
 
   return (
     <div className="min-h-screen bg-background public-page">
+      <ArticleViewBeacon articleId={article.id as string} />
       <Navigation />
 
       <main className="container py-8 md:py-12">
