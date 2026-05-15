@@ -69,6 +69,32 @@ export const VERTICALS: VerticalDef[] = [
   { slug: 'general',     label: 'General'           },
 ]
 
+// ── Column → vertical-row mapping ──────────────────────────────────────────
+// Maps a column_slug to the row in the public.verticals table (the year-round
+// content homes that have a public landing page). NOT the same as the broader
+// category 'vertical' field above on each ColumnDef. Only verticals with a
+// public landing page should appear here — currently school-zone and
+// mom-knows-best. Returns null for columns that don't roll up to a vertical.
+
+const COLUMN_TO_VERTICAL_ROW: Record<string, string> = {
+  // School Zone
+  'school-bits':            'school-zone',
+  'teacher-of-month':       'school-zone',
+  'education-matters':      'school-zone',
+  'student-spotlights':     'school-zone',
+  'superintendent-updates': 'school-zone',
+  'student-athletes':       'school-zone',
+  'counselor-corner':       'school-zone',
+  'arts-performances':      'school-zone',
+  // Mom Knows Best
+  'mom-knows-best':         'mom-knows-best',
+}
+
+export function columnToVerticalRowSlug(columnSlug: string | null | undefined): string | null {
+  if (!columnSlug) return null
+  return COLUMN_TO_VERTICAL_ROW[columnSlug] ?? null
+}
+
 // ── Content Types ──────────────────────────────────────────────────────────
 // Describes the structural format of a piece of content, distinct from vertical/column.
 

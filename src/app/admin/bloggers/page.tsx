@@ -6,8 +6,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Users, Plus, ExternalLink, ImageIcon } from 'lucide-react'
+import { Users, ExternalLink, ImageIcon, Key, KeyRound } from 'lucide-react'
 import { NewBloggerButton } from './NewBloggerButton'
+import { SectionHelp } from '@/components/admin/AdminHelp'
 
 export const metadata = { title: 'Bloggers — KeepSharing Admin' }
 export const dynamic  = 'force-dynamic'
@@ -20,6 +21,8 @@ interface BloggerRow {
   profile_image_url: string | null
   is_active:         boolean
   display_order:     number | null
+  email:             string | null
+  user_id:           string | null
   created_at:        string
 }
 
@@ -28,7 +31,7 @@ export default async function BloggersAdminPage() {
 
   const [{ data: bloggers }, { data: postCounts }] = await Promise.all([
     supabase.from('bloggers')
-      .select('id, slug, display_name, tagline, profile_image_url, is_active, display_order, created_at')
+      .select('id, slug, display_name, tagline, profile_image_url, is_active, display_order, email, user_id, created_at')
       .order('display_order', { ascending: true })
       .order('display_name', { ascending: true }),
     supabase.from('guide_articles')
@@ -66,6 +69,13 @@ export default async function BloggersAdminPage() {
           <NewBloggerButton />
         </div>
       </div>
+
+      <SectionHelp variant="info" title="Self-service login">
+        Each blogger card shows whether she has portal access. Open a profile,
+        add her email, and click <strong>Send Login Link</strong> — she&apos;ll get a
+        magic link that signs her into the <Link href="/blogger-portal" className="text-blue-600 hover:underline">Blogger Portal</Link> so she
+        can write posts herself.
+      </SectionHelp>
 
       {rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center bg-white">
@@ -109,7 +119,18 @@ export default async function BloggersAdminPage() {
                   {b.tagline && (
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-snug">{b.tagline}</p>
                   )}
-                  <p className="text-[11px] text-gray-400 mt-1.5">{count} post{count === 1 ? '' : 's'} · /{b.slug}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <p className="text-[11px] text-gray-400">{count} post{count === 1 ? '' : 's'} · /{b.slug}</p>
+                    {b.user_id ? (
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-green-50 text-green-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        <KeyRound size={8} /> Has Login
+                      </span>
+                    ) : b.email ? (
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        <Key size={8} /> Invite Pending
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </Link>
             )

@@ -8,9 +8,15 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
-import { COLUMNS, GUIDES } from '@/lib/content-taxonomy'
+import { COLUMNS, GUIDES, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { HelpTip, FieldHint } from '@/components/admin/AdminHelp'
 import DOMPurify from 'isomorphic-dompurify'
+
+const VERTICAL_LABELS: Record<string, string> = {
+  'school-zone':    'School Zone',
+  'mom-knows-best': 'Mom Knows Best',
+}
 
 // ── Types & constants ─────────────────────────────────────────────────────────
 
@@ -521,11 +527,25 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Section (column_slug) ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Section</label>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Section
+                <HelpTip text="The editorial column this article belongs to (School Bits, Teacher of the Month, Mom Knows Best, etc.). Determines which vertical it shows up under on the public site." />
+              </label>
               <select className={sel} value={form.column_slug} onChange={e => handleColumnChange(e.target.value)}>
                 <option value="">— Choose section —</option>
                 {COLUMNS.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
               </select>
+              {(() => {
+                const v = columnToVerticalRowSlug(form.column_slug)
+                if (!v) return null
+                const label = VERTICAL_LABELS[v] ?? v
+                return (
+                  <FieldHint className="mt-1.5">
+                    Will appear on the <strong>{label}</strong> vertical page and in any
+                    &quot;Related from {label}&quot; blocks.
+                  </FieldHint>
+                )
+              })()}
             </div>
 
             {/* ── Blogger (only when column is Mom Knows Best) ── */}

@@ -19,7 +19,7 @@ export default async function BloggerEditPage({ params }: Props) {
 
   const { data: blogger } = await supabase
     .from('bloggers')
-    .select('id, slug, display_name, tagline, profile_image_url, family_image_url, bio, quick_takes, is_active, display_order')
+    .select('id, slug, display_name, tagline, email, user_id, profile_image_url, family_image_url, bio, quick_takes, is_active, display_order')
     .eq('slug', slug)
     .maybeSingle()
 
@@ -61,6 +61,7 @@ export default async function BloggerEditPage({ params }: Props) {
         initial={{
           display_name:      blogger.display_name      ?? '',
           tagline:           blogger.tagline           ?? '',
+          email:             blogger.email             ?? '',
           profile_image_url: blogger.profile_image_url ?? '',
           family_image_url:  blogger.family_image_url  ?? '',
           bio:               blogger.bio               ?? '',
@@ -68,6 +69,7 @@ export default async function BloggerEditPage({ params }: Props) {
             ? (blogger.quick_takes as Array<{ question: string; answer: string }>)
             : [],
           is_active:         blogger.is_active ?? true,
+          has_login:         !!blogger.user_id,
         }}
       />
 

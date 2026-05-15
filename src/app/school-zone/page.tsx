@@ -558,6 +558,7 @@ export default async function SchoolZonePage() {
         <div className="container">
           <VerticalSponsorBanner
             verticalName={heroTitle}
+            verticalSlug="school-zone"
             sponsorLabel={sponsorLabel}
             sponsor={sponsor}
           />

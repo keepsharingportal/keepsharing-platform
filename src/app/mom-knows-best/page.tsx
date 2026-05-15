@@ -137,6 +137,7 @@ export default async function MomKnowsBestPage() {
         {/* ── Section sponsor banner ───────────────────────────────────────── */}
         <VerticalSponsorBanner
           verticalName={heroTitle}
+          verticalSlug="mom-knows-best"
           sponsorLabel={sponsorLabel}
           sponsor={sponsor}
         />

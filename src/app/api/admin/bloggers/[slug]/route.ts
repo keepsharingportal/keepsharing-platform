@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 const ALLOWED = new Set([
   'display_name', 'tagline', 'profile_image_url', 'family_image_url',
   'bio', 'quick_takes', 'is_active', 'display_order',
+  'email',
 ])
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {

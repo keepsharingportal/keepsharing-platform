@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 
 function supabaseAdmin() {
   return createClient(
@@ -27,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'title', 'slug', 'subtitle', 'excerpt', 'body', 'body_format',
       'hero_image_url', 'profile_image_url', 'author_byline', 'author_name',
       'author_blogger_id',
-      'column_slug', 'guide_slug',
+      'column_slug', 'guide_slug', 'vertical_slug',
       'editorial_review_status', 'published', 'published_at',
       'editorial_notes', 'source_issue_month',
     ]
@@ -35,6 +36,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const update: Record<string, unknown> = {}
     for (const key of ALLOWED) {
       if (key in body) update[key] = body[key]
+    }
+
+    // Auto-derive vertical_slug from column_slug if the column changed but
+    // the caller didn't set vertical_slug explicitly. Keeps article ↔ vertical
+    // links in sync without forcing every form to know the mapping.
+    if ('column_slug' in update && !('vertical_slug' in update)) {
+      update.vertical_slug = columnToVerticalRowSlug(update.column_slug as string | null)
     }
 
     if (Object.keys(update).length === 0) {

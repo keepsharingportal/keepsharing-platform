@@ -13,6 +13,7 @@ import { TeacherOfMonthLayout } from '@/components/articles/templates/TeacherOfM
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
+import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
@@ -367,6 +368,18 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 </Link>
               )}
             </div>
+
+            {/* Cross-pollination — more articles from the same vertical
+                (broader than the same-column related block below) */}
+            {(article.vertical_slug as string | null) && (
+              <div className="mt-10 pt-6 border-t border-border/40">
+                <RelatedFromVertical
+                  verticalSlug={article.vertical_slug as string}
+                  excludeId={article.id as string}
+                  limit={3}
+                />
+              </div>
+            )}
 
             {/* Related content */}
             {related.length > 0 && (

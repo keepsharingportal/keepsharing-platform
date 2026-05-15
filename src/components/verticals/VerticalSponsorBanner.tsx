@@ -9,11 +9,14 @@ interface SponsorInfo {
 
 interface Props {
   verticalName:  string
+  /** Slug used to build the /advertise/<slug> pitch link. */
+  verticalSlug?: string
   sponsorLabel:  string
   sponsor:       SponsorInfo | null
 }
 
-export function VerticalSponsorBanner({ verticalName, sponsorLabel, sponsor }: Props) {
+export function VerticalSponsorBanner({ verticalName, verticalSlug, sponsorLabel, sponsor }: Props) {
+  const pitchHref = verticalSlug ? `/advertise/${verticalSlug}` : '/advertise'
   if (sponsor) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-accent/40 bg-gradient-to-r from-accent/15 via-accent/8 to-primary/8">
@@ -77,7 +80,7 @@ export function VerticalSponsorBanner({ verticalName, sponsorLabel, sponsor }: P
           </div>
         </div>
         <Link
-          href="/advertise"
+          href={pitchHref}
           className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
         >
           Claim This Spot <ArrowRight className="h-4 w-4" />

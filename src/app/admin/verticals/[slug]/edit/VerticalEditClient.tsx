@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Save, RefreshCw, CheckCircle2, AlertCircle, ExternalLink, Crown } from 'lucide-react'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { FieldLabel, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 
 interface InitialState {
   display_name:       string
@@ -58,10 +59,16 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
   }
 
   const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
-  const lbl = 'block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5'
 
   return (
     <div className="space-y-6">
+
+      <SectionHelp variant="tip" title="What is a vertical?">
+        A <strong>vertical</strong> is a year-round content home (School Zone, Mom Knows Best)
+        — different from a <strong>guide</strong>, which is a monthly print issue with
+        listings. Verticals don't rotate through the homepage Featured Month slot;
+        they have a fixed home and stay there.
+      </SectionHelp>
 
       {/* Sticky save bar */}
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
@@ -88,17 +95,23 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         <h2 className="text-sm font-bold text-gray-900">Identity</h2>
 
         <div>
-          <label className={lbl}>Display name</label>
+          <FieldLabel hint="The main headline shown in the hero on the public page. Keep it short and recognizable — this is what visitors will associate with the section.">
+            Display name
+          </FieldLabel>
           <input className={inp} value={form.display_name} onChange={e => set('display_name', e.target.value)} placeholder="e.g. School Zone" />
         </div>
 
         <div>
-          <label className={lbl}>Subtitle / tagline</label>
+          <FieldLabel hint="One sentence shown right under the page title. Sets expectations for what visitors will find here.">
+            Subtitle / tagline
+          </FieldLabel>
           <textarea rows={2} className={`${inp} resize-y`} value={form.subtitle} onChange={e => set('subtitle', e.target.value)} placeholder="Short line shown under the page title." />
         </div>
 
         <div>
-          <label className={lbl}>Long description (optional)</label>
+          <FieldLabel hint="Used for meta descriptions (SEO) and About-this-vertical sidebar widgets. 2-4 sentences is plenty.">
+            Long description (optional)
+          </FieldLabel>
           <textarea rows={5} className={`${inp} resize-y`} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Used in About-this-vertical sidebar widgets and meta descriptions." />
         </div>
 
@@ -106,6 +119,9 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
           <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="rounded" />
           Active (shows on public site)
         </label>
+        <FieldHint className="!mt-1">
+          Unchecking this hides the vertical from public navigation but keeps existing articles reachable by direct link.
+        </FieldHint>
 
         <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
           Public landing: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
@@ -117,8 +133,10 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         <h2 className="text-sm font-bold text-gray-900">Images</h2>
 
         <div>
-          <label className={lbl}>Hero image — top of public page</label>
-          <p className="text-[11px] text-gray-400 mb-2">Wide photo. Used as the background behind the title with a dark overlay.</p>
+          <FieldLabel hint="Wide photo (16:9 or wider works best). Sits behind the title with a dark overlay, so detail-heavy images can get lost — choose something with a clear focal point or strong texture.">
+            Hero image — top of public page
+          </FieldLabel>
+          <FieldHint className="mb-2">Used as the background behind the title with a dark overlay.</FieldHint>
           <HeroImageUpload
             value={form.hero_image_url}
             onChange={url => set('hero_image_url', url)}
@@ -127,8 +145,10 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         </div>
 
         <div className="pt-3 border-t border-gray-100">
-          <label className={lbl}>Homepage tile image (optional)</label>
-          <p className="text-[11px] text-gray-400 mb-2">Override for the homepage Featured Categories tile. If empty, the hero image is used.</p>
+          <FieldLabel hint="Optional. If empty, the homepage tile uses the hero image above. Set this if you want a tighter crop or a different shot for the homepage card.">
+            Homepage tile image (optional)
+          </FieldLabel>
+          <FieldHint className="mb-2">Override for the homepage Featured Categories tile.</FieldHint>
           <HeroImageUpload
             value={form.homepage_image_url}
             onChange={url => set('homepage_image_url', url)}
@@ -168,8 +188,10 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         )}
 
         <div className="pt-2 border-t border-amber-200/60">
-          <label className={lbl}>Sponsor label</label>
-          <p className="text-[11px] text-gray-500 mb-2">Text shown above the sponsor name on the public page.</p>
+          <FieldLabel hint='The line above the sponsor name on the public page. Examples: "Proudly Presented By", "Brought to you by", "In partnership with".'>
+            Sponsor label
+          </FieldLabel>
+          <FieldHint className="mb-2">Text shown above the sponsor name on the public page.</FieldHint>
           <input
             className={inp}
             value={form.sponsor_label}
@@ -182,15 +204,19 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       {/* ── Primary CTA ───────────────────────────────────────────────────── */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-gray-900">Primary CTA</h2>
-        <p className="text-[11px] text-gray-400 -mt-2">Optional CTA in the hero area. Skip if not needed.</p>
+        <FieldHint className="-mt-2">Optional button in the hero area. Skip if not needed — the existing in-page CTAs (Submit School News, etc.) still appear regardless.</FieldHint>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>CTA label</label>
+            <FieldLabel hint="The button text. Keep it action-first: a verb the visitor can take right now.">
+              CTA label
+            </FieldLabel>
             <input className={inp} value={form.primary_cta_label} onChange={e => set('primary_cta_label', e.target.value)} placeholder="e.g. Nominate Someone, Meet the Moms" />
           </div>
           <div>
-            <label className={lbl}>CTA URL</label>
+            <FieldLabel hint='Where the button links. Can be on-site (e.g. "/nominate") or off-site (https://...).'>
+              CTA URL
+            </FieldLabel>
             <input
               type="url"
               className={inp}
@@ -210,7 +236,9 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       {/* ── Theming (optional) ────────────────────────────────────────────── */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
         <h2 className="text-sm font-bold text-gray-900">Brand Accent (optional)</h2>
-        <p className="text-[11px] text-gray-400 -mt-1">Used for accent borders + badges in future updates. Hex format (e.g. <code className="px-1 bg-gray-100 rounded">#d4a843</code>).</p>
+        <FieldHint className="-mt-1">
+          Hex color used for accent borders + badges. Example: <code className="px-1 bg-gray-100 rounded">#d4a843</code> for gold.
+        </FieldHint>
         <input
           className={`${inp} max-w-[200px]`}
           value={form.brand_color}

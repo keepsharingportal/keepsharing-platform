@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 
 function supabaseAdmin() {
   return createClient(
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       author_name:             author_name?.trim() || null,
       column_slug:             column_slug || null,
       guide_slug:              guide_slug || column_slug || 'family-resource-guide',
+      vertical_slug:           columnToVerticalRowSlug(column_slug),
       editorial_review_status: editorial_review_status || 'draft',
       published:               published === true,
       published_at:            published_at || null,

@@ -2,19 +2,22 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, RefreshCw, CheckCircle2, AlertCircle, Plus, X } from 'lucide-react'
+import { Save, RefreshCw, CheckCircle2, AlertCircle, Plus, X, Mail, Send, Key } from 'lucide-react'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { FieldLabel, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 
 interface QuickTake { question: string; answer: string }
 
 interface InitialState {
   display_name:      string
   tagline:           string
+  email:             string
   profile_image_url: string
   family_image_url:  string
   bio:               string
   quick_takes:       QuickTake[]
   is_active:         boolean
+  has_login:         boolean
 }
 
 interface Props {
@@ -35,6 +38,8 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
   const [form, setForm]       = useState<InitialState>(initial)
   const [saving, setSaving]   = useState(false)
   const [msg, setMsg]         = useState<{ text: string; ok: boolean } | null>(null)
+  const [inviting, setInviting]   = useState(false)
+  const [inviteMsg, setInviteMsg] = useState<{ text: string; ok: boolean } | null>(null)
 
   function set<K extends keyof InitialState>(k: K, v: InitialState[K]) {
     setForm(f => ({ ...f, [k]: v }))
@@ -66,9 +71,12 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
     try {
       // Filter out empty Q&A rows before save
       const cleanedQuickTakes = form.quick_takes.filter(qt => qt.question.trim() && qt.answer.trim())
+      const { has_login: _hasLogin, ...rest } = form
+      void _hasLogin
       const payload = {
-        ...form,
+        ...rest,
         quick_takes: cleanedQuickTakes.length > 0 ? cleanedQuickTakes : null,
+        email:       form.email.trim() || null,
       }
       const res = await fetch(`/api/admin/bloggers/${slug}`, {
         method:  'PATCH',
@@ -87,11 +95,32 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
     }
   }
 
+  async function sendInvite() {
+    setInviting(true)
+    setInviteMsg(null)
+    try {
+      const res  = await fetch(`/api/admin/bloggers/${slug}/invite`, { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setInviteMsg({ text: json?.error ?? `Invite failed (${res.status})`, ok: false }); return }
+      setInviteMsg({ text: 'Magic link emailed to blogger.', ok: true })
+      setTimeout(() => setInviteMsg(null), 6000)
+    } catch (e) {
+      setInviteMsg({ text: e instanceof Error ? e.message : 'Network error', ok: false })
+    } finally {
+      setInviting(false)
+    }
+  }
+
   const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-pink-400 bg-white'
-  const lbl = 'block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5'
 
   return (
     <div className="space-y-6">
+
+      <SectionHelp variant="tip" title="How this works">
+        Edit her public profile here. To let her write her own posts, set her
+        email below and click <strong>Send Login Link</strong>. She&apos;ll receive a
+        magic link that opens her private blogger portal — no password needed.
+      </SectionHelp>
 
       {/* Sticky save bar */}
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
@@ -118,14 +147,18 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         <h2 className="text-sm font-bold text-gray-900">Identity</h2>
 
         <div>
-          <label className={lbl}>Display name</label>
+          <FieldLabel hint="Her full name as it should appear on the byline and in the Meet the Moms grid.">
+            Display name
+          </FieldLabel>
           <input className={inp} value={form.display_name} onChange={e => set('display_name', e.target.value)} placeholder="e.g. Hayley Denny" />
         </div>
 
         <div>
-          <label className={lbl}>Tagline</label>
+          <FieldLabel hint='One short line introducing her. Think "elevator pitch" — who she is and what she writes about.'>
+            Tagline
+          </FieldLabel>
           <input className={inp} value={form.tagline} onChange={e => set('tagline', e.target.value)} placeholder="One short line — e.g. Working mom of 2, marathon walker, Prattville native." />
-          <p className="text-[11px] text-gray-400 mt-1">Shown under her name on the profile + in Meet the Moms cards.</p>
+          <FieldHint className="mt-1">Shown under her name on the profile + in Meet the Moms cards.</FieldHint>
         </div>
 
         <label className="flex items-center gap-2 text-sm pt-1">
@@ -138,13 +171,76 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         </p>
       </section>
 
+      {/* ── Blogger Portal Access ─────────────────────────────────────────── */}
+      <section className="rounded-xl border border-pink-200 bg-pink-50/40 p-5 space-y-3">
+        <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <Key size={14} className="text-pink-600" />
+          Blogger Portal Access
+        </h2>
+        <FieldHint className="-mt-1">
+          Save the email first, then click <strong>Send Login Link</strong> below. Her link arrives in seconds and signs her in without a password.
+        </FieldHint>
+
+        <div>
+          <FieldLabel hint="Email she'll use to log in. Must match exactly — typos break the magic link. She'll receive an email from Supabase Auth with a one-click sign-in.">
+            Login email
+          </FieldLabel>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="email"
+                className={`${inp} pl-9`}
+                value={form.email}
+                onChange={e => set('email', e.target.value)}
+                placeholder="hayley@example.com"
+              />
+            </div>
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap ${
+                form.has_login
+                  ? 'bg-green-100 text-green-700'
+                  : form.email
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-gray-100 text-gray-500'
+              }`}
+            >
+              {form.has_login ? 'Active login' : form.email ? 'Not yet invited' : 'No login'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-pink-200/60">
+          <div className="min-w-0 flex-1">
+            {inviteMsg && (
+              <span className={`text-xs font-semibold inline-flex items-center gap-1 ${inviteMsg.ok ? 'text-green-700' : 'text-red-700'}`}>
+                {inviteMsg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
+                {inviteMsg.text}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={sendInvite}
+            disabled={inviting || !form.email || !initial.email}
+            title={!initial.email ? 'Save the email first, then send the login link.' : ''}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-pink-300 text-pink-700 rounded-lg hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {inviting ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
+            {inviting ? 'Sending…' : 'Send Login Link'}
+          </button>
+        </div>
+      </section>
+
       {/* ── Photos ────────────────────────────────────────────────────────── */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
         <h2 className="text-sm font-bold text-gray-900">Photos</h2>
 
         <div>
-          <label className={lbl}>Profile portrait</label>
-          <p className="text-[11px] text-gray-400 mb-2">Square photo of her. Used in Meet the Moms cards, the post sidebar, and the profile page header.</p>
+          <FieldLabel hint="Square crop works best. This is the small face shot that runs everywhere — bylines, post sidebars, the Meet the Moms grid.">
+            Profile portrait
+          </FieldLabel>
+          <FieldHint className="mb-2">Used in Meet the Moms cards, the post sidebar, and the profile page header.</FieldHint>
           <HeroImageUpload
             value={form.profile_image_url}
             onChange={url => set('profile_image_url', url)}
@@ -153,8 +249,10 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         </div>
 
         <div className="pt-3 border-t border-gray-100">
-          <label className={lbl}>Family photo</label>
-          <p className="text-[11px] text-gray-400 mb-2">Wider photo of her with family. Used as the hero background on her profile page.</p>
+          <FieldLabel hint="Optional. Wider photo with her family. Used only as the hero background on her profile page — if empty, we fall back to the profile portrait above.">
+            Family photo
+          </FieldLabel>
+          <FieldHint className="mb-2">Hero background on her profile page.</FieldHint>
           <HeroImageUpload
             value={form.family_image_url}
             onChange={url => set('family_image_url', url)}
