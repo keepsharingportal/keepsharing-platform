@@ -7,10 +7,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Navigation } from '@/components/Navigation'
-import { PublicFooter } from '@/components/PublicFooter'
 import { ArrowLeft, ArrowRight, MapPin, Users, GraduationCap, Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
+
+// Navigation + PublicFooter come from /family-resource-guide/layout.tsx.
 
 export const revalidate = 600
 
@@ -69,9 +69,7 @@ export default async function TownPage({ params }: Props) {
   const siblingTowns = (siblings ?? []) as Array<{ slug: string; name: string; vibe_one_line: string | null; hero_image_url: string | null }>
 
   return (
-    <div className="min-h-screen bg-background public-page">
-      <Navigation />
-
+    <>
       {/* ── Hero ── */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">
@@ -231,8 +229,6 @@ export default async function TownPage({ params }: Props) {
           </section>
         )}
       </main>
-
-      <PublicFooter />
-    </div>
+    </>
   )
 }

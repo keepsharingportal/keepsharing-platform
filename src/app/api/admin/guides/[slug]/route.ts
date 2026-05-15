@@ -50,17 +50,21 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: str
   const supabase = supabaseAdmin()
 
   // ── 1. Resolve the guide ─────────────────────────────────────────────────
+  // Accept either the internal slug ('newcomer') or the public url_slug
+  // ('family-resource-guide'). The page editor passes whichever URL the
+  // admin typed; we resolve once and write using the canonical .slug.
   const { data: guide } = await supabase
     .from('guide_types')
     .select('slug, url_slug, display_name')
-    .eq('slug', slug)
+    .or(`slug.eq.${slug},url_slug.eq.${slug}`)
     .maybeSingle()
 
   if (!guide) return NextResponse.json({ error: 'Guide not found' }, { status: 404 })
+  const canonicalSlug = guide.slug as string
 
   // ── 2. Patch guide_types ─────────────────────────────────────────────────
   if (Object.keys(typeUpdates).length > 0) {
-    const { error } = await supabase.from('guide_types').update(typeUpdates).eq('slug', slug)
+    const { error } = await supabase.from('guide_types').update(typeUpdates).eq('slug', canonicalSlug)
     if (error) {
       console.error('[admin/guides] guide_types update error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -74,7 +78,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: str
       .from('guide_configs')
       .upsert(
         {
-          guide_type_slug: slug,
+          guide_type_slug: canonicalSlug,
           title:           (typeUpdates.display_name as string | undefined) ?? guide.display_name,
           ...configUpdates,
           updated_at:      new Date().toISOString(),

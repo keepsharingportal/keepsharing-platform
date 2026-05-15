@@ -25,19 +25,25 @@ export default async function GuideEditPage({ params }: Props) {
   const supabase = createAdminClient()
 
   // ── Guide identity + editorial fields ─────────────────────────────────────
+  // Look up by EITHER slug or url_slug so admins can use the friendly
+  // public URL (e.g. /admin/guides/family-resource-guide/edit) instead of
+  // the legacy internal slug (e.g. .../newcomer/edit). The PATCH route
+  // does the same lookup, so all the writes still resolve correctly.
   const { data: guide } = await supabase
     .from('guide_types')
     .select('slug, url_slug, display_name, short_description, pitch, editorial_intro, hero_image_url, publishes_annually')
-    .eq('slug', slug)
+    .or(`slug.eq.${slug},url_slug.eq.${slug}`)
     .maybeSingle()
 
   if (!guide) notFound()
 
   // ── Config (editable display fields) ──────────────────────────────────────
+  // guide_configs is keyed by the internal guide_types.slug, so use that
+  // regardless of which slug variant the admin typed.
   const { data: config } = await supabase
     .from('guide_configs')
     .select('*')
-    .eq('guide_type_slug', slug)
+    .eq('guide_type_slug', guide.slug)
     .maybeSingle()
 
   // ── Connected articles ────────────────────────────────────────────────────

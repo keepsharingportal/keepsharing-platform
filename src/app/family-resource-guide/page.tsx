@@ -1,10 +1,9 @@
 // /family-resource-guide
 // The distilled essentials for River Region moms. Photo hero → three
-// self-select lanes → towns → best-of → mom knows best → seasons →
-// directory with sidebar. Newcomer-friendly, locally-loved.
+// self-select lanes → best-of → mom knows best → seasons → 5 towns →
+// directory with sidebar. Navigation + PublicFooter are provided by
+// the family-resource-guide layout — don't render them again here.
 
-import { Navigation } from '@/components/Navigation'
-import { PublicFooter } from '@/components/PublicFooter'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react'
@@ -114,6 +113,7 @@ export default async function FamilyResourceGuidePage() {
 
   const [
     { data: guideType },
+    { data: guideConfig },
     { data: guideMeta },
     { data: townsData },
     { data: bestOfData },
@@ -122,10 +122,21 @@ export default async function FamilyResourceGuidePage() {
     { data: listingsRaw },
     { data: sponsorRow },
   ] = await Promise.all([
-    // Hero identity — canonical from guide_types (admin edits here)
+    // Hero identity — canonical from guide_types (admin writes here).
+    // We look up by EITHER slug or url_slug because the legacy internal
+    // slug is 'newcomer' but the public url_slug is 'family-resource-guide'.
     supabase.from('guide_types')
       .select('slug, url_slug, display_name, pitch, hero_image_url, short_description')
-      .eq('url_slug', 'family-resource-guide')
+      .or('slug.eq.family-resource-guide,slug.eq.newcomer,url_slug.eq.family-resource-guide')
+      .maybeSingle(),
+
+    // Secondary hero image source — guide_configs.homepage_image_url is
+    // what the admin "Homepage tile image" field saves to. Used as a
+    // fallback if guide_types.hero_image_url is empty.
+    supabase.from('guide_configs')
+      .select('homepage_image_url, fallback_image_url')
+      .in('guide_type_slug', ['newcomer', 'family-resource-guide'])
+      .limit(1)
       .maybeSingle(),
 
     // Legacy hero copy fallback
@@ -189,7 +200,18 @@ export default async function FamilyResourceGuidePage() {
   ])
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
-  const heroImageUrl = guideType?.hero_image_url || guideMeta?.hero_image_url || null
+  // Hero image fallback chain — every place an admin might have set one:
+  //   1. guide_types.hero_image_url       — the main "Hero image" field
+  //   2. guide_configs.homepage_image_url — admin "Homepage tile image"
+  //   3. guide_configs.fallback_image_url — admin "Fallback image"
+  //   4. guide_meta.hero_image_url        — legacy
+  const heroImageUrl =
+    guideType?.hero_image_url ||
+    guideConfig?.homepage_image_url ||
+    guideConfig?.fallback_image_url ||
+    guideMeta?.hero_image_url ||
+    null
+
   const heroTitle    = guideMeta?.hero_title    || guideType?.display_name      || 'Family Resource Guide'
   const heroSubtitle = guideMeta?.hero_subtitle || guideType?.pitch             ||
     'The distilled essentials. River Region moms — local, new, or just trying to keep up — start here.'
@@ -273,9 +295,7 @@ export default async function FamilyResourceGuidePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background public-page">
-      <Navigation />
-
+    <>
       {/* ── LAYER 1: Hero ── */}
       <FRGHero
         heroImageUrl={heroImageUrl}
@@ -304,19 +324,19 @@ export default async function FamilyResourceGuidePage() {
           sponsor={sponsor}
         />
 
-        {/* ── LAYER 3: The 5 Towns ── */}
-        {towns.length > 0 && <TownsGrid towns={towns} />}
-
-        {/* ── LAYER 4: Best Of editorial ── */}
+        {/* ── Best Of editorial — the high-value content goes first ── */}
         <BestOfFeatureRow articles={bestOf} />
 
-        {/* ── LAYER 5: Mom Knows Best cross-pollination ── */}
+        {/* ── Mom Knows Best cross-pollination ── */}
         {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
 
-        {/* ── LAYER 6: Year-round events ── */}
+        {/* ── Year-round events — seasonal rhythm of family life ── */}
         <YearRoundEvents />
 
-        {/* ── LAYER 7: Directory with sidebar ── */}
+        {/* ── The 5 Towns — orientation content, lower in the page ── */}
+        {towns.length > 0 && <TownsGrid towns={towns} />}
+
+        {/* ── Directory with sidebar ── */}
         <section id="directory" className="scroll-mt-24">
           <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
             <div>
@@ -457,8 +477,6 @@ export default async function FamilyResourceGuidePage() {
           </Link>
         </section>
       </main>
-
-      <PublicFooter />
-    </div>
+    </>
   )
 }

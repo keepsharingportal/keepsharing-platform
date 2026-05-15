@@ -17,8 +17,6 @@ interface Props {
   bestOfCount:   number
 }
 
-const FALLBACK_HERO = 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1600&q=80&auto=format&fit=crop'
-
 export function FRGHero({
   heroImageUrl,
   eyebrow = 'OFFICIAL RIVER REGION GUIDE',
@@ -28,20 +26,27 @@ export function FRGHero({
   townsCount,
   bestOfCount,
 }: Props) {
-  const src = heroImageUrl || FALLBACK_HERO
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0">
-        <Image
-          src={src}
-          alt={title}
-          fill
-          sizes="100vw"
-          style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
-          priority
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-black/40" />
+        {heroImageUrl ? (
+          <>
+            <Image
+              src={heroImageUrl}
+              alt={title}
+              fill
+              sizes="100vw"
+              style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
+              priority
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/72 via-black/55 to-black/40" />
+          </>
+        ) : (
+          // No hero set yet — render the site's brand gradient instead of
+          // a generic stock photo that doesn't match the theme.
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/85 to-secondary/80" />
+        )}
       </div>
 
       <div className="relative container py-16 md:py-24">
