@@ -1,0 +1,224 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Save, RefreshCw, CheckCircle2, AlertCircle, ExternalLink, Crown } from 'lucide-react'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+
+interface InitialState {
+  display_name:       string
+  subtitle:           string
+  description:        string
+  hero_image_url:     string
+  homepage_image_url: string
+  brand_color:        string
+  primary_cta_label:  string
+  primary_cta_url:    string
+  sponsor_label:      string
+  is_active:          boolean
+}
+
+interface Props {
+  slug:                string
+  publicPath:          string
+  sponsorBusinessName: string | null
+  initial:             InitialState
+}
+
+export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, initial }: Props) {
+  const router = useRouter()
+  const [form, setForm]     = useState<InitialState>(initial)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg]       = useState<{ text: string; ok: boolean } | null>(null)
+
+  function set<K extends keyof InitialState>(k: K, v: InitialState[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+
+  async function save() {
+    setSaving(true)
+    setMsg(null)
+    try {
+      const res  = await fetch(`/api/admin/verticals/${slug}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(form),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setMsg({ text: json?.error ?? `Save failed (${res.status})`, ok: false }); return }
+      setMsg({ text: 'Saved. Public page refreshed.', ok: true })
+      router.refresh()
+      setTimeout(() => setMsg(null), 4000)
+    } catch (e) {
+      setMsg({ text: e instanceof Error ? e.message : 'Network error', ok: false })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
+  const lbl = 'block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5'
+
+  return (
+    <div className="space-y-6">
+
+      {/* Sticky save bar */}
+      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {msg && (
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
+              {msg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
+              {msg.text}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+      </div>
+
+      {/* ── Identity ──────────────────────────────────────────────────────── */}
+      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-gray-900">Identity</h2>
+
+        <div>
+          <label className={lbl}>Display name</label>
+          <input className={inp} value={form.display_name} onChange={e => set('display_name', e.target.value)} placeholder="e.g. School Zone" />
+        </div>
+
+        <div>
+          <label className={lbl}>Subtitle / tagline</label>
+          <textarea rows={2} className={`${inp} resize-y`} value={form.subtitle} onChange={e => set('subtitle', e.target.value)} placeholder="Short line shown under the page title." />
+        </div>
+
+        <div>
+          <label className={lbl}>Long description (optional)</label>
+          <textarea rows={5} className={`${inp} resize-y`} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Used in About-this-vertical sidebar widgets and meta descriptions." />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm pt-1">
+          <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="rounded" />
+          Active (shows on public site)
+        </label>
+
+        <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+          Public landing: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
+        </p>
+      </section>
+
+      {/* ── Images ────────────────────────────────────────────────────────── */}
+      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
+        <h2 className="text-sm font-bold text-gray-900">Images</h2>
+
+        <div>
+          <label className={lbl}>Hero image — top of public page</label>
+          <p className="text-[11px] text-gray-400 mb-2">Wide photo. Used as the background behind the title with a dark overlay.</p>
+          <HeroImageUpload
+            value={form.hero_image_url}
+            onChange={url => set('hero_image_url', url)}
+            context="asset"
+          />
+        </div>
+
+        <div className="pt-3 border-t border-gray-100">
+          <label className={lbl}>Homepage tile image (optional)</label>
+          <p className="text-[11px] text-gray-400 mb-2">Override for the homepage Featured Categories tile. If empty, the hero image is used.</p>
+          <HeroImageUpload
+            value={form.homepage_image_url}
+            onChange={url => set('homepage_image_url', url)}
+            context="asset"
+          />
+        </div>
+      </section>
+
+      {/* ── Sponsor ───────────────────────────────────────────────────────── */}
+      <section className="rounded-xl border border-amber-200 bg-amber-50/40 p-5 space-y-3">
+        <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <Crown size={14} className="text-amber-600" />
+          Section Sponsor
+        </h2>
+
+        {sponsorBusinessName ? (
+          <div className="rounded-lg bg-white border border-amber-200 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-amber-700 mb-1">Currently Sponsored</p>
+            <p className="text-sm font-bold text-gray-900">{sponsorBusinessName}</p>
+            <p className="text-[11px] text-gray-500 mt-1">
+              Manage placement details at <a href="/admin/advertisers/sponsor-inventory" className="text-blue-600 hover:underline">Sponsor Inventory</a>.
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg bg-white border border-amber-200 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-amber-700 mb-1">Available</p>
+            <p className="text-sm text-gray-700">
+              No sponsor on this vertical right now. The public page shows the &quot;Sponsor This Section Available&quot; CTA.
+            </p>
+            <Link
+              href="/admin/advertisers/sponsor-inventory"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline mt-2"
+            >
+              Add a sponsor placement →
+            </Link>
+          </div>
+        )}
+
+        <div className="pt-2 border-t border-amber-200/60">
+          <label className={lbl}>Sponsor label</label>
+          <p className="text-[11px] text-gray-500 mb-2">Text shown above the sponsor name on the public page.</p>
+          <input
+            className={inp}
+            value={form.sponsor_label}
+            onChange={e => set('sponsor_label', e.target.value)}
+            placeholder="Proudly Presented By"
+          />
+        </div>
+      </section>
+
+      {/* ── Primary CTA ───────────────────────────────────────────────────── */}
+      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-gray-900">Primary CTA</h2>
+        <p className="text-[11px] text-gray-400 -mt-2">Optional CTA in the hero area. Skip if not needed.</p>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>CTA label</label>
+            <input className={inp} value={form.primary_cta_label} onChange={e => set('primary_cta_label', e.target.value)} placeholder="e.g. Nominate Someone, Meet the Moms" />
+          </div>
+          <div>
+            <label className={lbl}>CTA URL</label>
+            <input
+              type="url"
+              className={inp}
+              value={form.primary_cta_url}
+              onChange={e => set('primary_cta_url', e.target.value)}
+              placeholder={publicPath}
+            />
+            {form.primary_cta_url && (
+              <a href={form.primary_cta_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1.5">
+                <ExternalLink size={11} /> Test link
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Theming (optional) ────────────────────────────────────────────── */}
+      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+        <h2 className="text-sm font-bold text-gray-900">Brand Accent (optional)</h2>
+        <p className="text-[11px] text-gray-400 -mt-1">Used for accent borders + badges in future updates. Hex format (e.g. <code className="px-1 bg-gray-100 rounded">#d4a843</code>).</p>
+        <input
+          className={`${inp} max-w-[200px]`}
+          value={form.brand_color}
+          onChange={e => set('brand_color', e.target.value)}
+          placeholder="#d4a843"
+        />
+      </section>
+
+    </div>
+  )
+}

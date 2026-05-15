@@ -62,7 +62,6 @@ const NAV: NavItem[] = [
   },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
   { name: 'School Zone',       href: '/admin/school-news', icon: GraduationCap },
-  { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },
   { name: 'Community Content', href: '/admin/community',   icon: Heart         },
 
   // ── PRODUCTION (orchestration between content and channels) ─────────────
@@ -81,6 +80,11 @@ const NAV: NavItem[] = [
   { name: 'Guide Sponsors',    href: '/admin/advertisers/sponsor-inventory?type=guide', icon: Crown     },
   { name: 'Guide Imports',     href: '/admin/content/guide-listings-import',            icon: Upload    },
   { name: 'Outreach Tracker',  href: '/admin/guides/outreach',                          icon: RefreshCw },
+
+  // ── VERTICALS — year-round content homes (School Zone, Mom Knows Best, etc.) ─
+  { section: 'VERTICALS' },
+  { name: 'Vertical Editor',   href: '/admin/verticals',                                icon: LayoutGrid  },
+  { name: 'Bloggers',          href: '/admin/bloggers',                                 icon: Users       },
 
   // ── DISTRIBUTION (output channels — content ready to place) ─────────────
   { section: 'DISTRIBUTION' },

@@ -9,6 +9,7 @@ import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { PageHeader } from '@/components/theme'
 import { ArticleCard } from '@/components/theme/ArticleCard'
+import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
 import { ArrowRight, Users } from 'lucide-react'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import type { Metadata } from 'next'
@@ -53,7 +54,12 @@ interface Post {
 export default async function MomKnowsBestPage() {
   const supabase = getSupabase()
 
-  const [{ data: bloggers }, { data: posts }] = await Promise.all([
+  const [
+    { data: bloggers },
+    { data: posts },
+    { data: verticalRow },
+    { data: sponsorRow },
+  ] = await Promise.all([
     supabase.from('bloggers')
       .select('id, slug, display_name, tagline, profile_image_url, bio')
       .eq('is_active', true)
@@ -65,18 +71,55 @@ export default async function MomKnowsBestPage() {
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(9),
+    supabase.from('verticals')
+      .select('display_name, subtitle, hero_image_url, sponsor_label')
+      .eq('slug', 'mom-knows-best')
+      .eq('is_active', true)
+      .maybeSingle(),
+    supabase.from('ad_placements')
+      .select('ad_headline, advertiser:advertiser_accounts(business_name, slug)')
+      .eq('placement_type', 'section_sponsor')
+      .eq('is_active', true)
+      .ilike('placement_context', '%mom-knows-best%')
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const bloggersById: Record<string, Blogger> = {}
   for (const b of (bloggers ?? []) as Blogger[]) bloggersById[b.id] = b
+
+  const vertical = verticalRow as {
+    display_name:   string | null
+    subtitle:       string | null
+    hero_image_url: string | null
+    sponsor_label:  string | null
+  } | null
+
+  const sponsorAd = sponsorRow as {
+    ad_headline: string | null
+    advertiser:  { business_name?: string | null; slug?: string | null } | null
+  } | null
+  const sponsor = sponsorAd?.advertiser?.business_name
+    ? {
+        businessName: sponsorAd.advertiser.business_name,
+        slug:         sponsorAd.advertiser.slug ?? null,
+        headline:     sponsorAd.ad_headline ?? null,
+      }
+    : null
+
+  const heroTitle    = vertical?.display_name  || 'Mom Knows Best'
+  const heroSubtitle = vertical?.subtitle      || 'Real River Region moms writing about real River Region life — favorite spots, hard-won lessons, family routines, and the chaos in between.'
+  const heroImage    = vertical?.hero_image_url || null
+  const sponsorLabel = vertical?.sponsor_label || 'Proudly Presented By'
 
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
       <PageHeader
-        title="Mom Knows Best"
-        subtitle="Real River Region moms writing about real River Region life — favorite spots, hard-won lessons, family routines, and the chaos in between."
+        title={heroTitle}
+        subtitle={heroSubtitle}
+        heroImageUrl={heroImage}
         badge={{ text: 'The Blog Network', variant: 'default' }}
         variant="primary"
         size="lg"
@@ -90,6 +133,13 @@ export default async function MomKnowsBestPage() {
       </PageHeader>
 
       <main className="container py-10 lg:py-14 space-y-14">
+
+        {/* ── Section sponsor banner ───────────────────────────────────────── */}
+        <VerticalSponsorBanner
+          verticalName={heroTitle}
+          sponsorLabel={sponsorLabel}
+          sponsor={sponsor}
+        />
 
         {/* ── Meet the Moms ─────────────────────────────────────────────────── */}
         <section>

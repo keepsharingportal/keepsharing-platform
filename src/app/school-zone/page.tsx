@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
+import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
 import { getFallback } from '@/lib/image-fallbacks'
 import {
   GraduationCap, ArrowRight, Star, BookOpen, Heart,
@@ -127,9 +128,24 @@ export default async function SchoolZonePage() {
   const supabase = getSupabase()
 
   const [
+    verticalRes, sponsorRes,
     latestBitsRes, teacherRes, studentRes, educationMattersRes,
     montRes, autaugaRes, pikeRes, privateRes,
   ] = await Promise.all([
+    supabase.from('verticals')
+      .select('display_name, subtitle, hero_image_url, primary_cta_label, primary_cta_url, sponsor_label')
+      .eq('slug', 'school-zone')
+      .eq('is_active', true)
+      .maybeSingle(),
+
+    supabase.from('ad_placements')
+      .select('ad_headline, advertiser:advertiser_accounts(business_name, slug)')
+      .eq('placement_type', 'section_sponsor')
+      .eq('is_active', true)
+      .ilike('placement_context', '%school-zone%')
+      .limit(1)
+      .maybeSingle(),
+
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, published_at, editorial_notes')
       .eq('column_slug', 'school-bits').eq('published', true)
@@ -182,6 +198,32 @@ export default async function SchoolZonePage() {
     'private-schools':    privateRes.count ?? 0,
   }
 
+  const vertical = verticalRes.data as {
+    display_name:      string | null
+    subtitle:          string | null
+    hero_image_url:    string | null
+    primary_cta_label: string | null
+    primary_cta_url:   string | null
+    sponsor_label:     string | null
+  } | null
+
+  const sponsorRow = sponsorRes.data as {
+    ad_headline: string | null
+    advertiser:  { business_name?: string | null; slug?: string | null } | null
+  } | null
+  const sponsor = sponsorRow?.advertiser?.business_name
+    ? {
+        businessName: sponsorRow.advertiser.business_name,
+        slug:         sponsorRow.advertiser.slug ?? null,
+        headline:     sponsorRow.ad_headline ?? null,
+      }
+    : null
+
+  const heroImage    = vertical?.hero_image_url    || HERO_BG
+  const heroTitle    = vertical?.display_name      || 'The School Zone'
+  const heroSubtitle = vertical?.subtitle          || 'Celebrating student achievements, sharing district news, and keeping you connected to education across the River Region.'
+  const sponsorLabel = vertical?.sponsor_label     || 'Proudly Presented By'
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -190,7 +232,7 @@ export default async function SchoolZonePage() {
       <div className="relative overflow-hidden">
         {/* Background photo */}
         <div className="absolute inset-0">
-          <Image src={HERO_BG} alt="School Zone" fill style={{ objectFit: 'cover', objectPosition: 'center 30%' }} sizes="100vw" priority unoptimized />
+          <Image src={heroImage} alt={heroTitle} fill style={{ objectFit: 'cover', objectPosition: 'center 30%' }} sizes="100vw" priority unoptimized />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/88 via-primary/75 to-primary/60" />
         </div>
 
@@ -209,10 +251,10 @@ export default async function SchoolZonePage() {
               )}
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-3">
-              The School Zone
+              {heroTitle}
             </h1>
             <p className="text-base md:text-lg text-white/85 leading-relaxed max-w-xl mb-7">
-              Celebrating student achievements, sharing district news, and keeping you connected to education across the River Region.
+              {heroSubtitle}
             </p>
             <div className="flex flex-wrap gap-2.5">
               <Link href="/calendar/submit" className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-primary rounded-full text-sm font-bold hover:bg-white/90 transition-colors shadow-sm">
@@ -511,22 +553,14 @@ export default async function SchoolZonePage() {
 
       </main>
 
-      {/* ── Sponsor slot ── */}
+      {/* ── Section sponsor banner ── */}
       <div className="border-t border-border/40 bg-muted/20 py-6">
-        <div className="container text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Education Partner</p>
-          <div className="inline-flex items-center gap-3 px-6 py-3 border border-border rounded-2xl bg-card">
-            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">Sponsor this section</p>
-              <p className="text-xs text-muted-foreground">Reach River Region families who care about education.</p>
-            </div>
-            <Link href="/advertise" className="shrink-0 px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-full hover:bg-primary/90 transition-colors">
-              Learn More
-            </Link>
-          </div>
+        <div className="container">
+          <VerticalSponsorBanner
+            verticalName={heroTitle}
+            sponsorLabel={sponsorLabel}
+            sponsor={sponsor}
+          />
         </div>
       </div>
 
