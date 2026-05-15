@@ -17,6 +17,7 @@ import {
   Share2, Heart, MessageCircle, Star, ArrowLeft,
 } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 import type { Metadata } from 'next'
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -226,7 +227,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
             style={{ objectFit: 'cover' }}
             sizes="100vw"
             priority
-            unoptimized
+            unoptimized={shouldSkipNextOptimizer(heroImg)}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
@@ -423,7 +424,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         fill
                         style={{ objectFit: 'cover' }}
                         sizes="(max-width: 640px) 50vw, 25vw"
-                        unoptimized
+                        unoptimized={shouldSkipNextOptimizer(src!)}
                         className="group-hover:scale-105 transition-transform duration-700"
                       />
                     </div>
@@ -455,7 +456,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                             fill
                             style={{ objectFit: 'cover' }}
                             sizes="(max-width: 640px) 100vw, 50vw"
-                            unoptimized
+                            unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
                             className="group-hover:scale-105 transition-transform duration-500"
                           />
                           {article.column_slug && (

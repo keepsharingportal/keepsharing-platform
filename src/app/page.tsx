@@ -12,6 +12,7 @@ import {
   ArrowRight, Users, Briefcase, Map, MessageCircle,
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel } from '@/lib/content-taxonomy'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
@@ -279,7 +280,7 @@ export default async function HomePage() {
                   alt={mainFeature.title}
                   fill
                   style={{ objectFit: 'cover' }}
-                  unoptimized
+                  unoptimized={shouldSkipNextOptimizer(mainFeature.hero_image_url)}
                   sizes="900px"
                   priority
                   className="group-hover:scale-105 transition-transform duration-700"
@@ -325,7 +326,7 @@ export default async function HomePage() {
                 alt={featuredGuide?.display_name ?? 'Featured Guide'}
                 fill
                 style={{ objectFit: 'cover' }}
-                unoptimized
+                unoptimized={shouldSkipNextOptimizer(featuredGuide?.hero_image_url)}
                 sizes="400px"
                 className="group-hover:scale-105 transition-transform duration-700"
               />
@@ -800,7 +801,7 @@ export default async function HomePage() {
                                   fill
                                   style={{ objectFit: 'cover' }}
                                   sizes="56px"
-                                  unoptimized
+                                  unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
                                 />
                               </div>
                             )}

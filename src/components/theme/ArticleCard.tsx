@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 import { ArrowRight } from 'lucide-react'
 
 interface ArticleData {
@@ -83,7 +84,7 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
       <Link href={url} className="group flex gap-3 items-start">
         <div className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-muted">
           <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
-            className="group-hover:scale-105 transition-transform duration-500" sizes="80px" unoptimized />
+            className="group-hover:scale-105 transition-transform duration-500" sizes="80px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
@@ -106,7 +107,7 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
           style={{ objectFit: 'cover', objectPosition: 'center top' }}
           className="group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, 33vw"
-          unoptimized
+          unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
         />
         {/* Category badge */}
         <div className="absolute top-3 left-3">

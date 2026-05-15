@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { ReactNode } from 'react'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 
 type Variant = 'cream' | 'primary' | 'accent'
 
@@ -72,7 +73,7 @@ export function PageHeader({
             fill
             sizes="100vw"
             priority
-            unoptimized
+            unoptimized={shouldSkipNextOptimizer(heroImageUrl)}
             style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
           <div className="absolute inset-0 bg-black/30" aria-hidden />

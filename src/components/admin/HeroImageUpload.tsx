@@ -10,8 +10,8 @@
 //     onChange={url => setField('hero_image_url', url)}
 //   />
 
-import { useRef, useState } from 'react'
-import { Upload, X, AlertTriangle, RefreshCw, ImageIcon } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { Upload, X, AlertTriangle, RefreshCw, ImageIcon, CheckCircle2 } from 'lucide-react'
 
 interface Props {
   value:    string
@@ -20,10 +20,26 @@ interface Props {
   context?: 'article' | 'listing' | 'asset'
 }
 
+function isSupabaseUrl(url: string): boolean {
+  try { return /supabase\.(co|in)/.test(new URL(url).hostname) }
+  catch { return false }
+}
+
 export function HeroImageUpload({ value, onChange, context = 'article' }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError]         = useState<string | null>(null)
+  // Local edit buffer for the URL field. We don't fire onChange or
+  // optimize until the user blurs, so they can paste freely without us
+  // hitting the network on every keystroke.
+  const [urlDraft, setUrlDraft] = useState(value)
+  const [optimizing, setOptimizing] = useState(false)
+  const [optimized, setOptimized]   = useState(false)
+
+  // Keep the URL field in sync when value changes from outside (e.g. after
+  // a file upload via the picker, or when the parent form loads initial data
+  // asynchronously).
+  useEffect(() => { setUrlDraft(value) }, [value])
 
   async function handleFile(file: File) {
     setError(null)
@@ -61,8 +77,52 @@ export function HeroImageUpload({ value, onChange, context = 'article' }: Props)
 
   function clear() {
     onChange('')
+    setUrlDraft('')
     setError(null)
+    setOptimized(false)
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  // Send a pasted URL through /api/admin/upload for Sharp-reprocessing. Runs
+  // on blur of the URL input — the user pastes, we wait until they leave the
+  // field, then optimize. URLs already on Supabase Storage skip the round
+  // trip server-side.
+  async function handleUrlBlur() {
+    const u = urlDraft.trim()
+    setError(null)
+    setOptimized(false)
+    if (!u || u === value) return                  // no change
+    if (!/^https?:\/\//i.test(u)) {                // not a URL — accept as-is
+      onChange(u)
+      return
+    }
+    if (isSupabaseUrl(u)) {                        // already optimized
+      onChange(u)
+      setOptimized(true)
+      return
+    }
+    setOptimizing(true)
+    try {
+      const res  = await fetch('/api/admin/upload', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ url: u, context }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json?.url) {
+        setError(json?.error ?? 'Optimization failed — saving original URL.')
+        onChange(u)                                // fall back to raw URL
+        return
+      }
+      onChange(json.url)
+      setUrlDraft(json.url)
+      setOptimized(true)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Optimization failed.')
+      onChange(u)                                  // fall back
+    } finally {
+      setOptimizing(false)
+    }
   }
 
   return (
@@ -129,16 +189,34 @@ export function HeroImageUpload({ value, onChange, context = 'article' }: Props)
         </div>
       )}
 
-      {/* Paste-URL fallback — always available */}
+      {/* Paste-URL fallback — pasted URLs are auto-optimized on blur.
+          External URLs get downloaded, Sharp-resized to 1600px, encoded as
+          WebP, and stored on Supabase. Supabase URLs are accepted as-is. */}
       <div>
         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Or paste a URL</label>
-        <input
-          type="url"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="https://..."
-          className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white"
-        />
+        <div className="relative">
+          <input
+            type="url"
+            value={urlDraft}
+            onChange={e => { setUrlDraft(e.target.value); setOptimized(false) }}
+            onBlur={handleUrlBlur}
+            disabled={optimizing}
+            placeholder="https://..."
+            className="w-full px-3 py-2 pr-9 text-xs rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white disabled:opacity-60"
+          />
+          {optimizing && (
+            <RefreshCw size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />
+          )}
+          {!optimizing && optimized && (
+            <CheckCircle2 size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500" />
+          )}
+        </div>
+        {optimizing && (
+          <p className="text-[10px] text-blue-600 mt-1">Optimizing URL on server…</p>
+        )}
+        {optimized && !optimizing && (
+          <p className="text-[10px] text-green-700 mt-1">Optimized + saved to Supabase Storage.</p>
+        )}
       </div>
 
       {error && (

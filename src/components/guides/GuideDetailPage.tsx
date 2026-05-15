@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, BookOpen, Filter, Building2, ArrowRight, Crown, CalendarDays, Megaphone } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import type { Metadata } from 'next'
 
@@ -308,7 +309,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                     return (
                       <Link key={a.id} href={href} className="group rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col">
                         <div className="relative aspect-video bg-muted">
-                          <Image src={img} alt={a.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 640px) 100vw, 320px" unoptimized className="group-hover:scale-105 transition-transform duration-500" />
+                          <Image src={img} alt={a.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 640px) 100vw, 320px" unoptimized={shouldSkipNextOptimizer(a.hero_image_url)} className="group-hover:scale-105 transition-transform duration-500" />
                         </div>
                         <div className="p-4 flex flex-col flex-1 gap-2">
                           <h4 className="font-bold text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">{a.title}</h4>
@@ -525,7 +526,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
               <SidebarWidget variant="tinted">
                 {article.hero_image_url && (
                   <div className="aspect-video relative -mx-5 -mt-5 mb-4 overflow-hidden rounded-t-2xl">
-                    <Image src={article.hero_image_url} alt={article.title} fill style={{ objectFit: 'cover' }} sizes="320px" unoptimized />
+                    <Image src={article.hero_image_url} alt={article.title} fill style={{ objectFit: 'cover' }} sizes="320px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-secondary font-bold text-sm mb-3">
