@@ -87,6 +87,27 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: str
     }
   }
 
+  // ── 3b. Mirror hero/title fields into guide_meta ─────────────────────────
+  // The public FRG page (and a couple of other consumers) reads from
+  // guide_meta. Keep it in sync whenever the admin updates these fields,
+  // so editing the hero image actually changes the public page.
+  const guideMetaSlug = (guide.url_slug as string | null) ?? slug
+  const metaUpdates: Record<string, unknown> = {}
+  if ('hero_image_url' in typeUpdates) metaUpdates.hero_image_url  = typeUpdates.hero_image_url
+  if ('display_name'   in typeUpdates) metaUpdates.hero_title      = typeUpdates.display_name
+  if ('pitch'          in typeUpdates) metaUpdates.hero_subtitle   = typeUpdates.pitch
+  if (Object.keys(metaUpdates).length > 0) {
+    const { error: metaErr } = await supabase
+      .from('guide_meta')
+      .update({ ...metaUpdates, updated_at: new Date().toISOString() })
+      .eq('guide_slug', guideMetaSlug)
+    if (metaErr) {
+      // Soft-fail: guide_meta might not have a row for every guide. Log but
+      // don't block the save the admin just clicked.
+      console.error('[admin/guides] guide_meta sync warning:', metaErr.message)
+    }
+  }
+
   // ── 4. Revalidate ────────────────────────────────────────────────────────
   // Public guide pages cache for an hour; refresh now so the editor sees their
   // changes immediately.

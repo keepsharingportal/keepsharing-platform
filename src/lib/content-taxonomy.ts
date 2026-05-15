@@ -36,6 +36,9 @@ export const COLUMNS: ColumnDef[] = [
   { slug: 'ask-the-doctor',          label: 'Ask the Doctor',            vertical: 'health'      },
   // ── Summer ───────────────────────────────────────
   { slug: 'summer-fun',              label: 'Summer Fun',                vertical: 'summer'      },
+  // ── Family Resource Guide ────────────────────────
+  { slug: 'frg-best-of',             label: 'Best of the Region',        vertical: 'guides'      },
+  { slug: 'frg-newcomer',            label: 'Newcomer Stories',          vertical: 'guides'      },
   // ── General ──────────────────────────────────────
   { slug: 'feature',                 label: 'Feature Article',           vertical: 'general'     },
 ]
