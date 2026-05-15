@@ -6,7 +6,15 @@ import Link from 'next/link'
 import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
-import { COLUMNS, GUIDES } from '@/lib/content-taxonomy'
+import { GUIDES, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
+
+const SECTION_GROUPS = columnsByVertical()
+
+const VERTICAL_LABELS: Record<string, string> = {
+  'school-zone':    'School Zone',
+  'mom-knows-best': 'Mom Knows Best',
+}
 
 function slugify(text: string) {
   return text.toLowerCase()
@@ -258,24 +266,69 @@ export default function NewArticlePage() {
             <p className="text-[11px] text-gray-400 mt-2">Square portrait used in the homepage Community Spotlights sidebar. Falls back to hero image when empty.</p>
           </div>
 
+          {/* Where this article appears */}
+          <div className="bg-white rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+            <SectionHelp variant="info" title="Where will this appear?">
+              <strong>Section</strong> = which editorial column it belongs to.{' '}
+              <strong>Guide</strong> = which Guide landing page it shows up on (if any).{' '}
+              <strong>Issue Month</strong> = the print issue (optional).
+            </SectionHelp>
+          </div>
+
           {/* Section / Column */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Section</h3>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              Section
+              <HelpTip text="Pick the editorial column. Sections are grouped by vertical (School Zone, Mom Life, etc.) — choose the one that matches your article." />
+            </h3>
             <select
               className={sel}
               value={form.column_slug}
               onChange={e => handleColumnChange(e.target.value)}
             >
               <option value="">— Choose a section —</option>
-              {COLUMNS.map(c => (
-                <option key={c.slug} value={c.slug}>{c.label}</option>
+              {SECTION_GROUPS.map(group => (
+                <optgroup key={group.vertical.slug} label={group.vertical.label}>
+                  {group.columns.map(c => (
+                    <option key={c.slug} value={c.slug}>{c.label}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
+
+            {(() => {
+              const col = findColumn(form.column_slug)
+              if (!col) {
+                return (
+                  <FieldHint className="mt-2">
+                    Sections are grouped by vertical. The description will tell you exactly
+                    where the article shows up once you pick one.
+                  </FieldHint>
+                )
+              }
+              const v      = columnToVerticalRowSlug(form.column_slug)
+              const vLabel = v ? (VERTICAL_LABELS[v] ?? v) : null
+              return (
+                <div className="mt-2 px-3 py-2 rounded-lg bg-blue-50/60 border border-blue-100 space-y-1">
+                  {col.description && (
+                    <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
+                  )}
+                  {vLabel && (
+                    <p className="text-[11px] text-gray-500">
+                      Surfaces on the <strong className="text-gray-700">{vLabel}</strong> vertical page.
+                    </p>
+                  )}
+                </div>
+              )
+            })()}
           </div>
 
           {/* Guide */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Guide / Resource</h3>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              Guide / Resource
+              <HelpTip text="If this article should appear on a specific Guide's landing page (Family Resource, Summer Fun, etc.), pick it here. Leave as 'Not a guide article' for standalone pieces." />
+            </h3>
             <select
               className={sel}
               value={form.guide_slug}
@@ -286,6 +339,9 @@ export default function NewArticlePage() {
                 <option key={g.slug} value={g.slug}>{g.label}</option>
               ))}
             </select>
+            <FieldHint className="mt-2">
+              Optional — only pick a guide if this article should appear on that guide&apos;s landing page.
+            </FieldHint>
           </div>
 
           {/* Issue month */}
