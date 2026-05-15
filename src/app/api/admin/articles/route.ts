@@ -42,6 +42,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'A article with this slug already exists. Change the URL slug.' }, { status: 409 })
     }
 
+    // author_name has a NOT NULL constraint in the DB. The new-article
+    // form only collects one author field (author_byline), so we fan it
+    // out into both columns. Final 'Staff' fallback means the insert
+    // never fails on this.
+    const resolvedByline = author_byline?.trim() || null
+    const resolvedName   = author_name?.trim() || resolvedByline || 'Staff'
+
     const record = {
       title:                   title.trim(),
       slug:                    slug.trim(),
@@ -50,8 +57,8 @@ export async function POST(req: NextRequest) {
       body:                    articleBody || null,
       hero_image_url:          hero_image_url?.trim() || null,
       profile_image_url:       profile_image_url?.trim() || null,
-      author_byline:           author_byline?.trim() || null,
-      author_name:             author_name?.trim() || null,
+      author_byline:           resolvedByline,
+      author_name:             resolvedName,
       column_slug:             column_slug || null,
       guide_slug:              guide_slug || column_slug || 'family-resource-guide',
       vertical_slug:           columnToVerticalRowSlug(column_slug),

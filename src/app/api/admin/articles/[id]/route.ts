@@ -45,6 +45,15 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       update.vertical_slug = columnToVerticalRowSlug(update.column_slug as string | null)
     }
 
+    // Defensive: author_name has a NOT NULL constraint. If the client
+    // tries to clear it, fall back to whatever they sent for author_byline,
+    // then 'Staff'. Prevents 'null value violates not-null constraint' on
+    // forms that only collect a single author field.
+    if ('author_name' in update && (update.author_name === null || update.author_name === '')) {
+      const byline = (update.author_byline as string | null | undefined) ?? null
+      update.author_name = (typeof byline === 'string' && byline.trim()) ? byline : 'Staff'
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
