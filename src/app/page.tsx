@@ -28,12 +28,6 @@ const CURRENT_ISSUE_LABEL  = 'May 2026 Issue'
 const CURRENT_ISSUE_TAGLINE = 'Summer Fun Issue: 100+ camps, day trips, and adventures'
 const CURRENT_ISSUE_URL    = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
 
-const FEATURED_CATEGORIES = [
-  { title: 'Moms Know Best',        desc: 'Real stories from River Region moms',     href: '/columns/mom-to-mom',     image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=800&q=80&auto=format&fit=crop' },
-  { title: 'School Zone',           desc: 'Student spotlights & school news',        href: '/school-zone',            image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&q=80&auto=format&fit=crop' },
-  { title: 'Family Resource Guide', desc: 'Local services, health & support',        href: '/family-resource-guide',  image: 'https://images.unsplash.com/photo-1581579438747-104c53e7c2e1?w=800&q=80&auto=format&fit=crop' },
-  { title: 'Summer Fun',            desc: 'Camps, splash pads & family adventures',  href: '/summer-fun-guide',       image: 'https://images.unsplash.com/photo-1527090526205-beaac8dc3c62?w=800&q=80&auto=format&fit=crop' },
-]
 
 export const metadata: Metadata = {
   title:       'River Region Parents — Local Family Guides & Events',
@@ -50,7 +44,23 @@ function getSupabase() {
 // Columns that rotate between the homepage hero spot and the Community
 // Spotlights sidebar. One of these four is the big hero each render; the
 // other three fill the sidebar. Latest published article per column wins.
+//
+// DB column_slug has two historical variants for some columns. We accept
+// both at query time and normalize to the canonical key when bucketing,
+// so each logical column shows once in the rotation.
 const ROTATION_COLUMNS = ['mom-to-mom', 'teacher-of-month', 'grands-greatest', 'play-ball'] as const
+const ROTATION_QUERY_SLUGS = [
+  'mom-to-mom',
+  'teacher-of-month', 'teacher-of-the-month',
+  'grands-greatest',  'grands-are-the-greatest',
+  'play-ball',
+]
+function canonicalRotationKey(slug: string | null): string | null {
+  if (!slug) return null
+  if (slug === 'teacher-of-the-month')    return 'teacher-of-month'
+  if (slug === 'grands-are-the-greatest') return 'grands-greatest'
+  return slug
+}
 
 async function getHomepageData() {
   const supabase = getSupabase()
@@ -69,6 +79,7 @@ async function getHomepageData() {
     bottomAdRes,
     momKnowsPostsRes,
     bloggersRes,
+    sectionHeroesRes,
   ] = await Promise.all([
     supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
     // 4-column rotation: latest published article from each rotation column.
@@ -77,7 +88,7 @@ async function getHomepageData() {
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, profile_image_url, excerpt, column_slug, author_name, published_at')
       .eq('published', true)
-      .in('column_slug', ROTATION_COLUMNS as unknown as string[])
+      .in('column_slug', ROTATION_QUERY_SLUGS)
       .order('published_at', { ascending: false, nullsFirst: false }),
     // Featured guide tile (top-right): which guide is featured this month?
     supabase.from('guide_configs')
@@ -97,9 +108,10 @@ async function getHomepageData() {
       .eq('published', true)
       // Exclude every column that already has dedicated homepage real estate:
       //   - 4 rotation columns surface in the hero + Community Spotlights sidebar
+      //     (legacy "-the-" slug variants in DB — include both forms so nothing slips through)
       //   - school-bits has its own School Zone block
       //   - mom-knows-best has its own dedicated sidebar block
-      .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,grands-greatest,play-ball,school-bits,mom-knows-best)')
+      .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best)')
       .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
@@ -136,6 +148,12 @@ async function getHomepageData() {
       .order('display_order', { ascending: true })
       .order('display_name', { ascending: true })
       .limit(8),
+    // Hero images for the 4 Featured Categories tiles below the rotation.
+    // Each tile pulls its photo from the section's actual hero so the homepage
+    // matches what users see when they land on the guide / vertical page.
+    supabase.from('guide_types')
+      .select('slug, hero_image_url')
+      .in('slug', ['newcomer', 'summer-fun']),
   ])
 
   // ── Featured guide tile (top-right) — picked by current-month rule ─────────
@@ -187,10 +205,13 @@ async function getHomepageData() {
   // (lucide-react's Map icon is imported above; use a plain object instead
   // of the global Map constructor to avoid the name shadow at type-check.)
   const allRotation = (rotationRes.data ?? []) as RotationArticle[]
+  // Bucket by canonical column key so "-the-" slug variants don't double
+  // count (latest published wins per logical column).
   const latestByColumn: Record<string, RotationArticle> = {}
   for (const a of allRotation) {
-    if (a.column_slug && !latestByColumn[a.column_slug]) {
-      latestByColumn[a.column_slug] = a
+    const key = canonicalRotationKey(a.column_slug)
+    if (key && !latestByColumn[key]) {
+      latestByColumn[key] = a
     }
   }
   const rotationPool: RotationArticle[] = []
@@ -206,6 +227,51 @@ async function getHomepageData() {
   const mainFeature: RotationArticle | null = rotationPool[0] ?? null
   const spotlights:  RotationArticle[]      = rotationPool.slice(1)
 
+  // ── Featured Categories tile images ──────────────────────────────────────
+  // Each tile pulls its hero from the canonical source for that section.
+  // Mom Knows Best uses the first blogger's family photo (falling back to her
+  // profile photo) so the tile feels like the network it represents.
+  const sectionHeroes: Record<string, string | null> = {}
+  for (const r of sectionHeroesRes.data ?? []) {
+    sectionHeroes[r.slug] = (r.hero_image_url as string | null) ?? null
+  }
+  const firstBlogger = ((bloggersRes.data ?? []) as Array<{
+    family_image_url?: string | null; profile_image_url?: string | null
+  }>)[0]
+
+  const FALLBACK_TILE = 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=800&q=80&auto=format&fit=crop'
+
+  const featuredCategories = [
+    {
+      title: 'Mom Knows Best',
+      desc:  'Real stories from local mom bloggers',
+      href:  '/mom-knows-best',
+      image: firstBlogger?.family_image_url
+          ?? firstBlogger?.profile_image_url
+          ?? FALLBACK_TILE,
+    },
+    {
+      title: 'School Zone',
+      desc:  'Student spotlights & school news',
+      href:  '/school-zone',
+      // No DB-side hero for the school-zone vertical yet — fallback Unsplash
+      // until you add /images/heroes/school-zone-hero.jpg (or wire it through admin).
+      image: '/images/heroes/family-resource-hero.jpg', // closest existing local hero
+    },
+    {
+      title: 'Family Resource Guide',
+      desc:  'Local services, health & support',
+      href:  '/family-resource-guide',
+      image: sectionHeroes['newcomer'] ?? '/images/heroes/family-resource-hero.jpg',
+    },
+    {
+      title: 'Summer Fun',
+      desc:  'Camps, splash pads & family adventures',
+      href:  '/summer-fun-guide',
+      image: sectionHeroes['summer-fun'] ?? '/images/heroes/summer-fun-hero.jpg',
+    },
+  ]
+
   return {
     trending:          trendingRes.data ?? [],
     mainFeature,
@@ -219,6 +285,7 @@ async function getHomepageData() {
     sidebarAd:         sidebarAdRes.data ?? null,
     businessSpotlight: businessSpotlightRes.data ?? null,
     bottomAd:          bottomAdRes.data ?? null,
+    featuredCategories,
   }
 }
 
@@ -234,6 +301,7 @@ export default async function HomePage() {
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
     inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
+    featuredCategories,
   } = await getHomepageData()
 
   const fallbackTrending = [
@@ -374,7 +442,8 @@ export default async function HomePage() {
                 {spotlights.length > 0 ? spotlights.map((sp) => {
                   // Visual variant by column — keeps the colored card styling
                   // we had with community_spotlights, just mapped to columns.
-                  const col = sp.column_slug ?? ''
+                  // Normalize "-the-" slug variants so badge styling matches.
+                  const col = canonicalRotationKey(sp.column_slug) ?? ''
                   const cardBg = col === 'teacher-of-month' ? 'bg-primary/5 border-primary/10 hover:bg-primary/10'
                                : col === 'play-ball'        ? 'bg-secondary/5 border-secondary/10 hover:bg-secondary/10'
                                : col === 'grands-greatest'  ? 'bg-accent/10 border-accent/20 hover:bg-accent/20'
@@ -400,8 +469,10 @@ export default async function HomePage() {
                       : 'person_woman',
                     sp.id,
                   )
-                  // Article URL: school-bits uses /articles, columns use /columns/{col}/{slug}
-                  const href = `/columns/${col}/${sp.slug.replace(new RegExp(`^${col}-`), '')}`
+                  // Article URL — use the raw column slug from DB (the "-the-"
+                  // variants are real routable paths in /columns/[column]).
+                  const rawCol = sp.column_slug ?? col
+                  const href = `/columns/${rawCol}/${sp.slug.replace(new RegExp(`^${rawCol}-`), '')}`
                   return (
                     <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardBg}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -447,7 +518,7 @@ export default async function HomePage() {
 
         {/* Featured Categories — overlay text, magazine-style */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-          {FEATURED_CATEGORIES.map((cat) => (
+          {featuredCategories.map((cat) => (
             <Link href={cat.href} key={cat.title} className="group block">
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm">
                 <Image
