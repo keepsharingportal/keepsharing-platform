@@ -205,7 +205,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
   }
 
   return (
-    <div className="border-b border-gray-200 bg-gray-50 px-3 py-2 rounded-t-lg sticky top-0 z-10">
+    <div className="border-b border-gray-200 bg-gray-50/95 backdrop-blur-sm px-3 py-2 rounded-t-lg sticky top-0 z-20 shadow-sm">
       <div className="flex items-center flex-wrap gap-0.5">
         {/* Block type */}
         <ToolBtn onClick={() => editor.chain().focus().setParagraph().run()} active={editor.isActive('paragraph')} title="Paragraph">
@@ -431,7 +431,11 @@ export function RichArticleEditor({ initialContent, onChange, placeholder = 'Sta
 
   return (
     <>
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+      {/* No overflow-hidden on this wrapper — it breaks the toolbar's
+          sticky positioning inside scroll containers. The toolbar handles
+          its own rounded-top corners, and EditorContent stays within the
+          rounded outer border without needing overflow clipping. */}
+      <div className="border border-gray-200 rounded-lg bg-white">
         <Toolbar editor={editor} onSetHero={onSetHero} />
         <EditorContent editor={editor} />
       </div>
