@@ -134,7 +134,7 @@ export default function ArticleEditPage({ params }: Props) {
 
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
-    body: '', hero_image_url: '', column_slug: '', guide_slug: '',
+    body: '', hero_image_url: '', profile_image_url: '', column_slug: '', guide_slug: '',
     source_issue_month: '',
   })
 
@@ -161,6 +161,7 @@ export default function ArticleEditPage({ params }: Props) {
           excerpt:            data.excerpt         ?? '',
           body:               data.body            ?? '',
           hero_image_url:     data.hero_image_url  ?? '',
+          profile_image_url:  data.profile_image_url ?? '',
           column_slug:        data.column_slug     ?? '',
           guide_slug:         data.guide_slug      ?? '',
           source_issue_month: data.source_issue_month ?? '',
@@ -217,6 +218,7 @@ export default function ArticleEditPage({ params }: Props) {
       body:                    form.body                      || null,
       body_format:             'html',
       hero_image_url:          form.hero_image_url.trim()     || null,
+      profile_image_url:       form.profile_image_url.trim()  || null,
       column_slug:             form.column_slug               || null,
       guide_slug:              form.guide_slug                || form.column_slug || null,
       editorial_review_status: editStatus,
@@ -494,6 +496,17 @@ export default function ArticleEditPage({ params }: Props) {
                 value={form.hero_image_url}
                 onChange={url => setField('hero_image_url', url)}
               />
+              <p className="text-[11px] text-gray-400 mt-1">Wide format. Used at the top of the article page and when this article is the big homepage feature.</p>
+            </div>
+
+            {/* ── Profile image (small) ── */}
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Profile Image</label>
+              <HeroImageUpload
+                value={form.profile_image_url}
+                onChange={url => setField('profile_image_url', url)}
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Square/portrait of the honoree. Used in the homepage Community Spotlights sidebar. Falls back to the hero image when empty.</p>
             </div>
 
             {/* ── Section (column_slug) ── */}

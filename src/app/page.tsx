@@ -46,16 +46,20 @@ function getSupabase() {
   )
 }
 
+// Columns that rotate between the homepage hero spot and the Community
+// Spotlights sidebar. One of these four is the big hero each render; the
+// other three fill the sidebar. Latest published article per column wins.
+const ROTATION_COLUMNS = ['mom-to-mom', 'teacher-of-month', 'grands-greatest', 'play-ball'] as const
+
 async function getHomepageData() {
   const supabase = getSupabase()
   const today = new Date().toISOString().split('T')[0]
+  const currentMonth = new Date().getMonth() + 1   // 1-12 for featured-guide lookup
 
   const [
     trendingRes,
-    mainFeatureRes,
-    heroFeaturedRes,
-    featuredGuideRes,
-    spotlightsRes,
+    rotationRes,
+    featuredGuideConfigRes,
     eventsRes,
     articlesRes,
     inlineAdRes,
@@ -65,29 +69,23 @@ async function getHomepageData() {
     momColumnsRes,
   ] = await Promise.all([
     supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
-    // Priority 2: recent mom-to-mom article (used if no explicit hero is set)
+    // 4-column rotation: latest published article from each rotation column.
+    // We fetch them with a single IN query (4 rows max per column would be
+    // fine, but 1 each is enough) — done in JS for simplicity.
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, column_slug, author_name')
-      .eq('column_slug', 'mom-to-mom')
+      .select('id, title, slug, hero_image_url, profile_image_url, excerpt, column_slug, author_name, published_at')
       .eq('published', true)
-      .not('hero_image_url', 'is', null)
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(1).maybeSingle(),
-    // Priority 1: explicitly featured article (marked [homepage_hero] in editorial_notes)
-    supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, column_slug, author_name')
-      .eq('published', true)
-      .not('hero_image_url', 'is', null)
-      .ilike('editorial_notes', '%[homepage_hero]%')
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(1).maybeSingle(),
-    supabase.from('guide_types')
-      .select('slug, url_slug, display_name, hero_image_url, pitch')
-      .in('slug', ['summer-fun', 'summer-camp'])
-      .order('slug', { ascending: true })
-      .limit(2),
-    supabase.from('community_spotlights')
-      .select('*').eq('is_active', true).order('display_order').limit(3),
+      .in('column_slug', ROTATION_COLUMNS as unknown as string[])
+      .order('published_at', { ascending: false, nullsFirst: false }),
+    // Featured guide tile (top-right): which guide is featured this month?
+    supabase.from('guide_configs')
+      .select(`
+        guide_type_slug, homepage_image_url, hero_image_url, title, subtitle,
+        primary_cta_label, primary_cta_url, featured_month
+      `)
+      .eq('featured_month', currentMonth)
+      .eq('is_active', true)
+      .maybeSingle(),
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published').gte('start_date', today)
@@ -125,31 +123,80 @@ async function getHomepageData() {
       .limit(4),
   ])
 
-  const guidesData = featuredGuideRes.data ?? []
-  // Prefer summer-camp (uses live guide_listings data) over summer-fun (uses legacy summer_fun_guide table)
-  const featuredGuide = guidesData.find(g => g.slug === 'summer-camp') ?? guidesData[0] ?? null
-
-  // Hero priority: [homepage_hero] tag > mom-to-mom > any recent published article
-  let mainFeature = heroFeaturedRes.data ?? mainFeatureRes.data ?? null
-  if (!mainFeature) {
-    const { data: fallbackFeature } = await supabase
-      .from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, column_slug, author_name')
-      .eq('published', true)
-      .not('hero_image_url', 'is', null)
-      .not('column_slug', 'eq', 'school-bits')
-      .order('created_at', { ascending: false })
-      .limit(1)
+  // ── Featured guide tile (top-right) — picked by current-month rule ─────────
+  // guide_configs.featured_month = today's month → that's the active guide.
+  // If no match (off-season month), fall back to whichever guide is closest by
+  // featured_month so the slot is never empty.
+  let featuredGuide: {
+    slug: string; url_slug: string; display_name: string;
+    hero_image_url: string | null; pitch: string | null;
+  } | null = null
+  const cfg = featuredGuideConfigRes.data
+  if (cfg) {
+    const { data: gt } = await supabase
+      .from('guide_types')
+      .select('slug, url_slug, display_name, hero_image_url, pitch')
+      .eq('slug', cfg.guide_type_slug)
       .maybeSingle()
-    mainFeature = fallbackFeature ?? null
+    if (gt) {
+      featuredGuide = {
+        slug:           gt.slug,
+        url_slug:       gt.url_slug,
+        display_name:   cfg.title ?? gt.display_name,
+        hero_image_url: cfg.homepage_image_url ?? cfg.hero_image_url ?? gt.hero_image_url,
+        pitch:          cfg.subtitle ?? gt.pitch,
+      }
+    }
   }
+  if (!featuredGuide) {
+    // Off-season fallback: any active guide so the tile isn't empty.
+    const { data: anyGuide } = await supabase
+      .from('guide_types')
+      .select('slug, url_slug, display_name, hero_image_url, pitch')
+      .order('display_order', { ascending: true })
+      .limit(1).maybeSingle()
+    featuredGuide = anyGuide
+  }
+
+  // ── Hero + Community Spotlights rotation (4-column shuffle) ───────────────
+  // Latest published article per rotation column. Shuffle and pick:
+  //   shuffled[0] → big hero feature on the homepage
+  //   shuffled[1..3] → sidebar Community Spotlights cards
+  // Each render reshuffles (revalidate=600 means new shuffle ~every 10min
+  // per cache region).
+  type RotationArticle = {
+    id: string; title: string; slug: string;
+    hero_image_url: string | null; profile_image_url: string | null;
+    excerpt: string | null; column_slug: string | null; author_name: string | null
+  }
+  // (lucide-react's Map icon is imported above; use a plain object instead
+  // of the global Map constructor to avoid the name shadow at type-check.)
+  const allRotation = (rotationRes.data ?? []) as RotationArticle[]
+  const latestByColumn: Record<string, RotationArticle> = {}
+  for (const a of allRotation) {
+    if (a.column_slug && !latestByColumn[a.column_slug]) {
+      latestByColumn[a.column_slug] = a
+    }
+  }
+  const rotationPool: RotationArticle[] = []
+  for (const col of ROTATION_COLUMNS) {
+    const article = latestByColumn[col]
+    if (article) rotationPool.push(article)
+  }
+  // Fisher-Yates shuffle
+  for (let i = rotationPool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[rotationPool[i], rotationPool[j]] = [rotationPool[j], rotationPool[i]]
+  }
+  const mainFeature: RotationArticle | null = rotationPool[0] ?? null
+  const spotlights:  RotationArticle[]      = rotationPool.slice(1)
 
   return {
     trending:          trendingRes.data ?? [],
     mainFeature,
     momColumns:        momColumnsRes.data ?? [],
     featuredGuide,
-    spotlights:        spotlightsRes.data ?? [],
+    spotlights,
     events:            eventsRes.data ?? [],
     articles:          articlesRes.data ?? [],
     inlineAd:          inlineAdRes.data ?? null,
@@ -309,48 +356,53 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col gap-4 justify-center flex-1">
                 {spotlights.length > 0 ? spotlights.map((sp) => {
-                  const cardBg = sp.spotlight_type === 'teacher'  ? 'bg-primary/5 border-primary/10 hover:bg-primary/10'
-                               : sp.spotlight_type === 'student'  ? 'bg-secondary/5 border-secondary/10 hover:bg-secondary/10'
-                               : sp.spotlight_type === 'grands'   ? 'bg-accent/10 border-accent/20 hover:bg-accent/20'
+                  // Visual variant by column — keeps the colored card styling
+                  // we had with community_spotlights, just mapped to columns.
+                  const col = sp.column_slug ?? ''
+                  const cardBg = col === 'teacher-of-month' ? 'bg-primary/5 border-primary/10 hover:bg-primary/10'
+                               : col === 'play-ball'        ? 'bg-secondary/5 border-secondary/10 hover:bg-secondary/10'
+                               : col === 'grands-greatest'  ? 'bg-accent/10 border-accent/20 hover:bg-accent/20'
                                : 'bg-primary/5 border-primary/10 hover:bg-primary/10'
-                  const labelClasses = sp.spotlight_type === 'teacher' ? 'text-primary border-primary/30 bg-background/50'
-                                     : sp.spotlight_type === 'student' ? 'text-secondary border-secondary/30 bg-background/50'
-                                     : sp.spotlight_type === 'grands'  ? 'text-foreground border-accent/40 bg-background/50'
+                  const labelClasses = col === 'teacher-of-month' ? 'text-primary border-primary/30 bg-background/50'
+                                     : col === 'play-ball'        ? 'text-secondary border-secondary/30 bg-background/50'
+                                     : col === 'grands-greatest'  ? 'text-foreground border-accent/40 bg-background/50'
                                      : 'text-primary border-primary/30 bg-background/50'
-                  const hoverColor = sp.spotlight_type === 'teacher' ? 'group-hover:text-primary'
-                                   : sp.spotlight_type === 'student' ? 'group-hover:text-secondary'
-                                   : sp.spotlight_type === 'grands'  ? 'group-hover:text-accent-foreground'
+                  const hoverColor = col === 'teacher-of-month' ? 'group-hover:text-primary'
+                                   : col === 'play-ball'        ? 'group-hover:text-secondary'
+                                   : col === 'grands-greatest'  ? 'group-hover:text-accent-foreground'
                                    : 'group-hover:text-primary'
-                  const labelText = sp.spotlight_type === 'teacher'  ? 'Teacher of the Month'
-                                  : sp.spotlight_type === 'student'  ? 'Play Ball'
-                                  : sp.spotlight_type === 'grands'   ? 'Grands are the Greatest'
+                  const labelText = col === 'teacher-of-month' ? 'Teacher of the Month'
+                                  : col === 'play-ball'        ? 'Play Ball'
+                                  : col === 'grands-greatest'  ? 'Grands are the Greatest'
+                                  : col === 'mom-to-mom'       ? 'Mom to Mom'
                                   : 'Community Spotlight'
-                  const avatarSrc = sp.hero_image_url || getFallback(
-                    sp.spotlight_type === 'grands'  ? 'person_grandparent'
-                      : sp.spotlight_type === 'student' ? 'person_kid'
+                  // Sidebar uses the smaller profile image; falls back to the
+                  // hero image, then a deterministic stock photo.
+                  const avatarSrc = sp.profile_image_url || sp.hero_image_url || getFallback(
+                    col === 'grands-greatest'  ? 'person_grandparent'
+                      : col === 'play-ball'    ? 'person_kid'
                       : 'person_woman',
                     sp.id,
                   )
+                  // Article URL: school-bits uses /articles, columns use /columns/{col}/{slug}
+                  const href = `/columns/${col}/${sp.slug.replace(new RegExp(`^${col}-`), '')}`
                   return (
-                    <div key={sp.id} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardBg}`}>
+                    <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardBg}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={avatarSrc}
-                        alt={sp.honoree_name}
+                        alt={sp.title}
                         className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover group-hover:scale-105 transition-transform border-2 md:border-4 border-background shadow-sm shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${labelClasses}`}>
                           {labelText}
                         </Badge>
-                        <h3 className={`font-bold text-lg md:text-2xl leading-tight mb-0.5 text-foreground transition-colors ${hoverColor}`}>
-                          {sp.honoree_name}
+                        <h3 className={`font-bold text-base md:text-lg leading-tight text-foreground transition-colors line-clamp-2 ${hoverColor}`}>
+                          {sp.title}
                         </h3>
-                        {sp.honoree_context && (
-                          <p className="text-sm text-muted-foreground font-medium">{sp.honoree_context}</p>
-                        )}
                       </div>
-                    </div>
+                    </Link>
                   )
                 }) : (
                   <div className="py-3 space-y-2.5">

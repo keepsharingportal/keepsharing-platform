@@ -31,7 +31,8 @@ export default function NewArticlePage() {
     subtitle:       '',
     excerpt:        '',
     body:           '',
-    hero_image_url: '',
+    hero_image_url:    '',
+    profile_image_url: '',
     author_byline:  '',
     column_slug:    '',
     guide_slug:     '',
@@ -244,6 +245,17 @@ export default function NewArticlePage() {
               value={form.hero_image_url}
               onChange={url => setField('hero_image_url', url)}
             />
+            <p className="text-[11px] text-gray-400 mt-2">Wide format. Top of the article + big homepage feature slot.</p>
+          </div>
+
+          {/* Profile image */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Profile Image</h3>
+            <HeroImageUpload
+              value={form.profile_image_url}
+              onChange={url => setField('profile_image_url', url)}
+            />
+            <p className="text-[11px] text-gray-400 mt-2">Square portrait used in the homepage Community Spotlights sidebar. Falls back to hero image when empty.</p>
           </div>
 
           {/* Section / Column */}

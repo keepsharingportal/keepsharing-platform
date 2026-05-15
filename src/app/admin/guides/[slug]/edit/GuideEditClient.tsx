@@ -19,7 +19,13 @@ interface InitialState {
   primary_cta_label:  string
   primary_cta_url:    string
   is_active:          boolean
+  featured_month:     number | null   // 1-12, drives homepage Featured Guide tile
 }
+
+const MONTHS = [
+  '', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
 
 interface Props {
   slug:       string
@@ -116,6 +122,26 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
           <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="rounded" />
           Guide is active (shown on public site)
         </label>
+
+        <div className="pt-3 border-t border-gray-100">
+          <label className={lbl}>Featured in month</label>
+          <p className="text-[11px] text-gray-400 mb-2">
+            When today&apos;s month matches this, this guide takes the homepage&apos;s
+            top-right Featured Guide tile. One guide per month — set the others to
+            different months. Leave as &quot;None&quot; if this guide doesn&apos;t own a
+            specific monthly issue.
+          </p>
+          <select
+            value={form.featured_month ?? ''}
+            onChange={e => set('featured_month', e.target.value ? Number(e.target.value) : null)}
+            className={`${inp} cursor-pointer`}
+          >
+            <option value="">— None —</option>
+            {MONTHS.slice(1).map((name, i) => (
+              <option key={name} value={i + 1}>{name}</option>
+            ))}
+          </select>
+        </div>
       </section>
 
       {/* ── Images ────────────────────────────────────────────────────────── */}

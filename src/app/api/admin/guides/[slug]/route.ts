@@ -27,6 +27,7 @@ const TYPE_FIELDS = new Set([
 const CONFIG_FIELDS = new Set([
   'print_cover_url', 'issuu_url', 'homepage_image_url', 'fallback_image_url',
   'primary_cta_label', 'primary_cta_url', 'sponsor_label', 'is_active',
+  'featured_month',
 ])
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {

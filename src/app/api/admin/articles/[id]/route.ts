@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // Only allow known columns to prevent mass-assignment
     const ALLOWED = [
       'title', 'slug', 'subtitle', 'excerpt', 'body', 'body_format',
-      'hero_image_url', 'author_byline', 'author_name',
+      'hero_image_url', 'profile_image_url', 'author_byline', 'author_name',
       'column_slug', 'guide_slug',
       'editorial_review_status', 'published', 'published_at',
       'editorial_notes', 'source_issue_month',

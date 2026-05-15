@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const {
       title, slug, subtitle, excerpt, body: articleBody,
-      hero_image_url, author_byline, author_name,
+      hero_image_url, profile_image_url, author_byline, author_name,
       column_slug, guide_slug, editorial_review_status,
       published, published_at, editorial_notes,
       source_issue_month,
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       excerpt:                 excerpt?.trim() || null,
       body:                    articleBody || null,
       hero_image_url:          hero_image_url?.trim() || null,
+      profile_image_url:       profile_image_url?.trim() || null,
       author_byline:           author_byline?.trim() || null,
       author_name:             author_name?.trim() || null,
       column_slug:             column_slug || null,

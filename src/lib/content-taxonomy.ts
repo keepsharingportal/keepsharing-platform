@@ -27,6 +27,7 @@ export const COLUMNS: ColumnDef[] = [
   { slug: 'grumpy-but-grateful',     label: 'Grumpy but Grateful',       vertical: 'mom-life'    },
   // ── Family ───────────────────────────────────────
   { slug: 'grands-greatest',         label: 'Grands are the Greatest',   vertical: 'family-fun'  },
+  { slug: 'play-ball',               label: 'Play Ball',                 vertical: 'family-fun'  },
   { slug: 'dave-says',               label: 'Dave Says',                 vertical: 'family-fun'  },
   { slug: 'teens-tweens-screens',    label: 'Teens, Tweens & Screens',   vertical: 'family-fun'  },
   // ── Health ───────────────────────────────────────

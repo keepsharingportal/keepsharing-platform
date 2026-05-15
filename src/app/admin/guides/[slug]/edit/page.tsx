@@ -107,6 +107,7 @@ export default async function GuideEditPage({ params }: Props) {
           primary_cta_label:  config?.primary_cta_label  ?? '',
           primary_cta_url:    config?.primary_cta_url    ?? '',
           is_active:          config?.is_active          ?? true,
+          featured_month:     (config as { featured_month?: number | null } | null)?.featured_month ?? null,
         }}
       />
 
