@@ -3,7 +3,9 @@
 // new families who want to know what to look forward to.
 
 import Link from 'next/link'
-import { Calendar, ArrowRight, Send } from 'lucide-react'
+import { ArrowRight, Sun } from 'lucide-react'
+import { SectionHeader } from '@/components/theme'
+import { Button } from '@/components/ui/button'
 
 interface SeasonBlock {
   label:     string
@@ -61,29 +63,17 @@ const SEASONS: SeasonBlock[] = [
 export function YearRoundEvents() {
   return (
     <section id="seasons" className="scroll-mt-24">
-      <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">The Annual Rhythm</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            What to Look Forward To
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">River Region family life by the season.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/calendar"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/40 rounded-full hover:bg-primary/5 transition-colors"
-          >
-            <Calendar className="h-3 w-3" /> Live Calendar
-          </Link>
-          <Link
-            href="/calendar/submit"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-muted-foreground border border-border rounded-full hover:bg-muted/30 transition-colors"
-          >
-            <Send className="h-3 w-3" /> Submit an Event
-          </Link>
-        </div>
-      </div>
+      <SectionHeader
+        title="What to Look Forward To"
+        icon={Sun}
+        iconColor="primary"
+        action={
+          <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+            <Link href="/calendar">Live Calendar</Link>
+          </Button>
+        }
+      />
+      <p className="text-sm text-muted-foreground -mt-3 mb-5">River Region family life by the season.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {SEASONS.map(s => (

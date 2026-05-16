@@ -1,10 +1,13 @@
 // MomKnowsBestRow — 3 latest Mom Knows Best posts. The "real moms know"
 // trust layer that connects the FRG to your actual local voices.
+// Styled to match the home page's other content sections (no tinted
+// background card; plain bg-card item cards inside a standard section).
 
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Heart } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { SectionHeader } from '@/components/theme'
 
 interface MKBPost {
   id:                string
@@ -30,35 +33,31 @@ export function MomKnowsBestRow({ posts }: Props) {
   if (posts.length === 0) return null
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-rose-50 via-white to-white border border-rose-100 p-6 md:p-8">
-      <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
-        <div>
-          <div className="inline-flex items-center gap-1.5 mb-2">
-            <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-700">From Mom Knows Best</span>
-          </div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
-            Real River Region moms, real recommendations.
-          </h2>
-        </div>
-        <Link
-          href="/mom-knows-best"
-          className="text-xs font-bold text-rose-700 hover:underline inline-flex items-center gap-1 whitespace-nowrap"
-        >
-          All Mom Knows Best <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
+    <section>
+      <SectionHeader
+        title="From Mom Knows Best"
+        icon={Heart}
+        iconColor="primary"
+        action={
+          <Link
+            href="/mom-knows-best"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors hidden sm:inline-flex items-center gap-1"
+          >
+            All Mom Knows Best <ArrowRight className="h-4 w-4" />
+          </Link>
+        }
+      />
 
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
         {posts.map(p => {
           const img = p.hero_image_url || getFallback('parenting', p.id)
           return (
             <Link
               key={p.id}
               href={`/articles/${p.slug}`}
-              className="group flex flex-col bg-white rounded-xl overflow-hidden border border-rose-100/60 hover:border-rose-300 hover:shadow-sm transition-all"
+              className="group flex flex-col bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
             >
-              <div className="relative aspect-[4/3] overflow-hidden bg-rose-50/50">
+              <div className="relative aspect-[4/3] overflow-hidden bg-primary/5">
                 <Image
                   src={img}
                   alt={p.title}
@@ -70,7 +69,7 @@ export function MomKnowsBestRow({ posts }: Props) {
                 />
               </div>
               <div className="p-3.5 flex flex-col flex-1">
-                <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-rose-700 transition-colors line-clamp-2 mb-1.5">
+                <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1.5">
                   {p.title}
                 </h3>
                 {p.excerpt && (
@@ -78,7 +77,7 @@ export function MomKnowsBestRow({ posts }: Props) {
                     {p.excerpt}
                   </p>
                 )}
-                <div className="flex items-center justify-between gap-2 pt-2 mt-auto border-t border-rose-100/60">
+                <div className="flex items-center justify-between gap-2 pt-2 mt-auto border-t border-border/30">
                   <span className="text-[11px] text-muted-foreground truncate">
                     {p.author_name ?? 'Mom Knows Best'}
                   </span>

@@ -1,21 +1,18 @@
-// MagazineCoverBlock — small "From the Magazine" section showing the
-// print cover image and an Issuu link. Reinforces that River Region
-// Parents is a real publication, not just a website. Only renders if
-// at least one of printCoverUrl / issuuUrl is set on guide_configs
-// (set via /admin/guides/[slug]/edit).
+// MagazineCoverBlock — "From the Magazine" feature card showing the
+// print cover and an Issuu link. Reinforces that River Region Parents
+// is a real publication. Only renders if at least one of printCoverUrl /
+// issuuUrl is set on guide_configs (admin/guides/[slug]/edit).
 
 import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen, ExternalLink, Newspaper } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   printCoverUrl: string | null
   issuuUrl:      string | null
-  /** Display name of the guide, e.g. "Family Resource Guide". */
   guideName:     string
-  /** Optional issue label like "2026 Edition". */
   issueLabel?:   string
-  /** Short copy under the heading. Tailored per-guide if you want. */
   blurb?:        string
 }
 
@@ -26,16 +23,14 @@ export function MagazineCoverBlock({
   issueLabel = 'Current Edition',
   blurb     = 'Flip through the print edition online — same content, magazine layout, share with anyone.',
 }: Props) {
-  // If there's nothing to show, skip the block entirely
   if (!printCoverUrl && !issuuUrl) return null
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-secondary/8 via-card to-card border border-secondary/20 overflow-hidden">
+    <section className="rounded-3xl bg-card border border-border/50 overflow-hidden shadow-sm">
       <div className="flex flex-col md:flex-row gap-0 items-stretch">
 
-        {/* Cover image */}
         {printCoverUrl ? (
-          <div className="relative md:w-1/3 lg:w-1/4 aspect-[3/4] md:aspect-auto md:min-h-[240px] shrink-0 overflow-hidden bg-secondary/10">
+          <div className="relative md:w-1/3 lg:w-1/4 aspect-[3/4] md:aspect-auto md:min-h-[240px] shrink-0 overflow-hidden bg-primary/5">
             <Image
               src={printCoverUrl}
               alt={`${guideName} ${issueLabel} cover`}
@@ -47,20 +42,16 @@ export function MagazineCoverBlock({
             />
           </div>
         ) : (
-          <div className="hidden md:flex md:w-1/3 lg:w-1/4 md:min-h-[240px] shrink-0 items-center justify-center bg-secondary/10">
-            <Newspaper className="h-12 w-12 text-secondary/40" />
+          <div className="hidden md:flex md:w-1/3 lg:w-1/4 md:min-h-[240px] shrink-0 items-center justify-center bg-primary/5">
+            <Newspaper className="h-12 w-12 text-primary/40" />
           </div>
         )}
 
-        {/* Content */}
         <div className="flex-1 p-6 md:p-8 flex flex-col justify-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-2 inline-flex items-center gap-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 inline-flex items-center gap-1.5">
             <Newspaper className="h-3 w-3" /> From the Magazine
           </p>
-          <h2
-            className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-1"
-           
-          >
+          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-1">
             {guideName} — {issueLabel}
           </h2>
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5 max-w-xl">
@@ -69,22 +60,21 @@ export function MagazineCoverBlock({
 
           <div className="flex flex-wrap gap-2">
             {issuuUrl && (
-              <Link
-                href={issuuUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-secondary text-white rounded-full text-sm font-bold hover:bg-secondary/90 transition-colors shadow-sm"
-              >
-                <BookOpen className="h-4 w-4" /> Read the Digital Edition
-                <ExternalLink className="h-3 w-3 opacity-70" />
-              </Link>
+              <Button asChild className="rounded-full">
+                <Link
+                  href={issuuUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5"
+                >
+                  <BookOpen className="h-4 w-4" /> Read the Digital Edition
+                  <ExternalLink className="h-3 w-3 opacity-70" />
+                </Link>
+              </Button>
             )}
-            <Link
-              href="/guides"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 border border-secondary/40 text-secondary rounded-full text-sm font-semibold hover:bg-secondary/5 transition-colors"
-            >
-              All our guides
-            </Link>
+            <Button asChild variant="outline" className="rounded-full">
+              <Link href="/local-guides">All our guides</Link>
+            </Button>
           </div>
         </div>
       </div>

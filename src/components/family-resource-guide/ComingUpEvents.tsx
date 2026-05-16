@@ -5,8 +5,10 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Calendar, Send, CalendarDays } from 'lucide-react'
+import { ArrowRight, Send, CalendarDays } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { SectionHeader } from '@/components/theme'
+import { Button } from '@/components/ui/button'
 
 interface CalendarEvent {
   id:             string
@@ -46,31 +48,21 @@ function fmtTime(time: string | null) {
 export function ComingUpEvents({ events }: Props) {
   return (
     <section>
-      <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-border/40 flex-wrap">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1 inline-flex items-center gap-1.5">
-            <Calendar className="h-3 w-3" /> The Calendar
-          </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground inline-flex items-center gap-2">
-            <CalendarDays className="h-6 w-6 text-primary" />
-            Happening Around Town
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/calendar"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-primary border border-primary/40 rounded-full hover:bg-primary/5 transition-colors"
-          >
-            <Calendar className="h-3.5 w-3.5" /> Full Calendar
-          </Link>
-          <Link
-            href="/calendar/submit"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-muted-foreground border border-border rounded-full hover:bg-muted/30 transition-colors"
-          >
-            <Send className="h-3.5 w-3.5" /> Submit Event
-          </Link>
-        </div>
-      </div>
+      <SectionHeader
+        title="Happening Around Town!"
+        icon={CalendarDays}
+        iconColor="primary"
+        action={
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+              <Link href="/calendar">Full Calendar</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="hidden sm:flex rounded-full">
+              <Link href="/calendar/submit">Submit Event</Link>
+            </Button>
+          </div>
+        }
+      />
 
       {events.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 p-10 text-center">
@@ -99,7 +91,7 @@ export function ComingUpEvents({ events }: Props) {
                   href={`/calendar/events/${ev.slug}`}
                   className="group flex flex-col rounded-2xl border border-border/50 overflow-hidden hover:border-primary/30 hover:shadow-md transition-all bg-card"
                 >
-                  <div className="relative h-36 overflow-hidden bg-primary/5 shrink-0">
+                  <div className="relative h-32 overflow-hidden bg-primary/5 shrink-0">
                     <Image
                       src={imgSrc}
                       alt={ev.title}

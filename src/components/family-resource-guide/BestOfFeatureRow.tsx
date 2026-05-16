@@ -10,6 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { SectionHeader } from '@/components/theme'
 
 interface BestOfArticle {
   id:             string
@@ -57,15 +58,20 @@ export function BestOfFeatureRow({
 
   return (
     <section id="best-of" className="scroll-mt-24">
-      <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">Curated · Best Of</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            {title}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        </div>
-      </div>
+      <SectionHeader
+        title={title}
+        icon={Star}
+        iconColor="primary"
+        action={
+          <Link
+            href="/columns/frg-best-of"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors hidden sm:inline-flex items-center gap-1"
+          >
+            View All Lists <ArrowRight className="h-4 w-4" />
+          </Link>
+        }
+      />
+      <p className="text-sm text-muted-foreground -mt-3 mb-5">{subtitle}</p>
 
       {/* ── Lead feature — wider image, fuller content side ── */}
       <Link

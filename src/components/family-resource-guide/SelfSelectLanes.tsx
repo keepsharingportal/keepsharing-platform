@@ -24,18 +24,14 @@ export function SelfSelectLanes({ bestOf, services }: Props) {
       copy:    'Parks, day trips, sweet treats, sports leagues — the lists moms actually share.',
       href:    '#best-of',
       stat:    bestOf?.count ? `${bestOf.count} lists` : 'New every month',
-      accent:  'from-amber-50 via-white to-white border-amber-100 hover:border-amber-300',
-      iconBg:  'bg-amber-100 text-amber-700',
     },
     {
       icon:    CalendarDays,
-      eyebrow: 'WHAT\'S HAPPENING',
+      eyebrow: "WHAT'S HAPPENING",
       title:   'The Calendar',
       copy:    'Festivals, school events, classes, playdates — see what\'s on this week.',
       href:    '/calendar',
       stat:    'Updated daily',
-      accent:  'from-blue-50 via-white to-white border-blue-100 hover:border-blue-300',
-      iconBg:  'bg-blue-100 text-blue-700',
     },
     {
       icon:    ListChecks,
@@ -44,36 +40,34 @@ export function SelfSelectLanes({ bestOf, services }: Props) {
       copy:    'Pediatricians, schools, dentists, counselors — search by category.',
       href:    '#directory',
       stat:    services?.count ? `${services.count.toLocaleString()} listings` : 'Filterable',
-      accent:  'from-rose-50 via-white to-white border-rose-100 hover:border-rose-300',
-      iconBg:  'bg-rose-100 text-rose-700',
     },
   ]
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
       {lanes.map(lane => {
         const Icon = lane.icon
         return (
           <Link
             key={lane.title}
             href={lane.href}
-            className={`group rounded-2xl border bg-gradient-to-br p-6 transition-all hover:shadow-md ${lane.accent}`}
+            className="group flex flex-col rounded-2xl border border-border/50 bg-card p-6 hover:border-primary/30 hover:shadow-md transition-all"
           >
-            <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 ${lane.iconBg}`}>
+            <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4 bg-primary/10 text-primary">
               <Icon className="h-5 w-5" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
               {lane.eyebrow}
             </p>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
               {lane.title}
             </h3>
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
               {lane.copy}
             </p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">{lane.stat}</span>
-              <span className="inline-flex items-center gap-1 font-bold text-gray-700 group-hover:gap-1.5 transition-all">
+            <div className="flex items-center justify-between text-xs pt-3 border-t border-border/30 mt-auto">
+              <span className="text-muted-foreground">{lane.stat}</span>
+              <span className="inline-flex items-center gap-1 font-bold text-primary group-hover:gap-1.5 transition-all">
                 Explore <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </div>

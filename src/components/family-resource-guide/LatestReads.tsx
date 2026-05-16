@@ -10,6 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { SectionHeader } from '@/components/theme'
 
 interface LatestRead {
   id:             string
@@ -41,19 +42,19 @@ export function LatestReads({ articles }: Props) {
 
   return (
     <section className="scroll-mt-24">
-      <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1 inline-flex items-center gap-1.5">
-            <BookOpen className="h-3 w-3" /> From the Pages
-          </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            Latest Reads
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Fresh articles, columns, and stories from the Family Resource Guide.
-          </p>
-        </div>
-      </div>
+      <SectionHeader
+        title="Latest Reads"
+        icon={BookOpen}
+        iconColor="primary"
+        action={
+          <Link
+            href="/articles"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors hidden sm:inline-flex items-center gap-1"
+          >
+            View All <ArrowRight className="h-4 w-4" />
+          </Link>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {articles.map(a => {

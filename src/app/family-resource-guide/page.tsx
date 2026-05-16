@@ -22,6 +22,7 @@ import { GetListedCTA }       from '@/components/family-resource-guide/GetListed
 import { SubmitTipWidget }    from '@/components/family-resource-guide/SubmitTipWidget'
 import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
 import { SchoolBitsBlock }    from '@/components/homepage/SchoolBitsBlock'
+import { SectionHeader }      from '@/components/theme'
 
 import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
@@ -385,7 +386,7 @@ export default async function FamilyResourceGuidePage() {
         bestOfCount={bestOfCount}
       />
 
-      <main className="container py-10 md:py-14 space-y-14">
+      <main className="container py-8 space-y-10">
 
         {/* ── LAYER 2: Self-select lanes (Best Of, Calendar, Directory) ── */}
         <SelfSelectLanes
@@ -404,41 +405,47 @@ export default async function FamilyResourceGuidePage() {
         {/* ── Best Of editorial — the high-value content goes first ── */}
         <BestOfFeatureRow articles={bestOf} />
 
-        {/* ── Inline ad (matches the home page placement style) ── */}
-        {inlineAd?.ad_headline && (
+        {/* ── In-feed sponsored ad — exact home page treatment ── */}
+        {inlineAd && inlineAd.ad_link && (
           <Link
-            href={inlineAd.ad_link ?? `/business/${inlineAd.advertiser?.slug ?? ''}`}
-            className="group flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden bg-gradient-to-br from-secondary/10 via-card to-card border border-secondary/20 hover:border-secondary/40 hover:shadow-md transition-all"
+            href={inlineAd.ad_link}
+            className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
           >
-            {inlineAd.ad_image_url && (
-              <div className="relative w-full sm:w-48 aspect-[4/3] sm:aspect-auto shrink-0 overflow-hidden bg-secondary/10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 z-10 bg-background border shadow-sm">
+              {inlineAd.ad_image_url ? (
                 <Image
                   src={inlineAd.ad_image_url}
-                  alt={inlineAd.ad_headline ?? ''}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 192px"
-                  style={{ objectFit: 'cover' }}
-                  className="group-hover:scale-105 transition-transform duration-500"
+                  alt={inlineAd.ad_headline ?? 'Sponsored'}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   unoptimized
                 />
-              </div>
-            )}
-            <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary mb-1">
-                {inlineAd.ad_eyebrow ?? 'Sponsored'}
-              </p>
-              <h3 className="text-lg md:text-xl font-bold text-foreground leading-snug mb-1">
-                {inlineAd.ad_headline}
-              </h3>
-              {inlineAd.ad_description && (
-                <p className="text-sm text-muted-foreground leading-relaxed mb-3 line-clamp-2">
-                  {inlineAd.ad_description}
-                </p>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Sparkles className="h-8 w-8 text-secondary" />
+                </div>
               )}
-              <span className="inline-flex items-center gap-1 text-sm font-bold text-secondary group-hover:gap-1.5 transition-all">
-                {inlineAd.ad_cta_label ?? 'Learn more'} <ArrowRight className="h-4 w-4" />
-              </span>
             </div>
+            <div className="flex-1 text-center sm:text-left z-10 min-w-0">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                {inlineAd.ad_eyebrow ?? 'Sponsored'}
+              </span>
+              {inlineAd.ad_headline && (
+                <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                  {inlineAd.ad_headline}
+                </h4>
+              )}
+              {inlineAd.ad_description && (
+                <p className="text-sm text-muted-foreground line-clamp-2">{inlineAd.ad_description}</p>
+              )}
+            </div>
+            {inlineAd.ad_cta_label && (
+              <span className="shrink-0 z-10 inline-flex items-center justify-center px-4 py-2 bg-background border rounded-full text-sm font-medium hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors">
+                {inlineAd.ad_cta_label}
+              </span>
+            )}
           </Link>
         )}
 
@@ -467,15 +474,16 @@ export default async function FamilyResourceGuidePage() {
 
         {/* ── Directory with sidebar ── */}
         <section id="directory" className="scroll-mt-24">
-          <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-4 flex-wrap gap-3">
-            <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
-              <BookOpen className="h-6 w-6 text-primary" />
-              Find a Service
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {listingsCount.toLocaleString()} listings across {groups.length} categories
-            </p>
-          </div>
+          <SectionHeader
+            title="Find a Service"
+            icon={BookOpen}
+            iconColor="primary"
+            action={
+              <p className="text-sm text-muted-foreground">
+                {listingsCount.toLocaleString()} listings across {groups.length} categories
+              </p>
+            }
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
 
