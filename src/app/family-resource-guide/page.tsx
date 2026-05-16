@@ -10,19 +10,20 @@ import Link from 'next/link'
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
 
-import { FRGHero }            from '@/components/family-resource-guide/FRGHero'
-import { SelfSelectLanes }    from '@/components/family-resource-guide/SelfSelectLanes'
-import { BestOfFeatureRow }   from '@/components/family-resource-guide/BestOfFeatureRow'
-import { LatestReads }        from '@/components/family-resource-guide/LatestReads'
-import { MomKnowsBestRow }    from '@/components/family-resource-guide/MomKnowsBestRow'
-import { YearRoundEvents }    from '@/components/family-resource-guide/YearRoundEvents'
-import { ComingUpEvents }     from '@/components/family-resource-guide/ComingUpEvents'
-import { MagazineCoverBlock } from '@/components/family-resource-guide/MagazineCoverBlock'
-import { GetListedCTA }       from '@/components/family-resource-guide/GetListedCTA'
-import { SubmitTipWidget }    from '@/components/family-resource-guide/SubmitTipWidget'
+import { FRGHero }              from '@/components/family-resource-guide/FRGHero'
+import { SelfSelectLanes }      from '@/components/family-resource-guide/SelfSelectLanes'
+import { BestOfFeatureRow }     from '@/components/family-resource-guide/BestOfFeatureRow'
+import { LatestReads }          from '@/components/family-resource-guide/LatestReads'
+import { MomKnowsBestRow }      from '@/components/family-resource-guide/MomKnowsBestRow'
+import { YearRoundEvents }      from '@/components/family-resource-guide/YearRoundEvents'
+import { ComingUpEvents }       from '@/components/family-resource-guide/ComingUpEvents'
+import { MagazineCoverSidebar } from '@/components/family-resource-guide/MagazineCoverSidebar'
+import { FeaturedPartners }     from '@/components/family-resource-guide/FeaturedPartners'
+import { GetListedCTA }         from '@/components/family-resource-guide/GetListedCTA'
+import { SubmitTipWidget }      from '@/components/family-resource-guide/SubmitTipWidget'
 import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
-import { SchoolBitsBlock }    from '@/components/homepage/SchoolBitsBlock'
-import { SectionHeader }      from '@/components/theme'
+import { SchoolBitsBlock }      from '@/components/homepage/SchoolBitsBlock'
+import { SectionHeader }        from '@/components/theme'
 
 import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
@@ -139,6 +140,7 @@ export default async function FamilyResourceGuidePage() {
     { data: sponsorRow },
     { data: upcomingEventsData },
     { data: inlineAdRow },
+    { data: sidebarAdRow },
   ] = await Promise.all([
     // Hero identity — canonical from guide_types. Query by url_slug since
     // that's the stable public identifier (the internal slug is the legacy
@@ -253,6 +255,15 @@ export default async function FamilyResourceGuidePage() {
       .order('display_priority', { ascending: false })
       .limit(1)
       .maybeSingle(),
+
+    // Sidebar ad — square image-overlay treatment matching the home page.
+    supabase.from('ad_placements')
+      .select('id, ad_eyebrow, ad_headline, ad_description, ad_cta_label, ad_image_url, ad_link')
+      .eq('placement_type', 'homepage_sidebar_ad')
+      .eq('is_active', true)
+      .order('display_priority', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
@@ -352,6 +363,17 @@ export default async function FamilyResourceGuidePage() {
     advertiser: { business_name?: string | null; slug?: string | null } | null
   } | null
 
+  // ── Sidebar ad ───────────────────────────────────────────────────────────
+  const sidebarAd = sidebarAdRow as {
+    id: string; ad_eyebrow: string | null; ad_headline: string | null;
+    ad_description: string | null; ad_cta_label: string | null;
+    ad_image_url: string | null; ad_link: string | null;
+  } | null
+
+  // ── Featured Partners (sidebar) — top featured-tier listings from the
+  //    FRG directory. Surfaces partners above the directory itself. ────────
+  const featuredPartners = listings.filter(l => l.listing_tier === 'featured').slice(0, 4)
+
   // ── Sponsor ──────────────────────────────────────────────────────────────
   const sponsorAd = sponsorRow as {
     id:          string
@@ -388,13 +410,12 @@ export default async function FamilyResourceGuidePage() {
 
       <main className="container py-8 space-y-10">
 
-        {/* ── LAYER 2: Self-select lanes (Best Of, Calendar, Directory) ── */}
+        {/* ── FULL-WIDTH TOP: lanes + sponsor banner ── */}
         <SelfSelectLanes
           bestOf={{ count: bestOfCount }}
           services={{ count: listingsCount }}
         />
 
-        {/* ── Sponsor banner ── */}
         <VerticalSponsorBanner
           verticalName="the Family Resource Guide"
           verticalSlug="family-resource-guide"
@@ -402,77 +423,155 @@ export default async function FamilyResourceGuidePage() {
           sponsor={sponsor}
         />
 
-        {/* ── Best Of editorial — the high-value content goes first ── */}
-        <BestOfFeatureRow articles={bestOf} />
+        {/* ── 8/4 PORTAL — same shape as the home page ── */}
+        <div className="grid lg:grid-cols-12 gap-10">
 
-        {/* ── In-feed sponsored ad — exact home page treatment ── */}
-        {inlineAd && inlineAd.ad_link && (
-          <Link
-            href={inlineAd.ad_link}
-            className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 z-10 bg-background border shadow-sm">
-              {inlineAd.ad_image_url ? (
+          {/* ── MAIN COLUMN ── */}
+          <div className="lg:col-span-8 space-y-10">
+
+            {/* Best Of editorial */}
+            <BestOfFeatureRow articles={bestOf} />
+
+            {/* In-feed sponsored ad — exact home page treatment */}
+            {inlineAd && inlineAd.ad_link && (
+              <Link
+                href={inlineAd.ad_link}
+                className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 z-10 bg-background border shadow-sm">
+                  {inlineAd.ad_image_url ? (
+                    <Image
+                      src={inlineAd.ad_image_url}
+                      alt={inlineAd.ad_headline ?? 'Sponsored'}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Sparkles className="h-8 w-8 text-secondary" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 text-center sm:text-left z-10 min-w-0">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
+                    {inlineAd.ad_eyebrow ?? 'Sponsored'}
+                  </span>
+                  {inlineAd.ad_headline && (
+                    <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                      {inlineAd.ad_headline}
+                    </h4>
+                  )}
+                  {inlineAd.ad_description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">{inlineAd.ad_description}</p>
+                  )}
+                </div>
+                {inlineAd.ad_cta_label && (
+                  <span className="shrink-0 z-10 inline-flex items-center justify-center px-4 py-2 bg-background border rounded-full text-sm font-medium hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors">
+                    {inlineAd.ad_cta_label}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            {/* Latest Reads — FRG-issue content (features + newcomer stories) */}
+            <LatestReads articles={latestReads} />
+
+            {/* School Zone — reuse home page block */}
+            <SchoolBitsBlock />
+
+            {/* Mom Knows Best cross-pollination */}
+            {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
+
+            {/* Coming Up — next 6 events */}
+            <ComingUpEvents events={upcomingEvents} />
+
+            {/* Year-round events — seasonal rhythm */}
+            <YearRoundEvents />
+          </div>
+
+          {/* ── SIDEBAR ── */}
+          <aside className="lg:col-span-4 space-y-8">
+
+            {/* Sidebar ad — square image-overlay (matches home page) */}
+            {sidebarAd && sidebarAd.ad_image_url && sidebarAd.ad_link ? (
+              <Link
+                href={sidebarAd.ad_link}
+                className="block aspect-square rounded-3xl overflow-hidden relative group cursor-pointer"
+              >
                 <Image
-                  src={inlineAd.ad_image_url}
-                  alt={inlineAd.ad_headline ?? 'Sponsored'}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  src={sidebarAd.ad_image_url}
+                  alt={sidebarAd.ad_headline ?? 'Advertisement'}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 400px"
+                  style={{ objectFit: 'cover' }}
+                  className="group-hover:scale-105 transition-transform duration-700"
                   unoptimized
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Sparkles className="h-8 w-8 text-secondary" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+                <div className="absolute top-4 left-4">
+                  <span className="text-[10px] text-white/90 font-bold uppercase tracking-widest bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                    {sidebarAd.ad_eyebrow ?? 'Advertisement'}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className="flex-1 text-center sm:text-left z-10 min-w-0">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 block">
-                {inlineAd.ad_eyebrow ?? 'Sponsored'}
-              </span>
-              {inlineAd.ad_headline && (
-                <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
-                  {inlineAd.ad_headline}
-                </h4>
-              )}
-              {inlineAd.ad_description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">{inlineAd.ad_description}</p>
-              )}
-            </div>
-            {inlineAd.ad_cta_label && (
-              <span className="shrink-0 z-10 inline-flex items-center justify-center px-4 py-2 bg-background border rounded-full text-sm font-medium hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors">
-                {inlineAd.ad_cta_label}
-              </span>
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  {sidebarAd.ad_headline && (
+                    <h3 className="text-xl font-bold text-white mb-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      {sidebarAd.ad_headline}
+                    </h3>
+                  )}
+                  {sidebarAd.ad_description && (
+                    <p className="text-sm text-white/90 mb-4 line-clamp-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      {sidebarAd.ad_description}
+                    </p>
+                  )}
+                  {sidebarAd.ad_cta_label && (
+                    <span className="inline-block px-4 py-2 bg-white text-foreground rounded-full text-sm font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      {sidebarAd.ad_cta_label}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link
+                href="/advertise/family-resource-guide"
+                className="bg-gradient-to-br from-primary/8 via-background to-secondary/6 aspect-square rounded-3xl border-2 border-dashed border-primary/25 flex flex-col items-center justify-center p-7 text-center relative overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
+              >
+                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest absolute top-4">Premium Placement</span>
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 mt-2 group-hover:scale-105 transition-transform">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-2 leading-tight">Reach River Region Families</h3>
+                <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+                  This premium sidebar placement reaches every Family Resource Guide visitor.
+                </p>
+                <span className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold group-hover:bg-primary/90 transition-colors shadow-sm">
+                  Claim This Spot <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
             )}
-          </Link>
-        )}
 
-        {/* ── Latest Reads — FRG-issue content (features + newcomer stories) ── */}
-        <LatestReads articles={latestReads} />
+            {/* From the Magazine — print cover + Issuu link */}
+            <MagazineCoverSidebar
+              printCoverUrl={guideConfig?.print_cover_url ?? null}
+              issuuUrl={guideConfig?.issuu_url ?? null}
+              issueLabel="2026 Edition"
+            />
 
-        {/* ── School Zone — reuse the home page block so it matches the site theme ── */}
-        <SchoolBitsBlock />
+            {/* Featured Partners — top featured-tier listings */}
+            <FeaturedPartners listings={featuredPartners} />
 
-        {/* ── Mom Knows Best cross-pollination ── */}
-        {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
+            {/* Submit a tip */}
+            <SubmitTipWidget />
 
-        {/* ── Coming Up — next 6 events from the calendar ── */}
-        <ComingUpEvents events={upcomingEvents} />
+            {/* Get listed (sidebar variant) */}
+            <GetListedCTA variant="sidebar" />
+          </aside>
+        </div>
 
-        {/* ── Year-round events — seasonal rhythm of family life ── */}
-        <YearRoundEvents />
-
-        {/* ── From the Magazine — Issuu cover (only renders if data exists) ── */}
-        <MagazineCoverBlock
-          printCoverUrl={guideConfig?.print_cover_url ?? null}
-          issuuUrl={guideConfig?.issuu_url ?? null}
-          guideName="Family Resource Guide"
-          issueLabel="2026 Edition"
-        />
-
-        {/* ── Directory with sidebar ── */}
+        {/* ── FULL-WIDTH BOTTOM: Directory ── */}
         <section id="directory" className="scroll-mt-24">
           <SectionHeader
             title="Find a Service"
@@ -485,121 +584,97 @@ export default async function FamilyResourceGuidePage() {
             }
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-
-            {/* Main directory column */}
-            <div className="min-w-0 space-y-10">
-              {groups.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-10 text-center">
-                  <BookOpen className="h-7 w-7 text-primary/40 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-foreground mb-1">Directory is loading</p>
-                  <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                    Listings come from your active partner accounts. Add the first one at{' '}
-                    <Link href="/advertise" className="text-primary hover:underline">Advertise</Link>.
-                  </p>
-                </div>
-              ) : (
-                groups.map(group => {
-                  const groupId = normalizeForMatch(group.name)
-                  return (
-                    <section key={group.name} id={groupId} className="scroll-mt-24">
-                      <div className="flex items-end justify-between gap-3 mb-4 pb-2 border-b border-border/40">
-                        <div className="min-w-0">
-                          <h3 className="text-xl md:text-2xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
-                            {group.name}
-                          </h3>
-                          {GROUP_DESCRIPTIONS[group.name] && (
-                            <p className="text-xs text-muted-foreground mt-0.5">{GROUP_DESCRIPTIONS[group.name]}</p>
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground shrink-0">
-                          {group.total} listing{group.total !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-
-                      <div className="space-y-8">
-                        {group.categories.map(cat => {
-                          const featured = cat.listings.filter(l => l.listing_tier === 'featured')
-                          const enhanced = cat.listings.filter(l => l.listing_tier === 'enhanced')
-                          const free     = cat.listings.filter(l => l.listing_tier === 'free')
-                          if (cat.listings.length === 0) return null
-                          return (
-                            <div key={cat.id}>
-                              {(group.categories.length > 1) && (
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-primary/80 mb-3">
-                                  {cat.name}
-                                </p>
-                              )}
-                              <div className="flex flex-col gap-4">
-                                {featured.map(l => <FeaturedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                                {enhanced.length > 0 && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {enhanced.map(l => <EnhancedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                                  </div>
-                                )}
-                                {free.length > 0 && (
-                                  <div className="flex flex-col gap-2">
-                                    {free.map(l => <FreeListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </section>
-                  )
-                })
-              )}
+          {/* Jump-to chips above the directory */}
+          {groups.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1 pr-1">
+                <Sparkles className="h-3 w-3" /> Jump to
+              </span>
+              {groups.map(g => (
+                <Link
+                  key={g.name}
+                  href={`#${normalizeForMatch(g.name)}`}
+                  className="text-[11px] font-semibold px-2 py-1 rounded-full bg-muted/40 text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  {g.name} <span className="text-muted-foreground">({g.total})</span>
+                </Link>
+              ))}
             </div>
+          )}
 
-            {/* Sticky sidebar */}
-            <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          {groups.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-10 text-center">
+              <BookOpen className="h-7 w-7 text-primary/40 mx-auto mb-2" />
+              <p className="text-sm font-bold text-foreground mb-1">Directory is loading</p>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Listings come from your active partner accounts. Add the first one at{' '}
+                <Link href="/advertise" className="text-primary hover:underline">Advertise</Link>.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-10">
+              {groups.map(group => {
+                const groupId = normalizeForMatch(group.name)
+                return (
+                  <section key={group.name} id={groupId} className="scroll-mt-24">
+                    <div className="flex items-end justify-between gap-3 mb-4 pb-2 border-b border-border/40">
+                      <div className="min-w-0">
+                        <h3 className="text-xl md:text-2xl font-bold text-foreground">
+                          {group.name}
+                        </h3>
+                        {GROUP_DESCRIPTIONS[group.name] && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{GROUP_DESCRIPTIONS[group.name]}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {group.total} listing{group.total !== 1 ? 's' : ''}
+                      </span>
+                    </div>
 
-              {/* Filter — anchor links to category groups */}
-              <div className="rounded-2xl border border-border/40 bg-card p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 inline-flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Jump to
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {groups.map(g => (
-                    <Link
-                      key={g.name}
-                      href={`#${normalizeForMatch(g.name)}`}
-                      className="text-[11px] font-semibold px-2 py-1 rounded-full bg-muted/40 text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      {g.name} <span className="text-muted-foreground">({g.total})</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* About this guide */}
-              <div className="rounded-2xl border border-border/40 bg-card p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">About this guide</p>
-                <p className="text-sm text-foreground/85 leading-relaxed">
-                  We curate this list with help from local moms, partners, and editorial review. New to the region?
-                  The <Link href="#towns" className="text-primary hover:underline font-semibold">5 Towns</Link> section
-                  is a good first stop.
-                </p>
-              </div>
-
-              {/* Submit a tip */}
-              <SubmitTipWidget />
-
-              {/* Get listed */}
-              <GetListedCTA variant="sidebar" />
-            </aside>
-          </div>
+                    <div className="space-y-8">
+                      {group.categories.map(cat => {
+                        const featured = cat.listings.filter(l => l.listing_tier === 'featured')
+                        const enhanced = cat.listings.filter(l => l.listing_tier === 'enhanced')
+                        const free     = cat.listings.filter(l => l.listing_tier === 'free')
+                        if (cat.listings.length === 0) return null
+                        return (
+                          <div key={cat.id}>
+                            {(group.categories.length > 1) && (
+                              <p className="text-[11px] font-bold uppercase tracking-widest text-primary/80 mb-3">
+                                {cat.name}
+                              </p>
+                            )}
+                            <div className="flex flex-col gap-4">
+                              {featured.map(l => <FeaturedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
+                              {enhanced.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {enhanced.map(l => <EnhancedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
+                                </div>
+                              )}
+                              {free.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                  {free.map(l => <FreeListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         {/* ── Get Listed banner ── */}
         <GetListedCTA variant="banner" />
 
         {/* ── Newsletter ── */}
-        <section className="rounded-3xl bg-gradient-to-br from-primary/8 via-secondary/5 to-accent/8 border border-border/30 p-8 md:p-12 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">The River Region Weekly</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+        <section className="rounded-3xl bg-gradient-to-r from-secondary/10 to-primary/10 border border-border/50 p-8 md:p-12 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">The River Region Weekly</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             One email. The week, distilled.
           </h2>
           <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-5 leading-relaxed">
