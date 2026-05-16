@@ -67,18 +67,18 @@ export function BestOfFeatureRow({
         </div>
       </div>
 
-      {/* ── Lead feature ── */}
+      {/* ── Lead feature — wider image, fuller content side ── */}
       <Link
         href={`/articles/${lead.slug}`}
         className="group block bg-card border border-border/40 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all"
       >
         <div className="flex flex-col md:flex-row">
-          <div className="relative md:w-1/2 aspect-[16/9] md:aspect-auto md:min-h-[220px] overflow-hidden bg-primary/5">
+          <div className="relative md:w-3/5 aspect-[16/9] md:aspect-auto md:min-h-[260px] overflow-hidden bg-primary/5">
             <Image
               src={leadImg}
               alt={lead.title}
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, 60vw"
               style={{ objectFit: 'cover' }}
               className="group-hover:scale-105 transition-transform duration-500"
               unoptimized
@@ -88,7 +88,11 @@ export function BestOfFeatureRow({
               Best Of
             </span>
           </div>
-          <div className="md:w-1/2 p-5 md:p-6 flex flex-col justify-center">
+          <div className="md:w-2/5 p-6 md:p-7 flex flex-col justify-center">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2 inline-flex items-center gap-1.5">
+              <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-500" />
+              From the Editors
+            </p>
             <h3
               className="text-xl md:text-2xl font-bold text-foreground leading-snug mb-2 group-hover:text-primary transition-colors"
               style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
@@ -96,7 +100,7 @@ export function BestOfFeatureRow({
               {lead.title}
             </h3>
             {leadTeaser && (
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-3 line-clamp-3">
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 line-clamp-4">
                 {leadTeaser}
               </p>
             )}
@@ -109,7 +113,7 @@ export function BestOfFeatureRow({
 
       {/* ── Remaining Best Of in a compact 2-up grid ── */}
       {rest.length > 0 && (
-        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+        <div className="mt-6 grid sm:grid-cols-2 gap-4">
           {rest.map(a => {
             const t   = teaser(a)
             const img = a.hero_image_url || getFallback('parenting', a.id)
@@ -119,32 +123,46 @@ export function BestOfFeatureRow({
                 href={`/articles/${a.slug}`}
                 className="group flex bg-card border border-border/40 rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all"
               >
-                <div className="relative w-1/3 shrink-0 aspect-square sm:aspect-auto sm:min-h-[140px] overflow-hidden bg-primary/5">
+                <div className="relative w-2/5 shrink-0 aspect-square sm:aspect-auto sm:min-h-[180px] overflow-hidden bg-primary/5">
                   <Image
                     src={img}
                     alt={a.title}
                     fill
-                    sizes="(max-width: 640px) 33vw, 200px"
+                    sizes="(max-width: 640px) 40vw, 260px"
                     style={{ objectFit: 'cover' }}
                     className="group-hover:scale-105 transition-transform duration-500"
                     unoptimized
                   />
                 </div>
-                <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-center">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Best Of</p>
-                  <h3 className="text-sm font-bold text-foreground leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-2" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+                <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
+                  <h3
+                    className="text-base md:text-lg font-bold text-foreground leading-snug mb-1.5 group-hover:text-primary transition-colors line-clamp-2"
+                    style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+                  >
                     {a.title}
                   </h3>
                   {t && (
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-1.5">{t}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-2">{t}</p>
                   )}
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary group-hover:gap-1.5 transition-all">
-                    Read <ArrowRight className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:gap-1.5 transition-all">
+                    Read the list <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* ── See all Best Of lists ── */}
+      {articles.length >= 3 && (
+        <div className="mt-5 flex justify-center">
+          <Link
+            href="/columns/frg-best-of"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:gap-2 transition-all"
+          >
+            See all Best Of lists <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       )}
     </section>
