@@ -16,6 +16,8 @@ import { BestOfFeatureRow }   from '@/components/family-resource-guide/BestOfFea
 import { LatestReads }        from '@/components/family-resource-guide/LatestReads'
 import { MomKnowsBestRow }    from '@/components/family-resource-guide/MomKnowsBestRow'
 import { YearRoundEvents }    from '@/components/family-resource-guide/YearRoundEvents'
+import { ComingUpEvents }     from '@/components/family-resource-guide/ComingUpEvents'
+import { MagazineCoverBlock } from '@/components/family-resource-guide/MagazineCoverBlock'
 import { GetListedCTA }       from '@/components/family-resource-guide/GetListedCTA'
 import { SubmitTipWidget }    from '@/components/family-resource-guide/SubmitTipWidget'
 import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
@@ -123,6 +125,7 @@ export default async function FamilyResourceGuidePage() {
     { data: frgCategories },
     { data: listingsRaw },
     { data: sponsorRow },
+    { data: upcomingEventsData },
   ] = await Promise.all([
     // Hero identity — canonical from guide_types. Query by url_slug since
     // that's the stable public identifier (the internal slug is the legacy
@@ -136,8 +139,10 @@ export default async function FamilyResourceGuidePage() {
     // Secondary hero image source — guide_configs.homepage_image_url is
     // what the admin "Homepage tile image" field saves to. Used as a
     // fallback if guide_types.hero_image_url is empty.
+    // Also fetches print_cover_url + issuu_url for the From-the-Magazine
+    // block.
     supabase.from('guide_configs')
-      .select('homepage_image_url, fallback_image_url')
+      .select('homepage_image_url, fallback_image_url, print_cover_url, issuu_url')
       .in('guide_type_slug', ['newcomer', 'family-resource-guide'])
       .limit(1)
       .maybeSingle(),
@@ -171,13 +176,15 @@ export default async function FamilyResourceGuidePage() {
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
 
-    // "Latest Reads" — everything else tagged to this guide that isn't
-    // already featured in Best Of or Mom Knows Best. Accepts both the
-    // legacy guide_slug='newcomer' and the friendly 'family-resource-guide'.
+    // "Latest Reads" — articles specifically written for the FRG issue.
+    // Tighter filter than before: only 'feature' and 'frg-newcomer'
+    // column_slugs, both tagged guide_slug='family-resource-guide'. This
+    // is where evergreen FRG content lives (how-tos, deep dives, etc.)
+    // without polluting it with content meant for School Zone, MKB, etc.
     supabase.from('guide_articles')
       .select('id, slug, title, subtitle, excerpt, hero_image_url, author_name, published_at, column_slug')
-      .in('guide_slug', ['family-resource-guide', 'newcomer'])
-      .not('column_slug', 'in', '(frg-best-of,mom-knows-best)')
+      .eq('guide_slug', 'family-resource-guide')
+      .in('column_slug', ['feature', 'frg-newcomer'])
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(6),
@@ -212,6 +219,16 @@ export default async function FamilyResourceGuidePage() {
       .ilike('placement_context', '%family-resource%')
       .limit(1)
       .maybeSingle(),
+
+    // Upcoming events for the "Coming Up" block. Next 6 events, today
+    // forward. Pairs with the Annual Rhythm seasonal grid.
+    supabase.from('calendar_events')
+      .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
+      .eq('status', 'published')
+      .gte('start_date', new Date().toISOString().slice(0, 10))
+      .order('start_date',  { ascending: true })
+      .order('start_time',  { ascending: true, nullsFirst: true })
+      .limit(6),
   ])
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
@@ -288,11 +305,19 @@ export default async function FamilyResourceGuidePage() {
     author_name: string | null; published_at: string | null
   }>
 
-  // ── Latest Reads (everything else tagged to FRG) ─────────────────────────
+  // ── Latest Reads (FRG-issue content only — feature + frg-newcomer) ──────
   const latestReads = (latestReadsData ?? []) as Array<{
     id: string; slug: string; title: string; subtitle: string | null; excerpt: string | null
     hero_image_url: string | null; author_name: string | null; published_at: string | null
     column_slug: string | null
+  }>
+
+  // ── Upcoming events for Coming Up block ──────────────────────────────────
+  const upcomingEvents = (upcomingEventsData ?? []) as Array<{
+    id: string; slug: string; title: string
+    start_date: string | null; start_time: string | null
+    location_name: string | null; hero_image_url: string | null
+    category: string | null; is_free: boolean | null
   }>
 
   // ── Sponsor ──────────────────────────────────────────────────────────────
@@ -349,14 +374,25 @@ export default async function FamilyResourceGuidePage() {
         {/* ── Best Of editorial — the high-value content goes first ── */}
         <BestOfFeatureRow articles={bestOf} />
 
-        {/* ── Latest Reads — every other FRG-tagged article ── */}
+        {/* ── Latest Reads — FRG-issue content (features + newcomer stories) ── */}
         <LatestReads articles={latestReads} />
+
+        {/* ── From the Magazine — Issuu cover + digital edition CTA ── */}
+        <MagazineCoverBlock
+          printCoverUrl={guideConfig?.print_cover_url ?? null}
+          issuuUrl={guideConfig?.issuu_url ?? null}
+          guideName="Family Resource Guide"
+          issueLabel="2026 Edition"
+        />
 
         {/* ── Mom Knows Best cross-pollination ── */}
         {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
 
         {/* ── Year-round events — seasonal rhythm of family life ── */}
         <YearRoundEvents />
+
+        {/* ── Coming Up — next 6 events from the calendar ── */}
+        <ComingUpEvents events={upcomingEvents} />
 
         {/* ── The 5 Towns — orientation content, lower in the page ── */}
         {towns.length > 0 && <TownsGrid towns={towns} />}

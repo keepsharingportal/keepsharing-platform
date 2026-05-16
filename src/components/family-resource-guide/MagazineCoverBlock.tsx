@@ -1,0 +1,93 @@
+// MagazineCoverBlock — small "From the Magazine" section showing the
+// print cover image and an Issuu link. Reinforces that River Region
+// Parents is a real publication, not just a website. Only renders if
+// at least one of printCoverUrl / issuuUrl is set on guide_configs
+// (set via /admin/guides/[slug]/edit).
+
+import Image from 'next/image'
+import Link from 'next/link'
+import { BookOpen, ExternalLink, Newspaper } from 'lucide-react'
+
+interface Props {
+  printCoverUrl: string | null
+  issuuUrl:      string | null
+  /** Display name of the guide, e.g. "Family Resource Guide". */
+  guideName:     string
+  /** Optional issue label like "2026 Edition". */
+  issueLabel?:   string
+  /** Short copy under the heading. Tailored per-guide if you want. */
+  blurb?:        string
+}
+
+export function MagazineCoverBlock({
+  printCoverUrl,
+  issuuUrl,
+  guideName,
+  issueLabel = 'Current Edition',
+  blurb     = 'Flip through the print edition online — same content, magazine layout, share with anyone.',
+}: Props) {
+  // If there's nothing to show, skip the block entirely
+  if (!printCoverUrl && !issuuUrl) return null
+
+  return (
+    <section className="rounded-2xl bg-gradient-to-br from-secondary/8 via-card to-card border border-secondary/20 overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-0 items-stretch">
+
+        {/* Cover image */}
+        {printCoverUrl ? (
+          <div className="relative md:w-1/3 lg:w-1/4 aspect-[3/4] md:aspect-auto md:min-h-[240px] shrink-0 overflow-hidden bg-secondary/10">
+            <Image
+              src={printCoverUrl}
+              alt={`${guideName} ${issueLabel} cover`}
+              fill
+              sizes="(max-width: 768px) 100vw, 280px"
+              style={{ objectFit: 'cover', objectPosition: 'center top' }}
+              className="hover:scale-[1.02] transition-transform duration-500"
+              unoptimized
+            />
+          </div>
+        ) : (
+          <div className="hidden md:flex md:w-1/3 lg:w-1/4 md:min-h-[240px] shrink-0 items-center justify-center bg-secondary/10">
+            <Newspaper className="h-12 w-12 text-secondary/40" />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1 p-6 md:p-8 flex flex-col justify-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-2 inline-flex items-center gap-1.5">
+            <Newspaper className="h-3 w-3" /> From the Magazine
+          </p>
+          <h2
+            className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-1"
+            style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+          >
+            {guideName} — {issueLabel}
+          </h2>
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-5 max-w-xl">
+            {blurb}
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {issuuUrl && (
+              <Link
+                href={issuuUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-secondary text-white rounded-full text-sm font-bold hover:bg-secondary/90 transition-colors shadow-sm"
+              >
+                <BookOpen className="h-4 w-4" /> Read the Digital Edition
+                <ExternalLink className="h-3 w-3 opacity-70" />
+              </Link>
+            )}
+            <Link
+              href="/guides"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 border border-secondary/40 text-secondary rounded-full text-sm font-semibold hover:bg-secondary/5 transition-colors"
+            >
+              All our guides
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
