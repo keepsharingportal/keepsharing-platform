@@ -13,6 +13,7 @@ import { FRGHero }            from '@/components/family-resource-guide/FRGHero'
 import { SelfSelectLanes }    from '@/components/family-resource-guide/SelfSelectLanes'
 import { TownsGrid }          from '@/components/family-resource-guide/TownsGrid'
 import { BestOfFeatureRow }   from '@/components/family-resource-guide/BestOfFeatureRow'
+import { LatestReads }        from '@/components/family-resource-guide/LatestReads'
 import { MomKnowsBestRow }    from '@/components/family-resource-guide/MomKnowsBestRow'
 import { YearRoundEvents }    from '@/components/family-resource-guide/YearRoundEvents'
 import { GetListedCTA }       from '@/components/family-resource-guide/GetListedCTA'
@@ -118,16 +119,18 @@ export default async function FamilyResourceGuidePage() {
     { data: townsData },
     { data: bestOfData },
     { data: mkbData },
+    { data: latestReadsData },
     { data: frgCategories },
     { data: listingsRaw },
     { data: sponsorRow },
   ] = await Promise.all([
-    // Hero identity — canonical from guide_types (admin writes here).
-    // We look up by EITHER slug or url_slug because the legacy internal
-    // slug is 'newcomer' but the public url_slug is 'family-resource-guide'.
+    // Hero identity — canonical from guide_types. Query by url_slug since
+    // that's the stable public identifier (the internal slug is the legacy
+    // 'newcomer' value). The OR variant we had was returning null when
+    // PostgREST's .maybeSingle() detected multiple ambiguous matches.
     supabase.from('guide_types')
       .select('slug, url_slug, display_name, pitch, hero_image_url, short_description')
-      .or('slug.eq.family-resource-guide,slug.eq.newcomer,url_slug.eq.family-resource-guide')
+      .eq('url_slug', 'family-resource-guide')
       .maybeSingle(),
 
     // Secondary hero image source — guide_configs.homepage_image_url is
@@ -166,6 +169,17 @@ export default async function FamilyResourceGuidePage() {
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
+
+    // "Latest Reads" — everything else tagged to this guide that isn't
+    // already featured in Best Of or Mom Knows Best. Accepts both the
+    // legacy guide_slug='newcomer' and the friendly 'family-resource-guide'.
+    supabase.from('guide_articles')
+      .select('id, slug, title, subtitle, excerpt, hero_image_url, author_name, published_at, column_slug')
+      .in('guide_slug', ['family-resource-guide', 'newcomer'])
+      .not('column_slug', 'in', '(frg-best-of,mom-knows-best)')
+      .eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(6),
 
     // Directory categories
     supabase.from('guide_categories')
@@ -273,6 +287,13 @@ export default async function FamilyResourceGuidePage() {
     author_name: string | null; published_at: string | null
   }>
 
+  // ── Latest Reads (everything else tagged to FRG) ─────────────────────────
+  const latestReads = (latestReadsData ?? []) as Array<{
+    id: string; slug: string; title: string; subtitle: string | null; excerpt: string | null
+    hero_image_url: string | null; author_name: string | null; published_at: string | null
+    column_slug: string | null
+  }>
+
   // ── Sponsor ──────────────────────────────────────────────────────────────
   const sponsorAd = sponsorRow as {
     id:          string
@@ -326,6 +347,9 @@ export default async function FamilyResourceGuidePage() {
 
         {/* ── Best Of editorial — the high-value content goes first ── */}
         <BestOfFeatureRow articles={bestOf} />
+
+        {/* ── Latest Reads — every other FRG-tagged article ── */}
+        <LatestReads articles={latestReads} />
 
         {/* ── Mom Knows Best cross-pollination ── */}
         {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
