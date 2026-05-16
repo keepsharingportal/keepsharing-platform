@@ -41,7 +41,7 @@ export function FromSchoolZone({ articles }: Props) {
             <GraduationCap className="h-3.5 w-3.5 text-blue-700" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-700">From the School Zone</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
             What&apos;s happening in River Region schools
           </h2>
         </div>
@@ -80,7 +80,7 @@ export function FromSchoolZone({ articles }: Props) {
                 )}
               </div>
               <div className="p-3.5 flex flex-col flex-1">
-                <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-blue-700 transition-colors line-clamp-2 mb-1.5" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+                <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-blue-700 transition-colors line-clamp-2 mb-1.5">
                   {a.title}
                 </h3>
                 {a.excerpt && (

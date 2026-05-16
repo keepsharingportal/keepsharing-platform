@@ -59,7 +59,7 @@ export function MagazineCoverBlock({
           </p>
           <h2
             className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-1"
-            style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+           
           >
             {guideName} — {issueLabel}
           </h2>

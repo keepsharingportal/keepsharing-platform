@@ -3,7 +3,7 @@
 // moment that lets a social-ad visitor self-select their intent.
 
 import Link from 'next/link'
-import { MapPin, Star, ListChecks, ArrowRight } from 'lucide-react'
+import { CalendarDays, Star, ListChecks, ArrowRight } from 'lucide-react'
 
 interface LaneStat {
   count?: number
@@ -11,23 +11,12 @@ interface LaneStat {
 }
 
 interface Props {
-  towns?:    LaneStat
   bestOf?:   LaneStat
   services?: LaneStat
 }
 
-export function SelfSelectLanes({ towns, bestOf, services }: Props) {
+export function SelfSelectLanes({ bestOf, services }: Props) {
   const lanes = [
-    {
-      icon:    MapPin,
-      eyebrow: 'COMMUNITIES',
-      title:   'The 5 Towns',
-      copy:    'Montgomery, Prattville, Wetumpka, Millbrook, Pike Road — find your fit.',
-      href:    '#towns',
-      stat:    towns?.count ? `${towns.count} towns` : '5 towns',
-      accent:  'from-blue-50 via-white to-white border-blue-100 hover:border-blue-300',
-      iconBg:  'bg-blue-100 text-blue-700',
-    },
     {
       icon:    Star,
       eyebrow: 'CURATED LISTS',
@@ -39,10 +28,20 @@ export function SelfSelectLanes({ towns, bestOf, services }: Props) {
       iconBg:  'bg-amber-100 text-amber-700',
     },
     {
+      icon:    CalendarDays,
+      eyebrow: 'WHAT\'S HAPPENING',
+      title:   'The Calendar',
+      copy:    'Festivals, school events, classes, playdates — see what\'s on this week.',
+      href:    '/calendar',
+      stat:    'Updated daily',
+      accent:  'from-blue-50 via-white to-white border-blue-100 hover:border-blue-300',
+      iconBg:  'bg-blue-100 text-blue-700',
+    },
+    {
       icon:    ListChecks,
       eyebrow: 'DIRECTORY',
       title:   'Find a Service',
-      copy:    'Pediatricians, schools, dentists, counselors — filter by town and category.',
+      copy:    'Pediatricians, schools, dentists, counselors — search by category.',
       href:    '#directory',
       stat:    services?.count ? `${services.count.toLocaleString()} listings` : 'Filterable',
       accent:  'from-rose-50 via-white to-white border-rose-100 hover:border-rose-300',
@@ -66,7 +65,7 @@ export function SelfSelectLanes({ towns, bestOf, services }: Props) {
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">
               {lane.eyebrow}
             </p>
-            <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
               {lane.title}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed mb-4">

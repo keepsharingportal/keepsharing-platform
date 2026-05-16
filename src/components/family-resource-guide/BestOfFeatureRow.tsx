@@ -60,7 +60,7 @@ export function BestOfFeatureRow({
       <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">Curated · Best Of</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             {title}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
@@ -95,7 +95,7 @@ export function BestOfFeatureRow({
             </p>
             <h3
               className="text-xl md:text-2xl font-bold text-foreground leading-snug mb-2 group-hover:text-primary transition-colors"
-              style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+             
             >
               {lead.title}
             </h3>
@@ -137,7 +137,7 @@ export function BestOfFeatureRow({
                 <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
                   <h3
                     className="text-base md:text-lg font-bold text-foreground leading-snug mb-1.5 group-hover:text-primary transition-colors line-clamp-2"
-                    style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+                   
                   >
                     {a.title}
                   </h3>

@@ -37,7 +37,7 @@ export function MomKnowsBestRow({ posts }: Props) {
             <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-700">From Mom Knows Best</span>
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
             Real River Region moms, real recommendations.
           </h2>
         </div>

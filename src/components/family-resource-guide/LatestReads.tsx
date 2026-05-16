@@ -46,7 +46,7 @@ export function LatestReads({ articles }: Props) {
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1 inline-flex items-center gap-1.5">
             <BookOpen className="h-3 w-3" /> From the Pages
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Latest Reads
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -79,7 +79,7 @@ export function LatestReads({ articles }: Props) {
               <div className="flex flex-col flex-1 p-4">
                 <h3
                   className="text-base md:text-lg font-bold text-foreground leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2"
-                  style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}
+                 
                 >
                   {a.title}
                 </h3>

@@ -64,7 +64,7 @@ export function YearRoundEvents() {
       <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">The Annual Rhythm</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             What to Look Forward To
           </h2>
           <p className="text-sm text-muted-foreground mt-1">River Region family life by the season.</p>

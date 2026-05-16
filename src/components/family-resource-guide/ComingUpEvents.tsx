@@ -51,7 +51,7 @@ export function ComingUpEvents({ events }: Props) {
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1 inline-flex items-center gap-1.5">
             <Calendar className="h-3 w-3" /> The Calendar
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground inline-flex items-center gap-2" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground inline-flex items-center gap-2">
             <CalendarDays className="h-6 w-6 text-primary" />
             Happening Around Town
           </h2>
@@ -113,7 +113,7 @@ export function ComingUpEvents({ events }: Props) {
                     {date && (
                       <div className="absolute bottom-2.5 left-2.5 bg-white rounded-xl px-2.5 py-1.5 text-center shadow-sm">
                         <div className="text-[9px] font-bold text-primary uppercase leading-none">{date.month}</div>
-                        <div className="text-lg font-black text-foreground leading-none mt-0.5" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+                        <div className="text-lg font-black text-foreground leading-none mt-0.5">
                           {date.day}
                         </div>
                       </div>
@@ -125,7 +125,7 @@ export function ComingUpEvents({ events }: Props) {
                     )}
                   </div>
                   <div className="p-3.5">
-                    <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+                    <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
                       {ev.title}
                     </h3>
                     <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">

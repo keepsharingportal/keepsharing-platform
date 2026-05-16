@@ -33,7 +33,7 @@ export function TownsGrid({ towns }: Props) {
       <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">Communities</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Meet the River Region
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Five towns, one community. Find your fit.</p>
@@ -61,7 +61,7 @@ export function TownsGrid({ towns }: Props) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white font-bold text-base leading-tight" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+                  <p className="text-white font-bold text-base leading-tight">
                     {t.name}
                   </p>
                   {t.county && (

@@ -43,7 +43,7 @@ export function GetListedCTA({ variant = 'banner' }: Props) {
             <StoreIcon className="h-4 w-4 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">For Local Businesses</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight mb-3" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight mb-3">
             Be on the list moms reach for first.
           </h2>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl">

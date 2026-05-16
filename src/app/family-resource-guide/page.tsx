@@ -4,30 +4,39 @@
 // directory with sidebar. Navigation + PublicFooter are provided by
 // the family-resource-guide layout — don't render them again here.
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, BookOpen, Sparkles } from 'lucide-react'
 import type { Metadata } from 'next'
 
 import { FRGHero }            from '@/components/family-resource-guide/FRGHero'
 import { SelfSelectLanes }    from '@/components/family-resource-guide/SelfSelectLanes'
-import { TownsGrid }          from '@/components/family-resource-guide/TownsGrid'
 import { BestOfFeatureRow }   from '@/components/family-resource-guide/BestOfFeatureRow'
 import { LatestReads }        from '@/components/family-resource-guide/LatestReads'
 import { MomKnowsBestRow }    from '@/components/family-resource-guide/MomKnowsBestRow'
-import { FromSchoolZone }     from '@/components/family-resource-guide/FromSchoolZone'
 import { YearRoundEvents }    from '@/components/family-resource-guide/YearRoundEvents'
 import { ComingUpEvents }     from '@/components/family-resource-guide/ComingUpEvents'
 import { MagazineCoverBlock } from '@/components/family-resource-guide/MagazineCoverBlock'
 import { GetListedCTA }       from '@/components/family-resource-guide/GetListedCTA'
 import { SubmitTipWidget }    from '@/components/family-resource-guide/SubmitTipWidget'
 import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
+import { SchoolBitsBlock }    from '@/components/homepage/SchoolBitsBlock'
 
 import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
 import { FreeListing }     from '@/components/family-guide/FreeListing'
 import type { GuideListing, ListingTier } from '@/components/family-guide/types'
-import { SCHOOL_ZONE_COLUMN_SLUGS } from '@/lib/content-taxonomy'
+
+// Use the same raw service-role client the home page uses. The /lib/supabase/server
+// SSR client is anon, which gets blocked by RLS on calendar_events and a few
+// other tables — that's why events weren't appearing.
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
 
 export const revalidate = 600
 
@@ -114,7 +123,7 @@ function normalizeForMatch(s: string): string {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function FamilyResourceGuidePage() {
-  const supabase = await createClient()
+  const supabase = getSupabase()
 
   const [
     { data: guideType },
@@ -128,7 +137,7 @@ export default async function FamilyResourceGuidePage() {
     { data: listingsRaw },
     { data: sponsorRow },
     { data: upcomingEventsData },
-    { data: schoolZoneData },
+    { data: inlineAdRow },
   ] = await Promise.all([
     // Hero identity — canonical from guide_types. Query by url_slug since
     // that's the stable public identifier (the internal slug is the legacy
@@ -228,21 +237,21 @@ export default async function FamilyResourceGuidePage() {
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published')
-      .gte('start_date', new Date().toISOString().slice(0, 10))
-      .order('start_date',  { ascending: true })
-      .order('start_time',  { ascending: true, nullsFirst: true })
+      .gte('start_date', new Date().toISOString().split('T')[0])
+      .order('start_date', { ascending: true })
+      .order('start_time', { ascending: true, nullsFirst: true })
       .limit(6),
 
-    // School Zone cross-pollination — 3 most-recent published articles
-    // from any School Zone column. Surfaces school content on the FRG
-    // for moms whose primary concern is what's happening at their
-    // kid's school.
-    supabase.from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, author_name, published_at, column_slug')
-      .in('column_slug', SCHOOL_ZONE_COLUMN_SLUGS)
-      .eq('published', true)
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(3),
+    // Inline ad. Looks for an active homepage_inline_ad placement so any
+    // ad the admin wired up for the home page also surfaces on FRG. Later
+    // we can split out a dedicated frg_inline_ad placement_type.
+    supabase.from('ad_placements')
+      .select('id, ad_eyebrow, ad_headline, ad_description, ad_cta_label, ad_image_url, ad_link, advertiser:advertiser_accounts(business_name, slug)')
+      .eq('placement_type', 'homepage_inline_ad')
+      .eq('is_active', true)
+      .order('display_priority', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
@@ -334,12 +343,13 @@ export default async function FamilyResourceGuidePage() {
     category: string | null; is_free: boolean | null
   }>
 
-  // ── School Zone cross-pollination articles ───────────────────────────────
-  const schoolZoneArticles = (schoolZoneData ?? []) as Array<{
-    id: string; slug: string; title: string; excerpt: string | null
-    hero_image_url: string | null; author_name: string | null
-    published_at: string | null; column_slug: string | null
-  }>
+  // ── Inline ad row (matches the home page placement) ──────────────────────
+  const inlineAd = inlineAdRow as {
+    id: string; ad_eyebrow: string | null; ad_headline: string | null;
+    ad_description: string | null; ad_cta_label: string | null;
+    ad_image_url: string | null; ad_link: string | null;
+    advertiser: { business_name?: string | null; slug?: string | null } | null
+  } | null
 
   // ── Sponsor ──────────────────────────────────────────────────────────────
   const sponsorAd = sponsorRow as {
@@ -377,9 +387,8 @@ export default async function FamilyResourceGuidePage() {
 
       <main className="container py-10 md:py-14 space-y-14">
 
-        {/* ── LAYER 2: Self-select lanes ── */}
+        {/* ── LAYER 2: Self-select lanes (Best Of, Calendar, Directory) ── */}
         <SelfSelectLanes
-          towns={{ count: townsCount }}
           bestOf={{ count: bestOfCount }}
           services={{ count: listingsCount }}
         />
@@ -395,22 +404,52 @@ export default async function FamilyResourceGuidePage() {
         {/* ── Best Of editorial — the high-value content goes first ── */}
         <BestOfFeatureRow articles={bestOf} />
 
+        {/* ── Inline ad (matches the home page placement style) ── */}
+        {inlineAd?.ad_headline && (
+          <Link
+            href={inlineAd.ad_link ?? `/business/${inlineAd.advertiser?.slug ?? ''}`}
+            className="group flex flex-col sm:flex-row items-stretch gap-0 rounded-2xl overflow-hidden bg-gradient-to-br from-secondary/10 via-card to-card border border-secondary/20 hover:border-secondary/40 hover:shadow-md transition-all"
+          >
+            {inlineAd.ad_image_url && (
+              <div className="relative w-full sm:w-48 aspect-[4/3] sm:aspect-auto shrink-0 overflow-hidden bg-secondary/10">
+                <Image
+                  src={inlineAd.ad_image_url}
+                  alt={inlineAd.ad_headline ?? ''}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 192px"
+                  style={{ objectFit: 'cover' }}
+                  className="group-hover:scale-105 transition-transform duration-500"
+                  unoptimized
+                />
+              </div>
+            )}
+            <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary mb-1">
+                {inlineAd.ad_eyebrow ?? 'Sponsored'}
+              </p>
+              <h3 className="text-lg md:text-xl font-bold text-foreground leading-snug mb-1">
+                {inlineAd.ad_headline}
+              </h3>
+              {inlineAd.ad_description && (
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3 line-clamp-2">
+                  {inlineAd.ad_description}
+                </p>
+              )}
+              <span className="inline-flex items-center gap-1 text-sm font-bold text-secondary group-hover:gap-1.5 transition-all">
+                {inlineAd.ad_cta_label ?? 'Learn more'} <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Link>
+        )}
+
         {/* ── Latest Reads — FRG-issue content (features + newcomer stories) ── */}
         <LatestReads articles={latestReads} />
 
-        {/* ── From the Magazine — Issuu cover + digital edition CTA ── */}
-        <MagazineCoverBlock
-          printCoverUrl={guideConfig?.print_cover_url ?? null}
-          issuuUrl={guideConfig?.issuu_url ?? null}
-          guideName="Family Resource Guide"
-          issueLabel="2026 Edition"
-        />
+        {/* ── School Zone — reuse the home page block so it matches the site theme ── */}
+        <SchoolBitsBlock />
 
         {/* ── Mom Knows Best cross-pollination ── */}
         {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
-
-        {/* ── From School Zone cross-pollination ── */}
-        <FromSchoolZone articles={schoolZoneArticles} />
 
         {/* ── Coming Up — next 6 events from the calendar ── */}
         <ComingUpEvents events={upcomingEvents} />
@@ -418,19 +457,24 @@ export default async function FamilyResourceGuidePage() {
         {/* ── Year-round events — seasonal rhythm of family life ── */}
         <YearRoundEvents />
 
-        {/* ── The 5 Towns — orientation content, lower in the page ── */}
-        {towns.length > 0 && <TownsGrid towns={towns} />}
+        {/* ── From the Magazine — Issuu cover (only renders if data exists) ── */}
+        <MagazineCoverBlock
+          printCoverUrl={guideConfig?.print_cover_url ?? null}
+          issuuUrl={guideConfig?.issuu_url ?? null}
+          guideName="Family Resource Guide"
+          issueLabel="2026 Edition"
+        />
 
         {/* ── Directory with sidebar ── */}
         <section id="directory" className="scroll-mt-24">
-          <div className="flex items-end justify-between gap-3 mb-5 flex-wrap">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">The Directory</p>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground" style={{ fontFamily: 'var(--font-fraunces, Georgia, serif)' }}>
-                Find a service
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">{listingsCount.toLocaleString()} listings across {groups.length} categories.</p>
-            </div>
+          <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-4 flex-wrap gap-3">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
+              <BookOpen className="h-6 w-6 text-primary" />
+              Find a Service
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {listingsCount.toLocaleString()} listings across {groups.length} categories
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
