@@ -154,13 +154,14 @@ export default async function FamilyResourceGuidePage() {
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
 
-    // Best Of articles
+    // Best Of articles — fetch 7 so the layout fills as 1 lead + 6 grid
+    // (3 perfect rows of 2). 'See all' link below picks up overflow.
     supabase.from('guide_articles')
       .select('id, slug, title, subtitle, excerpt, hero_image_url, published_at')
       .eq('column_slug', 'frg-best-of')
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(6),
+      .limit(7),
 
     // Latest 3 Mom Knows Best posts
     supabase.from('guide_articles')

@@ -151,33 +151,11 @@ export function BestOfFeatureRow({
               </Link>
             )
           })}
-
-          {/* Fill the empty cell when the grid count is odd so the
-              section never ends with a blank space. Doubles as a
-              discovery CTA. */}
-          {rest.length % 2 === 1 && (
-            <Link
-              href="/columns/frg-best-of"
-              className="group flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 border-2 border-dashed border-primary/25 rounded-xl p-6 hover:border-primary/50 hover:bg-primary/10 transition-all min-h-[180px]"
-            >
-              <Star className="h-6 w-6 text-primary/70 fill-amber-300/60" />
-              <p className="text-sm font-bold text-foreground leading-snug text-center">
-                See all Best Of lists
-              </p>
-              <p className="text-xs text-muted-foreground text-center leading-relaxed max-w-[200px]">
-                Parks, day trips, sweet treats, sports leagues, and more.
-              </p>
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:gap-1.5 transition-all mt-1">
-                Browse the list <ArrowRight className="h-3 w-3" />
-              </span>
-            </Link>
-          )}
         </div>
       )}
 
-      {/* ── See all Best Of lists (only shown when the grid count is
-            even — when it's odd, the CTA tile above already covers this) ── */}
-      {articles.length >= 3 && rest.length % 2 === 0 && (
+      {/* ── See all Best Of lists ── */}
+      {articles.length >= 3 && (
         <div className="mt-5 flex justify-center">
           <Link
             href="/columns/frg-best-of"
