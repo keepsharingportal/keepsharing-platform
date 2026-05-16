@@ -15,6 +15,7 @@ import { TownsGrid }          from '@/components/family-resource-guide/TownsGrid
 import { BestOfFeatureRow }   from '@/components/family-resource-guide/BestOfFeatureRow'
 import { LatestReads }        from '@/components/family-resource-guide/LatestReads'
 import { MomKnowsBestRow }    from '@/components/family-resource-guide/MomKnowsBestRow'
+import { FromSchoolZone }     from '@/components/family-resource-guide/FromSchoolZone'
 import { YearRoundEvents }    from '@/components/family-resource-guide/YearRoundEvents'
 import { ComingUpEvents }     from '@/components/family-resource-guide/ComingUpEvents'
 import { MagazineCoverBlock } from '@/components/family-resource-guide/MagazineCoverBlock'
@@ -26,6 +27,7 @@ import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
 import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
 import { FreeListing }     from '@/components/family-guide/FreeListing'
 import type { GuideListing, ListingTier } from '@/components/family-guide/types'
+import { SCHOOL_ZONE_COLUMN_SLUGS } from '@/lib/content-taxonomy'
 
 export const revalidate = 600
 
@@ -126,6 +128,7 @@ export default async function FamilyResourceGuidePage() {
     { data: listingsRaw },
     { data: sponsorRow },
     { data: upcomingEventsData },
+    { data: schoolZoneData },
   ] = await Promise.all([
     // Hero identity — canonical from guide_types. Query by url_slug since
     // that's the stable public identifier (the internal slug is the legacy
@@ -229,6 +232,17 @@ export default async function FamilyResourceGuidePage() {
       .order('start_date',  { ascending: true })
       .order('start_time',  { ascending: true, nullsFirst: true })
       .limit(6),
+
+    // School Zone cross-pollination — 3 most-recent published articles
+    // from any School Zone column. Surfaces school content on the FRG
+    // for moms whose primary concern is what's happening at their
+    // kid's school.
+    supabase.from('guide_articles')
+      .select('id, slug, title, excerpt, hero_image_url, author_name, published_at, column_slug')
+      .in('column_slug', SCHOOL_ZONE_COLUMN_SLUGS)
+      .eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(3),
   ])
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
@@ -320,6 +334,13 @@ export default async function FamilyResourceGuidePage() {
     category: string | null; is_free: boolean | null
   }>
 
+  // ── School Zone cross-pollination articles ───────────────────────────────
+  const schoolZoneArticles = (schoolZoneData ?? []) as Array<{
+    id: string; slug: string; title: string; excerpt: string | null
+    hero_image_url: string | null; author_name: string | null
+    published_at: string | null; column_slug: string | null
+  }>
+
   // ── Sponsor ──────────────────────────────────────────────────────────────
   const sponsorAd = sponsorRow as {
     id:          string
@@ -388,11 +409,14 @@ export default async function FamilyResourceGuidePage() {
         {/* ── Mom Knows Best cross-pollination ── */}
         {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
 
-        {/* ── Year-round events — seasonal rhythm of family life ── */}
-        <YearRoundEvents />
+        {/* ── From School Zone cross-pollination ── */}
+        <FromSchoolZone articles={schoolZoneArticles} />
 
         {/* ── Coming Up — next 6 events from the calendar ── */}
         <ComingUpEvents events={upcomingEvents} />
+
+        {/* ── Year-round events — seasonal rhythm of family life ── */}
+        <YearRoundEvents />
 
         {/* ── The 5 Towns — orientation content, lower in the page ── */}
         {towns.length > 0 && <TownsGrid towns={towns} />}
