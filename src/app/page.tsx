@@ -17,6 +17,7 @@ import { columnLabel } from '@/lib/content-taxonomy'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
+import { BestOfBlock } from '@/components/homepage/BestOfBlock'
 import { ArticleCard, SectionHeader } from '@/components/theme'
 import type { Metadata } from 'next'
 
@@ -111,7 +112,8 @@ async function getHomepageData() {
       //     (legacy "-the-" slug variants in DB — include both forms so nothing slips through)
       //   - school-bits has its own School Zone block
       //   - mom-knows-best has its own dedicated sidebar block
-      .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best)')
+      //   - frg-best-of has its own Best Of block
+      .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best,frg-best-of)')
       .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
@@ -542,6 +544,9 @@ export default async function HomePage() {
 
         {/* Summer Fun Block */}
         <SummerFunBlock />
+
+        {/* Best of the Region — featured block above the portal */}
+        <BestOfBlock />
 
         {/* School Zone — full-width featured block above the portal */}
         <SchoolBitsBlock />
