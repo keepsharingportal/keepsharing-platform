@@ -78,16 +78,20 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
   const activeRegion = regionParam && REGIONS.some(r => r.slug === regionParam) ? regionParam : 'all'
   const supabase = getSupabase()
 
+  // Surface both the monthly roundups (school-bits) AND individual
+  // student spotlights (student-spotlights). The new school_region
+  // column is the canonical filter; older articles get caught by the
+  // editorial_notes fallback.
   let query = supabase
     .from('guide_articles')
-    .select('id, slug, title, excerpt, hero_image_url, published_at, editorial_notes')
-    .eq('column_slug', 'school-bits')
+    .select('id, slug, title, excerpt, hero_image_url, published_at, editorial_notes, column_slug, school_name, school_region')
+    .in('column_slug', ['school-bits', 'student-spotlights'])
     .eq('published', true)
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(24)
 
   if (activeRegion !== 'all') {
-    query = query.ilike('editorial_notes', `%School region: ${activeRegion}%`)
+    query = query.or(`school_region.eq.${activeRegion},editorial_notes.ilike.%School region: ${activeRegion}%`)
   }
 
   const { data: articles } = await query

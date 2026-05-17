@@ -197,6 +197,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     fields: [
       { id: 'student_name',    label: "Student's Name",          type: 'text',     required: true,  coreField: 'related_person_name', placeholder: 'Amara Johnson' },
       { id: 'school_name',     label: 'School Name',             type: 'text',     required: true,  coreField: 'related_school_name', placeholder: 'Eastwood Elementary' },
+      { id: 'school_region',   label: 'School Region',           type: 'select',   required: true,  options: ['Montgomery County', 'Autauga / Prattville', 'Elmore County', 'Pike Road', 'Private School', 'Other'], hint: 'So the spotlight shows up on the right regional page.' },
       { id: 'grade',           label: 'Grade',                   type: 'text',     required: true,  placeholder: '5th Grade' },
       { id: 'why_special',     label: 'What makes this student special?', type: 'textarea', required: true, rows: 4, placeholder: 'Tell us what stands out — their character, an achievement, a challenge they overcame, or how they\'ve grown.' },
       { id: 'achievement',     label: 'A recent achievement or notable moment', type: 'textarea', required: false, rows: 3, placeholder: 'An award, project, act of kindness, or academic milestone.' },

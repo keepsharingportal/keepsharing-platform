@@ -5,6 +5,7 @@ import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
 import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
+import { StudentSpotlightCard } from '@/components/school-zone/StudentSpotlightCard'
 import { getFallback } from '@/lib/image-fallbacks'
 import {
   GraduationCap, ArrowRight, Star, BookOpen, Heart,
@@ -157,10 +158,10 @@ export default async function SchoolZonePage() {
       .order('published_at', { ascending: false, nullsFirst: false }).limit(3),
 
     supabase.from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, published_at')
+      .select('id, slug, title, excerpt, hero_image_url, published_at, school_name, school_region')
       .eq('published', true)
-      .or('column_slug.eq.student-spotlights,title.ilike.%student spotlight%')
-      .order('published_at', { ascending: false, nullsFirst: false }).limit(4),
+      .eq('column_slug', 'student-spotlights')
+      .order('published_at', { ascending: false, nullsFirst: false }).limit(6),
 
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, published_at, author_name')
@@ -449,31 +450,28 @@ export default async function SchoolZonePage() {
           </section>
 
           <section>
-            <SectionHead icon={Star} title="Student Spotlights" />
+            <SectionHead icon={Star} title="Student Spotlights" href="/submit/student-spotlight" linkLabel="Submit a Spotlight" />
             {studentArticles.length === 0 ? (
               <EmptySection
-                message="Student athletic, artistic, and academic achievements are featured here monthly. Share a story about a River Region student!"
-                cta="Share a Student Story"
-                href="/calendar/submit"
+                message="Student athletic, artistic, and academic achievements are featured here. Share a story about a River Region student!"
+                cta="Submit a Spotlight"
+                href="/submit/student-spotlight"
               />
             ) : (
-              <div className="space-y-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {studentArticles.map(a => (
-                  <Link key={a.id} href={`/articles/${a.slug}`}
-                    className="group flex items-start gap-3 p-3.5 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-muted/30 transition-all">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                      <Star className="h-4 w-4 text-primary fill-primary/20" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">{a.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{fmtDate(a.published_at)}</p>
-                    </div>
-                  </Link>
+                  <StudentSpotlightCard
+                    key={a.id}
+                    id={a.id}
+                    slug={a.slug}
+                    title={a.title}
+                    excerpt={a.excerpt}
+                    hero_image_url={a.hero_image_url}
+                    school_name={a.school_name}
+                    school_region={a.school_region}
+                    published_at={a.published_at}
+                  />
                 ))}
-                <Link href="/calendar/submit"
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-semibold hover:bg-primary/5 transition-colors">
-                  <Users className="h-4 w-4" /> Submit a Student Story →
-                </Link>
               </div>
             )}
           </section>
