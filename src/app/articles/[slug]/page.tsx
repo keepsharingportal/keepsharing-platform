@@ -16,7 +16,7 @@ import { InArticleAd } from '@/components/articles/InArticleAd'
 import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
 import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
-import { columnLabel, guideLabel, verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
+import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -141,27 +141,21 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const isTeacher      = columnSlug === 'teacher-of-month'
   const isContributor  = ['mom-to-mom', 'grumpy-but-grateful', 'grands-greatest', 'dave-says', 'meeting-kids', 'teens-tweens-screens'].includes(columnSlug ?? '')
 
-  // Section badge prefers the column's parent vertical (e.g. "School Zone")
-  // and shows the column as a sub-chip (e.g. "School Bits"). Falls back to
-  // column-only when no vertical, then to guide-only, then to "Feature".
+  // Section badge prefers the column (the editorial brand readers recognize —
+  // "Mom to Mom", "School Bits"). Falls back to guide, then vertical, then
+  // "Feature" if none of those exist.
   const vertical     = verticalForColumn(columnSlug)
   const verticalLink = vertical ? verticalHref(vertical.slug) : null
 
-  const categoryLabel = vertical?.label
-    ?? (columnSlug ? columnLabel(columnSlug) : null)
+  const categoryLabel = (columnSlug ? columnLabel(columnSlug) : null)
     ?? (guideSlug  ? guideLabel(guideSlug)   : null)
+    ?? vertical?.label
     ?? 'Feature'
 
-  const categoryHref = vertical && verticalLink
-    ? verticalLink
-    : columnSlug ? `/columns/${columnSlug}`
-    : undefined
-
-  // Sub-chip only when we have BOTH a vertical and a column to show under it.
-  const subCategoryLabel = vertical && columnSlug ? columnLabel(columnSlug) : null
-  const subCategoryHref  = vertical && columnSlug
+  const categoryHref = columnSlug
     ? (columnSlug === 'school-bits' ? '/school-bits' : `/columns/${columnSlug}`)
-    : null
+    : (vertical && verticalLink) ? verticalLink
+    : undefined
 
   const relatedLabel  = columnSlug
     ? `More ${columnLabel(columnSlug)}`
@@ -189,30 +183,31 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
         <ArticleHeader
           category={categoryLabel}
           categoryHref={categoryHref}
-          subCategory={subCategoryLabel}
-          subCategoryHref={subCategoryHref}
-          publishedDate={publishedDate}
-          readTimeMinutes={readTimeMinutes}
+          badgeClassName={columnBadgeStyle(columnSlug)}
           title={article.title}
         />
 
+        {/* Meta row sits between the title and the hero: date · read · author
+            on the left, share buttons on the right. Closes the gap that used
+            to appear when the page-level author block collapsed to share-only. */}
         <ArticleAuthorBlock
-          authorName={article.author_name ?? 'River Region Parents'}
-          authorRole={isSchoolBits ? 'School Bits' : 'Editorial'}
-          authorAvatarUrl={null}
+          authorName={(article.author_name as string | null) ?? null}
+          publishedDate={publishedDate}
+          readTimeMinutes={readTimeMinutes}
           shareUrl={shareUrl}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image — skipped for templates that render their own hero */}
+            {/* Hero image — skipped for templates that render their own hero.
+                Anchored to top so faces never crop. */}
             {!isTeacher && !isContributor && (
-              <div className="relative w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">
+              <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">
                 <Image
                   src={heroImageUrl}
                   alt={article.title}
                   fill
-                  style={{ objectFit: 'cover' }}
+                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   priority
                   unoptimized
@@ -265,8 +260,6 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                     excerpt={article.excerpt as string | null | undefined}
                     heroImageUrl={heroImageUrl}
                     authorName={article.author_name as string | null | undefined}
-                    authorBio={article.author_bio as string | null | undefined}
-                    publishedAt={article.published_at as string | null | undefined}
                     columnSlug={columnSlug ?? 'mom-to-mom'}
                     body={article.body ?? ''}
                     pullQuotes={pullQuotes}

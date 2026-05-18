@@ -11,7 +11,7 @@ import { ArticleBody } from '@/components/articles/ArticleBody'
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
-import { verticalForColumn, verticalHref } from '@/lib/content-taxonomy'
+import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import type { Metadata } from 'next'
 
 export const revalidate = 600
@@ -32,15 +32,20 @@ interface PageParams {
 async function getArticleData(columnSlug: string, articleSlug: string) {
   const supabase = getSupabase()
 
-  // Full slug stored in DB: e.g. 'mom-to-mom-hayley-denny-may-2026'
-  const fullSlug = `${columnSlug}-${articleSlug}`
+  // Historically slugs were stored with the column prefix (e.g.
+  // 'mom-to-mom-hayley-denny'); newer articles may save just the bare slug
+  // ('harper-loves-perfect-season'). Look up both within this column.
+  const fullSlug    = `${columnSlug}-${articleSlug}`
+  const candidates  = fullSlug === articleSlug ? [articleSlug] : [fullSlug, articleSlug]
 
   const [articleRes, columnRes, trendingRes, stickyAdRes, sponsoredAdRes, inlineAdRes] = await Promise.all([
     supabase.from('guide_articles')
       .select('*')
-      .eq('slug', fullSlug)
+      .in('slug', candidates)
       .eq('column_slug', columnSlug)
       .eq('published', true)
+      .order('slug', { ascending: false })  // prefer the prefixed form when both exist
+      .limit(1)
       .maybeSingle(),
     supabase.from('monthly_columns')
       .select('*')
@@ -148,16 +153,17 @@ export default async function ArticlePage({ params }: PageParams) {
   const columnDisplay = columnData?.display_name
     ?? column.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
-  // Same section/sub-chip pattern as /articles/[slug]: show the vertical
-  // (e.g. "School Zone") as the section badge, with the column as a sub-chip.
-  const vertical     = verticalForColumn(column)
-  const verticalLink = vertical ? verticalHref(vertical.slug) : null
-  const categoryLabel    = vertical?.label ?? columnDisplay
-  const categoryHref     = (vertical && verticalLink) ? verticalLink : `/columns/${column}`
-  const subCategoryLabel = vertical ? columnDisplay : null
-  const subCategoryHref  = vertical
+  // Column is the editorial brand readers recognize, so it wins the primary
+  // badge. Vertical is only a fallback when there's nothing else to show.
+  const vertical      = verticalForColumn(column)
+  const verticalLink  = vertical ? verticalHref(vertical.slug) : null
+  const categoryLabel = columnDisplay
+    ?? vertical?.label
+    ?? 'Feature'
+  const categoryHref  = column
     ? (column === 'school-bits' ? '/school-bits' : `/columns/${column}`)
-    : null
+    : (vertical && verticalLink) ? verticalLink
+    : undefined
 
   // pull_quotes stored as JSON array of strings in migration 018 format
   const rawPullQuotes = article.pull_quotes
@@ -173,29 +179,28 @@ export default async function ArticlePage({ params }: PageParams) {
         <ArticleHeader
           category={categoryLabel}
           categoryHref={categoryHref}
-          subCategory={subCategoryLabel}
-          subCategoryHref={subCategoryHref}
-          publishedDate={publishedDate}
-          readTimeMinutes={readTimeMinutes}
+          badgeClassName={columnBadgeStyle(column)}
           title={article.title}
         />
 
+        {/* Meta row sits between the title and the hero: date · read · author
+            on the left, share buttons on the right. */}
         <ArticleAuthorBlock
-          authorName={article.author_name ?? 'River Region Parents'}
-          authorRole={columnData?.display_name ?? 'Editorial'}
-          authorAvatarUrl={null}
+          authorName={(article.author_name as string | null) ?? null}
+          publishedDate={publishedDate}
+          readTimeMinutes={readTimeMinutes}
           shareUrl={shareUrl}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image */}
-            <div className="relative w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">
+            {/* Hero image — anchored to top so faces never crop. */}
+            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">
               <Image
                 src={heroImageUrl}
                 alt={article.title}
                 fill
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
                 sizes="(max-width: 1024px) 100vw, 66vw"
                 priority
                 unoptimized

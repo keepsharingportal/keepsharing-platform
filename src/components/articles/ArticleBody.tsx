@@ -28,7 +28,11 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
       'code', 'pre',
       'hr',
     ],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+    // `data-align` powers the editor-driven image alignment (full/center/left/right).
+    // `style` lets editor-driven font-family / font-size / text-align / color flow
+    // through to the public page. DOMPurify's CSS sanitizer strips dangerous values
+    // (expressions, javascript: urls, etc.) automatically.
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'data-align', 'data-caption', 'style'],
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   })
 
@@ -256,7 +260,8 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           margin-top: -1.25rem;
           margin-bottom: 1.5rem;
         }
-        /* Mobile — collapse all floats */
+        /* Mobile — collapse all floats. !important wins against any
+           editor-emitted inline style="float: left; ..." on the image. */
         @media (max-width: 640px) {
           .article-body img[data-align="left"],
           .article-body img[data-align="right"],
@@ -264,9 +269,9 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           .article-body figure.alignright,
           .article-body img.alignleft,
           .article-body img.alignright {
-            float: none;
-            max-width: 100%;
-            margin: 1.5rem auto;
+            float: none !important;
+            max-width: 100% !important;
+            margin: 1.5rem auto !important;
           }
         }
         /* Clear floats at end */

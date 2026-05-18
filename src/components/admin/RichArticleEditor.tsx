@@ -3,16 +3,21 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { AlignableImage, type ImageAlign } from './tiptap-extensions/AlignableImage'
+import { FontSize } from './tiptap-extensions/FontSize'
 import LinkExt from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
+import { TextAlign } from '@tiptap/extension-text-align'
+import { Color } from '@tiptap/extension-color'
 import { useState, useCallback, useRef } from 'react'
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Quote, Link2, Image as ImageIcon,
   Undo2, Redo2, Type, Heading2, Heading3,
-  Upload, AlignCenter, AlignLeft, AlignRight, Maximize2,
-  RefreshCw, Minus, Code,
+  Upload, AlignCenter, AlignLeft, AlignRight, AlignJustify, Maximize2,
+  RefreshCw, Minus, Code, Eraser, Palette,
 } from 'lucide-react'
 
 // Markdown → HTML: lives in shared lib so ArticleBody (server component) can use it too.
@@ -109,9 +114,55 @@ const ALIGN_OPTIONS: { value: ImageAlign; label: string; Icon: React.ElementType
   { value: 'right',  label: 'Float right',Icon: AlignRight  },
 ]
 
+// Limited, web-safe font set. "Default" inherits the article body font so
+// editors don't have to pick a font just to look right on the site.
+const FONT_FAMILIES: { label: string; value: string }[] = [
+  { label: 'Default',    value: '' },
+  { label: 'Serif',      value: 'Georgia, "Times New Roman", serif' },
+  { label: 'Sans',       value: '"Helvetica Neue", Arial, sans-serif' },
+  { label: 'System',     value: 'system-ui, -apple-system, sans-serif' },
+  { label: 'Monospace',  value: '"Fira Mono", Consolas, monospace' },
+]
+
+// Sizes in em so they scale with the article body's base size on the live site.
+const FONT_SIZES: { label: string; value: string }[] = [
+  { label: 'Default', value: ''       },
+  { label: 'XS',      value: '0.75em' },
+  { label: 'Small',   value: '0.85em' },
+  { label: 'Normal',  value: '1em'    },
+  { label: 'Large',   value: '1.25em' },
+  { label: 'XL',      value: '1.5em'  },
+  { label: 'XXL',     value: '1.75em' },
+]
+
+// Inline text alignment for the current block (paragraph or heading).
+const TEXT_ALIGNS: { value: 'left' | 'center' | 'right' | 'justify'; label: string; Icon: React.ElementType }[] = [
+  { value: 'left',    label: 'Align left',    Icon: AlignLeft    },
+  { value: 'center',  label: 'Align center',  Icon: AlignCenter  },
+  { value: 'right',   label: 'Align right',   Icon: AlignRight   },
+  { value: 'justify', label: 'Justify',       Icon: AlignJustify },
+]
+
+// Curated palette — site theme tokens + standard editorial colors.
+// 'Default' clears the color so the foreground token wins (good for theming).
+const TEXT_COLORS: { label: string; value: string; swatch: string }[] = [
+  { label: 'Default',      value: '',        swatch: 'transparent'         },
+  { label: 'Black',        value: '#111111', swatch: '#111111'             },
+  { label: 'Gray',         value: '#6b7280', swatch: '#6b7280'             },
+  { label: 'Coral (theme)',value: '#ef6442', swatch: '#ef6442'             },
+  { label: 'Teal (theme)', value: '#3d8e8e', swatch: '#3d8e8e'             },
+  { label: 'Gold (theme)', value: '#f3bf24', swatch: '#f3bf24'             },
+  { label: 'Rose',         value: '#e11d48', swatch: '#e11d48'             },
+  { label: 'Blue',         value: '#2563eb', swatch: '#2563eb'             },
+  { label: 'Green',        value: '#16a34a', swatch: '#16a34a'             },
+  { label: 'Purple',       value: '#7c3aed', swatch: '#7c3aed'             },
+]
+
 function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: string) => void }) {
   const [linkUrl, setLinkUrl]   = useState('')
   const [showLink, setShowLink] = useState(false)
+
+  const [showColor, setShowColor] = useState(false)
 
   const [showImage, setShowImage]         = useState(false)
   const [imageMode, setImageMode]         = useState<'url' | 'upload'>('url')
@@ -123,6 +174,8 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
   const [uploadError, setUploadError]     = useState<string | null>(null)
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const currentColor = editor.getAttributes('textStyle').color as string | undefined
 
   const insertLink = useCallback(() => {
     const url = linkUrl.trim()
@@ -220,6 +273,42 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
 
         <Sep />
 
+        {/* Font family */}
+        <select
+          aria-label="Font family"
+          title="Font family"
+          value={editor.getAttributes('textStyle').fontFamily ?? ''}
+          onChange={e => {
+            const v = e.target.value
+            if (v) editor.chain().focus().setFontFamily(v).run()
+            else   editor.chain().focus().unsetFontFamily().run()
+          }}
+          className="h-8 text-xs border border-gray-200 rounded px-1.5 bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:border-blue-400"
+        >
+          {FONT_FAMILIES.map(f => (
+            <option key={f.label} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+
+        {/* Font size */}
+        <select
+          aria-label="Font size"
+          title="Font size"
+          value={editor.getAttributes('textStyle').fontSize ?? ''}
+          onChange={e => {
+            const v = e.target.value
+            if (v) editor.chain().focus().setFontSize(v).run()
+            else   editor.chain().focus().unsetFontSize().run()
+          }}
+          className="h-8 text-xs border border-gray-200 rounded px-1.5 bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:border-blue-400"
+        >
+          {FONT_SIZES.map(s => (
+            <option key={s.label} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+
+        <Sep />
+
         {/* Inline formatting */}
         <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold (Ctrl+B)">
           <Bold size={14} />
@@ -230,6 +319,40 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
         <ToolBtn onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Underline (Ctrl+U)">
           <UnderlineIcon size={14} />
         </ToolBtn>
+
+        {/* Color picker */}
+        <button
+          type="button"
+          onMouseDown={e => { e.preventDefault(); setShowColor(v => !v) }}
+          title="Text color"
+          className={[
+            'flex items-center justify-center w-8 h-8 rounded transition-colors relative',
+            showColor || currentColor ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+          ].join(' ')}
+        >
+          <Palette size={14} />
+          {currentColor && (
+            <span
+              aria-hidden="true"
+              className="absolute bottom-1 left-1.5 right-1.5 h-0.5 rounded-sm"
+              style={{ backgroundColor: currentColor }}
+            />
+          )}
+        </button>
+
+        <Sep />
+
+        {/* Text alignment */}
+        {TEXT_ALIGNS.map(({ value, label, Icon }) => (
+          <ToolBtn
+            key={value}
+            onClick={() => editor.chain().focus().setTextAlign(value).run()}
+            active={editor.isActive({ textAlign: value })}
+            title={label}
+          >
+            <Icon size={14} />
+          </ToolBtn>
+        ))}
 
         <Sep />
 
@@ -273,6 +396,16 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
 
         <Sep />
 
+        {/* Clear formatting */}
+        <ToolBtn
+          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+          title="Clear formatting"
+        >
+          <Eraser size={14} />
+        </ToolBtn>
+
+        <Sep />
+
         {/* History */}
         <ToolBtn onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo (Ctrl+Z)">
           <Undo2 size={14} />
@@ -291,6 +424,38 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           onCancel={() => setShowLink(false)}
           confirmLabel={editor.isActive('link') ? 'Update' : 'Insert Link'}
         />
+      )}
+
+      {showColor && (
+        <div className="mt-2 pt-2 border-t border-gray-200 flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold text-gray-500 mr-1">Text color:</span>
+          {TEXT_COLORS.map(c => {
+            const isActive = c.value
+              ? currentColor?.toLowerCase() === c.value.toLowerCase()
+              : !currentColor
+            return (
+              <button
+                key={c.label}
+                type="button"
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (c.value) editor.chain().focus().setColor(c.value).run()
+                  else         editor.chain().focus().unsetColor().run()
+                  setShowColor(false)
+                }}
+                title={c.label}
+                className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center ${
+                  isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-gray-300' : 'border-gray-200 hover:border-gray-400'
+                }`}
+                style={{ backgroundColor: c.swatch === 'transparent' ? '#fff' : c.swatch }}
+              >
+                {c.swatch === 'transparent' && (
+                  <span className="text-[9px] font-bold text-gray-400">A</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       )}
 
       {showImage && (
@@ -415,6 +580,13 @@ export function RichArticleEditor({ initialContent, onChange, placeholder = 'Sta
       AlignableImage.configure({ inline: false, allowBase64: false }),
       LinkExt.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder }),
+      // TextStyle is a prerequisite for FontFamily / FontSize / Color.
+      TextStyle,
+      FontFamily,
+      FontSize,
+      Color,
+      // Text alignment applies to block-level types (paragraph + headings).
+      TextAlign.configure({ types: ['paragraph', 'heading'], alignments: ['left', 'center', 'right', 'justify'] }),
     ],
     content: markdownToHtml(initialContent),
     onUpdate: ({ editor }) => {

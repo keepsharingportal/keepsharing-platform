@@ -11,7 +11,13 @@ import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { COLUMNS, GUIDES, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
-import DOMPurify from 'isomorphic-dompurify'
+import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
+import { TeacherOfMonthLayout } from '@/components/articles/templates/TeacherOfMonthLayout'
+import { ArticleBody } from '@/components/articles/ArticleBody'
+import Image from 'next/image'
+import { getFallbackByContext } from '@/lib/image-fallbacks'
+
+const CONTRIBUTOR_COLUMNS = ['mom-to-mom', 'grumpy-but-grateful', 'grands-greatest', 'dave-says', 'meeting-kids', 'teens-tweens-screens']
 
 const VERTICAL_LABELS: Record<string, string> = {
   'school-zone':    'School Zone',
@@ -71,55 +77,87 @@ function mergeHeroTag(notes: string, isHero: boolean): string {
   return base ? `${base}\n[homepage_hero]` : '[homepage_hero]'
 }
 
-// ── Article preview component (renders body HTML like the public page) ────────
+// ── Article preview component ────────────────────────────────────────────────
+// Renders the live editor state using the SAME layout components as the public
+// page, so what an editor sees is what readers will see (no drift over time).
 
 function ArticlePreview({
-  title, subtitle, heroUrl, body,
+  title, subtitle, heroUrl, body, columnSlug, excerpt, authorByline, articleId,
 }: {
-  title: string; subtitle: string; heroUrl: string; body: string
+  title: string
+  subtitle: string
+  heroUrl: string
+  body: string
+  columnSlug: string
+  excerpt: string
+  authorByline: string
+  articleId: string
 }) {
-  const clean = DOMPurify.sanitize(body, {
-    ALLOWED_TAGS: ['p','br','span','div','h2','h3','h4','strong','em','b','i','u','a','ul','ol','li','blockquote','figure','figcaption','img'],
-    ALLOWED_ATTR: ['href','src','alt','title','class','target','rel'],
-  })
+  const isTeacher     = columnSlug === 'teacher-of-month'
+  const isContributor = CONTRIBUTOR_COLUMNS.includes(columnSlug)
+
+  // Title fallback so the layout never renders blank during early typing
+  const safeTitle    = title    || 'Untitled article'
+  const safeAuthor   = authorByline || null
+  const heroFallback = heroUrl  || getFallbackByContext(columnSlug || 'parenting', articleId)
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-2">
-      {title && (
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 32, fontWeight: 700, lineHeight: 1.15, marginBottom: 12, color: '#111' }}>
-          {title}
+    <div className="max-w-3xl mx-auto py-6 px-4">
+      {/* Mimic the article page header (eyebrow + title + dek) so the preview
+          matches the front-end's vertical rhythm, not just the body block. */}
+      <div className="mb-6 pb-4 border-b border-gray-100">
+        {columnSlug && (
+          <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">
+            {columnSlug.replace(/-/g, ' ')}
+          </p>
+        )}
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2">
+          {safeTitle}
         </h1>
-      )}
-      {subtitle && (
-        <p style={{ fontSize: 18, color: '#555', lineHeight: 1.6, marginBottom: 20, fontFamily: 'Georgia, serif' }}>
-          {subtitle}
-        </p>
-      )}
-      {heroUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={heroUrl}
-          alt={title}
-          style={{ width: '100%', borderRadius: 12, marginBottom: 28, objectFit: 'cover', maxHeight: 360, display: 'block' }}
+        {subtitle && (
+          <p className="text-lg text-gray-600 leading-relaxed">{subtitle}</p>
+        )}
+      </div>
+
+      {isTeacher ? (
+        <TeacherOfMonthLayout
+          title={safeTitle}
+          excerpt={excerpt}
+          heroImageUrl={heroFallback}
+          authorName={safeAuthor}
+          publishedAt={null}
+          body={body}
+          pullQuotes={[]}
+          articleId={articleId}
         />
+      ) : isContributor ? (
+        <ContributorArticleLayout
+          title={safeTitle}
+          excerpt={excerpt}
+          heroImageUrl={heroFallback}
+          authorName={safeAuthor}
+          columnSlug={columnSlug}
+          body={body}
+          pullQuotes={[]}
+          articleId={articleId}
+        />
+      ) : (
+        <>
+          {heroUrl && (
+            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-6 shadow-sm border border-gray-200">
+              <Image
+                src={heroUrl}
+                alt={safeTitle}
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                sizes="(max-width: 1024px) 100vw, 66vw"
+                unoptimized
+              />
+            </div>
+          )}
+          <ArticleBody body={body} pullQuotes={[]} />
+        </>
       )}
-      <div
-        dangerouslySetInnerHTML={{ __html: clean }}
-        style={{ fontFamily: 'Georgia, serif', fontSize: 17, lineHeight: 1.8, color: '#1c1c1e' }}
-      />
-      <style>{`
-        .article-preview-body p  { margin: 0 0 1.1em; }
-        .article-preview-body h2 { font-size: 1.55em; font-weight: 700; margin: 1.6em 0 0.5em; font-family: system-ui, sans-serif; color: #111; }
-        .article-preview-body h3 { font-size: 1.2em; font-weight: 700; margin: 1.4em 0 0.4em; font-family: system-ui, sans-serif; color: #111; }
-        .article-preview-body blockquote { border-left: 4px solid #d1d5db; margin: 1.75em 0; padding: 0.6em 0 0.6em 1.25em; color: #555; font-style: italic; background: #f9fafb; border-radius: 0 8px 8px 0; }
-        .article-preview-body img { max-width: 100%; border-radius: 8px; margin: 1.5em auto; display: block; }
-        .article-preview-body a { color: #2563eb; text-decoration: underline; }
-        .article-preview-body ul { list-style: disc; margin: 0.75em 0 0.75em 1.75em; }
-        .article-preview-body ol { list-style: decimal; margin: 0.75em 0 0.75em 1.75em; }
-        .article-preview-body li { margin-bottom: 0.35em; }
-        .article-preview-body strong, .article-preview-body b { font-weight: 700; }
-        .article-preview-body em, .article-preview-body i { font-style: italic; }
-      `}</style>
     </div>
   )
 }
@@ -145,6 +183,7 @@ export default function ArticleEditPage({ params }: Props) {
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
     body: '', hero_image_url: '', profile_image_url: '', column_slug: '', guide_slug: '',
     source_issue_month: '', author_blogger_id: '',
+    published_at: '',  // YYYY-MM-DDTHH:mm in local time; empty means "auto-set on publish"
   })
 
   // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
@@ -170,6 +209,16 @@ export default function ArticleEditPage({ params }: Props) {
           .trim()
 
         setIsHomepageHero(hero)
+
+        // Convert stored UTC published_at → local <input type="datetime-local"> format
+        const publishedAtLocal = data.published_at
+          ? (() => {
+              const d = new Date(data.published_at as string)
+              const pad = (n: number) => String(n).padStart(2, '0')
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+            })()
+          : ''
+
         setForm({
           title:              data.title           ?? '',
           slug:               data.slug            ?? '',
@@ -183,6 +232,7 @@ export default function ArticleEditPage({ params }: Props) {
           guide_slug:         data.guide_slug      ?? '',
           source_issue_month: data.source_issue_month ?? '',
           author_blogger_id:  data.author_blogger_id ?? '',
+          published_at:       publishedAtLocal,
         })
         setBaseNotes(cleaned)
         setSchoolRegion(region)
@@ -222,7 +272,14 @@ export default function ArticleEditPage({ params }: Props) {
 
     const published    = mode === 'publish'
     const editStatus   = mode === 'draft' ? 'draft' : mode === 'publish' ? 'approved' : 'pending'
-    const published_at = published ? new Date().toISOString() : undefined
+
+    // Date precedence:
+    //  - If the operator set a date in the form, that wins (always saved).
+    //  - Otherwise, on the publish action we auto-stamp "now".
+    //  - Otherwise leave the existing value alone.
+    const published_at = form.published_at.trim()
+      ? new Date(form.published_at).toISOString()
+      : (published ? new Date().toISOString() : undefined)
 
     const editorial_notes = mergeHeroTag(mergeRegion(baseNotes, schoolRegion), isHomepageHero) || null
 
@@ -392,6 +449,10 @@ export default function ArticleEditPage({ params }: Props) {
                         subtitle={form.subtitle}
                         heroUrl={form.hero_image_url}
                         body={form.body}
+                        columnSlug={form.column_slug}
+                        excerpt={form.excerpt}
+                        authorByline={form.author_byline}
+                        articleId={id}
                       />
                     )}
                   </div>
@@ -468,6 +529,62 @@ export default function ArticleEditPage({ params }: Props) {
               </div>
             </div>
 
+            {/* ── Danger zone — unpublish + move to trash ── */}
+            <div className="border border-rose-200 rounded-xl overflow-hidden">
+              <div className="bg-rose-50 px-3 py-2 border-b border-rose-100">
+                <p className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Danger Zone</p>
+              </div>
+              <div className="p-3 space-y-2">
+                <button
+                  type="button"
+                  disabled={saving || loading}
+                  onClick={async () => {
+                    setSaving(true)
+                    try {
+                      const res = await fetch(`/api/admin/articles/${id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ published: false, editorial_review_status: 'draft' }),
+                      })
+                      if (!res.ok) {
+                        const j = await res.json().catch(() => ({}))
+                        setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
+                      } else {
+                        setSaveMsg({ text: '✓ Unpublished — now in draft', ok: true })
+                        setTimeout(() => setSaveMsg(null), 4000)
+                      }
+                    } finally { setSaving(false) }
+                  }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                >
+                  Unpublish
+                  <span className="block text-xs font-normal text-gray-400 mt-0.5">Removes from public site; stays in your draft list</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={saving || loading}
+                  onClick={async () => {
+                    if (!confirm('Move this article to Trash? You can restore it from /admin/articles/trash.')) return
+                    setSaving(true)
+                    try {
+                      const res = await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' })
+                      if (!res.ok) {
+                        const j = await res.json().catch(() => ({}))
+                        setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
+                        return
+                      }
+                      window.location.href = '/admin/articles'
+                    } finally { setSaving(false) }
+                  }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-rose-300 bg-white text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition-colors"
+                >
+                  Move to Trash
+                  <span className="block text-xs font-normal text-rose-500/80 mt-0.5">Restorable from /admin/articles/trash</span>
+                </button>
+              </div>
+            </div>
+
             {/* ── Feature on Homepage ── */}
             <div className="border border-blue-200 rounded-xl overflow-hidden">
               <div className="bg-blue-50 px-3 py-2 border-b border-blue-100">
@@ -495,17 +612,53 @@ export default function ArticleEditPage({ params }: Props) {
               <input className={inp} value={form.author_byline} onChange={e => setField('author_byline', e.target.value)} placeholder="Author name or byline" />
             </div>
 
-            {/* ── Excerpt ── */}
+            {/* ── Published date ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Excerpt</label>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Published Date</label>
+                {form.published_at && (
+                  <button
+                    type="button"
+                    onClick={() => setField('published_at', '')}
+                    className="text-[10px] text-gray-400 hover:text-gray-600 underline"
+                  >
+                    clear
+                  </button>
+                )}
+              </div>
+              <input
+                type="datetime-local"
+                className={inp}
+                value={form.published_at}
+                onChange={e => setField('published_at', e.target.value)}
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                Drives the date shown on the article and the order in "Latest Stories" listings.
+                Back-date a late-published piece to slot it where it belongs, or post-date to schedule
+                it ahead. Leave blank to auto-stamp the current time when you click Publish.
+              </p>
+            </div>
+
+            {/* ── Hook / Teaser (DB column: excerpt) ── */}
+            <div>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Hook / Teaser</label>
+                <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-amber-600' : 'text-gray-400'}`}>
+                  {form.excerpt.length} / 160
+                </span>
+              </div>
               <textarea
                 className={`${inp} resize-none`}
                 rows={3}
                 value={form.excerpt}
                 onChange={e => setField('excerpt', e.target.value)}
-                placeholder="Short summary shown on article cards and in search results…"
+                placeholder="Why should someone click? 1–2 sentences. Different from the article opening."
+                maxLength={300}
               />
-              <p className="text-[11px] text-gray-400 mt-1">Shown on the homepage, article listings, and in meta descriptions.</p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                Sales copy for the article — shown on the homepage hero, listing cards, and search snippets.
+                Leave blank to show no teaser (the card will rely on the title alone).
+              </p>
             </div>
 
             {/* ── Hero image ── */}

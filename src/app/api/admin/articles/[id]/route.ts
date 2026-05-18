@@ -1,6 +1,9 @@
-// PATCH /api/admin/articles/[id]
-// Updates article fields via service role key (bypasses RLS).
-// Caller passes exactly the fields to change; undefined keys are ignored.
+// PATCH /api/admin/articles/[id]   — update fields
+// DELETE /api/admin/articles/[id]  — soft delete (move to trash) by default,
+//                                    or permanent delete with ?permanent=true
+// POST /api/admin/articles/[id]    — body { action: 'restore' } un-trashes
+//
+// All variants use the service role key (bypasses RLS).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -66,19 +69,120 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Revalidate public pages if the article is being published or unpublished
-    if ('published' in update || 'editorial_review_status' in update) {
-      const slug = body.slug as string | undefined
-      revalidatePath('/')
-      revalidatePath('/articles')
-      revalidatePath('/school-bits')
-      revalidatePath('/school-zone')
-      if (slug) revalidatePath(`/articles/${slug}`)
+    // Revalidate public surfaces on every save so image/text/date changes are
+    // visible immediately. Previously this only fired on publish/unpublish,
+    // which meant a hero or profile-image swap could sit behind the 10-min
+    // ISR cache before readers saw it.
+    const slug       = body.slug as string | undefined
+    const columnSlug = (body.column_slug as string | undefined) ?? (update.column_slug as string | undefined)
+    revalidatePath('/')
+    revalidatePath('/articles')
+    revalidatePath('/school-bits')
+    revalidatePath('/school-zone')
+    if (slug) {
+      revalidatePath(`/articles/${slug}`)
+      if (columnSlug) {
+        // Column route uses the slug without the column prefix.
+        const bareSlug = slug.replace(new RegExp(`^${columnSlug}-`), '')
+        revalidatePath(`/columns/${columnSlug}/${bareSlug}`)
+        revalidatePath(`/columns/${columnSlug}/${slug}`)
+        revalidatePath(`/columns/${columnSlug}`)
+      }
     }
 
     return NextResponse.json({ success: true })
   } catch (e) {
     console.error('[PATCH article] error:', e)
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
+}
+
+// ── DELETE — soft delete (trash) or permanent delete ─────────────────────────
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    if (!id) return NextResponse.json({ error: 'Missing article id' }, { status: 400 })
+
+    const url        = new URL(req.url)
+    const permanent  = url.searchParams.get('permanent') === 'true'
+    const supabase   = supabaseAdmin()
+
+    // Pull the article so we can also revalidate its public routes.
+    const { data: existing } = await supabase
+      .from('guide_articles')
+      .select('slug, column_slug')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (permanent) {
+      const { error } = await supabase.from('guide_articles').delete().eq('id', id)
+      if (error) {
+        console.error('[DELETE article permanent]', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+    } else {
+      const { error } = await supabase
+        .from('guide_articles')
+        .update({ deleted_at: new Date().toISOString(), published: false })
+        .eq('id', id)
+      if (error) {
+        console.error('[DELETE article soft]', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+    }
+
+    // Bust the public-page cache so a trashed/deleted article disappears now.
+    revalidatePath('/')
+    revalidatePath('/articles')
+    if (existing?.slug) {
+      const slug       = existing.slug as string
+      const columnSlug = existing.column_slug as string | null
+      revalidatePath(`/articles/${slug}`)
+      if (columnSlug) {
+        const bareSlug = slug.replace(new RegExp(`^${columnSlug}-`), '')
+        revalidatePath(`/columns/${columnSlug}/${bareSlug}`)
+        revalidatePath(`/columns/${columnSlug}/${slug}`)
+        revalidatePath(`/columns/${columnSlug}`)
+      }
+    }
+
+    return NextResponse.json({ success: true, permanent })
+  } catch (e) {
+    console.error('[DELETE article] error:', e)
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
+}
+
+// ── POST — restore a trashed article ─────────────────────────────────────────
+
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params
+    if (!id) return NextResponse.json({ error: 'Missing article id' }, { status: 400 })
+
+    const body   = await req.json().catch(() => ({}))
+    const action = body?.action as string | undefined
+    if (action !== 'restore') {
+      return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+    }
+
+    const supabase = supabaseAdmin()
+    const { error } = await supabase
+      .from('guide_articles')
+      .update({ deleted_at: null })
+      .eq('id', id)
+
+    if (error) {
+      console.error('[POST article restore]', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    revalidatePath('/')
+    revalidatePath('/articles')
+    return NextResponse.json({ success: true })
+  } catch (e) {
+    console.error('[POST article] error:', e)
     return NextResponse.json({ error: String(e) }, { status: 500 })
   }
 }

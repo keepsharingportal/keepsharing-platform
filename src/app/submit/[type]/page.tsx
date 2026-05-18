@@ -4,24 +4,16 @@
 // on success and renders the thank-you view from the same route.
 
 import type { Metadata }       from 'next'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode }      from 'react'
 import { redirect, notFound }  from 'next/navigation'
 import Link                    from 'next/link'
+import { ArrowLeft, ArrowRight, Camera, Clock, Users } from 'lucide-react'
 import { createClient }        from '@/lib/supabase/server'
 import {
   SUBMISSION_TYPES, getSubmissionType, TYPE_COLORS,
   type SubmissionField,
 } from '@/lib/submissions'
 import { uploadSubmissionPhoto } from '@/lib/submissions-photo'
-
-// ── Design tokens ─────────────────────────────────────────────────────────────
-
-const N    = '#1a2744'
-const T    = '#c4622d'
-const C    = '#fdf8f3'
-const W    = '#ffffff'
-const serif = 'var(--font-fraunces, serif)'
-const sans  = 'var(--font-dm-sans, sans-serif)'
 
 // ── Static params ─────────────────────────────────────────────────────────────
 
@@ -60,7 +52,7 @@ export default async function SubmitTypePage({
   const config = getSubmissionType(type)
   if (!config || config.externalUrl) notFound()
 
-  const accentColor = TYPE_COLORS[type] ?? T
+  const accentColor = TYPE_COLORS[type] ?? '#ef6442'
 
   // ── Server action ──────────────────────────────────────────────────────────
 
@@ -91,7 +83,6 @@ export default async function SubmitTypePage({
       }
     }
 
-    // ── Photo handling ──────────────────────────────────────────────────
     let webImageUrl:   string | null = null
     let printImageUrl: string | null = null
     if (currentConfig.photoUpload) {
@@ -106,8 +97,6 @@ export default async function SubmitTypePage({
           webImageUrl   = uploaded.webImageUrl
           printImageUrl = uploaded.printImageUrl
         } catch (e) {
-          // Surface upload errors back to the user via a redirect param.
-          // Submission is rejected rather than silently saved without a photo.
           const msg = encodeURIComponent(e instanceof Error ? e.message : 'Photo upload failed')
           redirect(`/submit/${type}?error=${msg}`)
         }
@@ -140,222 +129,221 @@ export default async function SubmitTypePage({
 
   if (submitted === 'true') {
     return (
-      <div style={{ backgroundColor: C, color: '#3a2c1e', fontFamily: sans, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-        <div style={{ maxWidth: 560, textAlign: 'center' }}>
-          <div style={{ fontSize: 64, marginBottom: 20 }}>{config.emoji}</div>
-          <h1 style={{ fontFamily: serif, fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: N, lineHeight: 1.1, marginBottom: 16 }}>
+      <main className="container py-12 md:py-16">
+        <div className="max-w-xl mx-auto bg-card rounded-3xl border border-border/50 shadow-sm p-8 md:p-10 text-center">
+          <div className="text-6xl mb-5" aria-hidden="true">{config.emoji}</div>
+          <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight mb-3">
             Thank You!
           </h1>
-          <p style={{ fontSize: 16, color: '#555', lineHeight: 1.8, marginBottom: 10 }}>
+          <p className="text-base text-foreground/80 leading-relaxed mb-2">
             Your {config.label.toLowerCase()} submission has been received.
           </p>
-          <p style={{ fontSize: 14, color: '#888', lineHeight: 1.8, marginBottom: 32 }}>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">
             {config.whatHappensNext}
           </p>
 
           {(config.photoRequired || config.photoHint) && (
-            <div style={{ backgroundColor: W, border: `2px solid ${accentColor}30`, borderRadius: 12, padding: '18px 22px', marginBottom: 32, textAlign: 'left' }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: N, marginBottom: 6 }}>
-                📷 {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' (Required)' : ' (Optional)'}
+            <div className="bg-muted/40 border border-border/50 rounded-2xl px-5 py-4 mb-8 text-left">
+              <p className="text-sm font-bold text-foreground mb-1 flex items-center gap-1.5">
+                <Camera className="h-4 w-4" /> {config.photoLabel ?? 'Photo'}
+                {config.photoRequired ? ' (Required)' : ' (Optional)'}
               </p>
-              <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6 }}>{config.photoHint}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{config.photoHint}</p>
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/submit"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: accentColor, color: '#fff', padding: '11px 24px', borderRadius: 100, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 hover:bg-primary/90 transition-colors"
             >
-              ← All Submission Types
+              <ArrowLeft className="h-4 w-4" /> All Submission Types
             </Link>
             <Link
               href="/"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: 'transparent', color: N, border: `1.5px solid ${N}30`, padding: '11px 24px', borderRadius: 100, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}
+              className="inline-flex items-center rounded-full border border-border bg-card text-foreground font-semibold text-sm px-5 py-2.5 hover:bg-muted/40 transition-colors"
             >
               Go to Homepage
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     )
   }
 
   // ── Form state ─────────────────────────────────────────────────────────────
 
-  return (
-    <div style={{ backgroundColor: C, color: '#3a2c1e', fontFamily: sans }}>
+  const inputCls = 'w-full text-sm rounded-xl border border-border bg-card px-4 py-2.5 outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/15'
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section style={{ backgroundColor: N, padding: '52px 24px 48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(ellipse at 72% 30%, ${accentColor}22 0%, transparent 55%)`, pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative' }}>
+  return (
+    <main className="container py-8 space-y-8">
+
+      {/* ── HERO — homepage-style rounded-3xl card with gradient ─────────── */}
+      <section
+        className="rounded-3xl border border-border/50 shadow-sm overflow-hidden bg-gradient-to-br from-primary/8 via-background to-secondary/6"
+      >
+        <div className="px-6 md:px-10 py-10 md:py-14">
           <Link
             href="/submit"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textDecoration: 'none', marginBottom: 22 }}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mb-5"
           >
-            ← All Submission Types
+            <ArrowLeft className="h-3.5 w-3.5" /> All Submission Types
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <span style={{ fontSize: 30 }}>{config.emoji}</span>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-3" style={{ color: accentColor }}>
+              <span className="text-base leading-none" aria-hidden="true">{config.emoji}</span>
               {config.group}
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-foreground leading-tight mb-4">
+              {config.headline}
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
+              {config.description}
             </p>
           </div>
-          <h1 style={{ fontFamily: serif, fontSize: 'clamp(22px, 4vw, 40px)', fontWeight: 900, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 14 }}>
-            {config.headline}
-          </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8 }}>
-            {config.description}
-          </p>
         </div>
       </section>
 
-      {/* ── FORM ──────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '52px 24px 80px' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto' }}>
+      {/* ── META STRIP (Who / Time) ──────────────────────────────────────── */}
+      <section className="grid sm:grid-cols-2 gap-4">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm px-5 py-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Users className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Who Should Submit</p>
+            <p className="text-sm text-foreground leading-snug">{config.whoShouldUse}</p>
+          </div>
+        </div>
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm px-5 py-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+            <Clock className="h-4 w-4 text-secondary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Time</p>
+            <p className="text-sm text-foreground leading-snug">About {config.estimatedTime}</p>
+          </div>
+        </div>
+      </section>
 
-          {/* Who / Time meta strip */}
-          <div style={{ display: 'flex', gap: 24, marginBottom: 36, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 11, color: '#bbb', fontWeight: 700, marginTop: 1, flexShrink: 0 }}>WHO</span>
-              <span style={{ fontSize: 12, color: '#666', lineHeight: 1.5 }}>{config.whoShouldUse}</span>
+      {/* ── FORM ─────────────────────────────────────────────────────────── */}
+      <section className="max-w-3xl">
+
+        {errorParam && (
+          <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 px-5 py-4 mb-6">
+            <p className="text-sm font-bold text-rose-900 mb-1">Submission didn&apos;t go through</p>
+            <p className="text-sm text-rose-800/90 leading-relaxed">{decodeURIComponent(errorParam)}</p>
+          </div>
+        )}
+
+        <form action={submitForm} encType="multipart/form-data" className="flex flex-col gap-6">
+
+          <FormCard title="About You">
+            <FormRow label="Your Name" required>
+              <input name="submitter_name" type="text" required placeholder="Jane Smith" className={inputCls} />
+            </FormRow>
+            <FormRow label="Your Email" required hint="We'll only contact you about this submission.">
+              <input name="submitter_email" type="email" required placeholder="jane@example.com" className={inputCls} />
+            </FormRow>
+            <FormRow label="Your Phone (optional)">
+              <input name="submitter_phone" type="tel" placeholder="(334) 555-0100" className={inputCls} />
+            </FormRow>
+          </FormCard>
+
+          <FormCard title={`${config.label} Details`} accentColor={accentColor}>
+            {config.fields.map(field => (
+              <FormRow key={field.id} label={field.label} required={field.required} hint={field.hint}>
+                <FieldInput field={field} inputCls={inputCls} />
+              </FormRow>
+            ))}
+          </FormCard>
+
+          {/* Photo upload or hint */}
+          {config.photoUpload ? (
+            <div
+              className="rounded-3xl border-2 bg-card shadow-sm px-6 py-6 md:px-8"
+              style={{ borderColor: `${accentColor}40` }}
+            >
+              <h2 className="text-lg font-bold text-foreground mb-1 flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' *' : ''}
+              </h2>
+              {config.photoHint && (
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{config.photoHint}</p>
+              )}
+              <input
+                type="file"
+                name="photo"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif"
+                required={config.photoRequired}
+                className="block w-full text-sm text-foreground/80 file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-foreground hover:file:bg-muted/70"
+              />
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                Max 15 MB. JPG, PNG, HEIC, or WebP. We&apos;ll save a high-resolution copy for print and a smaller copy for the website.
+              </p>
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#bbb', fontWeight: 700 }}>TIME</span>
-              <span style={{ fontSize: 12, color: '#666' }}>About {config.estimatedTime}</span>
+          ) : (config.photoRequired || config.photoHint) ? (
+            <div
+              className="rounded-2xl border px-5 py-4"
+              style={{ backgroundColor: `${accentColor}0d`, borderColor: `${accentColor}33` }}
+            >
+              <p className="text-sm font-bold text-foreground mb-1 flex items-center gap-1.5">
+                <Camera className="h-4 w-4" />
+                {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' (Required)' : ' (Optional)'}
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{config.photoHint}</p>
             </div>
+          ) : null}
+
+          {/* Submit */}
+          <div className="pt-1">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-full text-white font-bold text-sm px-7 py-3 shadow-sm transition-opacity hover:opacity-90"
+              style={{ backgroundColor: accentColor }}
+            >
+              Submit {config.shortLabel} <ArrowRight className="h-4 w-4" />
+            </button>
+            <p className="text-xs text-muted-foreground leading-relaxed mt-3 max-w-md">
+              Our editorial team reads every submission. We may not feature everything, but we appreciate your participation in the River Region community.
+            </p>
           </div>
 
-          {errorParam && (
-            <div style={{ backgroundColor: '#fff4ec', border: '1.5px solid #d97757', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#9c3a14', margin: '0 0 4px' }}>
-                Submission didn&apos;t go through
-              </p>
-              <p style={{ fontSize: 13, color: '#6f3220', margin: 0, lineHeight: 1.5 }}>
-                {decodeURIComponent(errorParam)}
-              </p>
-            </div>
-          )}
-
-          <form action={submitForm} encType="multipart/form-data" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-            {/* ── ABOUT YOU ─────────────────────────────────────────────── */}
-            <div style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '28px 28px' }}>
-              <h2 style={{ fontFamily: serif, fontSize: 16, fontWeight: 800, color: N, margin: '0 0 22px' }}>About You</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                <FieldRow label="Your Name" required>
-                  <input name="submitter_name" type="text" required placeholder="Jane Smith" style={inputSty} />
-                </FieldRow>
-                <FieldRow label="Your Email" required hint="We'll only contact you about this submission.">
-                  <input name="submitter_email" type="email" required placeholder="jane@example.com" style={inputSty} />
-                </FieldRow>
-                <FieldRow label="Your Phone (optional)">
-                  <input name="submitter_phone" type="tel" placeholder="(334) 555-0100" style={inputSty} />
-                </FieldRow>
-              </div>
-            </div>
-
-            {/* ── SUBMISSION DETAILS ────────────────────────────────────── */}
-            <div style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.08)', borderTop: `4px solid ${accentColor}`, borderRadius: 16, padding: '28px 28px' }}>
-              <h2 style={{ fontFamily: serif, fontSize: 16, fontWeight: 800, color: N, margin: '0 0 22px' }}>
-                {config.label} Details
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {config.fields.map(field => (
-                  <FieldRow key={field.id} label={field.label} required={field.required} hint={field.hint}>
-                    <FieldInput field={field} />
-                  </FieldRow>
-                ))}
-              </div>
-            </div>
-
-            {/* ── PHOTO UPLOAD or NOTE ──────────────────────────────────── */}
-            {config.photoUpload ? (
-              <div style={{ backgroundColor: W, border: `2px solid ${accentColor}40`, borderRadius: 16, padding: '24px 28px' }}>
-                <h2 style={{ fontFamily: serif, fontSize: 16, fontWeight: 800, color: N, margin: '0 0 6px' }}>
-                  📷 {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' *' : ''}
-                </h2>
-                {config.photoHint && (
-                  <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6, margin: '0 0 14px' }}>{config.photoHint}</p>
-                )}
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif"
-                  required={config.photoRequired}
-                  style={{ display: 'block', width: '100%', fontSize: 13, color: '#3a2c1e' }}
-                />
-                <p style={{ fontSize: 11, color: '#888', marginTop: 8, lineHeight: 1.5 }}>
-                  Max 15 MB. JPG, PNG, HEIC, or WebP. We&apos;ll save a high-resolution copy for print and a smaller copy for the website.
-                </p>
-              </div>
-            ) : (config.photoRequired || config.photoHint) ? (
-              <div style={{ backgroundColor: `${accentColor}08`, border: `1.5px solid ${accentColor}28`, borderRadius: 12, padding: '18px 22px' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: N, margin: '0 0 6px' }}>
-                  📷 {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' (Required)' : ' (Optional)'}
-                </p>
-                <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6, margin: 0 }}>{config.photoHint}</p>
-              </div>
-            ) : null}
-
-            {/* ── SUBMIT ────────────────────────────────────────────────── */}
-            <div>
-              <button
-                type="submit"
-                style={{ backgroundColor: accentColor, color: '#fff', border: 'none', padding: '14px 32px', borderRadius: 100, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'inline-block' }}
-              >
-                Submit {config.shortLabel} →
-              </button>
-              <p style={{ fontSize: 12, color: '#aaa', lineHeight: 1.6, marginTop: 12 }}>
-                Our editorial team reads every submission. We may not feature everything, but we appreciate your participation in the River Region community.
-              </p>
-            </div>
-
-          </form>
-        </div>
+        </form>
       </section>
-
-    </div>
+    </main>
   )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputSty: CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  border: '1.5px solid rgba(0,0,0,0.12)',
-  borderRadius: 8,
-  fontSize: 14,
-  color: '#2d1f14',
-  backgroundColor: '#fff',
-  outline: 'none',
-  fontFamily: 'var(--font-dm-sans, sans-serif)',
-  boxSizing: 'border-box',
-}
-
-function FieldRow({
-  label, required, hint, children,
-}: {
-  label:     string
-  required?: boolean
-  hint?:     string
-  children:  ReactNode
-}) {
+function FormCard({ title, accentColor, children }: { title: string; accentColor?: string; children: ReactNode }) {
   return (
-    <div>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#1a2744', marginBottom: 6 }}>
-        {label}
-        {required && <span style={{ color: '#c4622d', marginLeft: 3 }}>*</span>}
-      </label>
-      {children}
-      {hint && <p style={{ fontSize: 11, color: '#999', marginTop: 5, lineHeight: 1.5, margin: '5px 0 0' }}>{hint}</p>}
+    <div
+      className="rounded-3xl border border-border/50 bg-card shadow-sm px-6 py-6 md:px-8 md:py-7"
+      style={accentColor ? { borderTopWidth: 4, borderTopColor: accentColor } : undefined}
+    >
+      <h2 className="text-lg font-bold text-foreground mb-5">{title}</h2>
+      <div className="flex flex-col gap-4">{children}</div>
     </div>
   )
 }
 
-function FieldInput({ field }: { field: SubmissionField }) {
+function FormRow({ label, required, hint, children }: {
+  label: string; required?: boolean; hint?: string; children: ReactNode
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-foreground mb-1.5">
+        {label}{required && <span className="text-primary ml-0.5">*</span>}
+      </label>
+      {children}
+      {hint && <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">{hint}</p>}
+    </div>
+  )
+}
+
+function FieldInput({ field, inputCls }: { field: SubmissionField; inputCls: string }) {
   if (field.type === 'textarea') {
     return (
       <textarea
@@ -364,15 +352,16 @@ function FieldInput({ field }: { field: SubmissionField }) {
         placeholder={field.placeholder}
         rows={field.rows ?? 4}
         maxLength={field.maxLength}
-        style={{ ...inputSty, resize: 'vertical', minHeight: `${(field.rows ?? 4) * 1.6}em` }}
+        className={`${inputCls} resize-y`}
+        style={{ minHeight: `${(field.rows ?? 4) * 1.6}em` }}
       />
     )
   }
 
   if (field.type === 'select' && field.options) {
     return (
-      <select name={field.id} required={field.required} style={inputSty}>
-        <option value="">Select one…</option>
+      <select name={field.id} required={field.required} className={inputCls} defaultValue="">
+        <option value="" disabled>Select one…</option>
         {field.options.map(opt => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
@@ -387,7 +376,7 @@ function FieldInput({ field }: { field: SubmissionField }) {
       required={field.required}
       placeholder={field.placeholder}
       maxLength={field.maxLength}
-      style={inputSty}
+      className={inputCls}
     />
   )
 }

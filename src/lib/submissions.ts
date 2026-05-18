@@ -165,25 +165,29 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
   // ── 4. PLAY BALL ─────────────────────────────────────────────────────────
   {
     type: 'play-ball',
-    label: 'Play Ball', shortLabel: 'Athlete Spotlight', emoji: '⚽',
+    label: 'Play Ball', shortLabel: 'Play Ball Spotlight', emoji: '⚽',
     group: 'Be Featured or Interviewed', groupSlug: 'feature',
-    headline: 'Nominate a Young River Region Athlete',
-    description: 'Play Ball celebrates young River Region athletes who show heart, hustle, and sportsmanship — on any field, court, or course.',
-    whoShouldUse: 'Parents, coaches, or teammates of a young athlete worth celebrating.',
-    whatHappensNext: 'Selected athletes are featured with a profile and photo in the magazine and online.',
+    headline: 'Nominate Someone for Play Ball',
+    description: 'Play Ball celebrates the players, coaches, and team moms who show heart, hustle, and sportsmanship — on any field, court, or course.',
+    whoShouldUse: 'Coaches, team moms, teammates, parents — anyone who knows a player, coach, or team mom worth celebrating.',
+    whatHappensNext: 'Selected nominees are featured with a profile and photo in the magazine and online.',
     estimatedTime: '3 minutes',
-    photoLabel: "Athlete's Action or Portrait Photo",
+    photoLabel: 'Action or Portrait Photo',
     photoRequired: false,
-    photoHint: 'A photo of the athlete in action or a sport portrait. Email to photos@riverregionparents.com with the athlete\'s name.',
+    photoHint: 'A photo of the nominee in action or a sport portrait. Email to photos@riverregionparents.com with their name.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
     fields: [
-      { id: 'athlete_name',    label: "Athlete's Name",          type: 'text',     required: true,  coreField: 'related_person_name',  placeholder: 'Marcus Williams' },
+      { id: 'nominee_type',    label: 'Who are you nominating?', type: 'select', required: true,
+        options: ['Player / Athlete', 'Coach', 'Assistant Coach', 'Team Mom / Team Manager', 'Other team supporter'] },
+      { id: 'nominee_name',    label: "Their Name",              type: 'text',     required: true,  coreField: 'related_person_name',  placeholder: 'Marcus Williams' },
       { id: 'sport',           label: 'Sport / Activity',        type: 'text',     required: true,  coreField: 'related_sport',       placeholder: 'Soccer, 8U League' },
       { id: 'school_team',     label: 'School or Team Name',     type: 'text',     required: true,  coreField: 'related_school_name', placeholder: 'Eastwood Elementary / Montgomery Youth Soccer' },
-      { id: 'age_grade',       label: 'Age / Grade',             type: 'text',     required: true,  placeholder: '9 years old / 3rd Grade' },
-      { id: 'why_outstanding', label: 'What makes this athlete stand out?', type: 'textarea', required: true, rows: 4, placeholder: 'Heart, hustle, character, improvement, leadership — tell us what makes them special.' },
-      { id: 'achievement',     label: 'A recent achievement or memorable moment', type: 'textarea', required: false, rows: 3, placeholder: 'A game-winning moment, personal best, or character moment worth sharing.' },
-      { id: 'submitter_relationship', label: 'Your relationship to the athlete', type: 'select', required: true, options: ['Parent / Guardian', 'Coach', 'Teammate', 'Family member', 'Other'] },
+      { id: 'age_grade',       label: 'Age / Grade',             type: 'text',     required: false, placeholder: '9 years old / 3rd Grade', hint: 'For player nominations. Leave blank for coaches and team moms.' },
+      { id: 'years_with_team', label: 'Years coaching or with the team', type: 'text', required: false, placeholder: '4th season with the program', hint: 'For coach and team mom nominations. Leave blank for players.' },
+      { id: 'why_outstanding', label: 'What makes them stand out?', type: 'textarea', required: true, rows: 4, placeholder: 'Heart, hustle, character, leadership, the way they show up for kids — tell us what makes them special.' },
+      { id: 'achievement',     label: 'A recent moment worth sharing', type: 'textarea', required: false, rows: 3, placeholder: 'A game-winning moment, a memorable season, a moment of character — anything that captures who they are.' },
+      { id: 'submitter_relationship', label: 'Your relationship to the nominee', type: 'select', required: true,
+        options: ['Coach', 'Assistant Coach', 'Team Mom / Team Manager', 'Teammate', 'Parent / Guardian', 'Family member', 'Other'] },
     ],
   },
 
@@ -359,16 +363,19 @@ export function getTypesByGroup(groupSlug: string): SubmissionTypeConfig[] {
   return SUBMISSION_TYPES.filter(t => t.groupSlug === groupSlug && !t.externalUrl)
 }
 
+// Aligned to the site palette (globals.css @theme). Primary = coral #ef6442,
+// secondary = teal #3d8e8e, accent = gold #f3bf24. Non-themed types map to
+// supporting hues that still read well on the cream background.
 export const TYPE_COLORS: Record<string, string> = {
-  'teacher-of-the-month':       '#2d5a2d',
-  'mom-to-mom':                 '#c4622d',
-  'grands-are-the-greatest':    '#b8860b',
-  'play-ball':                  '#1e3a5f',
+  'teacher-of-the-month':       '#ef6442',  // primary coral
+  'mom-to-mom':                 '#e11d48',  // rose-600 — Mom to Mom brand
+  'grands-are-the-greatest':    '#f3bf24',  // accent gold
+  'play-ball':                  '#3d8e8e',  // secondary teal — matches homepage spotlight
   'student-spotlight':          '#8b5cf6',
   'school-news':                '#0284c7',
   'birthday-celebration':       '#ec4899',
   'event-submission':           '#0d9488',
-  'parent-picks':               '#c4622d',
+  'parent-picks':               '#ef6442',  // primary coral
   'boom-profile':               '#374151',
-  'family-favorites-nomination':'#b8860b',
+  'family-favorites-nomination':'#f3bf24',  // accent gold
 }

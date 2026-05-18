@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
-import { columnLabel } from '@/lib/content-taxonomy'
+import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
@@ -66,6 +66,7 @@ function canonicalRotationKey(slug: string | null): string | null {
 async function getHomepageData() {
   const supabase = getSupabase()
   const today = new Date().toISOString().split('T')[0]
+  const nowIso = new Date().toISOString()
   const currentMonth = new Date().getMonth() + 1   // 1-12 for featured-guide lookup
 
   const [
@@ -82,10 +83,20 @@ async function getHomepageData() {
     bloggersRes,
     sectionHeroesRes,
   ] = await Promise.all([
-    supabase.from('trending_items').select('*').eq('is_active', true).order('display_order'),
+    // Trending bar — only items currently within their scheduled window.
+    // start_at/end_at are nullable; null means "no bound on that side."
+    supabase.from('trending_items')
+      .select('*')
+      .eq('is_active', true)
+      .or(`start_at.is.null,start_at.lte.${nowIso}`)
+      .or(`end_at.is.null,end_at.gte.${nowIso}`)
+      .order('display_order'),
     // 4-column rotation: latest published article from each rotation column.
     // We fetch them with a single IN query (4 rows max per column would be
     // fine, but 1 each is enough) — done in JS for simplicity.
+    // Trash also flips published=false, so `published = true` is enough to
+    // exclude trashed articles without depending on the deleted_at column
+    // (added in migration 076 — may not be applied yet).
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, profile_image_url, excerpt, column_slug, author_name, published_at')
       .eq('published', true)
@@ -372,9 +383,9 @@ export default async function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                  <Badge className="bg-primary text-primary-foreground border-none mb-4 font-semibold">
+                  <span className={`inline-block rounded-full text-xs font-bold uppercase tracking-wider mb-4 px-3 py-1 ${columnBadgeStyle(mainFeature.column_slug)}`}>
                     {mainFeature.column_slug ? columnLabel(mainFeature.column_slug) : 'Feature Story'}
-                  </Badge>
+                  </span>
                   <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                     {mainFeature.title}
                   </h1>
@@ -383,6 +394,9 @@ export default async function HomePage() {
                       {mainFeature.excerpt}
                     </p>
                   )}
+                  <span className="inline-flex items-center gap-1.5 mt-4 text-sm font-semibold text-white group-hover:gap-2.5 transition-all">
+                    Read story <span aria-hidden="true">→</span>
+                  </span>
                 </div>
               </Link>
             ) : (
@@ -442,27 +456,14 @@ export default async function HomePage() {
               </div>
               <div className="flex flex-col gap-4 justify-center flex-1">
                 {spotlights.length > 0 ? spotlights.map((sp) => {
-                  // Visual variant by column — keeps the colored card styling
-                  // we had with community_spotlights, just mapped to columns.
-                  // Normalize "-the-" slug variants so badge styling matches.
-                  const col = canonicalRotationKey(sp.column_slug) ?? ''
-                  const cardBg = col === 'teacher-of-month' ? 'bg-primary/5 border-primary/10 hover:bg-primary/10'
-                               : col === 'play-ball'        ? 'bg-secondary/5 border-secondary/10 hover:bg-secondary/10'
-                               : col === 'grands-greatest'  ? 'bg-accent/10 border-accent/20 hover:bg-accent/20'
-                               : 'bg-primary/5 border-primary/10 hover:bg-primary/10'
-                  const labelClasses = col === 'teacher-of-month' ? 'text-primary border-primary/30 bg-background/50'
-                                     : col === 'play-ball'        ? 'text-secondary border-secondary/30 bg-background/50'
-                                     : col === 'grands-greatest'  ? 'text-foreground border-accent/40 bg-background/50'
-                                     : 'text-primary border-primary/30 bg-background/50'
-                  const hoverColor = col === 'teacher-of-month' ? 'group-hover:text-primary'
-                                   : col === 'play-ball'        ? 'group-hover:text-secondary'
-                                   : col === 'grands-greatest'  ? 'group-hover:text-accent-foreground'
-                                   : 'group-hover:text-primary'
-                  const labelText = col === 'teacher-of-month' ? 'Teacher of the Month'
-                                  : col === 'play-ball'        ? 'Play Ball'
-                                  : col === 'grands-greatest'  ? 'Grands are the Greatest'
-                                  : col === 'mom-to-mom'       ? 'Mom to Mom'
-                                  : 'Community Spotlight'
+                  // Single source of truth: columnBadgeStyle returns the SOLID
+                  // badge classes for this column; columnTintStyle returns the
+                  // matching soft-tinted card background. Same look used on
+                  // the article page header and the homepage hero badge.
+                  const col        = canonicalRotationKey(sp.column_slug) ?? ''
+                  const cardTint   = `${columnTintStyle(col)} hover:brightness-95`
+                  const badgeCls   = columnBadgeStyle(col)
+                  const labelText  = columnLabel(col) !== '—' ? columnLabel(col) : 'Community Spotlight'
                   // Sidebar uses the smaller profile image; falls back to the
                   // hero image, then a deterministic stock photo.
                   const avatarSrc = sp.profile_image_url || sp.hero_image_url || getFallback(
@@ -476,7 +477,7 @@ export default async function HomePage() {
                   const rawCol = sp.column_slug ?? col
                   const href = `/columns/${rawCol}/${sp.slug.replace(new RegExp(`^${rawCol}-`), '')}`
                   return (
-                    <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardBg}`}>
+                    <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={avatarSrc}
@@ -484,10 +485,10 @@ export default async function HomePage() {
                         className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover group-hover:scale-105 transition-transform border-2 md:border-4 border-background shadow-sm shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${labelClasses}`}>
+                        <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider mb-1.5 px-2.5 py-0.5 ${badgeCls}`}>
                           {labelText}
-                        </Badge>
-                        <h3 className={`font-bold text-base md:text-lg leading-tight text-foreground transition-colors line-clamp-2 ${hoverColor}`}>
+                        </span>
+                        <h3 className="font-bold text-base md:text-lg leading-tight text-foreground line-clamp-2">
                           {sp.title}
                         </h3>
                       </div>

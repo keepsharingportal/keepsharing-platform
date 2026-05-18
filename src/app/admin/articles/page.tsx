@@ -105,9 +105,18 @@ async function fetchArticles(opts: {
 }) {
   const supabase = supabaseAdmin()
 
+  // Detect once whether the deleted_at column exists (added in migration 076).
+  // Falls back gracefully if the migration hasn't been applied yet — better
+  // than silently returning zero rows because of an unknown-column error.
+  const probe = await supabase.from('guide_articles').select('deleted_at').limit(1)
+  const hasTrashColumn = !probe.error
+
   let query = supabase
     .from('guide_articles')
     .select('id, title, slug, published, editorial_review_status, import_status, column_slug, guide_slug, hero_image_url, published_at, source_issue_month, view_count, author_name', { count: 'exact' })
+  if (hasTrashColumn) {
+    query = query.is('deleted_at', null)  // trashed articles only show in /admin/articles/trash
+  }
 
   // Search
   if (opts.q) {

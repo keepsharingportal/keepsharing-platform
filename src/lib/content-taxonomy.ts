@@ -218,6 +218,52 @@ export function columnLabel(slug: string | null): string {
   return COLUMNS.find(c => c.slug === slug)?.label ?? slug
 }
 
+// Single source of truth for column visual identity. Returns Tailwind classes
+// for a SOLID badge so every surface (article header, homepage hero, sidebar
+// spotlights, listing cards) shows the same color for a given column. Falls
+// back to primary coral for unknown columns.
+const COLUMN_BADGE_STYLES: Record<string, string> = {
+  'mom-to-mom':              'bg-rose-500 text-white',
+  'teacher-of-month':        'bg-primary text-primary-foreground',
+  'teacher-of-the-month':    'bg-primary text-primary-foreground',
+  'play-ball':               'bg-secondary text-secondary-foreground',
+  'grands-greatest':         'bg-accent text-accent-foreground',
+  'grands-are-the-greatest': 'bg-accent text-accent-foreground',
+  'school-bits':             'bg-blue-600 text-white',
+  'mom-knows-best':          'bg-pink-500 text-white',
+  'grumpy-but-grateful':     'bg-orange-500 text-white',
+  'dave-says':               'bg-blue-700 text-white',
+  'meeting-kids':            'bg-teal-700 text-white',
+  'teens-tweens-screens':    'bg-indigo-600 text-white',
+}
+
+export function columnBadgeStyle(slug: string | null | undefined): string {
+  if (!slug) return 'bg-primary text-primary-foreground'
+  return COLUMN_BADGE_STYLES[slug] ?? 'bg-primary text-primary-foreground'
+}
+
+// Soft-tinted background for cards / containers per column. Pairs with the
+// solid badge so a card and its badge feel like the same color family.
+const COLUMN_TINT_STYLES: Record<string, string> = {
+  'mom-to-mom':              'bg-rose-50 border-rose-100',
+  'teacher-of-month':        'bg-primary/5 border-primary/10',
+  'teacher-of-the-month':    'bg-primary/5 border-primary/10',
+  'play-ball':               'bg-secondary/5 border-secondary/15',
+  'grands-greatest':         'bg-accent/10 border-accent/25',
+  'grands-are-the-greatest': 'bg-accent/10 border-accent/25',
+  'school-bits':             'bg-blue-50 border-blue-100',
+  'mom-knows-best':          'bg-pink-50 border-pink-100',
+  'grumpy-but-grateful':     'bg-orange-50 border-orange-100',
+  'dave-says':               'bg-blue-50 border-blue-100',
+  'meeting-kids':            'bg-teal-50 border-teal-100',
+  'teens-tweens-screens':    'bg-indigo-50 border-indigo-100',
+}
+
+export function columnTintStyle(slug: string | null | undefined): string {
+  if (!slug) return 'bg-primary/5 border-primary/10'
+  return COLUMN_TINT_STYLES[slug] ?? 'bg-primary/5 border-primary/10'
+}
+
 export function guideLabel(slug: string | null): string {
   if (!slug) return '—'
   return GUIDES.find(g => g.slug === slug)?.label ?? slug

@@ -1,30 +1,21 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Link as LinkIcon, Bookmark, BookOpen } from 'lucide-react'
+import { CalendarDays, Clock, Link as LinkIcon, Bookmark, User } from 'lucide-react'
 import { useState } from 'react'
 
 interface Props {
-  authorName: string
-  authorRole?: string
-  authorAvatarUrl?: string | null
-  shareUrl: string
+  authorName?:     string | null
+  publishedDate?:  string
+  readTimeMinutes?: number
+  shareUrl:        string
 }
 
-const PUBLICATION_NAMES = ['River Region Parents', 'RRP Editorial', 'Editorial']
-
-export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, shareUrl }: Props) {
+// Renders a single horizontal "meta row" that sits between the article title
+// and the hero image: date · read time · author on the left, share/bookmark
+// buttons on the right. Replaces the older avatar-style author block.
+export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes, shareUrl }: Props) {
   const [copied, setCopied] = useState(false)
-  const isPublication = PUBLICATION_NAMES.includes(authorName)
-
-  const initials = authorName
-    .split(' ')
-    .filter(Boolean)
-    .map((s) => s[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 
   async function handleCopy() {
     try {
@@ -37,31 +28,27 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-6 border-b border-border/60">
-      <div className="flex items-center gap-3">
-        {isPublication ? (
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-              <BookOpen className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
-                {authorRole === 'Mom to Mom' ? 'Interview by' : 'By'}
-              </p>
-              <p className="font-semibold text-foreground">{authorName}</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-primary/20">
-              {authorAvatarUrl ? <AvatarImage src={authorAvatarUrl} alt={authorName} /> : null}
-              <AvatarFallback>{initials || 'RR'}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold text-foreground">{authorName}</p>
-              {authorRole && <p className="text-sm text-muted-foreground">{authorRole}</p>}
-            </div>
-          </div>
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-border/40">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        {publishedDate && (
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="h-4 w-4" />
+            <span>{publishedDate}</span>
+          </span>
+        )}
+        {publishedDate && readTimeMinutes !== undefined && <span className="text-muted-foreground/40">·</span>}
+        {readTimeMinutes !== undefined && (
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-4 w-4" />
+            <span>{readTimeMinutes} min read</span>
+          </span>
+        )}
+        {(publishedDate || readTimeMinutes !== undefined) && authorName && <span className="text-muted-foreground/40">·</span>}
+        {authorName && (
+          <span className="inline-flex items-center gap-1.5">
+            <User className="h-4 w-4" />
+            <span>by <span className="text-foreground font-semibold">{authorName}</span></span>
+          </span>
         )}
       </div>
 
@@ -101,7 +88,7 @@ export function ArticleAuthorBlock({ authorName, authorRole, authorAvatarUrl, sh
           <LinkIcon className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-border mx-2" />
+        <div className="w-px h-6 bg-border mx-1" />
 
         <Button
           variant="ghost"
