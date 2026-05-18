@@ -12,6 +12,7 @@ import {
   SUBMISSION_TYPES, getSubmissionType, TYPE_COLORS,
   type SubmissionField,
 } from '@/lib/submissions'
+import { uploadSubmissionPhoto } from '@/lib/submissions-photo'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -51,10 +52,10 @@ export default async function SubmitTypePage({
   searchParams,
 }: {
   params:       Promise<{ type: string }>
-  searchParams: Promise<{ submitted?: string }>
+  searchParams: Promise<{ submitted?: string; error?: string }>
 }) {
   const { type }      = await params
-  const { submitted } = await searchParams
+  const { submitted, error: errorParam } = await searchParams
 
   const config = getSubmissionType(type)
   if (!config || config.externalUrl) notFound()
@@ -90,6 +91,31 @@ export default async function SubmitTypePage({
       }
     }
 
+    // ── Photo handling ──────────────────────────────────────────────────
+    let webImageUrl:   string | null = null
+    let printImageUrl: string | null = null
+    if (currentConfig.photoUpload) {
+      const file = formData.get('photo') as File | null
+      if (file && file.size > 0) {
+        try {
+          const uploaded = await uploadSubmissionPhoto({
+            file,
+            submissionType: type,
+            submitterName:  related_person_name ?? submitter_name,
+          })
+          webImageUrl   = uploaded.webImageUrl
+          printImageUrl = uploaded.printImageUrl
+        } catch (e) {
+          // Surface upload errors back to the user via a redirect param.
+          // Submission is rejected rather than silently saved without a photo.
+          const msg = encodeURIComponent(e instanceof Error ? e.message : 'Photo upload failed')
+          redirect(`/submit/${type}?error=${msg}`)
+        }
+      } else if (currentConfig.photoRequired) {
+        redirect(`/submit/${type}?error=${encodeURIComponent('A photo is required for this submission.')}`)
+      }
+    }
+
     await supabase.from('community_submissions').insert({
       submission_type:       type,
       target_publication:    'rrp',
@@ -102,6 +128,8 @@ export default async function SubmitTypePage({
       related_school_name,
       related_sport,
       payload,
+      web_image_url:   webImageUrl,
+      print_image_url: printImageUrl,
       status: 'new',
     })
 
@@ -199,7 +227,18 @@ export default async function SubmitTypePage({
             </div>
           </div>
 
-          <form action={submitForm} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {errorParam && (
+            <div style={{ backgroundColor: '#fff4ec', border: '1.5px solid #d97757', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#9c3a14', margin: '0 0 4px' }}>
+                Submission didn&apos;t go through
+              </p>
+              <p style={{ fontSize: 13, color: '#6f3220', margin: 0, lineHeight: 1.5 }}>
+                {decodeURIComponent(errorParam)}
+              </p>
+            </div>
+          )}
+
+          <form action={submitForm} encType="multipart/form-data" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* ── ABOUT YOU ─────────────────────────────────────────────── */}
             <div style={{ backgroundColor: W, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 16, padding: '28px 28px' }}>
@@ -231,15 +270,34 @@ export default async function SubmitTypePage({
               </div>
             </div>
 
-            {/* ── PHOTO NOTE ────────────────────────────────────────────── */}
-            {(config.photoRequired || config.photoHint) && (
+            {/* ── PHOTO UPLOAD or NOTE ──────────────────────────────────── */}
+            {config.photoUpload ? (
+              <div style={{ backgroundColor: W, border: `2px solid ${accentColor}40`, borderRadius: 16, padding: '24px 28px' }}>
+                <h2 style={{ fontFamily: serif, fontSize: 16, fontWeight: 800, color: N, margin: '0 0 6px' }}>
+                  📷 {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' *' : ''}
+                </h2>
+                {config.photoHint && (
+                  <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6, margin: '0 0 14px' }}>{config.photoHint}</p>
+                )}
+                <input
+                  type="file"
+                  name="photo"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif"
+                  required={config.photoRequired}
+                  style={{ display: 'block', width: '100%', fontSize: 13, color: '#3a2c1e' }}
+                />
+                <p style={{ fontSize: 11, color: '#888', marginTop: 8, lineHeight: 1.5 }}>
+                  Max 15 MB. JPG, PNG, HEIC, or WebP. We&apos;ll save a high-resolution copy for print and a smaller copy for the website.
+                </p>
+              </div>
+            ) : (config.photoRequired || config.photoHint) ? (
               <div style={{ backgroundColor: `${accentColor}08`, border: `1.5px solid ${accentColor}28`, borderRadius: 12, padding: '18px 22px' }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: N, margin: '0 0 6px' }}>
                   📷 {config.photoLabel ?? 'Photo'}{config.photoRequired ? ' (Required)' : ' (Optional)'}
                 </p>
                 <p style={{ fontSize: 13, color: '#555', lineHeight: 1.6, margin: 0 }}>{config.photoHint}</p>
               </div>
-            )}
+            ) : null}
 
             {/* ── SUBMIT ────────────────────────────────────────────────── */}
             <div>

@@ -40,6 +40,13 @@ export interface SubmissionTypeConfig {
   photoLabel?:    string         // label for the photo section
   photoRequired:  boolean
   photoHint?:     string
+  /**
+   * If true, the submission form shows a real file-upload input that
+   * uploads directly to storage. The original is saved untouched for
+   * print; a webp-optimized copy is saved for the website. Falls back
+   * to the "email us the photo" instructional flow when false.
+   */
+  photoUpload?:   boolean
   fields:         SubmissionField[]
   publications:   string[]       // which pubs accept this type
   seasonal?:      boolean
@@ -191,8 +198,9 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whatHappensNext: "Selected students are featured online and may be included in the print magazine depending on the issue theme.",
     estimatedTime: '3 minutes',
     photoLabel: "Student's Photo",
-    photoRequired: false,
-    photoHint: 'A school portrait or activity photo. Email to photos@riverregionparents.com with the student\'s name.',
+    photoRequired: true,
+    photoUpload:   true,
+    photoHint: "Upload one photo — school portrait, team shot, or activity photo. We'll save a high-res copy for the print magazine and a web-optimized copy for the website.",
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
     fields: [
       { id: 'student_name',    label: "Student's Name",          type: 'text',     required: true,  coreField: 'related_person_name', placeholder: 'Amara Johnson' },

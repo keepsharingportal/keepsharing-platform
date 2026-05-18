@@ -84,8 +84,9 @@ const NAV: NavItem[] = [
 
   // ── VERTICALS — year-round content homes (School Zone, Mom Knows Best, etc.) ─
   { section: 'VERTICALS' },
-  { name: 'Vertical Editor',   href: '/admin/verticals',                                icon: LayoutGrid  },
-  { name: 'Bloggers',          href: '/admin/bloggers',                                 icon: Users       },
+  { name: 'Vertical Editor',     href: '/admin/verticals',                              icon: LayoutGrid    },
+  { name: 'Spotlight Review',    href: '/admin/spotlights/review',                      icon: GraduationCap },
+  { name: 'Bloggers',            href: '/admin/bloggers',                               icon: Users         },
 
   // ── DISTRIBUTION (output channels — content ready to place) ─────────────
   { section: 'DISTRIBUTION' },
