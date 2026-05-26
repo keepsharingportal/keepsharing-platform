@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Check, X, AlertCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { articleHref } from '@/lib/articles/slug'
 
 interface Article {
   id: string
@@ -83,7 +84,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href={`/articles/${article.slug}`}
+            href={articleHref(article)}
             target="_blank"
             onClick={e => e.stopPropagation()}
             className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"

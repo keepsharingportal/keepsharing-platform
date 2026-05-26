@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Star, BookOpen, Filter, Building2, ArrowRight, Crown, CalendarDays, Megaphone } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
+import { articleHref } from '@/lib/articles/slug'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import type { Metadata } from 'next'
 
@@ -538,7 +539,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{article.excerpt}</p>
                 )}
                 <Button variant="link" className="p-0 h-auto text-secondary hover:text-secondary/80" asChild>
-                  <Link href={`/articles/${article.slug}`}>Read Full Article →</Link>
+                  <Link href={articleHref(article)}>Read Full Article →</Link>
                 </Button>
               </SidebarWidget>
             )}

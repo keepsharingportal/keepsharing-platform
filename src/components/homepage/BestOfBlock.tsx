@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { Star, ArrowRight } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 interface Article {
   id: string; slug: string; title: string; excerpt: string | null; subtitle: string | null
@@ -50,7 +51,7 @@ function FeaturedCard({ article }: { article: Article }) {
   const blurb  = teaser(article)
   return (
     <Link
-      href={`/articles/${article.slug}`}
+      href={articleHref(article)}
       className="group relative flex flex-col justify-end rounded-2xl overflow-hidden min-h-[320px] md:min-h-[380px] md:h-full"
     >
       <Image
@@ -96,7 +97,7 @@ function SmallCard({ article }: { article: Article }) {
   const imgSrc = article.hero_image_url || getFallback('parenting', article.id)
   return (
     <Link
-      href={`/articles/${article.slug}`}
+      href={articleHref(article)}
       className="group flex gap-4 p-3 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-muted/20 transition-all"
     >
       <div className="relative shrink-0 w-28 h-28 md:w-[140px] md:h-[140px] rounded-xl overflow-hidden bg-primary/5">

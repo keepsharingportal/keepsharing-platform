@@ -9,6 +9,7 @@ import { SplitColoredTitle } from '@/components/verticals/SplitColoredTitle'
 import { StudentSpotlightCard } from '@/components/school-zone/StudentSpotlightCard'
 import { SchoolBitsDiscoveryPanel } from '@/components/school-zone/SchoolBitsDiscoveryPanel'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 import {
   GraduationCap, ArrowRight, Star, BookOpen, Heart,
   Users, Calendar, Trophy,
@@ -468,7 +469,7 @@ export default async function SchoolZonePage() {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {educationMatters.map(a => (
-                <Link key={a.id} href={`/articles/${a.slug}`}
+                <Link key={a.id} href={articleHref(a)}
                   className="group flex flex-col gap-2 p-4 rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                     <BookOpen className="h-4 w-4 text-primary" />

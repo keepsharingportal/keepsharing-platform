@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { ArrowRight, Heart } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
 import { SectionHeader } from '@/components/theme'
+import { articleHref } from '@/lib/articles/slug'
 
 interface MKBPost {
   id:                string
@@ -54,7 +55,7 @@ export function MomKnowsBestRow({ posts }: Props) {
           return (
             <Link
               key={p.id}
-              href={`/articles/${p.slug}`}
+              href={articleHref({ slug: p.slug, title: p.title, column_slug: 'mom-knows-best' })}
               className="group flex flex-col bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-md transition-all"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-primary/5">

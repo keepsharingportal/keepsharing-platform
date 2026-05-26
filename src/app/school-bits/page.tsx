@@ -6,6 +6,7 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
 import { GraduationCap, ArrowRight } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -201,7 +202,7 @@ export default async function SchoolBitsPage({ searchParams }: PageProps) {
                 return (
                   <Link
                     key={article.id}
-                    href={`/articles/${article.slug}`}
+                    href={articleHref(article)}
                     className="group flex flex-col bg-card rounded-xl overflow-hidden border border-border/40 hover:border-primary/30 hover:shadow-md transition-all duration-200"
                   >
                     {/* Image */}

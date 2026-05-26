@@ -9,6 +9,7 @@ import {
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { SectionHelp, FieldLabel, FieldHint } from '@/components/admin/AdminHelp'
+import { articleHref } from '@/lib/articles/slug'
 
 type Mode = 'create' | 'edit'
 type Tab  = 'edit' | 'preview'
@@ -234,7 +235,7 @@ export function BloggerPostEditor({ mode, initial, bloggerName, bloggerId }: Pro
                 {form.published ? 'Live' : 'Draft'}
               </span>
               {form.published && form.slug && (
-                <Link href={`/articles/${form.slug}`} target="_blank" className="text-[11px] font-semibold text-pink-600 hover:underline inline-flex items-center gap-1">
+                <Link href={articleHref({ slug: form.slug, title: form.title, column_slug: 'mom-knows-best' })} target="_blank" className="text-[11px] font-semibold text-pink-600 hover:underline inline-flex items-center gap-1">
                   View live <ExternalLink size={10} />
                 </Link>
               )}

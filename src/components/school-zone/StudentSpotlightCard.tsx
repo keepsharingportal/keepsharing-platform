@@ -7,6 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { GraduationCap, ArrowRight } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 interface Props {
   id:            string
@@ -29,7 +30,7 @@ export function StudentSpotlightCard(props: Props) {
 
   return (
     <Link
-      href={`/articles/${props.slug}`}
+      href={articleHref({ slug: props.slug, title: props.title })}
       className="group flex flex-col rounded-2xl border border-border/50 bg-card overflow-hidden hover:border-primary/30 hover:shadow-md transition-all"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-primary/5">

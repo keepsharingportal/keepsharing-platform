@@ -10,6 +10,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowRight } from 'lucide-react'
+import { articleHref } from '@/lib/articles/slug'
 import { getFallback } from '@/lib/image-fallbacks'
 
 interface Props {
@@ -89,7 +90,7 @@ export async function RelatedFromVertical({
           return (
             <Link
               key={a.id}
-              href={`/articles/${a.slug}`}
+              href={articleHref(a)}
               className="group flex flex-col bg-background rounded-xl overflow-hidden border border-border/40 hover:border-primary/30 hover:shadow-sm transition-all"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-primary/5 shrink-0">

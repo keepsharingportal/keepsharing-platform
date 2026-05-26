@@ -16,6 +16,7 @@ import {
   Clock, FileText, BarChart3,
 } from 'lucide-react'
 import { BloggerLogoutButton } from './BloggerLogoutButton'
+import { articleHref } from '@/lib/articles/slug'
 
 export const metadata = { title: 'Blogger Portal — River Region Parents' }
 export const dynamic  = 'force-dynamic'
@@ -244,7 +245,7 @@ export default async function BloggerDashboardPage() {
                   </Link>
                   <span className="hidden sm:inline text-[11px] text-gray-500 shrink-0">{fmtDate(p.published_at)}</span>
                   <Link
-                    href={`/articles/${p.slug}`}
+                    href={articleHref({ slug: p.slug, title: p.title, column_slug: 'mom-knows-best' })}
                     target="_blank"
                     title="View live post"
                     className="text-gray-400 hover:text-pink-600 p-1 shrink-0"

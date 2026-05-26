@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Star, Sparkles } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 interface BestOfArticle {
   id:             string
@@ -59,7 +60,7 @@ export function BestOfFeatureRow({
 
       {/* ── Lead feature — wider image, fuller content side ── */}
       <Link
-        href={`/articles/${lead.slug}`}
+        href={articleHref(lead)}
         className="group block bg-card border border-border/40 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-md transition-all"
       >
         <div className="flex flex-col md:flex-row">
@@ -110,7 +111,7 @@ export function BestOfFeatureRow({
             return (
               <Link
                 key={a.id}
-                href={`/articles/${a.slug}`}
+                href={articleHref(a)}
                 className="group flex bg-card border border-border/40 rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all"
               >
                 <div className="relative w-2/5 shrink-0 aspect-square sm:aspect-auto sm:min-h-[180px] overflow-hidden bg-primary/5">

@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { GraduationCap, ArrowRight, Trophy, Star } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -40,12 +41,7 @@ async function getSchoolArticles(): Promise<Article[]> {
   } catch { return [] }
 }
 
-function articleHref(slug: string, columnSlug: string | null): string {
-  if (columnSlug && columnSlug !== 'school-bits') {
-    return `/columns/${columnSlug}/${slug.replace(new RegExp(`^${columnSlug}-`), '')}`
-  }
-  return `/articles/${slug}`
-}
+// Article URL builder lives in @/lib/articles/slug — imported above.
 
 function fmtDate(iso: string | null) {
   if (!iso) return ''
@@ -66,7 +62,7 @@ function FeaturedCard({ article }: { article: Article }) {
 
   return (
     <Link
-      href={articleHref(article.slug, article.column_slug)}
+      href={articleHref(article)}
       className="group relative flex flex-col justify-end rounded-2xl overflow-hidden min-h-[320px] md:min-h-[380px] md:h-full"
     >
       <Image src={imgSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
@@ -119,7 +115,7 @@ function SmallCard({ article }: { article: Article }) {
 
   return (
     <Link
-      href={articleHref(article.slug, article.column_slug)}
+      href={articleHref(article)}
       className="group flex gap-4 p-3 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-muted/20 transition-all"
     >
       <div className="relative shrink-0 w-28 h-28 md:w-[140px] md:h-[140px] rounded-xl overflow-hidden bg-primary/5">

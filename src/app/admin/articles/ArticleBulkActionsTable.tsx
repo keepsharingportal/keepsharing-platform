@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { editorialStatusInfo, columnLabel, guideLabel } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 
 export type SortKey = 'newest' | 'oldest' | 'views' | 'title'
 
@@ -361,7 +362,7 @@ export function ArticleBulkActionsTable({
                   </Link>
                   {a.published && (
                     <Link
-                      href={`/articles/${a.slug}`}
+                      href={articleHref(a)}
                       target="_blank"
                       className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
                       title="View live article"

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { ArrowRight, GraduationCap } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
 import { columnLabel } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 
 interface SchoolArticle {
   id:             string
@@ -60,7 +61,7 @@ export function FromSchoolZone({ articles }: Props) {
           return (
             <Link
               key={a.id}
-              href={`/articles/${a.slug}`}
+              href={articleHref(a)}
               className="group flex flex-col bg-white rounded-xl overflow-hidden border border-blue-100/60 hover:border-blue-300 hover:shadow-sm transition-all"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-blue-50/50">

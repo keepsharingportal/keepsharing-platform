@@ -6,6 +6,7 @@ import {
   Clock, Eye,
 } from 'lucide-react'
 import { editorialStatusInfo, columnLabel } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Content Dashboard — Admin' }
@@ -228,7 +229,7 @@ export default async function ContentDashboard() {
                       </Link>
                       {a.published && (
                         <Link
-                          href={`/articles/${a.slug}`}
+                          href={articleHref(a)}
                           target="_blank"
                           className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
                           title="Preview"

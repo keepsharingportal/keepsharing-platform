@@ -9,6 +9,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { COLUMNS, GUIDES, CONTENT_TOPICS, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
@@ -530,7 +531,7 @@ export default function ArticleEditPage({ params }: Props) {
                 </button>
                 {form.slug && (
                   <Link
-                    href={`/articles/${form.slug}`}
+                    href={articleHref({ slug: form.slug, title: form.title, column_slug: form.column_slug })}
                     target="_blank"
                     className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
                   >

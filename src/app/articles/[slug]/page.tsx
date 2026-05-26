@@ -17,6 +17,7 @@ import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
 import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
+import { findArticleBySlug } from '@/lib/articles/slug'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -38,7 +39,12 @@ interface PageParams {
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
   const { slug } = await params
   const supabase = getSupabase()
-  const { data } = await supabase.from('guide_articles').select('title, excerpt').eq('slug', slug).eq('published', true).maybeSingle()
+  // Tolerate legacy rows with non-canonical slugs (capitalization, spaces).
+  const data = await findArticleBySlug<{ title: string; excerpt: string | null }>(
+    supabase,
+    slug,
+    'title, excerpt',
+  )
   if (!data) return { title: 'Article — River Region Parents' }
   return {
     title:       `${data.title} — River Region Parents`,
@@ -50,12 +56,11 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const { slug } = await params
   const supabase = getSupabase()
 
-  const [articleRes, inlineAdRes] = await Promise.all([
-    supabase.from('guide_articles')
-      .select('*')
-      .eq('slug', slug)
-      .eq('published', true)
-      .maybeSingle(),
+  const [articleData, inlineAdRes] = await Promise.all([
+    // Slug-tolerant lookup — finds the row even when the DB has a legacy
+    // slug with spaces/capitalization (URL is always canonicalized via
+    // articleHref).
+    findArticleBySlug<Record<string, unknown>>(supabase, slug, '*'),
     supabase.from('ad_placements')
       .select('*')
       .eq('placement_type', 'article_inline')
@@ -64,9 +69,14 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
       .limit(1).maybeSingle(),
   ])
 
-  if (!articleRes.data) notFound()
+  if (!articleData) notFound()
 
-  const article = articleRes.data
+  // The page's downstream code reads a wide variety of columns off
+  // `article`. Cast to `any` here so we don't have to enumerate every
+  // optional field in the helper's generic. Field-level safety stays in
+  // the existing `as string | null` casts at each call site.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const article: any = articleData
   const columnSlug = article.column_slug as string | null
   const guideSlug  = article.guide_slug  as string | null
 

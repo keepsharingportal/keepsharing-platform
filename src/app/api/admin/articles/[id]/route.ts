@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { slugifyForUrl } from '@/lib/articles/slug'
 
 function supabaseAdmin() {
   return createClient(
@@ -40,6 +41,21 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const update: Record<string, unknown> = {}
     for (const key of ALLOWED) {
       if (key in body) update[key] = body[key]
+    }
+
+    // Canonicalize slug on save — same defense as the POST route.
+    // Idempotent: a clean slug passes through unchanged. Reject only if
+    // the caller tried to set slug to something that becomes empty after
+    // slugify (i.e., all unsafe characters).
+    if ('slug' in update) {
+      const raw = update.slug
+      if (typeof raw === 'string') {
+        const cleaned = slugifyForUrl(raw)
+        if (!cleaned) {
+          return NextResponse.json({ error: 'Slug must contain at least one URL-safe character.' }, { status: 400 })
+        }
+        update.slug = cleaned
+      }
     }
 
     // Auto-derive vertical_slug from column_slug if the column changed but

@@ -17,6 +17,7 @@ import Image from 'next/image'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { contentTopicLabel } from '@/lib/content-taxonomy'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 export interface RealTalkArticle {
   id:             string
@@ -34,12 +35,6 @@ interface Props {
   articles: RealTalkArticle[]
 }
 
-function articleHref(slug: string, columnSlug: string | null): string {
-  if (columnSlug && columnSlug !== 'feature') {
-    return `/columns/${columnSlug}/${slug.replace(new RegExp(`^${columnSlug}-`), '')}`
-  }
-  return `/articles/${slug}`
-}
 
 export function RealTalkRow({ articles }: Props) {
   if (articles.length === 0) return null
@@ -65,7 +60,7 @@ export function RealTalkRow({ articles }: Props) {
           return (
             <Link
               key={a.id}
-              href={articleHref(a.slug, a.column_slug)}
+              href={articleHref(a)}
               className="group rounded-2xl overflow-hidden border border-border/50 bg-card hover:shadow-md hover:border-primary/30 transition-all flex flex-col"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">

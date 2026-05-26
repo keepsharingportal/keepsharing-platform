@@ -6,6 +6,7 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { Badge } from '@/components/ui/badge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { SCHOOL_ZONE_COLUMN_SLUGS, columnLabel } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -96,12 +97,7 @@ async function fetchArticles(section: SectionKey, month: MonthKey) {
 
 // ── Article card ───────────────────────────────────────────────────────
 
-function articleHref(a: { slug: string; column_slug: string | null }) {
-  const cs = a.column_slug
-  if (!cs || cs === 'school-bits') return `/articles/${a.slug}`
-  // Column articles use the column route
-  return `/columns/${cs}/${a.slug.replace(new RegExp(`^${cs}-`), '')}`
-}
+// Article URL builder lives in @/lib/articles/slug — imported above.
 
 function categoryDisplay(a: { column_slug: string | null; guide_slug: string | null }): string {
   if (a.column_slug) return columnLabel(a.column_slug)

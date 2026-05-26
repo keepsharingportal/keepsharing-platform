@@ -11,6 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 import { SectionHeader } from '@/components/theme'
 
 interface LatestRead {
@@ -63,7 +64,7 @@ export function LatestReads({ articles }: Props) {
           return (
             <Link
               key={a.id}
-              href={`/articles/${a.slug}`}
+              href={articleHref(a)}
               className="group flex flex-col bg-card border border-border/40 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-primary/5">

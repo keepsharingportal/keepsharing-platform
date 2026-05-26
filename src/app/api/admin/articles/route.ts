@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { slugifyForUrl } from '@/lib/articles/slug'
 
 function supabaseAdmin() {
   return createClient(
@@ -29,6 +30,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 })
     }
 
+    // Force the slug to canonical form on the way in. This is the line of
+    // defense against URLs like /articles/The%20Importance%20... — even if
+    // a future form bypasses client-side slugification, the server saves a
+    // clean slug. Idempotent: a clean slug passes through unchanged.
+    const cleanSlug = slugifyForUrl(slug)
+    if (!cleanSlug) {
+      return NextResponse.json({ error: 'Slug must contain at least one URL-safe character.' }, { status: 400 })
+    }
+
     const supabase = supabaseAdmin()
 
     // Check slug uniqueness — ignore trashed articles so a trashed slug
@@ -40,7 +50,7 @@ export async function POST(req: NextRequest) {
     let existingQ = supabase
       .from('guide_articles')
       .select('id')
-      .eq('slug', slug.trim())
+      .eq('slug', cleanSlug)
     if (hasTrashColumn) existingQ = existingQ.is('deleted_at', null)
     const { data: existing } = await existingQ.maybeSingle()
 
@@ -57,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     const record = {
       title:                   title.trim(),
-      slug:                    slug.trim(),
+      slug:                    cleanSlug,
       subtitle:                subtitle?.trim() || null,
       excerpt:                 excerpt?.trim() || null,
       body:                    articleBody || null,

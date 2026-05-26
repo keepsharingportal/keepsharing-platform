@@ -7,6 +7,7 @@ import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GUIDES, CONTENT_TOPICS, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 
 const SECTION_GROUPS = columnsByVertical()
@@ -137,7 +138,7 @@ export default function NewArticlePage() {
           )}
           {form.slug && (
             <Link
-              href={`/articles/${form.slug}`}
+              href={articleHref({ slug: form.slug, title: form.title, column_slug: form.column_slug })}
               target="_blank"
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
             >

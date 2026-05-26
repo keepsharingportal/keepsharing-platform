@@ -7,6 +7,7 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { Badge } from '@/components/ui/badge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import { ArrowLeft, ArrowRight, BookOpen, Calendar } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -89,12 +90,6 @@ export default async function IssuePage({ params }: PageParams) {
   const summerFun      = (articles ?? []).filter(a => a.column_slug === 'summer-fun' || a.guide_slug === 'summer-fun-guide')
   const momLife        = (articles ?? []).filter(a => ['mom-to-mom', 'grumpy-but-grateful'].includes(a.column_slug ?? ''))
   const general        = (articles ?? []).filter(a => !schoolZone.find(x => x.id === a.id) && !summerFun.find(x => x.id === a.id) && !momLife.find(x => x.id === a.id))
-
-  function articleHref(a: { slug: string; column_slug: string | null }) {
-    const cs = a.column_slug
-    if (!cs || cs === 'school-bits') return `/articles/${a.slug}`
-    return `/columns/${cs}/${a.slug.replace(new RegExp(`^${cs}-`), '')}`
-  }
 
   return (
     <div className="min-h-screen bg-background">

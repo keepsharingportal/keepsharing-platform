@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { Users, ArrowRight } from 'lucide-react'
 import { columnBadgeStyle, columnTintStyle, columnLabel } from '@/lib/content-taxonomy'
 import { getFallback } from '@/lib/image-fallbacks'
+import { articleHref } from '@/lib/articles/slug'
 
 export interface SpotlightArticle {
   id:                string
@@ -81,8 +82,7 @@ export function CommunitySpotlightsTeaser({ spotlights, variant = 'main' }: Prop
                 : 'person_woman',
               sp.id,
             )
-            const rawCol = sp.column_slug ?? col
-            const href   = `/columns/${rawCol}/${sp.slug.replace(new RegExp(`^${rawCol}-`), '')}`
+            const href = articleHref({ slug: sp.slug, title: sp.title, column_slug: sp.column_slug ?? col })
             return (
               <Link
                 key={sp.id}
