@@ -69,7 +69,10 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
       .limit(1).maybeSingle(),
   ])
 
-  if (!articleData) notFound()
+  if (!articleData) {
+    console.warn('[/articles/[slug]] no article found for slug:', slug)
+    notFound()
+  }
 
   // The page's downstream code reads a wide variety of columns off
   // `article`. Cast to `any` here so we don't have to enumerate every
@@ -77,6 +80,19 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   // the existing `as string | null` casts at each call site.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const article: any = articleData
+
+  // Guard against a row that somehow returned without the NOT NULL
+  // title/id fields populated — surfaces in Vercel logs instead of
+  // crashing the page with a less-obvious TypeError.
+  if (!article.title || !article.id) {
+    console.error('[/articles/[slug]] article row missing required fields', {
+      slug,
+      hasTitle: !!article.title,
+      hasId:    !!article.id,
+      keys:     Object.keys(article).slice(0, 20),
+    })
+    notFound()
+  }
   const columnSlug = article.column_slug as string | null
   const guideSlug  = article.guide_slug  as string | null
 

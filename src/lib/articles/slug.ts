@@ -67,13 +67,11 @@ export function articleHref(article: ArticleHrefInput): string {
 }
 
 /** Detail-page lookup that tolerates non-canonical slugs in the DB.
- *  Tries an exact match first (cheap, common case). If that misses,
- *  pulls the candidate set and finds the row whose slugified form
- *  matches the URL slug — handles legacy rows where slug contains
- *  spaces or capitals.
+ *  Tries cheap exact-match strategies first, falls back to a bounded
+ *  scan that re-slugifies candidate rows.
  *
- *  Returns the matched row or null. Caller can `.maybeSingle()`-style
- *  decide what to do with null.
+ *  Returns the matched row or null. Catches its own errors and logs
+ *  them so a broken query degrades to a 404 instead of a 500.
  *
  *  cols — string of columns to SELECT (passed through to supabase) */
 export async function findArticleBySlug<T extends Record<string, unknown>>(
@@ -81,30 +79,64 @@ export async function findArticleBySlug<T extends Record<string, unknown>>(
   urlSlug: string,
   cols = '*',
 ): Promise<T | null> {
-  // Try the literal slug first
-  const literal = await supabase
-    .from('guide_articles')
-    .select(cols)
-    .eq('slug', urlSlug)
-    .eq('published', true)
-    .maybeSingle()
-  if (literal.data) return literal.data as unknown as T
-
-  // Fallback — look for any published row whose slugified slug matches.
-  // We can't push slugify into Postgres without a stored generated
-  // column, so do it in JS over a small candidate set. ILIKE narrows
-  // the search space when the bad slug roughly matches the URL.
-  const wildcard = urlSlug.replace(/-/g, '%')
-  const candidates = await supabase
-    .from('guide_articles')
-    .select(cols)
-    .eq('published', true)
-    .ilike('slug', `%${wildcard}%`)
-    .limit(50)
-  for (const row of (candidates.data ?? []) as Array<{ slug?: string | null }>) {
-    if (row.slug && slugifyForUrl(row.slug) === urlSlug) {
-      return row as unknown as T
+  try {
+    // 1. Literal exact match — the common case once data is canonicalized
+    const literal = await supabase
+      .from('guide_articles')
+      .select(cols)
+      .eq('slug', urlSlug)
+      .eq('published', true)
+      .maybeSingle()
+    if (literal.error) {
+      console.error('[findArticleBySlug] literal lookup error:', literal.error.message)
     }
+    if (literal.data) return literal.data as unknown as T
+
+    // 2. Common legacy form: URL slug → title-cased with spaces
+    //    "best-sweet-treat-stops" → "Best Sweet Treat Stops"
+    //    Match case-insensitively against `.slug` exactly.
+    const titleish = urlSlug
+      .split('-')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+
+    if (titleish) {
+      const tc = await supabase
+        .from('guide_articles')
+        .select(cols)
+        .ilike('slug', titleish)   // case-insensitive equality
+        .eq('published', true)
+        .maybeSingle()
+      if (tc.error) {
+        console.error('[findArticleBySlug] title-case lookup error:', tc.error.message)
+      }
+      if (tc.data) return tc.data as unknown as T
+    }
+
+    // 3. Last-resort wildcarded scan + JS-side slugify check.
+    //    Bounded to 50 to avoid pulling the whole table.
+    const wildcard = urlSlug.replace(/-/g, '%')
+    const candidates = await supabase
+      .from('guide_articles')
+      .select(cols)
+      .eq('published', true)
+      .ilike('slug', `%${wildcard}%`)
+      .limit(50)
+    if (candidates.error) {
+      console.error('[findArticleBySlug] wildcard scan error:', candidates.error.message)
+      return null
+    }
+    for (const row of (candidates.data ?? []) as Array<{ slug?: string | null }>) {
+      if (row.slug && slugifyForUrl(row.slug) === urlSlug) {
+        return row as unknown as T
+      }
+    }
+    return null
+  } catch (e) {
+    // Any unexpected throw — log and degrade to "not found" so the page
+    // shows a 404 instead of crashing.
+    console.error('[findArticleBySlug] unexpected error:', e instanceof Error ? e.message : e)
+    return null
   }
-  return null
 }
