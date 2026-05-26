@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
+import { articleHref } from '@/lib/articles/slug'
 import type { Metadata } from 'next'
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -444,8 +445,10 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     id: string; slug: string; title: string;
                     hero_image_url?: string | null; column_slug?: string | null; guide_slug?: string | null
                   }) => {
+                    // Column articles → canonical /columns or /articles via helper.
+                    // Articles without a column stay on the guide-specific subroute.
                     const href = article.column_slug
-                      ? `/columns/${article.column_slug}/${article.slug}`
+                      ? articleHref(article)
                       : `/${urlSlug}/articles/${article.slug}`
                     return (
                       <Link key={article.id} href={href} className="group flex flex-col gap-3">

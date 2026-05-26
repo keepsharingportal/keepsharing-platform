@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { ArrowRight, Star, Sparkles } from 'lucide-react'
 import { getFallback } from '@/lib/image-fallbacks'
 import { articleHref } from '@/lib/articles/slug'
+import { BestOfMasthead, ViewAllListsAction } from '@/components/best-of/BestOfMasthead'
 
 interface BestOfArticle {
   id:             string
@@ -37,7 +38,7 @@ export function BestOfFeatureRow({
   if (articles.length === 0) {
     return (
       <section id="best-of" className="scroll-mt-24">
-        <BestOfMasthead subtitle={subtitle} />
+        <BestOfMasthead subtitle={subtitle} action={<ViewAllListsAction />} />
         <div className="rounded-2xl border-2 border-dashed border-border/50 bg-muted/20 p-10 text-center">
           <Star className="h-7 w-7 text-primary/40 mx-auto mb-2" />
           <p className="text-sm font-bold text-foreground mb-1">More lists are coming</p>
@@ -56,7 +57,7 @@ export function BestOfFeatureRow({
 
   return (
     <section id="best-of" className="scroll-mt-24">
-      <BestOfMasthead subtitle={subtitle} />
+      <BestOfMasthead subtitle={subtitle} action={<ViewAllListsAction />} />
 
       {/* ── Lead feature — wider image, fuller content side ── */}
       <Link
@@ -149,7 +150,7 @@ export function BestOfFeatureRow({
       {articles.length >= 3 && (
         <div className="mt-5 flex justify-center">
           <Link
-            href="/columns/frg-best-of"
+            href="/best-of"
             className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:gap-2 transition-all"
           >
             See all Best Of lists <ArrowRight className="h-4 w-4" />
@@ -160,49 +161,6 @@ export function BestOfFeatureRow({
       {/* ── Reader suggestion CTA ── */}
       <SuggestBestOfFooter />
     </section>
-  )
-}
-
-// ── Masthead ──────────────────────────────────────────────────────────────
-// Magazine-style lockup for the top of the Best Of section. Three-line
-// stamp: tiny "The" eyebrow, huge serif "BEST OF" wordmark, italic
-// "for River Region [Families]" tagline with the last word in coral.
-// Action row sits to the right on wide screens — "View All Lists" + the
-// "Suggest a Best Of" CTA that opens the submission form.
-//
-// Uses the system serif font for the wordmark (font-serif). Stays single
-// component-level so the layout is consistent on the empty + populated states.
-
-function BestOfMasthead({ subtitle }: { subtitle: string }) {
-  return (
-    <div className="mb-6 flex items-end justify-between gap-4 flex-wrap border-b border-border/50 pb-5">
-      <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-1">
-          The
-        </p>
-        <h2 className="font-serif font-black leading-[0.9] tracking-tight text-foreground text-5xl sm:text-6xl md:text-7xl mb-1">
-          BEST <span className="font-light italic text-muted-foreground text-3xl sm:text-4xl md:text-5xl align-baseline">of</span>
-        </h2>
-        <p className="text-base md:text-lg font-bold tracking-wide italic mt-0.5">
-          <span className="text-foreground">for River Region </span>
-          <span className="text-primary not-italic">Families</span>
-        </p>
-        <p className="text-sm text-muted-foreground mt-3 max-w-md">
-          {subtitle}
-        </p>
-      </div>
-
-      {/* Right-aligned action — View All Lists. Suggest CTA lives at the
-           bottom of the section so it reads as a "now that you've seen
-           these, what would YOU pick?" prompt instead of competing with
-           the masthead. */}
-      <Link
-        href="/columns/frg-best-of"
-        className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
-      >
-        View All Lists <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
   )
 }
 

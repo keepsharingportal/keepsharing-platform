@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
+import { articleHref } from '@/lib/articles/slug'
 import { ArrowRight } from 'lucide-react'
 
 interface ArticleData {
@@ -50,11 +51,7 @@ function fmtDate(iso: string | null | undefined) {
 }
 
 export function ArticleCard({ article, showAuthor = true, variant = 'default' }: Props) {
-  const url = article.column_slug === 'school-bits'
-    ? `/articles/${article.slug}`
-    : article.column_slug
-      ? `/columns/${article.column_slug}/${article.slug.replace(new RegExp(`^${article.column_slug}-`), '')}`
-      : `/articles/${article.slug}`
+  const url = articleHref(article)
 
   const categoryLabel = article.column_slug
     ? (COLUMN_LABELS[article.column_slug] ?? article.column_slug)

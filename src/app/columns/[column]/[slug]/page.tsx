@@ -12,6 +12,7 @@ import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import type { Metadata } from 'next'
 
 export const revalidate = 600
@@ -114,19 +115,14 @@ export default async function ArticlePage({ params }: PageParams) {
   const readTimeMinutes = article.read_time_minutes ?? Math.max(1, Math.round(wordCount / 200))
 
   // Map trending articles to sidebar shape
-  const trendingMapped = trending.map((t) => {
-    const tcs = t.column_slug as string | null
-    return {
-      id:            t.id,
-      title:         t.title,
-      slug:          t.slug,
-      hero_image_url: t.hero_image_url as string | null,
-      date_label:    new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      href:          tcs
-        ? `/columns/${tcs}/${t.slug.replace(new RegExp(`^${tcs}-`), '')}`
-        : `/articles/${t.slug}`,
-    }
-  })
+  const trendingMapped = trending.map((t) => ({
+    id:            t.id,
+    title:         t.title,
+    slug:          t.slug,
+    hero_image_url: t.hero_image_url as string | null,
+    date_label:    new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    href:          articleHref({ slug: t.slug, title: t.title, column_slug: t.column_slug as string | null }),
+  }))
 
   // Map ad_placements to sidebar shape (using actual DB column names)
   // Suppress sidebar ads that have no destination URL — a '#' link confuses users

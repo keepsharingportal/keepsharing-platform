@@ -5,7 +5,7 @@
 // a `focus=<id>` URL param that pulls a specific bit to the top of the feed
 // when the reader arrives from a card click on FRG / discovery panel.
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
@@ -54,8 +54,9 @@ export function SchoolBitsBrowser({
   const pathname     = usePathname()
 
   // ── URL params drive initial state ────────────────────────────────────────
-  //   ?focus=<bit_id> → pull a specific bit to the top + auto-open lightbox
-  //                     (used by share links from FRG / external posts)
+  //   ?focus=<bit_id> → pull a specific bit to the top + give it the
+  //                     primary-color highlight ring so it's immediately
+  //                     visible. Reader still has to click to expand.
   //   ?area=<area>    → preselect an area filter (shareable filtered view)
   //   ?school=<id>    → preselect a school filter (shareable filtered view)
   // URL > localStorage > default. Each is shareable.
@@ -81,10 +82,6 @@ export function SchoolBitsBrowser({
   // Reset to 1 whenever the filter changes so the reader doesn't carry
   // a deep scroll across a context switch.
   const [batchCount,    setBatchCount]    = useState(1)
-  // Tracks whether we've handled the initial ?focus URL — prevents the
-  // auto-open from re-firing if the user closes the lightbox and the
-  // searchParams object happens to re-render.
-  const focusHandledRef = useRef(false)
 
   // Remembered school from localStorage — URL takes precedence so a shared
   // ?school link wins over a returning visitor's saved preference.
@@ -170,18 +167,12 @@ export function SchoolBitsBrowser({
     return matched
   }, [initialBits, schools, areaFilter, schoolFilter, focusedBitId])
 
-  // ── Auto-open the lightbox on ?focus arrival ─────────────────────────────
-  // The viral path: mom shares a bit on Facebook, friend clicks the link, lands
-  // here, lightbox opens to that bit immediately. Runs once per focus id so
-  // closing the lightbox doesn't re-trigger.
-  useEffect(() => {
-    if (!focusedBitId || focusHandledRef.current) return
-    const idx = filtered.findIndex(b => b.id === focusedBitId)
-    if (idx >= 0) {
-      setOpenBitIndex(idx)
-      focusHandledRef.current = true
-    }
-  }, [focusedBitId, filtered])
+  // Note: we used to auto-open the lightbox when ?focus was set in the URL
+  // so a shared Facebook link would drop the reader straight onto the bit.
+  // That behavior bothered readers navigating from the FRG (they wanted to
+  // scan the page, not be forced into a modal). The bit is still pulled
+  // to the top of the list and gets a primary-color highlight ring, so
+  // it's discoverable — readers click into it when they're ready.
 
   function clearSchool() {
     setSchoolFilter(null)

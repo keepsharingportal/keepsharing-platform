@@ -17,7 +17,7 @@ import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
 import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
-import { findArticleBySlug } from '@/lib/articles/slug'
+import { findArticleBySlug, articleHref } from '@/lib/articles/slug'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -146,19 +146,14 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const wordCount      = (article.body as string | null)?.split(/\s+/).length ?? 0
   const readTimeMinutes = article.read_time_minutes ?? Math.max(1, Math.round(wordCount / 200))
 
-  const trendingMapped = (trendingData ?? []).map((t) => {
-    const tcs = t.column_slug as string | null
-    return {
-      id:             t.id,
-      title:          t.title,
-      slug:           t.slug,
-      hero_image_url: t.hero_image_url as string | null,
-      date_label:     new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      href:           tcs
-        ? `/columns/${tcs}/${t.slug.replace(new RegExp(`^${tcs}-`), '')}`
-        : `/articles/${t.slug}`,
-    }
-  })
+  const trendingMapped = (trendingData ?? []).map((t) => ({
+    id:             t.id,
+    title:          t.title,
+    slug:           t.slug,
+    hero_image_url: t.hero_image_url as string | null,
+    date_label:     new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    href:           articleHref({ slug: t.slug, title: t.title, column_slug: t.column_slug as string | null }),
+  }))
 
   const heroImageUrl  = article.hero_image_url || getFallbackByContext(guideSlug ?? columnSlug ?? 'parenting', article.id)
   const shareUrl      = `${SITE_URL}/articles/${slug}`
@@ -412,11 +407,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 <div className="grid sm:grid-cols-3 gap-4">
                   {related.map(r => {
                     const rCs = r.column_slug as string | null
-                    const href = rCs === 'school-bits'
-                      ? `/articles/${r.slug}`
-                      : rCs
-                        ? `/columns/${rCs}/${r.slug.replace(new RegExp(`^${rCs}-`), '')}`
-                        : `/articles/${r.slug}`
+                    const href = articleHref({ slug: r.slug, title: r.title, column_slug: rCs })
                     const rHero = r.hero_image_url || getFallbackByContext(r.guide_slug ?? rCs ?? 'parenting', r.id)
                     return (
                       <Link

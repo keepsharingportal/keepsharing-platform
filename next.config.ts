@@ -57,6 +57,12 @@ const nextConfig: NextConfig = {
       { source: "/newcomer-guide",           destination: "/family-resource-guide",        permanent: true },
       { source: "/newcomer-guide/:path*",    destination: "/family-resource-guide/:path*", permanent: true },
 
+      // /columns/frg-best-of → /best-of (canonical Best Of landing page).
+      // The legacy URL still resolves via the column page (slug-tolerant),
+      // but 301'ing tells search engines to consolidate ranking on the
+      // shorter brandable URL.
+      { source: "/columns/frg-best-of",      destination: "/best-of",              permanent: true },
+
       // Legacy newcomer guide redirects
       { source: "/family-guide",            destination: "/newcomer-guide",        permanent: true },
       { source: "/family-guide/:path*",     destination: "/newcomer-guide/:path*", permanent: true },

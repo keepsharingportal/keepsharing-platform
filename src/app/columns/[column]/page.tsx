@@ -65,10 +65,33 @@ export default async function ColumnLandingPage({ params }: PageParams) {
       .order('published_at', { ascending: false, nullsFirst: false }),
   ])
 
-  if (!columnRes.data) notFound()
-
-  const columnData = columnRes.data
   const articles   = articlesRes.data ?? []
+
+  // Tolerate missing monthly_columns metadata — some editorial buckets
+  // (frg-best-of, frg-newcomer, etc.) don't have monthly_columns rows
+  // because they aren't recurring contributor columns. Fall back to a
+  // synthesized identity from the slug so the page renders instead of
+  // 404ing. If there are also no articles, then 404 (truly nothing here).
+  if (!columnRes.data && articles.length === 0) notFound()
+
+  // Pretty default name from slug — "frg-best-of" → "Best of the Region"
+  // for the well-known FRG buckets; everything else gets a Title Cased
+  // version of the slug.
+  const SLUG_DISPLAY: Record<string, string> = {
+    'frg-best-of':   'Best of the Region',
+    'frg-newcomer':  'Newcomer Stories',
+    'feature':       'Featured Articles',
+  }
+  const slugDisplay = SLUG_DISPLAY[column]
+    ?? column.split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+
+  const columnData = columnRes.data ?? {
+    slug:         column,
+    display_name: slugDisplay,
+    description:  null,
+    short_description: null,
+    hero_image_url:    null,
+  }
   const accent     = COLUMN_ACCENT[column] ?? DEFAULT_ACCENT
   const cta        = COLUMN_CTA[column] ?? DEFAULT_CTA
 

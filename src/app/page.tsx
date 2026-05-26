@@ -14,6 +14,7 @@ import {
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
+import { articleHref } from '@/lib/articles/slug'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
@@ -366,9 +367,7 @@ export default async function HomePage() {
           <div className="lg:col-span-8">
             {mainFeature ? (
               <Link
-                href={mainFeature.column_slug && mainFeature.column_slug !== 'school-bits'
-                  ? `/columns/${mainFeature.column_slug}/${mainFeature.slug.replace(new RegExp(`^${mainFeature.column_slug}-`), '')}`
-                  : `/articles/${mainFeature.slug}`}
+                href={articleHref(mainFeature)}
                 className="relative rounded-3xl overflow-hidden block group cursor-pointer aspect-[16/9] lg:aspect-auto h-full lg:min-h-[500px] bg-foreground/10"
               >
                 <Image
@@ -475,7 +474,7 @@ export default async function HomePage() {
                   // Article URL — use the raw column slug from DB (the "-the-"
                   // variants are real routable paths in /columns/[column]).
                   const rawCol = sp.column_slug ?? col
-                  const href = `/columns/${rawCol}/${sp.slug.replace(new RegExp(`^${rawCol}-`), '')}`
+                  const href = articleHref({ slug: sp.slug, title: sp.title, column_slug: rawCol })
                   return (
                     <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}

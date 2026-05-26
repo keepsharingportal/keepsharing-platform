@@ -23,13 +23,41 @@ function getSupabase() {
   )
 }
 
+// UUIDs are the only thing that should pattern-match as an id; everything
+// else is a slug. Splitting the lookup avoids `.or(slug.eq,id.eq)` which
+// PostgREST aborts when the non-UUID branch causes a type error — that's
+// the root of the "event 404s" symptom on slugged URLs.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+async function loadEventByParam<T>(
+  supabase: ReturnType<typeof getSupabase>,
+  param: string,
+  cols: string,
+): Promise<T | null> {
+  // 1. Slug lookup is the common case
+  const bySlug = await supabase
+    .from('calendar_events')
+    .select(cols)
+    .eq('slug', param)
+    .maybeSingle()
+  if (bySlug.data) return bySlug.data as unknown as T
+  // 2. Only try id if it actually looks like a UUID
+  if (!UUID_RE.test(param)) return null
+  const byId = await supabase
+    .from('calendar_events')
+    .select(cols)
+    .eq('id', param)
+    .maybeSingle()
+  return (byId.data ?? null) as unknown as T | null
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const { data } = await getSupabase()
-    .from('calendar_events')
-    .select('title, description')
-    .or(`slug.eq.${slug},id.eq.${slug}`)
-    .single()
+  const data = await loadEventByParam<{ title: string; description: string | null }>(
+    getSupabase(),
+    slug,
+    'title, description',
+  )
   if (!data) return { title: 'Event Not Found' }
   return {
     title:       `${data.title} | River Region Parents Calendar`,
@@ -41,15 +69,14 @@ function formatDateFull(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyEvent = any
+
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
   const supabase = getSupabase()
 
-  const { data: ev } = await supabase
-    .from('calendar_events')
-    .select('*')
-    .or(`slug.eq.${slug},id.eq.${slug}`)
-    .single()
+  const ev = await loadEventByParam<AnyEvent>(supabase, slug, '*')
 
   if (!ev || ev.status === 'cancelled') notFound()
 

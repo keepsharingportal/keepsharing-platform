@@ -303,9 +303,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                 <SectionHeader title="Editorial" icon={BookOpen} />
                 <div className="grid sm:grid-cols-2 gap-4">
                   {articles.slice(0, 4).map(a => {
-                    const href = a.column_slug
-                      ? `/columns/${a.column_slug}/${a.slug.replace(new RegExp(`^${a.column_slug}-`), '')}`
-                      : `/articles/${a.slug}`
+                    const href = articleHref(a)
                     const img  = a.hero_image_url || getFallbackByContext(guide.slug, a.slug)
                     return (
                       <Link key={a.id} href={href} className="group rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col">
