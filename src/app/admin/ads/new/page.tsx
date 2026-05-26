@@ -3,13 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-
-const PLACEMENT_TYPES = [
-  'guide_sidebar_sticky', 'guide_inline', 'guide_inline_sponsored', 'guide_featured_strip',
-  'article_header_sponsor', 'article_inline_recommendation', 'article_footer_listings',
-  'calendar_featured_event', 'calendar_inline_promotion',
-  'newsletter_sponsor', 'homepage_hero_rotator', 'site_footer_partners',
-]
+import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 
 const CONTEXT_SLUGS: Record<string, string[]> = {
   guide: [
@@ -26,8 +20,10 @@ export default function NewAdPage() {
   const router = useRouter()
   const [advertisers, setAdvertisers] = useState<Array<{ id: string; business_name: string }>>([])
   const [saving, setSaving] = useState(false)
+  const placementGroups = groupedPlacementTypes()
+
   const [form, setForm] = useState({
-    placement_type: 'guide_sidebar_sticky',
+    placement_type: 'school_bits_inline',
     context_type: 'guide',
     context_slug: '',
     advertiser_account_id: '',
@@ -85,9 +81,25 @@ export default function NewAdPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Row label="Placement Type">
-          <select value={form.placement_type} onChange={e => set('placement_type', e.target.value)} style={sel}>
-            {PLACEMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <div>
+            <select value={form.placement_type} onChange={e => set('placement_type', e.target.value)} style={sel}>
+              {placementGroups.map(group => (
+                <optgroup key={group.surface} label={group.label}>
+                  {group.entries.map(p => (
+                    <option key={p.slug} value={p.slug}>{p.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {(() => {
+              const def = findPlacementType(form.placement_type)
+              return def ? (
+                <p style={{ fontSize: 12, color: '#666', marginTop: 6, lineHeight: 1.4 }}>
+                  <code style={{ fontSize: 11, color: '#888' }}>{def.slug}</code> — {def.description}
+                </p>
+              ) : null
+            })()}
+          </div>
         </Row>
         <Row label="Context Type">
           <select value={form.context_type} onChange={e => set('context_type', e.target.value)} style={sel}>

@@ -17,6 +17,11 @@ const ALLOWED_FIELDS = new Set([
   'title', 'description', 'start_date', 'end_date', 'start_time', 'end_time',
   'location_name', 'address', 'city', 'email', 'phone', 'age_range',
   'cost_text', 'is_free', 'hero_image_url', 'category', 'status',
+  // Added in migration 077 — first-class fields that used to live in description
+  'registration_url', 'organizer_name', 'organizer_email', 'tags',
+  'is_featured', 'featured_until',
+  // Reviewer audit
+  'reviewed_by', 'reviewed_at',
 ])
 
 const ALLOWED_STATUSES = new Set(['pending', 'published', 'rejected', 'archived'])
@@ -38,28 +43,63 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ error: 'No allowed fields to update' }, { status: 400 })
   }
 
+  // Auto-stamp reviewed_at if status is changing (and reviewer isn't already set in the payload)
+  if ('status' in updates && !('reviewed_at' in updates)) {
+    updates.reviewed_at = new Date().toISOString()
+  }
+
   const supabase = supabaseAdmin()
-  const { error } = await supabase.from('calendar_events').update(updates).eq('id', id)
+
+  // Defensive: migration 077 introduced several new columns. If it hasn't
+  // been applied, strip the new fields and retry once so the queue still works.
+  let { error } = await supabase.from('calendar_events').update(updates).eq('id', id)
+  if (error && /column .* does not exist/i.test(error.message)) {
+    const fallback = { ...updates }
+    for (const k of ['registration_url','organizer_name','organizer_email','tags','is_featured','featured_until','reviewed_by','reviewed_at']) {
+      delete fallback[k]
+    }
+    ;({ error } = await supabase.from('calendar_events').update(fallback).eq('id', id))
+  }
+
   if (error) {
     console.error('[admin/calendar-events] update error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Public pages cache events for 15 min — refresh now when status flips
-  if ('status' in updates) {
-    revalidatePath('/calendar')
-    revalidatePath('/')
-  }
+  // Public pages cache events — refresh now on any save so edits go live.
+  revalidatePath('/calendar')
+  revalidatePath('/')
 
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+// DELETE — soft delete (move to trash) by default, ?permanent=true hard-deletes.
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-  const supabase = supabaseAdmin()
-  const { error } = await supabase.from('calendar_events').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ success: true })
+  const url       = new URL(req.url)
+  const permanent = url.searchParams.get('permanent') === 'true'
+  const supabase  = supabaseAdmin()
+
+  if (permanent) {
+    const { error } = await supabase.from('calendar_events').delete().eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  } else {
+    // Try soft delete; fall back to hard delete if deleted_at column missing.
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({ deleted_at: new Date().toISOString(), status: 'archived' })
+      .eq('id', id)
+    if (error && /column .* does not exist/i.test(error.message)) {
+      const { error: e2 } = await supabase.from('calendar_events').delete().eq('id', id)
+      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 })
+    } else if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  }
+
+  revalidatePath('/calendar')
+  revalidatePath('/')
+  return NextResponse.json({ success: true, permanent })
 }

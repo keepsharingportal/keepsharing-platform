@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronRight, LogOut,
   Megaphone, HelpCircle, Activity, Star, Newspaper, Bot,
   Image as ImageIcon, TrendingUp, Sparkles,
-  BookOpen, Heart, Send,
+  BookOpen, Heart, Send, Brain,
   GraduationCap, Printer, Map, Package, Calendar,
   Home, Mail, Share2, Crown, RefreshCw,
   Inbox, Award, Upload, MapPin, Search, ClipboardList,
@@ -62,8 +62,9 @@ const NAV: NavItem[] = [
     ],
   },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
-  { name: 'School Zone',       href: '/admin/school-news', icon: GraduationCap },
+  { name: 'School Bits',       href: '/admin/school-news', icon: GraduationCap },
   { name: 'Community Content', href: '/admin/community',   icon: Heart         },
+  { name: 'Brain Games',       href: '/admin/games',       icon: Brain         },
 
   // ── PRODUCTION (orchestration between content and channels) ─────────────
   { section: 'PRODUCTION' },

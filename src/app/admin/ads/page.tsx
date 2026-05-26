@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 
 interface AdPlacement {
   id: string
@@ -57,12 +58,7 @@ export default function AdminAdsPage() {
     load()
   }
 
-  const PLACEMENT_TYPES = [
-    'guide_sidebar_sticky', 'guide_inline', 'guide_inline_sponsored', 'guide_featured_strip',
-    'article_header_sponsor', 'article_inline_recommendation', 'article_footer_listings',
-    'calendar_featured_event', 'calendar_inline_promotion',
-    'newsletter_sponsor', 'homepage_hero_rotator', 'site_footer_partners',
-  ]
+  const placementGroups = groupedPlacementTypes()
 
   const ctr = (imp: number, clk: number) =>
     imp > 0 ? ((clk / imp) * 100).toFixed(1) + '%' : '—'
@@ -81,9 +77,15 @@ export default function AdminAdsPage() {
 
       {/* Filter */}
       <div style={{ marginBottom: 16 }}>
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }}>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, minWidth: 240 }}>
           <option value="">All placement types</option>
-          {PLACEMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          {placementGroups.map(group => (
+            <optgroup key={group.surface} label={group.label}>
+              {group.entries.map(p => (
+                <option key={p.slug} value={p.slug}>{p.label}</option>
+              ))}
+            </optgroup>
+          ))}
         </select>
       </div>
 
@@ -103,7 +105,19 @@ export default function AdminAdsPage() {
               {ads.map(ad => (
                 <tr key={ad.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                   <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
-                    <code style={{ fontSize: 11, backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: 4 }}>{ad.placement_type}</code>
+                    {(() => {
+                      const def = findPlacementType(ad.placement_type)
+                      return def ? (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#222' }}>{def.label}</div>
+                          <code style={{ fontSize: 10, color: '#888' }}>{ad.placement_type}</code>
+                        </div>
+                      ) : (
+                        <code style={{ fontSize: 11, backgroundColor: '#fff0e7', color: '#a44', padding: '2px 6px', borderRadius: 4 }}>
+                          {ad.placement_type} ⚠️
+                        </code>
+                      )
+                    })()}
                   </td>
                   <td style={{ padding: '8px 12px', color: '#666', fontSize: 12 }}>
                     {ad.context_slug ?? ad.context_type ?? '—'}

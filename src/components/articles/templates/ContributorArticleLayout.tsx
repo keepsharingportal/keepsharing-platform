@@ -18,7 +18,11 @@ const COLUMN_LABEL: Record<string, string> = {
 
 interface Props {
   title: string
-  excerpt?: string | null
+  /**
+   * Magazine-style deck / lead. Comes from guide_articles.subtitle.
+   * NOT the same as excerpt (which is the card-listing teaser).
+   */
+  subtitle?: string | null
   heroImageUrl?: string | null
   authorName?: string | null
   columnSlug: string
@@ -29,7 +33,7 @@ interface Props {
 }
 
 export function ContributorArticleLayout({
-  title, excerpt, heroImageUrl, authorName,
+  title, subtitle, heroImageUrl, authorName,
   columnSlug, body, pullQuotes, inlineAd, articleId,
 }: Props) {
   const columnLabel = COLUMN_LABEL[columnSlug] ?? 'Contributor Column'
@@ -50,10 +54,11 @@ export function ContributorArticleLayout({
         />
       </div>
 
-      {/* Lede / excerpt in a warm serif style */}
-      {excerpt && (
+      {/* Lede / magazine deck in a warm serif style. Pulled from subtitle so
+          contributor pages always lead with a real lead, not a card hook. */}
+      {subtitle && (
         <p className="text-xl font-medium leading-relaxed text-foreground mb-6 italic">
-          {excerpt}
+          {subtitle}
         </p>
       )}
 

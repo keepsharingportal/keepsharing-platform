@@ -71,47 +71,64 @@ export async function POST(req: NextRequest) {
   const baseSlug = toSlug(body.title)
   const slug     = `${baseSlug || 'event'}-${Math.random().toString(36).slice(2, 7)}`
 
-  // Bundle the submitter contact and editor-only fields under registration_url
-  // is wrong — store them in description suffix + raw fields. The existing
-  // calendar_events schema has phone/email columns we can use for editor
-  // contact, separate from public-facing data. We keep public description
-  // clean and append submitter contact for the editor's reference.
-  const editorMeta = [
-    body.organization?.trim()  ? `Submitted by: ${body.organization.trim()}` : null,
-    body.contact_name?.trim()  ? `Contact: ${body.contact_name.trim()}`       : null,
-    body.registration_url?.trim() ? `Register: ${body.registration_url.trim()}` : null,
+  // Description stays public-facing only. Editor-only notes go into the new
+  // discovery_notes column (added in migration 077). Registration URL is now
+  // a first-class column instead of being crammed into description.
+  const editorNotes = [
+    body.contact_name?.trim()  ? `Contact: ${body.contact_name.trim()}` : null,
     body.editor_notes?.trim()  ? `Editor notes: ${body.editor_notes.trim()}` : null,
-  ].filter(Boolean).join('\n')
-
-  const description = editorMeta
-    ? `${body.description.trim()}\n\n---\n${editorMeta}`
-    : body.description.trim()
+  ].filter(Boolean).join('\n') || null
 
   const row = {
-    title:           body.title.trim(),
+    title:            body.title.trim(),
     slug,
-    description,
-    start_date:      body.start_date,
-    end_date:        body.end_date?.trim() || body.start_date,
-    start_time:      body.start_time?.trim() || null,
-    end_time:        body.end_time?.trim()   || null,
-    location_name:   body.location_name?.trim() || null,
-    address:         body.address?.trim()       || null,
-    city:            body.city?.trim()          || null,
-    email:           body.contact_email.trim().toLowerCase(),
-    phone:           body.contact_phone?.trim() || null,
-    age_range:       body.age_range?.trim()     || null,
-    cost_text:       body.cost_text?.trim()     || null,
-    is_free:         body.is_free ?? false,
-    hero_image_url:  body.hero_image_url?.trim() || null,
-    status:          'pending',
+    description:      body.description.trim(),
+    start_date:       body.start_date,
+    end_date:         body.end_date?.trim() || body.start_date,
+    start_time:       body.start_time?.trim() || null,
+    end_time:         body.end_time?.trim()   || null,
+    location_name:    body.location_name?.trim() || null,
+    address:          body.address?.trim()       || null,
+    city:             body.city?.trim()          || null,
+    email:            body.contact_email.trim().toLowerCase(),
+    phone:            body.contact_phone?.trim() || null,
+    age_range:        body.age_range?.trim()     || null,
+    cost_text:        body.cost_text?.trim()     || null,
+    is_free:          body.is_free ?? false,
+    hero_image_url:   body.hero_image_url?.trim() || null,
+    registration_url: body.registration_url?.trim() || null,
+    organizer_name:   body.organization?.trim() || null,
+    source_type:      'public-submission',
+    source_name:      body.organization?.trim() || 'Public submission',
+    discovery_notes:  editorNotes,
+    status:           'pending',
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('calendar_events')
     .insert(row)
     .select('id')
     .single()
+
+  // Defensive fallback: if migration 077 hasn't been applied yet, the new
+  // columns won't exist. Strip them and retry so the submit form still works.
+  if (error && /column .* does not exist/i.test(error.message)) {
+    const legacy = { ...row } as Record<string, unknown>
+    delete legacy.source_type
+    delete legacy.source_name
+    delete legacy.discovery_notes
+    delete legacy.registration_url
+    delete legacy.organizer_name
+    // Stuff registration_url back into description so it isn't lost
+    if (row.registration_url) {
+      legacy.description = `${row.description}\n\nRegister: ${row.registration_url}`
+    }
+    ;({ data, error } = await supabase
+      .from('calendar_events')
+      .insert(legacy)
+      .select('id')
+      .single())
+  }
 
   if (error) {
     console.error('[calendar/submit] insert error:', error)

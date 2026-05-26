@@ -12,38 +12,70 @@ export const metadata = { title: 'Pending Events — KeepSharing Admin' }
 export const dynamic  = 'force-dynamic'
 
 export interface PendingEvent {
-  id:            string
-  title:         string
-  slug:          string | null
-  description:   string | null
-  start_date:    string
-  end_date:      string | null
-  start_time:    string | null
-  end_time:      string | null
-  location_name: string | null
-  address:       string | null
-  city:          string | null
-  email:         string | null
-  phone:         string | null
-  age_range:     string | null
-  cost_text:     string | null
-  is_free:       boolean | null
-  hero_image_url: string | null
-  status:        string
-  created_at:    string
+  id:               string
+  title:            string
+  slug:             string | null
+  description:      string | null
+  start_date:       string
+  end_date:         string | null
+  start_time:       string | null
+  end_time:         string | null
+  location_name:    string | null
+  address:          string | null
+  city:             string | null
+  email:            string | null
+  phone:            string | null
+  age_range:        string | null
+  cost_text:        string | null
+  is_free:          boolean | null
+  hero_image_url:   string | null
+  category:         string | null
+  status:           string
+  created_at:       string
+  // New in migration 077 — may be null on older rows or absent if migration not applied
+  registration_url?: string | null
+  organizer_name?:   string | null
+  tags?:             string[] | null
+  source_type?:      string | null
+  source_name?:      string | null
+  source_url?:       string | null
+  discovery_notes?:  string | null
 }
 
 export default async function PendingEventsPage() {
   const supabase = createAdminClient()
 
-  const { data: events, error } = await supabase
+  // Try the rich select first; fall back to the legacy column set if
+  // migration 077 hasn't been applied yet. The two selects produce
+  // different inferred row shapes, so we hold the result in an
+  // explicitly-typed local instead of letting TS infer from the first
+  // query and then choke on the fallback.
+  const richCols = 'id, title, slug, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, category, status, created_at, registration_url, organizer_name, tags, source_type, source_name, discovery_notes'
+  const baseCols = 'id, title, slug, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, category, status, created_at'
+
+  let events: PendingEvent[] | null = null
+  let error: { message: string } | null = null
+
+  const rich = await supabase
     .from('calendar_events')
-    .select('id, title, slug, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, status, created_at')
+    .select(richCols)
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
+  events = (rich.data ?? null) as PendingEvent[] | null
+  error  = rich.error
+
+  if (error && /column .* does not exist/i.test(error.message)) {
+    const base = await supabase
+      .from('calendar_events')
+      .select(baseCols)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    events = (base.data ?? null) as PendingEvent[] | null
+    error  = base.error
+  }
 
   if (error) console.error('[admin/events/pending] load error:', error)
-  const rows = (events ?? []) as PendingEvent[]
+  const rows = events ?? []
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">

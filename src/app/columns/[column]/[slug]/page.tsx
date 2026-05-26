@@ -181,6 +181,7 @@ export default async function ArticlePage({ params }: PageParams) {
           categoryHref={categoryHref}
           badgeClassName={columnBadgeStyle(column)}
           title={article.title}
+          subtitle={article.subtitle as string | null}
         />
 
         {/* Meta row sits between the title and the hero: date · read · author

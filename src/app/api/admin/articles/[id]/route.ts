@@ -34,6 +34,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'column_slug', 'guide_slug', 'vertical_slug',
       'editorial_review_status', 'published', 'published_at',
       'editorial_notes', 'source_issue_month',
+      'topics',
     ]
 
     const update: Record<string, unknown> = {}
@@ -79,6 +80,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     revalidatePath('/articles')
     revalidatePath('/school-bits')
     revalidatePath('/school-zone')
+    revalidatePath('/family-resource-guide')
     if (slug) {
       revalidatePath(`/articles/${slug}`)
       if (columnSlug) {
@@ -122,9 +124,22 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
     } else {
+      // Rename the slug on trash so the original is immediately free for a
+      // fresh article. Prefix is recognizable + reversible so Restore can
+      // put the original slug back. UUID prefix avoids collisions if you
+      // trash multiple items with the same slug.
+      const currentSlug    = (existing?.slug as string | null) ?? ''
+      const trashedSlugTag = `__trashed_${id.slice(0, 8)}__`
+      const alreadyTrashed = currentSlug.startsWith(trashedSlugTag)
+      const newSlug        = alreadyTrashed ? currentSlug : `${trashedSlugTag}${currentSlug}`
+
       const { error } = await supabase
         .from('guide_articles')
-        .update({ deleted_at: new Date().toISOString(), published: false })
+        .update({
+          deleted_at: new Date().toISOString(),
+          published:  false,
+          slug:       newSlug,
+        })
         .eq('id', id)
       if (error) {
         console.error('[DELETE article soft]', error)
@@ -168,9 +183,47 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const supabase = supabaseAdmin()
+
+    // Find the trashed article and recover its original slug. The trash
+    // routine prefixes the slug with __trashed_<idShort>__ so we know exactly
+    // what to strip on restore.
+    const { data: existing } = await supabase
+      .from('guide_articles')
+      .select('slug')
+      .eq('id', id)
+      .maybeSingle()
+
+    const trashedSlug = (existing?.slug as string | null) ?? ''
+    const prefix      = `__trashed_${id.slice(0, 8)}__`
+    let restoredSlug  = trashedSlug.startsWith(prefix) ? trashedSlug.slice(prefix.length) : trashedSlug
+
+    // Conflict check — if another live article took this slug while we were
+    // trashed, append a numeric suffix so the restore can proceed cleanly.
+    const { data: clash } = await supabase
+      .from('guide_articles')
+      .select('id')
+      .eq('slug', restoredSlug)
+      .neq('id', id)
+      .maybeSingle()
+    if (clash) {
+      let n = 2
+      // Find a free suffix. Cap at 50 attempts so we never loop forever.
+      while (n < 50) {
+        const candidate = `${restoredSlug}-${n}`
+        const { data: stillClash } = await supabase
+          .from('guide_articles')
+          .select('id')
+          .eq('slug', candidate)
+          .neq('id', id)
+          .maybeSingle()
+        if (!stillClash) { restoredSlug = candidate; break }
+        n++
+      }
+    }
+
     const { error } = await supabase
       .from('guide_articles')
-      .update({ deleted_at: null })
+      .update({ deleted_at: null, slug: restoredSlug })
       .eq('id', id)
 
     if (error) {
@@ -180,7 +233,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     revalidatePath('/')
     revalidatePath('/articles')
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, slug: restoredSlug })
   } catch (e) {
     console.error('[POST article] error:', e)
     return NextResponse.json({ error: String(e) }, { status: 500 })

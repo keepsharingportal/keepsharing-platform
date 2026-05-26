@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
-import { GUIDES, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
+import { GUIDES, CONTENT_TOPICS, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 
 const SECTION_GROUPS = columnsByVertical()
@@ -47,6 +47,10 @@ export default function NewArticlePage() {
     source_issue_month: '',
     editorial_notes: '',
   })
+  // Topics — same field as the edit form. Pre-tagging here means newly
+  // created articles surface in "Across the Site" rows on first save,
+  // not just after the editor revisits the edit screen.
+  const [topics, setTopics] = useState<string[]>([])
 
   const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
   const sel = `${inp} cursor-pointer`
@@ -88,6 +92,7 @@ export default function NewArticlePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          topics: topics.length > 0 ? topics : null,
           editorial_review_status: editStatus,
           published,
           published_at,
@@ -186,15 +191,19 @@ export default function NewArticlePage() {
             </div>
           </div>
 
-          {/* Subtitle */}
+          {/* Article Lead — magazine-style deck shown on the article page,
+               under the title, before the body. NOT used in card listings. */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <label className="block text-xs font-semibold text-gray-500 mb-2">Subtitle / Lead Paragraph</label>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Article Lead</label>
+            <p className="text-[11px] text-gray-400 mb-2">
+              Magazine-style deck shown on the article page, under the title. Two-to-three-sentence opener that pulls the reader in.
+            </p>
             <textarea
               className={`${inp} resize-none`}
               rows={2}
               value={form.subtitle}
               onChange={e => setField('subtitle', e.target.value)}
-              placeholder="A compelling opening sentence shown in article listings and search results…"
+              placeholder="A compelling opening shown on the article page below the title…"
             />
           </div>
 
@@ -342,6 +351,48 @@ export default function NewArticlePage() {
             <FieldHint className="mt-2">
               Optional — only pick a guide if this article should appear on that guide&apos;s landing page.
             </FieldHint>
+          </div>
+
+          {/* Topics — cross-cutting theme tags. Distinct from Guide above:
+               Guide = primary home (one), Topics = themes (many) that drive
+               the "Across the Site" rows on each guide page. */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              Topics
+              <HelpTip text="Cross-cutting theme tags. Different from Guide — Guide is the article's primary home (write FOR that guide). Topics decide which guide pages ALSO surface this piece in their 'Across the Site' rows." />
+            </h3>
+            <p className="text-[11px] text-gray-500 leading-snug mb-2">
+              <strong>Guide</strong> = one primary home. <strong>Topics</strong> = themes that cross-promote it elsewhere.
+            </p>
+            <div className="space-y-2">
+              {CONTENT_TOPICS.map(t => {
+                const checked = topics.includes(t.slug)
+                return (
+                  <label key={t.slug} className="flex items-start gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={checked}
+                      onChange={() => {
+                        setTopics(prev =>
+                          prev.includes(t.slug)
+                            ? prev.filter(s => s !== t.slug)
+                            : [...prev, t.slug]
+                        )
+                      }}
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-gray-700 group-hover:text-gray-900">
+                        {t.label}
+                      </span>
+                      <span className="block text-[11px] text-gray-400 leading-snug">
+                        {t.description}
+                      </span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
           </div>
 
           {/* Issue month */}

@@ -4,7 +4,8 @@
 // just sat in the DB invisible to the public page.
 //
 // Compact 3-up grid of image-top cards. Each shows hero photo, title,
-// subtitle/excerpt teaser, and author byline + date.
+// excerpt teaser, and author byline + date. Card teaser comes from
+// excerpt only — subtitle is the article page's lead, not a card hook.
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -16,7 +17,6 @@ interface LatestRead {
   id:             string
   slug:           string
   title:          string
-  subtitle:       string | null
   excerpt:        string | null
   hero_image_url: string | null
   author_name:    string | null
@@ -29,7 +29,7 @@ interface Props {
 }
 
 function teaser(a: LatestRead): string | null {
-  return (a.excerpt && a.excerpt.trim()) || (a.subtitle && a.subtitle.trim()) || null
+  return (a.excerpt && a.excerpt.trim()) || null
 }
 
 function fmtDate(iso: string | null) {

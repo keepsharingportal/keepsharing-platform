@@ -81,6 +81,56 @@ export const GUIDES: GuideDef[] = [
   { slug: 'newcomer-guide',         label: 'Newcomer Guide'         },
 ]
 
+// ── Content Topics ─────────────────────────────────────────────────────────
+// Cross-cutting theme tags an article can carry IN ADDITION to its primary
+// column_slug and guide_slug. A single piece can carry multiple topics — a
+// "moving to the River Region" essay might be ['newcomer-life','village'].
+//
+// These are intentionally universal, not FRG-specific. Each guide page picks
+// the subset relevant to its audience and renders an "Across the Site" row
+// pulling articles tagged with those topics (excluding articles whose
+// primary guide_slug already matches the page, to avoid duplication).
+//
+// Stored on guide_articles.topics (text[]) — see migration 087.
+
+export interface ContentTopicDef {
+  slug:        string
+  label:       string
+  description: string
+}
+
+export const CONTENT_TOPICS: ContentTopicDef[] = [
+  { slug: 'newcomer-life',   label: 'Newcomer Life',
+    description: 'Moving to the River Region, first months, getting oriented to a new place.' },
+  { slug: 'village',         label: 'Finding Your Village',
+    description: 'Community, friendships, mom-crew, connection. Building support around your family.' },
+  { slug: 'real-talk',       label: 'Real Talk From Moms',
+    description: 'Reflective parenting essays — postpartum, struggles, growth, the honest stuff.' },
+  { slug: 'how-to-choose',   label: 'How to Choose Wisely',
+    description: 'Decision guidance — picking childcare, schools, pediatricians, therapies, programs.' },
+  { slug: 'family-wellness', label: 'Family Wellness',
+    description: 'Physical health, mental health, nutrition, development — for kids and parents.' },
+  { slug: 'family-fun',      label: 'Family Fun',
+    description: 'Activities, day trips, traditions, holidays — things to do as a family.' },
+]
+
+export function contentTopicLabel(slug: string): string {
+  return CONTENT_TOPICS.find(t => t.slug === slug)?.label ?? slug
+}
+
+// Per-guide topic subsets — which topics each guide page surfaces in its
+// "Across the Site" row. FRG = all 6 (it's the hub). Others pick the
+// themes most relevant to their audience. Tweak as you see how it reads.
+export const GUIDE_TOPIC_FILTERS: Record<string, string[]> = {
+  'family-resource-guide': ['newcomer-life', 'village', 'real-talk', 'how-to-choose', 'family-wellness', 'family-fun'],
+  'newcomer-guide':        ['newcomer-life', 'village', 'how-to-choose'],
+  'childcare-guide':       ['how-to-choose', 'real-talk', 'family-wellness'],
+  'special-needs-guide':   ['how-to-choose', 'family-wellness', 'real-talk', 'village'],
+  'healthy-kids-guide':    ['family-wellness', 'how-to-choose'],
+  'afterschool-guide':     ['family-fun', 'how-to-choose'],
+  'private-school-guide':  ['how-to-choose', 'real-talk'],
+}
+
 // ── Verticals ─────────────────────────────────────────────────────────────
 
 export const VERTICALS: VerticalDef[] = [

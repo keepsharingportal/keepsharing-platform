@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
-import { COLUMNS, GUIDES, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
+import { COLUMNS, GUIDES, CONTENT_TOPICS, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
@@ -114,7 +114,9 @@ function ArticlePreview({
         <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2">
           {safeTitle}
         </h1>
-        {subtitle && (
+        {subtitle && !isContributor && (
+          // For contributor previews the subtitle renders inline as the
+          // italic lede inside ContributorArticleLayout — don't echo it here.
           <p className="text-lg text-gray-600 leading-relaxed">{subtitle}</p>
         )}
       </div>
@@ -133,7 +135,7 @@ function ArticlePreview({
       ) : isContributor ? (
         <ContributorArticleLayout
           title={safeTitle}
-          excerpt={excerpt}
+          subtitle={subtitle}
           heroImageUrl={heroFallback}
           authorName={safeAuthor}
           columnSlug={columnSlug}
@@ -178,6 +180,11 @@ export default function ArticleEditPage({ params }: Props) {
   const [baseNotes, setBaseNotes]           = useState('')
   const [schoolRegion, setSchoolRegion]     = useState('')
   const [isHomepageHero, setIsHomepageHero] = useState(false)
+  // Cross-cutting topic tags — controls which "Across the Site" rows this
+  // article surfaces in (FRG Real Talk, Special Needs themes, etc.).
+  // Stored as text[] on the row. Independent from guide_slug, which is the
+  // article's primary home if any.
+  const [topics, setTopics] = useState<string[]>([])
 
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
@@ -236,6 +243,7 @@ export default function ArticleEditPage({ params }: Props) {
         })
         setBaseNotes(cleaned)
         setSchoolRegion(region)
+        setTopics(Array.isArray(data.topics) ? data.topics as string[] : [])
       }
       setLoading(false)
     }
@@ -301,6 +309,7 @@ export default function ArticleEditPage({ params }: Props) {
       editorial_notes,
       source_issue_month:      form.source_issue_month        || null,
       author_blogger_id:       form.author_blogger_id         || null,
+      topics:                  topics.length > 0 ? topics : null,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -396,14 +405,16 @@ export default function ArticleEditPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* Subtitle */}
+              {/* Article Lead — magazine-style deck shown on the article
+                   page under the title. NOT used as the card teaser
+                   (that's the Card Hook field in the right sidebar). */}
               <div>
                 <textarea
                   className="w-full text-base text-gray-600 outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-blue-300 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
                   rows={2}
                   value={form.subtitle}
                   onChange={e => setField('subtitle', e.target.value)}
-                  placeholder="Subtitle or opening sentence shown in article listings…"
+                  placeholder="Article Lead — shown on the article page below the title…"
                 />
               </div>
 
@@ -639,10 +650,10 @@ export default function ArticleEditPage({ params }: Props) {
               </p>
             </div>
 
-            {/* ── Hook / Teaser (DB column: excerpt) ── */}
+            {/* ── Card Hook (DB column: excerpt) ── */}
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Hook / Teaser</label>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Card Hook</label>
                 <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-amber-600' : 'text-gray-400'}`}>
                   {form.excerpt.length} / 160
                 </span>
@@ -652,12 +663,13 @@ export default function ArticleEditPage({ params }: Props) {
                 rows={3}
                 value={form.excerpt}
                 onChange={e => setField('excerpt', e.target.value)}
-                placeholder="Why should someone click? 1–2 sentences. Different from the article opening."
+                placeholder="Why should someone click? 1–2 sentences. Different from the Article Lead."
                 maxLength={300}
               />
               <p className="text-[11px] text-gray-400 mt-1">
-                Sales copy for the article — shown on the homepage hero, listing cards, and search snippets.
-                Leave blank to show no teaser (the card will rely on the title alone).
+                Sales copy for listing cards — homepage hero, FRG rows, search snippets.
+                Shorter and punchier than the Article Lead (which lives on the article page itself).
+                Leave blank to show no teaser.
               </p>
             </div>
 
@@ -764,6 +776,51 @@ export default function ArticleEditPage({ params }: Props) {
                 Optional. Pick a guide only if this article should appear on that
                 guide&apos;s landing page (e.g. a swim-camp article on the Summer Camp Guide).
               </FieldHint>
+            </div>
+
+            {/* ── Topics — cross-cutting theme tags ──
+                 Distinct from Guide / Resource above. Guide = "Did we write
+                 this FOR a guide?" (one primary home). Topics = "What
+                 themes does this touch?" (many cross-cutting tags). Each
+                 guide's "Across the Site" row reads from these. */}
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Topics
+                <HelpTip text="Cross-cutting theme tags. Different from Guide above — Guide is the article's PRIMARY home (write FOR a guide). Topics decide which guide pages ALSO surface this piece in their 'Across the Site' rows. Tag liberally for essays; leave blank for narrow service guides that only belong on one page." />
+              </label>
+              <p className="text-[11px] text-gray-500 leading-snug mb-2">
+                Decision: <strong>Guide</strong> = one primary home (the magazine wrote it for that guide).
+                <strong> Topics</strong> = themes that let it cross-promote elsewhere.
+              </p>
+              <div className="space-y-2">
+                {CONTENT_TOPICS.map(t => {
+                  const checked = topics.includes(t.slug)
+                  return (
+                    <label key={t.slug} className="flex items-start gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5"
+                        checked={checked}
+                        onChange={() => {
+                          setTopics(prev =>
+                            prev.includes(t.slug)
+                              ? prev.filter(s => s !== t.slug)
+                              : [...prev, t.slug]
+                          )
+                        }}
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-gray-700 group-hover:text-gray-900">
+                          {t.label}
+                        </span>
+                        <span className="block text-[11px] text-gray-400 leading-snug">
+                          {t.description}
+                        </span>
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
             </div>
 
             {/* ── School region (only shown for school-bits) ── */}

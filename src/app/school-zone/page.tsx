@@ -4,8 +4,10 @@ import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
-import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
+import { HeroSponsorCard } from '@/components/verticals/HeroSponsorCard'
+import { SplitColoredTitle } from '@/components/verticals/SplitColoredTitle'
 import { StudentSpotlightCard } from '@/components/school-zone/StudentSpotlightCard'
+import { SchoolBitsDiscoveryPanel } from '@/components/school-zone/SchoolBitsDiscoveryPanel'
 import { getFallback } from '@/lib/image-fallbacks'
 import {
   GraduationCap, ArrowRight, Star, BookOpen, Heart,
@@ -55,11 +57,20 @@ const AREA_CARDS = [
   },
 ]
 
-const ED_RESOURCES = [
-  { label: 'Private School Guide', href: '/private-school-guide',  desc: 'Faith-based & independent schools'   },
-  { label: 'After-School Guide',   href: '/afterschool-guide',     desc: 'Programs & enrichment activities'    },
-  { label: 'Childcare Guide',      href: '/childcare-guide',       desc: 'Daycares, preschools & care options' },
-  { label: 'Summer Camp Guide',    href: '/summer-camp-guide',     desc: 'Camps & summer learning programs'    },
+// The main education guide — featured as its own hero block below the portal,
+// since it's the on-topic guide for this vertical.
+const EDUCATION_GUIDE = {
+  label: 'Private & Independent School Guide',
+  href:  '/private-school-guide',
+  desc:  'Faith-based, independent, magnet, and charter schools across the River Region — tuition ranges, application timelines, and what makes each one distinct.',
+  cta:   'Browse schools',
+}
+
+// Secondary guides — smaller treatment below the featured Education Guide.
+const SECONDARY_GUIDES = [
+  { label: 'After-School Guide', href: '/afterschool-guide',     desc: 'Programs & enrichment activities'     },
+  { label: 'Childcare Guide',    href: '/childcare-guide',       desc: 'Daycares, preschools & care options'  },
+  { label: 'Summer Camp Guide',  href: '/summer-camp-guide',     desc: 'Camps & summer learning programs'     },
 ]
 
 // ── Data layer ────────────────────────────────────────────────────────────────
@@ -132,6 +143,7 @@ export default async function SchoolZonePage() {
     verticalRes, sponsorRes,
     latestBitsRes, teacherRes, studentRes, educationMattersRes,
     montRes, autaugaRes, pikeRes, privateRes,
+    latestNewBitsRes, schoolsRes,
   ] = await Promise.all([
     supabase.from('verticals')
       .select('display_name, subtitle, hero_image_url, primary_cta_label, primary_cta_url, sponsor_label')
@@ -181,12 +193,54 @@ export default async function SchoolZonePage() {
     supabase.from('guide_articles').select('id', { count: 'exact', head: true })
       .eq('column_slug', 'school-bits').eq('published', true)
       .ilike('editorial_notes', '%private-schools%'),
+
+    // NEW school_bits table (cards-style submissions from the new submit flow).
+    // Time-gated so future-dated/drip-scheduled bits stay hidden until their moment.
+    supabase.from('school_bits')
+      .select('id, school_id, school_name, title, blurb, image_web_url, published_at, created_at')
+      .eq('market', 'rrp')
+      .in('status', ['approved', 'published'])
+      .lte('published_at', new Date().toISOString())
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at',   { ascending: false })
+      .limit(4),
+
+    // Active schools roster — feeds the discovery panel typeahead. Small
+    // (low hundreds) so loading the full list up-front is fine.
+    supabase.from('schools')
+      .select('id, name, area, is_private')
+      .eq('market', 'rrp')
+      .eq('status', 'active')
+      .order('name', { ascending: true }),
   ])
 
-  const latestBits       = latestBitsRes.data ?? []
+  const latestBits       = latestBitsRes.data ?? []  // legacy guide_articles (long-form)
   const teacherArticles  = teacherRes.data    ?? []
   const studentArticles  = studentRes.data    ?? []
   const educationMatters = educationMattersRes.data ?? []
+
+  // NEW: card-style school_bits from the new submit flow
+  interface NewBit {
+    id:            string
+    school_id:     string | null
+    school_name:   string
+    title:         string
+    blurb:         string
+    image_web_url: string | null
+    published_at:  string | null
+    created_at:    string
+  }
+  const latestNewBits = (latestNewBitsRes.data ?? []) as NewBit[]
+
+  // Schools roster — passed into the discovery panel so the typeahead works
+  // on first paint without needing a client-side fetch
+  interface PanelSchool {
+    id:         string
+    name:       string
+    area:       'montgomery' | 'autauga' | 'elmore' | 'pike-road'
+    is_private: boolean
+  }
+  const panelSchools = (schoolsRes.data ?? []) as PanelSchool[]
 
   const hasAnyContent = latestBits.length > 0 || teacherArticles.length > 0
     || studentArticles.length > 0 || educationMatters.length > 0
@@ -231,53 +285,66 @@ export default async function SchoolZonePage() {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* ── Photo Hero ── */}
-      <div className="relative overflow-hidden">
-        {/* Background photo */}
+      {/* ── Photo Hero (Brain-Games-style centered composition over a lighter
+            photo overlay) ─────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden border-b border-border/40">
+        {/* Background photo — lighter overlay so the classroom warmth shows through */}
         <div className="absolute inset-0">
           <Image src={heroImage} alt={heroTitle} fill style={{ objectFit: 'cover', objectPosition: 'center 30%' }} sizes="100vw" priority unoptimized />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/88 via-primary/75 to-primary/60" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/55 via-black/35 to-black/20" />
         </div>
 
-        <div className="relative container py-12 md:py-16">
-          <div className="max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <div className="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
-                <GraduationCap className="h-3.5 w-3.5" />
-                Education Hub
-              </div>
-              {totalStories > 0 && (
-                <div className="inline-flex items-center gap-1.5 bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full border border-white/15">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
-                  {totalStories} stories published
-                </div>
-              )}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-3">
-              {heroTitle}
-            </h1>
-            <p className="text-base md:text-lg text-white/85 leading-relaxed max-w-xl mb-7">
-              {heroSubtitle}
-            </p>
-            <div className="flex flex-wrap gap-2.5">
-              <Link href="/calendar/submit" className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-primary rounded-full text-sm font-bold hover:bg-white/90 transition-colors shadow-sm">
-                Submit School News
-              </Link>
-              <Link href="/nominate" className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/15 border border-white/30 text-white rounded-full text-sm font-semibold hover:bg-white/25 transition-colors">
-                <Trophy className="h-3.5 w-3.5" /> Nominate a Teacher
-              </Link>
-              <Link href="/school-bits" className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/15 border border-white/30 text-white rounded-full text-sm font-semibold hover:bg-white/25 transition-colors">
-                <BookOpen className="h-3.5 w-3.5" /> School Bits Feed
-              </Link>
-              <Link href="/family-resource-guide" className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/15 border border-white/30 text-white rounded-full text-sm font-semibold hover:bg-white/25 transition-colors">
-                <Heart className="h-3.5 w-3.5" /> Education Resources
-              </Link>
-            </div>
+        <div className="relative container py-14 md:py-20 text-center">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-[11px] font-bold uppercase tracking-[0.18em] px-4 py-1.5 rounded-full mb-5 shadow-sm">
+            <GraduationCap className="h-3.5 w-3.5" />
+            Education Hub
           </div>
+
+          {/* Title + subtitle — two-tone matches the "River Region Parents"
+              treatment in the nav. Only colors the LAST word so a future
+              `display_name` of "Mom Knows Best" / "Summer Fun" stays sensible. */}
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
+            <SplitColoredTitle title={heroTitle} />
+          </h1>
+          <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-5">
+            {heroSubtitle}
+          </p>
+
+          {/* One value-prop pill (only when there's real content to brag about) */}
+          {totalStories > 0 && (
+            <div className="inline-flex items-center gap-2 mb-8 rounded-full bg-white/95 backdrop-blur-sm border border-white/40 px-4 py-2 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+              <span className="text-sm font-semibold text-foreground">
+                <strong className="text-primary">{totalStories}</strong> stories published this month
+              </span>
+            </div>
+          )}
+
+          {/* Metadata line under the pill */}
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/75 mb-10">
+            Student Spotlights · Teacher Features · School Bits · Updated Daily
+          </p>
+
+          {/* Centered sponsor card — Brain-Games-style integrated into the hero */}
+          <HeroSponsorCard
+            sponsor={sponsor}
+            sponsorLabel={sponsorLabel}
+            verticalSlug="school-zone"
+            placeholderName="Your Business Here"
+            placeholderTagline="Own School Zone for a year — your business anchors every page River Region families see in this vertical."
+            placeholderCtaLabel="Claim This Spot"
+          />
         </div>
       </div>
 
       <main className="container py-8 md:py-12 space-y-10 md:space-y-12">
+
+        {/* ── Magazine-style featured block — big hero bit + sidebar personalization + 3-up below ── */}
+        <SchoolBitsDiscoveryPanel
+          initialBits={latestNewBits}
+          initialSchools={panelSchools}
+        />
 
         {/* ── All-empty onboarding: only shows when DB has zero School Zone content ── */}
         {!hasAnyContent && (
@@ -321,105 +388,17 @@ export default async function SchoolZonePage() {
           </section>
         )}
 
-        {/* ── School Bits by Area — photo cards ── */}
-        <section>
-          <SectionHead icon={GraduationCap} title="School Bits by Area" href="/school-bits" linkLabel="All Stories" />
-          <p className="text-sm text-muted-foreground mb-5 -mt-2">Monthly highlights of students doing great things across our local schools.</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {AREA_CARDS.map(area => {
-              const count = regionCounts[area.region] ?? 0
-              return (
-                <Link
-                  key={area.slug}
-                  href={`/school-bits?region=${area.region}`}
-                  className="group relative overflow-hidden rounded-2xl aspect-[4/3] flex flex-col justify-end hover:shadow-lg transition-shadow duration-300"
-                >
-                  <Image
-                    src={area.image}
-                    alt={area.label}
-                    fill
-                    style={{ objectFit: 'cover', objectPosition: 'center' }}
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="group-hover:scale-105 transition-transform duration-700"
-                    unoptimized
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${area.accent}`} />
-                  <div className="relative p-3 md:p-4 z-10">
-                    <p className="font-bold text-white text-sm md:text-base leading-tight">{area.label}</p>
-                    {count > 0 ? (
-                      <p className="text-white/75 text-xs font-medium flex items-center gap-1 mt-0.5">
-                        {count} {count === 1 ? 'story' : 'stories'} <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                      </p>
-                    ) : (
-                      <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                        Browse <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
+        {/* ── 8/4 Portal — main editorial column + sidebar ────────────────── */}
+        <div className="grid lg:grid-cols-12 gap-8 md:gap-10">
 
-        {/* ── Latest School Bits ── */}
-        <section>
-          <SectionHead icon={BookOpen} title="Latest School Bits" href="/school-bits" linkLabel="View All Stories" />
-          {latestBits.length === 0 ? (
-            <EmptySection
-              message="Help celebrate River Region students! Submit a school story or nominate a teacher — stories appear here monthly."
-              cta="Submit a School Story"
-              href="/calendar/submit"
-            />
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {latestBits.map(a => {
-                const region = extractRegion(a.editorial_notes)
-                const badge  = region ? REGION_BADGE[region] : null
-                const imgSrc = a.hero_image_url || getFallback('school_zone', a.id)
-                return (
-                  <Link
-                    key={a.id}
-                    href={`/articles/${a.slug}`}
-                    className="group flex flex-col bg-card rounded-xl overflow-hidden border border-border/40 hover:border-primary/30 hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-primary/5 shrink-0">
-                      <Image src={imgSrc} alt={a.title} fill style={{ objectFit: 'cover' }}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="group-hover:scale-105 transition-transform duration-500" unoptimized />
-                      {badge && (
-                        <div className="absolute bottom-2 left-2">
-                          <span className={`text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${badge.cls}`}>
-                            {badge.label}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col flex-1 p-3.5">
-                      <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1.5">{a.title}</h3>
-                      {a.excerpt && <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">{a.excerpt}</p>}
-                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-border/30">
-                        <span className="text-[11px] text-muted-foreground">{fmtDate(a.published_at)}</span>
-                        <span className="text-[11px] font-bold text-primary flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                          Read <ArrowRight className="h-3 w-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </section>
+          {/* MAIN COLUMN (8/12) — editorial content (School Bits live in the featured block above; this column is now Teacher/Student/Education Matters) */}
+          <div className="lg:col-span-8 space-y-10 md:space-y-12">
 
-        {/* ── Inline education sponsor ── */}
-        <SponsorPlaceholder context="education" />
+            {/* ── Teacher + Student side by side (inside the 8-col main) ── */}
+            <div className="grid md:grid-cols-2 gap-8">
 
-        {/* ── Teacher + Student side by side ── */}
-        <div className="grid md:grid-cols-2 gap-10">
-
-          <section>
-            <SectionHead icon={Trophy} title="Teacher of the Month" />
+              <section>
+                <SectionHead icon={Trophy} title="Teacher of the Month" />
             {teacherArticles.length === 0 ? (
               <EmptySection
                 message="Know an outstanding River Region educator? Nominations for Teacher of the Month are always open."
@@ -475,11 +454,11 @@ export default async function SchoolZonePage() {
               </div>
             )}
           </section>
-        </div>
+            </div>
 
-        {/* ── Education Matters ── */}
-        <section>
-          <SectionHead icon={BookOpen} title="Education Matters" />
+            {/* ── Education Matters ── */}
+            <section>
+              <SectionHead icon={BookOpen} title="Education Matters" />
           {educationMatters.length === 0 ? (
             <EmptySection
               message="Superintendent updates, district news, and education policy coverage for River Region families."
@@ -504,18 +483,104 @@ export default async function SchoolZonePage() {
               ))}
             </div>
           )}
+            </section>
+          </div>
+          {/* end MAIN COLUMN */}
+
+          {/* SIDEBAR (4/12) — sponsor + CTAs + supplementary widgets */}
+          <aside className="lg:col-span-4 space-y-6">
+
+            {/* Inline education sponsor */}
+            <SponsorPlaceholder context="education" />
+
+            {/* Contribute card — Submit / Nominate / Spotlight */}
+            <section className="bg-card border border-border/60 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Heart className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-widest text-foreground">Get Involved</h3>
+              </div>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="/school-bits/submit" className="group flex items-start gap-2.5 p-3 rounded-xl border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                    <BookOpen className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">Submit a School Bit</p>
+                      <p className="text-xs text-muted-foreground leading-snug">A photo + a paragraph. Awards, championships, ribbon cuttings.</p>
+                    </div>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/nominate/teacher" className="group flex items-start gap-2.5 p-3 rounded-xl border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                    <Trophy className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">Nominate a Teacher</p>
+                      <p className="text-xs text-muted-foreground leading-snug">Recognize an outstanding River Region educator.</p>
+                    </div>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/submit/student-spotlight" className="group flex items-start gap-2.5 p-3 rounded-xl border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                    <Star className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">Spotlight a Student</p>
+                      <p className="text-xs text-muted-foreground leading-snug">Athletic, artistic, or academic achievements.</p>
+                    </div>
+                  </Link>
+                </li>
+              </ul>
+            </section>
+
+            {/* Quick links to deep feeds */}
+            <section className="bg-muted/40 border border-border/40 rounded-2xl p-5">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Browse School Bits</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {AREA_CARDS.map(a => (
+                  <Link key={a.slug} href={`/school-zone/school-bits?area=${a.region.replace('-county', '').replace('-prattville', '').replace('-schools', '')}`}
+                    className="text-xs font-semibold text-foreground hover:text-primary px-3 py-2 rounded-lg bg-card border border-border/50 hover:border-primary/30 transition-colors text-center">
+                    {a.label}
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+          </aside>
+        </div>
+        {/* end 8/4 portal */}
+
+        {/* ── FEATURED EDUCATION GUIDE — the on-topic guide for this vertical, given hero treatment ── */}
+        <section className="rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/8 via-card to-secondary/5 overflow-hidden">
+          <div className="p-6 md:p-10 grid md:grid-cols-3 gap-6 items-center">
+            <div className="md:col-span-2">
+              <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-primary/15 text-primary text-[11px] font-bold uppercase tracking-widest">
+                <BookOpen className="h-3.5 w-3.5" /> Featured Guide
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-foreground mb-2 leading-tight">
+                {EDUCATION_GUIDE.label}
+              </h2>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl">
+                {EDUCATION_GUIDE.desc}
+              </p>
+            </div>
+            <div className="md:text-right">
+              <Link
+                href={EDUCATION_GUIDE.href}
+                className="inline-flex items-center gap-1.5 px-5 py-3 text-sm font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              >
+                {EDUCATION_GUIDE.cta} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
         </section>
 
-        {/* ── Education Resources ── */}
+        {/* ── Secondary guides — Childcare, After-School, Special Needs ── */}
         <section>
-          <SectionHead icon={Heart} title="Education Resources for Families" />
-          <p className="text-sm text-muted-foreground mb-5 -mt-2">Find local schools, programs, and services for your child&apos;s education journey.</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {ED_RESOURCES.map(r => (
+          <SectionHead icon={Heart} title="More Family Resources" />
+          <div className="grid sm:grid-cols-3 gap-4">
+            {SECONDARY_GUIDES.map(r => (
               <Link key={r.href} href={r.href}
-                className="group flex flex-col gap-2 p-5 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="h-5 w-5 text-primary" />
+                className="group flex flex-col gap-2 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="h-4 w-4 text-primary" />
                 </div>
                 <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{r.label}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{r.desc}</p>
@@ -553,19 +618,8 @@ export default async function SchoolZonePage() {
 
       </main>
 
-      {/* ── Section sponsor banner ── */}
-      <div className="border-t border-border/40 bg-muted/20 py-6">
-        <div className="container">
-          <VerticalSponsorBanner
-            verticalName={heroTitle}
-            verticalSlug="school-zone"
-            sponsorLabel={sponsorLabel}
-            sponsor={sponsor}
-          />
-        </div>
-      </div>
-
       <PublicFooter />
     </div>
   )
 }
+

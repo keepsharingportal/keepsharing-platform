@@ -185,6 +185,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
           categoryHref={categoryHref}
           badgeClassName={columnBadgeStyle(columnSlug)}
           title={article.title}
+          subtitle={article.subtitle as string | null}
         />
 
         {/* Meta row sits between the title and the hero: date · read · author
@@ -257,7 +258,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 return (
                   <ContributorArticleLayout
                     title={article.title}
-                    excerpt={article.excerpt as string | null | undefined}
+                    subtitle={article.subtitle as string | null | undefined}
                     heroImageUrl={heroImageUrl}
                     authorName={article.author_name as string | null | undefined}
                     columnSlug={columnSlug ?? 'mom-to-mom'}

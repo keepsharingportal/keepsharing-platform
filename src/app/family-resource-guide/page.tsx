@@ -1,33 +1,33 @@
 // /family-resource-guide
-// The distilled essentials for River Region moms. Photo hero → three
-// self-select lanes → best-of → mom knows best → seasons → 5 towns →
-// directory with sidebar. Navigation + PublicFooter are provided by
-// the family-resource-guide layout — don't render them again here.
+// The distilled essentials for River Region moms. Photo hero → 8/4 portal:
+//   main: Best Of → Coming Up Events → Discover the Guides → School Zone teaser → Community Spotlights
+//   side: ad → magazine cover → featured partners → submit-a-tip → get listed
+// Navigation + PublicFooter come from the family-resource-guide layout — don't render them again here.
 
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, BookOpen, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles, GraduationCap } from 'lucide-react'
 import type { Metadata } from 'next'
 
 import { FRGHero }              from '@/components/family-resource-guide/FRGHero'
-import { SelfSelectLanes }      from '@/components/family-resource-guide/SelfSelectLanes'
+import { GuideHubCards }        from '@/components/family-resource-guide/GuideHubCards'
 import { BestOfFeatureRow }     from '@/components/family-resource-guide/BestOfFeatureRow'
-import { LatestReads }          from '@/components/family-resource-guide/LatestReads'
-import { MomKnowsBestRow }      from '@/components/family-resource-guide/MomKnowsBestRow'
-import { YearRoundEvents }      from '@/components/family-resource-guide/YearRoundEvents'
 import { ComingUpEvents }       from '@/components/family-resource-guide/ComingUpEvents'
+import { CommunitySpotlightsTeaser, type SpotlightArticle } from '@/components/family-resource-guide/CommunitySpotlightsTeaser'
+import { RealTalkRow, type RealTalkArticle } from '@/components/family-resource-guide/RealTalkRow'
 import { MagazineCoverSidebar } from '@/components/family-resource-guide/MagazineCoverSidebar'
 import { FeaturedPartners }     from '@/components/family-resource-guide/FeaturedPartners'
 import { GetListedCTA }         from '@/components/family-resource-guide/GetListedCTA'
-import { SubmitTipWidget }      from '@/components/family-resource-guide/SubmitTipWidget'
-import { VerticalSponsorBanner } from '@/components/verticals/VerticalSponsorBanner'
-import { SchoolBitsBlock }      from '@/components/homepage/SchoolBitsBlock'
-import { SectionHeader }        from '@/components/theme'
+// School Bits — uses the new card-style discovery panel (typeahead + per-school
+// personalization) instead of the legacy SchoolBitsBlock that pulled long-form
+// articles. Same component School Zone renders, full-width below the portal.
+import {
+  SchoolBitsDiscoveryPanel,
+  type BitForFeatured,
+  type SchoolForFeatured,
+} from '@/components/school-zone/SchoolBitsDiscoveryPanel'
 
-import { FeaturedListing } from '@/components/family-guide/FeaturedListing'
-import { EnhancedListing } from '@/components/family-guide/EnhancedListing'
-import { FreeListing }     from '@/components/family-guide/FreeListing'
 import type { GuideListing, ListingTier } from '@/components/family-guide/types'
 
 // Use the same raw service-role client the home page uses. The /lib/supabase/server
@@ -45,54 +45,6 @@ export const revalidate = 600
 export const metadata: Metadata = {
   title: 'Family Resource Guide | River Region Parents',
   description: 'The distilled essentials. River Region moms — local, new, or just trying to keep up — start here. Schools, pediatricians, parks, day trips, counselors, and more.',
-}
-
-// ── V1 approved category groups — only these render in the directory ─────────
-const V1_PARENT_GROUPS = [
-  'Schools & Learning',
-  'Childcare',
-  'Pediatric & Family Healthcare',
-  'Things To Do',
-  'Family Getaways',
-  'Food & Dining',
-  'Community & Faith',
-  'Mom Life',
-  'Family Services',
-  'Shopping',
-  'Sports & Recreation',
-] as const
-
-const GROUP_DESCRIPTIONS: Record<string, string> = {
-  'Schools & Learning':           'Compare local school options, tutoring, learning support, and programs that help kids thrive.',
-  'Childcare':                    "Find childcare centers, Mother's Day Out programs, and care options that fit your family's schedule.",
-  'Pediatric & Family Healthcare':'Trusted doctors, dentists, urgent care, and family health providers.',
-  'Things To Do':                 'Parks, libraries, indoor play, local attractions, and easy ideas for family time.',
-  'Family Getaways':              'Day trips, weekend escapes, and nearby adventures worth the drive.',
-  'Food & Dining':                'Kid-friendly meals, farmers markets, and local food stops families actually use.',
-  'Community & Faith':            'Mom groups, churches, service opportunities, and local support.',
-  'Mom Life':                     'Wellness, pregnancy, postpartum, and places that help moms breathe again.',
-  'Family Services':              'Photographers, real estate, moving help, and trusted services for family life.',
-  'Shopping':                     "Local children's boutiques, baby gear, consignment, and family-friendly shops.",
-  'Sports & Recreation':          'Youth leagues, recreation programs, swimming, and active family options.',
-}
-
-interface CategoryWithListings {
-  id:           string
-  name:         string
-  slug:         string
-  parent_group: string | null
-  display_order: number | null
-  listings:     GuideListing[]
-}
-
-interface TownProfile {
-  slug:             string
-  name:             string
-  county:           string | null
-  vibe_one_line:    string | null
-  hero_image_url:   string | null
-  population:       number | null
-  school_districts: string[] | null
 }
 
 interface AccRow {
@@ -118,10 +70,6 @@ interface RawListingRow {
   advertiser_accounts: AccRow | null
 }
 
-function normalizeForMatch(s: string): string {
-  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
-
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function FamilyResourceGuidePage() {
@@ -131,14 +79,14 @@ export default async function FamilyResourceGuidePage() {
     { data: guideType },
     { data: guideConfig },
     { data: guideMeta },
-    { data: townsData },
     { data: bestOfData },
-    { data: mkbData },
-    { data: latestReadsData },
-    { data: frgCategories },
     { data: listingsRaw },
     { data: sponsorRow },
     { data: upcomingEventsData },
+    { data: spotlightsData },
+    { data: realTalkData },
+    { data: schoolBitsData },
+    { data: schoolsData },
     { data: inlineAdRow },
     { data: sidebarAdRow },
   ] = await Promise.all([
@@ -168,48 +116,13 @@ export default async function FamilyResourceGuidePage() {
       .eq('guide_slug', 'family-resource-guide')
       .maybeSingle(),
 
-    // 5 towns
-    supabase.from('town_profiles')
-      .select('slug, name, county, vibe_one_line, hero_image_url, population, school_districts')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true }),
-
-    // Best Of articles — fetch 7 so the layout fills as 1 lead + 6 grid
-    // (3 perfect rows of 2). 'See all' link below picks up overflow.
+    // Best Of articles — 5 total (1 lead + 4 grid). 'See all' link picks up overflow.
     supabase.from('guide_articles')
       .select('id, slug, title, subtitle, excerpt, hero_image_url, published_at')
       .eq('column_slug', 'frg-best-of')
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(7),
-
-    // Latest 3 Mom Knows Best posts
-    supabase.from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, profile_image_url, author_name, published_at')
-      .eq('column_slug', 'mom-knows-best')
-      .eq('published', true)
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(3),
-
-    // "Latest Reads" — articles specifically written for the FRG issue.
-    // Tighter filter than before: only 'feature' and 'frg-newcomer'
-    // column_slugs, both tagged guide_slug='family-resource-guide'. This
-    // is where evergreen FRG content lives (how-tos, deep dives, etc.)
-    // without polluting it with content meant for School Zone, MKB, etc.
-    supabase.from('guide_articles')
-      .select('id, slug, title, subtitle, excerpt, hero_image_url, author_name, published_at, column_slug')
-      .eq('guide_slug', 'family-resource-guide')
-      .in('column_slug', ['feature', 'frg-newcomer'])
-      .eq('published', true)
-      .order('published_at', { ascending: false, nullsFirst: false })
-      .limit(6),
-
-    // Directory categories
-    supabase.from('guide_categories')
-      .select('id, name, slug, parent_group, display_order')
-      .eq('guide_slug', 'family-resource-guide')
-      .in('parent_group', [...V1_PARENT_GROUPS])
-      .order('display_order'),
+      .limit(5),
 
     // Listings (joined to advertiser_accounts for display)
     supabase.from('guide_listings')
@@ -236,7 +149,7 @@ export default async function FamilyResourceGuidePage() {
       .maybeSingle(),
 
     // Upcoming events for the "Coming Up" block. Next 6 events, today
-    // forward. Pairs with the Annual Rhythm seasonal grid.
+    // forward.
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published')
@@ -244,6 +157,54 @@ export default async function FamilyResourceGuidePage() {
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true, nullsFirst: true })
       .limit(6),
+
+    // Community Spotlights — same 4-column rotation the homepage uses
+    // (mom-to-mom, teacher-of-month, grands-greatest, play-ball). Latest
+    // published article per column. The component picks at most one per
+    // column so legacy "-the-" slug variants don't double-count.
+    supabase.from('guide_articles')
+      .select('id, slug, title, excerpt, hero_image_url, profile_image_url, column_slug, author_name, published_at')
+      .eq('published', true)
+      .in('column_slug', [
+        'mom-to-mom',
+        'teacher-of-month', 'teacher-of-the-month',
+        'grands-greatest',  'grands-are-the-greatest',
+        'play-ball',
+      ])
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(20),
+
+    // Real Talk — articles tagged with at least one content topic via the
+    // topics text[] column (migration 087). Cross-cutting longform that
+    // surfaces on the FRG hub regardless of which column or guide it
+    // primarily lives in. Newest 6; the row renders up to 3.
+    supabase.from('guide_articles')
+      .select('id, slug, title, excerpt, hero_image_url, author_name, published_at, column_slug, topics')
+      .eq('published', true)
+      .not('topics', 'is', null)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(6),
+
+    // School Bits — card-style submissions from the new submit flow. The
+    // discovery panel uses these for the featured bit + 3 supporting cards.
+    // Time-gated so future-dated/drip-scheduled bits stay hidden until
+    // their published_at lands.
+    supabase.from('school_bits')
+      .select('id, school_id, school_name, title, blurb, image_web_url, published_at, created_at')
+      .eq('market', 'rrp')
+      .in('status', ['approved', 'published'])
+      .lte('published_at', new Date().toISOString())
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at',   { ascending: false })
+      .limit(4),
+
+    // Active schools roster — feeds the discovery panel typeahead. Small
+    // (low hundreds) so loading the full list up-front is fine.
+    supabase.from('schools')
+      .select('id, name, area, is_private')
+      .eq('market', 'rrp')
+      .eq('status', 'active')
+      .order('name', { ascending: true }),
 
     // Inline ad. Looks for an active homepage_inline_ad placement so any
     // ad the admin wired up for the home page also surfaces on FRG. Later
@@ -279,10 +240,7 @@ export default async function FamilyResourceGuidePage() {
     guideMeta?.hero_image_url ||
     null
 
-  const heroTitle    = guideMeta?.hero_title    || guideType?.display_name      || 'Family Resource Guide'
-  const heroSubtitle = guideMeta?.hero_subtitle || guideType?.pitch             ||
-    'The distilled essentials. River Region moms — local, new, or just trying to keep up — start here.'
-  const heroEyebrow  = guideMeta?.hero_eyebrow  || 'OFFICIAL RIVER REGION GUIDE'
+  const heroTitle = guideMeta?.hero_title || guideType?.display_name || 'Family Resource Guide'
 
   // ── Listings ─────────────────────────────────────────────────────────────
   const listings: GuideListing[] = ((listingsRaw ?? []) as unknown as RawListingRow[]).map(row => {
@@ -306,45 +264,10 @@ export default async function FamilyResourceGuidePage() {
     }
   })
 
-  // ── Match listings to categories ─────────────────────────────────────────
-  const categoriesRaw = (frgCategories ?? []) as Array<{ id: string; name: string; slug: string; parent_group: string | null; display_order: number | null }>
-  const categories: CategoryWithListings[] = categoriesRaw.map(cat => ({
-    ...cat,
-    listings: listings.filter(l => {
-      if (!l.category) return false
-      const norm = normalizeForMatch(l.category)
-      return norm === normalizeForMatch(cat.name) || norm === cat.slug
-    }),
-  }))
-
-  // ── Group categories by parent_group for sectioning ──────────────────────
-  const groups = V1_PARENT_GROUPS.map(group => ({
-    name:       group,
-    categories: categories.filter(c => c.parent_group === group && c.listings.length > 0),
-    total:      categories.filter(c => c.parent_group === group).reduce((s, c) => s + c.listings.length, 0),
-  })).filter(g => g.total > 0)
-
-  // ── Towns ────────────────────────────────────────────────────────────────
-  const towns = (townsData ?? []) as TownProfile[]
-
   // ── Best Of articles ─────────────────────────────────────────────────────
   const bestOf = (bestOfData ?? []) as Array<{
     id: string; slug: string; title: string; subtitle: string | null; excerpt: string | null
     hero_image_url: string | null; published_at: string | null
-  }>
-
-  // ── Mom Knows Best posts ─────────────────────────────────────────────────
-  const mkb = (mkbData ?? []) as Array<{
-    id: string; slug: string; title: string; excerpt: string | null
-    hero_image_url: string | null; profile_image_url: string | null
-    author_name: string | null; published_at: string | null
-  }>
-
-  // ── Latest Reads (FRG-issue content only — feature + frg-newcomer) ──────
-  const latestReads = (latestReadsData ?? []) as Array<{
-    id: string; slug: string; title: string; subtitle: string | null; excerpt: string | null
-    hero_image_url: string | null; author_name: string | null; published_at: string | null
-    column_slug: string | null
   }>
 
   // ── Upcoming events for Coming Up block ──────────────────────────────────
@@ -354,6 +277,36 @@ export default async function FamilyResourceGuidePage() {
     location_name: string | null; hero_image_url: string | null
     category: string | null; is_free: boolean | null
   }>
+
+  // ── Community Spotlights — bucket by canonical column key so legacy
+  //    "-the-" slug variants don't double-count. One spotlight per column
+  //    in the canonical rotation order. ────────────────────────────────────
+  const allSpotlights = (spotlightsData ?? []) as SpotlightArticle[]
+  const ROTATION_COLUMNS = ['mom-to-mom', 'teacher-of-month', 'grands-greatest', 'play-ball'] as const
+  function canonicalKey(slug: string | null): string | null {
+    if (!slug) return null
+    if (slug === 'teacher-of-the-month')    return 'teacher-of-month'
+    if (slug === 'grands-are-the-greatest') return 'grands-greatest'
+    return slug
+  }
+  const latestByColumn: Record<string, SpotlightArticle> = {}
+  for (const a of allSpotlights) {
+    const key = canonicalKey(a.column_slug)
+    if (key && !latestByColumn[key]) latestByColumn[key] = a
+  }
+  const spotlights: SpotlightArticle[] = ROTATION_COLUMNS
+    .map(col => latestByColumn[col])
+    .filter((x): x is SpotlightArticle => Boolean(x))
+
+  // ── Real Talk articles — drop rows whose tag array is technically
+  //    non-null but empty. Cap at 3 so the row reads as one tidy 3-up grid. ─
+  const realTalk = ((realTalkData ?? []) as RealTalkArticle[])
+    .filter(a => Array.isArray(a.topics) && a.topics.length > 0)
+    .slice(0, 3)
+
+  // ── School Bits Discovery Panel props ────────────────────────────────────
+  const schoolBits  = (schoolBitsData ?? []) as BitForFeatured[]
+  const panelSchools = (schoolsData ?? []) as SchoolForFeatured[]
 
   // ── Inline ad row (matches the home page placement) ──────────────────────
   const inlineAd = inlineAdRow as {
@@ -389,48 +342,42 @@ export default async function FamilyResourceGuidePage() {
       }
     : null
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
-  const listingsCount = listings.length
-  const townsCount    = towns.length
-  const bestOfCount   = bestOf.length
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── LAYER 1: Hero ── */}
+      {/* ── LAYER 1: Hero (sponsor card now lives INSIDE the hero) ── */}
       <FRGHero
         heroImageUrl={heroImageUrl}
-        eyebrow={heroEyebrow}
         title={heroTitle}
-        subtitle={heroSubtitle}
-        listingsCount={listingsCount}
-        townsCount={townsCount}
-        bestOfCount={bestOfCount}
+        sponsor={sponsor}
+        sponsorLabel="Proudly Presented By"
       />
 
       <main className="container py-8 space-y-10">
 
-        {/* ── FULL-WIDTH TOP: lanes + sponsor banner ── */}
-        <SelfSelectLanes
-          bestOf={{ count: bestOfCount }}
-          services={{ count: listingsCount }}
-        />
+        {/* ── 8/4 PORTAL — same shape as the home page.
+             items-start so the columns don't stretch to match each other's
+             height — that left the main col with a blank slab at the bottom
+             whenever the sidebar happened to be taller. */}
+        <div className="grid lg:grid-cols-12 gap-10 items-start">
 
-        <VerticalSponsorBanner
-          verticalName="the Family Resource Guide"
-          verticalSlug="family-resource-guide"
-          sponsorLabel="Proudly Presented By"
-          sponsor={sponsor}
-        />
-
-        {/* ── 8/4 PORTAL — same shape as the home page ── */}
-        <div className="grid lg:grid-cols-12 gap-10">
-
-          {/* ── MAIN COLUMN ── */}
+          {/* ── MAIN COLUMN ──
+               Order follows what matters most for a mom landing here:
+                 1. Best Of editorial (the "what's best around here" hook)
+                 2. Discover the Guides (funnel into the topical guides)
+                 3. Coming Up events (timely, what's happening this week)
+               School Zone now lives full-width below the portal so the
+               discovery panel + typeahead get the breathing room they need.
+               Community Spotlights lives in the sidebar under the digital
+               issue card so the faces of the region show up on first paint. */}
           <div className="lg:col-span-8 space-y-10">
 
-            {/* Best Of editorial */}
+            {/* 1. Best Of editorial */}
             <BestOfFeatureRow articles={bestOf} />
+
+            {/* 2. Discover the Guides — magazine cards that funnel into the
+                 dedicated topical guide pages (Private School, Childcare, etc.) */}
+            <GuideHubCards />
 
             {/* In-feed sponsored ad — exact home page treatment */}
             {inlineAd && inlineAd.ad_link && (
@@ -476,20 +423,13 @@ export default async function FamilyResourceGuidePage() {
               </Link>
             )}
 
-            {/* Latest Reads — FRG-issue content (features + newcomer stories) */}
-            <LatestReads articles={latestReads} />
+            {/* 3. Features from contributors — cross-cutting longform tagged
+                 via topics[]. Sits above events so the reflective beat lands
+                 before the calendar / what-to-do content. */}
+            <RealTalkRow articles={realTalk} />
 
-            {/* School Zone — reuse home page block */}
-            <SchoolBitsBlock />
-
-            {/* Mom Knows Best cross-pollination */}
-            {mkb.length > 0 && <MomKnowsBestRow posts={mkb} />}
-
-            {/* Coming Up — next 6 events */}
+            {/* 4. Coming Up — next 6 events (timely, what's happening this week) */}
             <ComingUpEvents events={upcomingEvents} />
-
-            {/* Year-round events — seasonal rhythm */}
-            <YearRoundEvents />
           </div>
 
           {/* ── SIDEBAR ── */}
@@ -560,112 +500,43 @@ export default async function FamilyResourceGuidePage() {
               issueLabel="2026 Edition"
             />
 
+            {/* Community Spotlights — Teacher of the Month, Mom to Mom,
+                 Grands are the Greatest, Play Ball. Sidebar-tight layout. */}
+            <CommunitySpotlightsTeaser spotlights={spotlights} variant="sidebar" />
+
             {/* Featured Partners — top featured-tier listings */}
             <FeaturedPartners listings={featuredPartners} />
-
-            {/* Submit a tip */}
-            <SubmitTipWidget />
 
             {/* Get listed (sidebar variant) */}
             <GetListedCTA variant="sidebar" />
           </aside>
         </div>
 
-        {/* ── FULL-WIDTH BOTTOM: Directory ── */}
-        <section id="directory" className="scroll-mt-24">
-          <SectionHeader
-            title="Find a Service"
-            icon={BookOpen}
-            iconColor="primary"
-            action={
-              <p className="text-sm text-muted-foreground">
-                {listingsCount.toLocaleString()} listings across {groups.length} categories
-              </p>
-            }
+        {/* ── FULL-WIDTH SCHOOL ZONE ── reuses the /school-zone discovery panel
+             so visitors can type in their school and surface bits for it
+             directly from the FRG home. Same data, same UX, no duplicate. */}
+        <section>
+          <div className="flex items-end justify-between mb-5 flex-wrap gap-2">
+            <div>
+              <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary mb-1.5">
+                <GraduationCap className="h-3 w-3" />
+                School Zone
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-foreground leading-tight">
+                Find Your School's News
+              </h2>
+            </div>
+            <Link
+              href="/school-zone"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+            >
+              Explore School Zone <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <SchoolBitsDiscoveryPanel
+            initialBits={schoolBits}
+            initialSchools={panelSchools}
           />
-
-          {/* Jump-to chips above the directory */}
-          {groups.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1 pr-1">
-                <Sparkles className="h-3 w-3" /> Jump to
-              </span>
-              {groups.map(g => (
-                <Link
-                  key={g.name}
-                  href={`#${normalizeForMatch(g.name)}`}
-                  className="text-[11px] font-semibold px-2 py-1 rounded-full bg-muted/40 text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  {g.name} <span className="text-muted-foreground">({g.total})</span>
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {groups.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-10 text-center">
-              <BookOpen className="h-7 w-7 text-primary/40 mx-auto mb-2" />
-              <p className="text-sm font-bold text-foreground mb-1">Directory is loading</p>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                Listings come from your active partner accounts. Add the first one at{' '}
-                <Link href="/advertise" className="text-primary hover:underline">Advertise</Link>.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-10">
-              {groups.map(group => {
-                const groupId = normalizeForMatch(group.name)
-                return (
-                  <section key={group.name} id={groupId} className="scroll-mt-24">
-                    <div className="flex items-end justify-between gap-3 mb-4 pb-2 border-b border-border/40">
-                      <div className="min-w-0">
-                        <h3 className="text-xl md:text-2xl font-bold text-foreground">
-                          {group.name}
-                        </h3>
-                        {GROUP_DESCRIPTIONS[group.name] && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{GROUP_DESCRIPTIONS[group.name]}</p>
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {group.total} listing{group.total !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-
-                    <div className="space-y-8">
-                      {group.categories.map(cat => {
-                        const featured = cat.listings.filter(l => l.listing_tier === 'featured')
-                        const enhanced = cat.listings.filter(l => l.listing_tier === 'enhanced')
-                        const free     = cat.listings.filter(l => l.listing_tier === 'free')
-                        if (cat.listings.length === 0) return null
-                        return (
-                          <div key={cat.id}>
-                            {(group.categories.length > 1) && (
-                              <p className="text-[11px] font-bold uppercase tracking-widest text-primary/80 mb-3">
-                                {cat.name}
-                              </p>
-                            )}
-                            <div className="flex flex-col gap-4">
-                              {featured.map(l => <FeaturedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                              {enhanced.length > 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  {enhanced.map(l => <EnhancedListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                                </div>
-                              )}
-                              {free.length > 0 && (
-                                <div className="flex flex-col gap-2">
-                                  {free.map(l => <FreeListing key={l.id} listing={l} guideUrlSlug="family-resource-guide" />)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </section>
-                )
-              })}
-            </div>
-          )}
         </section>
 
         {/* ── Get Listed banner ── */}

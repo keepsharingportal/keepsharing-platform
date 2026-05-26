@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       hero_image_url, profile_image_url, author_byline, author_name,
       column_slug, guide_slug, editorial_review_status,
       published, published_at, editorial_notes,
-      source_issue_month,
+      source_issue_month, topics,
     } = body
 
     if (!title?.trim() || !slug?.trim()) {
@@ -31,15 +31,21 @@ export async function POST(req: NextRequest) {
 
     const supabase = supabaseAdmin()
 
-    // Check slug uniqueness
-    const { data: existing } = await supabase
+    // Check slug uniqueness — ignore trashed articles so a trashed slug
+    // doesn't block a fresh article. Probes for the deleted_at column first;
+    // falls back to a plain check if the migration isn't applied yet.
+    const probe = await supabase.from('guide_articles').select('deleted_at').limit(1)
+    const hasTrashColumn = !probe.error
+
+    let existingQ = supabase
       .from('guide_articles')
       .select('id')
       .eq('slug', slug.trim())
-      .maybeSingle()
+    if (hasTrashColumn) existingQ = existingQ.is('deleted_at', null)
+    const { data: existing } = await existingQ.maybeSingle()
 
     if (existing) {
-      return NextResponse.json({ error: 'A article with this slug already exists. Change the URL slug.' }, { status: 409 })
+      return NextResponse.json({ error: 'An article with this slug already exists. Either change the URL slug or move the existing article to Trash first.' }, { status: 409 })
     }
 
     // author_name has a NOT NULL constraint in the DB. The new-article
@@ -69,6 +75,7 @@ export async function POST(req: NextRequest) {
       imported_at:             null,
       editorial_notes:         editorial_notes?.trim() || null,
       source_issue_month:      source_issue_month || null,
+      topics:                  Array.isArray(topics) && topics.length > 0 ? topics : null,
     }
 
     const { data: created, error } = await supabase
@@ -84,6 +91,7 @@ export async function POST(req: NextRequest) {
     if (published) {
       revalidatePath('/articles')
       revalidatePath('/')
+      revalidatePath('/family-resource-guide')
       if (column_slug === 'school-bits') {
         revalidatePath('/school-bits')
         revalidatePath('/school-zone')

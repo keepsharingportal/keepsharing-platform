@@ -138,6 +138,13 @@ export function Navigation() {
           </Link>
 
           <Link
+            href="/games"
+            className={`text-sm font-medium transition-colors ${isActive('/games') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Games &amp; Prizes
+          </Link>
+
+          <Link
             href="/partners"
             className={`text-sm font-medium transition-colors ${isActive('/partners') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
           >
@@ -188,6 +195,7 @@ export function Navigation() {
               { href: '/summer-fun-guide', label: 'Summer Fun'    },
               { href: '/school-zone',     label: 'School Zone'    },
               { href: '/mom-knows-best',  label: 'Mom Knows Best' },
+              { href: '/games',           label: 'Games & Prizes' },
               { href: '/partners',        label: 'Partner With Us'},
               { href: '/partners#strategy-call', label: 'Get Listed' },
             ].map(item => (
