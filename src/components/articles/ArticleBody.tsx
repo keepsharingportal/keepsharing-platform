@@ -1,6 +1,17 @@
 import { ReactNode } from 'react'
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 import { markdownToHtml } from '@/lib/markdown-to-html'
+
+// NOTE: This component is a server component, which means the sanitizer
+// runs in Node. isomorphic-dompurify pulls in jsdom, and jsdom transitively
+// requires html-encoding-sniffer → @exodus/bytes/encoding-lite, which is an
+// ESM module that html-encoding-sniffer tries to require() — Vercel's
+// Node runtime rejects this with ERR_REQUIRE_ESM and the whole article
+// page 500s.
+//
+// sanitize-html is a pure-Node allowlist sanitizer with the same shape,
+// no jsdom dependency. Same DOMPurify-style ALLOWED_TAGS / ALLOWED_ATTR
+// model, just spelled allowedTags / allowedAttributes.
 
 interface Props {
   body: string
@@ -16,8 +27,12 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
   // Convert to HTML so they render correctly on the public site.
   const rawHtml = isHtml(body) ? body : markdownToHtml(body)
 
-  const cleanHtml = DOMPurify.sanitize(rawHtml, {
-    ALLOWED_TAGS: [
+  // Allowlist of tags + attributes — same set the old DOMPurify config used.
+  // sanitize-html is more granular than DOMPurify on attributes (per-tag
+  // allowlists), but '*' applies the list to every tag — matches DOMPurify's
+  // global ALLOWED_ATTR behavior.
+  const cleanHtml = sanitizeHtml(rawHtml, {
+    allowedTags: [
       'p', 'br', 'span', 'div',
       'h2', 'h3', 'h4',
       'strong', 'em', 'b', 'i', 'u', 's',
@@ -28,12 +43,34 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
       'code', 'pre',
       'hr',
     ],
-    // `data-align` powers the editor-driven image alignment (full/center/left/right).
-    // `style` lets editor-driven font-family / font-size / text-align / color flow
-    // through to the public page. DOMPurify's CSS sanitizer strips dangerous values
-    // (expressions, javascript: urls, etc.) automatically.
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'data-align', 'data-caption', 'style'],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    allowedAttributes: {
+      '*': ['class', 'style', 'data-align', 'data-caption'],
+      a:   ['href', 'title', 'target', 'rel'],
+      img: ['src', 'alt', 'title'],
+    },
+    // Only permit safe URL schemes — covers the ALLOWED_URI_REGEXP we had
+    // before. http(s), mailto, tel, and protocol-relative.
+    allowedSchemes:           ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag:      { a: ['http', 'https', 'mailto', 'tel'], img: ['http', 'https', 'data'] },
+    allowProtocolRelative:    true,
+    // Editors emit inline styles (font, color, text-align, image alignment).
+    // Allow a conservative whitelist of CSS properties + values; reject
+    // anything that smells like script injection.
+    allowedStyles: {
+      '*': {
+        'color':            [/^#(0x)?[0-9a-f]+$/i, /^rgb\(/, /^rgba\(/, /^hsl\(/, /^[a-z]+$/i],
+        'background-color': [/^#(0x)?[0-9a-f]+$/i, /^rgb\(/, /^rgba\(/, /^hsl\(/, /^[a-z]+$/i],
+        'text-align':       [/^left$/, /^right$/, /^center$/, /^justify$/],
+        'font-family':      [/^[\w\s"',\-]+$/],
+        'font-size':        [/^\d+(?:\.\d+)?(?:px|em|rem|%)$/],
+        'font-weight':      [/^(?:bold|normal|\d{3})$/],
+        'font-style':       [/^(?:italic|normal)$/],
+        'float':            [/^(?:left|right|none)$/],
+        'margin':           [/^[\d.\spx%emrem]+$/i],
+        'max-width':        [/^\d+(?:\.\d+)?(?:px|em|rem|%)$/],
+        'width':            [/^\d+(?:\.\d+)?(?:px|em|rem|%)$/],
+      },
+    },
   })
 
   // Split sanitized HTML at top-level block boundaries so we can
