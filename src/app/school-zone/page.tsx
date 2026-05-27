@@ -308,32 +308,17 @@ export default async function SchoolZonePage() {
           <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-4 drop-shadow-sm">
             <SplitColoredTitle title={heroTitle} />
           </h1>
-          <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-5">
+          <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-10 md:mb-12">
             {heroSubtitle}
           </p>
 
-          {/* One value-prop pill (only when there's real content to brag about) */}
-          {totalStories > 0 && (
-            <div className="inline-flex items-center gap-2 mb-8 rounded-full bg-white/95 backdrop-blur-sm border border-white/40 px-4 py-2 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-              <span className="text-sm font-semibold text-foreground">
-                <strong className="text-primary">{totalStories}</strong> stories published this month
-              </span>
-            </div>
-          )}
-
-          {/* Metadata line under the pill */}
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/75 mb-10">
-            Student Spotlights · Teacher Features · School Bits · Updated Daily
-          </p>
-
-          {/* Centered sponsor card — Brain-Games-style integrated into the hero */}
+          {/* Centered sponsor card — integrated into the hero */}
           <HeroSponsorCard
             sponsor={sponsor}
             sponsorLabel={sponsorLabel}
             verticalSlug="school-zone"
             placeholderName="Your Business Here"
-            placeholderTagline="Own School Zone for a year — your business anchors every page River Region families see in this vertical."
+            placeholderTagline="Own School Zone for a Year — Your Business Anchors Every Page River Region Families See in This Vertical."
             placeholderCtaLabel="Claim This Spot"
           />
         </div>

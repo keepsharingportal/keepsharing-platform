@@ -11,6 +11,8 @@ import {
   Gift, Sparkles, ChevronRight, Trophy,
   Brain, Puzzle, Timer, Smile, Calculator, Grid3x3,
 } from 'lucide-react'
+import { HeroSponsorCard } from '@/components/verticals/HeroSponsorCard'
+import { getActiveAds } from '@/lib/get-active-ads'
 import { GAMES, DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty, type GameId } from '@/lib/games/types'
 import { isoWeek, isoWeekString } from '@/lib/games/weekly'
 import { DifficultyChooser } from './DifficultyChooser'
@@ -154,6 +156,19 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
     : SEED_TICKER
   const lastWeek = await lastWeeksWinners()
 
+  // Sponsor lookup — same system as School Zone + Calendar. When a sponsor
+  // is booked via /admin/ads (placement_type='section_sponsor',
+  // context_slug='games'), it replaces the hardcoded "Brainy Kids Academy".
+  const sponsorAds = await getActiveAds('section_sponsor', 'games', 1)
+  const gamesSponsor = sponsorAds[0]?.advertiser_name
+    ? {
+        businessName: sponsorAds[0].advertiser_name,
+        slug:         sponsorAds[0].advertiser_slug ?? null,
+        headline:     sponsorAds[0].ad_headline ?? null,
+        placementId:  sponsorAds[0].id,
+      }
+    : null
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -197,25 +212,17 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
             New games every morning · Week {week.week}, {week.year}
           </p>
 
-          {/* Sponsor — centered block with Learn More + tagline below */}
-          <div className="inline-flex flex-col items-center gap-3 rounded-2xl bg-background border border-border/60 px-6 py-5 md:px-8 md:py-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5">
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sponsored by</span>
-                <span className="font-black text-primary text-xl md:text-2xl">Brainy Kids Academy</span>
-              </div>
-              <a
-                href="https://brainykidsacademy.com"
-                target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground font-bold text-sm px-5 py-2 hover:bg-primary/90 transition-colors"
-              >
-                Learn More <ChevronRight className="h-4 w-4" />
-              </a>
-            </div>
-            <p className="text-sm text-muted-foreground italic max-w-md">
-              Local tutoring and brain-building for River Region kids — homework help, test prep, and confidence that lasts.
-            </p>
-          </div>
+          {/* Sponsor — reads from ad_placements via getActiveAds.
+              When no sponsor is booked, shows the "Your Business Here" placeholder.
+              Previously hardcoded to "Brainy Kids Academy". */}
+          <HeroSponsorCard
+            sponsor={gamesSponsor}
+            sponsorLabel="Sponsored By"
+            verticalSlug="games"
+            placeholderName="Your Business Here"
+            placeholderTagline="Sponsor Family Brain Games — your business anchors every game page River Region families play."
+            placeholderCtaLabel="Claim This Spot"
+          />
         </div>
       </section>
 

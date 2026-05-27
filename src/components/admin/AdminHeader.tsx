@@ -4,12 +4,13 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Bell, HelpCircle, MessageSquare, User,
+  Bell, HelpCircle, MessageSquare,
   X, Search, Send, ChevronRight, Loader2, Check,
-  ExternalLink,
+  ExternalLink, LogOut, RefreshCw, Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { searchArticles, type KBArticle } from '@/lib/knowledge-base'
+import { searchArticles } from '@/lib/knowledge-base'
+import { createClient } from '@/lib/supabase/client'
 
 // ── Mock notifications ────────────────────────────────────────────────────────
 
@@ -351,18 +352,50 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
 
 // ── Profile dropdown ──────────────────────────────────────────────────────────
 
-function ProfileDropdown({ onClose }: { onClose: () => void }) {
+type Me = {
+  email:    string
+  fullName: string | null
+  role:     'super' | 'admin' | 'publisher' | 'editor'
+}
+
+const ROLE_LABEL: Record<Me['role'], string> = {
+  super:     'Super Admin',
+  admin:     'Admin',
+  publisher: 'Publisher',
+  editor:    'Editor',
+}
+
+function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }) {
+  const [signingOut, setSigningOut] = useState(false)
+
+  async function signOut() {
+    setSigningOut(true)
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      window.location.href = '/admin/login'
+    } finally { setSigningOut(false) }
+  }
+
   return (
-    <div className="absolute right-0 top-10 w-52 bg-white rounded-2xl border border-gray-200 shadow-2xl z-50 overflow-hidden">
+    <div className="absolute right-0 top-10 w-56 bg-white rounded-2xl border border-gray-200 shadow-2xl z-50 overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100">
-        <div className="text-sm font-semibold text-gray-900">Jason Watson</div>
-        <div className="text-xs text-gray-400">jade31994@gmail.com</div>
-        <div className="text-[10px] text-blue-600 font-medium mt-0.5">Super Admin</div>
+        <div className="text-sm font-semibold text-gray-900 truncate">
+          {me?.fullName || me?.email?.split('@')[0] || '—'}
+        </div>
+        <div className="text-xs text-gray-400 truncate">{me?.email ?? '—'}</div>
+        {me?.role && (
+          <div className="text-[10px] text-blue-600 font-medium mt-0.5">{ROLE_LABEL[me.role]}</div>
+        )}
       </div>
       <div className="py-1">
+        <Link href="/admin/settings/account" onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          Account & Password
+        </Link>
         <Link href="/admin/settings" onClick={onClose}
           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-          Account Settings
+          Platform Settings
         </Link>
         <Link href="/admin/help" onClick={onClose}
           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
@@ -370,8 +403,13 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
         </Link>
       </div>
       <div className="border-t border-gray-100 py-1">
-        <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-          Sign out
+        <button
+          onClick={signOut}
+          disabled={signingOut}
+          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40"
+        >
+          {signingOut ? <RefreshCw size={13} className="animate-spin" /> : <LogOut size={13} />}
+          {signingOut ? 'Signing out…' : 'Sign out'}
         </button>
       </div>
     </div>
@@ -384,6 +422,41 @@ export function AdminHeader() {
   const [openPanel, setOpenPanel] = useState<
     'notifications' | 'search' | 'chat' | 'profile' | null
   >(null)
+  const [me, setMe] = useState<Me | null>(null)
+
+  const [maintenance, setMaintenance] = useState(false)
+  const [maintBusy, setMaintBusy]     = useState(false)
+
+  // Pull identity + maintenance status on mount
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/admin/me', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (!cancelled && j) setMe({ email: j.email, fullName: j.fullName, role: j.role }) })
+      .catch(() => {})
+    fetch('/api/admin/maintenance', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (!cancelled && j) setMaintenance(!!j.enabled) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  async function toggleMaintenance() {
+    setMaintBusy(true)
+    try {
+      const res = await fetch('/api/admin/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !maintenance }),
+      })
+      if (res.ok) {
+        const j = await res.json()
+        setMaintenance(j.enabled)
+      }
+    } finally { setMaintBusy(false) }
+  }
+
+  const isSettingsTier = me?.role === 'super' || me?.role === 'admin'
 
   const toggle = (panel: typeof openPanel) =>
     setOpenPanel(prev => prev === panel ? null : panel)
@@ -391,11 +464,35 @@ export function AdminHeader() {
   const close = () => setOpenPanel(null)
 
   const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length
+  const initials = (me?.fullName || me?.email || 'AD')
+    .split(/\s+|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(s => s[0]?.toUpperCase() ?? '')
+    .join('') || 'AD'
 
   return (
     <>
       {/* Header bar */}
       <header className="h-11 shrink-0 bg-white border-b border-gray-200 flex items-center justify-end px-4 gap-1 z-30">
+        {/* Maintenance toggle — Super/Admin only */}
+        {isSettingsTier && (
+          <button
+            onClick={toggleMaintenance}
+            disabled={maintBusy}
+            title={maintenance ? 'Site is OFFLINE — click to bring it back' : 'Take the site offline for maintenance'}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors mr-auto disabled:opacity-50',
+              maintenance
+                ? 'bg-amber-100 text-amber-800 ring-1 ring-amber-300 hover:bg-amber-200'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            )}
+          >
+            {maintBusy ? <RefreshCw size={12} className="animate-spin" /> : <Wrench size={12} />}
+            {maintenance ? 'Site Offline — Restore' : 'Maintenance'}
+          </button>
+        )}
+
         {/* Bell */}
         <div className="relative">
           <button
@@ -440,10 +537,11 @@ export function AdminHeader() {
           <button
             onClick={() => toggle('profile')}
             className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold"
+            aria-label="Open profile menu"
           >
-            JW
+            {initials}
           </button>
-          {openPanel === 'profile' && <ProfileDropdown onClose={close} />}
+          {openPanel === 'profile' && <ProfileDropdown me={me} onClose={close} />}
         </div>
       </header>
 

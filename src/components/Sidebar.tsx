@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
   ChevronDown, ChevronRight, LogOut,
@@ -15,15 +15,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const PUBLICATIONS = [
-  { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e' },
-  { abbrev: 'MBP', name: 'Mobile Bay Parents',        market: 'Mobile',        state: 'AL', color: '#3b82f6' },
-  { abbrev: 'AOP', name: 'Auburn Opelika Parents',    market: 'Auburn',        state: 'AL', color: '#f97316' },
-  { abbrev: 'ESP', name: 'Eastern Shore Parents',     market: 'Eastern Shore', state: 'AL', color: '#a855f7' },
-  { abbrev: 'GPP', name: 'Greater Pensacola Parents', market: 'Pensacola',     state: 'FL', color: '#14b8a6' },
-  { abbrev: 'RRB', name: 'River Region Boom',         market: 'Montgomery',    state: 'AL', color: '#eab308' },
-]
+import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
 
 // ── NAV item types ─────────────────────────────────────────────────────────
 
@@ -31,8 +23,8 @@ type ChildItem = { name: string; href: string; accent?: boolean }
 
 type NavItem =
   | { section: string }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }> }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[] }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; settingsOnly?: boolean }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean }
 
 // ── Navigation structure ───────────────────────────────────────────────────
 // Designed around the actual publishing workflow:
@@ -63,6 +55,18 @@ const NAV: NavItem[] = [
   },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
   { name: 'School Bits',       href: '/admin/school-news', icon: GraduationCap },
+  {
+    name: 'Events',
+    href: '/admin/events',
+    icon: Calendar,
+    children: [
+      { name: 'All Events',             href: '/admin/events'                          },
+      { name: 'Pending Review',         href: '/admin/events?tab=pending', accent: true },
+      { name: 'Community Connections',  href: '/admin/events/organizations'            },
+      { name: 'Event Imports (CSV)',    href: '/admin/content/events-import'           },
+      { name: 'iCal Sources',           href: '/admin/events/sources'                  },
+    ],
+  },
   { name: 'Community Content', href: '/admin/community',   icon: Heart         },
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain         },
 
@@ -98,24 +102,34 @@ const NAV: NavItem[] = [
   { name: 'Print Export',       href: '/admin/distribution/print-export',    icon: Printer },
   { name: 'Sponsor Placements', href: '/admin/distribution?view=sponsors',   icon: Crown   },
 
-  // ── REVENUE ─────────────────────────────────────────────────────────────
-  { section: 'REVENUE' },
+  // ── ADVERTISING ──────────────────────────────────────────────────────────
+  // Consolidated view: the Ad Map is the visual overview, Advertisers is
+  // the people, everything else supports the workflow.
+  { section: 'ADVERTISING' },
+  {
+    name: 'Ad System',
+    href: '/admin/ads/map',
+    icon: Star,
+    children: [
+      { name: 'Ad Map',             href: '/admin/ads/map'                                  },
+      { name: 'All Placements',     href: '/admin/ads'                                      },
+      { name: 'Sponsor Inventory',  href: '/admin/advertisers/sponsor-inventory'             },
+    ],
+  },
   {
     name: 'Advertisers',
     href: '/admin/advertisers',
     icon: Users,
     children: [
       { name: 'Active Advertisers', href: '/admin/advertisers'                            },
-      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true   },
+      { name: 'Businesses',         href: '/admin/advertisers/businesses'                 },
       { name: 'Pipeline',           href: '/admin/advertisers/pipeline'                   },
+      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true   },
       { name: 'Agreements',         href: '/admin/advertisers/agreements'                 },
       { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs'                  },
-      { name: 'Partner Ops',        href: '/admin/advertisers/partner-ops'                },
-      { name: 'Businesses',         href: '/admin/advertisers/businesses'                 },
     ],
   },
   { name: 'Campaigns',         href: '/admin/marketing-system',              icon: Megaphone   },
-  { name: 'Sponsor Inventory', href: '/admin/advertisers/sponsor-inventory', icon: Star        },
   { name: 'Proposals',         href: '/admin/advertisers/proposals',         icon: FileText    },
   { name: 'Client Reports',    href: '/admin/reports',                       icon: BarChart3   },
   { name: 'Analytics',         href: '/admin/advertisers/intelligence',      icon: TrendingUp  },
@@ -125,15 +139,6 @@ const NAV: NavItem[] = [
   { name: 'Submissions',      href: '/admin/submissions',           icon: Inbox         },
   { name: 'Listing Inquiries', href: '/admin/inquiries',            icon: Mail          },
   { name: 'Nominations',      href: '/admin/nominations',           icon: Award         },
-  {
-    name: 'Events',
-    href: '/admin/events/pending',
-    icon: Calendar,
-    children: [
-      { name: 'Pending Events', href: '/admin/events/pending', accent: true   },
-      { name: 'Event Imports',  href: '/admin/content/events-import'           },
-    ],
-  },
   { name: 'Family Favorites', href: '/admin/family-favorites',      icon: Heart         },
   { name: 'Forms',            href: '/admin/content/forms',         icon: ClipboardList },
 
@@ -141,19 +146,45 @@ const NAV: NavItem[] = [
   { section: 'TOOLS' },
   { name: 'Imports',     href: '/admin/content/imports',     icon: Upload     },
   { name: 'Geocode',     href: '/admin/guides/geocode',      icon: MapPin     },
+  { name: 'QR Codes',    href: '/admin/content/short-links', icon: Share2      },
   { name: 'Word Search', href: '/admin/content/word-search', icon: Search     },
   { name: 'AI Tasks',    href: '/admin/ai-tasks',            icon: Bot        },
-  { name: 'Settings',    href: '/admin/settings',            icon: Settings   },
+  {
+    name: 'Settings',
+    href: '/admin/settings',
+    icon: Settings,
+    // The 'Admin Users' child is settings-tier only — the Sidebar renders
+    // it but filters it out for publishers/editors below.
+    settingsOnly: true,
+    children: [
+      { name: 'General',       href: '/admin/settings'            },
+      { name: 'Admin Users',   href: '/admin/settings/users'      },
+    ],
+  },
   { name: 'Help',        href: '/admin/help',                icon: HelpCircle },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────
 
+type AdminRole = 'super' | 'admin' | 'publisher' | 'editor'
+
 export function Sidebar() {
   const pathname = usePathname()
-  const [pubOpen, setPubOpen]         = useState(false)
-  const [activePub, setActivePub]     = useState(PUBLICATIONS[0])
   const [expandedNav, setExpandedNav] = useState<string | null>('Articles')
+  const [role, setRole] = useState<AdminRole | null>(null)
+
+  // Pull the current admin's role so settings-tier nav entries hide for
+  // publishers/editors. Cheap call, runs once per session.
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/admin/me', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (!cancelled && j?.role) setRole(j.role as AdminRole) })
+      .catch(() => {/* sidebar still renders without settings filtering */})
+    return () => { cancelled = true }
+  }, [])
+
+  const isSettingsTier = role === 'super' || role === 'admin'
 
   function isActive(href: string) {
     const path = href.split('?')[0]
@@ -187,46 +218,11 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* ── MARKETS — primary context selector for the platform ──────────── */}
-      <div className="px-3 pt-3 pb-1">
-        <div className="px-2.5 pb-1.5">
-          <span className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            MARKETS
-          </span>
-        </div>
-        <button
-          onClick={() => setPubOpen(!pubOpen)}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors hover:bg-white/6"
-        >
-          <div
-            className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ backgroundColor: activePub.color + '25', border: `1px solid ${activePub.color}40` }}
-          >
-            <span style={{ color: activePub.color }}>{activePub.abbrev.slice(0, 2)}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-white truncate leading-tight">{activePub.name}</div>
-            <div className="text-[10px] text-white/40 truncate">{activePub.market}, {activePub.state}</div>
-          </div>
-          <ChevronDown size={13} className={cn('shrink-0 text-white/30 transition-transform', pubOpen && 'rotate-180')} />
-        </button>
-
-        {pubOpen && (
-          <div className="mt-1 rounded-xl overflow-hidden border border-white/10 shadow-2xl" style={{ backgroundColor: '#0e0e24' }}>
-            {PUBLICATIONS.map((pub) => (
-              <button
-                key={pub.abbrev}
-                onClick={() => { setActivePub(pub); setPubOpen(false) }}
-                className={cn('w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-white/5', activePub.abbrev === pub.abbrev && 'bg-white/5')}
-              >
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: pub.color }} />
-                <span className="font-semibold text-white/70 w-9 shrink-0">{pub.abbrev}</span>
-                <span className="text-white/40 truncate text-[11px]">{pub.name}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* ── BRAND SWITCHER ───────────────────────────────────────────────────
+          Driven by /api/admin/me + /api/admin/active-market. Hides itself
+          for single-market publishers so they never see chrome they can't
+          use. Super-admin sees an extra "All brands" entry. */}
+      <BrandSwitcher />
 
       {/* ── Navigation ───────────────────────────────────── */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
@@ -240,6 +236,13 @@ export function Sidebar() {
                 </span>
               </div>
             )
+          }
+
+          // settingsOnly entries hide entirely for publisher/editor. We
+          // wait until role is known before rendering to avoid a flash of
+          // settings links the user can't actually use.
+          if ('settingsOnly' in item && item.settingsOnly && !isSettingsTier) {
+            return null
           }
 
           // Group with children

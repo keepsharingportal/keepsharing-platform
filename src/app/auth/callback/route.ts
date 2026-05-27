@@ -11,27 +11,41 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Bind bloggers.user_id ↔ auth user when their emails match. Only
-      // runs on blogger-portal sign-ins; advertiser logins are untouched.
-      const isBloggerLogin = next.startsWith('/blogger-portal')
-      const authUser       = data.user
-      if (isBloggerLogin && authUser?.email && authUser.id) {
+      const authUser     = data.user
+      const isBlogger    = next.startsWith('/blogger-portal')
+      const isAdminLogin = next.startsWith('/admin')
+
+      if (authUser?.email && authUser.id) {
         const admin = createAdminClient()
-        await admin
-          .from('bloggers')
-          .update({ user_id: authUser.id })
-          .ilike('email', authUser.email)
-          .is('user_id', null)
+        // Bind bloggers.user_id ↔ auth user when their emails match.
+        if (isBlogger) {
+          await admin
+            .from('bloggers')
+            .update({ user_id: authUser.id })
+            .ilike('email', authUser.email)
+            .is('user_id', null)
+        }
+        // Same backfill for admin_users so pre-provisioned rows resolve
+        // on first login. Safe to run on every callback — narrow update.
+        if (isAdminLogin) {
+          await admin
+            .from('admin_users')
+            .update({ user_id: authUser.id })
+            .ilike('email', authUser.email)
+            .is('user_id', null)
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
-  // Fall back to a generic login error. Bloggers land back at their own
-  // login page if that's where they started.
+  // Fall back to a generic login error. Each portal lands back at its own
+  // login page if that's where the sign-in started.
   const fallback = next.startsWith('/blogger-portal')
     ? '/blogger-portal/login?error=auth'
-    : '/advertiser-portal/login?error=auth'
+    : next.startsWith('/admin')
+      ? '/admin/login?error=auth'
+      : '/advertiser-portal/login?error=auth'
   return NextResponse.redirect(`${origin}${fallback}`)
 }

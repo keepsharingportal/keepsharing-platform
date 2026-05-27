@@ -1,13 +1,43 @@
+// Event detail page — public-facing.
+//
+// Layout matches the River Region Parents calendar mockup:
+//
+//   ┌────────────────────────────────────────────────────────────────────┐
+//   │ Hero with title overlay + category chip + featured badge           │
+//   ├──────────────────────────────────────────┬─────────────────────────┤
+//   │ [Date]  [Time]  [Cost]                   │ Attend This Event       │
+//   │                                          │ ┌─────────────────────┐ │
+//   │ About This Event                         │ │ Sponsor slot        │ │
+//   │   Long-form description                  │ ├─────────────────────┤
+//   │                                          │ │ Submit Your Event   │ │
+//   │ Location                                 │ ├─────────────────────┤
+//   │   Address + Google Maps embed            │ │ Subscribe (newsletter)│
+//   │                                          │ ├─────────────────────┤
+//   │ Event Organizer                          │ │ Sponsor slot 2      │ │
+//   │   Name + contact + website               │ └─────────────────────┘ │
+//   │                                          │                         │
+//   │ More Happening Around Town               │                         │
+//   │   3 related EventCards                   │                         │
+//   └──────────────────────────────────────────┴─────────────────────────┘
+//
+// Color/font choices use brand tokens so this looks consistent with the
+// rest of the site — coral for primary CTAs and dates, gold for hover,
+// sage for the "Free" chip, navy text on cream backgrounds. The right
+// rail is sticky on desktop so the Attend This Event panel stays visible
+// while a reader scrolls through About + Location + Organizer.
+
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, CalendarDays, MapPin, Clock, Globe, Phone, ExternalLink } from 'lucide-react'
+import { EventCard } from '@/components/theme'
+import { categoryLabel } from '@/lib/calendar-taxonomy'
+import {
+  ArrowLeft, Calendar, Clock, MapPin, Mail, Phone, Globe, ExternalLink,
+  Heart, Share2, Star, Sparkles, Send,
+} from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const revalidate = 1800
@@ -23,10 +53,6 @@ function getSupabase() {
   )
 }
 
-// UUIDs are the only thing that should pattern-match as an id; everything
-// else is a slug. Splitting the lookup avoids `.or(slug.eq,id.eq)` which
-// PostgREST aborts when the non-UUID branch causes a type error — that's
-// the root of the "event 404s" symptom on slugged URLs.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 async function loadEventByParam<T>(
@@ -34,14 +60,14 @@ async function loadEventByParam<T>(
   param: string,
   cols: string,
 ): Promise<T | null> {
-  // 1. Slug lookup is the common case
+  // Slug lookup is the common case
   const bySlug = await supabase
     .from('calendar_events')
     .select(cols)
     .eq('slug', param)
     .maybeSingle()
   if (bySlug.data) return bySlug.data as unknown as T
-  // 2. Only try id if it actually looks like a UUID
+  // Fall back to id only if it actually looks like a UUID
   if (!UUID_RE.test(param)) return null
   const byId = await supabase
     .from('calendar_events')
@@ -65,8 +91,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function formatDateFull(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+function fmtLongDate(d: string): string {
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  })
+}
+function fmtShortDate(d: string): string {
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+  })
+}
+function fmtTime(t: string | null | undefined): string | null {
+  if (!t) return null
+  const [h, m] = t.split(':').map(Number)
+  if (Number.isNaN(h) || Number.isNaN(m)) return t
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour12 = ((h + 11) % 12) + 1
+  return `${hour12}:${String(m).padStart(2, '0')} ${period}`
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,20 +118,45 @@ export default async function EventDetailPage({ params }: Props) {
   const supabase = getSupabase()
 
   const ev = await loadEventByParam<AnyEvent>(supabase, slug, '*')
-
-  if (!ev || ev.status === 'cancelled') notFound()
+  if (!ev || ev.status === 'cancelled' || ev.status === 'archived') notFound()
 
   const today = new Date().toISOString().split('T')[0]
-  const { data: related } = await supabase
+
+  // Related events — prefer same-category upcoming; fall back to next coming
+  // up if there aren't enough peers in the same bucket.
+  let { data: related } = await supabase
     .from('calendar_events')
-    .select('id, slug, title, start_date, start_time, location_name, category')
+    .select('id, slug, title, start_date, end_date, start_time, end_time, location_name, category, hero_image_url, is_free, is_featured')
     .eq('status', 'published')
     .neq('id', ev.id)
     .gte('start_date', today)
-    .limit(4)
+    .eq('category', ev.category)
     .order('start_date', { ascending: true })
+    .limit(3)
+  if (!related || related.length < 3) {
+    const { data: backfill } = await supabase
+      .from('calendar_events')
+      .select('id, slug, title, start_date, end_date, start_time, end_time, location_name, category, hero_image_url, is_free, is_featured')
+      .eq('status', 'published')
+      .neq('id', ev.id)
+      .gte('start_date', today)
+      .order('start_date', { ascending: true })
+      .limit(3)
+    related = [
+      ...(related ?? []),
+      ...((backfill ?? []).filter(b => !(related ?? []).some(r => r.id === b.id))),
+    ].slice(0, 3)
+  }
 
-  const mapUrl = ev.address
+  const startTime = fmtTime(ev.start_time)
+  const endTime   = fmtTime(ev.end_time)
+  const timeLine  = startTime ? (endTime ? `${startTime} – ${endTime}` : startTime) : 'All day'
+  const costLine  = ev.is_free ? 'Free' : (ev.cost_text || 'See details')
+
+  const mapEmbed = ev.address
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(ev.address)}&output=embed`
+    : null
+  const mapLink = ev.address
     ? `https://maps.google.com/?q=${encodeURIComponent(ev.address)}`
     : null
 
@@ -98,145 +164,397 @@ export default async function EventDetailPage({ params }: Props) {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Hero */}
-      {ev.hero_image_url ? (
-        <div className="relative h-64 md:h-80 bg-muted overflow-hidden">
-          <Image src={ev.hero_image_url} alt={ev.title} fill style={{ objectFit: 'cover' }} className="opacity-80" sizes="100vw" unoptimized priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 container">
-            <Link href="/calendar" className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm mb-3">
-              <ArrowLeft className="h-4 w-4" />Back to Calendar
-            </Link>
-          </div>
+      {/* Hero with title overlay */}
+      <div className="relative h-[280px] md:h-[420px] bg-muted overflow-hidden">
+        {ev.hero_image_url ? (
+          <Image
+            src={ev.hero_image_url}
+            alt={ev.title}
+            fill
+            style={{ objectFit: 'cover' }}
+            className="opacity-95"
+            sizes="100vw"
+            unoptimized
+            priority
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--fg-sky-light)] to-[var(--fg-cream)]" />
+        )}
+        {/* Top→bottom gradient so the title is legible regardless of image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
+        <div className="absolute inset-x-0 top-0 p-4 md:p-6 container">
+          <Link
+            href="/calendar"
+            className="inline-flex items-center gap-1.5 text-white/85 hover:text-white text-sm font-semibold"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Calendar
+          </Link>
         </div>
-      ) : (
-        <div className="bg-secondary/10 border-b border-border">
-          <div className="container py-8">
-            <Link href="/calendar" className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 text-sm mb-4">
-              <ArrowLeft className="h-4 w-4" />Back to Calendar
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <main className="container py-10">
-        <div className="grid lg:grid-cols-12 gap-10">
-
-          {/* Main */}
-          <div className="lg:col-span-8 space-y-6">
-            {ev.category && <Badge>{ev.category}</Badge>}
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight">{ev.title}</h1>
-            {ev.start_date && (
-              <p className="text-xl font-semibold text-primary">{formatDateFull(ev.start_date)}</p>
+        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10 container">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {ev.category && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/95 backdrop-blur text-foreground text-xs font-bold">
+                {categoryLabel(ev.category)}
+              </span>
             )}
+            {ev.is_featured && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow">
+                <Star className="h-3 w-3 fill-current" /> Featured
+              </span>
+            )}
+            {ev.is_free && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--fg-sage)] text-white text-xs font-bold shadow">
+                Free
+              </span>
+            )}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight max-w-3xl">
+            {ev.title}
+          </h1>
+          {ev.start_date && (
+            <p className="mt-3 text-white/90 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" /> {fmtLongDate(ev.start_date)}
+              </span>
+              <span className="opacity-70">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-4 w-4" /> {timeLine}
+              </span>
+              {ev.location_name && (
+                <>
+                  <span className="opacity-70">·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" /> {ev.location_name}
+                  </span>
+                </>
+              )}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <main className="container py-8 md:py-12">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">
+
+          {/* Main column */}
+          <div className="lg:col-span-8 space-y-8">
+
+            {/* Chip row — date / time / cost. Visual headline of the page. */}
+            <div className="grid sm:grid-cols-3 gap-3">
+              <DetailChip
+                icon={<Calendar className="h-5 w-5" />}
+                label="Date"
+                value={ev.start_date ? fmtShortDate(ev.start_date) : '—'}
+                tone="coral"
+              />
+              <DetailChip
+                icon={<Clock className="h-5 w-5" />}
+                label="Time"
+                value={timeLine}
+                tone="navy"
+              />
+              <DetailChip
+                icon={<Sparkles className="h-5 w-5" />}
+                label={ev.is_free ? 'Admission' : 'Cost'}
+                value={costLine}
+                tone={ev.is_free ? 'sage' : 'navy'}
+              />
+            </div>
+
+            {/* About */}
             {ev.description && (
-              <Card>
-                <CardContent className="p-6 md:p-8">
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{ev.description}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Related events */}
-            {related && related.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-4">More Events</h3>
-                <div className="space-y-2">
-                  {related.map(r => (
-                    <Link key={r.id} href={`/calendar/events/${r.slug ?? r.id}`}
-                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors">
-                      {r.start_date && (
-                        <div className="shrink-0 text-center w-12">
-                          <p className="text-xs uppercase font-bold text-muted-foreground">
-                            {new Date(r.start_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
-                          </p>
-                          <p className="text-xl font-bold text-foreground leading-none">
-                            {new Date(r.start_date + 'T12:00:00').getDate()}
-                          </p>
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground truncate">{r.title}</p>
-                        {r.location_name && <p className="text-xs text-muted-foreground">{r.location_name}</p>}
-                      </div>
-                    </Link>
-                  ))}
+              <section>
+                <h2 className="text-2xl font-bold text-foreground mb-3">About This Event</h2>
+                <div className="prose prose-sm md:prose-base max-w-none text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {ev.description}
                 </div>
-              </div>
+              </section>
             )}
-          </div>
 
-          {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-20 lg:self-start">
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <h3 className="font-bold text-foreground">Event Details</h3>
-                {ev.start_date && (
-                  <div className="flex items-start gap-2.5 text-sm">
-                    <CalendarDays className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium">{formatDateFull(ev.start_date)}</p>
-                      {ev.start_time && (
-                        <p className="text-muted-foreground">
-                          {ev.start_time}{ev.end_time && ` – ${ev.end_time}`}
-                        </p>
-                      )}
+            {/* Location with map */}
+            {(ev.address || ev.location_name) && (
+              <section>
+                <h2 className="text-2xl font-bold text-foreground mb-3 inline-flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" /> Location
+                </h2>
+                <div className="rounded-2xl overflow-hidden ring-1 ring-border bg-card">
+                  {ev.location_name && (
+                    <div className="px-5 py-3 border-b border-border">
+                      <p className="font-bold text-foreground">{ev.location_name}</p>
+                      {ev.address && <p className="text-sm text-muted-foreground">{ev.address}</p>}
                     </div>
-                  </div>
-                )}
-                {ev.location_name && (
-                  <div className="flex items-start gap-2.5 text-sm">
-                    <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium">{ev.location_name}</p>
-                      {ev.address && <p className="text-muted-foreground">{ev.address}</p>}
-                    </div>
-                  </div>
-                )}
-                {ev.cost_text && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <span className="text-lg shrink-0">💵</span>
-                    <p className={ev.is_free ? 'font-semibold text-primary' : 'text-foreground'}>
-                      {ev.is_free ? 'Free admission' : ev.cost_text}
-                    </p>
-                  </div>
-                )}
-                {ev.phone && (
-                  <a href={`tel:${ev.phone.replace(/[^0-9]/g, '')}`}
-                    className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-primary">
-                    <Phone className="h-4 w-4 text-primary shrink-0" />{ev.phone}
-                  </a>
-                )}
-                {ev.website && (
-                  <a href={ev.website} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 text-sm text-primary hover:text-primary/80">
-                    <Globe className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{ev.website.replace(/^https?:\/\//, '')}</span>
-                  </a>
-                )}
-                <div className="space-y-2 pt-2">
-                  {mapUrl && (
-                    <Button variant="outline" className="w-full rounded-full" asChild>
-                      <a href={mapUrl} target="_blank" rel="noopener noreferrer">
-                        <MapPin className="h-4 w-4" />Get Directions
+                  )}
+                  {mapEmbed && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <iframe
+                      src={mapEmbed}
+                      className="w-full h-64 md:h-72 border-0"
+                      loading="lazy"
+                      title={`Map to ${ev.location_name ?? ev.address}`}
+                    />
+                  )}
+                  {mapLink && (
+                    <div className="px-5 py-3 border-t border-border">
+                      <a
+                        href={mapLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-accent-foreground transition-colors"
+                      >
+                        Get Directions <ExternalLink className="h-3.5 w-3.5" />
                       </a>
-                    </Button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Event Organizer */}
+            {(ev.organizer_name || ev.organizer_email || ev.phone || ev.website) && (
+              <section>
+                <h2 className="text-2xl font-bold text-foreground mb-3">Event Organizer</h2>
+                <div className="rounded-2xl bg-card ring-1 ring-border p-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  {ev.organizer_name && (
+                    <p className="font-bold text-foreground text-base">{ev.organizer_name}</p>
+                  )}
+                  {ev.organizer_email && (
+                    <a
+                      href={`mailto:${ev.organizer_email}`}
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                    >
+                      <Mail className="h-3.5 w-3.5" /> {ev.organizer_email}
+                    </a>
+                  )}
+                  {ev.phone && (
+                    <a
+                      href={`tel:${ev.phone.replace(/[^0-9]/g, '')}`}
+                      className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+                    >
+                      <Phone className="h-3.5 w-3.5" /> {ev.phone}
+                    </a>
                   )}
                   {ev.website && (
-                    <Button className="w-full rounded-full" asChild>
-                      <a href={ev.website} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />Visit Event Website
-                      </a>
-                    </Button>
+                    <a
+                      href={ev.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                    >
+                      <Globe className="h-3.5 w-3.5" />
+                      <span className="truncate max-w-[18rem]">{ev.website.replace(/^https?:\/\//, '')}</span>
+                    </a>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </section>
+            )}
+
+            {/* More Happening Around Town */}
+            {related && related.length > 0 && (
+              <section>
+                <div className="flex items-end justify-between mb-4 flex-wrap gap-2">
+                  <h2 className="text-2xl font-bold text-foreground inline-flex items-center gap-2">
+                    More Happening Around Town
+                  </h2>
+                  <Link href="/calendar" className="text-sm font-bold text-primary hover:underline">
+                    Full Calendar →
+                  </Link>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {related.map(r => <EventCard key={r.id} event={r} />)}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar — sticky on desktop so Attend stays visible */}
+          <aside className="lg:col-span-4 space-y-4 lg:sticky lg:top-24 lg:self-start">
+
+            {/* Attend This Event */}
+            <div className="rounded-2xl bg-card ring-1 ring-border p-5">
+              <h3 className="text-base font-bold text-foreground mb-3">Attend This Event</h3>
+              <ul className="space-y-2.5 text-sm mb-4">
+                {ev.start_date && (
+                  <li className="inline-flex items-center gap-2 text-foreground">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{fmtLongDate(ev.start_date)}</span>
+                  </li>
+                )}
+                <li className="inline-flex items-center gap-2 text-foreground">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{timeLine}</span>
+                </li>
+                {ev.location_name && (
+                  <li className="inline-flex items-start gap-2 text-foreground">
+                    <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                    <span className="font-medium">{ev.location_name}</span>
+                  </li>
+                )}
+                <li className="inline-flex items-center gap-2">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                    ev.is_free
+                      ? 'bg-[var(--fg-sage-light)] text-[var(--fg-sage)] ring-1 ring-[var(--fg-sage)]/20'
+                      : 'bg-muted text-foreground ring-1 ring-border'
+                  }`}>
+                    {costLine}
+                  </span>
+                </li>
+              </ul>
+              <div className="space-y-2">
+                {ev.registration_url ? (
+                  <a
+                    href={ev.registration_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full text-center px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    Register Now
+                  </a>
+                ) : (
+                  <a
+                    href={`/api/calendar/feed.ics?event=${ev.id}`}
+                    className="block w-full text-center px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    Add to Calendar
+                  </a>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-foreground text-xs font-bold ring-1 ring-border hover:bg-accent hover:text-accent-foreground hover:ring-accent transition-colors"
+                    aria-label="Save event"
+                  >
+                    <Heart className="h-3.5 w-3.5" /> Save
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-foreground text-xs font-bold ring-1 ring-border hover:bg-accent hover:text-accent-foreground hover:ring-accent transition-colors"
+                    aria-label="Share event"
+                  >
+                    <Share2 className="h-3.5 w-3.5" /> Share
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sponsor slot — placeholder until the ad system wires up.
+                Stays sized so the rail layout is stable, doesn't ship visible
+                "ad copy" before there's a real advertiser. */}
+            <SponsorSlot placement="event-detail-rail-top" />
+
+            {/* Submit Your Event CTA */}
+            <div className="rounded-2xl bg-[var(--fg-terra-light)] ring-1 ring-primary/15 p-5">
+              <h3 className="text-base font-bold text-foreground mb-1.5 inline-flex items-center gap-1.5">
+                <Send className="h-4 w-4 text-primary" /> Have an Event to Share?
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                River Region Parents reaches thousands of local families every week. Submit your community event and we&apos;ll get it in front of the right audience.
+              </p>
+              <Link
+                href="/calendar/submit"
+                className="block w-full text-center px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
+              >
+                Submit Your Event
+              </Link>
+            </div>
+
+            {/* Newsletter Subscribe */}
+            <div className="rounded-2xl bg-card ring-1 ring-border p-5">
+              <h3 className="text-base font-bold text-foreground mb-1.5">Know Where to Go?</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                Get the week&apos;s best family-friendly events delivered to your inbox every Thursday morning.
+              </p>
+              <form action="/api/newsletter/subscribe" method="post" className="flex gap-2">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="Your email address"
+                  className="flex-1 px-3 py-2 text-sm rounded-xl bg-background ring-1 ring-border focus:ring-primary outline-none"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
+                >
+                  Subscribe
+                </button>
+              </form>
+            </div>
+
+            {/* Second sponsor slot */}
+            <SponsorSlot placement="event-detail-rail-bottom" />
+
+            {/* Back to full calendar */}
+            <div className="rounded-2xl bg-muted/40 p-4 text-center">
+              <Link
+                href="/calendar"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Back to Full Calendar
+              </Link>
+            </div>
           </aside>
         </div>
       </main>
 
       <PublicFooter />
+    </div>
+  )
+}
+
+// ── Building blocks ──────────────────────────────────────────────────────────
+
+function DetailChip({
+  icon, label, value, tone,
+}: {
+  icon:  React.ReactNode
+  label: string
+  value: string
+  tone:  'coral' | 'navy' | 'sage'
+}) {
+  const cls: Record<'coral' | 'navy' | 'sage', { wrap: string; icon: string; label: string }> = {
+    coral: {
+      wrap:  'bg-[var(--fg-terra-light)] ring-primary/20',
+      icon:  'text-primary',
+      label: 'text-primary',
+    },
+    navy: {
+      wrap:  'bg-[var(--fg-sky-light)] ring-[var(--fg-sky)]/20',
+      icon:  'text-[var(--fg-sky)]',
+      label: 'text-[var(--fg-navy)]',
+    },
+    sage: {
+      wrap:  'bg-[var(--fg-sage-light)] ring-[var(--fg-sage)]/20',
+      icon:  'text-[var(--fg-sage)]',
+      label: 'text-[var(--fg-sage)]',
+    },
+  }
+  const s = cls[tone]
+  return (
+    <div className={`rounded-2xl p-4 ring-1 ${s.wrap}`}>
+      <div className={`mb-1.5 ${s.icon}`}>{icon}</div>
+      <p className={`text-[10px] uppercase tracking-wider font-bold mb-0.5 ${s.label}`}>{label}</p>
+      <p className="text-sm font-bold text-foreground leading-snug">{value}</p>
+    </div>
+  )
+}
+
+// Sponsor slot placeholder. Sized to occupy the rail position until the ad
+// system can fill it; kept neutral so it doesn't shout fake-ad until there's
+// a real advertiser. When the ad system is wired in (future turn), this
+// component is the single swap point — placement prop already passes through.
+function SponsorSlot({ placement }: { placement: string }) {
+  return (
+    <div className="rounded-2xl ring-1 ring-dashed ring-border bg-muted/30 px-5 py-6 text-center">
+      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/60 mb-1">
+        Sponsored
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Your business here. <Link href="/get-media-kit" className="text-primary font-bold hover:underline">Get the media kit →</Link>
+      </p>
+      {/* Reserved hook for the ad system: data attribute encodes placement so
+          wiring it in later only needs to swap this component for the real
+          AdSlot, no upstream changes. */}
+      <span data-sponsor-placement={placement} aria-hidden="true" />
     </div>
   )
 }
