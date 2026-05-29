@@ -9,7 +9,7 @@ import Link from 'next/link'
 import {
   Plus, Copy, Check, ExternalLink, RefreshCw, Trash2, QrCode,
   MousePointer, AlertTriangle, Download, Link2, Phone, Mail, MessageSquare,
-  FileText, Calendar, User,
+  FileText, Calendar, User, Pencil,
 } from 'lucide-react'
 import type { ShortLinkRow, AdvertiserOption } from './page'
 
@@ -116,16 +116,19 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
   const [copied, setCopied]   = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showQr, setShowQr]     = useState(false)
+  const [editing, setEditing]   = useState(false)
+  // Local copy of the editable fields so the row reflects edits without a refetch
+  const [local, setLocal]       = useState(row)
 
-  const goUrl   = `${SITE_ORIGIN}/go/${row.shortcode}`
-  const printUrl = `riverregionparents.com/go/${row.shortcode}`
-  const typeDef  = CONTENT_TYPES.find(t => t.value === row.content_type) ?? CONTENT_TYPES[0]
+  const goUrl   = `${SITE_ORIGIN}/go/${local.shortcode}`
+  const printUrl = `riverregionparents.com/go/${local.shortcode}`
+  const typeDef  = CONTENT_TYPES.find(t => t.value === local.content_type) ?? CONTENT_TYPES[0]
   const Icon     = typeDef.icon
 
   const { qrDataUrl, loading: qrLoading, generate: genQr } = useQrPreview(
     goUrl,
-    row.qr_primary_color ?? '#ef6442',
-    row.qr_bg_color ?? '#ffffff',
+    local.qr_primary_color ?? '#ef6442',
+    local.qr_bg_color ?? '#ffffff',
   )
 
   function copy() {
@@ -135,10 +138,10 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
     })
   }
   async function remove() {
-    if (!confirm(`Delete "${row.shortcode}"?`)) return
+    if (!confirm(`Delete "${local.shortcode}"?`)) return
     setDeleting(true)
-    const res = await fetch(`/api/admin/short-links/${row.id}`, { method: 'DELETE' })
-    if (res.ok) onRemoved(row.id)
+    const res = await fetch(`/api/admin/short-links/${local.id}`, { method: 'DELETE' })
+    if (res.ok) onRemoved(local.id)
     setDeleting(false)
   }
   function toggleQr() {
@@ -149,35 +152,42 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
     if (!qrDataUrl) return
     const a = document.createElement('a')
     a.href = qrDataUrl
-    a.download = `qr-${row.shortcode}.png`
+    a.download = `qr-${local.shortcode}.png`
     a.click()
+  }
+  function onEdited(patch: Partial<ShortLinkRow>) {
+    setLocal(prev => ({ ...prev, ...patch }))
+    setEditing(false)
   }
 
   return (
-    <div className={`${row.is_active ? '' : 'opacity-50'}`}>
+    <div className={`${local.is_active ? '' : 'opacity-50'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/5 flex items-center justify-center">
           <Icon size={18} className="text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
-            <p className="text-sm font-bold text-gray-900">/go/{row.shortcode}</p>
+            <p className="text-sm font-bold text-gray-900">/go/{local.shortcode}</p>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 ring-1 ring-gray-200">
               {typeDef.label}
             </span>
-            {row.label && <span className="text-xs text-gray-500">{row.label}</span>}
+            {local.label && <span className="text-xs text-gray-500">{local.label}</span>}
           </div>
-          <p className="text-xs text-gray-600 truncate mb-1">→ {row.destination}</p>
+          <p className="text-xs text-gray-600 truncate mb-1">→ {local.destination}</p>
           <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
             <span className="font-mono bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">{printUrl}</span>
-            {row.utm_campaign && <span>campaign={row.utm_campaign}</span>}
+            {local.utm_campaign && <span>campaign={local.utm_campaign}</span>}
           </div>
         </div>
 
         <div className="shrink-0 flex items-center gap-2">
           <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-700">
-            <MousePointer size={11} /> {row.click_count.toLocaleString()} scans
+            <MousePointer size={11} /> {local.click_count.toLocaleString()} scans
           </span>
+          <button onClick={() => setEditing(v => !v)} title="Edit destination" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+            <Pencil size={14} />
+          </button>
           <button onClick={toggleQr} title="Show QR code" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
             <QrCode size={14} />
           </button>
@@ -226,6 +236,89 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
           </div>
         </div>
       )}
+
+      {editing && <EditRow row={local} onCancel={() => setEditing(false)} onSaved={onEdited} />}
+    </div>
+  )
+}
+
+// ── Inline edit form ──────────────────────────────────────────────────────────
+// Edits the destination + metadata — NOT the shortcode. The whole value of a
+// dynamic QR is that you reprint nothing: change where /go/playball-jun26
+// points and every magazine already in mailboxes follows instantly.
+function EditRow({
+  row, onCancel, onSaved,
+}: {
+  row:      ShortLinkRow
+  onCancel: () => void
+  onSaved:  (patch: Partial<ShortLinkRow>) => void
+}) {
+  const [destination, setDestination] = useState(row.destination)
+  const [label,       setLabel]       = useState(row.label ?? '')
+  const [utmCampaign, setUtmCampaign] = useState(row.utm_campaign ?? '')
+  const [active,      setActive]      = useState(row.is_active)
+  const [busy,        setBusy]        = useState(false)
+  const [err,         setErr]         = useState<string | null>(null)
+
+  async function save() {
+    setErr(null)
+    if (!destination.trim()) { setErr('Destination is required'); return }
+    setBusy(true)
+    try {
+      const patch = {
+        destination:  destination.trim(),
+        label:        label.trim() || null,
+        utm_campaign: utmCampaign.trim() || null,
+        is_active:    active,
+      }
+      const res = await fetch(`/api/admin/short-links/${row.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(patch),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
+      onSaved(patch as Partial<ShortLinkRow>)
+    } finally { setBusy(false) }
+  }
+
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+
+  return (
+    <div className="bg-blue-50/40 border-t border-blue-100 px-4 py-4">
+      <p className="text-xs font-bold text-blue-900 mb-3 inline-flex items-center gap-1.5">
+        <Pencil size={12} /> Editing /go/{row.shortcode}
+        <span className="font-normal text-blue-700">— shortcode &amp; printed QR stay the same; just change where it points</span>
+      </p>
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="md:col-span-2">
+          <label className={lbl}>Destination <span className="text-rose-600">*</span></label>
+          <input value={destination} onChange={e => setDestination(e.target.value)} className={inp} />
+        </div>
+        <div>
+          <label className={lbl}>Label</label>
+          <input value={label} onChange={e => setLabel(e.target.value)} className={inp} />
+        </div>
+        <div>
+          <label className={lbl}>UTM Campaign</label>
+          <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} className={inp} />
+        </div>
+        <div className="flex items-end">
+          <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer pb-2">
+            <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} className="rounded" />
+            Active (QR works)
+          </label>
+        </div>
+      </div>
+      {err && <p className="mt-2 text-xs text-rose-700 font-semibold">{err}</p>}
+      <div className="mt-3 flex items-center gap-2">
+        <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40">
+          {busy ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
+          {busy ? 'Saving…' : 'Save changes'}
+        </button>
+        <button onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">Cancel</button>
+      </div>
     </div>
   )
 }
