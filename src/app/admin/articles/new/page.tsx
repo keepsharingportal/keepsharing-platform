@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
+import { SpotlightSection } from '@/components/admin/SpotlightSection'
+import { SPOTLIGHT_ENABLED_COLUMNS } from '@/lib/articles/spotlight-templates'
 import { GUIDES, CONTENT_TOPICS, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
@@ -53,6 +56,16 @@ export default function NewArticlePage() {
   // not just after the editor revisits the edit screen.
   const [topics, setTopics] = useState<string[]>([])
 
+  // Mirror the edit page's spotlight + gallery + image-original state so
+  // the New form is feature-complete. Heroes and profile uploads on /new
+  // capture origPath the same way as on /edit; the gravity picker + crop
+  // modal stay disabled until the article has an ID (after first save).
+  const [heroOrigPath,    setHeroOrigPath]    = useState<string | null>(null)
+  const [profileOrigPath, setProfileOrigPath] = useState<string | null>(null)
+  const [galleryImages,   setGalleryImages]   = useState<GalleryImage[]>([])
+  const [spotlightType,   setSpotlightType]   = useState<string>('')
+  const [spotlightData,   setSpotlightData]   = useState<Record<string, string>>({})
+
   const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
   const sel = `${inp} cursor-pointer`
 
@@ -87,6 +100,19 @@ export default function NewArticlePage() {
     const editStatus   = mode === 'draft' ? 'draft' : mode === 'publish' ? 'approved' : 'pending'
     const published_at = published ? new Date().toISOString() : null
 
+    // Mom-style spotlights flatten {bio, town, ...} → spotlight_data only
+    // when a type is actually selected. Cleared otherwise so a half-set
+    // spotlight doesn't leak through.
+    const spotlightPayload: Record<string, unknown> = spotlightType
+      ? (() => {
+          const cleaned: Record<string, string> = {}
+          for (const [k, v] of Object.entries(spotlightData)) {
+            if (v && v.trim()) cleaned[k] = v.trim()
+          }
+          return { spotlight_type: spotlightType, spotlight_data: cleaned }
+        })()
+      : { spotlight_type: null, spotlight_data: {} }
+
     try {
       const res = await fetch('/api/admin/articles', {
         method: 'POST',
@@ -97,6 +123,13 @@ export default function NewArticlePage() {
           editorial_review_status: editStatus,
           published,
           published_at,
+          // Saved-original paths so the gravity picker + crop modal work
+          // immediately when the editor lands on /edit after first save.
+          hero_image_orig_path:    heroOrigPath,
+          profile_image_orig_path: profileOrigPath,
+          // Photo gallery — JSONB array of {url, thumbnail_url, alt, caption}
+          gallery_images: galleryImages.filter(img => !!img?.url),
+          ...spotlightPayload,
         }),
       })
       const json = await res.json()
@@ -256,24 +289,52 @@ export default function NewArticlePage() {
             />
           </div>
 
-          {/* Hero image */}
+          {/* Hero image — same article-hero pipeline as /edit. The gravity
+              picker + Zoom & adjust modal stay disabled here (no article id
+              yet); they light up after the first save when the editor lands
+              on /edit. The saved origPath travels with the first POST so
+              re-cropping works immediately on /edit. */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Hero Image</h3>
             <HeroImageUpload
               value={form.hero_image_url}
               onChange={url => setField('hero_image_url', url)}
+              context="article-hero"
+              origPath={heroOrigPath}
+              onOrigPathChange={setHeroOrigPath}
             />
-            <p className="text-[11px] text-gray-400 mt-2">Wide format. Top of the article + big homepage feature slot.</p>
+            <p className="text-[11px] text-gray-400 mt-2">
+              Wide format (cropped to 16:9). Auto-attention crop on upload — re-crop tools become available after first save.
+            </p>
           </div>
 
-          {/* Profile image */}
+          {/* Profile image — same article-profile pipeline as /edit. */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Profile Image</h3>
             <HeroImageUpload
               value={form.profile_image_url}
               onChange={url => setField('profile_image_url', url)}
+              context="article-profile"
+              origPath={profileOrigPath}
+              onOrigPathChange={setProfileOrigPath}
             />
-            <p className="text-[11px] text-gray-400 mt-2">Square portrait used in the homepage Community Spotlights sidebar. Falls back to hero image when empty.</p>
+            <p className="text-[11px] text-gray-400 mt-2">
+              Square (cropped to 1:1) for the homepage Community Spotlights sidebar. Falls back to hero when empty.
+            </p>
+          </div>
+
+          {/* Photo Gallery — mirrors /edit. Multi-upload supported even on
+              first-create; images flow through the Sharp pipeline and persist
+              with the initial POST. */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Photo Gallery
+              <span className="ml-1.5 text-gray-400 font-normal normal-case text-[11px]">— supporting photos for the lightbox</span>
+            </h3>
+            <GalleryEditor
+              value={galleryImages}
+              onChange={setGalleryImages}
+            />
           </div>
 
           {/* Where this article appears */}
@@ -332,6 +393,19 @@ export default function NewArticlePage() {
               )
             })()}
           </div>
+
+          {/* Spotlight section — only when the selected column opts into the
+              structured spotlight system (Play Ball / Teacher / Mom). Renders
+              the type dropdown + top strip + Quick Hits fields per template. */}
+          {SPOTLIGHT_ENABLED_COLUMNS.includes(form.column_slug) && (
+            <SpotlightSection
+              columnSlug={form.column_slug}
+              spotlightType={spotlightType}
+              spotlightData={spotlightData}
+              onTypeChange={setSpotlightType}
+              onDataChange={setSpotlightData}
+            />
+          )}
 
           {/* Guide */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">

@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
       column_slug, guide_slug, editorial_review_status,
       published, published_at, editorial_notes,
       source_issue_month, topics,
+      // Migration 098 / 100 / 101 / 099 fields — accepted on first-create so
+      // the /new form is feature-complete with /edit.
+      spotlight_type, spotlight_data,
+      hero_image_orig_path, profile_image_orig_path,
+      gallery_images,
     } = body
 
     if (!title?.trim() || !slug?.trim()) {
@@ -86,6 +91,14 @@ export async function POST(req: NextRequest) {
       editorial_notes:         editorial_notes?.trim() || null,
       source_issue_month:      source_issue_month || null,
       topics:                  Array.isArray(topics) && topics.length > 0 ? topics : null,
+      // Spotlight (Play Ball / Teacher / Mom) — only set when type is non-null
+      spotlight_type:          spotlight_type || null,
+      spotlight_data:          spotlight_data && typeof spotlight_data === 'object' ? spotlight_data : {},
+      // Saved-original paths for the gravity picker + crop modal on /edit
+      hero_image_orig_path:    hero_image_orig_path || null,
+      profile_image_orig_path: profile_image_orig_path || null,
+      // Photo gallery — always an array (constraint requires it)
+      gallery_images:          Array.isArray(gallery_images) ? gallery_images : [],
     }
 
     const { data: created, error } = await supabase

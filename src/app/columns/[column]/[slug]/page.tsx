@@ -12,7 +12,7 @@ import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { TrackArticleView } from '@/components/tracking/TrackArticleView'
 import {
-  SpotlightTopStrip, SpotlightQuickHits, SpotlightEyebrow, SpotlightAboutCard,
+  SpotlightTopStrip, SpotlightQuickHits, SpotlightEyebrow,
 } from '@/components/articles/Spotlight'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
@@ -29,22 +29,6 @@ import type { Metadata } from 'next'
 export const revalidate = 600
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
-
-// Mom to Mom titles are typically formatted "Mom to Mom with Hayley Denny" —
-// strip the column prefix so the About card can show "About Hayley Denny".
-// Falls back to null if no recognizable pattern emerges, in which case the
-// About card renders without a name.
-function deriveSubjectName(title: string | null, columnDisplay: string | null): string | null {
-  if (!title) return null
-  const colName = (columnDisplay ?? '').trim()
-  // "Mom to Mom with X" → "X"
-  let n = title.replace(new RegExp(`^${colName}\\s+with\\s+`, 'i'), '').trim()
-  // "Congrats X" → "X" (Teacher of the Month pattern)
-  n = n.replace(/^congrats\s+/i, '').trim()
-  // "X: ..." → "X" (athlete-style titles)
-  if (n.includes(':')) n = n.split(':')[0].trim()
-  return n && n !== title ? n : null
-}
 
 function getSupabase() {
   return createClient(
@@ -317,19 +301,6 @@ export default async function ArticlePage({ params }: PageParams) {
               <div className="mt-12">
                 <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
-            )}
-
-            {/* About card — closing "About [Name]" with profile photo + bio
-                paragraph from spotlight_data.bio. Used by Mom to Mom mostly;
-                hides itself if both photo + bio are missing. Subject name
-                pulled from the title with the column prefix stripped. */}
-            {isSpotlight && (
-              <SpotlightAboutCard
-                name={deriveSubjectName(article.title as string | null, columnDisplay)}
-                photoUrl={(article.profile_image_url as string | null) ?? null}
-                bio={(spotlightData?.bio as string | null) ?? null}
-                columnSlug={column}
-              />
             )}
 
             {/* Section sponsor footer outro — bigger "Thank you to our sponsor"
