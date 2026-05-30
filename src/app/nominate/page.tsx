@@ -26,9 +26,9 @@ const CATEGORIES = [
     color:       'bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/15 hover:border-secondary/40',
     iconBg:      'bg-secondary/15',
     label:       'Play Ball Spotlight',
-    description: 'Nominate a young athlete or coach making waves in local youth sports.',
-    cta:         'Nominate an Athlete',
-    detail:      'Published monthly · Youth athletes ages 5-18',
+    description: 'Nominate an athlete, coach, or team volunteer (team mom, booster club, concessions) who shows heart in local youth sports.',
+    cta:         'Nominate an Athlete, Coach, or Volunteer',
+    detail:      'Published monthly · Players, coaches, and team volunteers',
   },
   {
     href:        '/submit/grands-are-the-greatest',

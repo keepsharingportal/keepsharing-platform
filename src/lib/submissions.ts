@@ -168,8 +168,8 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     label: 'Play Ball', shortLabel: 'Play Ball Spotlight', emoji: '⚽',
     group: 'Be Featured or Interviewed', groupSlug: 'feature',
     headline: 'Nominate Someone for Play Ball',
-    description: 'Play Ball celebrates the players, coaches, and team moms who show heart, hustle, and sportsmanship — on any field, court, or course.',
-    whoShouldUse: 'Coaches, team moms, teammates, parents — anyone who knows a player, coach, or team mom worth celebrating.',
+    description: 'Play Ball celebrates the players, coaches, and volunteers who show heart, hustle, and sportsmanship — on any field, court, or course.',
+    whoShouldUse: 'Coaches, parents, teammates, volunteers — anyone who knows a player, coach, or team supporter worth celebrating.',
     whatHappensNext: 'Selected nominees are featured with a profile and photo in the magazine and online.',
     estimatedTime: '3 minutes',
     photoLabel: 'Action or Portrait Photo',
@@ -178,7 +178,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
     fields: [
       { id: 'nominee_type',    label: 'Who are you nominating?', type: 'select', required: true,
-        options: ['Player / Athlete', 'Coach', 'Assistant Coach', 'Team Mom / Team Manager', 'Other team supporter'] },
+        options: ['Player / Athlete', 'Coach', 'Assistant Coach', 'Volunteer (team mom, booster club, concessions)', 'Other team supporter'] },
       { id: 'nominee_name',    label: "Their Name",              type: 'text',     required: true,  coreField: 'related_person_name',  placeholder: 'Marcus Williams' },
       { id: 'sport',           label: 'Sport / Activity',        type: 'text',     required: true,  coreField: 'related_sport',       placeholder: 'Soccer, 8U League' },
       { id: 'school_team',     label: 'School or Team Name',     type: 'text',     required: true,  coreField: 'related_school_name', placeholder: 'Eastwood Elementary / Montgomery Youth Soccer' },
@@ -187,7 +187,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
       { id: 'why_outstanding', label: 'What makes them stand out?', type: 'textarea', required: true, rows: 4, placeholder: 'Heart, hustle, character, leadership, the way they show up for kids — tell us what makes them special.' },
       { id: 'achievement',     label: 'A recent moment worth sharing', type: 'textarea', required: false, rows: 3, placeholder: 'A game-winning moment, a memorable season, a moment of character — anything that captures who they are.' },
       { id: 'submitter_relationship', label: 'Your relationship to the nominee', type: 'select', required: true,
-        options: ['Coach', 'Assistant Coach', 'Team Mom / Team Manager', 'Teammate', 'Parent / Guardian', 'Family member', 'Other'] },
+        options: ['Coach', 'Assistant Coach', 'Volunteer (team mom, booster club, concessions)', 'Teammate', 'Parent / Guardian', 'Family member', 'Other'] },
     ],
   },
 
