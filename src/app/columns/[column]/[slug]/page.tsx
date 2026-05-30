@@ -228,18 +228,15 @@ export default async function ArticlePage({ params }: PageParams) {
         />
 
         {/* Meta row sits between the title and the hero: date · read · author
-            on the left, share buttons on the right. */}
+            on the left, share buttons on the right. Nominate pill slots into
+            the middle on desktop, stacks below on mobile. */}
         <ArticleAuthorBlock
           authorName={(article.author_name as string | null) ?? null}
           publishedDate={publishedDate}
           readTimeMinutes={readTimeMinutes}
           shareUrl={shareUrl}
+          nominate={<NominateCTA columnSlug={column} variant="pill" />}
         />
-
-        {/* Nominate pill — compact CTA in the column's brand color, sitting
-            between the meta row and the article body. Full-width on mobile,
-            right-aligned on desktop. Hidden on non-spotlight columns. */}
-        <NominateCTA columnSlug={column} variant="pill" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">

@@ -2,19 +2,25 @@
 
 import { Button } from '@/components/ui/button'
 import { CalendarDays, Clock, Link as LinkIcon, Bookmark, User } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface Props {
   authorName?:     string | null
   publishedDate?:  string
   readTimeMinutes?: number
   shareUrl:        string
+  /**
+   * Optional slot for a per-article CTA — e.g. the NominateCTA pill on
+   * community-spotlight articles. Renders inline between the meta info and
+   * the share buttons on desktop; stacks full-width on mobile.
+   */
+  nominate?: ReactNode
 }
 
 // Renders a single horizontal "meta row" that sits between the article title
 // and the hero image: date · read time · author on the left, share/bookmark
 // buttons on the right. Replaces the older avatar-style author block.
-export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes, shareUrl }: Props) {
+export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes, shareUrl, nominate }: Props) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -28,7 +34,7 @@ export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes,
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-border/40">
+    <div className="flex flex-wrap items-center gap-3 mb-5 pb-4 border-b border-border/40">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
         {publishedDate && (
           <span className="inline-flex items-center gap-1.5">
@@ -52,7 +58,18 @@ export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes,
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Nominate slot — placed in the middle/right of the meta row on
+          desktop, full-width on its own row on mobile. Order: meta first,
+          share buttons next-to-meta on mobile (with ml-auto), pill drops
+          below as a full-width row. On desktop, pill sits between meta and
+          share with sm:ml-auto pushing it to the right of meta. */}
+      {nominate && (
+        <div className="w-full sm:w-auto sm:ml-auto order-3 sm:order-2">
+          {nominate}
+        </div>
+      )}
+
+      <div className="flex items-center gap-1.5 sm:gap-2 ml-auto sm:ml-0 order-2 sm:order-3">
         <Button
           variant="outline"
           size="icon"

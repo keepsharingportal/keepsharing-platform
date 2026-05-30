@@ -33,26 +33,27 @@ export function NominateCTA({ columnSlug, variant }: Props) {
   const cta = getNominateCTA(columnSlug)
   if (!cta) return null
 
-  const brand = getColumnBrand(columnSlug)
-  const btnBg = brand.primary
+  const brand    = getColumnBrand(columnSlug)
+  const btnBg    = brand.primary
+  const accentBg = brand.accent
 
-  // ── PILL — compact, sits near the article meta row ──────────────────────
-  // Neutral background + brand-colored text + brand-colored border. Avoids
-  // doubling up with the brand badge above the title (especially loud on
-  // bright brands like Mom to Mom's rose). The bottom CTA is the loud
-  // primary action; this pill is a quieter secondary nudge.
+  // ── PILL — compact, sits inline in the article meta row ────────────────
+  // White background with column-accent ring (gold/amber per column) and
+  // brand-colored text. Sized small enough to fit on the meta line beside
+  // the date + share buttons on desktop. Stacks full-width on mobile.
+  //
+  // Renders bare (no wrapper) so the caller — ArticleAuthorBlock — can
+  // place it in the right flex slot.
   if (variant === 'pill') {
     return (
-      <div className="flex justify-stretch sm:justify-end mb-6">
-        <Link
-          href={cta.href}
-          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-full px-5 py-2.5 text-sm font-bold bg-white border-2 shadow-sm hover:shadow transition-all hover:bg-gray-50"
-          style={{ color: btnBg, borderColor: btnBg }}
-        >
-          {cta.label}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+      <Link
+        href={cta.href}
+        className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-white border-2 shadow-sm hover:shadow transition-all hover:bg-gray-50"
+        style={{ color: btnBg, borderColor: accentBg }}
+      >
+        {cta.label}
+        <ArrowRight className="w-3.5 h-3.5" />
+      </Link>
     )
   }
 
