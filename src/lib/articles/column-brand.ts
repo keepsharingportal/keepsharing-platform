@@ -19,6 +19,14 @@ export interface ColumnBrand {
   accent:  string
   /** Optional Lucide icon name shown inline in the article eyebrow (e.g. 'Apple' for Teacher of the Month). */
   icon?:   string
+  /**
+   * Optional override for the spotlight top-strip accent — the color used
+   * for the icon circles + ALL-CAPS field labels on the magazine vitals bar.
+   * Defaults to `accent` when unset. Override per-column when the column's
+   * gold accent fights with its primary bg (e.g. Mom's rose + gold reads
+   * gaudy; white reads clean).
+   */
+  topStripAccent?: string
 }
 
 // Site default — coral. Used when a column slug doesn't have its own entry.
@@ -33,8 +41,10 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24' },
 
   // Mom to Mom — rose/pink, matches the Community Spotlights sidebar badge
-  // and the column's brand color in TYPE_COLORS (rose-600).
-  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24' },
+  // and the column's brand color in TYPE_COLORS (rose-600). Top-strip uses
+  // WHITE accents instead of gold — gold + rose was too gaudy; white reads
+  // clean and lets the rose carry the brand.
+  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24', topStripAccent: '#ffffff' },
 
   // Grands Are the Greatest — amber/gold, evokes nostalgia/warmth
   'grands-greatest':     { label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24' },

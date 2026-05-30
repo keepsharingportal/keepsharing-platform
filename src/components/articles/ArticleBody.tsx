@@ -45,10 +45,21 @@ function extractQA(chunk: string): { speaker: string; text: string } | null {
 
 // Rapid Fire range detection — finds the chunk index of the "Rapid Fire"
 // heading and the index of the next h1/h2 (where rapid fire ends).
+//
+// Triggers on any of:
+//   - <h2|h3> containing "rapid fire"     (preferred — editor used the H2 button)
+//   - <p> whose entire text is "Rapid Fire (Questions)?" (editor typed it plain)
+//
+// The plain-paragraph fallback is safe because we require the paragraph to
+// contain ONLY that phrase — an in-body sentence about rapid fire won't trip.
 function findRapidFireRange(chunks: string[]): { start: number; end: number } | null {
+  const plainHeadingRe = /^rapid\s*fire(?:\s*questions?)?\s*[!.:?]?$/i
   let start = -1
   for (let i = 0; i < chunks.length; i++) {
-    if (/<h(?:2|3)\b[^>]*>[^<]*rapid\s*fire/i.test(chunks[i])) { start = i; break }
+    const ch = chunks[i]
+    if (/<h(?:2|3)\b[^>]*>[^<]*rapid\s*fire/i.test(ch)) { start = i; break }
+    const plainText = ch.replace(/<[^>]+>/g, '').trim()
+    if (plainHeadingRe.test(plainText)) { start = i; break }
   }
   if (start === -1) return null
   let end = chunks.length
@@ -207,34 +218,38 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
       return
     }
 
-    // Detect Q&A pattern — magazine treatment alternating Q (brand tint)
-    // and A (neutral with left border). Applies anywhere in the body,
-    // not just Mom to Mom.
+    // Detect Q&A pattern — magazine interview treatment. The speaker labels
+    // (RRP:, Hayley:, etc.) drive the alternation but DON'T render: the
+    // question sits in a soft-pink box with bold brand-colored text, and
+    // the answer sits below as plain body copy. Cleaner than the prior
+    // label-heavy boxes, lets the reader's eye flow Q → A → Q → A.
     const qa = extractQA(chunk)
     if (qa) {
       const isQuestion = qaIndex % 2 === 0
       qaIndex++
-      elements.push(
-        <div
-          key={`qa-${i}`}
-          className={isQuestion ? 'my-3 md:my-4 rounded-lg px-4 py-3 md:px-5 md:py-4' : 'my-3 md:my-4 pl-4 md:pl-5 border-l-4'}
-          style={isQuestion
-            ? { backgroundColor: brand.primary + '0f' }
-            : { borderColor: brand.primary + '55' }
-          }
-        >
+      if (isQuestion) {
+        elements.push(
           <div
-            className="text-[10px] md:text-xs font-black uppercase tracking-[0.14em] mb-1"
-            style={{ color: brand.primary }}
+            key={`qa-${i}`}
+            className="mt-7 md:mt-8 mb-2 rounded-lg px-4 py-3 md:px-5 md:py-3.5"
+            style={{ backgroundColor: brand.primary + '12' }}
           >
-            {qa.speaker}
+            <p
+              className="font-bold text-base md:text-lg leading-snug"
+              style={{ color: brand.primary }}
+              dangerouslySetInnerHTML={{ __html: qa.text }}
+            />
           </div>
-          <div
-            className={isQuestion ? 'text-base md:text-lg italic text-foreground/90 leading-snug' : 'text-base md:text-lg text-foreground/85 leading-relaxed'}
+        )
+      } else {
+        elements.push(
+          <p
+            key={`qa-${i}`}
+            className="text-base md:text-lg text-foreground/85 leading-relaxed mb-1 px-1"
             dangerouslySetInnerHTML={{ __html: qa.text }}
           />
-        </div>
-      )
+        )
+      }
       return
     }
 

@@ -66,13 +66,16 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
   })
   if (filled.length === 0) return null
 
-  const brand    = getColumnBrand(columnSlug)
-  const colCount = Math.min(filled.length, 5)
+  const brand       = getColumnBrand(columnSlug)
+  // stripAccent drives the icon-circle bg + label color. When a column
+  // overrides it (Mom uses white) we get a cleaner look than gold-on-bright.
+  const stripAccent = brand.topStripAccent ?? brand.accent
+  const colCount    = Math.min(filled.length, 5)
   // Tailwind needs literal class names — explicit grid mapping by count.
-  const gridCls  = colCount === 2 ? 'grid-cols-2'
-                 : colCount === 3 ? 'grid-cols-2 md:grid-cols-3'
-                 : colCount === 4 ? 'grid-cols-2 md:grid-cols-4'
-                 :                  'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+  const gridCls     = colCount === 2 ? 'grid-cols-2'
+                    : colCount === 3 ? 'grid-cols-2 md:grid-cols-3'
+                    : colCount === 4 ? 'grid-cols-2 md:grid-cols-4'
+                    :                  'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
 
   return (
     <div
@@ -86,7 +89,7 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
             field={f}
             value={String(spotlightData[f.key])}
             primary={brand.primary}
-            accent={brand.accent}
+            accent={stripAccent}
           />
         ))}
       </div>
