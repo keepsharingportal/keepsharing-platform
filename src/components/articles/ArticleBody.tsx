@@ -108,9 +108,17 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
       elements.push(
         <blockquote
           key={`q-${i}`}
-          className="border-l-4 border-primary pl-6 my-10 py-2 italic text-2xl text-foreground font-medium bg-primary/5 rounded-r-xl"
+          className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 my-12 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
         >
-          &ldquo;{pullQuotes[quoteIndex]}&rdquo;
+          {/* Decorative oversized coral quote mark */}
+          <span
+            aria-hidden="true"
+            className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            &ldquo;
+          </span>
+          {pullQuotes[quoteIndex]}
         </blockquote>
       )
     }
@@ -189,16 +197,52 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           line-height: 1.7;
           margin-bottom: 0.5rem;
         }
-        /* Inline blockquotes coming from body HTML use same style as pull quotes */
+        /* Magazine-style pull quote — heavy italic, oversized, decorative
+           coral quote marks at the start and end. Same treatment whether
+           the quote comes from inline body HTML or the pull_quotes array. */
         .article-body .article-chunk blockquote {
-          border-left: 4px solid hsl(var(--primary));
-          padding: 0.5rem 0 0.5rem 1.5rem;
-          margin: 2.5rem 0;
+          position: relative;
+          padding: 1.5rem 1rem 1.5rem 3.5rem;
+          margin: 3rem 0;
           font-style: italic;
+          font-weight: 700;
           font-size: 1.5rem;
+          line-height: 1.4;
           color: hsl(var(--foreground));
-          background: hsl(var(--primary) / 0.05);
+          background: hsl(var(--primary) / 0.04);
+          border-left: 4px solid hsl(var(--primary));
           border-radius: 0 0.75rem 0.75rem 0;
+        }
+        .article-body .article-chunk blockquote::before {
+          content: '\\201C';
+          position: absolute;
+          top: -0.5rem;
+          left: 1rem;
+          font-size: 4rem;
+          font-style: normal;
+          font-weight: 900;
+          line-height: 1;
+          color: hsl(var(--primary));
+          font-family: Georgia, 'Times New Roman', serif;
+        }
+        .article-body .article-chunk blockquote p {
+          margin: 0;
+          font-size: inherit;
+          font-style: inherit;
+          font-weight: inherit;
+          color: inherit;
+          line-height: inherit;
+        }
+        @media (min-width: 768px) {
+          .article-body .article-chunk blockquote {
+            font-size: 1.75rem;
+            padding: 2rem 1.5rem 2rem 4rem;
+          }
+          .article-body .article-chunk blockquote::before {
+            font-size: 5rem;
+            top: -0.5rem;
+            left: 1.25rem;
+          }
         }
         /* ── Images and figures ─────────────────────────────────── */
         .article-body img {

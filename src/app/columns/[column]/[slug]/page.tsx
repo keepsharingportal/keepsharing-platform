@@ -245,6 +245,14 @@ export default async function ArticlePage({ params }: PageParams) {
               ) : undefined}
             />
 
+            {/* Spotlight Quick Hits — sits AFTER the article body so the
+                story leads, then the reader gets the Q&A. Mobile + desktop. */}
+            {isSpotlight && (
+              <div className="mt-12">
+                <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} />
+              </div>
+            )}
+
             {/* Author bio */}
             {article.author_bio && (
               <div className="mt-12 pt-8 border-t border-border/60 bg-muted/30 rounded-2xl p-6">
@@ -280,9 +288,6 @@ export default async function ArticlePage({ params }: PageParams) {
             stickyAd={stickyAdMapped}
             sponsoredAd={sponsoredAdMapped}
             trending={trendingMapped}
-            topSlot={isSpotlight ? (
-              <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} />
-            ) : undefined}
           />
         </div>
       </main>
