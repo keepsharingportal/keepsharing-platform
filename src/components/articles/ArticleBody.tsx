@@ -85,13 +85,49 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
 
   const elements: ReactNode[] = []
 
+  // Auto-detect: is the first chunk a paragraph that contains ONLY a quoted
+  // phrase? Editors often type pull quotes as regular paragraphs (with " and
+  // ") at the top of the body. We promote those to magazine-style pull
+  // quotes automatically so the writer doesn't have to know about the
+  // blockquote button.
+  let dropCapApplied = false
+
   chunks.forEach((chunk, i) => {
-    // First chunk gets lede styling (larger, heavier)
-    const isLede = i === 0
+    const plainText = chunk.replace(/<[^>]+>/g, '').trim()
+    const looksLikeInlinePullQuote =
+      i < 2 &&
+      /^<p[\s>]/i.test(chunk) &&
+      /^["“'].*["”']$/.test(plainText) &&
+      plainText.length < 280
+
+    if (looksLikeInlinePullQuote) {
+      const quoteText = plainText.replace(/^["“']|["”']$/g, '')
+      elements.push(
+        <blockquote
+          key={`auto-q-${i}`}
+          className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 my-10 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
+        >
+          <span
+            aria-hidden="true"
+            className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            &ldquo;
+          </span>
+          {quoteText}
+        </blockquote>
+      )
+      return
+    }
+
+    // First non-quote chunk gets lede styling + drop cap on first letter
+    const isLede = !dropCapApplied && /^<p[\s>]/i.test(chunk)
+    if (isLede) dropCapApplied = true
+
     elements.push(
       <div
         key={`c-${i}`}
-        className={isLede ? 'article-lede' : 'article-chunk'}
+        className={isLede ? 'article-lede article-dropcap' : 'article-chunk'}
         dangerouslySetInnerHTML={{ __html: chunk }}
       />
     )
@@ -158,6 +194,26 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           .article-body .article-lede p {
             font-size: 1.375rem;
             line-height: 1.5;
+          }
+        }
+        /* Drop cap — classic magazine flourish on the first letter of the
+           opening paragraph. Coral, oversized, floated left so body text
+           wraps around it. Skips automatically if the first chunk is a
+           pull quote or heading. */
+        .article-body .article-dropcap p:first-of-type::first-letter {
+          float: left;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: 4.5rem;
+          font-weight: 900;
+          line-height: 0.85;
+          padding: 0.3rem 0.5rem 0 0;
+          margin: 0.25rem 0.1rem 0 0;
+          color: hsl(var(--primary));
+        }
+        @media (min-width: 768px) {
+          .article-body .article-dropcap p:first-of-type::first-letter {
+            font-size: 5.5rem;
+            padding: 0.4rem 0.6rem 0 0;
           }
         }
         .article-body h2 {

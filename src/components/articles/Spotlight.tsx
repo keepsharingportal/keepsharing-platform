@@ -86,24 +86,24 @@ export function SpotlightQuickHits({ spotlightType, spotlightData }: Props) {
   return (
     <div className="bg-[#faf8f5] rounded-2xl overflow-hidden ring-1 ring-[#1a2744]/10 shadow-md">
       {/* Navy header */}
-      <div className="bg-[#1a2744] text-white text-center py-3 relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#f3bf24]">
-          <Sparkles size={12} />
+      <div className="bg-[#1a2744] text-white text-center py-4 md:py-5 relative">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#f3bf24]">
+          <Sparkles size={16} />
         </div>
-        <h3 className="text-base md:text-lg font-black tracking-wide inline-flex items-center gap-2">
+        <h3 className="text-xl md:text-2xl font-black tracking-wide">
           QUICK HITS
         </h3>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#f3bf24]">
-          <Sparkles size={12} />
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 text-[#f3bf24]">
+          <Sparkles size={16} />
         </div>
         {/* Gold star underline */}
-        <div className="flex justify-center mt-0.5">
-          <Star size={8} className="fill-[#f3bf24] text-[#f3bf24]" />
+        <div className="flex justify-center mt-1">
+          <Star size={10} className="fill-[#f3bf24] text-[#f3bf24]" />
         </div>
       </div>
 
       {/* Q&A list */}
-      <div className="p-5 md:p-6 space-y-5">
+      <div className="p-6 md:p-8 space-y-6 md:space-y-7">
         {filled.map(f => (
           <QuickHitRow key={f.key} field={f} value={String(spotlightData[f.key])} />
         ))}
@@ -114,15 +114,15 @@ export function SpotlightQuickHits({ spotlightType, spotlightData }: Props) {
 
 function QuickHitRow({ field, value }: { field: SpotlightField; value: string }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="shrink-0 w-10 h-10 rounded-full bg-[#1a2744] flex items-center justify-center text-[#f3bf24]">
-        <Icon name={field.icon} size={16} />
+    <div className="flex items-start gap-4">
+      <div className="shrink-0 w-12 h-12 rounded-full bg-[#1a2744] flex items-center justify-center text-[#f3bf24] shadow-sm">
+        <Icon name={field.icon} size={20} />
       </div>
-      <div className="min-w-0 flex-1 pt-0.5">
-        <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#1a2744] mb-1 leading-tight">
+      <div className="min-w-0 flex-1 pt-1">
+        <p className="text-sm md:text-base font-black uppercase tracking-[0.06em] text-[#1a2744] mb-1.5 leading-tight">
           {field.label}
         </p>
-        <p className="text-sm text-[#3d3d3d] leading-relaxed">
+        <p className="text-base md:text-lg text-[#3d3d3d] leading-relaxed">
           {value}
         </p>
       </div>
