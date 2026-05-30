@@ -40,6 +40,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'spotlight_type', 'spotlight_data',
       // Photo gallery (migration 099)
       'gallery_images',
+      // Hero original path for re-crop (migration 100)
+      'hero_image_orig_path',
     ]
 
     const update: Record<string, unknown> = {}

@@ -25,13 +25,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 
-const BUCKET          = 'article-media'
-const MAX_BYTES       = 15 * 1024 * 1024   // 15 MB raw limit
-const WEB_MAX_WIDTH   = 1600
-const THUMB_WIDTH     = 400
-const WEB_QUALITY     = 82
-const THUMB_QUALITY   = 75
-const ALLOWED_TYPES   = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
+const BUCKET            = 'article-media'           // public — web variants + thumbs
+const BUCKET_HERO_ORIG  = 'article-hero-orig'        // private — saved hero originals for re-crop
+const MAX_BYTES         = 15 * 1024 * 1024           // 15 MB raw limit (Vercel platform caps at ~4.5 MB; client compresses bigger files first)
+const WEB_MAX_WIDTH     = 1600
+const THUMB_WIDTH       = 400
+const WEB_QUALITY       = 82
+const THUMB_QUALITY     = 75
+// Fixed hero crop — 16:9, sized for the article detail page hero block.
+// CSS letterboxes / object-covers for narrower viewports.
+const HERO_CARD_WIDTH   = 1600
+const HERO_CARD_HEIGHT  = 900
+const ALLOWED_TYPES     = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
 const URL_FETCH_TIMEOUT_MS = 12_000
 
 function supabaseAdmin() {
@@ -57,6 +62,16 @@ function isSupabaseStorageUrl(url: string): boolean {
 
 // Shared pipeline: takes a raw image buffer + original filename + context,
 // returns the optimized URLs.
+//
+// context === 'article-hero' opts into the magazine-style flow:
+//   - Saves the unmodified original to the private BUCKET_HERO_ORIG bucket
+//     so an editor can re-crop later via the gravity picker
+//   - Produces a fixed 16:9 web variant (1600×900) using Sharp's attention
+//     strategy — works for square and vertical sources alike
+//   - Returns origPath so the caller can persist it on the article row
+//
+// Other contexts ('article', 'listing', etc.) keep the original natural-aspect
+// behavior — gallery photos and listing tiles shouldn't be force-cropped.
 async function processAndUpload(args: {
   buffer:        Buffer
   originalName:  string
@@ -64,6 +79,7 @@ async function processAndUpload(args: {
   declaredType?: string | null
 }) {
   const { buffer, originalName, context, declaredType } = args
+  const isHero = context === 'article-hero'
 
   const meta = await sharp(buffer).metadata()
   const origW = meta.width  ?? 0
@@ -74,13 +90,26 @@ async function processAndUpload(args: {
     throw new Error('Could not parse image — file may be corrupt or not actually an image.')
   }
 
-  const webPipeline = sharp(buffer)
-  if (origW > WEB_MAX_WIDTH) webPipeline.resize({ width: WEB_MAX_WIDTH, withoutEnlargement: true })
+  // Build the public-facing web variant. For article-hero we lock to 16:9
+  // and let Sharp's attention strategy pick the focal point. For everything
+  // else, keep natural aspect (clamped to 1600px wide).
+  const webPipeline = sharp(buffer).rotate()  // honor EXIF orientation
+  if (isHero) {
+    webPipeline.resize({
+      width:    HERO_CARD_WIDTH,
+      height:   HERO_CARD_HEIGHT,
+      fit:      'cover',
+      position: sharp.strategy.attention,
+    })
+  } else if (origW > WEB_MAX_WIDTH) {
+    webPipeline.resize({ width: WEB_MAX_WIDTH, withoutEnlargement: true })
+  }
   const webBuffer = await webPipeline.webp({ quality: WEB_QUALITY }).toBuffer({ resolveWithObject: true })
   const webW = webBuffer.info.width
   const webH = webBuffer.info.height
 
   const thumbBuffer = await sharp(buffer)
+    .rotate()
     .resize({ width: THUMB_WIDTH, withoutEnlargement: true })
     .webp({ quality: THUMB_QUALITY })
     .toBuffer()
@@ -102,6 +131,25 @@ async function processAndUpload(args: {
 
   const { data: { publicUrl: url } }          = supabase.storage.from(BUCKET).getPublicUrl(webPath)
   const { data: { publicUrl: thumbnailUrl } } = supabase.storage.from(BUCKET).getPublicUrl(thumbPath)
+
+  // For hero uploads, also stash the raw original in a private bucket so an
+  // editor can re-crop later without re-uploading. The path is what we hand
+  // back to the caller — they persist it on the article row.
+  let origPath: string | undefined
+  if (isHero) {
+    const ext        = inferExt(originalName, declaredType ?? null) || 'jpg'
+    const origRelPath = storagePath('hero-orig', `${uid}.${ext}`)
+    await supabase.storage.createBucket(BUCKET_HERO_ORIG, { public: false }).catch(() => {})
+    const origUp = await supabase.storage
+      .from(BUCKET_HERO_ORIG)
+      .upload(origRelPath, buffer, {
+        contentType: declaredType?.startsWith('image/') ? declaredType : 'application/octet-stream',
+        upsert:      false,
+      })
+    if (!origUp.error) origPath = origRelPath
+    // If the private bucket upload fails we still return the public URL —
+    // the re-crop feature just won't be available for this image.
+  }
 
   // Soft-record (table may not exist on every env)
   let assetId: string | undefined
@@ -135,7 +183,23 @@ async function processAndUpload(args: {
     size:     webBuffer.data.length,
     original: { width: origW, height: origH, size: buffer.byteLength },
     id:       assetId,
+    origPath,
   }
+}
+
+// Best-effort extension picker so the saved original keeps a sane file name
+// for re-crop downloads. Falls back to jpg if nothing useful is in the
+// filename or MIME type.
+function inferExt(name: string, mime: string | null): string | null {
+  const fromName = name.match(/\.([a-zA-Z0-9]{2,4})$/)?.[1]?.toLowerCase()
+  if (fromName) return fromName
+  if (!mime) return null
+  if (mime.includes('jpeg')) return 'jpg'
+  if (mime.includes('png'))  return 'png'
+  if (mime.includes('webp')) return 'webp'
+  if (mime.includes('gif'))  return 'gif'
+  if (mime.includes('avif')) return 'avif'
+  return null
 }
 
 export async function POST(req: NextRequest) {

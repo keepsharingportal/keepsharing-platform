@@ -208,6 +208,11 @@ export default function ArticleEditPage({ params }: Props) {
   // Rendered as a branded lightbox grid below the article body on the public site.
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
 
+  // Hero image original (migration 100) — private bucket path of the saved
+  // raw upload. Enables the gravity picker on HeroImageUpload to re-crop
+  // without re-uploading. Null for legacy heroes uploaded before this.
+  const [heroOrigPath, setHeroOrigPath] = useState<string | null>(null)
+
   // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
   const [bloggers, setBloggers] = useState<Array<{ id: string; slug: string; display_name: string }>>([])
   useEffect(() => {
@@ -277,6 +282,8 @@ export default function ArticleEditPage({ params }: Props) {
         setGalleryImages(Array.isArray(gi)
           ? (gi as GalleryImage[]).filter(img => !!img && typeof img.url === 'string')
           : [])
+        // Hero original — present only if the hero was uploaded after migration 100.
+        setHeroOrigPath((data.hero_image_orig_path as string | null) ?? null)
       }
       setLoading(false)
     }
@@ -364,6 +371,10 @@ export default function ArticleEditPage({ params }: Props) {
     // Photo gallery — always persist (an empty array clears prior images).
     // Strip any rows still missing a URL just in case.
     payload.gallery_images = galleryImages.filter(img => !!img?.url)
+
+    // Hero image original path — persist whenever it changed so the gravity
+    // picker has a stable source. Set on fresh uploads, cleared on remove.
+    payload.hero_image_orig_path = heroOrigPath
 
     try {
       const res = await fetch(`/api/admin/articles/${id}`, {
@@ -731,8 +742,15 @@ export default function ArticleEditPage({ params }: Props) {
               <HeroImageUpload
                 value={form.hero_image_url}
                 onChange={url => setField('hero_image_url', url)}
+                context="article-hero"
+                articleId={id as string}
+                origPath={heroOrigPath}
+                onOrigPathChange={setHeroOrigPath}
               />
-              <p className="text-[11px] text-gray-400 mt-1">Wide format. Used at the top of the article page and when this article is the big homepage feature.</p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                Wide format (cropped to 16:9). Sharp picks the focal point automatically — use the compass buttons to nudge it.
+                Big files (phone photos) are auto-resized in the browser before upload.
+              </p>
             </div>
 
             {/* ── Profile image (small) ── */}
