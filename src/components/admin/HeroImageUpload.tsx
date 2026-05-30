@@ -18,8 +18,9 @@
 
 import { useRef, useState, useEffect } from 'react'
 import {
-  Upload, X, AlertTriangle, RefreshCw, ImageIcon, CheckCircle2, Crop,
+  Upload, X, AlertTriangle, RefreshCw, ImageIcon, CheckCircle2, Crop, ZoomIn,
 } from 'lucide-react'
+import { ArticleCropModal } from './ArticleCropModal'
 
 interface Props {
   value:    string
@@ -124,6 +125,9 @@ export function HeroImageUpload({
   // Track which gravity button is currently re-cropping so the picker can
   // show a spinner on the active button.
   const [recropBusy, setRecropBusy] = useState<string | null>(null)
+
+  // Interactive crop modal — opens on "Zoom & adjust" click.
+  const [cropOpen, setCropOpen] = useState(false)
 
   useEffect(() => { setUrlDraft(value) }, [value])
 
@@ -339,6 +343,7 @@ export function HeroImageUpload({
           enabled={canRecrop}
           busyGravity={recropBusy}
           onPick={recrop}
+          onZoomClick={canRecrop ? () => setCropOpen(true) : undefined}
           hint={
             !articleId
               ? 'Save the article once to enable re-crop.'
@@ -346,6 +351,18 @@ export function HeroImageUpload({
                 ? `Upload a fresh image to enable re-crop (legacy ${context === 'article-profile' ? 'profile photos' : 'heroes'} have no saved original).`
                 : null
           }
+        />
+      )}
+
+      {cropOpen && articleId && isRecropContext(context) && (
+        <ArticleCropModal
+          articleId={articleId}
+          type={context === 'article-profile' ? 'profile' : 'hero'}
+          onApply={(newUrl) => {
+            onChange(newUrl)
+            setUrlDraft(newUrl)
+          }}
+          onClose={() => setCropOpen(false)}
         />
       )}
 
@@ -411,12 +428,16 @@ const COMPASS: { gravity: string; label: string }[] = [
 ]
 
 function GravityPicker({
-  label, enabled, busyGravity, onPick, hint,
+  label, enabled, busyGravity, onPick, onZoomClick, hint,
 }: {
   label:       string
   enabled:     boolean
   busyGravity: string | null
   onPick:      (gravity: string) => void
+  /** Optional — when provided, shows a "Zoom & adjust" button that opens the
+   *  full cropper modal. Quick gravity nudge stays on the compass; precise
+   *  framing happens in the modal. */
+  onZoomClick?: () => void
   hint:        string | null
 }) {
   return (
@@ -445,13 +466,13 @@ function GravityPicker({
           )
         })}
       </div>
-      <div className="mt-1.5 flex gap-1">
+      <div className="mt-1.5 flex flex-col gap-1">
         <button
           type="button"
           onClick={() => onPick('attention')}
           disabled={!enabled || busyGravity !== null}
           title="Re-run automatic attention crop"
-          className={`flex-1 text-[10px] font-bold rounded px-2 py-1 ${
+          className={`text-[10px] font-bold rounded px-2 py-1 ${
             !enabled
               ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
               : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
@@ -459,6 +480,21 @@ function GravityPicker({
         >
           {busyGravity === 'attention' ? 'Re-cropping…' : 'Auto (attention)'}
         </button>
+        {onZoomClick && (
+          <button
+            type="button"
+            onClick={onZoomClick}
+            disabled={!enabled || busyGravity !== null}
+            title="Open the cropper to zoom in on a specific area"
+            className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold rounded px-2 py-1 ${
+              !enabled
+                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
+            }`}
+          >
+            <ZoomIn size={11} /> Zoom &amp; adjust…
+          </button>
+        )}
       </div>
       {hint && (
         <p className="text-[10px] text-blue-700/80 mt-1.5 leading-snug">{hint}</p>

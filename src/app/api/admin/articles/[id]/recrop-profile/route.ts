@@ -1,9 +1,16 @@
 // POST /api/admin/articles/[id]/recrop-profile
 //
-// Re-crop the profile image from the saved original using a manual gravity.
-// Sibling of /recrop-hero — same flow, different bucket + target shape (1:1).
+// Re-crop the profile image from the saved original. Two modes:
 //
-// Body: { gravity: 'attention' | 'entropy' | 'north' | ... | 'southeast' }
+//   1) { gravity: 'attention' | 'entropy' | <compass> }
+//      Cover-crop to 1:1 using Sharp's strategy / compass position. Used by
+//      the 9-direction GravityPicker for quick nudges.
+//
+//   2) { region: { x: 0..1, y: 0..1, size: 0..1 } }
+//      Extract a user-drawn square from the original, then resize to 800×800.
+//      Used by the interactive ArticleCropModal — gives precise zoom + pan
+//      so an editor can tightly frame a face that auto-crop missed.
+//
 // Returns: { profile_image_url }
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -47,10 +54,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const { id } = await params
     if (!id) return NextResponse.json({ error: 'Missing article id' }, { status: 400 })
 
-    const body    = await req.json().catch(() => ({}))
+    const body   = await req.json().catch(() => ({}))
+    const region = body?.region as { x?: number; y?: number; size?: number } | undefined
     const gravity = body?.gravity as string | undefined
-    if (!gravity || !VALID_GRAVITIES.has(gravity)) {
-      return NextResponse.json({ error: 'Invalid gravity' }, { status: 400 })
+
+    // Either region OR gravity must be present — and only one. Region wins
+    // when both happen to come in.
+    const hasRegion = region && [region.x, region.y, region.size].every(v => typeof v === 'number')
+    if (!hasRegion && (!gravity || !VALID_GRAVITIES.has(gravity))) {
+      return NextResponse.json({ error: 'Provide region {x, y, size} or a valid gravity' }, { status: 400 })
     }
 
     const supabase = supabaseAdmin()
@@ -74,16 +86,54 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
     const buffer = Buffer.from(await dl.data.arrayBuffer())
 
-    const cardOut = await sharp(buffer)
-      .rotate()
-      .resize({
-        width:    PROFILE_CARD_SIZE,
-        height:   PROFILE_CARD_SIZE,
-        fit:      'cover',
-        position: sharpPosition(gravity),
-      })
-      .webp({ quality: WEB_QUALITY })
-      .toBuffer()
+    // Two crop paths:
+    //  Region: user drew a precise square — extract it, then resize to 800×800.
+    //  Gravity: cover-crop using the named position (legacy compass behavior).
+    let cardOut: Buffer
+    if (hasRegion) {
+      // sharp.rotate() applies EXIF rotation. We need the rotated dimensions
+      // before computing pixel coords so the user's crop maps to what they
+      // actually saw in the modal (which loaded the file with browser-applied
+      // EXIF rotation).
+      const rotated  = sharp(buffer).rotate()
+      const meta     = await rotated.metadata()
+      const W        = meta.width  ?? 0
+      const H        = meta.height ?? 0
+      const clamp01  = (n: number) => Math.max(0, Math.min(1, n))
+      const xPct     = clamp01(region!.x!)
+      const yPct     = clamp01(region!.y!)
+      const sizePct  = clamp01(region!.size!)
+
+      // Square in absolute pixels. Edge length is sizePct of the SHORTER
+      // image edge so the box never exceeds the source.
+      const shortest = Math.min(W, H)
+      const edge     = Math.max(1, Math.round(sizePct * shortest))
+      let left       = Math.round(xPct * W)
+      let top        = Math.round(yPct * H)
+      // Clamp so the extract stays inside the image
+      if (left + edge > W) left = W - edge
+      if (top  + edge > H) top  = H - edge
+      if (left < 0) left = 0
+      if (top  < 0) top  = 0
+
+      cardOut = await sharp(buffer)
+        .rotate()
+        .extract({ left, top, width: edge, height: edge })
+        .resize({ width: PROFILE_CARD_SIZE, height: PROFILE_CARD_SIZE, fit: 'cover' })
+        .webp({ quality: WEB_QUALITY })
+        .toBuffer()
+    } else {
+      cardOut = await sharp(buffer)
+        .rotate()
+        .resize({
+          width:    PROFILE_CARD_SIZE,
+          height:   PROFILE_CARD_SIZE,
+          fit:      'cover',
+          position: sharpPosition(gravity!),
+        })
+        .webp({ quality: WEB_QUALITY })
+        .toBuffer()
+    }
 
     const uid     = crypto.randomUUID().slice(0, 8)
     const newPath = storagePath('articles', `${uid}-profile-recrop.webp`)
@@ -119,7 +169,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ profile_image_url, gravity })
+    return NextResponse.json({ profile_image_url, mode: hasRegion ? 'region' : 'gravity' })
   } catch (e) {
     console.error('[POST recrop-profile] error:', e)
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })

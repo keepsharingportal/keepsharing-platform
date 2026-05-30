@@ -1,12 +1,13 @@
 // POST /api/admin/articles/[id]/recrop-hero
 //
-// Re-crop the hero from the saved original using a manual gravity. Used by
-// the HeroImageUpload GravityPicker when Sharp's attention strategy missed
-// the subject. Downloads the source from the private article-hero-orig
-// bucket, runs Sharp with the supplied gravity, uploads to article-media,
-// and updates hero_image_url on the row.
+// Re-crop the hero from the saved original. Two modes:
 //
-// Body: { gravity: 'attention' | 'entropy' | 'north' | ... | 'southeast' }
+//   1) { gravity: 'attention' | 'entropy' | <compass> }
+//      Cover-crop to 16:9 using Sharp's strategy / compass position.
+//
+//   2) { region: { x: 0..1, y: 0..1, w: 0..1, h: 0..1 } }
+//      Extract a user-drawn 16:9 rectangle from the original, then resize
+//      to 1600×900. From the ArticleCropModal for precision framing.
 //
 // Returns: { hero_image_url } so the client can swap its preview + form
 // state in one shot.
@@ -56,8 +57,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const body    = await req.json().catch(() => ({}))
     const gravity = body?.gravity as string | undefined
-    if (!gravity || !VALID_GRAVITIES.has(gravity)) {
-      return NextResponse.json({ error: 'Invalid gravity' }, { status: 400 })
+    const region  = body?.region as { x?: number; y?: number; w?: number; h?: number } | undefined
+
+    const hasRegion = region && [region.x, region.y, region.w, region.h].every(v => typeof v === 'number')
+    if (!hasRegion && (!gravity || !VALID_GRAVITIES.has(gravity))) {
+      return NextResponse.json({ error: 'Provide region {x, y, w, h} or a valid gravity' }, { status: 400 })
     }
 
     const supabase = supabaseAdmin()
@@ -86,18 +90,48 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
     const buffer = Buffer.from(await dl.data.arrayBuffer())
 
-    // Re-process. Same shape + quality as the original article-hero pipeline
-    // — only the gravity changes.
-    const cardOut = await sharp(buffer)
-      .rotate()
-      .resize({
-        width:    HERO_CARD_WIDTH,
-        height:   HERO_CARD_HEIGHT,
-        fit:      'cover',
-        position: sharpPosition(gravity),
-      })
-      .webp({ quality: WEB_QUALITY })
-      .toBuffer()
+    // Re-process. Same shape + quality as the original article-hero pipeline.
+    // Region path: extract a user-drawn 16:9 rect, then resize to 1600×900.
+    // Gravity path: cover-crop using the named strategy / compass position.
+    let cardOut: Buffer
+    if (hasRegion) {
+      const rotated = sharp(buffer).rotate()
+      const meta    = await rotated.metadata()
+      const W       = meta.width  ?? 0
+      const H       = meta.height ?? 0
+      const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+      const xPct    = clamp01(region!.x!)
+      const yPct    = clamp01(region!.y!)
+      const wPct    = clamp01(region!.w!)
+      const hPct    = clamp01(region!.h!)
+
+      let left   = Math.round(xPct * W)
+      let top    = Math.round(yPct * H)
+      let width  = Math.max(1, Math.round(wPct * W))
+      let height = Math.max(1, Math.round(hPct * H))
+      if (left + width  > W) left = W - width
+      if (top  + height > H) top  = H - height
+      if (left < 0) left = 0
+      if (top  < 0) top  = 0
+
+      cardOut = await sharp(buffer)
+        .rotate()
+        .extract({ left, top, width, height })
+        .resize({ width: HERO_CARD_WIDTH, height: HERO_CARD_HEIGHT, fit: 'cover' })
+        .webp({ quality: WEB_QUALITY })
+        .toBuffer()
+    } else {
+      cardOut = await sharp(buffer)
+        .rotate()
+        .resize({
+          width:    HERO_CARD_WIDTH,
+          height:   HERO_CARD_HEIGHT,
+          fit:      'cover',
+          position: sharpPosition(gravity!),
+        })
+        .webp({ quality: WEB_QUALITY })
+        .toBuffer()
+    }
 
     // Upload as a new object so any cached copies of the previous URL keep
     // working until the row update propagates.
@@ -138,7 +172,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ hero_image_url, gravity })
+    return NextResponse.json({ hero_image_url, mode: hasRegion ? 'region' : 'gravity' })
   } catch (e) {
     console.error('[POST recrop-hero] error:', e)
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
