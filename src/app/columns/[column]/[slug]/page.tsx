@@ -14,6 +14,8 @@ import { TrackArticleView } from '@/components/tracking/TrackArticleView'
 import {
   SpotlightTopStrip, SpotlightQuickHits, SpotlightEyebrow,
 } from '@/components/articles/Spotlight'
+import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
+import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
@@ -178,6 +180,15 @@ export default async function ArticlePage({ params }: PageParams) {
   const spotlightData = (article.spotlight_data as Record<string, unknown> | null) ?? null
   const isSpotlight   = spotlightType !== null
 
+  // Photo gallery — JSONB array from migration 099. Renders below the body,
+  // above Quick Hits for spotlights or above the author bio otherwise.
+  const rawGallery = article.gallery_images
+  const galleryImages: GalleryImage[] = Array.isArray(rawGallery)
+    ? (rawGallery as GalleryImage[]).filter(img => !!img && typeof img.url === 'string')
+    : []
+  const spotlightTpl    = getSpotlightTemplate(spotlightType)
+  const galleryEyebrow  = spotlightTpl?.eyebrow ?? null
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -245,6 +256,15 @@ export default async function ArticlePage({ params }: PageParams) {
                   ctaUrl={inlineAd.ad_link ?? '#'}
                 />
               ) : undefined}
+            />
+
+            {/* Photo gallery — branded lightbox. Sits between the body and
+                Quick Hits so the prose leads, photos sit in the middle, then
+                the Q&A finale closes out the spotlight. */}
+            <ArticleGallery
+              images={galleryImages}
+              columnSlug={column}
+              spotlightEyebrow={galleryEyebrow}
             />
 
             {/* Spotlight Quick Hits — sits AFTER the article body so the

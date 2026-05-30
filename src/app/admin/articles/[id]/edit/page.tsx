@@ -11,6 +11,7 @@ import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { COLUMNS, GUIDES, CONTENT_TOPICS, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
 import { TeacherOfMonthLayout } from '@/components/articles/templates/TeacherOfMonthLayout'
@@ -203,6 +204,10 @@ export default function ArticleEditPage({ params }: Props) {
   const [spotlightType, setSpotlightType] = useState<string>('')
   const [spotlightData, setSpotlightData] = useState<Record<string, string>>({})
 
+  // Photo gallery (migration 099) — array of { url, thumbnail_url, alt, caption }.
+  // Rendered as a branded lightbox grid below the article body on the public site.
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
+
   // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
   const [bloggers, setBloggers] = useState<Array<{ id: string; slug: string; display_name: string }>>([])
   useEffect(() => {
@@ -266,6 +271,12 @@ export default function ArticleEditPage({ params }: Props) {
         } else {
           setSpotlightData({})
         }
+        // Gallery — JSONB array. Filter out anything missing a URL so a bad
+        // record can't crash the editor.
+        const gi = data.gallery_images
+        setGalleryImages(Array.isArray(gi)
+          ? (gi as GalleryImage[]).filter(img => !!img && typeof img.url === 'string')
+          : [])
       }
       setLoading(false)
     }
@@ -349,6 +360,10 @@ export default function ArticleEditPage({ params }: Props) {
       payload.spotlight_type = null
       payload.spotlight_data = {}
     }
+
+    // Photo gallery — always persist (an empty array clears prior images).
+    // Strip any rows still missing a URL just in case.
+    payload.gallery_images = galleryImages.filter(img => !!img?.url)
 
     try {
       const res = await fetch(`/api/admin/articles/${id}`, {
@@ -728,6 +743,21 @@ export default function ArticleEditPage({ params }: Props) {
                 onChange={url => setField('profile_image_url', url)}
               />
               <p className="text-[11px] text-gray-400 mt-1">Square/portrait of the honoree. Used in the homepage Community Spotlights sidebar. Falls back to the hero image when empty.</p>
+            </div>
+
+            {/* ── Photo Gallery (migration 099) ──
+                 Multi-image set rendered as a branded lightbox grid below
+                 the article body. Mirrors what the print magazine does with
+                 the photo strip at the bottom of Play Ball and feature stories. */}
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Photo Gallery
+                <span className="ml-1.5 text-gray-400 font-normal normal-case">— supporting photos for the lightbox</span>
+              </label>
+              <GalleryEditor
+                value={galleryImages}
+                onChange={setGalleryImages}
+              />
             </div>
 
             {/* ── How this article gets placed ── */}

@@ -38,6 +38,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'topics',
       // Play Ball Spotlight (migration 098)
       'spotlight_type', 'spotlight_data',
+      // Photo gallery (migration 099)
+      'gallery_images',
     ]
 
     const update: Record<string, unknown> = {}
