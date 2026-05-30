@@ -23,11 +23,12 @@ export interface SpotlightField {
 }
 
 export interface SpotlightTemplate {
-  type:      SpotlightType
-  label:     string             // shown in the admin dropdown
-  eyebrow:   string             // "PLAY BALL SPORTS SPOTLIGHT | ATHLETE"
-  topStrip:  SpotlightField[]   // 5 vitals shown above the article body
-  quickHits: SpotlightField[]   // Q&A sidebar
+  type:           SpotlightType
+  label:          string             // shown in the admin dropdown
+  eyebrow:        string             // right side of "PLAY BALL | <eyebrow>"
+  quickHitsTitle: string             // e.g. "Player Quick Hits", "Coach Quick Hits"
+  topStrip:       SpotlightField[]   // 5 vitals shown above the article body
+  quickHits:      SpotlightField[]   // Q&A sidebar
 }
 
 // ── ATHLETE ──────────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ export const ATHLETE_TEMPLATE: SpotlightTemplate = {
   type:    'athlete',
   label:   'Athlete Spotlight',
   eyebrow: 'Player Spotlight',
+  quickHitsTitle: 'Player Quick Hits',
   topStrip: [
     { key: 'school_league',  label: 'School/League',  icon: 'GraduationCap', placeholder: 'Pike Road School' },
     { key: 'sport',          label: 'Sport',          icon: 'Trophy',        placeholder: 'Varsity Tennis' },
@@ -57,7 +59,8 @@ export const ATHLETE_TEMPLATE: SpotlightTemplate = {
 export const COACH_TEMPLATE: SpotlightTemplate = {
   type:    'coach',
   label:   'Coach Spotlight',
-  eyebrow: 'Coach Template',
+  eyebrow: 'Coach Spotlight',
+  quickHitsTitle: 'Coach Quick Hits',
   topStrip: [
     { key: 'school_league',   label: 'School',         icon: 'GraduationCap', placeholder: 'Elmore County High School' },
     { key: 'role',            label: 'Role',           icon: 'Award',         placeholder: 'Varsity Head Baseball Coach' },
@@ -79,7 +82,8 @@ export const COACH_TEMPLATE: SpotlightTemplate = {
 export const VOLUNTEER_TEMPLATE: SpotlightTemplate = {
   type:    'volunteer',
   label:   'Volunteer Spotlight',
-  eyebrow: 'Volunteer Template',
+  eyebrow: 'Volunteer Spotlight',
+  quickHitsTitle: 'Volunteer Quick Hits',
   topStrip: [
     { key: 'school_league',      label: 'School',             icon: 'GraduationCap', placeholder: 'Prattville High School' },
     { key: 'role',               label: 'Role',               icon: 'Award',         placeholder: 'Booster Club President' },

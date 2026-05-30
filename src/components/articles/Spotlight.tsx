@@ -85,13 +85,13 @@ export function SpotlightQuickHits({ spotlightType, spotlightData }: Props) {
 
   return (
     <div className="bg-[#faf8f5] rounded-2xl overflow-hidden ring-1 ring-[#1a2744]/10 shadow-md">
-      {/* Navy header */}
+      {/* Navy header — title shifts by type ("Player Quick Hits", "Coach Quick Hits", etc.) */}
       <div className="bg-[#1a2744] text-white text-center py-4 md:py-5 relative">
         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#f3bf24]">
           <Sparkles size={16} />
         </div>
-        <h3 className="text-xl md:text-2xl font-black tracking-wide">
-          QUICK HITS
+        <h3 className="text-xl md:text-2xl font-black tracking-wide uppercase">
+          {tpl.quickHitsTitle}
         </h3>
         <div className="absolute right-5 top-1/2 -translate-y-1/2 text-[#f3bf24]">
           <Sparkles size={16} />
@@ -131,13 +131,16 @@ function QuickHitRow({ field, value }: { field: SpotlightField; value: string })
 }
 
 // ── Eyebrow tag (above the title, like the magazine) ───────────────────────
+// Format: "PLAY BALL | PLAYER SPOTLIGHT" (or COACH / VOLUNTEER).
+// Bigger and more prominent than a typical eyebrow — this is THE category
+// indicator for the article, replacing the regular column badge.
 export function SpotlightEyebrow({ spotlightType }: { spotlightType: string | null }) {
   const tpl = getSpotlightTemplate(spotlightType)
   if (!tpl) return null
   return (
-    <div className="inline-flex items-center gap-2 bg-[#1a2744] text-white px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-[0.18em] mb-3">
-      Play Ball Sports Spotlight
-      <span className="text-[#f3bf24]">|</span>
+    <div className="inline-flex items-center gap-3 bg-[#1a2744] text-white px-5 py-2.5 md:px-6 md:py-3 rounded text-xs md:text-sm font-black uppercase tracking-[0.16em] mb-4 shadow-sm">
+      Play Ball
+      <span className="text-[#f3bf24] text-base">|</span>
       {tpl.eyebrow}
     </div>
   )

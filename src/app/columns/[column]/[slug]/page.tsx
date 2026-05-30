@@ -194,8 +194,10 @@ export default async function ArticlePage({ params }: PageParams) {
         )}
 
         <ArticleHeader
-          category={categoryLabel}
-          categoryHref={categoryHref}
+          /* Hide the column badge for Spotlight articles — the SpotlightEyebrow
+             above is the category indicator now, no duplicate "Play Ball" pill. */
+          category={isSpotlight ? undefined : categoryLabel}
+          categoryHref={isSpotlight ? undefined : categoryHref}
           badgeClassName={columnBadgeStyle(column)}
           title={article.title}
           subtitle={article.subtitle as string | null}

@@ -116,7 +116,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
     elements.push(
       <blockquote
         key="lead-quote"
-        className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 mt-2 mb-12 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
+        className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 mt-2 mb-12 italic font-medium text-xl md:text-2xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
       >
         <span
           aria-hidden="true"
@@ -211,23 +211,28 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           }
         }
         /* Drop cap — classic magazine flourish on the first letter of the
-           opening paragraph. Coral, oversized, floated left so body text
-           wraps around it. Skips automatically if the first chunk is a
-           pull quote or heading. */
+           opening paragraph. Deep navy to match the spotlight color story,
+           floated left so body text wraps around it. Generous spacing so
+           the body text doesn't crowd the cap. */
+        .article-body .article-dropcap p:first-of-type {
+          color: #1a2744;
+          font-weight: 500;
+        }
         .article-body .article-dropcap p:first-of-type::first-letter {
           float: left;
           font-family: Georgia, 'Times New Roman', serif;
           font-size: 4.5rem;
           font-weight: 900;
           line-height: 0.85;
-          padding: 0.3rem 0.5rem 0 0;
-          margin: 0.25rem 0.1rem 0 0;
-          color: hsl(var(--primary));
+          padding: 0.35rem 0.85rem 0 0;
+          margin: 0.4rem 0 0 0;
+          color: #1a2744;
         }
         @media (min-width: 768px) {
           .article-body .article-dropcap p:first-of-type::first-letter {
             font-size: 5.5rem;
-            padding: 0.4rem 0.6rem 0 0;
+            padding: 0.4rem 1rem 0 0;
+            margin: 0.5rem 0 0 0;
           }
         }
         .article-body h2 {

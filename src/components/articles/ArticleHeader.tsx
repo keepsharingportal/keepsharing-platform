@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 interface Props {
-  category:        string                          // primary section, e.g. "Mom to Mom"
+  category?:       string                          // primary section, e.g. "Mom to Mom". Omit to hide the badge entirely (used by Play Ball Spotlight which renders its own eyebrow above).
   categoryHref?:   string
   badgeClassName?: string                          // solid color classes from columnBadgeStyle()
   title:           string
@@ -26,11 +26,13 @@ export function ArticleHeader({ category, categoryHref, badgeClassName, title, s
 
   return (
     <>
-      <div className="mb-4">
-        {categoryHref ? (
-          <Link href={categoryHref} className="hover:opacity-90 transition-opacity">{badge}</Link>
-        ) : badge}
-      </div>
+      {category && (
+        <div className="mb-4">
+          {categoryHref ? (
+            <Link href={categoryHref} className="hover:opacity-90 transition-opacity">{badge}</Link>
+          ) : badge}
+        </div>
+      )}
       <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-foreground">
         {title}
       </h1>
