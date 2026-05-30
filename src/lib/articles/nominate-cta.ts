@@ -45,12 +45,14 @@ const COLUMN_CTAS: Record<string, NominateCTA> = {
     headline: 'Celebrate a grandparent who deserves recognition.',
   },
 
-  // Mom to Mom — contributor column, different verb. Still a submission flow.
+  // Mom to Mom — keeps the "Nominate" verb for consistency across all four
+  // community spotlights. Submission flow accepts both self-nominations and
+  // third-party noms so the verb works either way.
   'mom-to-mom': {
-    label:    'Share Your Story',
+    label:    'Nominate a Mom',
     href:     '/submit/mom-to-mom',
-    pitch:    'Mom to Mom celebrates real River Region moms — their stories, wisdom, and love for this community. Apply to be featured.',
-    headline: 'A mom who\'s showing up, making it work, inspiring her community?',
+    pitch:    'Mom to Mom celebrates real River Region moms — their stories, wisdom, and love for this community. Know a mom whose story should be told?',
+    headline: 'Know a mom who\'s showing up, making it work, inspiring her community?',
   },
 }
 

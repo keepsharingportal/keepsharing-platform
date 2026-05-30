@@ -37,13 +37,17 @@ export function NominateCTA({ columnSlug, variant }: Props) {
   const btnBg = brand.primary
 
   // ── PILL — compact, sits near the article meta row ──────────────────────
+  // Neutral background + brand-colored text + brand-colored border. Avoids
+  // doubling up with the brand badge above the title (especially loud on
+  // bright brands like Mom to Mom's rose). The bottom CTA is the loud
+  // primary action; this pill is a quieter secondary nudge.
   if (variant === 'pill') {
     return (
       <div className="flex justify-stretch sm:justify-end mb-6">
         <Link
           href={cta.href}
-          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:shadow transition-shadow"
-          style={{ backgroundColor: btnBg }}
+          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-full px-5 py-2.5 text-sm font-bold bg-white border-2 shadow-sm hover:shadow transition-all hover:bg-gray-50"
+          style={{ color: btnBg, borderColor: btnBg }}
         >
           {cta.label}
           <ArrowRight className="w-4 h-4" />
