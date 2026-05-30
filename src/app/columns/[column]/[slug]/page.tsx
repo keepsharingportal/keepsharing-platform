@@ -234,6 +234,11 @@ export default async function ArticlePage({ params }: PageParams) {
           shareUrl={shareUrl}
         />
 
+        {/* Nominate pill — compact CTA in the column's brand color, sitting
+            between the meta row and the article body. Full-width on mobile,
+            right-aligned on desktop. Hidden on non-spotlight columns. */}
+        <NominateCTA columnSlug={column} variant="pill" />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
             {/* Hero image — anchored to top so faces never crop. */}

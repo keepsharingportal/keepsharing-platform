@@ -32,8 +32,9 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // Play Ball — navy + gold, magazine-matching
   'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24' },
 
-  // Mom to Mom — warm coral. Matches the contributor column's existing palette.
-  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#c4622d', accent: '#f3bf24' },
+  // Mom to Mom — rose/pink, matches the Community Spotlights sidebar badge
+  // and the column's brand color in TYPE_COLORS (rose-600).
+  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24' },
 
   // Grands Are the Greatest — amber/gold, evokes nostalgia/warmth
   'grands-greatest':     { label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24' },
