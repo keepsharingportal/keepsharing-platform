@@ -42,6 +42,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'gallery_images',
       // Hero original path for re-crop (migration 100)
       'hero_image_orig_path',
+      // Profile original path for re-crop (migration 101)
+      'profile_image_orig_path',
     ]
 
     const update: Record<string, unknown> = {}

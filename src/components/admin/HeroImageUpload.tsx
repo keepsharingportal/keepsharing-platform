@@ -1,17 +1,20 @@
 'use client'
 
 // ── HeroImageUpload ───────────────────────────────────────────────────────────
-// Reusable upload + URL field for article hero images. Posts to /api/admin/upload
-// (Sharp-resized, WebP, public Supabase Storage URL returned).
+// Reusable upload + URL field for article hero AND profile images. Posts to
+// /api/admin/upload (Sharp-resized, WebP, public Supabase Storage URL).
 //
-// When `context === 'article-hero'`, the server also stashes a private copy
-// of the original so the GravityPicker can re-crop without re-uploading.
-// Pass `articleId` + `onOrigPathChange` to enable the picker UI.
+// Two re-crop-enabled contexts:
+//   - 'article-hero'    → server crops to 16:9 (1600×900), saves original to
+//                         article-hero-orig; picker calls /recrop-hero
+//   - 'article-profile' → server crops to 1:1 (800×800),  saves original to
+//                         article-profile-orig; picker calls /recrop-profile
+// Pass `articleId` + `onOrigPathChange` for either to enable the GravityPicker.
 //
 // Big files: Vercel's serverless function body limit is ~4.5 MB, so we
 // downscale anything bigger than ~3.5 MB in the browser before POSTing —
 // max 3000px on the long edge, JPEG q90. That's still well above what Sharp
-// needs for the 1600px web variant.
+// needs for the final 1600px / 800px output.
 
 import { useRef, useState, useEffect } from 'react'
 import {
@@ -22,12 +25,18 @@ interface Props {
   value:    string
   onChange: (url: string) => void
   /** Which Sharp pipeline branch to run server-side. */
-  context?: 'article' | 'article-hero' | 'listing' | 'asset'
+  context?: 'article' | 'article-hero' | 'article-profile' | 'listing' | 'asset'
   /** Required for the GravityPicker (re-crop endpoint needs the article id). */
   articleId?: string
-  /** Set on upload when context='article-hero' so the parent can persist it. */
+  /** Set on upload when context is article-hero / article-profile so the parent can persist it. */
   origPath?: string | null
   onOrigPathChange?: (origPath: string | null) => void
+}
+
+// Contexts that opt into the re-crop flow. Used in a few places so worth
+// pulling out — keeps the conditional checks readable.
+function isRecropContext(c: string | undefined): c is 'article-hero' | 'article-profile' {
+  return c === 'article-hero' || c === 'article-profile'
 }
 
 function isSupabaseUrl(url: string): boolean {
@@ -147,9 +156,9 @@ export function HeroImageUpload({
         return
       }
       onChange(json.url)
-      // Capture origPath for article-hero uploads so the gravity picker has
-      // a source to re-crop from.
-      if (context === 'article-hero' && onOrigPathChange) {
+      // Capture origPath for re-crop-enabled contexts so the gravity picker
+      // has a source to re-crop from.
+      if (isRecropContext(context) && onOrigPathChange) {
         onOrigPathChange(json.origPath ?? null)
       }
     } catch (e) {
@@ -171,7 +180,7 @@ export function HeroImageUpload({
     setUrlDraft('')
     setError(null)
     setOptimized(false)
-    if (context === 'article-hero' && onOrigPathChange) onOrigPathChange(null)
+    if (isRecropContext(context) && onOrigPathChange) onOrigPathChange(null)
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -205,7 +214,7 @@ export function HeroImageUpload({
       onChange(json.url)
       setUrlDraft(json.url)
       setOptimized(true)
-      if (context === 'article-hero' && onOrigPathChange) {
+      if (isRecropContext(context) && onOrigPathChange) {
         onOrigPathChange(json.origPath ?? null)
       }
     } catch (e) {
@@ -217,6 +226,10 @@ export function HeroImageUpload({
   }
 
   // ── Re-crop ─────────────────────────────────────────────────────────────
+  // Endpoint + response key vary by context. Hero re-crop returns
+  // hero_image_url; profile re-crop returns profile_image_url. We keep the
+  // component's `onChange` API uniform (just a URL string) so the parent
+  // form doesn't care which kind it is.
   async function recrop(gravity: string) {
     if (!articleId) {
       setError('Save the article first — re-crop needs an article ID.')
@@ -226,21 +239,24 @@ export function HeroImageUpload({
       setError('Re-crop needs a saved original — re-upload a fresh image first.')
       return
     }
+    const endpoint = context === 'article-profile' ? 'recrop-profile' : 'recrop-hero'
+    const urlKey   = context === 'article-profile' ? 'profile_image_url' : 'hero_image_url'
     setRecropBusy(gravity)
     setError(null)
     try {
-      const res  = await fetch(`/api/admin/articles/${articleId}/recrop-hero`, {
+      const res  = await fetch(`/api/admin/articles/${articleId}/${endpoint}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ gravity }),
       })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok || !json?.hero_image_url) {
+      const newUrl = json?.[urlKey] as string | undefined
+      if (!res.ok || !newUrl) {
         setError(json?.error ?? `Re-crop failed (${res.status})`)
         return
       }
       // Cache-bust the preview so the new crop shows immediately.
-      const busted = `${json.hero_image_url}?t=${Date.now()}`
+      const busted = `${newUrl}?t=${Date.now()}`
       onChange(busted)
       setUrlDraft(busted)
     } catch (e) {
@@ -250,7 +266,7 @@ export function HeroImageUpload({
     }
   }
 
-  const canRecrop = context === 'article-hero' && !!articleId && !!origPath
+  const canRecrop = isRecropContext(context) && !!articleId && !!origPath
 
   return (
     <div className="space-y-2">
@@ -317,8 +333,9 @@ export function HeroImageUpload({
         </div>
       )}
 
-      {context === 'article-hero' && value && (
+      {isRecropContext(context) && value && (
         <GravityPicker
+          label={context === 'article-profile' ? 'Re-crop image (1:1)' : 'Re-crop hero (16:9)'}
           enabled={canRecrop}
           busyGravity={recropBusy}
           onPick={recrop}
@@ -326,7 +343,7 @@ export function HeroImageUpload({
             !articleId
               ? 'Save the article once to enable re-crop.'
               : !origPath
-                ? 'Upload a fresh image to enable re-crop (legacy heroes have no saved original).'
+                ? `Upload a fresh image to enable re-crop (legacy ${context === 'article-profile' ? 'profile photos' : 'heroes'} have no saved original).`
                 : null
           }
         />
@@ -394,8 +411,9 @@ const COMPASS: { gravity: string; label: string }[] = [
 ]
 
 function GravityPicker({
-  enabled, busyGravity, onPick, hint,
+  label, enabled, busyGravity, onPick, hint,
 }: {
+  label:       string
   enabled:     boolean
   busyGravity: string | null
   onPick:      (gravity: string) => void
@@ -404,7 +422,7 @@ function GravityPicker({
   return (
     <div className="mt-2 p-2 rounded-lg border border-blue-100 bg-blue-50/40">
       <p className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 inline-flex items-center gap-1">
-        <Crop size={10} /> Re-crop hero (1600×900)
+        <Crop size={10} /> {label}
       </p>
       <div className="grid grid-cols-3 gap-0.5 w-full max-w-[140px]">
         {COMPASS.map(({ gravity, label }) => {

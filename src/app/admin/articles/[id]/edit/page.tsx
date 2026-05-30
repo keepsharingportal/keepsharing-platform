@@ -213,6 +213,10 @@ export default function ArticleEditPage({ params }: Props) {
   // without re-uploading. Null for legacy heroes uploaded before this.
   const [heroOrigPath, setHeroOrigPath] = useState<string | null>(null)
 
+  // Profile image original (migration 101) — same idea as heroOrigPath but
+  // for the square avatar in the Community Spotlights sidebar.
+  const [profileOrigPath, setProfileOrigPath] = useState<string | null>(null)
+
   // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
   const [bloggers, setBloggers] = useState<Array<{ id: string; slug: string; display_name: string }>>([])
   useEffect(() => {
@@ -284,6 +288,8 @@ export default function ArticleEditPage({ params }: Props) {
           : [])
         // Hero original — present only if the hero was uploaded after migration 100.
         setHeroOrigPath((data.hero_image_orig_path as string | null) ?? null)
+        // Profile original — present only if the profile photo was uploaded after migration 101.
+        setProfileOrigPath((data.profile_image_orig_path as string | null) ?? null)
       }
       setLoading(false)
     }
@@ -374,7 +380,8 @@ export default function ArticleEditPage({ params }: Props) {
 
     // Hero image original path — persist whenever it changed so the gravity
     // picker has a stable source. Set on fresh uploads, cleared on remove.
-    payload.hero_image_orig_path = heroOrigPath
+    payload.hero_image_orig_path    = heroOrigPath
+    payload.profile_image_orig_path = profileOrigPath
 
     try {
       const res = await fetch(`/api/admin/articles/${id}`, {
@@ -759,8 +766,16 @@ export default function ArticleEditPage({ params }: Props) {
               <HeroImageUpload
                 value={form.profile_image_url}
                 onChange={url => setField('profile_image_url', url)}
+                context="article-profile"
+                articleId={id as string}
+                origPath={profileOrigPath}
+                onOrigPathChange={setProfileOrigPath}
               />
-              <p className="text-[11px] text-gray-400 mt-1">Square/portrait of the honoree. Used in the homepage Community Spotlights sidebar. Falls back to the hero image when empty.</p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                Square (cropped to 1:1) for the homepage Community Spotlights sidebar.
+                Sharp picks the focal point automatically — use the compass to nudge it.
+                Falls back to the hero image when empty.
+              </p>
             </div>
 
             {/* ── Photo Gallery (migration 099) ──

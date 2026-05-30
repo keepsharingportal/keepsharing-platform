@@ -25,18 +25,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 
-const BUCKET            = 'article-media'           // public — web variants + thumbs
-const BUCKET_HERO_ORIG  = 'article-hero-orig'        // private — saved hero originals for re-crop
-const MAX_BYTES         = 15 * 1024 * 1024           // 15 MB raw limit (Vercel platform caps at ~4.5 MB; client compresses bigger files first)
-const WEB_MAX_WIDTH     = 1600
-const THUMB_WIDTH       = 400
-const WEB_QUALITY       = 82
-const THUMB_QUALITY     = 75
+const BUCKET              = 'article-media'             // public — web variants + thumbs
+const BUCKET_HERO_ORIG    = 'article-hero-orig'         // private — saved hero originals for re-crop
+const BUCKET_PROFILE_ORIG = 'article-profile-orig'      // private — saved profile-image originals for re-crop
+const MAX_BYTES           = 15 * 1024 * 1024            // 15 MB raw limit (Vercel platform caps at ~4.5 MB; client compresses bigger files first)
+const WEB_MAX_WIDTH       = 1600
+const THUMB_WIDTH         = 400
+const WEB_QUALITY         = 82
+const THUMB_QUALITY       = 75
 // Fixed hero crop — 16:9, sized for the article detail page hero block.
 // CSS letterboxes / object-covers for narrower viewports.
-const HERO_CARD_WIDTH   = 1600
-const HERO_CARD_HEIGHT  = 900
-const ALLOWED_TYPES     = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
+const HERO_CARD_WIDTH     = 1600
+const HERO_CARD_HEIGHT    = 900
+// Fixed profile crop — 1:1, sized for sidebar circles (typically rendered
+// at 80–200px). 800px source supports 4× retina at the largest use.
+const PROFILE_CARD_SIZE   = 800
+const ALLOWED_TYPES       = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
 const URL_FETCH_TIMEOUT_MS = 12_000
 
 function supabaseAdmin() {
@@ -63,12 +67,15 @@ function isSupabaseStorageUrl(url: string): boolean {
 // Shared pipeline: takes a raw image buffer + original filename + context,
 // returns the optimized URLs.
 //
-// context === 'article-hero' opts into the magazine-style flow:
-//   - Saves the unmodified original to the private BUCKET_HERO_ORIG bucket
-//     so an editor can re-crop later via the gravity picker
-//   - Produces a fixed 16:9 web variant (1600×900) using Sharp's attention
-//     strategy — works for square and vertical sources alike
-//   - Returns origPath so the caller can persist it on the article row
+// Two contexts opt into the magazine-style re-crop flow:
+//   - 'article-hero'    → fixed 16:9 (1600×900) attention crop, original saved
+//                         to BUCKET_HERO_ORIG for later re-crop
+//   - 'article-profile' → fixed 1:1 (800×800) attention crop, original saved
+//                         to BUCKET_PROFILE_ORIG
+//
+// Both return origPath so the caller can persist it on the article row. The
+// 9-compass GravityPicker in HeroImageUpload calls a context-matched
+// /recrop-* endpoint to re-process from the saved original.
 //
 // Other contexts ('article', 'listing', etc.) keep the original natural-aspect
 // behavior — gallery photos and listing tiles shouldn't be force-cropped.
@@ -79,7 +86,8 @@ async function processAndUpload(args: {
   declaredType?: string | null
 }) {
   const { buffer, originalName, context, declaredType } = args
-  const isHero = context === 'article-hero'
+  const isHero    = context === 'article-hero'
+  const isProfile = context === 'article-profile'
 
   const meta = await sharp(buffer).metadata()
   const origW = meta.width  ?? 0
@@ -90,14 +98,21 @@ async function processAndUpload(args: {
     throw new Error('Could not parse image — file may be corrupt or not actually an image.')
   }
 
-  // Build the public-facing web variant. For article-hero we lock to 16:9
-  // and let Sharp's attention strategy pick the focal point. For everything
+  // Build the public-facing web variant. For fixed-aspect contexts (hero,
+  // profile) Sharp's attention strategy picks the focal point. For everything
   // else, keep natural aspect (clamped to 1600px wide).
   const webPipeline = sharp(buffer).rotate()  // honor EXIF orientation
   if (isHero) {
     webPipeline.resize({
       width:    HERO_CARD_WIDTH,
       height:   HERO_CARD_HEIGHT,
+      fit:      'cover',
+      position: sharp.strategy.attention,
+    })
+  } else if (isProfile) {
+    webPipeline.resize({
+      width:    PROFILE_CARD_SIZE,
+      height:   PROFILE_CARD_SIZE,
       fit:      'cover',
       position: sharp.strategy.attention,
     })
@@ -132,16 +147,20 @@ async function processAndUpload(args: {
   const { data: { publicUrl: url } }          = supabase.storage.from(BUCKET).getPublicUrl(webPath)
   const { data: { publicUrl: thumbnailUrl } } = supabase.storage.from(BUCKET).getPublicUrl(thumbPath)
 
-  // For hero uploads, also stash the raw original in a private bucket so an
-  // editor can re-crop later without re-uploading. The path is what we hand
-  // back to the caller — they persist it on the article row.
+  // For fixed-aspect uploads (hero, profile), also stash the raw original
+  // in a private bucket so an editor can re-crop later without re-uploading.
+  // The path is what we hand back to the caller — they persist it on the
+  // article row alongside the matching column (hero_image_orig_path or
+  // profile_image_orig_path).
   let origPath: string | undefined
-  if (isHero) {
-    const ext        = inferExt(originalName, declaredType ?? null) || 'jpg'
-    const origRelPath = storagePath('hero-orig', `${uid}.${ext}`)
-    await supabase.storage.createBucket(BUCKET_HERO_ORIG, { public: false }).catch(() => {})
+  if (isHero || isProfile) {
+    const ext         = inferExt(originalName, declaredType ?? null) || 'jpg'
+    const origBucket  = isHero ? BUCKET_HERO_ORIG : BUCKET_PROFILE_ORIG
+    const origPrefix  = isHero ? 'hero-orig'      : 'profile-orig'
+    const origRelPath = storagePath(origPrefix, `${uid}.${ext}`)
+    await supabase.storage.createBucket(origBucket, { public: false }).catch(() => {})
     const origUp = await supabase.storage
-      .from(BUCKET_HERO_ORIG)
+      .from(origBucket)
       .upload(origRelPath, buffer, {
         contentType: declaredType?.startsWith('image/') ? declaredType : 'application/octet-stream',
         upsert:      false,
