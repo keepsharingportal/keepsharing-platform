@@ -16,6 +16,11 @@ import {
 } from '@/components/articles/Spotlight'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
+import {
+  SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
+} from '@/components/articles/SectionSponsor'
+import { NominateCTA } from '@/components/articles/NominateCTA'
+import { getActiveSectionSponsor } from '@/lib/section-sponsors'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
@@ -112,6 +117,12 @@ export default async function ArticlePage({ params }: PageParams) {
   if (!data) notFound()
 
   const { article, column: columnData, trending, stickyAd, sponsoredAd, inlineAd } = data
+
+  // Section sponsor — when active, overrides the rotating sidebar sticky ad
+  // and gets premium placement under the hero on mobile + sidebar on desktop.
+  // Returns null when no sponsor is active for this column; components render
+  // nothing in that case so we don't get empty boxes.
+  const sectionSponsor = await getActiveSectionSponsor(getSupabase(), column)
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -238,6 +249,13 @@ export default async function ArticlePage({ params }: PageParams) {
               />
             </div>
 
+            {/* Section sponsor — mobile-only strip immediately under the hero,
+                before any other content. 80% of readers are on mobile and
+                stacked-below-body sidebars don't get seen; this is the
+                premium slot. Desktop renders this same sponsor in the
+                sidebar (see SectionSponsorSidebar in ArticleSidebar slot). */}
+            <SectionSponsorMobile sponsor={sectionSponsor} columnSlug={column} />
+
             {/* Spotlight top strip — five vitals on a navy bar, magazine-matching */}
             {isSpotlight && (
               <div className="mb-8">
@@ -275,6 +293,15 @@ export default async function ArticlePage({ params }: PageParams) {
               </div>
             )}
 
+            {/* Section sponsor footer outro — bigger "Thank you to our sponsor"
+                block. Renders on every breakpoint, closing the article with
+                reinforced brand association. */}
+            <SectionSponsorOutro sponsor={sectionSponsor} columnSlug={column} />
+
+            {/* Nominate CTA — only renders on community spotlight columns
+                (Play Ball / Teacher / Grands / Mom). Other columns: null. */}
+            <NominateCTA columnSlug={column} variant="article" />
+
             {/* Author bio */}
             {article.author_bio && (
               <div className="mt-12 pt-8 border-t border-border/60 bg-muted/30 rounded-2xl p-6">
@@ -307,9 +334,16 @@ export default async function ArticlePage({ params }: PageParams) {
           </article>
 
           <ArticleSidebar
-            stickyAd={stickyAdMapped}
+            /* When a section sponsor is active, they pre-empt the regular
+               sticky ad rotation and take the top of the sidebar. Suppress
+               stickyAd to avoid the section sponsor + a competing ad
+               doubling up. The desktop SectionSponsorSidebar lives in
+               topSlot — it self-hides on mobile (the mobile strip above
+               handles that breakpoint). */
+            stickyAd={sectionSponsor ? null : stickyAdMapped}
             sponsoredAd={sponsoredAdMapped}
             trending={trendingMapped}
+            topSlot={<SectionSponsorSidebar sponsor={sectionSponsor} columnSlug={column} />}
           />
         </div>
       </main>

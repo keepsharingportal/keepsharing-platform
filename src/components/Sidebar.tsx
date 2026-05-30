@@ -114,6 +114,7 @@ const NAV: NavItem[] = [
       { name: 'Ad Map',             href: '/admin/ads/map'                                  },
       { name: 'All Placements',     href: '/admin/ads'                                      },
       { name: 'Sponsor Inventory',  href: '/admin/advertisers/sponsor-inventory'             },
+      { name: 'Section Sponsors',   href: '/admin/section-sponsors',                          accent: true },
     ],
   },
   {

@@ -7,6 +7,10 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { ArrowRight } from 'lucide-react'
 import type { Metadata } from 'next'
+import { SectionSponsorBanner } from '@/components/articles/SectionSponsor'
+import { NominateCTA } from '@/components/articles/NominateCTA'
+import { getActiveSectionSponsor } from '@/lib/section-sponsors'
+import { getNominateCTA } from '@/lib/articles/nominate-cta'
 
 export const revalidate = 600
 
@@ -56,14 +60,19 @@ export default async function ColumnLandingPage({ params }: PageParams) {
   const { column } = await params
   const supabase = getSupabase()
 
-  const [columnRes, articlesRes] = await Promise.all([
+  const [columnRes, articlesRes, sectionSponsor] = await Promise.all([
     supabase.from('monthly_columns').select('*').eq('slug', column).maybeSingle(),
     supabase.from('guide_articles')
       .select('id, title, slug, excerpt, hero_image_url, author_name, published_at')
       .eq('column_slug', column)
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false }),
+    getActiveSectionSponsor(supabase, column),
   ])
+
+  // Whether this column is a community spotlight — only those get the
+  // top-of-page nominate CTA banner.
+  const hasNominateCTA = !!getNominateCTA(column)
 
   const articles   = articlesRes.data ?? []
 
@@ -132,6 +141,23 @@ export default async function ColumnLandingPage({ params }: PageParams) {
       </div>
 
       <main className="container py-8 md:py-12">
+        {/* Section sponsor — BIG full-width banner if sponsor is active for
+            this column. Renders nothing otherwise (no empty box). Mobile +
+            desktop both get prime above-the-fold real estate. */}
+        {sectionSponsor && (
+          <div className="mb-8 md:mb-10">
+            <SectionSponsorBanner sponsor={sectionSponsor} columnSlug={column} />
+          </div>
+        )}
+
+        {/* Nominate CTA — only on community spotlight columns. Visitors
+            arriving from a magazine QR can act immediately. */}
+        {hasNominateCTA && (
+          <div className="mb-8 md:mb-10">
+            <NominateCTA columnSlug={column} variant="archive" />
+          </div>
+        )}
+
         {articles.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {articles.map((a) => {

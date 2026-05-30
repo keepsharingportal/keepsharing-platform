@@ -7,7 +7,7 @@
 // array. The admin form picks it up automatically; the public render too.
 // No DB changes needed — the data is JSONB.
 
-export type SpotlightType = 'athlete' | 'coach' | 'volunteer'
+export type SpotlightType = 'athlete' | 'coach' | 'volunteer' | 'teacher'
 
 // Lucide icon name for each field — looked up by the renderer
 export type SpotlightIcon =
@@ -101,16 +101,42 @@ export const VOLUNTEER_TEMPLATE: SpotlightTemplate = {
   ],
 }
 
+// ── TEACHER OF THE MONTH ─────────────────────────────────────────────────────
+// Different brand family than Play Ball — column is 'teacher-of-the-month',
+// not 'play-ball'. The eyebrow + lightbox color come from getColumnBrand()
+// based on column_slug, not from the template's eyebrow field (which is the
+// right-side of the pipe for Play Ball only).
+//
+// Top strip: school, title (Algebra 2 Teacher / Asst Principal), years
+// teaching, education, honors. NO Quick Hits — the article body carries
+// the philosophy + goals like the print piece does.
+export const TEACHER_TEMPLATE: SpotlightTemplate = {
+  type:    'teacher',
+  label:   'Teacher of the Month',
+  eyebrow: 'Teacher of the Month',
+  quickHitsTitle: 'Teacher Quick Hits',     // unused unless user opts in
+  topStrip: [
+    { key: 'school',         label: 'School',         icon: 'GraduationCap', placeholder: 'Prattville High School' },
+    { key: 'title',          label: 'Title',          icon: 'Award',         placeholder: 'Algebra 2 Teacher' },
+    { key: 'years_teaching', label: 'Years Teaching', icon: 'Calendar',      placeholder: '12' },
+    { key: 'education',      label: 'Education',      icon: 'BookOpen',      placeholder: 'B.S. Auburn · M.Ed Troy' },
+    { key: 'honors',         label: 'Honors',         icon: 'Sparkles',      placeholder: 'Teacher of the Year 2024' },
+  ],
+  quickHits: [],   // empty by default; can be opted into later
+}
+
 export const SPOTLIGHT_TEMPLATES: Record<SpotlightType, SpotlightTemplate> = {
   athlete:   ATHLETE_TEMPLATE,
   coach:     COACH_TEMPLATE,
   volunteer: VOLUNTEER_TEMPLATE,
+  teacher:   TEACHER_TEMPLATE,
 }
 
 export const SPOTLIGHT_TYPE_OPTIONS = [
   { value: 'athlete',   label: 'Athlete Spotlight' },
   { value: 'coach',     label: 'Coach Spotlight' },
   { value: 'volunteer', label: 'Volunteer Spotlight' },
+  { value: 'teacher',   label: 'Teacher of the Month' },
 ] as const
 
 export function getSpotlightTemplate(type: string | null | undefined): SpotlightTemplate | null {

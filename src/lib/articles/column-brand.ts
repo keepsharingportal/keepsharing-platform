@@ -17,6 +17,8 @@ export interface ColumnBrand {
   primary: string
   /** Divider / accent color (the | pipe between brand and section). */
   accent:  string
+  /** Optional Lucide icon name shown inline in the article eyebrow (e.g. 'Apple' for Teacher of the Month). */
+  icon?:   string
 }
 
 // Site default — coral. Used when a column slug doesn't have its own entry.
@@ -50,6 +52,10 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
 
   // School Bits — deep blue, matches the existing school bits treatment
   'school-bits':         { label: 'School Bits',         primary: '#1e40af', accent: '#fbbf24' },
+
+  // Teacher of the Month — apple-red + gold, evokes the magazine apple badge
+  // without requiring an uploaded graphic. Lucide Apple icon renders inline.
+  'teacher-of-the-month':{ label: 'Teacher of the Month', primary: '#b91c1c', accent: '#f3bf24', icon: 'Apple' },
 }
 
 export function getColumnBrand(columnSlug: string | null | undefined): ColumnBrand {
