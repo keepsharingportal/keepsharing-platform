@@ -25,12 +25,25 @@ interface AdvertiserSummary {
 export default async function ReportsLandingPage() {
   const supabase = createAdminClient()
 
-  const [{ data: advertisers }, { data: placements }] = await Promise.all([
+  const [{ data: advertisers }, { data: placements }, { data: topArticles }, { data: topQrs }] = await Promise.all([
     supabase.from('advertiser_accounts')
       .select('id, slug, business_name, account_tier')
       .order('business_name', { ascending: true }),
     supabase.from('ad_placements')
       .select('advertiser_account_id, is_active, impression_count, click_count'),
+    // Top 10 articles by lifetime view count. Gracefully empty if migration 097
+    // isn't applied yet — the column won't exist and the query soft-fails.
+    supabase.from('guide_articles')
+      .select('id, title, slug, column_slug, view_count')
+      .eq('published', true)
+      .order('view_count', { ascending: false, nullsFirst: false })
+      .limit(10),
+    // Top 10 QR codes by scan count
+    supabase.from('short_links')
+      .select('id, shortcode, destination, label, click_count, utm_campaign, advertiser:advertiser_account_id (business_name)')
+      .eq('is_active', true)
+      .order('click_count', { ascending: false })
+      .limit(10),
   ])
 
   const byAdvertiser: Record<string, AdvertiserSummary> = {}
@@ -76,6 +89,78 @@ export default async function ReportsLandingPage() {
         URL. Every metric is tagged <strong>Measured</strong> / <strong>Estimated</strong> /
         <strong> Not tracked yet</strong> so nothing on a client report is fluffed.
       </SectionHelp>
+
+      {/* ── Top Content + QR Performance — site-wide pulse ─────────────── */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Top Articles */}
+        <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Top Articles — Most Viewed
+            </h2>
+            <Link href="/admin/articles" className="text-[11px] font-bold text-blue-600 hover:underline">
+              All Articles →
+            </Link>
+          </div>
+          {(!topArticles || topArticles.length === 0) ? (
+            <div className="p-6 text-center text-xs text-gray-400 italic">
+              No view data yet. Tracking activates on article page visits.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(topArticles as Array<{ id: string; title: string; slug: string; column_slug: string | null; view_count: number | null }>).slice(0, 8).map((a, i) => (
+                <div key={a.id} className="px-5 py-2.5 flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-gray-400 w-5">{i + 1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{a.title}</p>
+                    {a.column_slug && <p className="text-[10px] text-gray-500">{a.column_slug}</p>}
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 shrink-0">
+                    <Eye size={10} /> {(a.view_count ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Top QR Codes */}
+        <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+              Top QR Codes — Most Scanned
+            </h2>
+            <Link href="/admin/content/short-links" className="text-[11px] font-bold text-blue-600 hover:underline">
+              All Codes →
+            </Link>
+          </div>
+          {(!topQrs || topQrs.length === 0) ? (
+            <div className="p-6 text-center text-xs text-gray-400 italic">
+              No QR codes yet. Create one in QR Codes.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(topQrs as unknown as Array<{ id: string; shortcode: string; label: string | null; click_count: number; advertiser: { business_name: string } | { business_name: string }[] | null }>).slice(0, 8).map((q, i) => {
+                const adv = Array.isArray(q.advertiser) ? q.advertiser[0] : q.advertiser
+                return (
+                <div key={q.id} className="px-5 py-2.5 flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-gray-400 w-5">{i + 1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">/go/{q.shortcode}</p>
+                    <p className="text-[10px] text-gray-500 truncate">
+                      {adv?.business_name ? `${adv.business_name} · ` : ''}{q.label ?? '—'}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 shrink-0">
+                    <MousePointerClick size={10} /> {q.click_count.toLocaleString()}
+                  </span>
+                </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      </div>
 
       {summaries.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center bg-white">

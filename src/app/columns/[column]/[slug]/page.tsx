@@ -10,6 +10,7 @@ import { ArticleAuthorBlock } from '@/components/articles/ArticleAuthorBlock'
 import { ArticleBody } from '@/components/articles/ArticleBody'
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
+import { TrackArticleView } from '@/components/tracking/TrackArticleView'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
@@ -170,6 +171,11 @@ export default async function ArticlePage({ params }: PageParams) {
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
+
+      {/* View tracker — fires once per session per article after 3s on page.
+          Carries first-touch UTM attribution so the report can show what
+          drove this reader (magazine QR, social share, organic search). */}
+      <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
         <ArticleHeader

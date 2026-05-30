@@ -84,6 +84,22 @@ export default async function AdvertiserProfilePage({ params }: Props) {
     .order('is_active', { ascending: false })
     .order('impression_count', { ascending: false })
 
+  // Load their QR codes (short_links) so scans roll into the profile.
+  // Gracefully handles a partially-migrated DB where the FK column hasn't
+  // been added yet (migration 095).
+  type QrRow = {
+    id: string; shortcode: string; destination: string; content_type: string;
+    label: string | null; click_count: number; utm_campaign: string | null;
+    is_active: boolean; created_at: string;
+  }
+  let qrCodes: QrRow[] = []
+  const qrRes = await supabase
+    .from('short_links')
+    .select('id, shortcode, destination, content_type, label, click_count, utm_campaign, is_active, created_at')
+    .eq('advertiser_account_id', id)
+    .order('click_count', { ascending: false })
+  if (!qrRes.error) qrCodes = (qrRes.data ?? []) as QrRow[]
+
   type PlacementRow = {
     id: string; placement_type: string; context_type: string | null;
     context_slug: string | null; ad_headline: string | null; is_active: boolean;
@@ -96,6 +112,7 @@ export default async function AdvertiserProfilePage({ params }: Props) {
   const totalClicks      = plRows.reduce((s, p) => s + (p.click_count ?? 0), 0)
   const ctr              = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '—'
   const inRotationPool   = plRows.some(p => p.rotation_group === 'run-of-site' && p.is_active)
+  const totalQrScans     = qrCodes.reduce((s, q) => s + (q.click_count ?? 0), 0)
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -161,11 +178,22 @@ export default async function AdvertiserProfilePage({ params }: Props) {
       <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
 
         {/* Performance strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricCard icon={<Eye size={16} />} label="Total Impressions" value={totalImpressions.toLocaleString()} />
-          <MetricCard icon={<MousePointer size={16} />} label="Total Clicks" value={totalClicks.toLocaleString()} />
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <MetricCard icon={<Eye size={16} />} label="Ad Impressions" value={totalImpressions.toLocaleString()} />
+          <MetricCard icon={<MousePointer size={16} />} label="Ad Clicks" value={totalClicks.toLocaleString()} />
           <MetricCard icon={<span className="text-xs font-bold">CTR</span>} label="Click-Through Rate" value={ctr === '—' ? '—' : `${ctr}%`} />
+          <MetricCard icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="17"/><line x1="14" y1="20" x2="14" y2="20"/><line x1="17" y1="14" x2="17" y2="14"/><line x1="17" y1="17" x2="17" y2="17"/><line x1="20" y1="14" x2="20" y2="14"/><line x1="20" y1="17" x2="20" y2="20"/></svg>} label="QR Scans" value={totalQrScans.toLocaleString()} />
           <MetricCard icon={<DollarSign size={16} />} label="Active Placements" value={String(activePlacements.length)} />
+        </div>
+
+        {/* Quick link to printable monthly report */}
+        <div className="flex justify-end">
+          <Link
+            href={`/admin/advertisers/${id}/report`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-white border border-primary/30 rounded-lg hover:bg-primary/5"
+          >
+            Generate Monthly Report →
+          </Link>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -260,6 +288,40 @@ export default async function AdvertiserProfilePage({ params }: Props) {
                 </div>
               )}
             </section>
+
+            {/* QR Codes linked to this advertiser */}
+            {qrCodes.length > 0 && (
+              <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden mt-4">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    QR Codes ({qrCodes.length})
+                  </h2>
+                  <Link
+                    href={`/admin/content/short-links?advertiser_id=${id}`}
+                    className="text-[11px] font-bold text-primary hover:underline"
+                  >
+                    Manage →
+                  </Link>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {qrCodes.map(q => (
+                    <div key={q.id} className={`px-5 py-3 flex items-center gap-3 ${q.is_active ? '' : 'opacity-50'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">/go/{q.shortcode}</p>
+                        <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                          <span className="capitalize">{q.content_type}</span>
+                          {q.label && <span>{q.label}</span>}
+                          {q.utm_campaign && <span>campaign={q.utm_campaign}</span>}
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 shrink-0">
+                        <MousePointer size={11} /> {q.click_count.toLocaleString()} scans
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Open slots this advertiser could be assigned to */}
             <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden mt-4">
