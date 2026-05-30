@@ -7,7 +7,7 @@
 // array. The admin form picks it up automatically; the public render too.
 // No DB changes needed — the data is JSONB.
 
-export type SpotlightType = 'athlete' | 'coach' | 'volunteer' | 'teacher'
+export type SpotlightType = 'athlete' | 'coach' | 'volunteer' | 'teacher' | 'mom'
 
 // Lucide icon name for each field — looked up by the renderer
 export type SpotlightIcon =
@@ -125,11 +125,33 @@ export const TEACHER_TEMPLATE: SpotlightTemplate = {
   quickHits: [],   // empty by default; can be opted into later
 }
 
+// ── MOM TO MOM ───────────────────────────────────────────────────────────────
+// 4-cell at-a-glance row for the Mom to Mom interview profile. No Quick Hits —
+// the article body's Q&A is the content. The About card at the bottom of the
+// article uses `bio` (optional) + the article's profile_image_url.
+export const MOM_TEMPLATE: SpotlightTemplate = {
+  type:    'mom',
+  label:   'Mom Spotlight',
+  eyebrow: 'Mom to Mom',
+  quickHitsTitle: 'Mom Quick Hits',  // unused unless an editor opts in
+  topStrip: [
+    { key: 'town',            label: 'Town',                  icon: 'Flag',         placeholder: 'Hillwood, Montgomery' },
+    { key: 'years_here',      label: 'Years in River Region', icon: 'Calendar',     placeholder: '12' },
+    { key: 'kids',            label: 'Kids',                  icon: 'Users',        placeholder: '3 — ages 8, 12, 16' },
+    { key: 'fav_spot',        label: 'Fav Spot in Town',      icon: 'Heart',        placeholder: 'Old Cloverdale on a Saturday morning' },
+  ],
+  quickHits: [],
+  // Mom-specific extras for the About card at the bottom of the article.
+  // The `bio` field is rendered as a closing "About [Name]" card with the
+  // profile_image_url. Optional — if empty the card doesn't render.
+}
+
 export const SPOTLIGHT_TEMPLATES: Record<SpotlightType, SpotlightTemplate> = {
   athlete:   ATHLETE_TEMPLATE,
   coach:     COACH_TEMPLATE,
   volunteer: VOLUNTEER_TEMPLATE,
   teacher:   TEACHER_TEMPLATE,
+  mom:       MOM_TEMPLATE,
 }
 
 export const SPOTLIGHT_TYPE_OPTIONS = [
@@ -137,7 +159,21 @@ export const SPOTLIGHT_TYPE_OPTIONS = [
   { value: 'coach',     label: 'Coach Spotlight' },
   { value: 'volunteer', label: 'Volunteer Spotlight' },
   { value: 'teacher',   label: 'Teacher of the Month' },
+  { value: 'mom',       label: 'Mom to Mom Spotlight' },
 ] as const
+
+// Filter the type dropdown options based on the article's column so editors
+// only see relevant choices (Play Ball doesn't need a Teacher option).
+export function getSpotlightOptionsForColumn(columnSlug: string | null | undefined) {
+  if (columnSlug === 'play-ball')             return SPOTLIGHT_TYPE_OPTIONS.filter(o => ['athlete','coach','volunteer'].includes(o.value))
+  if (columnSlug === 'teacher-of-the-month')  return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'teacher')
+  if (columnSlug === 'mom-to-mom')            return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'mom')
+  return SPOTLIGHT_TYPE_OPTIONS  // unknown column — show everything
+}
+
+// Which columns surface the Spotlight editor section in admin. Mirrored
+// from the keys above for clarity.
+export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-the-month', 'mom-to-mom']
 
 export function getSpotlightTemplate(type: string | null | undefined): SpotlightTemplate | null {
   if (!type) return null

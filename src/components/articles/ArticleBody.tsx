@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import sanitizeHtml from 'sanitize-html'
 import { markdownToHtml } from '@/lib/markdown-to-html'
+import { getColumnBrand } from '@/lib/articles/column-brand'
 
 // NOTE: This component is a server component, which means the sanitizer
 // runs in Node. isomorphic-dompurify pulls in jsdom, and jsdom transitively
@@ -18,11 +19,47 @@ interface Props {
   pullQuotes?: string[]
   inlineAd?: ReactNode
   inlineCta?: ReactNode
+  /** Column slug — when set, enables column-branded Q&A + Rapid Fire styling. */
+  columnSlug?: string | null
 }
 
 function isHtml(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
 
-export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Props) {
+// Q&A detector: matches `<p>[<strong>]Name:[</strong>] text</p>`.
+// Mom to Mom interviews use this pattern (RRP: question / Hayley: answer);
+// pulls the speaker name and the answer body so we can style them apart.
+//
+// Returns null if the chunk isn't shaped like Q&A.
+function extractQA(chunk: string): { speaker: string; text: string } | null {
+  // Permit <p> with attributes, optional <strong>, optional spaces around colon.
+  const re = /^<p\b[^>]*>\s*(?:<strong\b[^>]*>)?\s*([A-Z][A-Za-z0-9 .'\-]{0,30}?)\s*:\s*(?:<\/strong>)?\s*([\s\S]+?)\s*<\/p>\s*$/i
+  const m  = chunk.match(re)
+  if (!m) return null
+  const speaker = m[1].trim()
+  const text    = m[2].trim()
+  // Avoid false positives on URLs and very long "names"
+  if (speaker.length < 1 || speaker.length > 30) return null
+  if (/^https?$/i.test(speaker)) return null
+  return { speaker, text }
+}
+
+// Rapid Fire range detection — finds the chunk index of the "Rapid Fire"
+// heading and the index of the next h1/h2 (where rapid fire ends).
+function findRapidFireRange(chunks: string[]): { start: number; end: number } | null {
+  let start = -1
+  for (let i = 0; i < chunks.length; i++) {
+    if (/<h(?:2|3)\b[^>]*>[^<]*rapid\s*fire/i.test(chunks[i])) { start = i; break }
+  }
+  if (start === -1) return null
+  let end = chunks.length
+  for (let i = start + 1; i < chunks.length; i++) {
+    if (/<h(?:1|2)\b/i.test(chunks[i])) { end = i; break }
+  }
+  return { start, end }
+}
+
+export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, columnSlug }: Props) {
+  const brand = getColumnBrand(columnSlug)
   // Imported articles may have markdown body until edited in the rich editor.
   // Convert to HTML so they render correctly on the public site.
   const rawHtml = isHtml(body) ? body : markdownToHtml(body)
@@ -131,9 +168,76 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
   }
 
   let dropCapApplied = false
+  // Identify the Rapid Fire range up front so we can bundle those chunks
+  // into a single callout instead of rendering each as a normal paragraph.
+  const rapidFire = findRapidFireRange(chunks)
+  // Track whether we've already alternated colors for Q&A. Q rows get the
+  // brand tint, A rows get the neutral panel. Heuristic: first match per
+  // article is treated as a question.
+  let qaIndex = 0
 
   chunks.slice(firstBodyIdx).forEach((chunk, j) => {
     const i = j + firstBodyIdx
+
+    // Skip chunks inside the Rapid Fire range — they're rendered as a
+    // single callout when we hit the start index.
+    if (rapidFire && i > rapidFire.start && i < rapidFire.end) return
+    if (rapidFire && i === rapidFire.start) {
+      // Bundle [start, end) into a single styled box. Strip the heading
+      // chunk and keep the rest as the body of the callout.
+      const body = chunks.slice(rapidFire.start + 1, rapidFire.end).join('')
+      elements.push(
+        <section
+          key={`rf-${i}`}
+          className="my-10 rounded-2xl overflow-hidden border border-border/40 shadow-sm"
+        >
+          <div
+            className="px-5 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-white flex items-center gap-2"
+            style={{ backgroundColor: brand.primary }}
+          >
+            ⚡ Rapid Fire
+          </div>
+          <div
+            className="px-5 md:px-7 py-5 md:py-6 article-rapid-fire"
+            style={{ backgroundColor: brand.primary + '0d' }}
+            dangerouslySetInnerHTML={{ __html: body }}
+          />
+        </section>
+      )
+      return
+    }
+
+    // Detect Q&A pattern — magazine treatment alternating Q (brand tint)
+    // and A (neutral with left border). Applies anywhere in the body,
+    // not just Mom to Mom.
+    const qa = extractQA(chunk)
+    if (qa) {
+      const isQuestion = qaIndex % 2 === 0
+      qaIndex++
+      elements.push(
+        <div
+          key={`qa-${i}`}
+          className={isQuestion ? 'my-3 md:my-4 rounded-lg px-4 py-3 md:px-5 md:py-4' : 'my-3 md:my-4 pl-4 md:pl-5 border-l-4'}
+          style={isQuestion
+            ? { backgroundColor: brand.primary + '0f' }
+            : { borderColor: brand.primary + '55' }
+          }
+        >
+          <div
+            className="text-[10px] md:text-xs font-black uppercase tracking-[0.14em] mb-1"
+            style={{ color: brand.primary }}
+          >
+            {qa.speaker}
+          </div>
+          <div
+            className={isQuestion ? 'text-base md:text-lg italic text-foreground/90 leading-snug' : 'text-base md:text-lg text-foreground/85 leading-relaxed'}
+            dangerouslySetInnerHTML={{ __html: qa.text }}
+          />
+        </div>
+      )
+      return
+    }
+
     // First body paragraph gets lede styling + drop cap
     const isLede = !dropCapApplied && /^<p[\s>]/i.test(chunk)
     if (isLede) dropCapApplied = true
@@ -271,6 +375,23 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
           font-size: 1.125rem;
           line-height: 1.7;
           margin-bottom: 0.5rem;
+        }
+        /* Rapid Fire callout — bolded question / italic answer alternation
+           inside a brand-tinted box. The bundle is rendered via dangerouslySetInnerHTML
+           so we style its children: each <p> becomes a tight row. */
+        .article-body .article-rapid-fire p {
+          margin: 0 0 0.5rem 0;
+          font-size: 0.95rem;
+          line-height: 1.5;
+          color: hsl(var(--foreground) / 0.9);
+        }
+        .article-body .article-rapid-fire p:last-child { margin-bottom: 0; }
+        .article-body .article-rapid-fire strong { display: inline; }
+        .article-body .article-rapid-fire em { color: hsl(var(--foreground) / 0.75); }
+        @media (min-width: 768px) {
+          .article-body .article-rapid-fire p {
+            font-size: 1rem;
+          }
         }
         /* Magazine-style pull quote — heavy italic, oversized, decorative
            coral quote marks at the start and end. Same treatment whether
