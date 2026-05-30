@@ -36,6 +36,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'editorial_review_status', 'published', 'published_at',
       'editorial_notes', 'source_issue_month',
       'topics',
+      // Play Ball Spotlight (migration 098)
+      'spotlight_type', 'spotlight_data',
     ]
 
     const update: Record<string, unknown> = {}
