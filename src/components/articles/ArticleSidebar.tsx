@@ -27,6 +27,9 @@ interface Props {
   stickyAd?: AdPlacement | null
   sponsoredAd?: AdPlacement | null
   trending: TrendingItem[]
+  /** Optional top slot — used by Play Ball spotlights to inject Quick Hits
+      above the regular sidebar widgets. */
+  topSlot?: React.ReactNode
 }
 
 function adEmoji(name: string) {
@@ -37,9 +40,12 @@ function adEmoji(name: string) {
   return '📰'
 }
 
-export function ArticleSidebar({ stickyAd, sponsoredAd, trending }: Props) {
+export function ArticleSidebar({ stickyAd, sponsoredAd, trending, topSlot }: Props) {
   return (
     <aside className="lg:col-span-4 space-y-8">
+      {/* Top slot — Quick Hits for Play Ball spotlights, nothing otherwise */}
+      {topSlot}
+
       {/* Sticky Sidebar Ad */}
       {stickyAd && (
         <SidebarWidget>

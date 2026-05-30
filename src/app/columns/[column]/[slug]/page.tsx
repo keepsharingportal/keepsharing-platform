@@ -11,6 +11,9 @@ import { ArticleBody } from '@/components/articles/ArticleBody'
 import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { TrackArticleView } from '@/components/tracking/TrackArticleView'
+import {
+  SpotlightTopStrip, SpotlightQuickHits, SpotlightEyebrow,
+} from '@/components/articles/Spotlight'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
@@ -168,6 +171,13 @@ export default async function ArticlePage({ params }: PageParams) {
     ? rawPullQuotes.filter((q): q is string => typeof q === 'string')
     : []
 
+  // Play Ball / Sports Spotlight: structured Q&A added on top of the article
+  // body when spotlight_type is set. Three templates (athlete/coach/volunteer)
+  // each with a 5-cell top strip and a Quick Hits sidebar.
+  const spotlightType = (article.spotlight_type as string | null) ?? null
+  const spotlightData = (article.spotlight_data as Record<string, unknown> | null) ?? null
+  const isSpotlight   = spotlightType !== null
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -178,6 +188,11 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
+        {/* Magazine-style eyebrow tag when this is a Play Ball Spotlight */}
+        {isSpotlight && (
+          <SpotlightEyebrow spotlightType={spotlightType} />
+        )}
+
         <ArticleHeader
           category={categoryLabel}
           categoryHref={categoryHref}
@@ -209,6 +224,13 @@ export default async function ArticlePage({ params }: PageParams) {
                 unoptimized
               />
             </div>
+
+            {/* Spotlight top strip — five vitals on a navy bar, magazine-matching */}
+            {isSpotlight && (
+              <div className="mb-8">
+                <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} />
+              </div>
+            )}
 
             <ArticleBody
               body={article.body ?? ''}
@@ -258,6 +280,9 @@ export default async function ArticlePage({ params }: PageParams) {
             stickyAd={stickyAdMapped}
             sponsoredAd={sponsoredAdMapped}
             trending={trendingMapped}
+            topSlot={isSpotlight ? (
+              <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} />
+            ) : undefined}
           />
         </div>
       </main>

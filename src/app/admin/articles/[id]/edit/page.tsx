@@ -17,6 +17,9 @@ import { TeacherOfMonthLayout } from '@/components/articles/templates/TeacherOfM
 import { ArticleBody } from '@/components/articles/ArticleBody'
 import Image from 'next/image'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import {
+  SPOTLIGHT_TYPE_OPTIONS, getSpotlightTemplate,
+} from '@/lib/articles/spotlight-templates'
 
 const CONTRIBUTOR_COLUMNS = ['mom-to-mom', 'grumpy-but-grateful', 'grands-greatest', 'dave-says', 'meeting-kids', 'teens-tweens-screens']
 
@@ -194,6 +197,12 @@ export default function ArticleEditPage({ params }: Props) {
     published_at: '',  // YYYY-MM-DDTHH:mm in local time; empty means "auto-set on publish"
   })
 
+  // Play Ball Spotlight — only relevant for column_slug = 'play-ball'.
+  // spotlightType picks the template (athlete/coach/volunteer); spotlightData
+  // is the JSONB blob keyed by template field key.
+  const [spotlightType, setSpotlightType] = useState<string>('')
+  const [spotlightData, setSpotlightData] = useState<Record<string, string>>({})
+
   // Bloggers list — loaded once, used by the Mom Knows Best blogger picker.
   const [bloggers, setBloggers] = useState<Array<{ id: string; slug: string; display_name: string }>>([])
   useEffect(() => {
@@ -245,6 +254,18 @@ export default function ArticleEditPage({ params }: Props) {
         setBaseNotes(cleaned)
         setSchoolRegion(region)
         setTopics(Array.isArray(data.topics) ? data.topics as string[] : [])
+        // Spotlight (Play Ball Athlete / Coach / Volunteer)
+        setSpotlightType((data.spotlight_type as string | null) ?? '')
+        const sd = data.spotlight_data
+        if (sd && typeof sd === 'object' && !Array.isArray(sd)) {
+          const flat: Record<string, string> = {}
+          for (const [k, v] of Object.entries(sd as Record<string, unknown>)) {
+            flat[k] = v == null ? '' : String(v)
+          }
+          setSpotlightData(flat)
+        } else {
+          setSpotlightData({})
+        }
       }
       setLoading(false)
     }
@@ -313,6 +334,21 @@ export default function ArticleEditPage({ params }: Props) {
       topics:                  topics.length > 0 ? topics : null,
     }
     if (published_at !== undefined) payload.published_at = published_at
+
+    // Spotlight (Play Ball Athlete / Coach / Volunteer)
+    // Only persist when type is set; otherwise null both fields so the
+    // public render stays default.
+    if (spotlightType) {
+      payload.spotlight_type = spotlightType
+      const cleaned: Record<string, string> = {}
+      for (const [k, v] of Object.entries(spotlightData)) {
+        if (v && v.trim()) cleaned[k] = v.trim()
+      }
+      payload.spotlight_data = cleaned
+    } else {
+      payload.spotlight_type = null
+      payload.spotlight_data = {}
+    }
 
     try {
       const res = await fetch(`/api/admin/articles/${id}`, {
@@ -763,6 +799,16 @@ export default function ArticleEditPage({ params }: Props) {
               </div>
             )}
 
+            {/* ── Play Ball Spotlight (Athlete / Coach / Volunteer) ── */}
+            {form.column_slug === 'play-ball' && (
+              <PlayBallSpotlightSection
+                spotlightType={spotlightType}
+                spotlightData={spotlightData}
+                onTypeChange={setSpotlightType}
+                onDataChange={setSpotlightData}
+              />
+            )}
+
             {/* ── Guide (guide_slug) ── */}
             <div>
               <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -868,3 +914,87 @@ export default function ArticleEditPage({ params }: Props) {
     </div>
   )
 }
+
+
+// ── Play Ball Spotlight section ─────────────────────────────────────────────
+// Renders the Athlete / Coach / Volunteer template based on the type the
+// editor selects. Each template has its own top-strip vitals + Quick Hits
+// Q&A — the form fields adjust accordingly.
+function PlayBallSpotlightSection({
+  spotlightType, spotlightData, onTypeChange, onDataChange,
+}: {
+  spotlightType: string
+  spotlightData: Record<string, string>
+  onTypeChange:  (v: string) => void
+  onDataChange:  (v: Record<string, string>) => void
+}) {
+  const tpl = getSpotlightTemplate(spotlightType || null)
+  const sel = 'block w-full text-sm rounded-lg border border-gray-200 px-3 py-2 outline-none focus:border-blue-400 bg-white'
+  const inp = 'block w-full text-sm rounded-lg border border-gray-200 px-3 py-2 outline-none focus:border-blue-400 bg-white'
+
+  function setValue(key: string, value: string) {
+    onDataChange({ ...spotlightData, [key]: value })
+  }
+
+  return (
+    <div className="rounded-xl ring-1 ring-amber-200 bg-amber-50/40 p-4 space-y-4">
+      <div>
+        <label className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1.5">
+          🏆 Play Ball Spotlight Type
+          <HelpTip text="Pick which template to use. Athletes, Coaches, and Volunteers each get a different set of Quick Hits questions on the public article page — same as the print magazine." />
+        </label>
+        <select className={sel} value={spotlightType} onChange={e => onTypeChange(e.target.value)}>
+          <option value="">— Regular article (no spotlight) —</option>
+          {SPOTLIGHT_TYPE_OPTIONS.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <p className="text-[11px] text-amber-900/70 mt-1">
+          When set, the article shows a magazine-style top strip + Quick Hits sidebar.
+        </p>
+      </div>
+
+      {tpl && (
+        <>
+          {/* Top Strip vitals */}
+          <div>
+            <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2">Top Strip (5 vitals)</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {tpl.topStrip.map(f => (
+                <div key={f.key}>
+                  <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">{f.label}</label>
+                  <input
+                    className={inp}
+                    value={spotlightData[f.key] ?? ''}
+                    onChange={e => setValue(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Hits Q&A */}
+          <div>
+            <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2">Quick Hits (Q&A sidebar)</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {tpl.quickHits.map(f => (
+                <div key={f.key}>
+                  <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">{f.label}</label>
+                  <textarea
+                    className={inp + ' min-h-[60px] resize-y'}
+                    value={spotlightData[f.key] ?? ''}
+                    onChange={e => setValue(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    rows={2}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
