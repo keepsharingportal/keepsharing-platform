@@ -85,42 +85,56 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta }: Prop
 
   const elements: ReactNode[] = []
 
-  // Auto-detect: is the first chunk a paragraph that contains ONLY a quoted
-  // phrase? Editors often type pull quotes as regular paragraphs (with " and
-  // ") at the top of the body. We promote those to magazine-style pull
-  // quotes automatically so the writer doesn't have to know about the
-  // blockquote button.
+  // ── Lead pull-quote consolidation ──────────────────────────────────────
+  // Real-world editor content is messy: writers type blockquotes, leave
+  // stray quote marks in their own paragraphs, sometimes both. We scan the
+  // first few chunks, collect anything that looks "quote-like" into a
+  // single magazine-style pull quote, and skip those chunks in the main
+  // render. The first paragraph AFTER the leading quotes gets the drop cap.
+  let firstBodyIdx = 0
+  const leadingQuoteParts: string[] = []
+  const SCAN = Math.min(3, chunks.length)
+  for (let i = 0; i < SCAN; i++) {
+    const ch    = chunks[i]
+    const plain = ch.replace(/<[^>]+>/g, '').trim()
+    const isBlockquote   = /^<blockquote/i.test(ch)
+    const isQuotedPara   = /^<p[\s>]/i.test(ch) && /^["“'].*["”']$/.test(plain) && plain.length < 280
+    const isOrphanQuote  = /^<p[\s>]/i.test(ch) && /^["“'”]{1,2}$/.test(plain)
+
+    if (isBlockquote || isQuotedPara || isOrphanQuote) {
+      // Strip any surrounding quote characters and add the content
+      const stripped = plain.replace(/^["“'”]+|["“'”]+$/g, '').trim()
+      if (stripped.length > 0) leadingQuoteParts.push(stripped)
+      firstBodyIdx = i + 1
+    } else {
+      break
+    }
+  }
+
+  if (leadingQuoteParts.length > 0) {
+    const quoteText = leadingQuoteParts.join(' ')
+    elements.push(
+      <blockquote
+        key="lead-quote"
+        className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 mt-2 mb-12 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
+      >
+        <span
+          aria-hidden="true"
+          className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+        >
+          &ldquo;
+        </span>
+        {quoteText}
+      </blockquote>
+    )
+  }
+
   let dropCapApplied = false
 
-  chunks.forEach((chunk, i) => {
-    const plainText = chunk.replace(/<[^>]+>/g, '').trim()
-    const looksLikeInlinePullQuote =
-      i < 2 &&
-      /^<p[\s>]/i.test(chunk) &&
-      /^["“'].*["”']$/.test(plainText) &&
-      plainText.length < 280
-
-    if (looksLikeInlinePullQuote) {
-      const quoteText = plainText.replace(/^["“']|["”']$/g, '')
-      elements.push(
-        <blockquote
-          key={`auto-q-${i}`}
-          className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 my-10 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
-        >
-          <span
-            aria-hidden="true"
-            className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-          >
-            &ldquo;
-          </span>
-          {quoteText}
-        </blockquote>
-      )
-      return
-    }
-
-    // First non-quote chunk gets lede styling + drop cap on first letter
+  chunks.slice(firstBodyIdx).forEach((chunk, j) => {
+    const i = j + firstBodyIdx
+    // First body paragraph gets lede styling + drop cap
     const isLede = !dropCapApplied && /^<p[\s>]/i.test(chunk)
     if (isLede) dropCapApplied = true
 
