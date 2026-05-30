@@ -196,25 +196,52 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
     if (rapidFire && i === rapidFire.start) {
       // Bundle [start, end) into a single styled box. Strip the heading
       // chunk and keep the rest as the body of the callout.
-      const body = chunks.slice(rapidFire.start + 1, rapidFire.end).join('')
-      elements.push(
-        <section
-          key={`rf-${i}`}
-          className="my-10 rounded-2xl overflow-hidden border border-border/40 shadow-sm"
-        >
-          <div
-            className="px-5 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-white flex items-center gap-2"
-            style={{ backgroundColor: brand.primary }}
+      const body   = chunks.slice(rapidFire.start + 1, rapidFire.end).join('')
+      const isSoft = brand.style === 'soft'
+
+      if (isSoft) {
+        // Soft variant — pale tint bg, small pill badge in the corner.
+        // Mom uses this so the callout sits softly in the article flow.
+        elements.push(
+          <section
+            key={`rf-${i}`}
+            className="my-10 rounded-2xl overflow-hidden border px-5 md:px-7 py-5 md:py-6"
+            style={{
+              backgroundColor: brand.primary + '0e',
+              borderColor:     brand.primary + '22',
+            }}
           >
-            ⚡ Rapid Fire
-          </div>
-          <div
-            className="px-5 md:px-7 py-5 md:py-6 article-rapid-fire"
-            style={{ backgroundColor: brand.primary + '0d' }}
-            dangerouslySetInnerHTML={{ __html: body }}
-          />
-        </section>
-      )
+            <span
+              className="inline-flex items-center gap-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-white rounded-full px-3 py-1 mb-3"
+              style={{ backgroundColor: brand.primary }}
+            >
+              ⚡ Rapid Fire
+            </span>
+            <div className="article-rapid-fire" dangerouslySetInnerHTML={{ __html: body }} />
+          </section>
+        )
+      } else {
+        // Bold variant — full-bleed brand-color strip header. Play Ball /
+        // Teacher / Grands.
+        elements.push(
+          <section
+            key={`rf-${i}`}
+            className="my-10 rounded-2xl overflow-hidden border border-border/40 shadow-sm"
+          >
+            <div
+              className="px-5 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-white flex items-center gap-2"
+              style={{ backgroundColor: brand.primary }}
+            >
+              ⚡ Rapid Fire
+            </div>
+            <div
+              className="px-5 md:px-7 py-5 md:py-6 article-rapid-fire"
+              style={{ backgroundColor: brand.primary + '0d' }}
+              dangerouslySetInnerHTML={{ __html: body }}
+            />
+          </section>
+        )
+      }
       return
     }
 

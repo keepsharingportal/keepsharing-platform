@@ -90,15 +90,48 @@ export function NominateCTA({ columnSlug, variant }: Props) {
   }
 
   // ── ARTICLE — bottom-of-article footer block ────────────────────────────
-  // Brand-tinted background + accent strip + title-weight headline. More
-  // visual presence than the previous dashed-border treatment.
+  // Two variants based on the column's brand style:
+  //   soft: pale tint bg + small corner pill badge (Mom — magazine-feature vibe)
+  //   bold: full-bleed brand-color strip header (Play Ball — sports-poster vibe)
+  // Both end with the same solid brand-color action button — the button is
+  // always the loud action regardless of variant.
+  const isSoft = brand.style === 'soft'
+
+  if (isSoft) {
+    return (
+      <section
+        className="mt-10 rounded-2xl overflow-hidden border px-5 md:px-7 py-6 md:py-8 text-center"
+        style={{ backgroundColor: btnBg + '0e', borderColor: btnBg + '22' }}
+        aria-label={cta.label}
+      >
+        <span
+          className="inline-block text-[10px] md:text-xs font-black uppercase tracking-widest text-white rounded-full px-3 py-1 mb-3"
+          style={{ backgroundColor: btnBg }}
+        >
+          {brand.label} · Got someone in mind?
+        </span>
+        <h3 className="text-xl md:text-3xl font-black text-foreground leading-tight mb-2 md:mb-3">
+          {cta.headline}
+        </h3>
+        <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-prose mx-auto mb-5 md:mb-6">
+          {cta.pitch}
+        </p>
+        <Link
+          href={cta.href}
+          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto rounded-full px-6 py-3 md:px-7 md:py-3.5 text-sm md:text-base font-bold text-white shadow-sm hover:shadow transition-shadow"
+          style={{ backgroundColor: btnBg }}
+        >
+          {cta.label} <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+        </Link>
+      </section>
+    )
+  }
+
   return (
     <section
       className="mt-10 rounded-2xl overflow-hidden border border-border/40 shadow-sm"
       aria-label={cta.label}
     >
-      {/* Brand accent strip — same pattern as SectionSponsorOutro for visual
-          consistency. Reader's eye recognizes "this is a Play Ball thing" */}
       <div
         className="px-5 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-white"
         style={{ backgroundColor: btnBg }}

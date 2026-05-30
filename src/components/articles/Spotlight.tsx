@@ -66,17 +66,37 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
   })
   if (filled.length === 0) return null
 
-  const brand       = getColumnBrand(columnSlug)
-  // stripAccent drives the icon-circle bg + label color. When a column
-  // overrides it (Mom uses white) we get a cleaner look than gold-on-bright.
-  const stripAccent = brand.topStripAccent ?? brand.accent
-  const colCount    = Math.min(filled.length, 5)
+  const brand    = getColumnBrand(columnSlug)
+  const isSoft   = brand.style === 'soft'
+  const colCount = Math.min(filled.length, 5)
   // Tailwind needs literal class names — explicit grid mapping by count.
-  const gridCls     = colCount === 2 ? 'grid-cols-2'
-                    : colCount === 3 ? 'grid-cols-2 md:grid-cols-3'
-                    : colCount === 4 ? 'grid-cols-2 md:grid-cols-4'
-                    :                  'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+  const gridCls  = colCount === 2 ? 'grid-cols-2'
+                 : colCount === 3 ? 'grid-cols-2 md:grid-cols-3'
+                 : colCount === 4 ? 'grid-cols-2 md:grid-cols-4'
+                 :                  'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
 
+  if (isSoft) {
+    // Soft variant — pale tint bg + bright brand-color circles + dark text.
+    // Mom uses this so the strip matches the home page Community Spotlights
+    // card aesthetic (pale wash, bright pop). Cells share the pale bg so
+    // no dividers needed; padding implies the cell boundaries.
+    return (
+      <div
+        className="rounded-xl overflow-hidden border"
+        style={{ backgroundColor: brand.primary + '0e', borderColor: brand.primary + '22' }}
+      >
+        <div className={`grid ${gridCls}`}>
+          {filled.map(f => (
+            <SoftCell key={f.key} field={f} value={String(spotlightData[f.key])} primary={brand.primary} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Bold variant (Play Ball, Teacher, Grands) — dark/saturated full-bleed
+  // bar with accent circles and white text. Magazine-poster vibe.
+  const stripAccent = brand.topStripAccent ?? brand.accent
   return (
     <div
       className="rounded-xl overflow-hidden shadow-md text-white"
@@ -115,6 +135,33 @@ function Cell({
           {field.label}
         </p>
         <p className="text-sm font-bold text-white leading-snug">
+          {value}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// Soft variant cell — bright brand-color icon circle on the pale bg, dark
+// label, dark value text. Same size + alignment as the bold Cell.
+function SoftCell({
+  field, value, primary,
+}: {
+  field: SpotlightField; value: string; primary: string
+}) {
+  return (
+    <div className="px-4 py-3 md:px-5 md:py-4 flex items-center gap-3">
+      <div
+        className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white"
+        style={{ backgroundColor: primary }}
+      >
+        <Icon name={field.icon} size={16} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] leading-tight" style={{ color: primary }}>
+          {field.label}
+        </p>
+        <p className="text-sm font-bold text-foreground leading-snug">
           {value}
         </p>
       </div>

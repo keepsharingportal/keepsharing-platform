@@ -25,8 +25,27 @@ export interface ColumnBrand {
    * Defaults to `accent` when unset. Override per-column when the column's
    * gold accent fights with its primary bg (e.g. Mom's rose + gold reads
    * gaudy; white reads clean).
+   *
+   * Note: only used when `style === 'bold'`. Soft variants always use the
+   * primary brand color on a pale tinted bg, so there's no accent slot to override.
    */
   topStripAccent?: string
+  /**
+   * Visual treatment for the spotlight UI elements (top strip, Rapid Fire
+   * callout, Nominate CTA footer).
+   *
+   *   'bold' (default): dark/saturated full-bleed bars with light accents
+   *                     and white text — magazine-poster vibe. Works when
+   *                     the primary color is dark (navy) or saturated-but-
+   *                     not-bright (apple red). Play Ball uses this.
+   *   'soft':           pale tinted backgrounds with small brand-colored
+   *                     pill badges in the corner and dark text. Works when
+   *                     the primary color is bright (rose) and a full-bleed
+   *                     treatment would overwhelm the page. Mom to Mom uses
+   *                     this — matches the home page Community Spotlights
+   *                     card aesthetic (pale tint card + bright pill badge).
+   */
+  style?: 'bold' | 'soft'
 }
 
 // Site default — coral. Used when a column slug doesn't have its own entry.
@@ -40,11 +59,13 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // Play Ball — navy + gold, magazine-matching
   'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24' },
 
-  // Mom to Mom — rose/pink, matches the Community Spotlights sidebar badge
-  // and the column's brand color in TYPE_COLORS (rose-600). Top-strip uses
-  // WHITE accents instead of gold — gold + rose was too gaudy; white reads
-  // clean and lets the rose carry the brand.
-  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24', topStripAccent: '#ffffff' },
+  // Mom to Mom — rose/pink. Uses the SOFT visual treatment (pale tint bg +
+  // small brand-color pill badge in the corner) so the article surface
+  // matches the home page Community Spotlights aesthetic. Full-bleed rose
+  // bars were overwhelming the page; rose-as-accent on a pale wash reads
+  // elegant and feminine — the magazine-feature vibe vs. the sports-poster
+  // vibe Play Ball gets.
+  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24', style: 'soft' },
 
   // Grands Are the Greatest — amber/gold, evokes nostalgia/warmth
   'grands-greatest':     { label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24' },
