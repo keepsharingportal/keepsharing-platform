@@ -108,22 +108,28 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
   },
 
-  // Grands Are the Greatest — amber as the brand identity (eyebrow,
-  // labels) on a soft peach wash (matches the rest of the site's cohesive
-  // palette). Gold icon circles with amber icons inside — warm classic
-  // grandparent-y feel. Same soft pattern as Mom + Teacher.
-  //   softBg      = coral @ 8%  (peach — matches site's newsletter strip)
+  // Grands Are the Greatest — deep purple identity (eyebrow, labels,
+  // action button) with gold accents on a soft peach wash. Continuity
+  // with the print magazine's purple "Grands" wordmark, distinct from
+  // every other column (Mom rose / Teacher apple-red / Play Ball navy),
+  // and reads as "honor + wisdom + distinguished" — the right vibe for
+  // grandparents.
+  //   primary     = deep purple #6b21a8 (eyebrow, labels, Nominate button)
+  //   accent      = gold #fbbf24 (kept for lightbox + icon circles)
+  //   softBg      = coral @ 8%  (peach — site cohesion w/ Mom + Teacher)
   //   softBorder  = coral @ 15%
-  //   softAccent  = gold #f3bf24 (icon circles)
-  //   softLabel   = deep amber  (labels match the brand identity)
-  //   actionColor = unset       (Nominate button uses primary amber)
+  //   softAccent  = gold #f3bf24 (icon circles — preserves the yellow
+  //                  identity from the home-page Community Spotlights card)
+  //   softLabel   = deep purple (labels match the brand identity)
+  //   actionColor = unset       (Nominate button uses primary purple —
+  //                  the purple is distinctive enough to not need a split)
   'grands-greatest':     {
-    label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24',
+    label: 'Grands Are the Greatest', primary: '#6b21a8', accent: '#fbbf24',
     style: 'soft',
     softBg:     '#ef644214',
     softBorder: '#ef644226',
     softAccent: '#f3bf24',
-    softLabel:  '#a16207',
+    softLabel:  '#6b21a8',
   },
 
   // Grumpy But Grateful — deep teal
