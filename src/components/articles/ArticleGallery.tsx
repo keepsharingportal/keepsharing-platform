@@ -42,7 +42,11 @@ export function ArticleGallery({ images, columnSlug, spotlightEyebrow }: Props) 
 
   return (
     <>
-      <section className="mt-12 pt-8 border-t border-border/60" aria-label="Photo gallery">
+      {/* Tight top spacing so the gallery reads as a continuation of the
+          article body, not a new section. Previously had mt-12 + pt-8 +
+          border-t, which made it feel like a teaser block belonging to a
+          different article. */}
+      <section className="mt-6" aria-label="Photo gallery">
         <div className="flex items-baseline justify-between mb-4">
           <h3 className="text-lg md:text-xl font-bold tracking-wide uppercase text-foreground">
             Photo Gallery
