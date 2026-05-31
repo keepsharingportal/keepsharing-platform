@@ -18,11 +18,14 @@ export function PullQuote({ quote, attribution }: Props) {
 
       <Quote className="relative mb-3 h-9 w-9 text-white/55" strokeWidth={2} />
 
-      <blockquote className="relative max-w-3xl font-serif text-xl font-semibold italic leading-snug tracking-tight md:text-2xl">
+      {/* Softer weight — was font-semibold and reading as too heavy/strong.
+          Now font-normal italic with a slight letter-spacing for the
+          elegant magazine vibe. */}
+      <blockquote className="relative max-w-3xl font-serif text-xl font-normal italic leading-snug tracking-tight md:text-2xl">
         “{quote}”
       </blockquote>
 
-      <figcaption className="relative mt-4 text-sm font-semibold text-white/85">
+      <figcaption className="relative mt-4 text-sm font-medium text-white/85">
         — {attribution}
       </figcaption>
 

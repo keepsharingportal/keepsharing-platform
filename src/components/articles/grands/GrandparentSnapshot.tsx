@@ -42,19 +42,22 @@ export function GrandparentSnapshot({ grandkids, nickname, traditions }: Props) 
   if (items.length === 0) return null
 
   return (
-    <section className="rounded-2xl border border-[#E8D8EE] bg-white/95 p-5 shadow-[0_12px_30px_rgba(75,23,104,0.08)]">
-      <h2 className="mb-4 text-center text-xs font-black uppercase tracking-[0.18em] text-[#6F2C8F] md:text-left">
+    <section className="rounded-2xl border border-[#E8D8EE] bg-white/95 p-5 md:p-6 shadow-[0_12px_30px_rgba(75,23,104,0.08)]">
+      <h2 className="mb-5 text-xs font-black uppercase tracking-[0.18em] text-[#6F2C8F]">
         Grandparent Snapshot
       </h2>
-      <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3">
+      {/* Vertical stack — three rows, each row has icon-left, label/value
+          stacked on the right. Replaces the older horizontal grid that
+          ran across the full top strip width. */}
+      <div className="space-y-5">
         {items.map(item => (
           <div key={item.label} className="flex items-start gap-3">
             <FeatureIcon icon={item.icon} />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 {item.label}
               </p>
-              <p className="text-sm font-semibold leading-snug text-[#08264A]">
+              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A]">
                 {item.value}
               </p>
             </div>

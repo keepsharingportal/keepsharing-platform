@@ -21,9 +21,10 @@ import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import { getColumnBrand } from '@/lib/articles/column-brand'
 import { getColumnBranding } from '@/lib/column-branding'
-import { GrandsFeatureHero } from '@/components/articles/grands/GrandsFeatureHero'
-import { GrandsBody } from '@/components/articles/grands/GrandsBody'
-import { parseGrandsBody } from '@/components/articles/grands/GrandsBodyParts'
+import { GrandsFeatureHero }    from '@/components/articles/grands/GrandsFeatureHero'
+import { GrandsSnapshotQuote }  from '@/components/articles/grands/GrandsSnapshotQuote'
+import { GrandsBody }            from '@/components/articles/grands/GrandsBody'
+import { parseGrandsBody }       from '@/components/articles/grands/GrandsBodyParts'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -267,10 +268,24 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
-        {/* For Grands the feature hero renders INSIDE the article column
-            (below) so the right sidebar (sponsor + newsletter + trending)
-            sits alongside it. For other spotlights the eyebrow/title/hero/
-            author block render above the grid (full-width). */}
+        {/* Grands hero block — FULL WIDTH above the article+sidebar grid.
+            The sidebar starts BELOW this block, alongside the snapshot +
+            pull quote, per the spec. */}
+        {isGrandsFeature && (
+          <GrandsFeatureHero
+            logoUrl={brandedLogoUrl}
+            title={article.title}
+            tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            heroImageUrl={heroImageUrl}
+            shareUrl={shareUrl}
+          />
+        )}
+
+        {/* For non-Grands spotlights the eyebrow/title/hero/author block
+            render above the grid (full-width). */}
         {!isGrandsFeature && isSpotlight && (
           <>
             <SpotlightEyebrow
@@ -328,17 +343,11 @@ export default async function ArticlePage({ params }: PageParams) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Grands feature hero renders here — INSIDE the article col so
-                the sidebar (sponsor + newsletter + trending) sits alongside. */}
+            {/* Grands snapshot + pull quote — inside the main col so the
+                sidebar sits alongside, starting at this same vertical
+                position. Sits below the full-width hero block above. */}
             {isGrandsFeature && (
-              <GrandsFeatureHero
-                logoUrl={brandedLogoUrl}
-                title={article.title}
-                tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
-                authorName={(article.author_name as string | null) ?? null}
-                publishedDate={publishedDate}
-                readTimeMinutes={readTimeMinutes}
-                heroImageUrl={heroImageUrl}
+              <GrandsSnapshotQuote
                 snapshot={grandsSnapshot ?? { grandkids: null, nickname: null, traditions: null }}
                 pullQuote={grandsParts?.leadPullQuote ?? null}
               />
