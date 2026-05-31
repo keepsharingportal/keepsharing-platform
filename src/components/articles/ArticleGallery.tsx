@@ -162,7 +162,10 @@ function ArticleGalleryLightbox({ images, startIndex, onClose, brand }: Lightbox
           {brand.right && (
             <>
               <span className="text-base" style={{ color: brand.accent }}>|</span>
-              <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate">
+              {/* Right-side eyebrow ("WINNER" for Teacher, "PLAYER SPOTLIGHT"
+                  for Play Ball, etc) rendered in the accent color so it pops
+                  next to the white column label on the left. */}
+              <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate" style={{ color: brand.accent }}>
                 {brand.right}
               </span>
             </>

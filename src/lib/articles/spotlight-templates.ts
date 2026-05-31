@@ -114,7 +114,10 @@ export const VOLUNTEER_TEMPLATE: SpotlightTemplate = {
 export const TEACHER_TEMPLATE: SpotlightTemplate = {
   type:    'teacher',
   label:   'Teacher of the Month',
-  eyebrow: 'Teacher of the Month',
+  // Eyebrow becomes the right-side of the gallery lightbox header — for
+  // Teacher we want "TEACHER OF THE MONTH | WINNER" rather than the
+  // redundant "TEACHER OF THE MONTH | TEACHER OF THE MONTH".
+  eyebrow: 'Winner',
   quickHitsTitle: 'Teacher Quick Hits',     // unused unless user opts in
   topStrip: [
     { key: 'school',         label: 'School',         icon: 'GraduationCap', placeholder: 'Prattville High School' },
