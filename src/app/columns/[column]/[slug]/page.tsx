@@ -598,10 +598,15 @@ export default async function ArticlePage({ params }: PageParams) {
 
             {/* Nominate CTA — only renders on community spotlight columns
                 (Play Ball / Teacher / Grands / Mom). Other columns: null.
-                Teacher feature renders TeacherNominationBox in the sidebar
-                instead, so we skip the article-bottom version to avoid a
-                doubled CTA. */}
-            {!isTeacherFeature && (
+                Teacher feature uses its custom TeacherNominationBox in
+                the same slot so the navy CTA matches the magazine spec
+                while staying in the same flow as the other community
+                spotlights. */}
+            {isTeacherFeature ? (
+              <div className="mt-10">
+                <TeacherNominationBox href={teacherNominateHref} />
+              </div>
+            ) : (
               <NominateCTA columnSlug={column} variant="article" />
             )}
 
@@ -670,12 +675,6 @@ export default async function ArticlePage({ params }: PageParams) {
                   columnSlug={column}
                   columnDisplay={columnDisplay}
                 />
-                {/* Teacher Nomination Box — navy CTA at the bottom of the
-                    sidebar per the mockup. Replaces the article-bottom
-                    NominateCTA for Teacher feature articles. */}
-                {isTeacherFeature && (
-                  <TeacherNominationBox href={teacherNominateHref} />
-                )}
               </>
             }
           />
