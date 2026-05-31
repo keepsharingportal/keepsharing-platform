@@ -46,6 +46,23 @@ export interface ColumnBrand {
    *                     card aesthetic (pale tint card + bright pill badge).
    */
   style?: 'bold' | 'soft'
+  /**
+   * Color palette for soft-variant surfaces (top strip box, Rapid Fire box,
+   * Nominate CTA box). When unset, the soft variant uses `primary` at a
+   * low opacity for the bg and `primary` for icons/labels.
+   *
+   * Override when you want soft surfaces to inherit a SITE palette instead
+   * of the column's own brand color — gives soft articles cohesion with the
+   * rest of the site instead of a bright wash of their own brand. Mom uses
+   * the site's peach (coral at 8%) + teal so the article reads like the
+   * home page Community Spotlights cards.
+   *
+   * Brand identity is preserved via the rose badge + rose action button —
+   * those keep using `primary`.
+   */
+  softBg?:     string   // box background (e.g. coral at 8% opacity)
+  softBorder?: string   // box border (e.g. coral at 15% opacity)
+  softAccent?: string   // icons + labels inside soft boxes (e.g. teal)
 }
 
 // Site default — coral. Used when a column slug doesn't have its own entry.
@@ -59,13 +76,21 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // Play Ball — navy + gold, magazine-matching
   'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24' },
 
-  // Mom to Mom — rose/pink. Uses the SOFT visual treatment (pale tint bg +
-  // small brand-color pill badge in the corner) so the article surface
-  // matches the home page Community Spotlights aesthetic. Full-bleed rose
-  // bars were overwhelming the page; rose-as-accent on a pale wash reads
-  // elegant and feminine — the magazine-feature vibe vs. the sports-poster
-  // vibe Play Ball gets.
-  'mom-to-mom':          { label: 'Mom to Mom',          primary: '#e11d48', accent: '#f3bf24', style: 'soft' },
+  // Mom to Mom — rose/pink for the badge + button (identity), but the soft
+  // surfaces (top strip, Rapid Fire, CTA box) use the SITE palette: peach
+  // bg + teal icons/labels. Matches the home page Community Spotlights card
+  // aesthetic + the newsletter signup peach, so the article reads cohesive
+  // with the rest of the site instead of a wash of bright rose.
+  //   softBg     = coral at 8%  (matches PublicFooter newsletter `bg-primary/8`)
+  //   softBorder = coral at 15% (matches `border-primary/15`)
+  //   softAccent = teal #3d8e8e (matches sidebar "Community Spotlights" icon)
+  'mom-to-mom':          {
+    label: 'Mom to Mom', primary: '#e11d48', accent: '#f3bf24',
+    style: 'soft',
+    softBg:     '#ef644214',  // coral @ ~8%
+    softBorder: '#ef644226',  // coral @ ~15%
+    softAccent: '#3d8e8e',    // site teal
+  },
 
   // Grands Are the Greatest — amber/gold, evokes nostalgia/warmth
   'grands-greatest':     { label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24' },

@@ -282,23 +282,26 @@ export default async function ArticlePage({ params }: PageParams) {
               ) : undefined}
             />
 
-            {/* Photo gallery — branded lightbox. Sits between the body and
-                Quick Hits so the prose leads, photos sit in the middle, then
-                the Q&A finale closes out the spotlight. */}
-            <ArticleGallery
-              images={galleryImages}
-              columnSlug={column}
-              spotlightEyebrow={galleryEyebrow}
-            />
-
-            {/* Spotlight Quick Hits — only renders when the template has
-                filled quickHits (Play Ball does, Mom + Teacher don't by
-                default). Brand colors come from the column. */}
+            {/* Spotlight Quick Hits — sits IMMEDIATELY after the body so
+                structured Q&A closes out the spotlight content before the
+                gallery + sponsor outro. New reader flow: prose → Quick Hits
+                (or Rapid Fire in body) → gallery → sponsor → nominate.
+                Only renders when the template has filled quickHits (Play
+                Ball does; Mom + Teacher don't by default). */}
             {isSpotlight && (
               <div className="mt-12">
                 <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
             )}
+
+            {/* Photo gallery — branded lightbox. Now AFTER Quick Hits so
+                the photos are the visual close to the article, right before
+                the sponsor outro and nominate CTA. */}
+            <ArticleGallery
+              images={galleryImages}
+              columnSlug={column}
+              spotlightEyebrow={galleryEyebrow}
+            />
 
             {/* Section sponsor footer outro — bigger "Thank you to our sponsor"
                 block. Renders on every breakpoint, closing the article with

@@ -44,14 +44,19 @@ function extractQA(chunk: string): { speaker: string; text: string } | null {
 }
 
 // Rapid Fire range detection — finds the chunk index of the "Rapid Fire"
-// heading and the index of the next h1/h2 (where rapid fire ends).
+// heading and the index where the rapid-fire content ends.
 //
 // Triggers on any of:
 //   - <h2|h3> containing "rapid fire"     (preferred — editor used the H2 button)
 //   - <p> whose entire text is "Rapid Fire (Questions)?" (editor typed it plain)
 //
-// The plain-paragraph fallback is safe because we require the paragraph to
-// contain ONLY that phrase — an in-body sentence about rapid fire won't trip.
+// The range ENDS at the first of:
+//   - next <h1>/<h2> heading
+//   - a long prose paragraph with no question mark (likely the bio paragraph
+//     editors put right after the rapid fire section — common in Mom to Mom)
+//
+// Without the bio-bleed guard, the rapid fire box would swallow the bio
+// paragraph since there's no heading between them.
 function findRapidFireRange(chunks: string[]): { start: number; end: number } | null {
   const plainHeadingRe = /^rapid\s*fire(?:\s*questions?)?\s*[!.:?]?$/i
   let start = -1
@@ -64,9 +69,49 @@ function findRapidFireRange(chunks: string[]): { start: number; end: number } | 
   if (start === -1) return null
   let end = chunks.length
   for (let i = start + 1; i < chunks.length; i++) {
-    if (/<h(?:1|2)\b/i.test(chunks[i])) { end = i; break }
+    const ch = chunks[i]
+    if (/<h(?:1|2)\b/i.test(ch)) { end = i; break }
+    const text = ch.replace(/<[^>]+>/g, '').trim()
+    // Long paragraph without a question mark = probably the bio. Stop here.
+    // Short paragraphs without a `?` are treated as continuations of the
+    // previous answer (handled in parseRapidFireItems).
+    if (text.length > 80 && !text.includes('?')) { end = i; break }
   }
   return { start, end }
+}
+
+// Parse the chunks inside a Rapid Fire range into Q/A items so we can
+// render them structured (bold question, regular answer below). The
+// editor's source typically looks like:
+//
+//   <p>1. Plan or wing it? Definitely plan.</p>
+//   <p>2. Early bird or night owl? Neither, but I'm definitely up</p>
+//   <p>later than I would like to be every night.</p>
+//
+// — numbered or not, with answers occasionally wrapping to a follow-on
+// paragraph that has no `?`. Continuations are appended to the previous
+// answer so the structure stays clean.
+export interface RapidFireItem { question: string; answer: string }
+function parseRapidFireItems(html: string): RapidFireItem[] {
+  const paragraphMatches = html.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) ?? []
+  const items: RapidFireItem[] = []
+
+  for (const pHtml of paragraphMatches) {
+    const raw     = pHtml.replace(/<[^>]+>/g, '').trim()
+    if (!raw) continue
+    const cleaned = raw.replace(/^\s*\d+\s*[.)\]]\s*/, '').trim()  // strip leading "1." / "1)" / "1]"
+    const qIdx    = cleaned.indexOf('?')
+    if (qIdx !== -1) {
+      const question = cleaned.substring(0, qIdx + 1).trim()
+      const answer   = cleaned.substring(qIdx + 1).trim()
+      items.push({ question, answer })
+    } else if (items.length > 0) {
+      // Continuation of previous answer (wrapped to next paragraph)
+      const last = items[items.length - 1]
+      last.answer = (last.answer + ' ' + cleaned).trim()
+    }
+  }
+  return items
 }
 
 export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, columnSlug }: Props) {
@@ -194,35 +239,51 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
     // single callout when we hit the start index.
     if (rapidFire && i > rapidFire.start && i < rapidFire.end) return
     if (rapidFire && i === rapidFire.start) {
-      // Bundle [start, end) into a single styled box. Strip the heading
-      // chunk and keep the rest as the body of the callout.
-      const body   = chunks.slice(rapidFire.start + 1, rapidFire.end).join('')
-      const isSoft = brand.style === 'soft'
+      // Bundle [start, end) into a single styled box. Parse the content
+      // into Q/A pairs so we can render them structured like Quick Hits
+      // (bold question, regular answer underneath) rather than dumping
+      // raw HTML.
+      const rawBody = chunks.slice(rapidFire.start + 1, rapidFire.end).join('')
+      const items   = parseRapidFireItems(rawBody)
+      const isSoft  = brand.style === 'soft'
+
+      // Soft palette for the box (Mom: peach + teal). Bold variant keeps
+      // brand-color tints. Question color picks up the soft accent so the
+      // questions read in the column's accent (teal for Mom).
+      const bgColor      = isSoft ? (brand.softBg     ?? brand.primary + '0e') : (brand.primary + '0d')
+      const borderColor  = isSoft ? (brand.softBorder ?? brand.primary + '22') : 'rgba(0,0,0,0.06)'
+      const questionColor = isSoft ? (brand.softAccent ?? brand.primary) : brand.primary
 
       if (isSoft) {
-        // Soft variant — pale tint bg, small pill badge in the corner.
-        // Mom uses this so the callout sits softly in the article flow.
         elements.push(
           <section
             key={`rf-${i}`}
             className="my-10 rounded-2xl overflow-hidden border px-5 md:px-7 py-5 md:py-6"
-            style={{
-              backgroundColor: brand.primary + '0e',
-              borderColor:     brand.primary + '22',
-            }}
+            style={{ backgroundColor: bgColor, borderColor }}
           >
             <span
-              className="inline-flex items-center gap-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-white rounded-full px-3 py-1 mb-3"
+              className="inline-flex items-center gap-1 text-[10px] md:text-xs font-black uppercase tracking-widest text-white rounded-full px-3 py-1 mb-4"
               style={{ backgroundColor: brand.primary }}
             >
               ⚡ Rapid Fire
             </span>
-            <div className="article-rapid-fire" dangerouslySetInnerHTML={{ __html: body }} />
+            <div className="space-y-4">
+              {items.map((item, k) => (
+                <div key={k}>
+                  <p className="font-bold text-base md:text-lg leading-snug" style={{ color: questionColor }}>
+                    {item.question}
+                  </p>
+                  {item.answer && (
+                    <p className="text-base md:text-lg text-foreground/85 leading-relaxed">
+                      {item.answer}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </section>
         )
       } else {
-        // Bold variant — full-bleed brand-color strip header. Play Ball /
-        // Teacher / Grands.
         elements.push(
           <section
             key={`rf-${i}`}
@@ -234,11 +295,20 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
             >
               ⚡ Rapid Fire
             </div>
-            <div
-              className="px-5 md:px-7 py-5 md:py-6 article-rapid-fire"
-              style={{ backgroundColor: brand.primary + '0d' }}
-              dangerouslySetInnerHTML={{ __html: body }}
-            />
+            <div className="px-5 md:px-7 py-5 md:py-6 space-y-4" style={{ backgroundColor: bgColor }}>
+              {items.map((item, k) => (
+                <div key={k}>
+                  <p className="font-bold text-base md:text-lg leading-snug" style={{ color: questionColor }}>
+                    {item.question}
+                  </p>
+                  {item.answer && (
+                    <p className="text-base md:text-lg text-foreground/85 leading-relaxed">
+                      {item.answer}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </section>
         )
       }

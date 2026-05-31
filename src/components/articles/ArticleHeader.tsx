@@ -33,7 +33,7 @@ export function ArticleHeader({ category, categoryHref, badgeClassName, title, s
           ) : badge}
         </div>
       )}
-      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-foreground">
+      <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-foreground">
         {title}
       </h1>
       {subtitle?.trim() && (

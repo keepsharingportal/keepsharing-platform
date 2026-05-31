@@ -98,10 +98,16 @@ export function NominateCTA({ columnSlug, variant }: Props) {
   const isSoft = brand.style === 'soft'
 
   if (isSoft) {
+    // Soft palette inherits from the column brand — Mom uses the site's
+    // peach + teal so the box reads cohesive with the newsletter strip
+    // and home page Community Spotlights cards. Falls back to brand
+    // primary tints when no soft palette is configured.
+    const bgColor     = brand.softBg     ?? (btnBg + '0e')
+    const borderColor = brand.softBorder ?? (btnBg + '22')
     return (
       <section
         className="mt-10 rounded-2xl overflow-hidden border px-5 md:px-7 py-6 md:py-8 text-center"
-        style={{ backgroundColor: btnBg + '0e', borderColor: btnBg + '22' }}
+        style={{ backgroundColor: bgColor, borderColor }}
         aria-label={cta.label}
       >
         <span

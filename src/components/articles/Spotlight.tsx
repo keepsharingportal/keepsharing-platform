@@ -76,18 +76,22 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
                  :                  'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
 
   if (isSoft) {
-    // Soft variant — pale tint bg + bright brand-color circles + dark text.
-    // Mom uses this so the strip matches the home page Community Spotlights
-    // card aesthetic (pale wash, bright pop). Cells share the pale bg so
-    // no dividers needed; padding implies the cell boundaries.
+    // Soft variant — pale tint bg + accent-colored circles + dark text.
+    // Mom uses this with the site's peach (coral tint) + teal palette so the
+    // strip matches the home page Community Spotlights aesthetic instead of
+    // being a wash of bright rose. Falls back to brand.primary tints when
+    // no soft palette is configured.
+    const bgColor      = brand.softBg     ?? (brand.primary + '0e')
+    const borderColor  = brand.softBorder ?? (brand.primary + '22')
+    const accentColor  = brand.softAccent ?? brand.primary
     return (
       <div
         className="rounded-xl overflow-hidden border"
-        style={{ backgroundColor: brand.primary + '0e', borderColor: brand.primary + '22' }}
+        style={{ backgroundColor: bgColor, borderColor }}
       >
         <div className={`grid ${gridCls}`}>
           {filled.map(f => (
-            <SoftCell key={f.key} field={f} value={String(spotlightData[f.key])} primary={brand.primary} />
+            <SoftCell key={f.key} field={f} value={String(spotlightData[f.key])} accent={accentColor} />
           ))}
         </div>
       </div>
@@ -142,23 +146,25 @@ function Cell({
   )
 }
 
-// Soft variant cell — bright brand-color icon circle on the pale bg, dark
-// label, dark value text. Same size + alignment as the bold Cell.
+// Soft variant cell — accent-colored icon circle on the pale bg, dark
+// label (also accent color), dark value text. Same size + alignment as
+// the bold Cell. `accent` is the soft palette color (teal for Mom) — not
+// the brand primary.
 function SoftCell({
-  field, value, primary,
+  field, value, accent,
 }: {
-  field: SpotlightField; value: string; primary: string
+  field: SpotlightField; value: string; accent: string
 }) {
   return (
     <div className="px-4 py-3 md:px-5 md:py-4 flex items-center gap-3">
       <div
         className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white"
-        style={{ backgroundColor: primary }}
+        style={{ backgroundColor: accent }}
       >
         <Icon name={field.icon} size={16} />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] leading-tight" style={{ color: primary }}>
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] leading-tight" style={{ color: accent }}>
           {field.label}
         </p>
         <p className="text-sm font-bold text-foreground leading-snug">
