@@ -249,72 +249,79 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
-        {/* Brand-aware spotlight eyebrow. logoUrl picks up the admin
-            override from column_branding when set, otherwise falls back to
-            the code default wordmarkImage / CSS wordmark / pill. */}
-        {isSpotlight && (
-          <SpotlightEyebrow
-            spotlightType={spotlightType}
-            columnSlug={column}
-            logoUrl={brandedLogoUrl}
-          />
+        {/* Spotlight magazine order: Logo → Hero → Title → Tagline → Author.
+            Non-spotlight columns keep the standard Title → Author → Hero
+            order since they don't have a column wordmark to lead with. */}
+        {isSpotlight ? (
+          <>
+            {/* 1. Brand wordmark / logo */}
+            <SpotlightEyebrow
+              spotlightType={spotlightType}
+              columnSlug={column}
+              logoUrl={brandedLogoUrl}
+            />
+
+            {/* 2. Hero image — clean rectangular hero, no rounded corners,
+                no polaroid frame. Sits directly under the wordmark, between
+                logo and title, like a magazine cover photo. */}
+            <div className="relative w-full aspect-[16/9] overflow-hidden shadow-md mb-6 md:mb-8">
+              <Image
+                src={heroImageUrl}
+                alt={article.title}
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                sizes="100vw"
+                priority
+                unoptimized
+              />
+            </div>
+
+            {/* 3 + 4. Title + Tagline (subtitle slot) */}
+            <ArticleHeader
+              category={undefined}
+              categoryHref={undefined}
+              badgeClassName={columnBadgeStyle(column)}
+              columnLogoUrl={null}
+              title={article.title}
+              subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            />
+
+            {/* 5. Author / meta row */}
+            <ArticleAuthorBlock
+              authorName={(article.author_name as string | null) ?? null}
+              publishedDate={publishedDate}
+              readTimeMinutes={readTimeMinutes}
+              shareUrl={shareUrl}
+              nominate={<NominateCTA columnSlug={column} variant="pill" />}
+            />
+          </>
+        ) : (
+          <>
+            <ArticleHeader
+              category={categoryLabel}
+              categoryHref={categoryHref}
+              badgeClassName={columnBadgeStyle(column)}
+              columnLogoUrl={brandedLogoUrl}
+              title={article.title}
+              subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            />
+            <ArticleAuthorBlock
+              authorName={(article.author_name as string | null) ?? null}
+              publishedDate={publishedDate}
+              readTimeMinutes={readTimeMinutes}
+              shareUrl={shareUrl}
+              nominate={<NominateCTA columnSlug={column} variant="pill" />}
+            />
+          </>
         )}
-
-        <ArticleHeader
-          /* Hide the column badge for Spotlight articles — the SpotlightEyebrow
-             above is the category indicator now, no duplicate "Play Ball" pill.
-             Non-spotlight articles use the column logo (when uploaded) in
-             place of the regular category pill. */
-          category={isSpotlight ? undefined : categoryLabel}
-          categoryHref={isSpotlight ? undefined : categoryHref}
-          badgeClassName={columnBadgeStyle(column)}
-          /* columnLogoUrl only renders for non-spotlight columns since
-             spotlights already display the same image in the eyebrow above. */
-          columnLogoUrl={isSpotlight ? null : brandedLogoUrl}
-          title={article.title}
-          subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
-        />
-
-        {/* Meta row sits between the title and the hero: date · read · author
-            on the left, share buttons on the right. Nominate pill slots into
-            the middle on desktop, stacks below on mobile. */}
-        <ArticleAuthorBlock
-          authorName={(article.author_name as string | null) ?? null}
-          publishedDate={publishedDate}
-          readTimeMinutes={readTimeMinutes}
-          shareUrl={shareUrl}
-          nominate={<NominateCTA columnSlug={column} variant="pill" />}
-        />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image — spotlight articles get a polaroid card: rounded
-                white frame with soft shadow, slight tilt on desktop, and a
-                washi tape strip across the top edge. Refined treatment per
-                the magazine mockup (cleaner than my earlier version).
-                Non-spotlight articles keep the original rounded hero. */}
-            <div className="relative mb-8 mt-6 md:mt-8">
-              {isSpotlight && <WashiTape columnSlug={column} />}
-              {isSpotlight ? (
-                /* Polaroid card: square aspect + bigger rotation matches the
-                   print magazine "photo album" feel. Heavier white frame
-                   padding so the polaroid edge reads clearly. Mobile keeps
-                   slight rotation, desktop tilts a bit more for visual
-                   interest. */
-                <div className="relative rounded-md bg-white p-3 md:p-4 pb-10 md:pb-12 shadow-[0_14px_35px_rgba(20,20,40,0.20)] ring-1 ring-black/5 -rotate-[1.2deg] md:-rotate-[1.8deg] origin-center mx-auto max-w-2xl">
-                  <div className="relative w-full aspect-square overflow-hidden">
-                    <Image
-                      src={heroImageUrl}
-                      alt={article.title}
-                      fill
-                      style={{ objectFit: 'cover', objectPosition: 'center top' }}
-                      sizes="(max-width: 1024px) 100vw, 66vw"
-                      priority
-                      unoptimized
-                    />
-                  </div>
-                </div>
-              ) : (
+            {/* Non-spotlight hero (regular columns) — kept rounded as the
+                standard look. Spotlight columns already rendered the hero
+                above the title. */}
+            {!isSpotlight && (
+              <div className="relative mb-8">
                 <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50">
                   <Image
                     src={heroImageUrl}
@@ -326,8 +333,8 @@ export default async function ArticlePage({ params }: PageParams) {
                     unoptimized
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Section sponsor — mobile-only strip immediately under the hero,
                 before any other content. 80% of readers are on mobile and

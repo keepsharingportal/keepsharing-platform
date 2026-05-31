@@ -424,6 +424,35 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
       return
     }
 
+    // Bold-question paragraph pattern — when a paragraph is JUST a
+    // <strong>...</strong> tag ending in a question mark, render it as a
+    // soft-tinted Q&A box (light brand bg + dark brand-color bold text)
+    // instead of plain bold paragraph. Picks up the magazine Q&A style for
+    // columns that format interviews as bold-Q + paragraph-A pairs (Grands,
+    // Teacher of the Month) without needing the RRP:/Name: prefix.
+    const boldQ = chunk.match(/^<p\b[^>]*>\s*<strong\b[^>]*>([\s\S]+?)<\/strong>\s*<\/p>\s*$/i)
+    if (boldQ) {
+      const questionText = boldQ[1].trim()
+      // Must look like an actual question (ends with ?) to avoid styling
+      // every bold-paragraph (could be a name, a label, a callout).
+      if (/\?\s*$/.test(questionText.replace(/<[^>]+>/g, ''))) {
+        elements.push(
+          <div
+            key={`bq-${i}`}
+            className="mt-8 mb-2 rounded-lg px-4 py-3 md:px-5 md:py-3.5"
+            style={{ backgroundColor: brand.primary + '14' }}
+          >
+            <p
+              className="font-bold text-base md:text-lg leading-snug"
+              style={{ color: brand.softLabel === '#08264A' ? brand.primary : (brand.softLabel ?? brand.primary) }}
+              dangerouslySetInnerHTML={{ __html: questionText }}
+            />
+          </div>
+        )
+        return
+      }
+    }
+
     // In-body <blockquote> chunks get the magazine gradient pull-quote
     // treatment per the column spec — purple gradient bg, white serif
     // italic text, soft glow blobs, tilted heart watermark. Previously
