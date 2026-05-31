@@ -29,6 +29,12 @@ import { PlayBallFeatureHero }   from '@/components/articles/play-ball/PlayBallF
 import { PlayBallSnapshotQuote } from '@/components/articles/play-ball/PlayBallSnapshotQuote'
 import { PlayBallQuickHits }     from '@/components/articles/play-ball/PlayBallQuickHits'
 import { parsePlayBallBody }     from '@/components/articles/play-ball/PlayBallBodyParts'
+import { TeacherFeatureHero }    from '@/components/articles/teacher/TeacherFeatureHero'
+import { TeacherPullQuote }      from '@/components/articles/teacher/TeacherPullQuote'
+import { TeacherSnapshot }       from '@/components/articles/teacher/TeacherSnapshot'
+import { TeacherNominationBox }  from '@/components/articles/teacher/TeacherNominationBox'
+import { parseTeacherBody }      from '@/components/articles/teacher/TeacherBodyParts'
+import { getNominateCTA }        from '@/lib/articles/nominate-cta'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -291,6 +297,29 @@ export default async function ArticlePage({ params }: PageParams) {
   }
   const playBallQuickHitsTitle = (spotlightTpl?.quickHitsTitle ?? 'Quick Hits')
 
+  // Teacher of the Month feature treatment — same magazine package as
+  // Grands / Play Ball but with a Teacher-specific layout: Quick Facts
+  // is a vertical SIDEBAR card (not a horizontal strip above the body),
+  // and the bottom-of-article nominate CTA is replaced with the navy
+  // TeacherNominationBox in the sidebar.
+  const isTeacherFeature = column === 'teacher-of-month' && isSpotlight
+  const teacherParts     = isTeacherFeature
+    ? parseTeacherBody(article.body as string ?? '')
+    : null
+  const teacherFields = isTeacherFeature && spotlightTpl
+    ? spotlightTpl.topStrip.map(f => ({ key: f.key, label: f.label, icon: f.icon }))
+    : []
+  const teacherValues: Record<string, string | null> = {}
+  if (isTeacherFeature && spotlightData) {
+    for (const f of teacherFields) {
+      const v = spotlightData[f.key]
+      teacherValues[f.key] = typeof v === 'string' ? v : null
+    }
+  }
+  const teacherNominateHref = isTeacherFeature
+    ? (getNominateCTA(column)?.href ?? '/submit/teacher-of-the-month')
+    : ''
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -332,10 +361,30 @@ export default async function ArticlePage({ params }: PageParams) {
           />
         )}
 
-        {/* For other spotlights (not Grands/Play Ball feature) the
-            eyebrow/title/hero/author block renders above the grid
+        {/* Teacher of the Month hero block — same magazine-feature
+            pattern with a red+star eyebrow tagline and a Thank You
+            badge overlapping the photo. The brand-level tagline drives
+            the eyebrow; the article subtitle drives the lede paragraph
+            under the title (unlike Grands/Play Ball where subtitle wins
+            over tagline for the same slot). */}
+        {isTeacherFeature && (
+          <TeacherFeatureHero
+            logoUrl={brandedLogoUrl}
+            tagline={brandedTagline ?? null}
+            title={article.title}
+            subtitle={(article.subtitle as string | null)?.trim() || null}
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            heroImageUrl={heroImageUrl}
+            shareUrl={shareUrl}
+          />
+        )}
+
+        {/* For other spotlights (not Grands/Play Ball/Teacher feature)
+            the eyebrow/title/hero/author block renders above the grid
             (full-width). */}
-        {!isGrandsFeature && !isPlayBallFeature && isSpotlight && (
+        {!isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && isSpotlight && (
           <>
             <SpotlightEyebrow
               spotlightType={spotlightType}
@@ -412,6 +461,19 @@ export default async function ArticlePage({ params }: PageParams) {
               />
             )}
 
+            {/* Teacher pull quote — lifted from the first <blockquote>
+                in the body. Quick Facts lives in the sidebar (not above
+                the body) per the mockup, so we render the pull quote
+                alone here. */}
+            {isTeacherFeature && teacherParts?.leadPullQuote && (
+              <div className="mb-8">
+                <TeacherPullQuote
+                  quote={teacherParts.leadPullQuote.quote}
+                  attribution={teacherParts.leadPullQuote.attribution}
+                />
+              </div>
+            )}
+
             {/* Non-spotlight hero (regular columns) — kept rounded as the
                 standard look. Spotlight columns already rendered the hero
                 above the title. */}
@@ -444,7 +506,7 @@ export default async function ArticlePage({ params }: PageParams) {
                 so readers still see vitals at the top of the article.
                 Grands skips this — its feature hero already renders the
                 snapshot on mobile within the feature package. */}
-            {isSpotlight && !isGrandsFeature && !isPlayBallFeature && (
+            {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && (
               <div className="mb-8 lg:hidden">
                 <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
@@ -458,10 +520,15 @@ export default async function ArticlePage({ params }: PageParams) {
               <GrandsBody body={article.body ?? ''} />
             ) : (
               <ArticleBody
-                /* Play Ball lifts the first <blockquote> into the
-                   PlayBallPullQuote above, so use the parsed body that
-                   has it removed; otherwise pass through the raw body. */
-                body={isPlayBallFeature ? (playBallParts?.body ?? '') : (article.body ?? '')}
+                /* Play Ball / Teacher lift the first <blockquote> into
+                   their styled pull quote above, so pass the parsed body
+                   that has it removed; otherwise pass through the raw
+                   body. */
+                body={
+                  isPlayBallFeature ? (playBallParts?.body ?? '')
+                  : isTeacherFeature ? (teacherParts?.body ?? '')
+                  : (article.body ?? '')
+                }
                 pullQuotes={pullQuotes}
                 columnSlug={column}
                 inlineAd={inlineAd ? (
@@ -491,6 +558,11 @@ export default async function ArticlePage({ params }: PageParams) {
                   values={playBallValues}
                 />
               </div>
+            ) : isTeacherFeature ? (
+              /* Teacher template has no quickHits by default — Quick
+                 Facts is the sidebar TeacherSnapshot. Render nothing
+                 here so the body flows straight into the gallery. */
+              null
             ) : isSpotlight ? (
               <div className="mt-12">
                 <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
@@ -525,8 +597,13 @@ export default async function ArticlePage({ params }: PageParams) {
             <SectionSponsorOutro sponsor={sectionSponsor} columnSlug={column} />
 
             {/* Nominate CTA — only renders on community spotlight columns
-                (Play Ball / Teacher / Grands / Mom). Other columns: null. */}
-            <NominateCTA columnSlug={column} variant="article" />
+                (Play Ball / Teacher / Grands / Mom). Other columns: null.
+                Teacher feature renders TeacherNominationBox in the sidebar
+                instead, so we skip the article-bottom version to avoid a
+                doubled CTA. */}
+            {!isTeacherFeature && (
+              <NominateCTA columnSlug={column} variant="article" />
+            )}
 
             {/* Tags — category removed (already shown in header eyebrow) */}
             {(article.guide_slug || (article.issue_year && article.issue_month)) && (
@@ -569,12 +646,18 @@ export default async function ArticlePage({ params }: PageParams) {
                     Grands renders its own GrandparentSnapshot inside the
                     GrandsFeatureHero, so we skip the sidebar version to
                     avoid the doubled snapshot. */}
-                {isSpotlight && !isGrandsFeature && !isPlayBallFeature && (
+                {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && (
                   <SpotlightSnapshot
                     spotlightType={spotlightType}
                     spotlightData={spotlightData}
                     columnSlug={column}
                   />
+                )}
+                {/* Teacher Quick Facts — vertical sidebar card per the
+                    mockup. Replaces the generic SpotlightSnapshot for
+                    Teacher of the Month articles. */}
+                {isTeacherFeature && (
+                  <TeacherSnapshot fields={teacherFields} values={teacherValues} />
                 )}
                 {/* Section sponsor — same component as before, now stacked
                     below the snapshot so the sponsor sits in premium real
@@ -587,6 +670,12 @@ export default async function ArticlePage({ params }: PageParams) {
                   columnSlug={column}
                   columnDisplay={columnDisplay}
                 />
+                {/* Teacher Nomination Box — navy CTA at the bottom of the
+                    sidebar per the mockup. Replaces the article-bottom
+                    NominateCTA for Teacher feature articles. */}
+                {isTeacherFeature && (
+                  <TeacherNominationBox href={teacherNominateHref} />
+                )}
               </>
             }
           />
