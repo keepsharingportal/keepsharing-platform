@@ -192,7 +192,8 @@ export default function ArticleEditPage({ params }: Props) {
 
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
-    body: '', hero_image_url: '', profile_image_url: '', column_slug: '', guide_slug: '',
+    body: '', author_bio: '',  // author_bio = closing line that renders below the gallery
+    hero_image_url: '', profile_image_url: '', column_slug: '', guide_slug: '',
     source_issue_month: '', author_blogger_id: '',
     published_at: '',  // YYYY-MM-DDTHH:mm in local time; empty means "auto-set on publish"
   })
@@ -256,6 +257,7 @@ export default function ArticleEditPage({ params }: Props) {
           subtitle:           data.subtitle        ?? '',
           excerpt:            data.excerpt         ?? '',
           body:               data.body            ?? '',
+          author_bio:         data.author_bio      ?? '',
           hero_image_url:     data.hero_image_url  ?? '',
           profile_image_url:  data.profile_image_url ?? '',
           column_slug:        data.column_slug     ?? '',
@@ -345,6 +347,7 @@ export default function ArticleEditPage({ params }: Props) {
       subtitle:                form.subtitle.trim()           || null,
       body:                    form.body                      || null,
       body_format:             'html',
+      author_bio:              form.author_bio.trim()         || null,
       hero_image_url:          form.hero_image_url.trim()     || null,
       profile_image_url:       form.profile_image_url.trim()  || null,
       column_slug:             form.column_slug               || null,
@@ -537,6 +540,25 @@ export default function ArticleEditPage({ params }: Props) {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Closing bio / author line — renders below the photo gallery
+                  on the public article as a thin divider + italic text.
+                  No title shown, only the text. Skip when empty. */}
+              <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Closing line — bio or author note</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Renders as a simple italic line under the photo gallery. Example: &quot;Phyllis Palmer resides in Sturbridge with her husband Markus, Sr. They&apos;re raising two boys.&quot;
+                  </p>
+                </div>
+                <textarea
+                  className="w-full px-4 py-3 text-sm leading-relaxed outline-none resize-none"
+                  rows={3}
+                  value={form.author_bio}
+                  onChange={e => setField('author_bio', e.target.value)}
+                  placeholder="Add a short closing line about the subject or the writer. Leave blank to hide."
+                />
               </div>
 
               {/* Formatting tips */}

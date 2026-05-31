@@ -303,21 +303,27 @@ export default async function ArticlePage({ params }: PageParams) {
               spotlightEyebrow={galleryEyebrow}
             />
 
+            {/* Author/subject bio — natural close to the editorial content
+                before the post-article sponsor + nominate CTA. Simple
+                divider line + italic text, no box, no section title.
+                Hidden when empty. */}
+            {article.author_bio && (
+              <div className="mt-8 pt-5 border-t border-border/40">
+                <p className="text-sm md:text-base text-muted-foreground italic leading-relaxed">
+                  {article.author_bio as string}
+                </p>
+              </div>
+            )}
+
             {/* Section sponsor footer outro — bigger "Thank you to our sponsor"
                 block. Renders on every breakpoint, closing the article with
-                reinforced brand association. */}
+                reinforced brand association. Tightened mt to match the
+                gallery's spacing rhythm (was mt-12 with border + heavy pad). */}
             <SectionSponsorOutro sponsor={sectionSponsor} columnSlug={column} />
 
             {/* Nominate CTA — only renders on community spotlight columns
                 (Play Ball / Teacher / Grands / Mom). Other columns: null. */}
             <NominateCTA columnSlug={column} variant="article" />
-
-            {/* Author bio */}
-            {article.author_bio && (
-              <div className="mt-12 pt-8 border-t border-border/60 bg-muted/30 rounded-2xl p-6">
-                <p className="text-sm text-muted-foreground italic leading-relaxed">{article.author_bio}</p>
-              </div>
-            )}
 
             {/* Tags — category removed (already shown in header eyebrow) */}
             {(article.guide_slug || (article.issue_year && article.issue_month)) && (

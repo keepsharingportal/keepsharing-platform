@@ -127,7 +127,10 @@ export function SectionSponsorOutro({ sponsor, columnSlug }: SponsorProps) {
   const colLabel = brand.label
 
   return (
-    <section className="mt-12 pt-8 border-t border-border/60" aria-label="Sponsor">
+    /* Tight top spacing so the sponsor outro reads as a continuation of
+       the article close, not a "next section" teaser. Previously had
+       mt-12 + pt-8 + border-t, which made the page feel disjointed. */
+    <section className="mt-6" aria-label="Sponsor">
       <div className="rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm">
         <div
           className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-white"

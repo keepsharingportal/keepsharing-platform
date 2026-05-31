@@ -43,6 +43,7 @@ export default function NewArticlePage() {
     subtitle:       '',
     excerpt:        '',
     body:           '',
+    author_bio:     '',
     hero_image_url:    '',
     profile_image_url: '',
     author_byline:  '',
@@ -249,6 +250,24 @@ export default function NewArticlePage() {
               initialContent=""
               onChange={html => setField('body', html)}
               placeholder="Start writing your article… Use the toolbar for headings, bold, images, links, quotes, and lists."
+            />
+          </div>
+
+          {/* Closing bio / author line — renders below the photo gallery on
+              the public article as a thin divider + italic text. Skip when empty. */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Closing line — bio or author note</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                Renders as a simple italic line under the photo gallery. Leave blank to hide.
+              </p>
+            </div>
+            <textarea
+              className="w-full px-4 py-3 text-sm leading-relaxed outline-none resize-none"
+              rows={3}
+              value={form.author_bio}
+              onChange={e => setField('author_bio', e.target.value)}
+              placeholder="Add a short closing line about the subject or the writer."
             />
           </div>
         </div>
