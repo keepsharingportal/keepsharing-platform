@@ -107,8 +107,23 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     softAccent: '#3d8e8e',    // site teal
   },
 
-  // Grands Are the Greatest — amber/gold, evokes nostalgia/warmth
-  'grands-greatest':     { label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24' },
+  // Grands Are the Greatest — amber as the brand identity (eyebrow,
+  // labels) on a soft peach wash (matches the rest of the site's cohesive
+  // palette). Gold icon circles with amber icons inside — warm classic
+  // grandparent-y feel. Same soft pattern as Mom + Teacher.
+  //   softBg      = coral @ 8%  (peach — matches site's newsletter strip)
+  //   softBorder  = coral @ 15%
+  //   softAccent  = gold #f3bf24 (icon circles)
+  //   softLabel   = deep amber  (labels match the brand identity)
+  //   actionColor = unset       (Nominate button uses primary amber)
+  'grands-greatest':     {
+    label: 'Grands Are the Greatest', primary: '#a16207', accent: '#fbbf24',
+    style: 'soft',
+    softBg:     '#ef644214',
+    softBorder: '#ef644226',
+    softAccent: '#f3bf24',
+    softLabel:  '#a16207',
+  },
 
   // Grumpy But Grateful — deep teal
   'grumpy-but-grateful': { label: 'Grumpy But Grateful', primary: '#0f766e', accent: '#fbbf24' },

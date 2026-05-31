@@ -7,7 +7,7 @@
 // array. The admin form picks it up automatically; the public render too.
 // No DB changes needed — the data is JSONB.
 
-export type SpotlightType = 'athlete' | 'coach' | 'volunteer' | 'teacher' | 'mom'
+export type SpotlightType = 'athlete' | 'coach' | 'volunteer' | 'teacher' | 'mom' | 'grand'
 
 // Lucide icon name for each field — looked up by the renderer
 export type SpotlightIcon =
@@ -150,12 +150,36 @@ export const MOM_TEMPLATE: SpotlightTemplate = {
   // profile_image_url. Optional — if empty the card doesn't render.
 }
 
+// ── GRANDS ARE THE GREATEST ──────────────────────────────────────────────────
+// 5-cell vitals strip for the Grands interview profile. Grandparent
+// Nickname is the signature field — the print magazine literally runs a
+// banner of grandparent nicknames across the top of the page, so surfacing
+// each honoree's nickname (Debbs, Big Al, Gigi, Pop-Pop, Yaya, etc.)
+// matches the column's brand identity.
+//
+// No Quick Hits — the body Q&A IS the content, like Mom to Mom.
+export const GRAND_TEMPLATE: SpotlightTemplate = {
+  type:    'grand',
+  label:   'Grands Are the Greatest',
+  eyebrow: 'Winner',
+  quickHitsTitle: 'Grand Quick Hits',  // unused unless an editor opts in
+  topStrip: [
+    { key: 'town',                label: 'Town',                  icon: 'Flag',     placeholder: 'Montgomery, AL' },
+    { key: 'grand_nickname',      label: 'Grandparent Nickname',  icon: 'Sparkles', placeholder: 'Debbs & Big Al' },
+    { key: 'grandkids',           label: 'Number of Grandkids',   icon: 'Heart',    placeholder: '2 (+ 1 on the way!)' },
+    { key: 'years_as_grandparent',label: 'Years as a Grandparent',icon: 'Calendar', placeholder: '8' },
+    { key: 'kids',                label: 'Number of Kids',        icon: 'Users',    placeholder: '3' },
+  ],
+  quickHits: [],
+}
+
 export const SPOTLIGHT_TEMPLATES: Record<SpotlightType, SpotlightTemplate> = {
   athlete:   ATHLETE_TEMPLATE,
   coach:     COACH_TEMPLATE,
   volunteer: VOLUNTEER_TEMPLATE,
   teacher:   TEACHER_TEMPLATE,
   mom:       MOM_TEMPLATE,
+  grand:     GRAND_TEMPLATE,
 }
 
 export const SPOTLIGHT_TYPE_OPTIONS = [
@@ -164,6 +188,7 @@ export const SPOTLIGHT_TYPE_OPTIONS = [
   { value: 'volunteer', label: 'Volunteer Spotlight' },
   { value: 'teacher',   label: 'Teacher of the Month' },
   { value: 'mom',       label: 'Mom to Mom Spotlight' },
+  { value: 'grand',     label: 'Grands Are the Greatest Spotlight' },
 ] as const
 
 // Filter the type dropdown options based on the article's column so editors
@@ -172,12 +197,13 @@ export function getSpotlightOptionsForColumn(columnSlug: string | null | undefin
   if (columnSlug === 'play-ball')         return SPOTLIGHT_TYPE_OPTIONS.filter(o => ['athlete','coach','volunteer'].includes(o.value))
   if (columnSlug === 'teacher-of-month')  return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'teacher')
   if (columnSlug === 'mom-to-mom')        return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'mom')
+  if (columnSlug === 'grands-greatest')   return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'grand')
   return SPOTLIGHT_TYPE_OPTIONS  // unknown column — show everything
 }
 
 // Which columns surface the Spotlight editor section in admin. Mirrored
 // from the keys above for clarity. Slugs match content-taxonomy entries.
-export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-month', 'mom-to-mom']
+export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-month', 'mom-to-mom', 'grands-greatest']
 
 export function getSpotlightTemplate(type: string | null | undefined): SpotlightTemplate | null {
   if (!type) return null

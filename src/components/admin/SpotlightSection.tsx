@@ -31,11 +31,15 @@ export function SpotlightSection({
   const inp     = 'block w-full text-sm rounded-lg border border-gray-200 px-3 py-2 outline-none focus:border-blue-400 bg-white'
 
   // Column-aware section label + emoji so each spotlight feels native.
+  // NOTE: Teacher column slug is 'teacher-of-month' (no "the") to match
+  // content-taxonomy.ts. Earlier this was 'teacher-of-the-month' and the
+  // Teacher admin heading silently fell back to "Community Spotlight".
   const heading =
-    columnSlug === 'play-ball'              ? '🏆 Play Ball Spotlight'
-    : columnSlug === 'teacher-of-the-month' ? '🍎 Teacher of the Month'
-    : columnSlug === 'mom-to-mom'           ? '💗 Mom to Mom Spotlight'
-    :                                         'Community Spotlight'
+    columnSlug === 'play-ball'          ? '🏆 Play Ball Spotlight'
+    : columnSlug === 'teacher-of-month' ? '🍎 Teacher of the Month'
+    : columnSlug === 'mom-to-mom'       ? '💗 Mom to Mom Spotlight'
+    : columnSlug === 'grands-greatest'  ? '💛 Grands Are the Greatest'
+    :                                     'Community Spotlight'
 
   function setValue(key: string, value: string) {
     onDataChange({ ...spotlightData, [key]: value })
