@@ -83,8 +83,8 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
     // both when no soft palette is configured.
     const bgColor     = brand.softBg     ?? (brand.primary + '0e')
     const borderColor = brand.softBorder ?? (brand.primary + '22')
-    const circleColor = brand.softAccent ?? brand.primary  // teal for Mom
-    const labelColor  = brand.primary                       // rose for Mom — brand identity stays on the labels
+    const circleColor = brand.softAccent ?? brand.primary   // teal for Mom, gold for Teacher
+    const labelColor  = brand.softLabel  ?? brand.primary   // rose for Mom, navy for Teacher
     return (
       <div
         className="rounded-xl overflow-hidden border"
@@ -98,6 +98,11 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
               value={String(spotlightData[f.key])}
               circleColor={circleColor}
               labelColor={labelColor}
+              /* Icon inside the circle: when a softLabel is set we use it as
+                 the icon color too so a light circle (gold) gets a dark icon
+                 (navy). When softLabel is unset (Mom) we default to white so
+                 a dark circle (teal) keeps a white icon. */
+              iconColor={brand.softLabel ?? '#ffffff'}
             />
           ))}
         </div>
@@ -153,20 +158,21 @@ function Cell({
   )
 }
 
-// Soft variant cell — `circleColor` paints the icon circle (teal for Mom);
-// `labelColor` paints the ALL-CAPS field label (rose for Mom — keeps the
-// column's brand identity on the labels). Value text is dark foreground.
-// Same size + alignment as the bold Cell.
+// Soft variant cell — `circleColor` paints the icon circle (teal for Mom,
+// gold for Teacher); `iconColor` paints the icon inside the circle (white
+// for Mom's teal circle, navy for Teacher's gold circle); `labelColor`
+// paints the ALL-CAPS field label. Value text is dark foreground. Same
+// size + alignment as the bold Cell.
 function SoftCell({
-  field, value, circleColor, labelColor,
+  field, value, circleColor, iconColor, labelColor,
 }: {
-  field: SpotlightField; value: string; circleColor: string; labelColor: string
+  field: SpotlightField; value: string; circleColor: string; iconColor: string; labelColor: string
 }) {
   return (
     <div className="px-4 py-3 md:px-5 md:py-4 flex items-center gap-3">
       <div
-        className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white"
-        style={{ backgroundColor: circleColor }}
+        className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+        style={{ backgroundColor: circleColor, color: iconColor }}
       >
         <Icon name={field.icon} size={16} />
       </div>

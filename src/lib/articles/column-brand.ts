@@ -62,7 +62,22 @@ export interface ColumnBrand {
    */
   softBg?:     string   // box background (e.g. coral at 8% opacity)
   softBorder?: string   // box border (e.g. coral at 15% opacity)
-  softAccent?: string   // icons + labels inside soft boxes (e.g. teal)
+  softAccent?: string   // icon-circle bg in soft top-strip cells (e.g. teal or gold)
+  /**
+   * Color for ALL-CAPS field labels in soft top-strip cells. Defaults to
+   * `primary` when unset. Override when you want the label color to differ
+   * from the column's primary — e.g. Teacher uses navy labels alongside
+   * its apple-red identity (apple-red + navy + gold is the Play Ball-style
+   * combo applied to Teacher).
+   */
+  softLabel?:  string
+  /**
+   * Color for primary action buttons (Nominate CTA, etc). Defaults to
+   * `primary` when unset. Override when the button should match a secondary
+   * brand color rather than the column primary — e.g. Teacher uses navy
+   * buttons even though its identity color is apple-red.
+   */
+  actionColor?: string
 }
 
 // Site default — coral. Used when a column slug doesn't have its own entry.
@@ -110,11 +125,27 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // School Bits — deep blue, matches the existing school bits treatment
   'school-bits':         { label: 'School Bits',         primary: '#1e40af', accent: '#fbbf24' },
 
-  // Teacher of the Month — apple-red + gold, evokes the magazine apple badge
-  // without requiring an uploaded graphic. Lucide Apple icon renders inline.
+  // Teacher of the Month — apple-red identity (eyebrow badge + CTA strip
+  // header) with navy + gold for the secondary surfaces (top strip labels,
+  // action buttons). Same Play Ball-style navy + gold combo on the soft
+  // peach wash, with apple-red reserved for the "this is Teacher of the
+  // Month" identity badges.
+  //   softBg      = coral @ 8%  (peach — matches site's newsletter strip)
+  //   softBorder  = coral @ 15%
+  //   softAccent  = gold #f3bf24 (icon circles)
+  //   softLabel   = navy #1a2744 (top strip labels)
+  //   actionColor = navy #1a2744 (Nominate button)
   // NOTE: column slug is 'teacher-of-month' (no "the") to match the
   // taxonomy entry in src/lib/content-taxonomy.ts.
-  'teacher-of-month':    { label: 'Teacher of the Month', primary: '#b91c1c', accent: '#f3bf24', icon: 'Apple' },
+  'teacher-of-month':    {
+    label: 'Teacher of the Month', primary: '#b91c1c', accent: '#f3bf24', icon: 'Apple',
+    style: 'soft',
+    softBg:      '#ef644214',
+    softBorder:  '#ef644226',
+    softAccent:  '#f3bf24',
+    softLabel:   '#1a2744',
+    actionColor: '#1a2744',
+  },
 }
 
 export function getColumnBrand(columnSlug: string | null | undefined): ColumnBrand {

@@ -34,8 +34,15 @@ export function NominateCTA({ columnSlug, variant }: Props) {
   if (!cta) return null
 
   const brand    = getColumnBrand(columnSlug)
-  const btnBg    = brand.primary
+  // Button background — actionColor overrides primary when a column wants
+  // its buttons in a secondary color (Teacher uses navy buttons even though
+  // its identity color is apple-red). The eyebrow + CTA strip header keep
+  // using primary so the column's identity stays consistent.
+  const btnBg    = brand.actionColor ?? brand.primary
   const accentBg = brand.accent
+  // identityBg = primary, used for the badge/strip-header that's tied to
+  // the column's identity (vs the action button color).
+  const identityBg = brand.primary
 
   // ── PILL — compact, sits inline in the article meta row ────────────────
   // White background with column-accent ring (gold/amber per column) and
@@ -102,8 +109,12 @@ export function NominateCTA({ columnSlug, variant }: Props) {
     // peach + teal so the box reads cohesive with the newsletter strip
     // and home page Community Spotlights cards. Falls back to brand
     // primary tints when no soft palette is configured.
-    const bgColor     = brand.softBg     ?? (btnBg + '0e')
-    const borderColor = brand.softBorder ?? (btnBg + '22')
+    //
+    // Two colors at play:
+    //   identityBg = brand identity (apple-red for Teacher) → badge in corner
+    //   btnBg      = action color (navy for Teacher)        → action button
+    const bgColor     = brand.softBg     ?? (identityBg + '0e')
+    const borderColor = brand.softBorder ?? (identityBg + '22')
     return (
       <section
         className="mt-10 rounded-2xl overflow-hidden border px-5 md:px-7 py-6 md:py-8 text-center"
@@ -112,7 +123,7 @@ export function NominateCTA({ columnSlug, variant }: Props) {
       >
         <span
           className="inline-block text-[10px] md:text-xs font-black uppercase tracking-widest text-white rounded-full px-3 py-1 mb-3"
-          style={{ backgroundColor: btnBg }}
+          style={{ backgroundColor: identityBg }}
         >
           {brand.label} · Got someone in mind?
         </span>
@@ -140,13 +151,13 @@ export function NominateCTA({ columnSlug, variant }: Props) {
     >
       <div
         className="px-5 py-2 text-[10px] md:text-xs font-black uppercase tracking-widest text-white"
-        style={{ backgroundColor: btnBg }}
+        style={{ backgroundColor: identityBg }}
       >
         {brand.label} · Got someone in mind?
       </div>
       <div
         className="px-5 md:px-7 py-6 md:py-8 text-center"
-        style={{ backgroundColor: btnBg + '0d' }}
+        style={{ backgroundColor: identityBg + '0d' }}
       >
         <h3 className="text-xl md:text-3xl font-black text-foreground leading-tight mb-2 md:mb-3">
           {cta.headline}
