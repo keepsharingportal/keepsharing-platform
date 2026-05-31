@@ -28,9 +28,13 @@ interface Branding {
 // feature articles) don't get logos — they're routing buckets, not
 // branded columns. Adjust this list when adding/removing branded columns.
 const BRANDABLE_COLUMN_SLUGS = new Set([
-  // School Zone
+  // School Zone — Education Matters is split per-county (each
+  // superintendent gets their own logo + tagline + identity). The
+  // generic 'education-matters' is intentionally NOT brandable.
   'teacher-of-month',
-  'education-matters',
+  'education-matters-montgomery',
+  'education-matters-elmore',
+  'education-matters-autauga',
   'counselor-corner',
   // Mom Life
   'mom-knows-best',

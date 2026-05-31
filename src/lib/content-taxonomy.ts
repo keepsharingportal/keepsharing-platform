@@ -20,6 +20,12 @@ export const COLUMNS: ColumnDef[] = [
     description: 'Profile of one outstanding River Region educator. Appears in the Teacher of the Month spot on School Zone.' },
   { slug: 'education-matters',       label: 'Education Matters',         vertical: 'school-zone',
     description: 'Bigger-picture education topics — policy, how-to, district news. Sits in the Education Matters section of School Zone.' },
+  { slug: 'education-matters-montgomery', label: 'Education Matters — Montgomery County', vertical: 'school-zone',
+    description: 'Education Matters voiced by the Montgomery County Public Schools superintendent. Each article surfaces under the Montgomery County identity on the public site.' },
+  { slug: 'education-matters-elmore', label: 'Education Matters — Elmore County',     vertical: 'school-zone',
+    description: 'Education Matters voiced by the Elmore County Public Schools superintendent. Each article surfaces under the Elmore County identity on the public site.' },
+  { slug: 'education-matters-autauga', label: 'Education Matters — Autauga County',   vertical: 'school-zone',
+    description: 'Education Matters voiced by the Autauga County Public Schools superintendent. Each article surfaces under the Autauga County identity on the public site.' },
   { slug: 'student-spotlights',      label: 'Student Spotlights',        vertical: 'school-zone',
     description: 'Individual student profile — accomplishments, hobbies, what makes them stand out.' },
   { slug: 'superintendent-updates',  label: 'Superintendent Updates',    vertical: 'school-zone',
@@ -152,14 +158,17 @@ export const VERTICALS: VerticalDef[] = [
 
 const COLUMN_TO_VERTICAL_ROW: Record<string, string> = {
   // School Zone
-  'school-bits':            'school-zone',
-  'teacher-of-month':       'school-zone',
-  'education-matters':      'school-zone',
-  'student-spotlights':     'school-zone',
-  'superintendent-updates': 'school-zone',
-  'student-athletes':       'school-zone',
-  'counselor-corner':       'school-zone',
-  'arts-performances':      'school-zone',
+  'school-bits':                    'school-zone',
+  'teacher-of-month':               'school-zone',
+  'education-matters':              'school-zone',
+  'education-matters-montgomery':   'school-zone',
+  'education-matters-elmore':       'school-zone',
+  'education-matters-autauga':      'school-zone',
+  'student-spotlights':             'school-zone',
+  'superintendent-updates':         'school-zone',
+  'student-athletes':               'school-zone',
+  'counselor-corner':               'school-zone',
+  'arts-performances':              'school-zone',
   // Mom Knows Best
   'mom-knows-best':         'mom-knows-best',
 }
