@@ -169,6 +169,7 @@ export const GRAND_TEMPLATE: SpotlightTemplate = {
     { key: 'grandkids',           label: 'Number of Grandkids',   icon: 'Heart',    placeholder: '2 (+ 1 on the way!)' },
     { key: 'years_as_grandparent',label: 'Years as a Grandparent',icon: 'Calendar', placeholder: '8' },
     { key: 'kids',                label: 'Number of Kids',        icon: 'Users',    placeholder: '3' },
+    { key: 'traditions',          label: 'Traditions',            icon: 'BookOpen', placeholder: 'FaceTime, cookies, reading, zoo trips' },
   ],
   quickHits: [],
 }

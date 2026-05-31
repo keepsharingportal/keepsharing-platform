@@ -248,15 +248,13 @@ export default async function ArticlePage({ params }: PageParams) {
   const grandsParts     = isGrandsFeature
     ? parseGrandsBody(article.body as string ?? '')
     : null
-  // Snapshot fields for the Grands feature. Mapped from spotlight_data:
-  //   grandkids  → "Number of Grandkids" field
-  //   nickname   → "Grandparent Nickname" field
-  //   traditions → "Town" field reused as a third callout (editors can
-  //                put any short tradition/locale identifier here)
+  // Snapshot fields for the Grands feature — pulled from the GRAND
+  // spotlight template fields. Editors fill these in the admin spotlight
+  // section; empty fields are skipped in the rendered snapshot.
   const grandsSnapshot = isGrandsFeature ? {
-    grandkids:  (spotlightData?.['grandkids']        as string | null) ?? null,
-    nickname:   (spotlightData?.['grand_nickname']    as string | null) ?? null,
-    traditions: (spotlightData?.['town']              as string | null) ?? null,
+    grandkids:  (spotlightData?.['grandkids']      as string | null) ?? null,
+    nickname:   (spotlightData?.['grand_nickname'] as string | null) ?? null,
+    traditions: (spotlightData?.['traditions']     as string | null) ?? null,
   } : null
 
   return (
@@ -269,35 +267,17 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
-        {/* Grands gets its own magazine feature package: cream-bg section
-            with a 2-column hero (text + photo card with tape) above a
-            2-column row (snapshot + pull quote). The rest of the article
-            (body + gallery + sponsor + nominate) flows below in the
-            standard layout. */}
-        {isGrandsFeature ? (
-          <GrandsFeatureHero
-            logoUrl={brandedLogoUrl}
-            title={article.title}
-            tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
-            authorName={(article.author_name as string | null) ?? null}
-            publishedDate={publishedDate}
-            readTimeMinutes={readTimeMinutes}
-            heroImageUrl={heroImageUrl}
-            snapshot={grandsSnapshot ?? { grandkids: null, nickname: null, traditions: null }}
-            pullQuote={grandsParts?.leadPullQuote ?? null}
-          />
-        ) : isSpotlight ? (
+        {/* For Grands the feature hero renders INSIDE the article column
+            (below) so the right sidebar (sponsor + newsletter + trending)
+            sits alongside it. For other spotlights the eyebrow/title/hero/
+            author block render above the grid (full-width). */}
+        {!isGrandsFeature && isSpotlight && (
           <>
-            {/* 1. Brand wordmark / logo */}
             <SpotlightEyebrow
               spotlightType={spotlightType}
               columnSlug={column}
               logoUrl={brandedLogoUrl}
             />
-
-            {/* 2. Hero image — clean rectangular hero, no rounded corners,
-                no polaroid frame. Sits directly under the wordmark, between
-                logo and title, like a magazine cover photo. */}
             <div className="relative w-full aspect-[16/9] overflow-hidden shadow-md mb-6 md:mb-8">
               <Image
                 src={heroImageUrl}
@@ -309,8 +289,6 @@ export default async function ArticlePage({ params }: PageParams) {
                 unoptimized
               />
             </div>
-
-            {/* 3 + 4. Title + Tagline (subtitle slot) */}
             <ArticleHeader
               category={undefined}
               categoryHref={undefined}
@@ -319,8 +297,6 @@ export default async function ArticlePage({ params }: PageParams) {
               title={article.title}
               subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
             />
-
-            {/* 5. Author / meta row */}
             <ArticleAuthorBlock
               authorName={(article.author_name as string | null) ?? null}
               publishedDate={publishedDate}
@@ -329,7 +305,8 @@ export default async function ArticlePage({ params }: PageParams) {
               nominate={<NominateCTA columnSlug={column} variant="pill" />}
             />
           </>
-        ) : (
+        )}
+        {!isSpotlight && (
           <>
             <ArticleHeader
               category={categoryLabel}
@@ -351,6 +328,22 @@ export default async function ArticlePage({ params }: PageParams) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
+            {/* Grands feature hero renders here — INSIDE the article col so
+                the sidebar (sponsor + newsletter + trending) sits alongside. */}
+            {isGrandsFeature && (
+              <GrandsFeatureHero
+                logoUrl={brandedLogoUrl}
+                title={article.title}
+                tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+                authorName={(article.author_name as string | null) ?? null}
+                publishedDate={publishedDate}
+                readTimeMinutes={readTimeMinutes}
+                heroImageUrl={heroImageUrl}
+                snapshot={grandsSnapshot ?? { grandkids: null, nickname: null, traditions: null }}
+                pullQuote={grandsParts?.leadPullQuote ?? null}
+              />
+            )}
+
             {/* Non-spotlight hero (regular columns) — kept rounded as the
                 standard look. Spotlight columns already rendered the hero
                 above the title. */}
