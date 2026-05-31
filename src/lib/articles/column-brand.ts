@@ -116,27 +116,25 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
   },
 
-  // Grands Are the Greatest — teal identity + navy labels + warm brown
-  // icons on cream-tinted circles. Three distinct colors:
-  //   - Teal carries the brand identity (eyebrow, Nominate buttons)
-  //   - Navy carries the structural text (TOWN, GRANDPARENT NICKNAME labels)
-  //   - Brown carries the icon glyphs on cream circles for warmth
-  // Cream + brown stays small enough to add warmth without going muddy.
-  //   primary       = teal #3d8e8e        (eyebrow, identity badges, Nominate button)
-  //   accent        = gold #fbbf24        (lightbox right-side)
-  //   softBg        = coral @ 8%          (peach — site cohesion w/ Mom + Teacher)
+  // Grands Are the Greatest — teal identity + teal icon circles + navy
+  // labels. Yellow is already overused in the column lineup (Play Ball
+  // gold accents, Teacher gold icons, Mom gold ring) so Grands skips the
+  // amber/gold palette entirely and leans on the site's secondary teal.
+  //   primary       = teal #3d8e8e   (eyebrow, identity badges, Nominate button)
+  //   accent        = gold #fbbf24   (lightbox right-side)
+  //   softBg        = coral @ 8%     (peach — site cohesion w/ Mom + Teacher)
   //   softBorder    = coral @ 15%
-  //   softAccent    = cream amber-200     (icon circle bg)
-  //   softIconColor = warm brown #a16207  (icon glyph inside circle)
-  //   softLabel     = navy #1a2744        (top-strip labels)
-  //   actionColor   = unset               (Nominate button uses primary teal)
+  //   softAccent    = teal #3d8e8e   (icon circle bg)
+  //   softIconColor = white          (icon glyph inside teal circle)
+  //   softLabel     = navy #1a2744   (top-strip labels)
+  //   actionColor   = unset          (Nominate button uses primary teal)
   'grands-greatest':     {
     label: 'Grands Are the Greatest', primary: '#3d8e8e', accent: '#fbbf24',
     style: 'soft',
     softBg:        '#ef644214',
     softBorder:    '#ef644226',
-    softAccent:    '#fde68a',
-    softIconColor: '#a16207',
+    softAccent:    '#3d8e8e',
+    softIconColor: '#ffffff',
     softLabel:     '#1a2744',
   },
 
