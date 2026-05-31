@@ -76,6 +76,10 @@ export default function ColumnBrandingPage() {
   useEffect(() => { load() }, [])
 
   return (
+    /* flex-1 + overflow-y-auto so the page scrolls inside the admin
+       layout's overflow-hidden wrapper. Without this all cards below the
+       viewport get clipped. max-w cap stays inside an inner wrapper. */
+    <div className="flex-1 overflow-y-auto">
     <div className="p-6 md:p-8 max-w-6xl">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/admin" className="text-gray-500 hover:text-gray-700">
@@ -114,6 +118,7 @@ export default function ColumnBrandingPage() {
           ))}
         </div>
       )}
+    </div>
     </div>
   )
 }
