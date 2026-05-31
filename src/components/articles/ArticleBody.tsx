@@ -168,7 +168,31 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
 
   // Split sanitized HTML at top-level block boundaries so we can
   // interleave pull quotes and ads at strategic positions.
-  const chunks = cleanHtml.split(/(?=<(?:p|h2|h3|figure|blockquote|ul|ol)\b)/i).filter(c => c.trim())
+  //
+  // First pass: pluck out complete <blockquote>...</blockquote> elements
+  // so the inner <p> doesn't get split off from its parent. Without this,
+  // an editor that wrote `<blockquote><p>Quote text</p></blockquote>` ends
+  // up with TWO chunks — `<blockquote>` (empty) and `<p>Quote</p></blockquote>`
+  // (orphaned closing tag) — which renders as an empty quote box plus a
+  // stray paragraph below. The blockquote element stays self-contained
+  // here so the CSS pull-quote treatment renders the text.
+  const chunks: string[] = []
+  const bqRe = /<blockquote\b[^>]*>[\s\S]*?<\/blockquote>/gi
+  let cursor = 0
+  for (const m of cleanHtml.matchAll(bqRe)) {
+    const idx = m.index ?? 0
+    if (idx > cursor) {
+      // Split the gap before this blockquote at p/h2/etc boundaries
+      const gap = cleanHtml.substring(cursor, idx)
+      chunks.push(...gap.split(/(?=<(?:p|h2|h3|figure|ul|ol)\b)/i).filter(c => c.trim()))
+    }
+    chunks.push(m[0])           // the blockquote stays whole
+    cursor = idx + m[0].length
+  }
+  if (cursor < cleanHtml.length) {
+    const tail = cleanHtml.substring(cursor)
+    chunks.push(...tail.split(/(?=<(?:p|h2|h3|figure|ul|ol)\b)/i).filter(c => c.trim()))
+  }
 
   const inlineCtaIndex = inlineCta ? Math.floor(chunks.length * 0.3) : -1
   const inlineAdIndex  = inlineAd  ? Math.floor(chunks.length * 0.55) : -1
