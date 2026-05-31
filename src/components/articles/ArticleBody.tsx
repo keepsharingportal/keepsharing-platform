@@ -247,12 +247,14 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
       const items   = parseRapidFireItems(rawBody)
       const isSoft  = brand.style === 'soft'
 
-      // Soft palette for the box (Mom: peach + teal). Bold variant keeps
-      // brand-color tints. Question color picks up the soft accent so the
-      // questions read in the column's accent (teal for Mom).
-      const bgColor      = isSoft ? (brand.softBg     ?? brand.primary + '0e') : (brand.primary + '0d')
-      const borderColor  = isSoft ? (brand.softBorder ?? brand.primary + '22') : 'rgba(0,0,0,0.06)'
-      const questionColor = isSoft ? (brand.softAccent ?? brand.primary) : brand.primary
+      // Soft palette for the box (Mom: peach bg + rose questions). The
+      // question text reads in the column's PRIMARY brand color (rose for
+      // Mom) — matches the labels in the top strip so the visual identity
+      // stays consistent. The soft accent (teal) is for icon-style elements
+      // only, not text labels.
+      const bgColor       = isSoft ? (brand.softBg     ?? brand.primary + '0e') : (brand.primary + '0d')
+      const borderColor   = isSoft ? (brand.softBorder ?? brand.primary + '22') : 'rgba(0,0,0,0.06)'
+      const questionColor = brand.primary
 
       if (isSoft) {
         elements.push(
