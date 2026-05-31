@@ -1,21 +1,29 @@
-// GrandparentSnapshot — clean magazine snapshot card. Three items: each
-// with a lavender icon circle (FeatureIcon), tiny uppercase label, and
-// brand-navy value. Lives INSIDE the article feature package (not in the
-// sidebar) so the snapshot feels like part of the story instead of a
-// sidebar widget.
+// GrandparentSnapshot — vertical magazine snapshot card. Each filled
+// spotlight field renders as one row with a FeatureIcon, an uppercase
+// label, and a navy value. Empty fields are skipped automatically, so
+// adding new fields to the GRAND template just shows up here.
 
 import type { LucideIcon } from 'lucide-react'
-import { Users, Heart, BookOpen } from 'lucide-react'
+import { Users, Heart, BookOpen, Flag, Calendar, Sparkles, Award, Star } from 'lucide-react'
 
-interface SnapshotItem {
-  icon:  LucideIcon
-  label: string
-  value: string
+const ICON_BY_TEMPLATE_ICON: Record<string, LucideIcon> = {
+  Users, Heart, BookOpen, Flag, Calendar, Sparkles, Award, Star,
 }
 
-// FeatureIcon — lavender bg, purple icon, lavender ring. Used across all
-// Grands components per the spec.
-function FeatureIcon({ icon: Icon }: { icon: LucideIcon }) {
+interface FieldDef {
+  key:   string
+  label: string
+  icon:  string
+}
+
+interface Props {
+  /** Ordered list of fields to potentially show (from the GRAND template). */
+  fields: FieldDef[]
+  /** Filled values keyed by field key. */
+  values: Record<string, string | null | undefined>
+}
+
+function FeatureIcon({ Icon }: { Icon: LucideIcon }) {
   return (
     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F4EAF7] text-[#6F2C8F] ring-1 ring-[#E4C8EE]">
       <Icon className="h-5 w-5" strokeWidth={2.25} />
@@ -23,46 +31,37 @@ function FeatureIcon({ icon: Icon }: { icon: LucideIcon }) {
   )
 }
 
-interface Props {
-  /** Number of grandkids (e.g. "3 and one on the way") */
-  grandkids?:  string | null
-  /** Nicknames (e.g. "Debs & Big Al") */
-  nickname?:   string | null
-  /** Traditions / signature touch (e.g. "Cookies, books, FaceTime") */
-  traditions?: string | null
-}
+export function GrandparentSnapshot({ fields, values }: Props) {
+  // Filter to filled fields only
+  const filled = fields.filter(f => {
+    const v = values[f.key]
+    return v && String(v).trim().length > 0
+  })
 
-export function GrandparentSnapshot({ grandkids, nickname, traditions }: Props) {
-  // Build only the items that have values — empty fields don't render.
-  const items: SnapshotItem[] = []
-  if (grandkids?.trim())  items.push({ icon: Users,    label: 'Grandkids',  value: grandkids })
-  if (nickname?.trim())   items.push({ icon: Heart,    label: 'Nicknames',  value: nickname })
-  if (traditions?.trim()) items.push({ icon: BookOpen, label: 'Traditions', value: traditions })
-
-  if (items.length === 0) return null
+  if (filled.length === 0) return null
 
   return (
     <section className="rounded-2xl border border-[#E8D8EE] bg-white/95 p-5 md:p-6 shadow-[0_12px_30px_rgba(75,23,104,0.08)]">
       <h2 className="mb-5 text-xs font-black uppercase tracking-[0.18em] text-[#6F2C8F]">
         Grandparent Snapshot
       </h2>
-      {/* Vertical stack — three rows, each row has icon-left, label/value
-          stacked on the right. Replaces the older horizontal grid that
-          ran across the full top strip width. */}
       <div className="space-y-5">
-        {items.map(item => (
-          <div key={item.label} className="flex items-start gap-3">
-            <FeatureIcon icon={item.icon} />
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                {item.label}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A]">
-                {item.value}
-              </p>
+        {filled.map(field => {
+          const Icon = ICON_BY_TEMPLATE_ICON[field.icon] ?? Star
+          return (
+            <div key={field.key} className="flex items-start gap-3">
+              <FeatureIcon Icon={Icon} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  {field.label}
+                </p>
+                <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A]">
+                  {String(values[field.key]).trim()}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

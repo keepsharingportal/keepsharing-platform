@@ -61,11 +61,21 @@
       "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\nharper: %{http_code}\\\\nmom2mom: %{http_code}\\\\ngrands: %{http_code}\\\\nteacher: %{http_code}\\\\n\" \"http://localhost:3000/\" \"http://localhost:3000/columns/play-ball/harper-loves-perfect-season\" \"http://localhost:3000/columns/mom-to-mom/with-hayley-denny\" \"http://localhost:3000/columns/grands-greatest/janice-shepard-may-2026\" \"http://localhost:3000/columns/teacher-of-the-month/bebe-campbell-the-montgomery-academy\")",
       "Bash(curl -s -o /dev/null -w \"edit: %{http_code}\\\\nteacher: %{http_code}\\\\nhome: %{http_code}\\\\n\" \"http://localhost:3000/admin/articles/b9bb532f-5d32-48a0-9a60-d31ba3fafe0a/edit\" \"http://localhost:3000/columns/teacher-of-the-month/bebe-campbell-the-montgomery-academy\" \"http://localhost:3000/\")",
       "Bash(curl -s -o /dev/null -w \"trash: %{http_code}\\\\nedit: %{http_code}\\\\nhome: %{http_code}\\\\n\" \"http://localhost:3000/admin/articles/trash\" \"http://localhost:3000/admin/articles/b9bb532f-5d32-48a0-9a60-d31ba3fafe0a/edit\" \"http://localhost:3000/\")",
-      "Bash(curl -s \"http://localhost:3000/admin/articles\")"
+      "Bash(curl -s \"http://localhost:3000/admin/articles\")",
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).dependencies['sanitize-html'] || 'not installed'\\)\")",
+      "Bash(grep -E \"\\\\.\\(sql|ts|js\\)$\")",
+      "Bash(npm list *)",
+      "Bash(git push *)",
+      "Bash(echo \" *)",
+      "Bash(grep -n \"^    </div>$\\\\|^    \\)$\\\\|^}$\" src/app/admin/column-branding/page.tsx)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npm run build)",
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 80)",
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 60)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\.next",
-      "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\node_modules"
+      "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\node_modules",
+      "C:\\Users\\jwats\\projects\\keepsharing-platform\\src\\app\\admin\\articles\\[id]\\edit"
     ]
   }
 }

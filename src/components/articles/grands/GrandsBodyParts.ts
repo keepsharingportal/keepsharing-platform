@@ -24,13 +24,32 @@ function stripTags(html: string): string {
   return html.replace(/<[^>]+>/g, '').trim()
 }
 
-// Detect a bold-question paragraph: <p><strong>question...?</strong></p>.
-// Returns the inner question text (with HTML preserved) when it matches.
+// Detect a bold-question paragraph: a <p> whose only contents are a
+// <strong>...</strong> tag. Used to identify interview prompts in the
+// body so the renderer can group them with the following answer paragraph
+// into Q&A cards.
+//
+// We DON'T require a trailing "?" — editors write prompts like
+// "Debbie, tell us a little about your children..." that end in a period,
+// and those should still be recognized as questions. Requiring the entire
+// paragraph to be a single <strong> wrapper is enough to distinguish a
+// question from a normal paragraph with inline bold emphasis.
+//
+// Editorial labels like "Bio:" / "Note:" are also bold-only paragraphs;
+// they get filtered separately by NON_QUESTION_LABELS below.
+const NON_QUESTION_LABELS = new Set([
+  'bio', 'note', 'editor’s note', "editor's note", 'editors note', 'editor note',
+  'update', 'source', 'photo', 'caption', 'p.s.', 'ps', 'sidebar', 'tip', 'pro tip',
+])
+
 function matchBoldQuestion(pHtml: string): string | null {
   const m = pHtml.match(/^<p\b[^>]*>\s*<strong\b[^>]*>([\s\S]+?)<\/strong>\s*<\/p>\s*$/i)
   if (!m) return null
   const text = stripTags(m[1])
-  if (!/\?\s*$/.test(text)) return null
+  if (text.length < 3 || text.length > 280) return null
+  // Skip common editorial labels that aren't questions.
+  const norm = text.replace(/[:.!?\s]+$/g, '').toLowerCase().trim()
+  if (NON_QUESTION_LABELS.has(norm)) return null
   return m[1].trim()
 }
 

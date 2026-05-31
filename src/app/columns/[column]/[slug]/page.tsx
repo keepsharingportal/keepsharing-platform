@@ -249,14 +249,20 @@ export default async function ArticlePage({ params }: PageParams) {
   const grandsParts     = isGrandsFeature
     ? parseGrandsBody(article.body as string ?? '')
     : null
-  // Snapshot fields for the Grands feature — pulled from the GRAND
-  // spotlight template fields. Editors fill these in the admin spotlight
-  // section; empty fields are skipped in the rendered snapshot.
-  const grandsSnapshot = isGrandsFeature ? {
-    grandkids:  (spotlightData?.['grandkids']      as string | null) ?? null,
-    nickname:   (spotlightData?.['grand_nickname'] as string | null) ?? null,
-    traditions: (spotlightData?.['traditions']     as string | null) ?? null,
-  } : null
+  // Snapshot for the Grands feature — pull the GRAND template's topStrip
+  // as the field definitions and build a values dictionary keyed by the
+  // same keys. Empty values are filtered out inside the component, so
+  // adding new fields to the template automatically flows through here.
+  const grandsSnapshotFields = isGrandsFeature && spotlightTpl
+    ? spotlightTpl.topStrip.map(f => ({ key: f.key, label: f.label, icon: f.icon }))
+    : []
+  const grandsSnapshotValues: Record<string, string | null> = {}
+  if (isGrandsFeature && spotlightData) {
+    for (const f of grandsSnapshotFields) {
+      const v = spotlightData[f.key]
+      grandsSnapshotValues[f.key] = typeof v === 'string' ? v : null
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -348,7 +354,8 @@ export default async function ArticlePage({ params }: PageParams) {
                 position. Sits below the full-width hero block above. */}
             {isGrandsFeature && (
               <GrandsSnapshotQuote
-                snapshot={grandsSnapshot ?? { grandkids: null, nickname: null, traditions: null }}
+                snapshotFields={grandsSnapshotFields}
+                snapshotValues={grandsSnapshotValues}
                 pullQuote={grandsParts?.leadPullQuote ?? null}
               />
             )}

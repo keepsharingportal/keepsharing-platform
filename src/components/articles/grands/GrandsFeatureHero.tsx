@@ -1,18 +1,17 @@
 // GrandsFeatureHero — top hero block of every Grands article. Full-width
 // inside the article main area (above the article + sidebar grid).
 //
-// Desktop: 2-col grid with the column text on the left (logo → title →
-// tagline → byline + social) and the photo card with tape on the right.
-// A horizontal divider closes the left column under the byline row.
+// Desktop: 2-col layout — left col has logo (row 1) → title (row 2) →
+// tagline (row 3) → byline + share (row 4) → HR. The photo card sits in
+// the right col, spanning all 4 rows so it aligns top with the logo.
 //
-// Mobile: stacks logo → title → tagline → byline + social → photo card.
-//
-// The snapshot + pull quote no longer live here — they render below the
-// hero inside the main column (via GrandsSnapshotQuote) so the sidebar
-// can sit alongside them starting at the divider level, per the spec.
+// Mobile: stacks in this order — logo → photo → title → tagline →
+// byline + share → HR. The CSS row positions ensure the photo follows
+// the logo (not the byline) when the grid collapses to one column, per
+// the spec.
 
-import { PhotoCardWithTape }    from '@/components/articles/grands/PhotoCardWithTape'
-import { SocialShareButtons }    from '@/components/articles/grands/SocialShareButtons'
+import { PhotoCardWithTape } from '@/components/articles/grands/PhotoCardWithTape'
+import { SocialShareButtons } from '@/components/articles/grands/SocialShareButtons'
 
 interface Props {
   logoUrl?:         string | null
@@ -31,30 +30,43 @@ export function GrandsFeatureHero({
 }: Props) {
   return (
     <section className="rounded-3xl bg-[#FFFDF8] px-5 py-7 md:px-8 md:py-9 mb-8">
-      <div className="grid gap-7 md:gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
-        {/* LEFT — logo, title, tagline, byline + social, HR */}
-        <div>
+      {/* Grid: single col on mobile (source order applies), 2-col on
+          desktop with explicit row positions so the photo lives in col 2
+          spanning rows 1-4 alongside the left-col text stack. */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-10 lg:items-start">
+        {/* 1. Logo — top-left on desktop, FIRST on mobile */}
+        <div className="lg:col-start-1 lg:row-start-1">
           {logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={logoUrl}
               alt="Grands Are The Greatest"
-              className="mb-5 h-auto w-full max-w-md"
+              className="h-auto w-full max-w-md"
             />
           )}
+        </div>
 
-          <h1 className="font-serif text-3xl font-bold leading-tight text-[#08264A] sm:text-4xl md:text-5xl">
-            {title}
-          </h1>
+        {/* 2. Photo card — right col spanning rows 1-4 on desktop, SECOND
+              (right after logo) on mobile per the spec. */}
+        <div className="lg:col-start-2 lg:row-start-1 lg:row-span-4">
+          <PhotoCardWithTape src={heroImageUrl} alt={title} />
+        </div>
 
-          {tagline && (
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-700 md:text-lg">
-              {tagline}
-            </p>
-          )}
+        {/* 3. Title */}
+        <h1 className="font-serif text-3xl font-bold leading-tight text-[#08264A] sm:text-4xl md:text-5xl lg:col-start-1 lg:row-start-2">
+          {title}
+        </h1>
 
-          {/* Byline on the left, share buttons on the right */}
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        {/* 4. Tagline */}
+        {tagline && (
+          <p className="max-w-xl text-base leading-relaxed text-slate-700 md:text-lg lg:col-start-1 lg:row-start-3">
+            {tagline}
+          </p>
+        )}
+
+        {/* 5. Byline + share + HR */}
+        <div className="lg:col-start-1 lg:row-start-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
               {authorName && <span>By {authorName}</span>}
               {authorName && publishedDate && <span>•</span>}
@@ -64,14 +76,8 @@ export function GrandsFeatureHero({
             </div>
             <SocialShareButtons shareUrl={shareUrl} />
           </div>
-
           <hr className="mt-5 border-[#E8D8EE]" />
         </div>
-
-        {/* RIGHT — photo card with tape. Sits in its own cell so it doesn't
-            push the title down. items-start at the grid level keeps the
-            title at the top of the row. */}
-        <PhotoCardWithTape src={heroImageUrl} alt={title} />
       </div>
     </section>
   )
