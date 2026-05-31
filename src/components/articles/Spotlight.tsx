@@ -279,25 +279,30 @@ function QuickHitRow({
 //
 // All variants pull color from getColumnBrand(columnSlug) so they read as
 // native to the franchise.
-export function SpotlightEyebrow({ spotlightType, columnSlug }: { spotlightType: string | null; columnSlug: string | null }) {
+export function SpotlightEyebrow({ spotlightType, columnSlug, logoUrl }: { spotlightType: string | null; columnSlug: string | null; logoUrl?: string | null }) {
   const tpl   = getSpotlightTemplate(spotlightType)
   const brand = getColumnBrand(columnSlug)
   if (!tpl) return null
 
+  // logoUrl override (from admin column_branding) takes priority over the
+  // code default wordmarkImage. Both render the same way — an <img> at
+  // h-12/16/20 with a nicknames banner above when configured.
+  const effectiveLogoUrl = logoUrl ?? brand.wordmarkImage ?? null
+
   // Wordmark mode — image preferred (when set), CSS fallback otherwise.
   // Both modes get the optional "nicknames" banner above.
-  if (brand.wordmark || brand.wordmarkImage) {
+  if (brand.wordmark || effectiveLogoUrl) {
     const wm = brand.wordmark
     return (
       <div className="mb-5 md:mb-6">
         <NicknamesBanner columnSlug={columnSlug} />
-        {brand.wordmarkImage ? (
+        {effectiveLogoUrl ? (
           /* Real brand wordmark — img since dimensions are unknown and we
              want the source PNG to scale freely. eslint-disable for next-img
              rule since we want the unmanaged fallback behavior when missing. */
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={brand.wordmarkImage}
+            src={effectiveLogoUrl}
             alt={brand.label}
             className="h-12 md:h-16 lg:h-20 w-auto"
           />

@@ -12,9 +12,15 @@ interface Props {
    * don't need a lead.
    */
   subtitle?:       string | null
+  /**
+   * Optional column logo (from column_branding admin). Renders above the
+   * title in place of (or alongside) the category pill. Lets every column
+   * have its own visual identity without code changes.
+   */
+  columnLogoUrl?:  string | null
 }
 
-export function ArticleHeader({ category, categoryHref, badgeClassName, title, subtitle }: Props) {
+export function ArticleHeader({ category, categoryHref, badgeClassName, title, subtitle, columnLogoUrl }: Props) {
   // Default falls back to the primary coral if the caller didn't pass column-specific classes.
   const badgeCls = badgeClassName ?? 'bg-primary text-primary-foreground'
 
@@ -26,13 +32,20 @@ export function ArticleHeader({ category, categoryHref, badgeClassName, title, s
 
   return (
     <>
-      {category && (
+      {/* Column logo — admin-uploaded image. When present, replaces the
+          standard category pill so each column gets its own identity. */}
+      {columnLogoUrl ? (
+        <div className="mb-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={columnLogoUrl} alt={category ?? 'Column'} className="h-10 md:h-14 w-auto" />
+        </div>
+      ) : category ? (
         <div className="mb-4">
           {categoryHref ? (
             <Link href={categoryHref} className="hover:opacity-90 transition-opacity">{badge}</Link>
           ) : badge}
         </div>
-      )}
+      ) : null}
       <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight text-foreground">
         {title}
       </h1>

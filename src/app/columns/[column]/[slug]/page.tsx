@@ -20,6 +20,7 @@ import { ArticleGallery, type GalleryImage } from '@/components/articles/Article
 import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import { getColumnBrand } from '@/lib/articles/column-brand'
+import { getColumnBranding } from '@/lib/column-branding'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -136,7 +137,16 @@ export default async function ArticlePage({ params }: PageParams) {
   // and gets premium placement under the hero on mobile + sidebar on desktop.
   // Returns null when no sponsor is active for this column; components render
   // nothing in that case so we don't get empty boxes.
-  const sectionSponsor = await getActiveSectionSponsor(getSupabase(), column)
+  const supabaseForExtras = getSupabase()
+  const [sectionSponsor, columnBranding] = await Promise.all([
+    getActiveSectionSponsor(supabaseForExtras, column),
+    /* Per-column editorial branding overrides (uploaded logo + tagline)
+       from the column_branding table. Merges with code-default brand for
+       the public eyebrow + subtitle render. */
+    getColumnBranding(supabaseForExtras, column),
+  ])
+  const brandedLogoUrl = columnBranding?.logo_url ?? getColumnBrand(column).wordmarkImage ?? null
+  const brandedTagline = columnBranding?.tagline ?? getColumnBrand(column).tagline ?? null
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -239,24 +249,30 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
-        {/* Brand-aware spotlight eyebrow when the article opts into a
-            spotlight type (Play Ball / Teacher / Mom). Color + format come
-            from the column brand, not hard-coded navy. */}
+        {/* Brand-aware spotlight eyebrow. logoUrl picks up the admin
+            override from column_branding when set, otherwise falls back to
+            the code default wordmarkImage / CSS wordmark / pill. */}
         {isSpotlight && (
-          <SpotlightEyebrow spotlightType={spotlightType} columnSlug={column} />
+          <SpotlightEyebrow
+            spotlightType={spotlightType}
+            columnSlug={column}
+            logoUrl={brandedLogoUrl}
+          />
         )}
 
         <ArticleHeader
           /* Hide the column badge for Spotlight articles — the SpotlightEyebrow
-             above is the category indicator now, no duplicate "Play Ball" pill. */
+             above is the category indicator now, no duplicate "Play Ball" pill.
+             Non-spotlight articles use the column logo (when uploaded) in
+             place of the regular category pill. */
           category={isSpotlight ? undefined : categoryLabel}
           categoryHref={isSpotlight ? undefined : categoryHref}
           badgeClassName={columnBadgeStyle(column)}
+          /* columnLogoUrl only renders for non-spotlight columns since
+             spotlights already display the same image in the eyebrow above. */
+          columnLogoUrl={isSpotlight ? null : brandedLogoUrl}
           title={article.title}
-          /* Subtitle priority: article's own subtitle wins; otherwise fall
-             back to the column tagline (e.g. Grands' "Celebrating the love,
-             legacy…" line) so the column identity is always present. */
-          subtitle={(article.subtitle as string | null)?.trim() || getColumnBrand(column).tagline || null}
+          subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
         />
 
         {/* Meta row sits between the title and the hero: date · read · author
