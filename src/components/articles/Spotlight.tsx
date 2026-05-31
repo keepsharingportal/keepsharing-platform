@@ -98,11 +98,13 @@ export function SpotlightTopStrip({ spotlightType, spotlightData, columnSlug }: 
               value={String(spotlightData[f.key])}
               circleColor={circleColor}
               labelColor={labelColor}
-              /* Icon inside the circle: when a softLabel is set we use it as
-                 the icon color too so a light circle (gold) gets a dark icon
-                 (navy). When softLabel is unset (Mom) we default to white so
-                 a dark circle (teal) keeps a white icon. */
-              iconColor={brand.softLabel ?? '#ffffff'}
+              /* Icon inside the circle: explicit softIconColor takes priority
+                 (Grands wants brown icons on cream circles with navy labels).
+                 Falls back to softLabel for columns where the icon should
+                 match the label color (Teacher: red icons + red labels on
+                 gold circles). Final fallback: white for dark circles
+                 (Mom: white icons on teal circles). */
+              iconColor={brand.softIconColor ?? brand.softLabel ?? '#ffffff'}
             />
           ))}
         </div>

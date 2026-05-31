@@ -60,9 +60,17 @@ export interface ColumnBrand {
    * Brand identity is preserved via the rose badge + rose action button —
    * those keep using `primary`.
    */
-  softBg?:     string   // box background (e.g. coral at 8% opacity)
-  softBorder?: string   // box border (e.g. coral at 15% opacity)
-  softAccent?: string   // icon-circle bg in soft top-strip cells (e.g. teal or gold)
+  softBg?:        string   // box background (e.g. coral at 8% opacity)
+  softBorder?:    string   // box border (e.g. coral at 15% opacity)
+  softAccent?:    string   // icon-circle bg in soft top-strip cells (e.g. teal or gold)
+  /**
+   * Color of the icon glyph INSIDE the soft top-strip circle. Defaults to
+   * softLabel (so a column without this override gets icons matching its
+   * labels). Override when the circle bg + label color are different and
+   * the icon needs its own contrast (e.g. Grands wants brown icons on
+   * cream circles with navy labels — three distinct colors).
+   */
+  softIconColor?: string
   /**
    * Color for ALL-CAPS field labels in soft top-strip cells. Defaults to
    * `primary` when unset. Override when you want the label color to differ
@@ -108,27 +116,28 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
   },
 
-  // Grands Are the Greatest — teal as the identity (eyebrow + buttons —
-  // no other community spotlight uses teal as primary), with warm brown
-  // labels + brown icons on cream-tinted circles. Brown reads as warm /
-  // grandparent-y without dominating because it's used as a SMALL accent
-  // (icons + labels) rather than the wash. The cream icon circles soften
-  // the brown contrast and pull the warm-amber identity from the home-
-  // page sidebar card forward.
-  //   primary     = teal #3d8e8e        (eyebrow, identity badges, Nominate button)
-  //   accent      = gold #fbbf24        (lightbox right-side)
-  //   softBg      = coral @ 8%          (peach — site cohesion w/ Mom + Teacher)
-  //   softBorder  = coral @ 15%
-  //   softAccent  = cream amber-200     (icon circle bg — soft enough not to clash)
-  //   softLabel   = warm brown #a16207  (labels + brown icons inside cream circles)
-  //   actionColor = unset               (Nominate button uses primary teal)
+  // Grands Are the Greatest — teal identity + navy labels + warm brown
+  // icons on cream-tinted circles. Three distinct colors:
+  //   - Teal carries the brand identity (eyebrow, Nominate buttons)
+  //   - Navy carries the structural text (TOWN, GRANDPARENT NICKNAME labels)
+  //   - Brown carries the icon glyphs on cream circles for warmth
+  // Cream + brown stays small enough to add warmth without going muddy.
+  //   primary       = teal #3d8e8e        (eyebrow, identity badges, Nominate button)
+  //   accent        = gold #fbbf24        (lightbox right-side)
+  //   softBg        = coral @ 8%          (peach — site cohesion w/ Mom + Teacher)
+  //   softBorder    = coral @ 15%
+  //   softAccent    = cream amber-200     (icon circle bg)
+  //   softIconColor = warm brown #a16207  (icon glyph inside circle)
+  //   softLabel     = navy #1a2744        (top-strip labels)
+  //   actionColor   = unset               (Nominate button uses primary teal)
   'grands-greatest':     {
     label: 'Grands Are the Greatest', primary: '#3d8e8e', accent: '#fbbf24',
     style: 'soft',
-    softBg:     '#ef644214',
-    softBorder: '#ef644226',
-    softAccent: '#fde68a',   // amber-200 cream circles
-    softLabel:  '#a16207',   // warm brown labels + icons
+    softBg:        '#ef644214',
+    softBorder:    '#ef644226',
+    softAccent:    '#fde68a',
+    softIconColor: '#a16207',
+    softLabel:     '#1a2744',
   },
 
   // Grumpy But Grateful — deep teal
