@@ -112,7 +112,9 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
 
   // Teacher of the Month — apple-red + gold, evokes the magazine apple badge
   // without requiring an uploaded graphic. Lucide Apple icon renders inline.
-  'teacher-of-the-month':{ label: 'Teacher of the Month', primary: '#b91c1c', accent: '#f3bf24', icon: 'Apple' },
+  // NOTE: column slug is 'teacher-of-month' (no "the") to match the
+  // taxonomy entry in src/lib/content-taxonomy.ts.
+  'teacher-of-month':    { label: 'Teacher of the Month', primary: '#b91c1c', accent: '#f3bf24', icon: 'Apple' },
 }
 
 export function getColumnBrand(columnSlug: string | null | undefined): ColumnBrand {

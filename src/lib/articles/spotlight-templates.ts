@@ -102,10 +102,11 @@ export const VOLUNTEER_TEMPLATE: SpotlightTemplate = {
 }
 
 // ── TEACHER OF THE MONTH ─────────────────────────────────────────────────────
-// Different brand family than Play Ball — column is 'teacher-of-the-month',
-// not 'play-ball'. The eyebrow + lightbox color come from getColumnBrand()
-// based on column_slug, not from the template's eyebrow field (which is the
-// right-side of the pipe for Play Ball only).
+// Different brand family than Play Ball — column is 'teacher-of-month'
+// (matches content-taxonomy slug), not 'play-ball'. The eyebrow + lightbox
+// color come from getColumnBrand() based on column_slug, not from the
+// template's eyebrow field (which is the right-side of the pipe for Play
+// Ball only).
 //
 // Top strip: school, title (Algebra 2 Teacher / Asst Principal), years
 // teaching, education, honors. NO Quick Hits — the article body carries
@@ -165,15 +166,15 @@ export const SPOTLIGHT_TYPE_OPTIONS = [
 // Filter the type dropdown options based on the article's column so editors
 // only see relevant choices (Play Ball doesn't need a Teacher option).
 export function getSpotlightOptionsForColumn(columnSlug: string | null | undefined) {
-  if (columnSlug === 'play-ball')             return SPOTLIGHT_TYPE_OPTIONS.filter(o => ['athlete','coach','volunteer'].includes(o.value))
-  if (columnSlug === 'teacher-of-the-month')  return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'teacher')
-  if (columnSlug === 'mom-to-mom')            return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'mom')
+  if (columnSlug === 'play-ball')         return SPOTLIGHT_TYPE_OPTIONS.filter(o => ['athlete','coach','volunteer'].includes(o.value))
+  if (columnSlug === 'teacher-of-month')  return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'teacher')
+  if (columnSlug === 'mom-to-mom')        return SPOTLIGHT_TYPE_OPTIONS.filter(o => o.value === 'mom')
   return SPOTLIGHT_TYPE_OPTIONS  // unknown column — show everything
 }
 
 // Which columns surface the Spotlight editor section in admin. Mirrored
-// from the keys above for clarity.
-export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-the-month', 'mom-to-mom']
+// from the keys above for clarity. Slugs match content-taxonomy entries.
+export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-month', 'mom-to-mom']
 
 export function getSpotlightTemplate(type: string | null | undefined): SpotlightTemplate | null {
   if (!type) return null

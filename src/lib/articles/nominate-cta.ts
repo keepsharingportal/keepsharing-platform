@@ -29,8 +29,10 @@ const COLUMN_CTAS: Record<string, NominateCTA> = {
     headline: 'Know someone who deserves the spotlight?',
   },
 
-  // Teacher of the Month
-  'teacher-of-the-month': {
+  // Teacher of the Month — column slug is 'teacher-of-month' (matches
+  // content-taxonomy). The submission form route is the longer
+  // 'teacher-of-the-month' (different namespace, separate routing config).
+  'teacher-of-month': {
     label:    'Nominate a Teacher',
     href:     '/submit/teacher-of-the-month',
     pitch:    'Recognize an outstanding River Region educator who has made a real difference in your child\'s life.',
