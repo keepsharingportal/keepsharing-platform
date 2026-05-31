@@ -281,38 +281,47 @@ export function SpotlightEyebrow({ spotlightType, columnSlug }: { spotlightType:
   const brand = getColumnBrand(columnSlug)
   if (!tpl) return null
 
-  // Wordmark mode — magazine-style cursive + sans split. Renders as a
-  // larger, decorative eyebrow without the colored pill background, with
-  // an optional faint "nicknames" banner above it (Grands print piece
-  // runs grandparent nicknames across the top of the page). Currently
-  // opted into by Grands.
-  if (brand.wordmark) {
+  // Wordmark mode — image preferred (when set), CSS fallback otherwise.
+  // Both modes get the optional "nicknames" banner above.
+  if (brand.wordmark || brand.wordmarkImage) {
     const wm = brand.wordmark
     return (
       <div className="mb-5 md:mb-6">
         <NicknamesBanner columnSlug={columnSlug} />
-        <div className="flex items-center gap-3 md:gap-4">
-          {wm.showHeart && (
-            <Heart
-              className="w-7 h-7 md:w-9 md:h-9 shrink-0"
-              style={{ color: wm.scriptColor ?? brand.primary, fill: (wm.scriptColor ?? brand.primary) + '20' }}
-            />
-          )}
-          <h2 className="flex items-baseline gap-2 md:gap-3 leading-none">
-            <span
-              className="font-[var(--font-allura)] text-5xl md:text-6xl lg:text-7xl"
-              style={{ color: wm.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}
-            >
-              {wm.script}
-            </span>
-            <span
-              className="font-black uppercase tracking-tight text-xl md:text-2xl lg:text-3xl"
-              style={{ color: wm.tailColor ?? 'hsl(var(--foreground))' }}
-            >
-              {wm.tail}
-            </span>
-          </h2>
-        </div>
+        {brand.wordmarkImage ? (
+          /* Real brand wordmark — img since dimensions are unknown and we
+             want the source PNG to scale freely. eslint-disable for next-img
+             rule since we want the unmanaged fallback behavior when missing. */
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={brand.wordmarkImage}
+            alt={brand.label}
+            className="h-12 md:h-16 lg:h-20 w-auto"
+          />
+        ) : wm ? (
+          <div className="flex items-center gap-3 md:gap-4">
+            {wm.showHeart && (
+              <Heart
+                className="w-7 h-7 md:w-9 md:h-9 shrink-0"
+                style={{ color: wm.scriptColor ?? brand.primary, fill: (wm.scriptColor ?? brand.primary) + '20' }}
+              />
+            )}
+            <h2 className="flex items-baseline gap-2 md:gap-3 leading-none">
+              <span
+                className="font-[var(--font-allura)] text-5xl md:text-6xl lg:text-7xl"
+                style={{ color: wm.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}
+              >
+                {wm.script}
+              </span>
+              <span
+                className="font-black uppercase tracking-tight text-xl md:text-2xl lg:text-3xl"
+                style={{ color: wm.tailColor ?? 'hsl(var(--foreground))' }}
+              >
+                {wm.tail}
+              </span>
+            </h2>
+          </div>
+        ) : null}
       </div>
     )
   }

@@ -19,6 +19,7 @@ import { MoreInSeries, type SeriesItem } from '@/components/articles/MoreInSerie
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
+import { getColumnBrand } from '@/lib/articles/column-brand'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -252,7 +253,10 @@ export default async function ArticlePage({ params }: PageParams) {
           categoryHref={isSpotlight ? undefined : categoryHref}
           badgeClassName={columnBadgeStyle(column)}
           title={article.title}
-          subtitle={article.subtitle as string | null}
+          /* Subtitle priority: article's own subtitle wins; otherwise fall
+             back to the column tagline (e.g. Grands' "Celebrating the love,
+             legacy…" line) so the column identity is always present. */
+          subtitle={(article.subtitle as string | null)?.trim() || getColumnBrand(column).tagline || null}
         />
 
         {/* Meta row sits between the title and the hero: date · read · author
@@ -268,21 +272,31 @@ export default async function ArticlePage({ params }: PageParams) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image — anchored to top so faces never crop. Wrapper
-                allows decorative WashiTape to position above the photo
-                edge without clipping (overflow stays visible). */}
+            {/* Hero image — anchored to top so faces never crop. For
+                spotlight articles the photo gets a polaroid treatment:
+                white frame padding, slight tilt, drop shadow, and a small
+                washi tape strip across the top edge. Reads as "placed on
+                the page" rather than "rendered". */}
             <div className="relative mb-8 mt-4">
               {isSpotlight && <WashiTape columnSlug={column} />}
-              <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50">
-                <Image
-                  src={heroImageUrl}
-                  alt={article.title}
-                  fill
-                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  priority
-                  unoptimized
-                />
+              <div
+                className={
+                  isSpotlight
+                    ? 'relative w-full aspect-[3/2] md:aspect-[16/9] bg-white p-2 md:p-3 shadow-[0_8px_24px_-6px_rgba(0,0,0,0.18)] md:-rotate-[0.6deg] origin-center'
+                    : 'relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50'
+                }
+              >
+                <div className={isSpotlight ? 'relative w-full h-full overflow-hidden rounded-sm' : 'absolute inset-0'}>
+                  <Image
+                    src={heroImageUrl}
+                    alt={article.title}
+                    fill
+                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    priority
+                    unoptimized
+                  />
+                </div>
               </div>
             </div>
 

@@ -105,9 +105,15 @@ function SnapshotRow({
 }) {
   return (
     <div className="flex items-start gap-3">
+      {/* Raised icon circle — radial gradient gives a soft 3D dome look
+          rather than a flat disc, with an inner ring for depth. */}
       <div
         className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center mt-0.5"
-        style={{ backgroundColor: circleColor, color: iconColor }}
+        style={{
+          background: `radial-gradient(circle at 30% 30%, ${lighten(circleColor, 0.2)}, ${circleColor} 70%)`,
+          color: iconColor,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 2px ${circleColor}55`,
+        }}
       >
         <Icon name={field.icon} size={18} />
       </div>
@@ -121,4 +127,18 @@ function SnapshotRow({
       </div>
     </div>
   )
+}
+
+// Tiny hex lightener — pushes a color toward white by `amount` (0..1).
+// Used to build the soft top-highlight on circles without pulling in a
+// full color utility.
+function lighten(hex: string, amount: number): string {
+  const m = hex.match(/^#?([0-9a-f]{6})$/i)
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  const r = (n >> 16) & 0xff
+  const g = (n >>  8) & 0xff
+  const b =  n        & 0xff
+  const mix = (c: number) => Math.round(c + (255 - c) * amount)
+  return `#${[mix(r), mix(g), mix(b)].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }

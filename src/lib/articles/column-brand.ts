@@ -96,6 +96,24 @@ export interface ColumnBrand {
    */
   watermarkIcon?: string
   /**
+   * Optional PNG/SVG path for the column's actual brand wordmark image.
+   * When set, the eyebrow renders this image instead of the CSS-generated
+   * cursive+sans wordmark — gives editors a real graphic asset (the print
+   * piece's polished wordmark) with no design debt for us.
+   *
+   * Upload to /public/images/columns/<name>.png and reference here.
+   * If the file is missing the page still renders — just shows broken-image.
+   */
+  wordmarkImage?: string
+  /**
+   * Column tagline — short identity statement that always renders below
+   * the article title on every spotlight in this column. Different from
+   * the per-article subtitle (which is the article's specific hook).
+   * Example: "Celebrating the love, legacy, and everyday moments that
+   * make grandparents amazing." for Grands.
+   */
+  tagline?: string
+  /**
    * Color of the icon glyph INSIDE the soft top-strip circle. Defaults to
    * softLabel (so a column without this override gets icons matching its
    * labels). Override when the circle bg + label color are different and
@@ -187,6 +205,13 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
       ],
     },
     watermarkIcon: 'Heart',
+    // Real brand wordmark — upload PNG to /public/images/columns/grands-wordmark.png
+    // to override the CSS cursive+sans treatment. CSS wordmark stays as the
+    // fallback when the file isn't there.
+    wordmarkImage: '/images/columns/grands-wordmark.png',
+    // Column tagline — renders below the article title on every Grands
+    // spotlight so the column identity is always present.
+    tagline: 'Celebrating the love, legacy, and everyday moments that make grandparents amazing.',
   },
 
   // Grumpy But Grateful — deep teal
