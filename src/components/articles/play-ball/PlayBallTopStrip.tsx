@@ -44,8 +44,8 @@ export function PlayBallTopStrip({ fields, values }: Props) {
   const lgCols = LG_COLS_BY_COUNT[Math.min(filled.length, 5)] ?? 'lg:grid-cols-5'
 
   return (
-    <section className="rounded-2xl border border-[#EADBA5] bg-white/95 p-5 md:p-6 shadow-[0_12px_30px_rgba(8,38,74,0.08)]">
-      <h2 className="mb-5 text-center text-xs font-black uppercase tracking-[0.18em] text-[#08264A]">
+    <section className="rounded-2xl border border-[#EADBA5] bg-[#08264A] p-5 md:p-6 shadow-[0_12px_30px_rgba(8,38,74,0.12)]">
+      <h2 className="mb-5 text-center text-xs font-black uppercase tracking-[0.18em] text-white">
         Player Snapshot
       </h2>
       <div className={`grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 ${lgCols}`}>
@@ -56,10 +56,10 @@ export function PlayBallTopStrip({ fields, values }: Props) {
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF6D9] text-[#08264A] ring-1 ring-[#F3BF24]">
                 <Icon className="h-5 w-5" strokeWidth={2.25} />
               </div>
-              <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-[#B98200]">
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-[#F3BF24]">
                 {field.label}
               </p>
-              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A] break-words">
+              <p className="mt-0.5 text-sm font-semibold leading-snug text-white break-words">
                 {String(values[field.key]).trim()}
               </p>
             </div>
