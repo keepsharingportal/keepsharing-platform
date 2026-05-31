@@ -125,16 +125,16 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // School Bits — deep blue, matches the existing school bits treatment
   'school-bits':         { label: 'School Bits',         primary: '#1e40af', accent: '#fbbf24' },
 
-  // Teacher of the Month — apple-red identity (eyebrow badge + CTA strip
-  // header) with navy + gold for the secondary surfaces (top strip labels,
-  // action buttons). Same Play Ball-style navy + gold combo on the soft
-  // peach wash, with apple-red reserved for the "this is Teacher of the
-  // Month" identity badges.
+  // Teacher of the Month — apple-red identity carries everything text
+  // (eyebrow, top strip labels, badges) with navy reserved for action
+  // buttons only. Gold-circle icons inside the soft peach wash. The
+  // labels match the eyebrow color so the page reads as one Teacher of
+  // the Month surface; navy buttons add a secondary punch for CTAs.
   //   softBg      = coral @ 8%  (peach — matches site's newsletter strip)
   //   softBorder  = coral @ 15%
   //   softAccent  = gold #f3bf24 (icon circles)
-  //   softLabel   = navy #1a2744 (top strip labels)
-  //   actionColor = navy #1a2744 (Nominate button)
+  //   softLabel   = apple-red    (top strip labels match the brand identity)
+  //   actionColor = navy #1a2744 (Nominate button only)
   // NOTE: column slug is 'teacher-of-month' (no "the") to match the
   // taxonomy entry in src/lib/content-taxonomy.ts.
   'teacher-of-month':    {
@@ -143,7 +143,7 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     softBg:      '#ef644214',
     softBorder:  '#ef644226',
     softAccent:  '#f3bf24',
-    softLabel:   '#1a2744',
+    softLabel:   '#b91c1c',
     actionColor: '#1a2744',
   },
 }
