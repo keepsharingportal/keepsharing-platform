@@ -167,34 +167,36 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     watermarkIcon: 'Heart',
   },
 
-  // Grands Are the Greatest — teal identity + teal icon circles + navy
-  // labels. Yellow is already overused in the column lineup (Play Ball
-  // gold accents, Teacher gold icons, Mom gold ring) so Grands skips the
-  // amber/gold palette entirely and leans on the site's secondary teal.
-  //   primary       = teal #3d8e8e   (eyebrow, identity badges, Nominate button)
+  // Grands Are the Greatest — refined magazine palette per the print piece:
+  // purple as an accent (not a wash), lavender washes on cards, navy on
+  // labels. Earlier deep purple felt harsh because it was full-bleed; this
+  // treatment uses lavender (#F4EAF7) for the icon-circle backgrounds and
+  // soft lavender (#FAF6FC) for surface washes, with purple reserved for
+  // the eyebrow badges, icon glyphs, and the Nominate button.
+  //   primary       = purple #6F2C8F (eyebrow, Nominate button, icon glyphs)
   //   accent        = gold #fbbf24   (lightbox right-side)
-  //   softBg        = coral @ 8%     (peach — site cohesion w/ Mom + Teacher)
-  //   softBorder    = coral @ 15%
-  //   softAccent    = teal #3d8e8e   (icon circle bg)
-  //   softIconColor = white          (icon glyph inside teal circle)
-  //   softLabel     = navy #1a2744   (top-strip labels)
-  //   actionColor   = unset          (Nominate button uses primary teal)
+  //   softBg        = soft lavender  (card wash — cohesive with Mom/Teacher peach)
+  //   softBorder    = lavender border
+  //   softAccent    = lavender       (icon-circle bg — "raised" with ring)
+  //   softIconColor = purple         (icon glyph contrasts on lavender)
+  //   softLabel     = navy #08264A   (top-strip labels)
+  //   actionColor   = unset          (Nominate button uses primary purple)
   'grands-greatest':     {
-    label: 'Grands Are the Greatest', primary: '#3d8e8e', accent: '#fbbf24',
+    label: 'Grands Are the Greatest', primary: '#6F2C8F', accent: '#fbbf24',
     style: 'soft',
-    softBg:        '#ef644214',
-    softBorder:    '#ef644226',
-    softAccent:    '#3d8e8e',
-    softIconColor: '#ffffff',
-    softLabel:     '#1a2744',
+    softBg:        '#FAF6FC',
+    softBorder:    '#E8D8EE',
+    softAccent:    '#F4EAF7',
+    softIconColor: '#6F2C8F',
+    softLabel:     '#08264A',
     // Magazine-style wordmark — print piece uses purple "Grands" cursive
     // + navy "ARE THE GREATEST" + a small heart. Renders only on the
     // article eyebrow (sidebar cards + home page stay as standard pill).
     wordmark: {
       script:      'Grands',
       tail:        'are the Greatest',
-      scriptColor: '#6b21a8',  // print purple
-      tailColor:   '#1a2744',  // print navy
+      scriptColor: '#6F2C8F',  // print purple
+      tailColor:   '#08264A',  // print navy
       showHeart:   true,
       // Print piece runs this banner across the top — matches column identity.
       nicknames: [

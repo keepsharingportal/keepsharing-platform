@@ -26,6 +26,20 @@ interface Props {
 
 function isHtml(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
 
+// Tiny hex darkener — pushes a color toward black by `amount` (0..1).
+// Used to build the gradient pull-quote shadow side without pulling in a
+// full color utility.
+function darken(hex: string, amount: number): string {
+  const m = hex.match(/^#?([0-9a-f]{6})$/i)
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  const r = (n >> 16) & 0xff
+  const g = (n >>  8) & 0xff
+  const b =  n        & 0xff
+  const mix = (c: number) => Math.max(0, Math.round(c * (1 - amount)))
+  return `#${[mix(r), mix(g), mix(b)].map(x => x.toString(16).padStart(2, '0')).join('')}`
+}
+
 // Q&A detector: matches `<p>[<strong>]Name:[</strong>] text</p>`.
 // Mom to Mom interviews use this pattern (RRP: question / Hayley: answer);
 // pulls the speaker name and the answer body so we can style them apart.
@@ -244,31 +258,40 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
 
   if (leadingQuoteParts.length > 0) {
     const quoteText = leadingQuoteParts.join(' ')
+    // High-impact gradient pull quote — full brand-color gradient bg + white
+    // text + heart accent + soft glow blobs. Per the magazine mockup, this
+    // is the "wow" treatment for the lead-in quote. Mid-article quotes get
+    // a softer variant (see below).
     elements.push(
-      <blockquote
+      <figure
         key="lead-quote"
-        className="relative pl-14 md:pl-20 pr-12 md:pr-20 py-7 md:py-9 mt-2 mb-12 italic font-medium text-xl md:text-2xl lg:text-3xl leading-snug rounded-r-2xl overflow-hidden"
+        className="relative overflow-hidden rounded-2xl p-6 md:p-8 mt-2 mb-12 text-white"
         style={{
-          backgroundColor: brand.primary + '0e',
-          borderLeft:      `5px solid ${brand.primary}`,
-          color:           brand.primary,
+          background: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primary}e6 50%, ${darken(brand.primary, 0.30)} 100%)`,
+          boxShadow:  `0 16px 40px ${brand.primary}47`,
         }}
       >
+        {/* Soft glow blobs for depth (per the mockup) */}
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-black/10 blur-2xl pointer-events-none" />
+        {/* Tilted brand-icon watermark accent in the bottom-right */}
         <BrandWatermark
           columnSlug={columnSlug ?? null}
-          className="absolute -right-4 -bottom-6 md:-right-8 md:-bottom-10 pointer-events-none"
-          size={170}
-          fillOpacity={0.10}
+          className="absolute bottom-4 right-4 md:bottom-5 md:right-6 -rotate-12 pointer-events-none"
+          size={68}
+          fillOpacity={0.18}
         />
         <span
           aria-hidden="true"
-          className="absolute left-3 md:left-5 -top-3 md:-top-5 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
-          style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
+          className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
         >
           &ldquo;
         </span>
-        <span className="relative z-10 block">{quoteText}</span>
-      </blockquote>
+        <blockquote className="relative font-serif italic text-xl md:text-2xl lg:text-3xl font-medium leading-snug tracking-tight">
+          {quoteText}
+        </blockquote>
+      </figure>
     )
   }
 
@@ -422,33 +445,38 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
 
     const quoteIndex = quoteIndices.indexOf(i)
     if (quoteIndex !== -1 && pullQuotes[quoteIndex]) {
+      // Mid-article pull quote — softer treatment than the leading
+      // gradient quote. Lavender/peach-tinted bg, brand-color left border,
+      // brand-color quote mark. Per the magazine mockup's SoftPullQuote.
       elements.push(
-        <blockquote
+        <figure
           key={`q-${i}`}
-          className="relative pl-14 md:pl-20 pr-12 md:pr-20 py-7 md:py-9 my-12 italic font-medium text-xl md:text-2xl lg:text-3xl leading-snug rounded-r-2xl overflow-hidden"
+          className="relative rounded-2xl p-6 md:p-7 my-12 shadow-sm"
           style={{
             backgroundColor: brand.primary + '0e',
-            borderLeft:      `5px solid ${brand.primary}`,
-            color:           brand.primary,
+            borderLeft:      `4px solid ${brand.primary}`,
           }}
         >
-          {/* Brand-icon watermark behind the quote — scrapbook flourish */}
           <BrandWatermark
             columnSlug={columnSlug ?? null}
-            className="absolute -right-4 -bottom-6 md:-right-8 md:-bottom-10 pointer-events-none"
-            size={170}
-            fillOpacity={0.10}
+            className="absolute -right-2 -bottom-4 md:-right-6 md:-bottom-8 -rotate-6 pointer-events-none"
+            size={120}
+            fillOpacity={0.08}
           />
-          {/* Decorative oversized opening quote mark */}
           <span
             aria-hidden="true"
-            className="absolute left-3 md:left-5 -top-3 md:-top-5 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
+            className="block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.5 }}
           >
             &ldquo;
           </span>
-          <span className="relative z-10 block">{pullQuotes[quoteIndex]}</span>
-        </blockquote>
+          <blockquote
+            className="relative font-serif italic text-xl md:text-2xl font-semibold leading-snug"
+            style={{ color: brand.softLabel ?? 'hsl(var(--foreground))' }}
+          >
+            {pullQuotes[quoteIndex]}
+          </blockquote>
+        </figure>
       )
     }
   })

@@ -272,21 +272,29 @@ export default async function ArticlePage({ params }: PageParams) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image — anchored to top so faces never crop. For
-                spotlight articles the photo gets a polaroid treatment:
-                white frame padding, slight tilt, drop shadow, and a small
-                washi tape strip across the top edge. Reads as "placed on
-                the page" rather than "rendered". */}
-            <div className="relative mb-8 mt-4">
+            {/* Hero image — spotlight articles get a polaroid card: rounded
+                white frame with soft shadow, slight tilt on desktop, and a
+                washi tape strip across the top edge. Refined treatment per
+                the magazine mockup (cleaner than my earlier version).
+                Non-spotlight articles keep the original rounded hero. */}
+            <div className="relative mb-8 mt-6 md:mt-8">
               {isSpotlight && <WashiTape columnSlug={column} />}
-              <div
-                className={
-                  isSpotlight
-                    ? 'relative w-full aspect-[3/2] md:aspect-[16/9] bg-white p-2 md:p-3 shadow-[0_8px_24px_-6px_rgba(0,0,0,0.18)] md:-rotate-[0.6deg] origin-center'
-                    : 'relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50'
-                }
-              >
-                <div className={isSpotlight ? 'relative w-full h-full overflow-hidden rounded-sm' : 'absolute inset-0'}>
+              {isSpotlight ? (
+                <div className="relative rounded-xl bg-white p-2.5 md:p-3 shadow-[0_14px_35px_rgba(20,20,40,0.18)] ring-1 ring-black/5 md:-rotate-[0.4deg] origin-center">
+                  <div className="relative w-full aspect-[3/2] md:aspect-[16/9] overflow-hidden rounded-lg">
+                    <Image
+                      src={heroImageUrl}
+                      alt={article.title}
+                      fill
+                      style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      priority
+                      unoptimized
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50">
                   <Image
                     src={heroImageUrl}
                     alt={article.title}
@@ -297,7 +305,7 @@ export default async function ArticlePage({ params }: PageParams) {
                     unoptimized
                   />
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Section sponsor — mobile-only strip immediately under the hero,

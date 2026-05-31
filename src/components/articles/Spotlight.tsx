@@ -161,11 +161,10 @@ function Cell({
   )
 }
 
-// Soft variant cell — `circleColor` paints the icon circle (teal for Mom,
-// gold for Teacher); `iconColor` paints the icon inside the circle (white
-// for Mom's teal circle, navy for Teacher's gold circle); `labelColor`
-// paints the ALL-CAPS field label. Value text is dark foreground. Same
-// size + alignment as the bold Cell.
+// Soft variant cell — FeatureIcon-style icon circle (lavender bg + brand-
+// color icon + soft inner ring). Value text uses the label color so the
+// cell feels visually unified rather than label-and-value with different
+// weights.
 function SoftCell({
   field, value, circleColor, iconColor, labelColor,
 }: {
@@ -175,7 +174,11 @@ function SoftCell({
     <div className="px-4 py-3 md:px-5 md:py-4 flex items-center gap-3">
       <div
         className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: circleColor, color: iconColor }}
+        style={{
+          backgroundColor: circleColor,
+          color:           iconColor,
+          boxShadow:       `inset 0 0 0 1px ${iconColor}26`,
+        }}
       >
         <Icon name={field.icon} size={16} />
       </div>
@@ -183,7 +186,7 @@ function SoftCell({
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] leading-tight" style={{ color: labelColor }}>
           {field.label}
         </p>
-        <p className="text-sm font-bold text-foreground leading-snug">
+        <p className="text-sm font-bold leading-snug" style={{ color: labelColor }}>
           {value}
         </p>
       </div>
