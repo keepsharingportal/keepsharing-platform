@@ -296,8 +296,13 @@ export default async function ArticlePage({ params }: PageParams) {
             <div className="relative mb-8 mt-6 md:mt-8">
               {isSpotlight && <WashiTape columnSlug={column} />}
               {isSpotlight ? (
-                <div className="relative rounded-xl bg-white p-2.5 md:p-3 shadow-[0_14px_35px_rgba(20,20,40,0.18)] ring-1 ring-black/5 md:-rotate-[0.4deg] origin-center">
-                  <div className="relative w-full aspect-[3/2] md:aspect-[16/9] overflow-hidden rounded-lg">
+                /* Polaroid card: square aspect + bigger rotation matches the
+                   print magazine "photo album" feel. Heavier white frame
+                   padding so the polaroid edge reads clearly. Mobile keeps
+                   slight rotation, desktop tilts a bit more for visual
+                   interest. */
+                <div className="relative rounded-md bg-white p-3 md:p-4 pb-10 md:pb-12 shadow-[0_14px_35px_rgba(20,20,40,0.20)] ring-1 ring-black/5 -rotate-[1.2deg] md:-rotate-[1.8deg] origin-center mx-auto max-w-2xl">
+                  <div className="relative w-full aspect-square overflow-hidden">
                     <Image
                       src={heroImageUrl}
                       alt={article.title}

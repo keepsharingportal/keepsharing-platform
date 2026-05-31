@@ -57,23 +57,29 @@ export function BrandWatermark({
 
 // ── WashiTape ──────────────────────────────────────────────────────────────
 // Decorative "taped to the page" strip centered on the top edge of the hero
-// polaroid. Brand-colored, semi-transparent, with a small rotation. Per
-// the magazine mockup: clean rounded strip with soft shadow, not striped.
+// polaroid. Brand-colored, with texture layered on so it actually reads as
+// a piece of washi tape: a subtle vertical gradient (lighter at top, darker
+// at bottom — mimics the natural shading of a real strip), an inset top
+// highlight, and a hint of the bottom edge shadow.
 export function WashiTape({ columnSlug }: { columnSlug: string | null }) {
   const brand = getColumnBrand(columnSlug)
-  // Use the wordmark script color when set (Grands purple); otherwise the
-  // column's primary brand color.
   const tapeColor = brand.wordmark?.scriptColor ?? brand.primary
 
   return (
     <div
       aria-hidden="true"
-      className="absolute -top-4 left-1/2 z-20 h-8 w-32 md:w-36 -translate-x-1/2 rotate-1 rounded-sm shadow-sm"
+      className="absolute -top-3 md:-top-4 left-1/2 z-30 h-8 md:h-10 w-32 md:w-40 -translate-x-1/2 rotate-[2.5deg]"
       style={{
-        backgroundColor: tapeColor + '8c',  // ~55% opacity for the soft-tape look
+        background: `linear-gradient(180deg, ${tapeColor}a8 0%, ${tapeColor}c4 50%, ${tapeColor}a0 100%)`,
+        boxShadow:  `inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.12), 0 3px 6px rgba(0,0,0,0.18)`,
       }}
     >
-      <div className="absolute inset-0 bg-white/20 rounded-sm" />
+      {/* Subtle vertical sheen — mimics the slight reflective quality of
+          washi tape and softens the solid block of color. */}
+      <div
+        className="absolute inset-y-0 left-1/4 right-1/4 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.25), transparent)' }}
+      />
     </div>
   )
 }

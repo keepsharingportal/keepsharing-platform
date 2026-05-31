@@ -299,12 +299,14 @@ export function SpotlightEyebrow({ spotlightType, columnSlug, logoUrl }: { spotl
         {effectiveLogoUrl ? (
           /* Real brand wordmark — img since dimensions are unknown and we
              want the source PNG to scale freely. eslint-disable for next-img
-             rule since we want the unmanaged fallback behavior when missing. */
+             rule since we want the unmanaged fallback behavior when missing.
+             Sized generously since this is the column's magazine wordmark:
+             80px on mobile, 112px tablet, 144px desktop. */
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={effectiveLogoUrl}
             alt={brand.label}
-            className="h-12 md:h-16 lg:h-20 w-auto"
+            className="h-20 md:h-28 lg:h-36 w-auto max-w-full"
           />
         ) : wm ? (
           <div className="flex items-center gap-3 md:gap-4">

@@ -37,7 +37,7 @@ export function ArticleHeader({ category, categoryHref, badgeClassName, title, s
       {columnLogoUrl ? (
         <div className="mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={columnLogoUrl} alt={category ?? 'Column'} className="h-10 md:h-14 w-auto" />
+          <img src={columnLogoUrl} alt={category ?? 'Column'} className="h-16 md:h-20 lg:h-24 w-auto max-w-full" />
         </div>
       ) : category ? (
         <div className="mb-4">

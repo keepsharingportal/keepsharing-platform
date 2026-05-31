@@ -424,6 +424,54 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
       return
     }
 
+    // In-body <blockquote> chunks get the magazine gradient pull-quote
+    // treatment per the column spec — purple gradient bg, white serif
+    // italic text, soft glow blobs, tilted heart watermark. Previously
+    // these fell through to dangerouslySetInnerHTML which rendered as a
+    // basic italic paragraph.
+    if (/^<blockquote\b/i.test(chunk)) {
+      // Strip the blockquote wrapper to get just the inner HTML, then
+      // strip nested <p> tags so we render the text directly inside the
+      // figure (cleaner typography than nested paragraph defaults).
+      const inner = chunk
+        .replace(/^<blockquote\b[^>]*>/i, '')
+        .replace(/<\/blockquote>\s*$/i, '')
+        .replace(/^<p\b[^>]*>/i, '')
+        .replace(/<\/p>\s*$/i, '')
+        .trim()
+      elements.push(
+        <figure
+          key={`bq-${i}`}
+          className="relative overflow-hidden rounded-2xl p-6 md:p-8 my-12 text-white"
+          style={{
+            background: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primary}e6 50%, ${darken(brand.primary, 0.30)} 100%)`,
+            boxShadow:  `0 16px 40px ${brand.primary}47`,
+          }}
+        >
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-black/10 blur-2xl pointer-events-none" />
+          <BrandWatermark
+            columnSlug={columnSlug ?? null}
+            className="absolute bottom-4 right-4 md:bottom-5 md:right-6 -rotate-12 pointer-events-none"
+            size={68}
+            fillOpacity={0.18}
+          />
+          <span
+            aria-hidden="true"
+            className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            &ldquo;
+          </span>
+          <blockquote
+            className="relative font-serif italic text-xl md:text-2xl lg:text-3xl font-medium leading-snug tracking-tight"
+            dangerouslySetInnerHTML={{ __html: inner }}
+          />
+        </figure>
+      )
+      return
+    }
+
     // First body paragraph gets lede styling + drop cap
     const isLede = !dropCapApplied && /^<p[\s>]/i.test(chunk)
     if (isLede) dropCapApplied = true
