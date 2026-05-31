@@ -246,16 +246,28 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
     elements.push(
       <blockquote
         key="lead-quote"
-        className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 mt-2 mb-12 italic font-medium text-xl md:text-2xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
+        className="relative pl-14 md:pl-20 pr-12 md:pr-20 py-7 md:py-9 mt-2 mb-12 italic font-medium text-xl md:text-2xl lg:text-3xl leading-snug rounded-r-2xl overflow-hidden"
+        style={{
+          backgroundColor: brand.primary + '0e',
+          borderLeft:      `5px solid ${brand.primary}`,
+          color:           brand.primary,
+        }}
       >
         <span
           aria-hidden="true"
-          className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
-          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          className="absolute left-3 md:left-5 -top-3 md:-top-5 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
         >
           &ldquo;
         </span>
-        {quoteText}
+        <span
+          aria-hidden="true"
+          className="absolute right-3 md:right-5 -bottom-9 md:-bottom-12 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.35 }}
+        >
+          &rdquo;
+        </span>
+        <span className="relative z-10 block">{quoteText}</span>
       </blockquote>
     )
   }
@@ -413,24 +425,39 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
       elements.push(
         <blockquote
           key={`q-${i}`}
-          className="relative pl-14 md:pl-16 pr-4 md:pr-6 py-6 md:py-8 my-12 italic font-bold text-2xl md:text-3xl text-foreground bg-primary/5 border-l-4 border-primary rounded-r-xl leading-snug"
+          className="relative pl-14 md:pl-20 pr-12 md:pr-20 py-7 md:py-9 my-12 italic font-medium text-xl md:text-2xl lg:text-3xl leading-snug rounded-r-2xl overflow-hidden"
+          style={{
+            backgroundColor: brand.primary + '0e',
+            borderLeft:      `5px solid ${brand.primary}`,
+            color:           brand.primary,
+          }}
         >
-          {/* Decorative oversized coral quote mark */}
+          {/* Decorative oversized opening quote mark */}
           <span
             aria-hidden="true"
-            className="absolute left-3 md:left-5 -top-2 md:-top-3 text-[4rem] md:text-[5rem] font-black not-italic leading-none text-primary"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            className="absolute left-3 md:left-5 -top-3 md:-top-5 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
           >
             &ldquo;
           </span>
-          {pullQuotes[quoteIndex]}
+          {/* Closing decorative quote mark in opposite corner */}
+          <span
+            aria-hidden="true"
+            className="absolute right-3 md:right-5 -bottom-9 md:-bottom-12 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.35 }}
+          >
+            &rdquo;
+          </span>
+          <span className="relative z-10 block">{pullQuotes[quoteIndex]}</span>
         </blockquote>
       )
     }
   })
 
   return (
-    <div className="article-body max-w-none">
+    /* CSS custom property exposed for the drop cap + pull quote rules so
+       they inherit the column's brand color without hardcoding navy. */
+    <div className="article-body max-w-none" style={{ ['--brand-primary' as string]: brand.primary }}>
       {elements}
       <style>{`
         .article-body .article-chunk p {
@@ -466,11 +493,11 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
           }
         }
         /* Drop cap — classic magazine flourish on the first letter of the
-           opening paragraph. Deep navy to match the spotlight color story,
-           floated left so body text wraps around it. Generous spacing so
-           the body text doesn't crowd the cap. */
+           opening paragraph. Picks up --brand-primary so each column's
+           drop cap matches its identity (rose for Mom, apple-red for
+           Teacher, teal for Grands, navy fallback for everything else). */
         .article-body .article-dropcap p:first-of-type {
-          color: #1a2744;
+          color: hsl(var(--foreground));
           font-weight: 500;
         }
         .article-body .article-dropcap p:first-of-type::first-letter {
@@ -481,7 +508,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
           line-height: 0.85;
           padding: 0.35rem 0.85rem 0 0;
           margin: 0.4rem 0 0 0;
-          color: #1a2744;
+          color: var(--brand-primary, #1a2744);
         }
         @media (min-width: 768px) {
           .article-body .article-dropcap p:first-of-type::first-letter {

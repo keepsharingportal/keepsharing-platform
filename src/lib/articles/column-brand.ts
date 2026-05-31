@@ -64,6 +64,24 @@ export interface ColumnBrand {
   softBorder?:    string   // box border (e.g. coral at 15% opacity)
   softAccent?:    string   // icon-circle bg in soft top-strip cells (e.g. teal or gold)
   /**
+   * Optional magazine-style wordmark for the eyebrow. When set, the
+   * SpotlightEyebrow renders this split as cursive-script + bold-sans,
+   * matching the print magazine wordmark. Leave undefined to use the
+   * standard branded pill. Currently only Grands opts in.
+   *
+   *   script: word rendered in the Allura cursive (e.g. "Grands")
+   *   tail:   words rendered in bold sans afterward (e.g. "ARE THE GREATEST")
+   *   scriptColor / tailColor: optional override colors (default primary/foreground)
+   *   showHeart: append a small heart icon (Grands signature touch)
+   */
+  wordmark?: {
+    script:      string
+    tail:        string
+    scriptColor?: string
+    tailColor?:   string
+    showHeart?:  boolean
+  }
+  /**
    * Color of the icon glyph INSIDE the soft top-strip circle. Defaults to
    * softLabel (so a column without this override gets icons matching its
    * labels). Override when the circle bg + label color are different and
@@ -136,6 +154,16 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     softAccent:    '#3d8e8e',
     softIconColor: '#ffffff',
     softLabel:     '#1a2744',
+    // Magazine-style wordmark — print piece uses purple "Grands" cursive
+    // + navy "ARE THE GREATEST" + a small heart. Renders only on the
+    // article eyebrow (sidebar cards + home page stay as standard pill).
+    wordmark: {
+      script:      'Grands',
+      tail:        'are the Greatest',
+      scriptColor: '#6b21a8',  // print purple
+      tailColor:   '#1a2744',  // print navy
+      showHeart:   true,
+    },
   },
 
   // Grumpy But Grateful — deep teal

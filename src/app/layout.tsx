@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Allura } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
+// Allura — magazine-style cursive used for column wordmarks (e.g. Grands
+// Are the Greatest). Loaded once site-wide via CSS var so any column-brand
+// wordmark can reference --font-allura without re-importing.
+const allura    = Allura({ variable: '--font-allura', weight: '400', subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'River Region Parents — Family Guides & Events',
@@ -24,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${allura.variable} h-full antialiased`}
     >
       <head>
         {plausibleDomain && (

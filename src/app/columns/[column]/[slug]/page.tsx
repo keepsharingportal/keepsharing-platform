@@ -14,6 +14,8 @@ import { TrackArticleView } from '@/components/tracking/TrackArticleView'
 import {
   SpotlightTopStrip, SpotlightQuickHits, SpotlightEyebrow,
 } from '@/components/articles/Spotlight'
+import { SpotlightSnapshot } from '@/components/articles/SpotlightSnapshot'
+import { MoreInSeries, type SeriesItem } from '@/components/articles/MoreInSeries'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import {
@@ -50,7 +52,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
   const fullSlug    = `${columnSlug}-${articleSlug}`
   const candidates  = fullSlug === articleSlug ? [articleSlug] : [fullSlug, articleSlug]
 
-  const [articleRes, columnRes, trendingRes, stickyAdRes, sponsoredAdRes, inlineAdRes] = await Promise.all([
+  const [articleRes, columnRes, trendingRes, seriesRes, stickyAdRes, sponsoredAdRes, inlineAdRes] = await Promise.all([
     supabase.from('guide_articles')
       .select('*')
       .in('slug', candidates)
@@ -68,6 +70,15 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .eq('published', true)
       .neq('slug', fullSlug)
       .order('created_at', { ascending: false })
+      .limit(3),
+    /* "More in This Series" — 3 most recent articles from the SAME column,
+        excluding the current one. Used by MoreInSeries sidebar card. */
+    supabase.from('guide_articles')
+      .select('id, title, slug, hero_image_url, column_slug, published_at, created_at')
+      .eq('column_slug', columnSlug)
+      .eq('published', true)
+      .not('slug', 'in', `(${candidates.map(s => `"${s.replace(/"/g, '')}"`).join(',')})`)
+      .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug)')
@@ -95,6 +106,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
     article:    articleRes.data,
     column:     columnRes.data,
     trending:   trendingRes.data ?? [],
+    series:     seriesRes.data ?? [],
     stickyAd:   stickyAdRes.data,
     sponsoredAd: sponsoredAdRes.data,
     inlineAd:   inlineAdRes.data,
@@ -116,7 +128,7 @@ export default async function ArticlePage({ params }: PageParams) {
   const data = await getArticleData(column, slug)
   if (!data) notFound()
 
-  const { article, column: columnData, trending, stickyAd, sponsoredAd, inlineAd } = data
+  const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAd } = data
 
   // Section sponsor — when active, overrides the rotating sidebar sticky ad
   // and gets premium placement under the hero on mobile + sidebar on desktop.
@@ -160,6 +172,21 @@ export default async function ArticlePage({ params }: PageParams) {
     cta_url:        sponsoredAd.ad_link,
     advertiser_name: (sponsoredAd.advertiser as { business_name?: string } | null)?.business_name ?? sponsoredAd.ad_headline ?? '',
   } : null
+
+  // More in This Series — map raw rows to MoreInSeries.SeriesItem shape.
+  // Only rendered for community spotlight columns where it actually pays
+  // off (Mom / Teacher / Grands / Play Ball); other columns get a regular
+  // sidebar without this card.
+  const seriesMapped: SeriesItem[] = (series ?? []).map(s => ({
+    id:             s.id as string,
+    title:          s.title as string,
+    slug:           s.slug as string,
+    column_slug:    s.column_slug as string | null,
+    hero_image_url: s.hero_image_url as string | null,
+    date_label:     s.published_at
+      ? new Date(s.published_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : new Date(s.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  }))
 
   const heroImageUrl = article.hero_image_url || getFallbackByContext(column, article.id)
   const shareUrl = `${SITE_URL}/columns/${column}/${slug}`
@@ -260,10 +287,12 @@ export default async function ArticlePage({ params }: PageParams) {
                 sidebar (see SectionSponsorSidebar in ArticleSidebar slot). */}
             <SectionSponsorMobile sponsor={sectionSponsor} columnSlug={column} />
 
-            {/* Spotlight top strip — brand-colored vitals row (navy for
-                Play Ball, apple-red for Teacher, rose for Mom). */}
+            {/* Spotlight top strip — MOBILE only. On desktop the same
+                vitals render in the sidebar as a SpotlightSnapshot card
+                (magazine pattern). Mobile keeps the horizontal top strip
+                so readers still see vitals at the top of the article. */}
             {isSpotlight && (
-              <div className="mb-8">
+              <div className="mb-8 lg:hidden">
                 <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
             )}
@@ -354,12 +383,35 @@ export default async function ArticlePage({ params }: PageParams) {
                sticky ad rotation and take the top of the sidebar. Suppress
                stickyAd to avoid the section sponsor + a competing ad
                doubling up. The desktop SectionSponsorSidebar lives in
-               topSlot — it self-hides on mobile (the mobile strip above
-               handles that breakpoint). */
+               topSlot alongside the spotlight snapshot + series cards. */
             stickyAd={sectionSponsor ? null : stickyAdMapped}
             sponsoredAd={sponsoredAdMapped}
             trending={trendingMapped}
-            topSlot={<SectionSponsorSidebar sponsor={sectionSponsor} columnSlug={column} />}
+            topSlot={
+              <>
+                {/* Spotlight Snapshot — desktop sidebar version of the top
+                    strip (5 vitals stacked as a magazine "trading card").
+                    Mobile shows the horizontal top strip above the body. */}
+                {isSpotlight && (
+                  <SpotlightSnapshot
+                    spotlightType={spotlightType}
+                    spotlightData={spotlightData}
+                    columnSlug={column}
+                  />
+                )}
+                {/* Section sponsor — same component as before, now stacked
+                    below the snapshot so the sponsor sits in premium real
+                    estate alongside the column-branded card. */}
+                <SectionSponsorSidebar sponsor={sectionSponsor} columnSlug={column} />
+                {/* More in this Series — drives retention to other articles
+                    in the same column. Hidden when no other articles exist. */}
+                <MoreInSeries
+                  items={seriesMapped}
+                  columnSlug={column}
+                  columnDisplay={columnDisplay}
+                />
+              </>
+            }
           />
         </div>
       </main>
