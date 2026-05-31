@@ -70,7 +70,8 @@
       "Bash(grep -n \"^    </div>$\\\\|^    \\)$\\\\|^}$\" src/app/admin/column-branding/page.tsx)",
       "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npm run build)",
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 80)",
-      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 60)"
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 60)",
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 30)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\.next",

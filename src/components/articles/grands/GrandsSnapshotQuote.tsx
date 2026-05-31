@@ -1,6 +1,8 @@
-// GrandsSnapshotQuote — sits below the GrandsFeatureHero inside the main
-// article column. Two-column on desktop (snapshot left, pull quote right);
-// stacks on mobile.
+// GrandsSnapshotQuote — sits below the GrandsFeatureHero inside the
+// main article column. Snapshot strip on top (responsive horizontal
+// grid), pull quote full-width directly below it. Stacking like this
+// avoids the height-mismatch you get when a 6-item vertical card sits
+// beside a single-line quote.
 
 import { GrandparentSnapshot } from '@/components/articles/grands/GrandparentSnapshot'
 import { PullQuote }            from '@/components/articles/grands/PullQuote'
@@ -28,10 +30,10 @@ export function GrandsSnapshotQuote({ snapshotFields, snapshotValues, pullQuote 
   if (!hasSnapshot && !pullQuote) return null
 
   return (
-    <div className="mb-8 grid gap-6 lg:grid-cols-[0.85fr_1.5fr]">
-      {hasSnapshot ? (
+    <div className="mb-8 space-y-6">
+      {hasSnapshot && (
         <GrandparentSnapshot fields={snapshotFields} values={snapshotValues} />
-      ) : <div />}
+      )}
       {pullQuote && (
         <PullQuote quote={pullQuote.quote} attribution={pullQuote.attribution} />
       )}
