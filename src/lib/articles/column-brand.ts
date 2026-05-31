@@ -102,9 +102,10 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   'mom-to-mom':          {
     label: 'Mom to Mom', primary: '#e11d48', accent: '#f3bf24',
     style: 'soft',
-    softBg:     '#ef644214',  // coral @ ~8%
-    softBorder: '#ef644226',  // coral @ ~15%
-    softAccent: '#3d8e8e',    // site teal
+    softBg:      '#ef644214',  // coral @ ~8%
+    softBorder:  '#ef644226',  // coral @ ~15%
+    softAccent:  '#3d8e8e',    // site teal — icon circles
+    actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
   },
 
   // Grands Are the Greatest — amber as the brand identity (eyebrow,
