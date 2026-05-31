@@ -1,0 +1,71 @@
+// PlayBallTopStrip — horizontal magazine snapshot strip for the Play
+// Ball feature treatment. Each filled topStrip field renders as a
+// centered tile (cream/gold icon circle over uppercase label over navy
+// value), wrapping 2-up on mobile, 3-up at sm, and N-up (capped at 5)
+// at lg. Same shape as the Grands snapshot strip — different palette.
+
+import type { LucideIcon } from 'lucide-react'
+import {
+  GraduationCap, Trophy, Calendar, Award, Music, Star, Quote, Heart,
+  Users, Megaphone, BookOpen, Flag, Sparkles,
+} from 'lucide-react'
+
+const ICON_BY_TEMPLATE_ICON: Record<string, LucideIcon> = {
+  GraduationCap, Trophy, Calendar, Award, Music, Star, Quote, Heart,
+  Users, Megaphone, BookOpen, Flag, Sparkles,
+}
+
+interface FieldDef {
+  key:   string
+  label: string
+  icon:  string
+}
+
+interface Props {
+  fields: FieldDef[]
+  values: Record<string, string | null | undefined>
+}
+
+const LG_COLS_BY_COUNT: Record<number, string> = {
+  1: 'lg:grid-cols-1',
+  2: 'lg:grid-cols-2',
+  3: 'lg:grid-cols-3',
+  4: 'lg:grid-cols-4',
+  5: 'lg:grid-cols-5',
+}
+
+export function PlayBallTopStrip({ fields, values }: Props) {
+  const filled = fields.filter(f => {
+    const v = values[f.key]
+    return v && String(v).trim().length > 0
+  })
+  if (filled.length === 0) return null
+
+  const lgCols = LG_COLS_BY_COUNT[Math.min(filled.length, 5)] ?? 'lg:grid-cols-5'
+
+  return (
+    <section className="rounded-2xl border border-[#EADBA5] bg-white/95 p-5 md:p-6 shadow-[0_12px_30px_rgba(8,38,74,0.08)]">
+      <h2 className="mb-5 text-center text-xs font-black uppercase tracking-[0.18em] text-[#08264A]">
+        Player Snapshot
+      </h2>
+      <div className={`grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 ${lgCols}`}>
+        {filled.map(field => {
+          const Icon = ICON_BY_TEMPLATE_ICON[field.icon] ?? Star
+          return (
+            <div key={field.key} className="flex flex-col items-center px-1 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF6D9] text-[#08264A] ring-1 ring-[#F3BF24]">
+                <Icon className="h-5 w-5" strokeWidth={2.25} />
+              </div>
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-[#B98200]">
+                {field.label}
+              </p>
+              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A] break-words">
+                {String(values[field.key]).trim()}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}

@@ -25,6 +25,10 @@ import { GrandsFeatureHero }    from '@/components/articles/grands/GrandsFeature
 import { GrandsSnapshotQuote }  from '@/components/articles/grands/GrandsSnapshotQuote'
 import { GrandsBody }            from '@/components/articles/grands/GrandsBody'
 import { parseGrandsBody }       from '@/components/articles/grands/GrandsBodyParts'
+import { PlayBallFeatureHero }   from '@/components/articles/play-ball/PlayBallFeatureHero'
+import { PlayBallSnapshotQuote } from '@/components/articles/play-ball/PlayBallSnapshotQuote'
+import { PlayBallQuickHits }     from '@/components/articles/play-ball/PlayBallQuickHits'
+import { parsePlayBallBody }     from '@/components/articles/play-ball/PlayBallBodyParts'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -264,6 +268,29 @@ export default async function ArticlePage({ params }: PageParams) {
     }
   }
 
+  // Play Ball gets the same magazine-feature treatment as Grands —
+  // dedicated hero (logo + photo w/ yellow tape), snapshot strip + lead
+  // pull quote, and cream/gold Quick Hits card. The lead pull quote is
+  // the FIRST <blockquote> lifted out of the article body.
+  const isPlayBallFeature = column === 'play-ball' && isSpotlight
+  const playBallParts     = isPlayBallFeature
+    ? parsePlayBallBody(article.body as string ?? '')
+    : null
+  const playBallSnapshotFields = isPlayBallFeature && spotlightTpl
+    ? spotlightTpl.topStrip.map(f => ({ key: f.key, label: f.label, icon: f.icon }))
+    : []
+  const playBallQuickHitsFields = isPlayBallFeature && spotlightTpl
+    ? spotlightTpl.quickHits.map(f => ({ key: f.key, label: f.label, icon: f.icon }))
+    : []
+  const playBallValues: Record<string, string | null> = {}
+  if (isPlayBallFeature && spotlightData) {
+    for (const f of [...playBallSnapshotFields, ...playBallQuickHitsFields]) {
+      const v = spotlightData[f.key]
+      playBallValues[f.key] = typeof v === 'string' ? v : null
+    }
+  }
+  const playBallQuickHitsTitle = (spotlightTpl?.quickHitsTitle ?? 'Quick Hits')
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -290,9 +317,25 @@ export default async function ArticlePage({ params }: PageParams) {
           />
         )}
 
-        {/* For non-Grands spotlights the eyebrow/title/hero/author block
-            render above the grid (full-width). */}
-        {!isGrandsFeature && isSpotlight && (
+        {/* Play Ball hero block — same magazine-feature pattern as
+            Grands. Renders above the article+sidebar grid. */}
+        {isPlayBallFeature && (
+          <PlayBallFeatureHero
+            logoUrl={brandedLogoUrl}
+            title={article.title}
+            tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            heroImageUrl={heroImageUrl}
+            shareUrl={shareUrl}
+          />
+        )}
+
+        {/* For other spotlights (not Grands/Play Ball feature) the
+            eyebrow/title/hero/author block renders above the grid
+            (full-width). */}
+        {!isGrandsFeature && !isPlayBallFeature && isSpotlight && (
           <>
             <SpotlightEyebrow
               spotlightType={spotlightType}
@@ -360,6 +403,15 @@ export default async function ArticlePage({ params }: PageParams) {
               />
             )}
 
+            {/* Play Ball snapshot strip + pull quote — same pattern. */}
+            {isPlayBallFeature && (
+              <PlayBallSnapshotQuote
+                snapshotFields={playBallSnapshotFields}
+                snapshotValues={playBallValues}
+                pullQuote={playBallParts?.leadPullQuote ?? null}
+              />
+            )}
+
             {/* Non-spotlight hero (regular columns) — kept rounded as the
                 standard look. Spotlight columns already rendered the hero
                 above the title. */}
@@ -392,7 +444,7 @@ export default async function ArticlePage({ params }: PageParams) {
                 so readers still see vitals at the top of the article.
                 Grands skips this — its feature hero already renders the
                 snapshot on mobile within the feature package. */}
-            {isSpotlight && !isGrandsFeature && (
+            {isSpotlight && !isGrandsFeature && !isPlayBallFeature && (
               <div className="mb-8 lg:hidden">
                 <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
@@ -406,7 +458,10 @@ export default async function ArticlePage({ params }: PageParams) {
               <GrandsBody body={article.body ?? ''} />
             ) : (
               <ArticleBody
-                body={article.body ?? ''}
+                /* Play Ball lifts the first <blockquote> into the
+                   PlayBallPullQuote above, so use the parsed body that
+                   has it removed; otherwise pass through the raw body. */
+                body={isPlayBallFeature ? (playBallParts?.body ?? '') : (article.body ?? '')}
                 pullQuotes={pullQuotes}
                 columnSlug={column}
                 inlineAd={inlineAd ? (
@@ -425,12 +480,22 @@ export default async function ArticlePage({ params }: PageParams) {
                 gallery + sponsor outro. New reader flow: prose → Quick Hits
                 (or Rapid Fire in body) → gallery → sponsor → nominate.
                 Only renders when the template has filled quickHits (Play
-                Ball does; Mom + Teacher don't by default). */}
-            {isSpotlight && (
+                Ball does; Mom + Teacher don't by default). Play Ball uses
+                the cream/gold magazine treatment instead of the generic
+                brand-colored card. */}
+            {isPlayBallFeature ? (
+              <div className="mt-12">
+                <PlayBallQuickHits
+                  title={playBallQuickHitsTitle}
+                  fields={playBallQuickHitsFields}
+                  values={playBallValues}
+                />
+              </div>
+            ) : isSpotlight ? (
               <div className="mt-12">
                 <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
-            )}
+            ) : null}
 
             {/* Photo gallery — branded lightbox. Now AFTER Quick Hits so
                 the photos are the visual close to the article, right before
@@ -504,7 +569,7 @@ export default async function ArticlePage({ params }: PageParams) {
                     Grands renders its own GrandparentSnapshot inside the
                     GrandsFeatureHero, so we skip the sidebar version to
                     avoid the doubled snapshot. */}
-                {isSpotlight && !isGrandsFeature && (
+                {isSpotlight && !isGrandsFeature && !isPlayBallFeature && (
                   <SpotlightSnapshot
                     spotlightType={spotlightType}
                     spotlightData={spotlightData}

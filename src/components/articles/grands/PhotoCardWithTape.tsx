@@ -1,7 +1,8 @@
-// PhotoCardWithTape — CSS-only photo-card frame with a purple washi tape
-// strip centered across the top edge.
+// PhotoCardWithTape — CSS-only photo-card frame with a washi tape strip
+// centered across the top edge. Tape color is parameterized so the same
+// component serves Grands (purple) and Play Ball (gold).
 //
-// Tape texture: bg-purple-300/55 base + white/20 overlay (mimics the matte
+// Tape texture: base color w/ alpha + white/20 overlay (mimics the matte
 // "wax-paper" quality of real washi tape per the spec), plus a thin
 // bottom-edge shadow so the bottom of the tape reads as a physical edge.
 // Card: rounded white frame + soft drop shadow + ring-1 ring-black/5.
@@ -13,16 +14,18 @@ import Image from 'next/image'
 interface Props {
   src:   string
   alt:   string
+  /** Tape strip color (hex, optionally with alpha). Default purple-300 @ ~55%. */
+  tapeColor?: string
 }
 
-export function PhotoCardWithTape({ src, alt }: Props) {
+export function PhotoCardWithTape({ src, alt, tapeColor = '#d8b4fe8c' }: Props) {
   return (
     <div className="relative mx-auto w-full max-w-2xl">
       {/* Washi tape strip — slight tilt, layered for texture */}
       <div
         aria-hidden="true"
         className="absolute -top-4 left-1/2 z-20 h-8 w-32 md:w-36 -translate-x-1/2 rotate-1 rounded-sm shadow-sm overflow-hidden"
-        style={{ backgroundColor: '#d8b4fe8c' /* purple-300 @ ~55% */ }}
+        style={{ backgroundColor: tapeColor }}
       >
         {/* White matte overlay — gives the tape that "wax-paper" quality */}
         <div className="absolute inset-0 bg-white/20" />
