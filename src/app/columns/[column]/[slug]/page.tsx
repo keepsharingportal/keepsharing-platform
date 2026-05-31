@@ -34,6 +34,12 @@ import { TeacherPullQuote }      from '@/components/articles/teacher/TeacherPull
 import { TeacherSnapshot }       from '@/components/articles/teacher/TeacherSnapshot'
 import { TeacherNominationBox }  from '@/components/articles/teacher/TeacherNominationBox'
 import { parseTeacherBody }      from '@/components/articles/teacher/TeacherBodyParts'
+import { MomFeatureHero }        from '@/components/articles/mom/MomFeatureHero'
+import { MomSnapshot }           from '@/components/articles/mom/MomSnapshot'
+import { MomPullQuote }          from '@/components/articles/mom/MomPullQuote'
+import { MomBody }               from '@/components/articles/mom/MomBody'
+import { MomNominationBox }      from '@/components/articles/mom/MomNominationBox'
+import { parseMomBody }          from '@/components/articles/mom/MomBodyParts'
 import { getNominateCTA }        from '@/lib/articles/nominate-cta'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
@@ -320,6 +326,29 @@ export default async function ArticlePage({ params }: PageParams) {
     ? (getNominateCTA(column)?.href ?? '/submit/teacher-of-the-month')
     : ''
 
+  // Mom to Mom feature treatment — soft, editorial magazine package
+  // (cream + blush + coral). Hero block above the article+sidebar
+  // grid, snapshot strip below the hero, lifted pull quote next, body
+  // rendered as intro prose + Q&A cards, and a Mom-specific
+  // MomNominationBox replacing the article-bottom NominateCTA.
+  const isMomFeature = column === 'mom-to-mom' && isSpotlight
+  const momParts     = isMomFeature
+    ? parseMomBody(article.body as string ?? '')
+    : null
+  const momFields = isMomFeature && spotlightTpl
+    ? spotlightTpl.topStrip.map(f => ({ key: f.key, label: f.label, icon: f.icon }))
+    : []
+  const momValues: Record<string, string | null> = {}
+  if (isMomFeature && spotlightData) {
+    for (const f of momFields) {
+      const v = spotlightData[f.key]
+      momValues[f.key] = typeof v === 'string' ? v : null
+    }
+  }
+  const momNominateHref = isMomFeature
+    ? (getNominateCTA(column)?.href ?? '/submit/mom-to-mom')
+    : ''
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -381,10 +410,25 @@ export default async function ArticlePage({ params }: PageParams) {
           />
         )}
 
-        {/* For other spotlights (not Grands/Play Ball/Teacher feature)
-            the eyebrow/title/hero/author block renders above the grid
-            (full-width). */}
-        {!isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && isSpotlight && (
+        {/* Mom to Mom hero block — soft, editorial variant of the
+            magazine-feature pattern (cream + blush). */}
+        {isMomFeature && (
+          <MomFeatureHero
+            logoUrl={brandedLogoUrl}
+            title={article.title}
+            subtitle={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            heroImageUrl={heroImageUrl}
+            shareUrl={shareUrl}
+          />
+        )}
+
+        {/* For other spotlights (not Grands/Play Ball/Teacher/Mom
+            feature) the eyebrow/title/hero/author block renders above
+            the grid (full-width). */}
+        {!isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && !isMomFeature && isSpotlight && (
           <>
             <SpotlightEyebrow
               spotlightType={spotlightType}
@@ -474,6 +518,22 @@ export default async function ArticlePage({ params }: PageParams) {
               </div>
             )}
 
+            {/* Mom snapshot strip + lifted pull quote — sits below the
+                hero and above the body, like the Grands / Play Ball
+                pattern, so readers see the at-a-glance vitals and the
+                hero quote before the article opens. */}
+            {isMomFeature && (
+              <div className="mb-8 space-y-6">
+                <MomSnapshot fields={momFields} values={momValues} />
+                {momParts?.leadPullQuote && (
+                  <MomPullQuote
+                    quote={momParts.leadPullQuote.quote}
+                    attribution={momParts.leadPullQuote.attribution}
+                  />
+                )}
+              </div>
+            )}
+
             {/* Non-spotlight hero (regular columns) — kept rounded as the
                 standard look. Spotlight columns already rendered the hero
                 above the title. */}
@@ -506,7 +566,7 @@ export default async function ArticlePage({ params }: PageParams) {
                 so readers still see vitals at the top of the article.
                 Grands skips this — its feature hero already renders the
                 snapshot on mobile within the feature package. */}
-            {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && (
+            {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && !isMomFeature && (
               <div className="mb-8 lg:hidden">
                 <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
@@ -518,6 +578,11 @@ export default async function ArticlePage({ params }: PageParams) {
                  QAFeatureCards. The lead pull quote was already lifted
                  into the GrandsFeatureHero. */
               <GrandsBody body={article.body ?? ''} />
+            ) : isMomFeature ? (
+              /* Mom to Mom — intro prose with a coral drop cap and Q&A
+                 pairs as MomQACards. Lead pull quote was already lifted
+                 above. */
+              <MomBody body={article.body ?? ''} />
             ) : (
               <ArticleBody
                 /* Play Ball / Teacher lift the first <blockquote> into
@@ -563,6 +628,10 @@ export default async function ArticlePage({ params }: PageParams) {
                  Facts is the sidebar TeacherSnapshot. Render nothing
                  here so the body flows straight into the gallery. */
               null
+            ) : isMomFeature ? (
+              /* Mom template has no quickHits — the Q&A IS the content,
+                 rendered as MomQACards inside MomBody above. */
+              null
             ) : isSpotlight ? (
               <div className="mt-12">
                 <SpotlightQuickHits spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
@@ -598,13 +667,17 @@ export default async function ArticlePage({ params }: PageParams) {
 
             {/* Nominate CTA — only renders on community spotlight columns
                 (Play Ball / Teacher / Grands / Mom). Other columns: null.
-                Teacher feature uses its custom TeacherNominationBox in
-                the same slot so the navy CTA matches the magazine spec
-                while staying in the same flow as the other community
+                Teacher + Mom each render their own column-styled box in
+                this slot so the CTAs feel native to the magazine spec
+                while keeping the same flow as the other community
                 spotlights. */}
             {isTeacherFeature ? (
               <div className="mt-10">
                 <TeacherNominationBox href={teacherNominateHref} />
+              </div>
+            ) : isMomFeature ? (
+              <div className="mt-10">
+                <MomNominationBox href={momNominateHref} />
               </div>
             ) : (
               <NominateCTA columnSlug={column} variant="article" />
@@ -651,7 +724,7 @@ export default async function ArticlePage({ params }: PageParams) {
                     Grands renders its own GrandparentSnapshot inside the
                     GrandsFeatureHero, so we skip the sidebar version to
                     avoid the doubled snapshot. */}
-                {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && (
+                {isSpotlight && !isGrandsFeature && !isPlayBallFeature && !isTeacherFeature && !isMomFeature && (
                   <SpotlightSnapshot
                     spotlightType={spotlightType}
                     spotlightData={spotlightData}
