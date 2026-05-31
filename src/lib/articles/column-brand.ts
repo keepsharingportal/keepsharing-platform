@@ -108,28 +108,27 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
   },
 
-  // Grands Are the Greatest — deep purple identity (eyebrow, labels,
-  // action button) with gold accents on a soft peach wash. Continuity
-  // with the print magazine's purple "Grands" wordmark, distinct from
-  // every other column (Mom rose / Teacher apple-red / Play Ball navy),
-  // and reads as "honor + wisdom + distinguished" — the right vibe for
-  // grandparents.
-  //   primary     = deep purple #6b21a8 (eyebrow, labels, Nominate button)
-  //   accent      = gold #fbbf24 (kept for lightbox + icon circles)
-  //   softBg      = coral @ 8%  (peach — site cohesion w/ Mom + Teacher)
+  // Grands Are the Greatest — teal as the identity (eyebrow + buttons —
+  // no other community spotlight uses teal as primary), with warm brown
+  // labels + brown icons on cream-tinted circles. Brown reads as warm /
+  // grandparent-y without dominating because it's used as a SMALL accent
+  // (icons + labels) rather than the wash. The cream icon circles soften
+  // the brown contrast and pull the warm-amber identity from the home-
+  // page sidebar card forward.
+  //   primary     = teal #3d8e8e        (eyebrow, identity badges, Nominate button)
+  //   accent      = gold #fbbf24        (lightbox right-side)
+  //   softBg      = coral @ 8%          (peach — site cohesion w/ Mom + Teacher)
   //   softBorder  = coral @ 15%
-  //   softAccent  = gold #f3bf24 (icon circles — preserves the yellow
-  //                  identity from the home-page Community Spotlights card)
-  //   softLabel   = deep purple (labels match the brand identity)
-  //   actionColor = unset       (Nominate button uses primary purple —
-  //                  the purple is distinctive enough to not need a split)
+  //   softAccent  = cream amber-200     (icon circle bg — soft enough not to clash)
+  //   softLabel   = warm brown #a16207  (labels + brown icons inside cream circles)
+  //   actionColor = unset               (Nominate button uses primary teal)
   'grands-greatest':     {
-    label: 'Grands Are the Greatest', primary: '#6b21a8', accent: '#fbbf24',
+    label: 'Grands Are the Greatest', primary: '#3d8e8e', accent: '#fbbf24',
     style: 'soft',
     softBg:     '#ef644214',
     softBorder: '#ef644226',
-    softAccent: '#f3bf24',
-    softLabel:  '#6b21a8',
+    softAccent: '#fde68a',   // amber-200 cream circles
+    softLabel:  '#a16207',   // warm brown labels + icons
   },
 
   // Grumpy But Grateful — deep teal

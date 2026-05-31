@@ -30,6 +30,16 @@ function isHtml(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
 // pulls the speaker name and the answer body so we can style them apart.
 //
 // Returns null if the chunk isn't shaped like Q&A.
+
+// Editorial labels that LOOK like a Q&A speaker (Name: text) but are
+// actually just a single labeled paragraph (the print "Bio:" tag, photo
+// captions, source attribution, etc). Render those as plain paragraphs
+// so they don't get wrapped in the styled Q&A box.
+const NON_SPEAKER_LABELS = new Set([
+  'bio', 'note', 'update', 'source', 'photo', 'caption', 'editor', 'editor\'s note',
+  'editors note', 'p.s', 'ps', 'sidebar', 'tip', 'pro tip',
+])
+
 function extractQA(chunk: string): { speaker: string; text: string } | null {
   // Permit <p> with attributes, optional <strong>, optional spaces around colon.
   const re = /^<p\b[^>]*>\s*(?:<strong\b[^>]*>)?\s*([A-Z][A-Za-z0-9 .'\-]{0,30}?)\s*:\s*(?:<\/strong>)?\s*([\s\S]+?)\s*<\/p>\s*$/i
@@ -40,6 +50,9 @@ function extractQA(chunk: string): { speaker: string; text: string } | null {
   // Avoid false positives on URLs and very long "names"
   if (speaker.length < 1 || speaker.length > 30) return null
   if (/^https?$/i.test(speaker)) return null
+  // Skip common editorial labels that aren't speakers — e.g. the magazine
+  // "Bio:" footer that prints under a profile interview.
+  if (NON_SPEAKER_LABELS.has(speaker.toLowerCase())) return null
   return { speaker, text }
 }
 
