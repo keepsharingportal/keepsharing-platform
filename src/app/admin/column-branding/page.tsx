@@ -23,6 +23,29 @@ interface Branding {
   tagline:     string | null
 }
 
+// Only editorial columns with their own visual identity show up here.
+// Content types (school news roundups, student profile pages, generic
+// feature articles) don't get logos — they're routing buckets, not
+// branded columns. Adjust this list when adding/removing branded columns.
+const BRANDABLE_COLUMN_SLUGS = new Set([
+  // School Zone
+  'teacher-of-month',
+  'education-matters',
+  'counselor-corner',
+  // Mom Life
+  'mom-knows-best',
+  'mom-to-mom',
+  'grumpy-but-grateful',
+  // Family
+  'grands-greatest',
+  'play-ball',
+  'dave-says',
+  'teens-tweens-screens',
+  // Health
+  'meeting-kids',
+  'ask-the-doctor',
+])
+
 export default function ColumnBrandingPage() {
   const [branding, setBranding] = useState<Record<string, Branding>>({})
   const [loading,  setLoading]  = useState(true)
@@ -75,7 +98,7 @@ export default function ColumnBrandingPage() {
         <div className="flex items-center gap-2 text-sm text-gray-500"><RefreshCw size={14} className="animate-spin" /> Loading…</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {COLUMNS.map(col => (
+          {COLUMNS.filter(c => BRANDABLE_COLUMN_SLUGS.has(c.slug)).map(col => (
             <ColumnCard
               key={col.slug}
               column={col}
