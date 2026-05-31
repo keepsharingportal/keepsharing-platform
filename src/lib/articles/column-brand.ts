@@ -80,7 +80,21 @@ export interface ColumnBrand {
     scriptColor?: string
     tailColor?:   string
     showHeart?:  boolean
+    /**
+     * Optional decorative nicknames strip rendered above the wordmark.
+     * Print piece for Grands runs a banner of grandparent nicknames
+     * across the top — "Grandma · Grandpa · Mémé · Yaya · Nene · Gam Gam…".
+     * Add the strings as an array; component handles styling + wrap.
+     */
+    nicknames?:  string[]
   }
+  /**
+   * Decorative Lucide icon used as a faint watermark behind pull quotes,
+   * snapshot card corners, etc. Adds visual texture that reads as
+   * "designed", not "templated". Defaults to the eyebrow `icon` when
+   * unset; set a different one if you want a separate watermark vs eyebrow.
+   */
+  watermarkIcon?: string
   /**
    * Color of the icon glyph INSIDE the soft top-strip circle. Defaults to
    * softLabel (so a column without this override gets icons matching its
@@ -115,7 +129,7 @@ const DEFAULT_BRAND: ColumnBrand = {
 
 const COLUMN_BRANDS: Record<string, ColumnBrand> = {
   // Play Ball — navy + gold, magazine-matching
-  'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24' },
+  'play-ball':           { label: 'Play Ball',           primary: '#1a2744', accent: '#f3bf24', watermarkIcon: 'Trophy' },
 
   // Mom to Mom — rose/pink for the badge + button (identity), but the soft
   // surfaces (top strip, Rapid Fire, CTA box) use the SITE palette: peach
@@ -132,6 +146,7 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
     softBorder:  '#ef644226',  // coral @ ~15%
     softAccent:  '#3d8e8e',    // site teal — icon circles
     actionColor: '#3d8e8e',    // site teal — Nominate buttons (rose stays for identity badges)
+    watermarkIcon: 'Heart',
   },
 
   // Grands Are the Greatest — teal identity + teal icon circles + navy
@@ -163,7 +178,15 @@ const COLUMN_BRANDS: Record<string, ColumnBrand> = {
       scriptColor: '#6b21a8',  // print purple
       tailColor:   '#1a2744',  // print navy
       showHeart:   true,
+      // Print piece runs this banner across the top — matches column identity.
+      nicknames: [
+        'Grandma', 'Grandpa', 'Grandmother', 'Grandfather', 'Nana', 'Granny',
+        'Marmee', 'Mémé', 'Pépé', 'Yaya', 'Nene', 'Gam Gam', 'Gaga', 'Mimi',
+        'Gigi', 'Pop-Pop', 'Papa', 'Bubba', 'Boppa', 'Lolo', 'Lola', 'Abuela',
+        'Abuelo', 'Oma', 'Opa', 'Nonna', 'Nonno',
+      ],
     },
+    watermarkIcon: 'Heart',
   },
 
   // Grumpy But Grateful — deep teal

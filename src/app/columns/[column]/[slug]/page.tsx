@@ -17,6 +17,7 @@ import {
 import { SpotlightSnapshot } from '@/components/articles/SpotlightSnapshot'
 import { MoreInSeries, type SeriesItem } from '@/components/articles/MoreInSeries'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
+import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
@@ -267,17 +268,22 @@ export default async function ArticlePage({ params }: PageParams) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">
-            {/* Hero image — anchored to top so faces never crop. */}
-            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-8 shadow-sm border border-border/50">
-              <Image
-                src={heroImageUrl}
-                alt={article.title}
-                fill
-                style={{ objectFit: 'cover', objectPosition: 'center top' }}
-                sizes="(max-width: 1024px) 100vw, 66vw"
-                priority
-                unoptimized
-              />
+            {/* Hero image — anchored to top so faces never crop. Wrapper
+                allows decorative WashiTape to position above the photo
+                edge without clipping (overflow stays visible). */}
+            <div className="relative mb-8 mt-4">
+              {isSpotlight && <WashiTape columnSlug={column} />}
+              <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden shadow-sm border border-border/50">
+                <Image
+                  src={heroImageUrl}
+                  alt={article.title}
+                  fill
+                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  priority
+                  unoptimized
+                />
+              </div>
             </div>
 
             {/* Section sponsor — mobile-only strip immediately under the hero,

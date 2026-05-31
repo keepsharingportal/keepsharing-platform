@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import sanitizeHtml from 'sanitize-html'
 import { markdownToHtml } from '@/lib/markdown-to-html'
 import { getColumnBrand } from '@/lib/articles/column-brand'
+import { BrandWatermark } from '@/components/articles/BrandDecor'
 
 // NOTE: This component is a server component, which means the sanitizer
 // runs in Node. isomorphic-dompurify pulls in jsdom, and jsdom transitively
@@ -253,19 +254,18 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
           color:           brand.primary,
         }}
       >
+        <BrandWatermark
+          columnSlug={columnSlug ?? null}
+          className="absolute -right-4 -bottom-6 md:-right-8 md:-bottom-10 pointer-events-none"
+          size={170}
+          fillOpacity={0.10}
+        />
         <span
           aria-hidden="true"
           className="absolute left-3 md:left-5 -top-3 md:-top-5 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
           style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
         >
           &ldquo;
-        </span>
-        <span
-          aria-hidden="true"
-          className="absolute right-3 md:right-5 -bottom-9 md:-bottom-12 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
-          style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.35 }}
-        >
-          &rdquo;
         </span>
         <span className="relative z-10 block">{quoteText}</span>
       </blockquote>
@@ -432,6 +432,13 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
             color:           brand.primary,
           }}
         >
+          {/* Brand-icon watermark behind the quote — scrapbook flourish */}
+          <BrandWatermark
+            columnSlug={columnSlug ?? null}
+            className="absolute -right-4 -bottom-6 md:-right-8 md:-bottom-10 pointer-events-none"
+            size={170}
+            fillOpacity={0.10}
+          />
           {/* Decorative oversized opening quote mark */}
           <span
             aria-hidden="true"
@@ -439,14 +446,6 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
             style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.85 }}
           >
             &ldquo;
-          </span>
-          {/* Closing decorative quote mark in opposite corner */}
-          <span
-            aria-hidden="true"
-            className="absolute right-3 md:right-5 -bottom-9 md:-bottom-12 text-[5rem] md:text-[7rem] font-black not-italic leading-none"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif', color: brand.primary, opacity: 0.35 }}
-          >
-            &rdquo;
           </span>
           <span className="relative z-10 block">{pullQuotes[quoteIndex]}</span>
         </blockquote>

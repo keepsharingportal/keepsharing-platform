@@ -11,6 +11,7 @@ import {
   getSpotlightTemplate, type SpotlightField, type SpotlightIcon,
 } from '@/lib/articles/spotlight-templates'
 import { getColumnBrand } from '@/lib/articles/column-brand'
+import { BrandWatermark } from '@/components/articles/BrandDecor'
 
 const ICONS: Record<SpotlightIcon, React.ComponentType<{ className?: string; size?: number }>> = {
   GraduationCap, Trophy, Calendar, Award, Music, Star, Quote, Heart,
@@ -59,7 +60,7 @@ export function SpotlightSnapshot({ spotlightType, spotlightData, columnSlug }: 
 
   return (
     <div
-      className="rounded-2xl overflow-hidden border shadow-sm"
+      className="rounded-2xl overflow-hidden border shadow-sm relative"
       style={{ backgroundColor: bgColor, borderColor }}
     >
       <div
@@ -68,7 +69,16 @@ export function SpotlightSnapshot({ spotlightType, spotlightData, columnSlug }: 
       >
         {snapshotTitle}
       </div>
-      <div className="p-4 md:p-5 space-y-4">
+      {/* Watermark in the bottom-right corner of the card. Brand icon (Heart
+          for Grands/Mom, Trophy for Play Ball, Apple for Teacher) renders
+          large and faint behind the rows — adds the "designed" texture. */}
+      <BrandWatermark
+        columnSlug={columnSlug}
+        className="absolute -right-3 -bottom-3 pointer-events-none"
+        size={110}
+        fillOpacity={0.07}
+      />
+      <div className="p-4 md:p-5 space-y-4 relative">
         {filled.map(f => (
           <SnapshotRow
             key={f.key}
