@@ -21,6 +21,9 @@ import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
 import { getColumnBrand } from '@/lib/articles/column-brand'
 import { getColumnBranding } from '@/lib/column-branding'
+import { GrandsFeatureHero } from '@/components/articles/grands/GrandsFeatureHero'
+import { GrandsBody } from '@/components/articles/grands/GrandsBody'
+import { parseGrandsBody } from '@/components/articles/grands/GrandsBodyParts'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -239,6 +242,23 @@ export default async function ArticlePage({ params }: PageParams) {
   const spotlightTpl    = getSpotlightTemplate(spotlightType)
   const galleryEyebrow  = spotlightTpl?.eyebrow ?? null
 
+  // Grands gets a custom magazine feature treatment — its own hero
+  // package + Q&A cards instead of the standard spotlight rendering.
+  const isGrandsFeature = column === 'grands-greatest' && isSpotlight
+  const grandsParts     = isGrandsFeature
+    ? parseGrandsBody(article.body as string ?? '')
+    : null
+  // Snapshot fields for the Grands feature. Mapped from spotlight_data:
+  //   grandkids  → "Number of Grandkids" field
+  //   nickname   → "Grandparent Nickname" field
+  //   traditions → "Town" field reused as a third callout (editors can
+  //                put any short tradition/locale identifier here)
+  const grandsSnapshot = isGrandsFeature ? {
+    grandkids:  (spotlightData?.['grandkids']        as string | null) ?? null,
+    nickname:   (spotlightData?.['grand_nickname']    as string | null) ?? null,
+    traditions: (spotlightData?.['town']              as string | null) ?? null,
+  } : null
+
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
@@ -249,10 +269,24 @@ export default async function ArticlePage({ params }: PageParams) {
       <TrackArticleView articleId={article.id as string} />
 
       <main className="container py-8 md:py-12">
-        {/* Spotlight magazine order: Logo → Hero → Title → Tagline → Author.
-            Non-spotlight columns keep the standard Title → Author → Hero
-            order since they don't have a column wordmark to lead with. */}
-        {isSpotlight ? (
+        {/* Grands gets its own magazine feature package: cream-bg section
+            with a 2-column hero (text + photo card with tape) above a
+            2-column row (snapshot + pull quote). The rest of the article
+            (body + gallery + sponsor + nominate) flows below in the
+            standard layout. */}
+        {isGrandsFeature ? (
+          <GrandsFeatureHero
+            logoUrl={brandedLogoUrl}
+            title={article.title}
+            tagline={(article.subtitle as string | null)?.trim() || brandedTagline || null}
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            heroImageUrl={heroImageUrl}
+            snapshot={grandsSnapshot ?? { grandkids: null, nickname: null, traditions: null }}
+            pullQuote={grandsParts?.leadPullQuote ?? null}
+          />
+        ) : isSpotlight ? (
           <>
             {/* 1. Brand wordmark / logo */}
             <SpotlightEyebrow
@@ -346,26 +380,36 @@ export default async function ArticlePage({ params }: PageParams) {
             {/* Spotlight top strip — MOBILE only. On desktop the same
                 vitals render in the sidebar as a SpotlightSnapshot card
                 (magazine pattern). Mobile keeps the horizontal top strip
-                so readers still see vitals at the top of the article. */}
-            {isSpotlight && (
+                so readers still see vitals at the top of the article.
+                Grands skips this — its feature hero already renders the
+                snapshot on mobile within the feature package. */}
+            {isSpotlight && !isGrandsFeature && (
               <div className="mb-8 lg:hidden">
                 <SpotlightTopStrip spotlightType={spotlightType} spotlightData={spotlightData} columnSlug={column} />
               </div>
             )}
 
-            <ArticleBody
-              body={article.body ?? ''}
-              pullQuotes={pullQuotes}
-              columnSlug={column}
-              inlineAd={inlineAd ? (
-                <InArticleAd
-                  headline={inlineAd.ad_headline ?? ''}
-                  description={inlineAd.ad_description ?? ''}
-                  ctaLabel={inlineAd.ad_cta_label ?? 'Learn More'}
-                  ctaUrl={inlineAd.ad_link ?? '#'}
-                />
-              ) : undefined}
-            />
+            {isGrandsFeature ? (
+              /* Grands gets its own body renderer — intro prose with a
+                 brand-colored drop cap, then Q&A pairs as a stack of
+                 QAFeatureCards. The lead pull quote was already lifted
+                 into the GrandsFeatureHero. */
+              <GrandsBody body={article.body ?? ''} />
+            ) : (
+              <ArticleBody
+                body={article.body ?? ''}
+                pullQuotes={pullQuotes}
+                columnSlug={column}
+                inlineAd={inlineAd ? (
+                  <InArticleAd
+                    headline={inlineAd.ad_headline ?? ''}
+                    description={inlineAd.ad_description ?? ''}
+                    ctaLabel={inlineAd.ad_cta_label ?? 'Learn More'}
+                    ctaUrl={inlineAd.ad_link ?? '#'}
+                  />
+                ) : undefined}
+              />
+            )}
 
             {/* Spotlight Quick Hits — sits IMMEDIATELY after the body so
                 structured Q&A closes out the spotlight content before the
@@ -447,8 +491,11 @@ export default async function ArticlePage({ params }: PageParams) {
               <>
                 {/* Spotlight Snapshot — desktop sidebar version of the top
                     strip (5 vitals stacked as a magazine "trading card").
-                    Mobile shows the horizontal top strip above the body. */}
-                {isSpotlight && (
+                    Mobile shows the horizontal top strip above the body.
+                    Grands renders its own GrandparentSnapshot inside the
+                    GrandsFeatureHero, so we skip the sidebar version to
+                    avoid the doubled snapshot. */}
+                {isSpotlight && !isGrandsFeature && (
                   <SpotlightSnapshot
                     spotlightType={spotlightType}
                     spotlightData={spotlightData}
