@@ -17,7 +17,7 @@
 
 export interface GrandsBodyParts {
   leadPullQuote: { quote: string; attribution: string } | null
-  qaPairs:       Array<{ question: string; answer: string }>
+  qaPairs:       Array<{ question: string; answer: string; iconHint: string | null }>
   introParas:    string[]
   grandMoment:   { text: string; afterQAIndex: number } | null
 }
@@ -34,14 +34,30 @@ const NON_QUESTION_LABELS = new Set([
   'update', 'source', 'photo', 'caption', 'p.s.', 'ps', 'sidebar', 'tip', 'pro tip',
 ])
 
-function matchBoldQuestion(pHtml: string): string | null {
+// Optional icon-hint prefix at the start of a question: `[heart] What
+// has been the sweetest part of becoming a grandparent?` Editors can
+// drop this in the bold question text when they want a specific icon
+// match; otherwise GrandsBody falls back to the rotating icon set.
+const ICON_HINT_RE = /^\s*\[([a-z][a-z0-9_-]{0,20})\]\s*/i
+
+function matchBoldQuestion(pHtml: string): { html: string; iconHint: string | null } | null {
   const m = pHtml.match(/^<p\b[^>]*>\s*<strong\b[^>]*>([\s\S]+?)<\/strong>\s*<\/p>\s*$/i)
   if (!m) return null
   const text = stripTags(m[1])
   if (text.length < 3 || text.length > 280) return null
   const norm = text.replace(/[:.!?\s]+$/g, '').toLowerCase().trim()
   if (NON_QUESTION_LABELS.has(norm)) return null
-  return m[1].trim()
+
+  // Check for an optional [icon-name] prefix. The hint can appear inside
+  // the <strong> wrapper either before or after any whitespace.
+  let inner    = m[1].trim()
+  let iconHint: string | null = null
+  const hintMatch = inner.match(ICON_HINT_RE)
+  if (hintMatch) {
+    iconHint = hintMatch[1].toLowerCase()
+    inner    = inner.replace(ICON_HINT_RE, '').trim()
+  }
+  return { html: inner, iconHint }
 }
 
 function isGrandMomentHeading(chunk: string): boolean {
@@ -78,21 +94,24 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
   let seenFirstQuestion = false
   let currentAnswer: string[] = []
   let currentQuestion: string | null = null
+  let currentIconHint: string | null = null
   let momentCapturePending = false
 
   const flushPair = () => {
     if (currentQuestion !== null) {
-      qaPairs.push({ question: currentQuestion, answer: currentAnswer.join('\n') })
+      qaPairs.push({
+        question: currentQuestion,
+        answer:   currentAnswer.join('\n'),
+        iconHint: currentIconHint,
+      })
       currentQuestion = null
       currentAnswer   = []
+      currentIconHint = null
     }
   }
 
   for (const chunk of chunks) {
     if (momentCapturePending) {
-      // The chunk immediately after the H3 marker becomes the moment text.
-      // If somehow it's another H3 or a bold question, abandon the capture
-      // (no moment for this article) and keep walking.
       momentCapturePending = false
       if (/^<p\b/i.test(chunk) && !matchBoldQuestion(chunk)) {
         grandMoment = {
@@ -111,9 +130,6 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
     }
 
     if (/^<h3\b/i.test(chunk)) {
-      // Non-moment H3 — treat as a section break inside the current
-      // answer (rare in interview content). Append to current answer
-      // if we're inside one; otherwise drop.
       if (seenFirstQuestion) currentAnswer.push(chunk)
       continue
     }
@@ -122,7 +138,8 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
     if (q !== null) {
       flushPair()
       seenFirstQuestion = true
-      currentQuestion   = q
+      currentQuestion   = q.html
+      currentIconHint   = q.iconHint
       continue
     }
     if (!seenFirstQuestion) {

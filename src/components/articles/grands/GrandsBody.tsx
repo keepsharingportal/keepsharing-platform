@@ -14,7 +14,10 @@
 
 import type { LucideIcon } from 'lucide-react'
 import sanitizeHtml from 'sanitize-html'
-import { Baby, BookOpen, Heart, Home, Sparkles, Users } from 'lucide-react'
+import {
+  Baby, BookOpen, Heart, Home, Sparkles, Users,
+  Calendar, Camera, Gift, MapPin, Music, Smile, Star, Sun,
+} from 'lucide-react'
 import { GrandsQAItem } from '@/components/articles/grands/GrandsQAItem'
 import { AGrandMoment } from '@/components/articles/grands/AGrandMoment'
 import { parseGrandsBody } from '@/components/articles/grands/GrandsBodyParts'
@@ -22,6 +25,44 @@ import { parseGrandsBody } from '@/components/articles/grands/GrandsBodyParts'
 const QA_ICON_ROTATION: LucideIcon[] = [
   Baby, Heart, Home, BookOpen, Users, Sparkles,
 ]
+
+// Editor-controlled icon override. When a question starts with
+// `[name]`, the parser captures `name` here and we look it up in this
+// map. Misses fall through to the index rotation, so a typo never
+// breaks the page — it just gets the auto-rotated icon instead. Keys
+// are lowercase; common aliases are mapped to the same icon so
+// `[book]` and `[bookopen]` both work.
+const ICON_BY_HINT: Record<string, LucideIcon> = {
+  baby:       Baby,
+  heart:      Heart,
+  home:       Home,
+  family:     Home,
+  book:       BookOpen,
+  bookopen:   BookOpen,
+  books:      BookOpen,
+  reading:    BookOpen,
+  users:      Users,
+  kids:       Users,
+  grandkids:  Users,
+  sparkles:   Sparkles,
+  sparkle:    Sparkles,
+  magic:      Sparkles,
+  calendar:   Calendar,
+  years:      Calendar,
+  camera:     Camera,
+  photo:      Camera,
+  gift:       Gift,
+  tradition:  Gift,
+  traditions: Gift,
+  map:        MapPin,
+  pin:        MapPin,
+  place:      MapPin,
+  music:      Music,
+  smile:      Smile,
+  joy:        Smile,
+  star:       Star,
+  sun:        Sun,
+}
 
 const SANITIZE_OPTS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -87,7 +128,11 @@ export function GrandsBody({ body, subjectName }: Props) {
 
           <div className="mt-4">
             {qaPairs.map((pair, i) => {
-              const Icon = QA_ICON_ROTATION[i % QA_ICON_ROTATION.length]
+              // Editor hint wins when present; otherwise auto-rotate so
+              // a brand-new article with no hints still gets varied
+              // icons every month with zero staff effort.
+              const hintedIcon = pair.iconHint ? ICON_BY_HINT[pair.iconHint] : null
+              const Icon = hintedIcon ?? QA_ICON_ROTATION[i % QA_ICON_ROTATION.length]
               const question = pair.question.replace(/<[^>]+>/g, '').trim()
               return (
                 <div key={i}>
