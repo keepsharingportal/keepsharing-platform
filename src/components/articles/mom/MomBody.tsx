@@ -1,13 +1,18 @@
-// MomBody — renders the Mom to Mom article body in the magazine feature
+// MomBody — renders the Mom to Mom article body in the feature
 // treatment:
-//   - Intro paragraphs render as normal prose with a coral drop cap
-//   - Q&A pairs render as a stack of MomQACards under a small heading
-//   - The lead pull quote was already lifted into MomPullQuote so it
-//     isn't re-rendered here
+//   1. Intro paragraphs as normal prose with a coral drop cap
+//   2. Q&A pairs as a stack of MomQACards under a centered "Her Story"
+//      section header (heart + hairlines flanking the subject name)
+//   3. Rapid Fire section as a separate cream/blush card grid
+//
+// The lead pull quote was already lifted into MomPullQuote upstream so
+// it doesn't render here.
 
 import sanitizeHtml from 'sanitize-html'
-import { MomQACard }   from '@/components/articles/mom/MomQACard'
-import { parseMomBody } from '@/components/articles/mom/MomBodyParts'
+import { Heart }         from 'lucide-react'
+import { MomQACard }     from '@/components/articles/mom/MomQACard'
+import { MomRapidFire }  from '@/components/articles/mom/MomRapidFire'
+import { parseMomBody }  from '@/components/articles/mom/MomBodyParts'
 
 const SANITIZE_OPTS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -29,26 +34,37 @@ const SANITIZE_OPTS: sanitizeHtml.IOptions = {
 
 interface Props {
   body: string
+  /** Subject's name (e.g. "Phyllis Palmer") — drives the Q&A section
+   *  header ("Phyllis Palmer: Her Story"). When omitted, the heading
+   *  falls back to a generic "Q&A". */
+  subjectName?: string | null
 }
 
-export function MomBody({ body }: Props) {
+export function MomBody({ body, subjectName }: Props) {
   const safeHtml = sanitizeHtml(body, SANITIZE_OPTS)
-  const { qaPairs, introParas } = parseMomBody(safeHtml)
+  const { qaPairs, introParas, rapidFireItems } = parseMomBody(safeHtml)
+
+  const sectionTitle = subjectName?.trim()
+    ? `${subjectName.trim()}: Her Story`
+    : 'Q&A'
 
   return (
     <div className="mom-article max-w-none">
-      {/* Intro prose with a coral drop cap */}
       {introParas.length > 0 && (
         <div className="mom-intro" dangerouslySetInnerHTML={{ __html: introParas.join('') }} />
       )}
 
-      {/* Q&A section as stacked feature cards */}
       {qaPairs.length > 0 && (
-        <section className="mt-8 md:mt-10">
-          <h2 className="mb-4 md:mb-5 text-sm font-black uppercase tracking-[0.18em] text-[#C96F73]">
-            Q&amp;A with this Mom
-          </h2>
-          <div className="grid gap-5">
+        <section className="mt-10">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-[#E8C9C6]" />
+            <h2 className="font-serif text-xl font-bold text-[#08264A] sm:text-2xl">
+              {sectionTitle}
+            </h2>
+            <Heart className="h-5 w-5 text-[#C96F73]" strokeWidth={2.2} />
+            <span className="h-px flex-1 bg-[#E8C9C6]" />
+          </div>
+          <div className="grid gap-4">
             {qaPairs.map((pair, i) => {
               const question = pair.question.replace(/<[^>]+>/g, '').trim()
               return (
@@ -63,6 +79,8 @@ export function MomBody({ body }: Props) {
           </div>
         </section>
       )}
+
+      <MomRapidFire items={rapidFireItems} />
 
       <style>{`
         .mom-article .mom-intro p {

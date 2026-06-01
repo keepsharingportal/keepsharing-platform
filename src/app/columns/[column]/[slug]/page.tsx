@@ -579,10 +579,20 @@ export default async function ArticlePage({ params }: PageParams) {
                  into the GrandsFeatureHero. */
               <GrandsBody body={article.body ?? ''} />
             ) : isMomFeature ? (
-              /* Mom to Mom — intro prose with a coral drop cap and Q&A
-                 pairs as MomQACards. Lead pull quote was already lifted
-                 above. */
-              <MomBody body={article.body ?? ''} />
+              /* Mom to Mom — intro prose with a coral drop cap, then a
+                 stack of MomQACards under a "[Subject Name]: Her Story"
+                 header, then a styled Rapid Fire module. Subject name
+                 is derived from the part of the article title before
+                 the first colon (e.g. "Phyllis Palmer: Pours Heart..."
+                 → "Phyllis Palmer"); falls back to the whole title. */
+              <MomBody
+                body={article.body ?? ''}
+                subjectName={
+                  typeof article.title === 'string' && article.title.includes(':')
+                    ? article.title.split(':')[0].trim()
+                    : (article.title as string | null) ?? null
+                }
+              />
             ) : (
               <ArticleBody
                 /* Play Ball / Teacher lift the first <blockquote> into
