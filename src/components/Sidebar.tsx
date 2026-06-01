@@ -81,10 +81,15 @@ const NAV: NavItem[] = [
     href: '/admin/events',
     icon: Calendar,
     children: [
-      // Pending Review is a tab inside the events page, not a child here.
-      { name: 'Community Connections',  href: '/admin/events/organizations' },
-      { name: 'Event Imports (CSV)',    href: '/admin/content/events-import' },
-      { name: 'iCal Sources',           href: '/admin/events/sources'        },
+      // Same shape as Articles — "All Events" is explicit so the
+      // entry point is clickable from the menu even though clicking
+      // the parent would also open the list.
+      { name: 'All Events',             href: '/admin/events'                            },
+      { name: 'New Event',              href: '/admin/events?new=1',          accent: true },
+      { name: 'Pending Review',         href: '/admin/events?tab=pending'                },
+      { name: 'Community Connections',  href: '/admin/events/organizations'              },
+      { name: 'Event Imports (CSV)',    href: '/admin/content/events-import'             },
+      { name: 'iCal Sources',           href: '/admin/events/sources'                    },
     ],
   },
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },

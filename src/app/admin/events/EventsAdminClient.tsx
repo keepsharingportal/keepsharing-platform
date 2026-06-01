@@ -63,10 +63,14 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams?.get('tab') === 'pending' ? 'Pending Review' : 'Upcoming'
+  // ?new=1 opens the QuickAdd panel on mount. Lets the sidebar "+ New
+  // Event" link drop the editor straight into the create form instead
+  // of asking them to find the button.
+  const initialQuickAdd = searchParams?.get('new') === '1'
 
   const [events,    setEvents]    = useState<EventRow[]>(initialEvents)
   const [activeTab, setActiveTab] = useState<TabName>(initialTab)
-  const [quickAdd,  setQuickAdd]  = useState(false)
+  const [quickAdd,  setQuickAdd]  = useState(initialQuickAdd)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   // Filters apply within the active tab
   const [search,    setSearch]   = useState('')
