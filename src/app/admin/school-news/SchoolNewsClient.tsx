@@ -16,6 +16,7 @@ import {
   AREA_BADGE_CLASS, PRIVATE_BADGE_CLASS, AREA_SHORT_LABELS,
   type Area, isValidArea,
 } from '@/lib/school-news/areas'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const SOURCE_BADGE: Record<string, string> = {
   public_form:     'bg-emerald-50 text-emerald-700 ring-emerald-200',
@@ -750,9 +751,10 @@ function BitRowEditor({
   async function replaceImage(file: File) {
     setImageBusy(true); setErr(null)
     try {
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
       fd.append('action', 'replace-image')
-      fd.append('image',  file)
+      fd.append('image',  compressed)
       const res = await fetch(`/api/admin/school-news/${item.id}`, { method: 'PATCH', body: fd })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
@@ -1056,8 +1058,12 @@ function QuickAddPanel({
       const filledUrls = imageUrls.map(u => u.trim()).filter(Boolean)
 
       if (imageFiles.length > 0) {
+        // Compress in parallel before building the multipart body — Vercel
+        // caps API-route bodies at ~4.5 MB and three phone photos easily
+        // blow past that.
+        const compressed = await Promise.all(imageFiles.map(compressIfLarge))
         const fd = new FormData()
-        imageFiles.forEach((file, i) => {
+        compressed.forEach((file, i) => {
           fd.append(i === 0 ? 'image' : `image${i + 1}`, file)
         })
         fd.append('school_id',   selected.id)

@@ -6,6 +6,7 @@ import { Camera, RefreshCw, CheckCircle2, X, Upload, ArrowRight } from 'lucide-r
 import { SchoolTypeahead, type TypeaheadSchool } from '@/app/admin/school-news/SchoolTypeahead'
 import type { Area } from '@/lib/school-news/areas'
 import type { PublicSchoolOption } from './page'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 interface Props {
   schools:           PublicSchoolOption[]
@@ -93,9 +94,13 @@ export function SubmitForm({ schools: initialSchools, prefilledSchoolId }: Props
     if (!ready || busy) return
     setBusy(true); setErr(null)
     try {
+      // Compress each photo before building the multipart body — phone
+      // camera originals are routinely 8–12 MB and Vercel caps API-route
+      // bodies at ~4.5 MB total. Downscale to long-edge 3000px JPEG so
+      // three photos in one submit still fit under the platform limit.
+      const compressed = await Promise.all(images.map(compressIfLarge))
       const fd = new FormData()
-      // Append each image under image / image2 / image3 — server keys
-      images.forEach((file, i) => {
+      compressed.forEach((file, i) => {
         const key = i === 0 ? 'image' : `image${i + 1}`
         fd.append(key, file)
       })

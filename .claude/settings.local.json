@@ -74,7 +74,8 @@
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 30)",
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 50)",
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 40)",
-      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 20)"
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 15)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\.next",

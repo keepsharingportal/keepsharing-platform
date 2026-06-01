@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import type { EventRow, EventSource } from './page'
 import { QuickAddEventPanel } from './QuickAddEventPanel'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const PAGE_SIZE = 30
 
@@ -869,9 +870,10 @@ function EventEditor({
   async function replaceImage(file: File) {
     setImageBusy(true); setErr(null)
     try {
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
       fd.append('action', 'replace-image')
-      fd.append('image', file)
+      fd.append('image', compressed)
       const res = await fetch(`/api/admin/events/${ev.id}`, { method: 'PATCH', body: fd })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }

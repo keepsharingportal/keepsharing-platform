@@ -16,6 +16,7 @@ import {
   Plus, RefreshCw, Calendar, Camera, Image as ImageIcon, AlertTriangle, ExternalLink,
 } from 'lucide-react'
 import { EVENT_CATEGORIES } from '@/lib/calendar-taxonomy'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 import type { EventRow, EventSource } from './page'
 
 interface DuplicateMatch {
@@ -136,8 +137,9 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   async function uploadImage(file: File) {
     setImageBusy(true); setErr(null)
     try {
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
-      fd.append('image', file)
+      fd.append('image', compressed)
       if (title.trim()) fd.append('title', title.trim())
       const res = await fetch('/api/admin/events/upload', { method: 'POST', body: fd })
       const json = await res.json().catch(() => ({}))

@@ -21,6 +21,7 @@ import {
   Upload, X, AlertTriangle, RefreshCw, ImageIcon, CheckCircle2, Crop, ZoomIn,
 } from 'lucide-react'
 import { ArticleCropModal } from './ArticleCropModal'
+import { compressIfLarge, COMPRESS_TRIGGER_BYTES } from '@/lib/admin/compress-image'
 
 interface Props {
   value:    string
@@ -45,68 +46,9 @@ function isSupabaseUrl(url: string): boolean {
   catch { return false }
 }
 
-// ── Client-side compression ──────────────────────────────────────────────────
-//
-// Vercel serverless functions cap request bodies at ~4.5 MB. We downscale
-// anything bigger than the trigger threshold before uploading so phone photos
-// (often 8–12 MB) make it through. The result is still big enough that the
-// server-side Sharp pipeline can produce a crisp 1600×900 hero.
-
-const COMPRESS_TRIGGER_BYTES = 3.5 * 1024 * 1024   // resize files bigger than this
-const COMPRESS_MAX_EDGE      = 3000                 // long-edge cap after resize
-const COMPRESS_QUALITY       = 0.9                  // JPEG quality
-
-async function compressIfLarge(file: File): Promise<File> {
-  if (file.size <= COMPRESS_TRIGGER_BYTES) return file
-  // Don't try to resize formats canvas can't faithfully encode back (GIF
-  // would lose animation). Send those through as-is and let the server
-  // either accept them or reject with a size error.
-  if (file.type === 'image/gif') return file
-
-  try {
-    // createImageBitmap is the fastest path — uses GPU-backed decode on
-    // most browsers. Falls back to <img> if unavailable (e.g. older mobile).
-    const bitmap = await (typeof createImageBitmap === 'function'
-      ? createImageBitmap(file)
-      : loadViaImg(file))
-
-    const longEdge = Math.max(bitmap.width, bitmap.height)
-    const scale    = longEdge > COMPRESS_MAX_EDGE ? COMPRESS_MAX_EDGE / longEdge : 1
-    const targetW  = Math.round(bitmap.width  * scale)
-    const targetH  = Math.round(bitmap.height * scale)
-
-    const canvas = document.createElement('canvas')
-    canvas.width  = targetW
-    canvas.height = targetH
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return file
-
-    ctx.drawImage(bitmap, 0, 0, targetW, targetH)
-    if ('close' in bitmap && typeof bitmap.close === 'function') bitmap.close()
-
-    const blob: Blob | null = await new Promise(res => canvas.toBlob(res, 'image/jpeg', COMPRESS_QUALITY))
-    if (!blob) return file
-    // If somehow the compressed version is larger (rare, tiny images), keep
-    // the original — no point uploading bloat.
-    if (blob.size >= file.size) return file
-
-    const newName = file.name.replace(/\.[a-zA-Z0-9]+$/, '') + '.jpg'
-    return new File([blob], newName, { type: 'image/jpeg', lastModified: Date.now() })
-  } catch {
-    // Compression best-effort — if anything goes wrong, fall back to the
-    // raw file and let the server respond.
-    return file
-  }
-}
-
-function loadViaImg(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Could not decode image for compression.'))
-    img.src = URL.createObjectURL(file)
-  }) as Promise<unknown> as Promise<HTMLImageElement>
-}
+// Client-side compression lives in @/lib/admin/compress-image so the
+// school-bits and events upload forms can reuse it. Same Vercel ~4.5 MB
+// body-limit motivation; same JPEG-at-3000px-long-edge output.
 
 // ── Component ────────────────────────────────────────────────────────────────
 
