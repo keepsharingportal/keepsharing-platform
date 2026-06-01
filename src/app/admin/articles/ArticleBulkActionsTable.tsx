@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Eye, ImageOff, CheckCircle, RefreshCw, Archive, FileText,
+  Eye, ImageOff, CheckCircle, RefreshCw, Archive, FileText, Trash2,
   ChevronUp, ChevronDown, ArrowUpDown, BarChart3,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
@@ -38,12 +38,13 @@ interface Props {
   activeFilter: string
 }
 
-type BulkAction = 'approve' | 'archive' | 'draft'
+type BulkAction = 'approve' | 'archive' | 'draft' | 'trash'
 
 const BULK_LABELS: Record<BulkAction, string> = {
   approve: 'Approve & Publish',
   archive: 'Archive',
   draft:   'Move to Draft',
+  trash:   'Moved to Trash',
 }
 
 function fmtViews(n: number | null): string {
@@ -92,6 +93,10 @@ export function ArticleBulkActionsTable({
   // ── Bulk action ────────────────────────────────────────────────────────
 
   async function runBulkAction(ids: string[], action: BulkAction) {
+    if (action === 'trash') {
+      const noun = ids.length === 1 ? 'article' : `${ids.length} articles`
+      if (!confirm(`Move ${noun} to Trash? You can restore from /admin/articles/trash.`)) return
+    }
     setActing(true)
     setResultMsg(null)
     try {
@@ -197,6 +202,14 @@ export function ArticleBulkActionsTable({
             >
               <Archive size={12} />
               Archive
+            </button>
+            <button
+              onClick={() => runBulkAction([...selected], 'trash')}
+              disabled={busy}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-rose-700 text-xs font-semibold rounded-lg hover:bg-rose-50 disabled:opacity-50 transition-colors border border-rose-200"
+            >
+              <Trash2 size={12} />
+              Move to Trash
             </button>
           </div>
         </div>

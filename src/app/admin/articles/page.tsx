@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { ArticleBulkActionsTable, type SortKey } from './ArticleBulkActionsTable'
 import { ArticleFilterBar, type FilterOption } from './ArticleFilterBar'
 import { COLUMNS, SCHOOL_ZONE_COLUMN_SLUGS } from '@/lib/content-taxonomy'
@@ -216,12 +216,20 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
             <h1 className="text-xl font-semibold text-gray-900">Articles</h1>
             <p className="text-xs text-gray-400 mt-0.5">Search and filter editorial content across publications.</p>
           </div>
-          <Link
-            href="/admin/articles/new"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={14} /> New Article
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/articles/trash"
+              className="flex items-center gap-1.5 px-3 py-2 bg-white text-rose-700 text-xs font-semibold rounded-lg hover:bg-rose-50 transition-colors border border-rose-200"
+            >
+              <Trash2 size={14} /> Trash
+            </Link>
+            <Link
+              href="/admin/articles/new"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={14} /> New Article
+            </Link>
+          </div>
         </div>
 
         <ArticleFilterBar
@@ -259,6 +267,7 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
           <Link href="/admin/articles/authors" className="hover:text-blue-600 transition-colors">Authors</Link>
           <Link href="/admin/content/imports"  className="hover:text-blue-600 transition-colors">Imports</Link>
           <Link href="/admin/articles/review"  className="hover:text-blue-600 transition-colors">Review Queue</Link>
+          <Link href="/admin/articles/trash"   className="hover:text-rose-600 transition-colors">Trash</Link>
         </div>
       </div>
     </div>

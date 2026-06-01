@@ -1,6 +1,13 @@
 // POST /api/admin/articles/bulk
-// Supported actions: 'approve' | 'archive' | 'draft'
+// Supported actions: 'approve' | 'archive' | 'draft' | 'trash'
 // Optional payload field: columnSlug (for future 'assign_column' action)
+//
+// 'archive' = unpublish + status 'archived'. Stays visible in the admin
+//             list, just not on the public site.
+// 'trash'   = soft delete (deleted_at = now). Disappears from the admin
+//             list, surfaces in /admin/articles/trash where editors can
+//             restore or permanently delete. Mirrors the single-article
+//             DELETE flow used by the edit page.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -13,7 +20,7 @@ function supabaseAdmin() {
   )
 }
 
-type BulkAction = 'approve' | 'archive' | 'draft'
+type BulkAction = 'approve' | 'archive' | 'draft' | 'trash'
 
 const ACTION_UPDATES: Record<BulkAction, Record<string, unknown>> = {
   approve: {
@@ -28,6 +35,10 @@ const ACTION_UPDATES: Record<BulkAction, Record<string, unknown>> = {
   draft: {
     published:               false,
     editorial_review_status: 'draft',
+  },
+  trash: {
+    deleted_at: '__NOW__',
+    published:  false,
   },
 }
 
@@ -45,9 +56,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Unknown action: ${String(action)}` }, { status: 400 })
     }
 
-    const updates = { ...ACTION_UPDATES[action] }
-    if (updates.published_at === '__NOW__') {
-      updates.published_at = new Date().toISOString()
+    // Substitute the __NOW__ sentinel on any field (published_at,
+    // deleted_at, etc.) so the timestamp is set at request time rather
+    // than at module-load.
+    const updates: Record<string, unknown> = { ...ACTION_UPDATES[action] }
+    const now = new Date().toISOString()
+    for (const k of Object.keys(updates)) {
+      if (updates[k] === '__NOW__') updates[k] = now
     }
 
     const supabase = supabaseAdmin()
