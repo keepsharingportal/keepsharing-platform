@@ -1,13 +1,27 @@
-// GrandsBody — renders the article body for Grands Are The Greatest using
-// the magazine feature treatment:
-//   - Intro paragraphs render as normal prose (with a navy drop cap)
-//   - Q&A pairs render as a stack of QAFeatureCards under a small section heading
-//   - The lead pull quote was already lifted into the GrandsFeatureHero so
-//     it isn't re-rendered here
+// GrandsBody — renders the article body in the Grands magazine feature
+// treatment:
+//   1. Intro prose with a purple drop cap (the lede before any Q&A)
+//   2. Q&A section — cream wrapper, gold+lavender eyebrow rule, h2 with
+//      the subject's name + "Grand Story", then a stack of GrandsQAItems
+//      with the open editorial layout (icon + serif question + answer,
+//      no white cards)
+//   3. AGrandMoment break — inserted at the position where the editor
+//      placed an <h3>A Grand Moment</h3> in the body
+//
+// Icons cycle through a Grands-appropriate rotation since staff content
+// doesn't carry per-question icon hints. The lead pull quote is lifted
+// upstream into GrandsPullQuote so it doesn't re-render here.
 
+import type { LucideIcon } from 'lucide-react'
 import sanitizeHtml from 'sanitize-html'
-import { QAFeatureCard } from '@/components/articles/grands/QAFeatureCard'
+import { Baby, BookOpen, Heart, Home, Sparkles, Users } from 'lucide-react'
+import { GrandsQAItem } from '@/components/articles/grands/GrandsQAItem'
+import { AGrandMoment } from '@/components/articles/grands/AGrandMoment'
 import { parseGrandsBody } from '@/components/articles/grands/GrandsBodyParts'
+
+const QA_ICON_ROTATION: LucideIcon[] = [
+  Baby, Heart, Home, BookOpen, Users, Sparkles,
+]
 
 const SANITIZE_OPTS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -29,29 +43,71 @@ const SANITIZE_OPTS: sanitizeHtml.IOptions = {
 
 interface Props {
   body: string
+  /** Subject's first name(s) — drives the Q&A section h2
+   *  ("Debbie's Grand Story"). When omitted, the heading falls back to
+   *  "Their Grand Story". */
+  subjectName?: string | null
 }
 
-export function GrandsBody({ body }: Props) {
+function possessive(name: string): string {
+  if (/s$/i.test(name)) return `${name}’`
+  return `${name}’s`
+}
+
+export function GrandsBody({ body, subjectName }: Props) {
   const safeHtml = sanitizeHtml(body, SANITIZE_OPTS)
-  const { qaPairs, introParas } = parseGrandsBody(safeHtml)
+  const { qaPairs, introParas, grandMoment } = parseGrandsBody(safeHtml)
+
+  const trimmedName = subjectName?.trim() ?? ''
+  const sectionTitle = trimmedName
+    ? `${possessive(trimmedName)} Grand Story`
+    : 'Their Grand Story'
 
   return (
     <div className="grands-article max-w-none">
-      {/* Intro prose with brand-colored drop cap */}
       {introParas.length > 0 && (
         <div className="grands-intro" dangerouslySetInnerHTML={{ __html: introParas.join('') }} />
       )}
 
-      {/* Q&A section as stacked feature cards */}
       {qaPairs.length > 0 && (
-        <section className="mt-8 md:mt-10">
-          <h2 className="mb-4 md:mb-5 text-sm font-black uppercase tracking-[0.18em] text-[#6F2C8F]">
-            Q&amp;A with the Grand
+        <section className="mt-10 rounded-3xl bg-[#FFFDF8] px-5 py-6 md:px-7 md:py-8">
+          {/* Section eyebrow — gold accent stub keeps the spotlight system
+              recognizable; long lavender rule extends to the right edge. */}
+          <div className="mb-2 flex items-center gap-3">
+            <span className="h-px w-10 bg-[#F4C21B]" />
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6F2C8F]">
+              Q&amp;A with the Grand
+            </p>
+            <span className="h-px flex-1 bg-[#E6D3EC]" />
+          </div>
+
+          <h2 className="font-serif text-3xl font-bold leading-tight text-[#08264A]">
+            {sectionTitle}
           </h2>
-          <div className="grid gap-5">
-            {qaPairs.map((pair, i) => (
-              <QAFeatureCard key={i} question={pair.question} answer={pair.answer} />
-            ))}
+
+          <div className="mt-4">
+            {qaPairs.map((pair, i) => {
+              const Icon = QA_ICON_ROTATION[i % QA_ICON_ROTATION.length]
+              const question = pair.question.replace(/<[^>]+>/g, '').trim()
+              return (
+                <div key={i}>
+                  <GrandsQAItem
+                    Icon={Icon}
+                    question={question}
+                    answer={pair.answer}
+                    answerIsHtml
+                  />
+                  {grandMoment && grandMoment.afterQAIndex === i && (
+                    <AGrandMoment text={grandMoment.text} />
+                  )}
+                </div>
+              )
+            })}
+            {/* If the editor placed the marker before any Q&A (afterQAIndex
+                = -1), render the moment at the very top of the section. */}
+            {grandMoment && grandMoment.afterQAIndex === -1 && (
+              <AGrandMoment text={grandMoment.text} />
+            )}
           </div>
         </section>
       )}

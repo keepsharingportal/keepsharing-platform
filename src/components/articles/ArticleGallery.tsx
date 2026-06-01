@@ -21,6 +21,14 @@ interface Props {
   columnSlug:       string | null
   /** Right-side of the eyebrow for Play Ball ("PLAYER SPOTLIGHT" etc). */
   spotlightEyebrow?: string | null
+  /** Optional column-branded header override. When provided, replaces
+   *  the default "Photo Gallery" h3 with an eyebrow + title pair so
+   *  feature pages (e.g. Grands "Family Moments / The memories they're
+   *  making") can frame the gallery in their own voice. */
+  headerEyebrow?:   string | null
+  headerTitle?:     string | null
+  /** Custom color for the eyebrow text. Defaults to muted-foreground. */
+  headerEyebrowColor?: string | null
 }
 
 // ── Public component ─────────────────────────────────────────────────────────
@@ -29,7 +37,10 @@ interface Props {
 // are 2+ images — a single supporting photo should be a hero replacement,
 // not a 1-cell gallery.
 
-export function ArticleGallery({ images, columnSlug, spotlightEyebrow }: Props) {
+export function ArticleGallery({
+  images, columnSlug, spotlightEyebrow,
+  headerEyebrow, headerTitle, headerEyebrowColor,
+}: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const valid = images.filter(img => !!img?.url)
   if (valid.length < 2) return null
@@ -47,11 +58,29 @@ export function ArticleGallery({ images, columnSlug, spotlightEyebrow }: Props) 
           border-t, which made it feel like a teaser block belonging to a
           different article. */}
       <section className="mt-6" aria-label="Photo gallery">
-        <div className="flex items-baseline justify-between mb-4">
-          <h3 className="text-lg md:text-xl font-bold tracking-wide uppercase text-foreground">
-            Photo Gallery
-          </h3>
-          <span className="text-xs text-muted-foreground">
+        <div className="flex items-end justify-between mb-4 gap-4">
+          {headerEyebrow || headerTitle ? (
+            <div className="min-w-0">
+              {headerEyebrow && (
+                <p
+                  className="text-xs font-black uppercase tracking-[0.18em]"
+                  style={{ color: headerEyebrowColor ?? '#6F2C8F' }}
+                >
+                  {headerEyebrow}
+                </p>
+              )}
+              {headerTitle && (
+                <h3 className="font-serif text-2xl font-bold text-[#08264A] leading-tight">
+                  {headerTitle}
+                </h3>
+              )}
+            </div>
+          ) : (
+            <h3 className="text-lg md:text-xl font-bold tracking-wide uppercase text-foreground">
+              Photo Gallery
+            </h3>
+          )}
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
             {valid.length} photo{valid.length === 1 ? '' : 's'} · tap to expand
           </span>
         </div>

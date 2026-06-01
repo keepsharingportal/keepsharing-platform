@@ -24,6 +24,7 @@ import { getColumnBranding } from '@/lib/column-branding'
 import { GrandsFeatureHero }    from '@/components/articles/grands/GrandsFeatureHero'
 import { GrandsSnapshotQuote }  from '@/components/articles/grands/GrandsSnapshotQuote'
 import { GrandsBody }            from '@/components/articles/grands/GrandsBody'
+import { GrandsNominationBox }   from '@/components/articles/grands/GrandsNominationBox'
 import { parseGrandsBody }       from '@/components/articles/grands/GrandsBodyParts'
 import { PlayBallFeatureHero }   from '@/components/articles/play-ball/PlayBallFeatureHero'
 import { PlayBallSnapshotQuote } from '@/components/articles/play-ball/PlayBallSnapshotQuote'
@@ -279,6 +280,16 @@ export default async function ArticlePage({ params }: PageParams) {
       grandsSnapshotValues[f.key] = typeof v === 'string' ? v : null
     }
   }
+  const grandsNominateHref = isGrandsFeature
+    ? (getNominateCTA(column)?.href ?? '/submit/grands-are-the-greatest')
+    : ''
+  // Subject's first name for the Q&A section heading — derived from the
+  // article title's pre-colon portion ("Debbie Peavy: The Joy..." →
+  // "Debbie Peavy"), then taking just the first word so we get
+  // "Debbie's Grand Story" instead of "Debbie Peavy's Grand Story".
+  const grandsSubjectName = isGrandsFeature && typeof article.title === 'string'
+    ? (article.title.includes(':') ? article.title.split(':')[0] : article.title).trim().split(/\s+/)[0]
+    : null
 
   // Play Ball gets the same magazine-feature treatment as Grands —
   // dedicated hero (logo + photo w/ yellow tape), snapshot strip + lead
@@ -574,10 +585,16 @@ export default async function ArticlePage({ params }: PageParams) {
 
             {isGrandsFeature ? (
               /* Grands gets its own body renderer — intro prose with a
-                 brand-colored drop cap, then Q&A pairs as a stack of
-                 QAFeatureCards. The lead pull quote was already lifted
-                 into the GrandsFeatureHero. */
-              <GrandsBody body={article.body ?? ''} />
+                 purple drop cap, then a "[Name]'s Grand Story" Q&A
+                 section in the open editorial style (icon + serif
+                 question + answer, no white card frames). An optional
+                 AGrandMoment break renders where the editor placed an
+                 <h3>A Grand Moment</h3> + paragraph in the body. The
+                 lead pull quote was already lifted upstream. */
+              <GrandsBody
+                body={article.body ?? ''}
+                subjectName={grandsSubjectName}
+              />
             ) : isMomFeature ? (
               /* Mom to Mom — intro prose with a coral drop cap, then a
                  stack of MomQACards under a "[Subject Name]: Her Story"
@@ -650,11 +667,16 @@ export default async function ArticlePage({ params }: PageParams) {
 
             {/* Photo gallery — branded lightbox. Now AFTER Quick Hits so
                 the photos are the visual close to the article, right before
-                the sponsor outro and nominate CTA. */}
+                the sponsor outro and nominate CTA. Grands gets a custom
+                "Family Moments / The memories they're making" header in
+                the same magazine voice as the rest of the feature. */}
             <ArticleGallery
               images={galleryImages}
               columnSlug={column}
               spotlightEyebrow={galleryEyebrow}
+              headerEyebrow={isGrandsFeature ? 'Family Moments' : null}
+              headerTitle={isGrandsFeature ? 'The memories they’re making' : null}
+              headerEyebrowColor={isGrandsFeature ? '#6F2C8F' : null}
             />
 
             {/* Author/subject bio — natural close to the editorial content
@@ -677,9 +699,9 @@ export default async function ArticlePage({ params }: PageParams) {
 
             {/* Nominate CTA — only renders on community spotlight columns
                 (Play Ball / Teacher / Grands / Mom). Other columns: null.
-                Teacher + Mom each render their own column-styled box in
-                this slot so the CTAs feel native to the magazine spec
-                while keeping the same flow as the other community
+                Teacher / Mom / Grands each render their own column-styled
+                box in this slot so the CTAs feel native to the magazine
+                spec while keeping the same flow as the other community
                 spotlights. */}
             {isTeacherFeature ? (
               <div className="mt-10">
@@ -689,6 +711,8 @@ export default async function ArticlePage({ params }: PageParams) {
               <div className="mt-10">
                 <MomNominationBox href={momNominateHref} />
               </div>
+            ) : isGrandsFeature ? (
+              <GrandsNominationBox href={grandsNominateHref} />
             ) : (
               <NominateCTA columnSlug={column} variant="article" />
             )}
