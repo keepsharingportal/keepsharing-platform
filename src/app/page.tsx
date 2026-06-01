@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   TrendingUp, CalendarDays, BookOpen, Star,
-  ArrowRight, Users, Briefcase, Map, MessageCircle,
+  ArrowRight, Users, Briefcase, Map, MessageCircle, Sparkles,
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
@@ -412,39 +412,11 @@ export default async function HomePage() {
             )}
           </div>
 
-          {/* Side features */}
+          {/* Side features — now Community Spotlights only. The
+              Family Resource Guide + monthly featured guide moved to a
+              dedicated promo strip below the hero so this column can
+              breathe and the spotlights list reads cleanly. */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            {/* Featured Guide */}
-            <Link
-              href={`/${featuredGuide?.url_slug ?? 'summer-fun-guide'}`}
-              className="relative rounded-3xl overflow-hidden h-[240px] shrink-0 group cursor-pointer block"
-            >
-              <Image
-                src={featuredGuide?.hero_image_url || getFallbackByContext('summer-fun', 'featured-guide')}
-                alt={featuredGuide?.display_name ?? 'Featured Guide'}
-                fill
-                style={{ objectFit: 'cover' }}
-                unoptimized={shouldSkipNextOptimizer(featuredGuide?.hero_image_url)}
-                sizes="400px"
-                className="group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-accent-foreground mb-3 shadow-lg">
-                  <Map className="h-5 w-5" />
-                </div>
-                <h3 className="text-xl font-bold text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                  {featuredGuide?.display_name ?? 'Summer Fun Guide'}
-                </h3>
-                <p className="text-white/80 text-sm mt-1 mb-3" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                  {featuredGuide?.pitch ?? 'Your ultimate bucket list for family adventures this season.'}
-                </p>
-                <div className="flex items-center text-sm font-bold text-accent">
-                  Explore Guide <ArrowRight className="ml-1 h-4 w-4" />
-                </div>
-              </div>
-            </Link>
-
             {/* Community Spotlights */}
             <div className="flex-1 bg-card rounded-3xl border border-border/50 p-6 flex flex-col shadow-sm">
               <div className="flex items-center justify-between mb-5">
@@ -517,6 +489,92 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Promoted guides — Family Resource Guide (evergreen) + the
+            monthly featured guide. Two equal-billing cards sit here
+            right under the hero so both get prominent placement
+            without competing with the spotlight rotation in the
+            sidebar. When `featuredGuide` happens to BE FRG, the
+            second card hides itself and the FRG card spans the row. */}
+        {(() => {
+          const featuredIsFRG = featuredGuide?.url_slug === 'family-resource-guide'
+          const showFeatured  = !!featuredGuide && !featuredIsFRG
+          return (
+            <section className={`grid gap-3 md:gap-5 ${showFeatured ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
+              {/* Family Resource Guide — always here */}
+              <Link
+                href="/family-resource-guide"
+                className="relative rounded-3xl overflow-hidden h-[260px] md:h-[280px] group cursor-pointer block shadow-sm"
+              >
+                <Image
+                  src="/images/heroes/family-resource-hero.jpg"
+                  alt="Family Resource Guide"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  unoptimized
+                  className="group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7">
+                  <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-accent-foreground mb-3 shadow-lg">
+                    <Map className="h-5 w-5" />
+                  </div>
+                  <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
+                    Your Map
+                  </span>
+                  <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    Family Resource Guide
+                  </h3>
+                  <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    Schools, pediatricians, festivals worth driving to, the parks worth bookmarking — everything moms wish someone had told them in their first month.
+                  </p>
+                  <div className="flex items-center text-sm font-bold text-accent">
+                    Explore Guide <ArrowRight className="ml-1 h-4 w-4" />
+                  </div>
+                </div>
+              </Link>
+
+              {/* Monthly featured guide — hidden when it's also FRG */}
+              {showFeatured && featuredGuide && (
+                <Link
+                  href={`/${featuredGuide.url_slug}`}
+                  className="relative rounded-3xl overflow-hidden h-[260px] md:h-[280px] group cursor-pointer block shadow-sm"
+                >
+                  <Image
+                    src={featuredGuide.hero_image_url || getFallbackByContext('summer-fun', 'featured-guide')}
+                    alt={featuredGuide.display_name ?? 'Featured Guide'}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    unoptimized={shouldSkipNextOptimizer(featuredGuide.hero_image_url)}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7">
+                    <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground mb-3 shadow-lg">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
+                      This Month
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      {featuredGuide.display_name}
+                    </h3>
+                    {featuredGuide.pitch && (
+                      <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                        {featuredGuide.pitch}
+                      </p>
+                    )}
+                    <div className="flex items-center text-sm font-bold text-accent">
+                      Explore Guide <ArrowRight className="ml-1 h-4 w-4" />
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </section>
+          )
+        })()}
 
         {/* Featured Categories — overlay text, magazine-style */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
