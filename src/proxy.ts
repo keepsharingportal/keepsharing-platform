@@ -36,9 +36,14 @@ export async function proxy(request: NextRequest) {
   // ── Maintenance mode check (public site only) ──────────────────────────
   // Skip assets, API routes, and /go/ redirects (QR scans should still
   // redirect even during maintenance so the click counter doesn't miss).
+  //
+  // Logged-in users (super-admin / admin / staff) bypass the 503 so they
+  // can preview the live site while it's dark to the public. We only do
+  // the auth check when maintenance is ON, so the session lookup doesn't
+  // run on every public request in normal operation.
   if (!path.startsWith('/api/') && !path.startsWith('/go/') && !path.startsWith('/_next/')) {
     const maint = await checkMaintenanceMode()
-    if (maint) {
+    if (maint && !(await hasSupabaseSession(request))) {
       return new NextResponse(MAINTENANCE_HTML, {
         status: 503,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '300' },
@@ -137,6 +142,32 @@ async function gateAdmin(request: NextRequest) {
   }
 
   return res
+}
+
+// ── Maintenance bypass for staff ─────────────────────────────────────────
+// Cheap, no-DB session check: if the request carries a Supabase auth
+// cookie that returns a user, let them through the 503. Same Supabase
+// SSR adapter used by gateAdmin — reading cookies, no admin_users
+// lookup. Anyone with a working session can preview the site during
+// maintenance; the actual /admin gate still requires admin_users
+// membership, so this isn't a security loosening.
+async function hasSupabaseSession(request: NextRequest): Promise<boolean> {
+  try {
+    const sb = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return request.cookies.getAll() },
+          setAll() { /* no-op — we don't refresh tokens here */ },
+        },
+      },
+    )
+    const { data: { user } } = await sb.auth.getUser()
+    return !!user
+  } catch {
+    return false
+  }
 }
 
 // ── Maintenance mode ──────────────────────────────────────────────────────
