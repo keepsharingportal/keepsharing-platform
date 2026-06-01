@@ -52,6 +52,28 @@ export async function getActiveAds(
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
+  // Site-wide / per-context slot disable (migration 107). The Slot Map
+  // admin page lets editors flip a switch to hide a slot entirely even
+  // when there are live bookings. Two layers of disable:
+  //   1. Site-wide disable (context_slug IS NULL) for this placement_type
+  //   2. Context-specific disable matching the requested contextSlug
+  // Either match → short-circuit to empty. Falls through silently if the
+  // table doesn't exist yet (migration not applied).
+  const disableQuery = supabase
+    .from('ad_slot_settings')
+    .select('context_slug, disabled')
+    .eq('placement_type', placementType)
+    .eq('disabled', true)
+  const { data: disableRows, error: disableErr } = await disableQuery
+  if (!disableErr && disableRows && disableRows.length > 0) {
+    const hasSiteWide = disableRows.some(r => r.context_slug === null)
+    if (hasSiteWide) return []
+    if (contextSlug) {
+      const hasContext = disableRows.some(r => r.context_slug === contextSlug)
+      if (hasContext) return []
+    }
+  }
+
   const now = new Date().toISOString()
 
   const query = supabase

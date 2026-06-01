@@ -6,12 +6,12 @@ import { useEffect, useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
   ChevronDown, ChevronRight, LogOut,
-  Megaphone, HelpCircle, Activity, Star, Newspaper, Bot,
+  Megaphone, Star, Newspaper, Bot,
   Image as ImageIcon, TrendingUp, Sparkles,
   BookOpen, Heart, Send, Brain,
   GraduationCap, Printer, Map, Package, Calendar,
-  Home, Mail, Share2, Crown, RefreshCw,
-  Inbox, Award, Upload, MapPin, Search, ClipboardList,
+  Mail, Share2,
+  Inbox, Upload, MapPin, Search, ClipboardList,
   BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,51 +27,67 @@ type NavItem =
   | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean }
 
 // ── Navigation structure ───────────────────────────────────────────────────
-// Designed around the actual publishing workflow:
-//   Dashboard → Content (library) → Production (planning) → Distribution (output)
-//   Guides + Revenue + Community + Tools as supporting sections.
+// Organized around what the user actually does: write/publish content,
+// schedule production, distribute, sell ads, manage relationships, support
+// the community, then everything else under Tools.
+//
+// Cleanup pass (mid-2026):
+//   - Removed parent-equals-first-child duplicates (Articles, Events,
+//     Ad System, Advertisers, Settings all had a useless first child).
+//   - Collapsed DISTRIBUTION's 5 query-param links into one (the
+//     destination page already has tabs).
+//   - Renamed "Ad System" → "Ads & Sponsors" with cleaner children.
+//   - Moved Sponsor Inventory under Advertisers as "Category Ownership".
+//   - Moved Print Export from DISTRIBUTION → PRODUCTION (it's a printer
+//     handoff, not an output channel).
+//   - Moved Bloggers from VERTICALS → CONTENT (it's an author roster).
+//   - Hid mock-data ghost pages from the nav (Pipeline, Businesses,
+//     Agreements, Ad Proofs, Intelligence, Nominations, Market Health,
+//     Outreach Tracker, Help). The page files remain reachable by URL
+//     for editors who want them, but they don't take menu real estate
+//     until they have real data.
 
 const NAV: NavItem[] = [
   // ── DASHBOARD ───────────────────────────────────────────────────────────
   { section: 'DASHBOARD' },
-  { name: 'Today',         href: '/admin/today',   icon: Zap      },
-  { name: 'Market Health', href: '/admin/markets', icon: Activity },
+  { name: 'Today', href: '/admin/today', icon: Zap },
 
-  // ── CONTENT (the central library) ───────────────────────────────────────
+  // ── CONTENT ─────────────────────────────────────────────────────────────
   { section: 'CONTENT' },
   {
     name: 'Articles',
     href: '/admin/articles',
     icon: Newspaper,
     children: [
-      { name: 'All Articles',   href: '/admin/articles'                          },
-      { name: 'New Article',    href: '/admin/articles/new', accent: true        },
-      { name: 'Approval Queue', href: '/admin/articles/review'                   },
-      { name: 'Drafts',         href: '/admin/articles?filter=draft'             },
-      { name: 'Needs Revision', href: '/admin/articles?filter=needs_revision'    },
-      { name: 'Columns',         href: '/admin/articles/columns'                  },
-      { name: 'Column Branding', href: '/admin/column-branding',  accent: true     },
-      { name: 'Authors',         href: '/admin/articles/authors'                  },
+      // No "All Articles" — clicking the parent already goes there.
+      // Filter children (Drafts / Needs Revision) live as in-page chips
+      // on /admin/articles, not as menu entries.
+      { name: 'New Article',    href: '/admin/articles/new', accent: true },
+      { name: 'Approval Queue', href: '/admin/articles/review'             },
+      { name: 'Trash',          href: '/admin/articles/trash'              },
+      { name: 'Columns',         href: '/admin/articles/columns'           },
+      { name: 'Column Branding', href: '/admin/column-branding',  accent: true },
+      { name: 'Authors',         href: '/admin/articles/authors'           },
     ],
   },
-  { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon     },
+  { name: 'Bloggers',          href: '/admin/bloggers',    icon: Users         },
   { name: 'School Bits',       href: '/admin/school-news', icon: GraduationCap },
   {
     name: 'Events',
     href: '/admin/events',
     icon: Calendar,
     children: [
-      { name: 'All Events',             href: '/admin/events'                          },
-      { name: 'Pending Review',         href: '/admin/events?tab=pending', accent: true },
-      { name: 'Community Connections',  href: '/admin/events/organizations'            },
-      { name: 'Event Imports (CSV)',    href: '/admin/content/events-import'           },
-      { name: 'iCal Sources',           href: '/admin/events/sources'                  },
+      // Pending Review is a tab inside the events page, not a child here.
+      { name: 'Community Connections',  href: '/admin/events/organizations' },
+      { name: 'Event Imports (CSV)',    href: '/admin/content/events-import' },
+      { name: 'iCal Sources',           href: '/admin/events/sources'        },
     ],
   },
-  { name: 'Community Content', href: '/admin/community',   icon: Heart         },
-  { name: 'Brain Games',       href: '/admin/games',       icon: Brain         },
+  { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
+  { name: 'Community Content', href: '/admin/community',   icon: Heart     },
+  { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
 
-  // ── PRODUCTION (orchestration between content and channels) ─────────────
+  // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },
   { name: 'Issues',              href: '/admin/production/issues',             icon: BookOpen   },
   { name: 'Monthly Themes',      href: '/admin/production/themes',             icon: Sparkles   },
@@ -79,91 +95,86 @@ const NAV: NavItem[] = [
   { name: 'Layout Queue',        href: '/admin/advertisers/layout-sheet',      icon: LayoutGrid },
   { name: 'Market Assignments',  href: '/admin/production/market-assignments', icon: Map        },
   { name: 'Export Packages',     href: '/admin/production/export-packages',    icon: Package    },
+  { name: 'Print Export',        href: '/admin/distribution/print-export',     icon: Printer    },
   { name: 'Production Calendar', href: '/admin/content/calendar',              icon: Calendar   },
 
   // ── GUIDES ──────────────────────────────────────────────────────────────
   { section: 'GUIDES' },
-  { name: 'Guide Editor',      href: '/admin/guides',                                   icon: BookOpen  },
-  { name: 'Guide Sponsors',    href: '/admin/advertisers/sponsor-inventory?type=guide', icon: Crown     },
-  { name: 'Guide Imports',     href: '/admin/content/guide-listings-import',            icon: Upload    },
-  { name: 'Outreach Tracker',  href: '/admin/guides/outreach',                          icon: RefreshCw },
+  { name: 'Guide Editor',  href: '/admin/guides',                        icon: BookOpen },
+  { name: 'Guide Imports', href: '/admin/content/guide-listings-import', icon: Upload   },
 
-  // ── VERTICALS — year-round content homes (School Zone, Mom Knows Best, etc.) ─
+  // ── VERTICALS ───────────────────────────────────────────────────────────
   { section: 'VERTICALS' },
-  { name: 'Vertical Editor',     href: '/admin/verticals',                              icon: LayoutGrid    },
-  { name: 'Spotlight Review',    href: '/admin/spotlights/review',                      icon: GraduationCap },
-  { name: 'Bloggers',            href: '/admin/bloggers',                               icon: Users         },
+  { name: 'Vertical Editor',  href: '/admin/verticals',         icon: LayoutGrid    },
+  { name: 'Spotlight Review', href: '/admin/spotlights/review', icon: GraduationCap },
 
-  // ── DISTRIBUTION (output channels — content ready to place) ─────────────
+  // ── DISTRIBUTION ────────────────────────────────────────────────────────
+  // Single entry — the page itself has tabs for Queue / Homepage /
+  // Newsletter / Social / Sponsors. Was 5 nav items pointing at one page.
   { section: 'DISTRIBUTION' },
-  { name: 'Distribution Queue', href: '/admin/distribution?view=queue',      icon: Send    },
-  { name: 'Homepage',           href: '/admin/distribution?view=homepage',   icon: Home    },
-  { name: 'Newsletter',         href: '/admin/distribution?view=newsletter', icon: Mail    },
-  { name: 'Social',             href: '/admin/distribution?view=social',     icon: Share2  },
-  { name: 'Print Export',       href: '/admin/distribution/print-export',    icon: Printer },
-  { name: 'Sponsor Placements', href: '/admin/distribution?view=sponsors',   icon: Crown   },
+  { name: 'Distribution', href: '/admin/distribution', icon: Send },
 
-  // ── ADVERTISING ──────────────────────────────────────────────────────────
-  // Consolidated view: the Ad Map is the visual overview, Advertisers is
-  // the people, everything else supports the workflow.
-  { section: 'ADVERTISING' },
+  // ── ADS & SPONSORS ──────────────────────────────────────────────────────
+  // Slot Map = where every ad spot lives, what it costs, who owns it.
+  // All Bookings = raw ad_placements list for power-edit.
+  // Section Sponsors = column_sponsors (Play Ball "presented by X").
+  { section: 'ADS & SPONSORS' },
   {
-    name: 'Ad System',
+    name: 'Ads & Sponsors',
     href: '/admin/ads/map',
     icon: Star,
     children: [
-      { name: 'Ad Map',             href: '/admin/ads/map'                                  },
-      { name: 'All Placements',     href: '/admin/ads'                                      },
-      { name: 'Sponsor Inventory',  href: '/admin/advertisers/sponsor-inventory'             },
-      { name: 'Section Sponsors',   href: '/admin/section-sponsors',                          accent: true },
+      { name: 'Slot Map',         href: '/admin/ads/map'                  },
+      { name: 'All Bookings',     href: '/admin/ads'                      },
+      { name: 'Section Sponsors', href: '/admin/section-sponsors', accent: true },
     ],
   },
+
+  // ── ADVERTISERS (CRM) ───────────────────────────────────────────────────
+  // The people and the franchise relationships. NOT the slot inventory —
+  // that lives under Ads & Sponsors above.
+  { section: 'ADVERTISERS' },
   {
     name: 'Advertisers',
     href: '/admin/advertisers',
     icon: Users,
     children: [
-      { name: 'Active Advertisers', href: '/admin/advertisers'                            },
-      { name: 'Businesses',         href: '/admin/advertisers/businesses'                 },
-      { name: 'Pipeline',           href: '/admin/advertisers/pipeline'                   },
-      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true   },
-      { name: 'Agreements',         href: '/admin/advertisers/agreements'                 },
-      { name: 'Ad Proofs',          href: '/admin/advertisers/ad-proofs'                  },
+      // No "Active Advertisers" child — clicking the parent already goes
+      // to the active list. Pipeline / Businesses / Agreements / Ad Proofs
+      // are hidden until they're backed by real data.
+      { name: 'Category Ownership', href: '/admin/advertisers/sponsor-inventory' },
+      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true },
     ],
   },
-  { name: 'Campaigns',         href: '/admin/marketing-system',              icon: Megaphone   },
-  { name: 'Proposals',         href: '/admin/advertisers/proposals',         icon: FileText    },
-  { name: 'Client Reports',    href: '/admin/reports',                       icon: BarChart3   },
-  { name: 'Analytics',         href: '/admin/advertisers/intelligence',      icon: TrendingUp  },
+  { name: 'Proposals',     href: '/admin/advertisers/proposals', icon: FileText },
+  { name: 'Marketing',     href: '/admin/marketing-system',      icon: Megaphone },
+  { name: 'Client Reports', href: '/admin/reports',              icon: BarChart3 },
+  { name: 'Analytics',     href: '/admin/advertisers/intelligence', icon: TrendingUp },
 
   // ── COMMUNITY ───────────────────────────────────────────────────────────
   { section: 'COMMUNITY' },
-  { name: 'Submissions',      href: '/admin/submissions',           icon: Inbox         },
-  { name: 'Listing Inquiries', href: '/admin/inquiries',            icon: Mail          },
-  { name: 'Nominations',      href: '/admin/nominations',           icon: Award         },
-  { name: 'Family Favorites', href: '/admin/family-favorites',      icon: Heart         },
-  { name: 'Forms',            href: '/admin/content/forms',         icon: ClipboardList },
+  { name: 'Submissions',       href: '/admin/submissions',      icon: Inbox         },
+  { name: 'Listing Inquiries', href: '/admin/inquiries',        icon: Mail          },
+  { name: 'Family Favorites',  href: '/admin/family-favorites', icon: Heart         },
+  { name: 'Forms',             href: '/admin/content/forms',    icon: ClipboardList },
 
   // ── TOOLS ───────────────────────────────────────────────────────────────
   { section: 'TOOLS' },
-  { name: 'Imports',     href: '/admin/content/imports',     icon: Upload     },
-  { name: 'Geocode',     href: '/admin/guides/geocode',      icon: MapPin     },
-  { name: 'QR Codes',    href: '/admin/content/short-links', icon: Share2      },
-  { name: 'Word Search', href: '/admin/content/word-search', icon: Search     },
-  { name: 'AI Tasks',    href: '/admin/ai-tasks',            icon: Bot        },
+  { name: 'Imports',     href: '/admin/content/imports',     icon: Upload },
+  { name: 'AI Tasks',    href: '/admin/ai-tasks',            icon: Bot    },
+  { name: 'Geocode',     href: '/admin/guides/geocode',      icon: MapPin },
+  { name: 'QR Codes',    href: '/admin/content/short-links', icon: Share2 },
+  { name: 'Word Search', href: '/admin/content/word-search', icon: Search },
   {
     name: 'Settings',
     href: '/admin/settings',
     icon: Settings,
-    // The 'Admin Users' child is settings-tier only — the Sidebar renders
-    // it but filters it out for publishers/editors below.
     settingsOnly: true,
     children: [
-      { name: 'General',       href: '/admin/settings'            },
-      { name: 'Admin Users',   href: '/admin/settings/users'      },
+      // No "General" child — parent click already goes to /admin/settings.
+      { name: 'Admin Users', href: '/admin/settings/users' },
     ],
   },
-  { name: 'Help',        href: '/admin/help',                icon: HelpCircle },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────

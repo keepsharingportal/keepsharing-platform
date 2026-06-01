@@ -16,8 +16,19 @@ import {
 } from '@/lib/ads/rate-card'
 import {
   Lock, RotateCw, DollarSign, Eye, MousePointer,
-  ArrowRight, Plus, CheckCircle2, Circle,
+  ArrowRight, Plus, CheckCircle2, Circle, PowerOff,
 } from 'lucide-react'
+import { SlotToggleButton } from './SlotToggleButton'
+
+// Slot Map's surfaces are ALSO the context_slug values that section-scoped
+// placements use (e.g. surface='school-zone' → context_slug='school-zone').
+// For homepage / site / newsletter surfaces there's no per-context split —
+// the toggle should disable site-wide (context_slug=null) instead. This
+// guard keeps the toggle scope sensible without making the UI complicated.
+const SITE_WIDE_SURFACES = new Set(['homepage', 'site', 'newsletter'])
+function toggleContextFor(surface: string): string | null {
+  return SITE_WIDE_SURFACES.has(surface) ? null : surface
+}
 
 export const metadata: Metadata = { title: 'Ad Map — Admin' }
 export const dynamic  = 'force-dynamic'
@@ -37,11 +48,18 @@ export default async function AdMapPage() {
   await requireAdmin()
 
   const supabase = createAdminClient()
-  const { data } = await supabase
-    .from('ad_placements')
-    .select('placement_type, context_slug, is_active, impression_count, click_count, starts_at, ends_at, advertiser:advertiser_account_id(business_name)')
-    .eq('is_active', true)
-    .order('display_priority', { ascending: false })
+  const [{ data }, { data: disabledRows }] = await Promise.all([
+    supabase
+      .from('ad_placements')
+      .select('placement_type, context_slug, is_active, impression_count, click_count, starts_at, ends_at, advertiser:advertiser_account_id(business_name)')
+      .eq('is_active', true)
+      .order('display_priority', { ascending: false }),
+    supabase
+      .from('ad_slot_settings')
+      .select('placement_type, context_slug, disabled')
+      .eq('disabled', true)
+      .returns<Array<{ placement_type: string; context_slug: string | null; disabled: boolean }>>(),
+  ])
 
   // Build a lookup: "placement_type|context_slug" → array of live slots
   const liveMap = new Map<string, LiveSlot[]>()
@@ -61,6 +79,18 @@ export default async function AdMapPage() {
       ends_at:          r.ends_at as string | null,
     })
     liveMap.set(key, arr)
+  }
+
+  // Same shape lookup for the disable rows so SlotCard can check both
+  // exact (placement|context) and site-wide (placement|null) matches.
+  const disabledMap = new Set<string>()
+  for (const row of disabledRows ?? []) {
+    disabledMap.add(`${row.placement_type}|${row.context_slug ?? ''}`)
+  }
+  function isSlotDisabled(placementType: string, contextSlug: string | null): boolean {
+    if (disabledMap.has(`${placementType}|`)) return true   // site-wide disable
+    if (contextSlug && disabledMap.has(`${placementType}|${contextSlug}`)) return true
+    return false
   }
 
   const bySurface = getRatesBySurface()
@@ -119,8 +149,16 @@ export default async function AdMapPage() {
                 {slots.map(slot => {
                   const key = `${slot.placementType}|${slot.surface}`
                   const live = liveMap.get(key) ?? []
+                  const toggleCtx = toggleContextFor(slot.surface)
+                  const disabled  = isSlotDisabled(slot.placementType, toggleCtx)
                   return (
-                    <SlotCard key={`${slot.placementType}-${slot.surface}`} slot={slot} live={live} />
+                    <SlotCard
+                      key={`${slot.placementType}-${slot.surface}`}
+                      slot={slot}
+                      live={live}
+                      disabled={disabled}
+                      toggleContext={toggleCtx}
+                    />
                   )
                 })}
               </div>
@@ -132,30 +170,57 @@ export default async function AdMapPage() {
   )
 }
 
-function SlotCard({ slot, live }: { slot: SlotRate; live: LiveSlot[] }) {
+function SlotCard({
+  slot, live, disabled, toggleContext,
+}: {
+  slot:          SlotRate
+  live:          LiveSlot[]
+  disabled:      boolean
+  toggleContext: string | null
+}) {
   const booked  = live.length > 0
   const totalI  = live.reduce((s, a) => s + a.impression_count, 0)
   const totalC  = live.reduce((s, a) => s + a.click_count, 0)
 
+  // Disabled state wins visually — slot stops rendering on the public
+  // site regardless of booking, so the card should read "off" not
+  // "booked" or "open".
+  const ringClass = disabled
+    ? 'bg-rose-50/40 ring-rose-200 opacity-90'
+    : booked
+      ? 'bg-emerald-50/50 ring-emerald-200'
+      : 'bg-white ring-gray-200'
+
   return (
-    <div className={`rounded-xl ring-1 p-4 ${
-      booked ? 'bg-emerald-50/50 ring-emerald-200' : 'bg-white ring-gray-200'
-    }`}>
+    <div className={`rounded-xl ring-1 p-4 ${ringClass}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-gray-900 leading-snug">{slot.label}</h3>
           <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{slot.description}</p>
         </div>
-        {slot.locked ? (
-          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200">
-            <Lock size={9} /> Locked
-          </span>
-        ) : (
-          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 ring-1 ring-sky-200">
-            <RotateCw size={9} /> Rotation
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {slot.locked ? (
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200">
+              <Lock size={9} /> Locked
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 ring-1 ring-sky-200">
+              <RotateCw size={9} /> Rotation
+            </span>
+          )}
+          <SlotToggleButton
+            placementType={slot.placementType}
+            contextSlug={toggleContext}
+            isDisabled={disabled}
+          />
+        </div>
       </div>
+
+      {disabled && (
+        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-700">
+          <PowerOff size={11} /> Slot is OFF — public site is hiding this spot
+        </div>
+      )}
 
       {/* Pricing */}
       <div className="flex items-center gap-3 text-[11px] text-gray-600 mb-3">
