@@ -59,18 +59,22 @@ const NAV: NavItem[] = [
     href: '/admin/articles',
     icon: Newspaper,
     children: [
-      // No "All Articles" — clicking the parent already goes there.
-      // Filter children (Drafts / Needs Revision) live as in-page chips
-      // on /admin/articles, not as menu entries.
-      { name: 'New Article',    href: '/admin/articles/new', accent: true },
-      { name: 'Approval Queue', href: '/admin/articles/review'             },
-      { name: 'Trash',          href: '/admin/articles/trash'              },
-      { name: 'Columns',         href: '/admin/articles/columns'           },
+      // "All Articles" is a redundant link in shape (same href as the
+      // parent), but editors expect to see it explicitly — without it
+      // the parent's behaviour-on-click ("opens the full list") isn't
+      // discoverable. So we keep this one alias on purpose.
+      //
+      // Filter children (Drafts / Needs Revision / by-column) live as
+      // in-page dropdowns on /admin/articles, not as menu entries.
+      { name: 'All Articles',    href: '/admin/articles'                       },
+      { name: 'New Article',     href: '/admin/articles/new', accent: true     },
+      { name: 'Approval Queue',  href: '/admin/articles/review'                },
+      { name: 'Trash',           href: '/admin/articles/trash'                 },
       { name: 'Column Branding', href: '/admin/column-branding',  accent: true },
-      { name: 'Authors',         href: '/admin/articles/authors'           },
+      { name: 'Authors',         href: '/admin/articles/authors'               },
     ],
   },
-  { name: 'Bloggers',          href: '/admin/bloggers',    icon: Users         },
+  { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },
   { name: 'School Bits',       href: '/admin/school-news', icon: GraduationCap },
   {
     name: 'Events',
@@ -84,7 +88,7 @@ const NAV: NavItem[] = [
     ],
   },
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
-  { name: 'Community Content', href: '/admin/community',   icon: Heart     },
+  { name: 'Submitted Content', href: '/admin/community',   icon: Heart     },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
 
   // ── PRODUCTION ──────────────────────────────────────────────────────────

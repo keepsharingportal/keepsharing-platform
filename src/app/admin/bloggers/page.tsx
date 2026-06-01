@@ -10,7 +10,7 @@ import { Users, ExternalLink, ImageIcon, Key, KeyRound } from 'lucide-react'
 import { NewBloggerButton } from './NewBloggerButton'
 import { SectionHelp } from '@/components/admin/AdminHelp'
 
-export const metadata = { title: 'Bloggers — KeepSharing Admin' }
+export const metadata = { title: 'Mom Knows Best — KeepSharing Admin' }
 export const dynamic  = 'force-dynamic'
 
 interface BloggerRow {
@@ -52,10 +52,10 @@ export default async function BloggersAdminPage() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             <Users className="h-5 w-5 text-pink-600" />
-            Bloggers
+            Mom Knows Best
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Mom Knows Best contributors. Manage profile, bio, family photo, and Quick Takes for each blogger.
+            Mom Knows Best contributors. Manage profile, bio, family photo, and Quick Takes for each mom.
           </p>
         </div>
         <div className="flex items-center gap-2">

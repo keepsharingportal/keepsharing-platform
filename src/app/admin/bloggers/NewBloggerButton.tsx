@@ -39,7 +39,7 @@ export function NewBloggerButton() {
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-pink-600 text-white rounded-lg hover:bg-pink-700"
       >
-        <Plus size={12} /> New Blogger
+        <Plus size={12} /> New Mom
       </button>
 
       {open && (
@@ -47,7 +47,7 @@ export function NewBloggerButton() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Add a Blogger</h2>
+                <h2 className="text-lg font-bold text-gray-900">Add a Mom Knows Best blogger</h2>
                 <p className="text-xs text-gray-500 mt-0.5">You can fill in bio, photos, and Quick Takes on the next screen.</p>
               </div>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-700 -mt-1">
