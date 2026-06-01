@@ -1,7 +1,22 @@
+// Public-site footer. Server component — it fetches the
+// nav_visibility hidden set on render so editors can flip individual
+// footer items off in /admin/site/navigation without a deploy. The set
+// is cached for 30 seconds at the helper level, so this isn't a per-
+// request DB hit in practice.
+
 import Link from 'next/link'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
+import {
+  FOOTER_EXPLORE, FOOTER_CONNECT, FOOTER_LEGAL, visibleOnly,
+} from '@/lib/site-nav/items'
+import { getHiddenNavKeys } from '@/lib/site-nav/visibility'
 
-export function PublicFooter() {
+export async function PublicFooter() {
+  const hidden  = await getHiddenNavKeys()
+  const explore = visibleOnly(FOOTER_EXPLORE, hidden)
+  const connect = visibleOnly(FOOTER_CONNECT, hidden)
+  const legal   = visibleOnly(FOOTER_LEGAL,   hidden)
+
   return (
     <footer className="bg-muted pt-14 pb-8 border-t mt-12 font-sans">
       <div className="container">
@@ -32,36 +47,60 @@ export function PublicFooter() {
             </p>
           </div>
 
-          <div>
-            <h4 className="font-semibold mb-4">Explore</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/school-zone" className="hover:text-primary transition-colors">School Zone</Link></li>
-              <li><Link href="/family-resource-guide" className="hover:text-primary transition-colors">Family Resource Guide</Link></li>
-              <li><Link href="/summer-fun-guide" className="hover:text-primary transition-colors">Summer Fun Guide</Link></li>
-              <li><Link href="/calendar" className="hover:text-primary transition-colors">Event Calendar</Link></li>
-              <li><Link href="/articles" className="hover:text-primary transition-colors">Articles</Link></li>
-              <li><Link href="/local-guides" className="hover:text-primary transition-colors">All Local Guides</Link></li>
-            </ul>
-          </div>
+          {explore.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-4">Explore</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                {explore.map(item => (
+                  <li key={item.key}>
+                    {item.external ? (
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link href={item.href} className="hover:text-primary transition-colors">
+                        {item.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <div>
-            <h4 className="font-semibold mb-4">Connect</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/advertise" className="hover:text-primary transition-colors">Advertise with Us</Link></li>
-              <li><Link href="/nominate" className="hover:text-primary transition-colors">Nominate Someone</Link></li>
-              <li><Link href="/calendar/submit" className="hover:text-primary transition-colors">Submit an Event</Link></li>
-              <li><Link href="/columns/mom-to-mom" className="hover:text-primary transition-colors">Mom to Mom Column</Link></li>
-              <li><a href="https://instagram.com/riverregionparents" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Instagram</a></li>
-            </ul>
-          </div>
+          {connect.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-4">Connect</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                {connect.map(item => (
+                  <li key={item.key}>
+                    {item.external ? (
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        {item.label}
+                      </a>
+                    ) : (
+                      <Link href={item.href} className="hover:text-primary transition-colors">
+                        {item.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} River Region Parents. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-          </div>
+          {legal.length > 0 && (
+            <div className="flex gap-4">
+              {legal.map(item => (
+                <Link key={item.key} href={item.href} className="hover:text-foreground transition-colors">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </footer>

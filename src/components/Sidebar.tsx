@@ -12,7 +12,7 @@ import {
   GraduationCap, Printer, Map, Package, Calendar,
   Mail, Share2,
   Inbox, Upload, MapPin, Search, ClipboardList,
-  BarChart3,
+  BarChart3, Navigation,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
@@ -169,11 +169,12 @@ const NAV: NavItem[] = [
 
   // ── TOOLS ───────────────────────────────────────────────────────────────
   { section: 'TOOLS' },
-  { name: 'Imports',     href: '/admin/content/imports',     icon: Upload },
-  { name: 'AI Tasks',    href: '/admin/ai-tasks',            icon: Bot    },
-  { name: 'Geocode',     href: '/admin/guides/geocode',      icon: MapPin },
-  { name: 'QR Codes',    href: '/admin/content/short-links', icon: Share2 },
-  { name: 'Word Search', href: '/admin/content/word-search', icon: Search },
+  { name: 'Site Navigation', href: '/admin/site/navigation',  icon: Navigation },
+  { name: 'Imports',         href: '/admin/content/imports',  icon: Upload     },
+  { name: 'AI Tasks',        href: '/admin/ai-tasks',         icon: Bot        },
+  { name: 'Geocode',         href: '/admin/guides/geocode',   icon: MapPin     },
+  { name: 'QR Codes',        href: '/admin/content/short-links', icon: Share2  },
+  { name: 'Word Search',     href: '/admin/content/word-search', icon: Search  },
   {
     name: 'Settings',
     href: '/admin/settings',
