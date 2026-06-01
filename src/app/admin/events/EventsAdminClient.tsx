@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import type { EventRow, EventSource } from './page'
 import { QuickAddEventPanel } from './QuickAddEventPanel'
+import { EventRecurrenceEditor } from './EventRecurrenceEditor'
 import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const PAGE_SIZE = 30
@@ -810,6 +811,7 @@ function EventEditor({
   )
   const [category,    setCategory]    = useState(ev.category ?? '')
   const [heroUrl,     setHeroUrl]     = useState(ev.hero_image_url ?? '')
+  const [recurrenceRule, setRecurrenceRule] = useState<string | null>(ev.recurrence_rule ?? null)
   // Track whether we have a saved original — re-crop only works when this
   // is set, so the gravity picker stays disabled for legacy rows.
   const [origPath, setOrigPath] = useState(ev.image_orig_path ?? null)
@@ -842,6 +844,7 @@ function EventEditor({
         featured_until:   featuredUntilIso,
         category:         category || null,
         hero_image_url:   heroUrl.trim() || null,
+        recurrence_rule:  recurrenceRule,
       }
       const res = await fetch(`/api/admin/events/${ev.id}`, {
         method: 'PATCH',
@@ -867,6 +870,7 @@ function EventEditor({
         featured_until:   payload.featured_until,
         category:         payload.category,
         hero_image_url:   payload.hero_image_url,
+        recurrence_rule:  payload.recurrence_rule,
       })
     } finally { setBusy(false) }
   }
@@ -1000,6 +1004,12 @@ function EventEditor({
               <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inp} />
             </div>
           </div>
+
+          {/* Recurrence — RRULE picker. Edits the calendar_events.recurrence_rule
+              column directly. Toggling off the "Event Repeating" checkbox sets
+              the rule to NULL and the event reverts to one-off. */}
+          <EventRecurrenceEditor value={recurrenceRule} onChange={setRecurrenceRule} />
+
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className={lbl}>Venue name</label>

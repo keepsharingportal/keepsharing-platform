@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { EVENT_CATEGORIES } from '@/lib/calendar-taxonomy'
 import { compressIfLarge } from '@/lib/admin/compress-image'
+import { EventRecurrenceEditor } from './EventRecurrenceEditor'
 import type { EventRow, EventSource } from './page'
 
 interface DuplicateMatch {
@@ -61,6 +62,10 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   const [origPath,    setOrigPath]    = useState<string | null>(null)
   const [imgW,        setImgW]        = useState<number | null>(null)
   const [imgH,        setImgH]        = useState<number | null>(null)
+
+  // RRULE-encoded recurrence pattern (null = one-off event).
+  // EventRecurrenceEditor handles the friendly UI and emits the string.
+  const [recurrenceRule, setRecurrenceRule] = useState<string | null>(null)
 
   const [busy,        setBusy]        = useState(false)
   const [imageBusy,   setImageBusy]   = useState(false)
@@ -195,6 +200,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
           source_id:        sourceId || null,
           source_name:      sourceName,
           status:           autoPublish ? 'published' : 'pending',
+          recurrence_rule:  recurrenceRule,
         }),
       })
       const json = await res.json().catch(() => ({}))
@@ -389,6 +395,12 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               </label>
             </div>
           </div>
+
+          {/* Recurrence — RRULE picker. One-off events leave this off and
+              skip the section entirely; recurring events get expanded
+              into virtual occurrences on the public calendar at read time
+              (see src/lib/calendar/expand-recurrence.ts). */}
+          <EventRecurrenceEditor value={recurrenceRule} onChange={setRecurrenceRule} />
 
           {/* Duplicate warning — fires after the operator has enough info
               for a check to be useful (title + date). Soft block: shows the

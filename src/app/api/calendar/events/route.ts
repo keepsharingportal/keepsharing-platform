@@ -1,7 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { expandRecurrences, type ExpandableEvent } from '@/lib/calendar/expand-recurrences'
 
 export const runtime = 'nodejs'
+
+// Row shape the calendar feed selects. Carries the recurrence_rule so
+// expandRecurrences can replicate the template into virtual occurrences
+// for the requested window.
+type ExpandableEventRow = ExpandableEvent & {
+  id:               string
+  slug:             string | null
+  title:            string
+  end_date?:        string | null
+  end_time?:        string | null
+  location_name?:   string | null
+  address?:         string | null
+  city?:            string | null
+  is_free?:         boolean | null
+  cost_text?:       string | null
+  description?:     string | null
+  category?:        string | null
+  hero_image_url?:  string | null
+  registration_url?: string | null
+  organizer_name?:  string | null
+}
 
 // Compute the YYYY-MM-DD date window for a "when" preset.
 // 'today'    → today only
@@ -65,15 +87,23 @@ export async function GET(req: NextRequest) {
   const probe = await supabase.from('calendar_events').select('tags').limit(1)
   const hasTagsColumn = !probe.error
 
+  // Two-pass fetch so recurring events that started BEFORE the window
+  // still surface their occurrences IN the window:
+  //   1. In-window rows (recurring + non-recurring with start_date in [start, end])
+  //   2. Out-of-window recurring rows (start_date < start, recurrence_rule
+  //      not null) — their occurrences may fall inside the window
+  // Both lists run through expandRecurrences, which leaves non-recurring
+  // rows alone and expands recurring rows into virtual occurrence rows.
+  const baseCols = 'id, slug, title, start_date, end_date, start_time, end_time, location_name, address, city, is_free, cost_text, description, category, hero_image_url, registration_url, organizer_name, recurrence_rule'
+
   let query = supabase
     .from('calendar_events')
-    .select('id, slug, title, start_date, end_date, start_time, end_time, location_name, address, city, is_free, cost_text, description, category, hero_image_url, registration_url, organizer_name', { count: 'exact' })
+    .select(baseCols, { count: 'exact' })
     .eq('status', 'published')
     .gte('start_date', start)
     .lte('start_date', end)
     .order('start_date', { ascending: true })
     .order('start_time', { ascending: true, nullsFirst: true })
-    .range((page - 1) * limit, page * limit - 1)
 
   if (category && category !== 'all') {
     query = query.eq('category', category)
@@ -82,7 +112,6 @@ export async function GET(req: NextRequest) {
     query = query.eq('is_free', true)
   }
   if (tag && hasTagsColumn) {
-    // Postgres array contains: { tags: { cs: '{toddler-friendly}' } } via .contains
     query = query.contains('tags', [tag])
   }
   if (search) {
@@ -92,14 +121,40 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const { data, error, count } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const recurringPast = supabase
+    .from('calendar_events')
+    .select(baseCols)
+    .eq('status', 'published')
+    .not('recurrence_rule', 'is', null)
+    .lt('start_date', start)
+    .limit(500)  // bounded so a runaway accumulation never balloons the request
+
+  const [inWindowRes, recurringPastRes] = await Promise.all([query, recurringPast])
+
+  if (inWindowRes.error)        return NextResponse.json({ error: inWindowRes.error.message },        { status: 500 })
+  if (recurringPastRes.error)   return NextResponse.json({ error: recurringPastRes.error.message },   { status: 500 })
+
+  const merged = [
+    ...(inWindowRes.data        ?? []) as ExpandableEventRow[],
+    ...(recurringPastRes.data   ?? []) as ExpandableEventRow[],
+  ]
+  const expanded = expandRecurrences(
+    merged,
+    new Date(`${start}T00:00:00Z`),
+    new Date(`${end}T23:59:59Z`),
+  )
+
+  // Re-paginate after expansion. The DB count is no longer accurate (it
+  // counted templates, not occurrences); use the expanded length so the
+  // public side gets a real "total."
+  const total = expanded.length
+  const paged = expanded.slice((page - 1) * limit, page * limit)
 
   return NextResponse.json({
-    events:  data ?? [],
-    total:   count ?? 0,
+    events:  paged,
+    total,
     page,
-    pages:   Math.ceil((count ?? 0) / limit),
+    pages:   Math.ceil(total / limit),
     window:  { start, end, when },
   })
 }
