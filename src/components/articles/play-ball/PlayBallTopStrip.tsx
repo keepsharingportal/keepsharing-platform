@@ -48,20 +48,26 @@ export function PlayBallTopStrip({ fields, values }: Props) {
       <h2 className="mb-5 text-center text-xs font-black uppercase tracking-[0.18em] text-white">
         Player Snapshot
       </h2>
-      <div className={`grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 ${lgCols}`}>
+      {/* Icon-left rows on mobile + 2-up at sm + N-up at lg — matches
+          the Mom snapshot pattern that the user already likes. Avoids
+          the cramped 2-up icon-above-centered layout that was rendering
+          poorly on phones. */}
+      <div className={`grid gap-4 sm:grid-cols-2 ${lgCols}`}>
         {filled.map(field => {
           const Icon = ICON_BY_TEMPLATE_ICON[field.icon] ?? Star
           return (
-            <div key={field.key} className="flex flex-col items-center px-1 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF6D9] text-[#08264A] ring-1 ring-[#F3BF24]">
+            <div key={field.key} className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFF6D9] text-[#08264A] ring-1 ring-[#F3BF24]">
                 <Icon className="h-5 w-5" strokeWidth={2.25} />
               </div>
-              <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-[#F3BF24]">
-                {field.label}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold leading-snug text-white break-words">
-                {String(values[field.key]).trim()}
-              </p>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#F3BF24]">
+                  {field.label}
+                </p>
+                <p className="text-sm font-semibold leading-snug text-white break-words">
+                  {String(values[field.key]).trim()}
+                </p>
+              </div>
             </div>
           )
         })}

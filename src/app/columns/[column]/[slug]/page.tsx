@@ -16,6 +16,10 @@ import {
 } from '@/components/articles/Spotlight'
 import { SpotlightSnapshot } from '@/components/articles/SpotlightSnapshot'
 import { MoreInSeries, type SeriesItem } from '@/components/articles/MoreInSeries'
+import {
+  CommunitySpotlightsCrossPromo,
+  type SpotlightCrossPromoItem,
+} from '@/components/articles/CommunitySpotlightsCrossPromo'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { WashiTape } from '@/components/articles/BrandDecor'
 import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
@@ -76,7 +80,14 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
   const fullSlug    = `${columnSlug}-${articleSlug}`
   const candidates  = fullSlug === articleSlug ? [articleSlug] : [fullSlug, articleSlug]
 
-  const [articleRes, columnRes, trendingRes, seriesRes, stickyAdRes, sponsoredAdRes, inlineAdRes] = await Promise.all([
+  // The four community-spotlight columns. Used to fetch the latest
+  // article from each of the OTHER three when this article IS a
+  // community spotlight — drives the "More Community Spotlights"
+  // strip at the bottom of the article instead of a generic back link.
+  const SPOTLIGHT_COLUMNS = ['play-ball', 'teacher-of-month', 'grands-greatest', 'mom-to-mom'] as const
+  const otherSpotlightSlugs = SPOTLIGHT_COLUMNS.filter(s => s !== columnSlug)
+
+  const [articleRes, columnRes, trendingRes, seriesRes, stickyAdRes, sponsoredAdRes, inlineAdRes, otherSpotlightsRes] = await Promise.all([
     supabase.from('guide_articles')
       .select('*')
       .in('slug', candidates)
@@ -122,9 +133,32 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .eq('is_active', true)
       .order('display_priority', { ascending: false })
       .limit(1).maybeSingle(),
+    /* Latest article from each OTHER community spotlight column —
+       drives the cross-promo strip at the bottom of the article.
+       We over-fetch (limit 12) and de-dupe to one per column in JS,
+       since Supabase doesn't have a clean "one per group" query. */
+    supabase.from('guide_articles')
+      .select('id, title, slug, hero_image_url, column_slug, author_name, published_at, created_at')
+      .in('column_slug', otherSpotlightSlugs)
+      .eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(12),
   ])
 
   if (!articleRes.data) return null
+
+  // Pick the latest article PER OTHER spotlight column (one each, max 3).
+  // Supabase returned up to 12 sorted desc; we take the first match per
+  // column so each column contributes at most one card.
+  const seenColumns = new Set<string>()
+  const otherSpotlights: Array<Record<string, unknown>> = []
+  for (const row of (otherSpotlightsRes.data ?? []) as Array<Record<string, unknown>>) {
+    const col = row.column_slug as string | null
+    if (!col || seenColumns.has(col)) continue
+    seenColumns.add(col)
+    otherSpotlights.push(row)
+    if (otherSpotlights.length === otherSpotlightSlugs.length) break
+  }
 
   return {
     article:    articleRes.data,
@@ -134,6 +168,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
     stickyAd:   stickyAdRes.data,
     sponsoredAd: sponsoredAdRes.data,
     inlineAd:   inlineAdRes.data,
+    otherSpotlights,
   }
 }
 
@@ -152,7 +187,7 @@ export default async function ArticlePage({ params }: PageParams) {
   const data = await getArticleData(column, slug)
   if (!data) notFound()
 
-  const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAd } = data
+  const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAd, otherSpotlights } = data
 
   // Section sponsor — when active, overrides the rotating sidebar sticky ad
   // and gets premium placement under the hero on mobile + sidebar on desktop.
@@ -516,10 +551,20 @@ export default async function ArticlePage({ params }: PageParams) {
               />
             )}
 
+            {/* Teacher Quick Facts — on mobile only, render in the
+                main column ABOVE the pull quote. The same component
+                also renders in the sidebar (lg:block), so desktop sees
+                it on the right rail and mobile sees it at the top of
+                the article (where readers actually find it instead of
+                buried below the back-to-column link). */}
+            {isTeacherFeature && (
+              <div className="mb-8 lg:hidden">
+                <TeacherSnapshot fields={teacherFields} values={teacherValues} />
+              </div>
+            )}
+
             {/* Teacher pull quote — lifted from the first <blockquote>
-                in the body. Quick Facts lives in the sidebar (not above
-                the body) per the mockup, so we render the pull quote
-                alone here. */}
+                in the body. */}
             {isTeacherFeature && teacherParts?.leadPullQuote && (
               <div className="mb-8">
                 <TeacherPullQuote
@@ -734,6 +779,26 @@ export default async function ArticlePage({ params }: PageParams) {
               </div>
             )}
 
+            {/* Community spotlights cross-promo — when this article IS a
+                community spotlight (Grands/PlayBall/Teacher/Mom), show
+                the latest from the OTHER three spotlights as a strip
+                instead of just a generic back-link. Falls back to the
+                back-link below when no other-spotlight rows are
+                available, or when this article isn't a spotlight. */}
+            {(isGrandsFeature || isPlayBallFeature || isTeacherFeature || isMomFeature)
+              && otherSpotlights && otherSpotlights.length > 0 && (
+              <CommunitySpotlightsCrossPromo
+                items={otherSpotlights.map(r => ({
+                  id:             r.id            as string,
+                  title:          r.title         as string,
+                  slug:           r.slug          as string | null,
+                  hero_image_url: r.hero_image_url as string | null,
+                  column_slug:    r.column_slug   as string | null,
+                  author_name:    r.author_name   as string | null,
+                })) as SpotlightCrossPromoItem[]}
+              />
+            )}
+
             {/* Back to column link */}
             <div className="mt-8">
               <Link href={`/columns/${column}`} className="text-primary text-sm font-semibold hover:text-primary/80 transition-colors">
@@ -767,10 +832,13 @@ export default async function ArticlePage({ params }: PageParams) {
                   />
                 )}
                 {/* Teacher Quick Facts — vertical sidebar card per the
-                    mockup. Replaces the generic SpotlightSnapshot for
-                    Teacher of the Month articles. */}
+                    mockup. Hidden on mobile (where the same component
+                    renders inside the main column above the pull quote)
+                    so it shows up ONCE per breakpoint. */}
                 {isTeacherFeature && (
-                  <TeacherSnapshot fields={teacherFields} values={teacherValues} />
+                  <div className="hidden lg:block">
+                    <TeacherSnapshot fields={teacherFields} values={teacherValues} />
+                  </div>
                 )}
                 {/* Section sponsor — same component as before, now stacked
                     below the snapshot so the sponsor sits in premium real

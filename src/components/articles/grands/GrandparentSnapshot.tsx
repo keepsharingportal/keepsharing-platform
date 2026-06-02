@@ -56,20 +56,26 @@ export function GrandparentSnapshot({ fields, values }: Props) {
       <h2 className="mb-5 text-center text-xs font-black uppercase tracking-[0.18em] text-[#6F2C8F]">
         Grandparent Snapshot
       </h2>
-      <div className={`grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 ${lgCols}`}>
+      {/* Icon-left rows on mobile + 2-up at sm + N-up at lg — matches the
+          Mom snapshot pattern, which reads way better in single-column
+          than the icon-above-centered layout did (each item was tall +
+          mostly whitespace). */}
+      <div className={`grid gap-4 sm:grid-cols-2 ${lgCols}`}>
         {filled.map(field => {
           const Icon = ICON_BY_TEMPLATE_ICON[field.icon] ?? Star
           return (
-            <div key={field.key} className="flex flex-col items-center px-1 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F4EAF7] text-[#6F2C8F] ring-1 ring-[#E4C8EE]">
+            <div key={field.key} className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F4EAF7] text-[#6F2C8F] ring-1 ring-[#E4C8EE]">
                 <Icon className="h-5 w-5" strokeWidth={2.25} />
               </div>
-              <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                {field.label}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold leading-snug text-[#08264A] break-words">
-                {String(values[field.key]).trim()}
-              </p>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  {field.label}
+                </p>
+                <p className="text-sm font-semibold leading-snug text-[#08264A] break-words">
+                  {String(values[field.key]).trim()}
+                </p>
+              </div>
             </div>
           )
         })}
