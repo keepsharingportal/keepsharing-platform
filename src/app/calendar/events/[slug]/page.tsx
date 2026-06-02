@@ -212,46 +212,27 @@ export default async function EventDetailPage({ params }: Props) {
             {ev.title}
           </h1>
 
-          {/* Event photo — small, framed card sitting between the
-              title and the date/time line. White frame + soft shadow
-              so it reads like a placed-on-the-page poster rather than
-              a full-bleed hero. Hidden when no image. */}
+          {/* Event photo — sized to roughly a third of the container,
+              with the IMAGE FILLED rather than cropped (object-contain).
+              Posters, flyers, and photos all fit cleanly without losing
+              their edges. Date / time / location intentionally omitted
+              here — they live in the DetailChip row right below. */}
           {ev.hero_image_url && (
-            <div className="mt-5 mb-1 max-w-md">
+            <div className="mt-5 max-w-lg">
               <div className="bg-white rounded-xl p-2 shadow-[0_10px_28px_rgba(8,38,74,0.10)] ring-1 ring-border/60">
-                <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-muted">
+                <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-muted">
                   <Image
                     src={ev.hero_image_url}
                     alt={ev.title}
                     fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 90vw, 440px"
+                    style={{ objectFit: 'contain' }}
+                    sizes="(max-width: 768px) 90vw, 512px"
                     unoptimized
                     priority
                   />
                 </div>
               </div>
             </div>
-          )}
-
-          {ev.start_date && (
-            <p className="mt-4 text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-primary" /> {fmtLongDate(ev.start_date)}
-              </span>
-              <span className="opacity-40">·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-primary" /> {timeLine}
-              </span>
-              {ev.location_name && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-primary" /> {ev.location_name}
-                  </span>
-                </>
-              )}
-            </p>
           )}
         </div>
       </section>
