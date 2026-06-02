@@ -199,112 +199,92 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Hero — Games-style cream/dot-pattern band with the title in
-          dark text. The event photo no longer lives behind the title
-          (where the dark gradient was distorting it); it renders as its
-          own clean photo card below the hero. */}
-      <section className="relative overflow-hidden border-b border-border/40 bg-muted">
-        <div
-          className="absolute inset-0 opacity-[0.10] pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
-        />
-        <div className="container relative z-10 py-10 md:py-14">
-          {/* Back to Calendar moved out — now lives in the actions row
-              below the hero, alongside Save + Share, so the hero band
-              stays focused on the title + photo. */}
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {ev.category && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold">
-                {categoryLabel(ev.category)}
-              </span>
-            )}
-            {ev.is_featured && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm">
-                <Star className="h-3 w-3 fill-current" /> Featured
-              </span>
-            )}
-            {ev.is_free && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--fg-sage)] text-white text-xs font-bold shadow-sm">
-                Free
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-3xl md:text-5xl font-black text-foreground leading-[1.1] max-w-3xl">
-            {ev.title}
-          </h1>
-
-          {/* Event photo — 16:9 white-framed card to match the photo
-              proportions used on the community spotlight heros. Image
-              fits without cropping (object-contain), so squareish
-              posters get neutral side bands and landscape photos fill
-              the frame. Date / time / location intentionally omitted
-              here — they live in the DetailChip row right below. */}
-          {ev.hero_image_url && (
-            <div className="mt-5 max-w-2xl">
-              <div className="bg-white rounded-xl p-2 shadow-[0_10px_28px_rgba(8,38,74,0.10)] ring-1 ring-border/60">
-                <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg bg-muted">
-                  <Image
-                    src={ev.hero_image_url}
-                    alt={ev.title}
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    sizes="(max-width: 768px) 90vw, 672px"
-                    unoptimized={shouldSkipNextOptimizer(ev.hero_image_url)}
-                    priority
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Meta line under the photo — date · time · venue at-a-glance,
-              echoed below in the DetailChips but anchored visually to
-              the title + photo so a reader sees the essentials before
-              they scroll. */}
-          {ev.start_date && (
-            <p className="mt-4 text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-primary" /> {fmtLongDate(ev.start_date)}
-              </span>
-              {(ev.start_time || (ev.display_time_override as string | null | undefined)?.trim()) && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-primary" /> {timeLine}
-                  </span>
-                </>
-              )}
-              {(ev.location_name || ev.address) && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-primary" /> {ev.location_name || ev.address}
-                  </span>
-                </>
-              )}
-            </p>
-          )}
-        </div>
-      </section>
-
       <main className="container py-8 md:py-12">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 lg:items-start">
 
-          {/* Main column */}
-          <div className="lg:col-span-8 space-y-8">
+          {/* Main column — title block now lives inline (no cream band
+              above) so the sidebar can start at the top of the page
+              alongside the title instead of below a full-width hero. */}
+          <div className="lg:col-span-8 space-y-6">
 
-            {/* Actions row — all three styled as matching button pills.
-                Back to Calendar lives on the left; Save and Share on
-                the right. Same height + ring treatment so they read as
-                a single button group. */}
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2">
+              {ev.category && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm">
+                  {categoryLabel(ev.category)}
+                </span>
+              )}
+              {ev.is_featured && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm">
+                  <Star className="h-3 w-3 fill-current" /> Featured
+                </span>
+              )}
+              {ev.is_free && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold">
+                  Free
+                </span>
+              )}
+            </div>
+
+            {/* Title */}
+            <h1 className="text-3xl md:text-5xl font-black text-foreground leading-[1.1]">
+              {ev.title}
+            </h1>
+
+            {/* Inline meta — date · time · venue at-a-glance, anchored
+                to the title so a reader sees the essentials before they
+                scroll past the photo. */}
+            {ev.start_date && (
+              <p className="text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-primary" /> {fmtLongDate(ev.start_date)}
+                </span>
+                {(ev.start_time || (ev.display_time_override as string | null | undefined)?.trim()) && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-primary" /> {timeLine}
+                    </span>
+                  </>
+                )}
+                {(ev.location_name || ev.address) && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-primary" /> {ev.location_name || ev.address}
+                    </span>
+                  </>
+                )}
+              </p>
+            )}
+
+            {/* Event photo — full-width, rounded, no white frame so it
+                reads as part of the main column flow. object-contain
+                keeps poster artwork from getting cropped at the edges
+                (the bg-muted fills any letterbox space). */}
+            {ev.hero_image_url && (
+              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-2xl bg-muted shadow-[0_12px_30px_rgba(8,38,74,0.10)] ring-1 ring-border/40">
+                <Image
+                  src={ev.hero_image_url}
+                  alt={ev.title}
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  sizes="(max-width: 768px) 100vw, 720px"
+                  unoptimized={shouldSkipNextOptimizer(ev.hero_image_url)}
+                  priority
+                />
+              </div>
+            )}
+
+            {/* Actions row — Back to Calendar (yellow accent button)
+                on the left, Save and Share outlined pills on the
+                right. Sits right under the photo. */}
             <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-border/40">
               <Link
                 href="/calendar"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold hover:ring-foreground/30 transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-accent-foreground text-sm font-bold hover:brightness-95 transition-all shadow-sm"
               >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back to Calendar
+                <ArrowLeft className="h-4 w-4" /> Back to Calendar
               </Link>
               <div className="flex items-center gap-2">
                 <button
