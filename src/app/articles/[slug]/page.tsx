@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { Badge } from '@/components/ui/badge'
 import { ArticleHeader } from '@/components/articles/ArticleHeader'
 import { ArticleAuthorBlock } from '@/components/articles/ArticleAuthorBlock'
@@ -199,6 +200,24 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
     <div className="min-h-screen bg-background public-page">
       <ArticleViewBeacon articleId={article.id as string} />
       <Navigation />
+
+      {/* Breadcrumb trail — Home > Articles [> Column] > [Title]. The
+          column hop is only included when the article belongs to a
+          named column we can link to. */}
+      <div className="border-b border-border/40 bg-background">
+        <div className="container py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Home',     href: '/'         },
+              { label: 'Articles', href: '/articles' },
+              ...(categoryLabel && categoryHref
+                ? [{ label: categoryLabel, href: categoryHref }]
+                : []),
+              { label: article.title as string },
+            ]}
+          />
+        </div>
+      </div>
 
       <main className="container py-8 md:py-12">
         <ArticleHeader

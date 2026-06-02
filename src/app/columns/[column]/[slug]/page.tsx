@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { Badge } from '@/components/ui/badge'
 import { ArticleHeader } from '@/components/articles/ArticleHeader'
 import { ArticleAuthorBlock } from '@/components/articles/ArticleAuthorBlock'
@@ -398,6 +399,21 @@ export default async function ArticlePage({ params }: PageParams) {
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
+
+      {/* Breadcrumb trail — Home > [Column Label] > [Article Title]. The
+          column label uses whatever's most readable (display_name from
+          monthly_columns, falling back to the vertical or "Feature"). */}
+      <div className="border-b border-border/40 bg-background">
+        <div className="container py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Home',            href: '/'                  },
+              { label: categoryLabel,     href: `/columns/${column}` },
+              { label: article.title as string },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* View tracker — fires once per session per article after 3s on page.
           Carries first-touch UTM attribution so the report can show what

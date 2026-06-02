@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { ListingBadges } from '@/components/listings/ListingBadges'
 import { ListingMap } from '@/components/listings/ListingMap'
 import { ListingMessageForm } from '@/components/listings/ListingMessageForm'
@@ -214,9 +215,34 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
   const hasRealGallery = !!heroImg || galleryImgs.length > 0
 
+  // Breadcrumb category hop — only when the listing has a category
+  // value that ties to a section anchor on the parent guide. Falls
+  // through to a 3-tier crumb when there's no category.
+  const breadcrumbCategoryHref = listing?.category
+    ? `/${urlSlug}#dir-${(listing.category as string).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    : null
+
   return (
     <div className="min-h-screen bg-background font-sans">
       {includeShell && <Navigation />}
+
+      {/* Breadcrumb trail — Home > [Guide Name] [> Category] > [Listing].
+          Always renders regardless of includeShell, since the trail is
+          page-level navigation independent of the site shell. */}
+      <div className="border-b border-border/40 bg-background">
+        <div className="container py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Home', href: '/' },
+              { label: guide?.display_name ?? 'Guide', href: `/${urlSlug}` },
+              ...(listing?.category && breadcrumbCategoryHref
+                ? [{ label: listing.category as string, href: breadcrumbCategoryHref }]
+                : []),
+              { label: acct.business_name as string },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
       <div className="h-64 md:h-96 w-full relative" style={!heroImg ? { background: heroGradient } : undefined}>
