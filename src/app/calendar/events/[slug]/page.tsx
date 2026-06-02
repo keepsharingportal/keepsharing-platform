@@ -34,6 +34,7 @@ import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { EventCard } from '@/components/theme'
 import { categoryLabel } from '@/lib/calendar-taxonomy'
+import { shouldSkipNextOptimizer } from '@/lib/images'
 import {
   ArrowLeft, Calendar, Clock, MapPin, Mail, Phone, Globe, ExternalLink,
   Heart, Share2, Star, Sparkles, Send,
@@ -162,11 +163,20 @@ export default async function EventDetailPage({ params }: Props) {
       : 'All day'
   const costLine  = ev.is_free ? 'Free' : (ev.cost_text || 'See details')
 
-  const mapEmbed = ev.address
-    ? `https://maps.google.com/maps?q=${encodeURIComponent(ev.address)}&output=embed`
+  // Map embed — prefer "Venue Name, Address" in the query so Google's
+  // geocoder hits the actual business listing (which drops a real pin
+  // with the business chip) instead of the legacy address-only geocode
+  // that sometimes lands on the centroid with no marker. z=15 keeps
+  // the pin centered. Falls back to address-only or location-only when
+  // only one is set.
+  const mapQuery = ev.location_name && ev.address
+    ? `${ev.location_name}, ${ev.address}`
+    : (ev.address || ev.location_name || null)
+  const mapEmbed = mapQuery
+    ? `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`
     : null
-  const mapLink = ev.address
-    ? `https://maps.google.com/?q=${encodeURIComponent(ev.address)}`
+  const mapLink = mapQuery
+    ? `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}`
     : null
 
   return (
@@ -226,8 +236,13 @@ export default async function EventDetailPage({ params }: Props) {
                     alt={ev.title}
                     fill
                     style={{ objectFit: 'contain' }}
+                    // 512px on desktop + 2x for retina = serve a 1024 variant.
+                    // Next.js's optimizer picks the closest match from the
+                    // 1200x750 source so the displayed image stays sharp on
+                    // high-DPR screens. Falls back to unoptimized only for
+                    // external URLs we can't run through Sharp.
                     sizes="(max-width: 768px) 90vw, 512px"
-                    unoptimized
+                    unoptimized={shouldSkipNextOptimizer(ev.hero_image_url)}
                     priority
                   />
                 </div>
@@ -243,27 +258,72 @@ export default async function EventDetailPage({ params }: Props) {
           {/* Main column */}
           <div className="lg:col-span-8 space-y-8">
 
-            {/* Chip row — date / time / cost. Visual headline of the page. */}
-            <div className="grid sm:grid-cols-3 gap-3">
-              <DetailChip
-                icon={<Calendar className="h-5 w-5" />}
-                label="Date"
-                value={ev.start_date ? fmtShortDate(ev.start_date) : '—'}
-                tone="coral"
-              />
-              <DetailChip
-                icon={<Clock className="h-5 w-5" />}
-                label="Time"
-                value={timeLine}
-                tone="navy"
-              />
-              <DetailChip
-                icon={<Sparkles className="h-5 w-5" />}
-                label={ev.is_free ? 'Admission' : 'Cost'}
-                value={costLine}
-                tone={ev.is_free ? 'sage' : 'navy'}
-              />
-            </div>
+            {/* Chip row — only show chips that have real content. Empty
+                fields (no time, no cost line, no venue) hide entirely
+                rather than rendering placeholders like "All day" or
+                "See details". Date always shows since start_date is a
+                required field. */}
+            {(() => {
+              const chips: React.ReactNode[] = []
+              if (ev.start_date) {
+                chips.push(
+                  <DetailChip
+                    key="date"
+                    icon={<Calendar className="h-5 w-5" />}
+                    label="Date"
+                    value={fmtShortDate(ev.start_date)}
+                    tone="coral"
+                  />,
+                )
+              }
+              // Time chip — render if the editor set start_time OR a
+              // display override. "All day" alone isn't worth a chip
+              // since the absence of time is its own signal.
+              const hasTime = !!(ev.start_time || (ev.display_time_override as string | null | undefined)?.trim())
+              if (hasTime) {
+                chips.push(
+                  <DetailChip
+                    key="time"
+                    icon={<Clock className="h-5 w-5" />}
+                    label="Time"
+                    value={timeLine}
+                    tone="navy"
+                  />,
+                )
+              }
+              // Cost chip — render if Free OR an explicit cost was given.
+              if (ev.is_free || (ev.cost_text && ev.cost_text.trim())) {
+                chips.push(
+                  <DetailChip
+                    key="cost"
+                    icon={<Sparkles className="h-5 w-5" />}
+                    label={ev.is_free ? 'Admission' : 'Cost'}
+                    value={costLine}
+                    tone={ev.is_free ? 'sage' : 'navy'}
+                  />,
+                )
+              }
+              // Location chip — venue OR address. Shows venue when both
+              // exist, falls back to address otherwise.
+              const locationValue = (ev.location_name || ev.address || '').trim()
+              if (locationValue) {
+                chips.push(
+                  <DetailChip
+                    key="location"
+                    icon={<MapPin className="h-5 w-5" />}
+                    label="Where"
+                    value={locationValue}
+                    tone="coral"
+                  />,
+                )
+              }
+              if (chips.length === 0) return null
+              const cols = chips.length === 1 ? 'sm:grid-cols-1'
+                         : chips.length === 2 ? 'sm:grid-cols-2'
+                         : chips.length === 3 ? 'sm:grid-cols-3'
+                         : 'sm:grid-cols-2 lg:grid-cols-4'
+              return <div className={`grid gap-3 ${cols}`}>{chips}</div>
+            })()}
 
             {/* About */}
             {ev.description && (
