@@ -49,6 +49,8 @@ export interface EventRow {
   is_featured?:      boolean | null
   featured_until?:   string | null
   recurrence_rule?:  string | null
+  // Migration 109 — plain-text time-display override
+  display_time_override?: string | null
   // Migration 092 fields — image pipeline
   image_orig_path?:  string | null
   image_width?:      number | null
@@ -67,7 +69,7 @@ export default async function EventsAdminPage() {
 
   // Probe — graceful fallback if migration 077 isn't applied yet (some
   // selected columns won't exist). Falls back to the legacy column set.
-  const richCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, category, status, created_at, registration_url, organizer_name, organizer_email, tags, source_type, source_name, source_url, discovery_notes, is_featured, featured_until, recurrence_rule, image_orig_path, image_width, image_height'
+  const richCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, category, status, created_at, registration_url, organizer_name, organizer_email, tags, source_type, source_name, source_url, discovery_notes, is_featured, featured_until, recurrence_rule, display_time_override, image_orig_path, image_width, image_height'
   const baseCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, email, phone, age_range, cost_text, is_free, hero_image_url, category, status, created_at'
 
   let events: EventRow[] | null = null

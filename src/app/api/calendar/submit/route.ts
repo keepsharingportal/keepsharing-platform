@@ -34,10 +34,12 @@ interface SubmitBody {
   end_date?:       string
   start_time?:     string
   end_time?:       string
+  display_time_override?: string
   location_name?:  string
   address?:        string
   city?:           string
   description:     string
+  category?:       string
   age_range?:      string
   cost_text?:      string
   is_free?:        boolean
@@ -87,11 +89,13 @@ export async function POST(req: NextRequest) {
     end_date:         body.end_date?.trim() || body.start_date,
     start_time:       body.start_time?.trim() || null,
     end_time:         body.end_time?.trim()   || null,
+    display_time_override: body.display_time_override?.trim() || null,
     location_name:    body.location_name?.trim() || null,
     address:          body.address?.trim()       || null,
     city:             body.city?.trim()          || null,
     email:            body.contact_email.trim().toLowerCase(),
     phone:            body.contact_phone?.trim() || null,
+    category:         body.category?.trim()     || null,
     age_range:        body.age_range?.trim()     || null,
     cost_text:        body.cost_text?.trim()     || null,
     is_free:          body.is_free ?? false,

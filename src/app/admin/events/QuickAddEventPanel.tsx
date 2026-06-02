@@ -66,6 +66,10 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   // RRULE-encoded recurrence pattern (null = one-off event).
   // EventRecurrenceEditor handles the friendly UI and emits the string.
   const [recurrenceRule, setRecurrenceRule] = useState<string | null>(null)
+  // Optional plain-text override for how the event time displays publicly
+  // (e.g. "10 AM & 1 PM", "Doors at 6:30", "Drop in 10–4"). Empty = auto-
+  // format from start_time/end_time.
+  const [displayTimeOverride, setDisplayTimeOverride] = useState('')
 
   const [busy,        setBusy]        = useState(false)
   const [imageBusy,   setImageBusy]   = useState(false)
@@ -201,6 +205,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
           source_name:      sourceName,
           status:           autoPublish ? 'published' : 'pending',
           recurrence_rule:  recurrenceRule,
+          display_time_override: displayTimeOverride.trim() || null,
         }),
       })
       const json = await res.json().catch(() => ({}))
@@ -331,6 +336,20 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               <label className={lbl}>End time</label>
               <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inp} />
             </div>
+          </div>
+
+          {/* Optional override for how the time renders publicly. Use
+              when the event has multiple showtimes the same day, drop-in
+              hours, or other notes the start/end pair can't express.
+              Examples: "10 AM & 1 PM", "Doors at 6:30", "Anytime 10–4". */}
+          <div>
+            <label className={lbl}>Time display override (optional)</label>
+            <input
+              value={displayTimeOverride}
+              onChange={e => setDisplayTimeOverride(e.target.value)}
+              className={inp}
+              placeholder={`Use when start/end can't describe it. e.g. "10 AM & 1 PM", "Doors at 6:30"`}
+            />
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3">

@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Plus, Upload, Settings, RefreshCw, Search, ChevronLeft, ChevronRight,
   Calendar, Clock, MapPin, Star, CheckCircle2, X, Pencil, MoreVertical,
-  Trash2, Image as ImageIcon, ExternalLink, RotateCcw, Camera, Eye, Crop,
+  Trash2, Image as ImageIcon, ExternalLink, RotateCcw, Camera, Eye, Crop, Copy,
 } from 'lucide-react'
 import type { EventRow, EventSource } from './page'
 import { QuickAddEventPanel } from './QuickAddEventPanel'
@@ -552,15 +552,36 @@ function EventRowItem({
   onUpdated:      (patch: Partial<EventRow>) => void
   onRemoved:      () => void
 }) {
-  const [busy, setBusy] = useState<'approve' | 'reject' | 'cancel' | 'reopen' | null>(null)
+  const router = useRouter()
+  const [busy, setBusy] = useState<'approve' | 'reject' | 'cancel' | 'reopen' | 'clone' | null>(null)
   const [err,  setErr]  = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const start  = new Date(ev.start_date + 'T12:00:00')
   const dateLabel = start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-  const timeLabel = ev.start_time
-    ? formatTime(ev.start_time) + (ev.end_time ? ` – ${formatTime(ev.end_time)}` : '')
-    : 'All day'
+  // Display-time override wins when set — handles multi-showtime events
+  // ("10 AM & 1 PM"), drop-in windows, doors-open notes, etc.
+  const timeLabel = ev.display_time_override?.trim()
+    ? ev.display_time_override
+    : ev.start_time
+      ? formatTime(ev.start_time) + (ev.end_time ? ` – ${formatTime(ev.end_time)}` : '')
+      : 'All day'
+
+  async function clone() {
+    setBusy('clone'); setErr(null)
+    try {
+      const res = await fetch(`/api/admin/events/${ev.id}/clone`, { method: 'POST' })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setErr(j?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      // Server-rendered list — refresh so the new "(Copy)" row appears.
+      router.refresh()
+    } finally {
+      setBusy(null)
+    }
+  }
 
   async function call(action: 'approve' | 'reject' | 'cancel' | 'reopen') {
     setBusy(action); setErr(null)
@@ -761,6 +782,15 @@ function EventRowItem({
                   )}
                   <button
                     type="button"
+                    disabled={busy === 'clone'}
+                    onClick={() => { setMenuOpen(false); clone() }}
+                    className="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 inline-flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {busy === 'clone' ? <RefreshCw size={11} className="animate-spin" /> : <Copy size={11} />}
+                    Clone event
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => { setMenuOpen(false); remove() }}
                     className="w-full text-left px-3 py-2 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
                   >
@@ -812,6 +842,8 @@ function EventEditor({
   const [category,    setCategory]    = useState(ev.category ?? '')
   const [heroUrl,     setHeroUrl]     = useState(ev.hero_image_url ?? '')
   const [recurrenceRule, setRecurrenceRule] = useState<string | null>(ev.recurrence_rule ?? null)
+  // Plain-text override for the public time display. Empty = auto-format.
+  const [displayTimeOverride, setDisplayTimeOverride] = useState(ev.display_time_override ?? '')
   // Track whether we have a saved original — re-crop only works when this
   // is set, so the gravity picker stays disabled for legacy rows.
   const [origPath, setOrigPath] = useState(ev.image_orig_path ?? null)
@@ -845,6 +877,7 @@ function EventEditor({
         category:         category || null,
         hero_image_url:   heroUrl.trim() || null,
         recurrence_rule:  recurrenceRule,
+        display_time_override: displayTimeOverride.trim() || null,
       }
       const res = await fetch(`/api/admin/events/${ev.id}`, {
         method: 'PATCH',
@@ -871,6 +904,7 @@ function EventEditor({
         category:         payload.category,
         hero_image_url:   payload.hero_image_url,
         recurrence_rule:  payload.recurrence_rule,
+        display_time_override: payload.display_time_override,
       })
     } finally { setBusy(false) }
   }
@@ -1003,6 +1037,19 @@ function EventEditor({
               <label className={lbl}>End time</label>
               <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inp} />
             </div>
+          </div>
+
+          {/* Optional override for how the time renders publicly. Use for
+              multi-showtime events ("10 AM & 1 PM"), doors-open notes
+              ("Doors at 6:30"), or drop-in windows ("Anytime 10–4"). */}
+          <div>
+            <label className={lbl}>Time display override (optional)</label>
+            <input
+              value={displayTimeOverride}
+              onChange={e => setDisplayTimeOverride(e.target.value)}
+              className={inp}
+              placeholder={`Replaces the auto-formatted time. e.g. "10 AM & 1 PM", "Doors at 6:30"`}
+            />
           </div>
 
           {/* Recurrence — RRULE picker. Edits the calendar_events.recurrence_rule

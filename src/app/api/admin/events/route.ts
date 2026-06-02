@@ -31,7 +31,7 @@ function toSlug(s: string): string {
 const RICH_COLS = [
   'registration_url','organizer_name','organizer_email','tags',
   'is_featured','featured_until','source_type','source_name','source_url',
-  'discovery_notes','recurrence_rule',
+  'discovery_notes','recurrence_rule','display_time_override',
   // migration 092 — image pipeline. Stripped when not present so insert
   // still works on a partially-migrated DB.
   'image_orig_path','image_width','image_height',
@@ -64,6 +64,8 @@ interface CreateBody {
   source_id?:       string | null
   source_name?:     string | null
   source_url?:      string | null
+  recurrence_rule?: string | null
+  display_time_override?: string | null
   status?:          'pending' | 'published'
   market?:          string
 }
@@ -142,6 +144,8 @@ export async function POST(req: NextRequest) {
       source_type:       'staff',
       source_name:       sourceName ?? 'Staff entry',
       source_url:        body.source_url?.trim() || null,
+      recurrence_rule:   body.recurrence_rule?.trim() || null,
+      display_time_override: body.display_time_override?.trim() || null,
     }
 
     let inserted = await supabase

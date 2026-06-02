@@ -150,7 +150,16 @@ export default async function EventDetailPage({ params }: Props) {
 
   const startTime = fmtTime(ev.start_time)
   const endTime   = fmtTime(ev.end_time)
-  const timeLine  = startTime ? (endTime ? `${startTime} – ${endTime}` : startTime) : 'All day'
+  // display_time_override (migration 109) lets editors write the time
+  // line verbatim — used when start/end can't describe the event ("10 AM
+  // & 1 PM", "Doors at 6:30", "Drop in 10–4"). Falls back to the
+  // auto-computed start/end line.
+  const overrideTime = (ev.display_time_override as string | null | undefined)?.trim()
+  const timeLine  = overrideTime
+    ? overrideTime
+    : startTime
+      ? (endTime ? `${startTime} – ${endTime}` : startTime)
+      : 'All day'
   const costLine  = ev.is_free ? 'Free' : (ev.cost_text || 'See details')
 
   const mapEmbed = ev.address
@@ -164,74 +173,86 @@ export default async function EventDetailPage({ params }: Props) {
     <div className="min-h-screen bg-background public-page">
       <Navigation />
 
-      {/* Hero with title overlay */}
-      <div className="relative h-[280px] md:h-[420px] bg-muted overflow-hidden">
-        {ev.hero_image_url ? (
-          <Image
-            src={ev.hero_image_url}
-            alt={ev.title}
-            fill
-            style={{ objectFit: 'cover' }}
-            className="opacity-95"
-            sizes="100vw"
-            unoptimized
-            priority
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--fg-sky-light)] to-[var(--fg-cream)]" />
-        )}
-        {/* Top→bottom gradient so the title is legible regardless of image */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10" />
-        <div className="absolute inset-x-0 top-0 p-4 md:p-6 container">
+      {/* Hero — Games-style cream/dot-pattern band with the title in
+          dark text. The event photo no longer lives behind the title
+          (where the dark gradient was distorting it); it renders as its
+          own clean photo card below the hero. */}
+      <section className="relative overflow-hidden border-b border-border/40 bg-muted">
+        <div
+          className="absolute inset-0 opacity-[0.10] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
+        />
+        <div className="container relative z-10 py-10 md:py-14">
           <Link
             href="/calendar"
-            className="inline-flex items-center gap-1.5 text-white/85 hover:text-white text-sm font-semibold"
+            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-sm font-semibold mb-4"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Calendar
           </Link>
-        </div>
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10 container">
-          <div className="flex flex-wrap gap-2 mb-3">
+
+          <div className="flex flex-wrap gap-2 mb-4">
             {ev.category && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/95 backdrop-blur text-foreground text-xs font-bold">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold">
                 {categoryLabel(ev.category)}
               </span>
             )}
             {ev.is_featured && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm">
                 <Star className="h-3 w-3 fill-current" /> Featured
               </span>
             )}
             {ev.is_free && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--fg-sage)] text-white text-xs font-bold shadow">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--fg-sage)] text-white text-xs font-bold shadow-sm">
                 Free
               </span>
             )}
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight max-w-3xl">
+
+          <h1 className="text-3xl md:text-5xl font-black text-foreground leading-[1.1] max-w-3xl">
             {ev.title}
           </h1>
+
           {ev.start_date && (
-            <p className="mt-3 text-white/90 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
+            <p className="mt-4 text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" /> {fmtLongDate(ev.start_date)}
+                <Calendar className="h-4 w-4 text-primary" /> {fmtLongDate(ev.start_date)}
               </span>
-              <span className="opacity-70">·</span>
+              <span className="opacity-40">·</span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock className="h-4 w-4" /> {timeLine}
+                <Clock className="h-4 w-4 text-primary" /> {timeLine}
               </span>
               {ev.location_name && (
                 <>
-                  <span className="opacity-70">·</span>
+                  <span className="opacity-40">·</span>
                   <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4" /> {ev.location_name}
+                    <MapPin className="h-4 w-4 text-primary" /> {ev.location_name}
                   </span>
                 </>
               )}
             </p>
           )}
         </div>
-      </div>
+      </section>
+
+      {/* Event photo card — pulled UP so it overlaps the hero band a
+          bit, like a magazine feature image dropped onto the page.
+          Stays clean and crisp (no dark gradient eating the visual)
+          and falls back to nothing if no image. */}
+      {ev.hero_image_url && (
+        <div className="container -mt-6 md:-mt-10 mb-2 md:mb-4">
+          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden ring-1 ring-border/60 bg-card shadow-[0_18px_45px_rgba(8,38,74,0.10)]">
+            <Image
+              src={ev.hero_image_url}
+              alt={ev.title}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, 1100px"
+              unoptimized
+              priority
+            />
+          </div>
+        </div>
+      )}
 
       <main className="container py-8 md:py-12">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">

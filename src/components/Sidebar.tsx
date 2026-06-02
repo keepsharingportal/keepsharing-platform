@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
@@ -192,7 +192,11 @@ const NAV: NavItem[] = [
 type AdminRole = 'super' | 'admin' | 'publisher' | 'editor'
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname     = usePathname()
+  const searchParams = useSearchParams()
+  // Normalized current query so we can compare against child hrefs that
+  // carry query params (e.g. /admin/events?new=1 vs ?tab=pending).
+  const currentQuery = searchParams?.toString() ?? ''
   const [expandedNav, setExpandedNav] = useState<string | null>('Articles')
   const [role, setRole] = useState<AdminRole | null>(null)
 
@@ -289,11 +293,41 @@ export function Sidebar() {
                     : <ChevronRight size={12} className="shrink-0 opacity-40" />}
                 </button>
 
-                {isExpanded && (
+                {isExpanded && (() => {
+                  // Pre-parse every child href so we can disambiguate
+                  // siblings that share a pathname but differ by query
+                  // string (e.g. /admin/events vs /admin/events?new=1
+                  // vs /admin/events?tab=pending — previously all three
+                  // lit up at once on /admin/events).
+                  const parsed = item.children.map(c => {
+                    const u = new URL(c.href, 'http://x')
+                    return { child: c, path: u.pathname, query: u.searchParams.toString() }
+                  })
+                  // Which sibling queries exist at the current pathname?
+                  // Used by the bare-path child to know if a more
+                  // specific sibling owns the current URL.
+                  const sameOnPathnameQueries = new Set(
+                    parsed
+                      .filter(p => p.path === pathname && p.query !== '')
+                      .map(p => p.query),
+                  )
+                  return (
                   <div className="ml-5 mt-0.5 pl-3 border-l border-white/8 space-y-0.5">
-                    {item.children.map((child) => {
-                      const childPath   = child.href.split('?')[0]
-                      const childActive = pathname === childPath || pathname.startsWith(childPath + '/')
+                    {parsed.map(({ child, path: childPath, query: childQuery }) => {
+                      let childActive = false
+                      if (pathname === childPath) {
+                        if (childQuery === '') {
+                          // Bare-path sibling. Wins only when the current
+                          // query doesn't match a sibling that wants it.
+                          childActive = !sameOnPathnameQueries.has(currentQuery)
+                        } else {
+                          // Query-string sibling. Exact match required.
+                          childActive = currentQuery === childQuery
+                        }
+                      } else if (pathname.startsWith(childPath + '/')) {
+                        // Deeper-path child (e.g. /admin/events/sources).
+                        childActive = true
+                      }
                       const accent      = child.accent === true
                       return (
                         <Link
@@ -315,7 +349,8 @@ export function Sidebar() {
                       )
                     })}
                   </div>
-                )}
+                  )
+                })()}
               </div>
             )
           }

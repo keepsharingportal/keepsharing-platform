@@ -99,6 +99,23 @@ function ListRow({ ev }: { ev: CalEvent }) {
             {isMultiDay && <p className="text-[9px] font-bold uppercase text-primary mt-0.5">multi-day</p>}
           </div>
         )}
+        {/* Thumbnail — sized small so the list stays scannable. Falls
+            back to a neutral placeholder when the event has no image. */}
+        <div className="shrink-0 hidden sm:block w-20 h-16 rounded-lg overflow-hidden bg-muted ring-1 ring-border/60">
+          {ev.hero_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={ev.hero_image_url}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+              <CalIcon className="h-5 w-5" />
+            </div>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-foreground truncate">{ev.title}</p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">

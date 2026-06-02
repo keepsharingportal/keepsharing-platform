@@ -53,6 +53,7 @@ const ALLOWED_EDIT_FIELDS = new Set([
   'registration_url','organizer_name','organizer_email','tags','is_featured',
   'featured_until',
   'source_name','source_url','discovery_notes','recurrence_rule',
+  'display_time_override',
 ])
 
 function supabaseAdmin() {

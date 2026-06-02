@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { EVENT_CATEGORIES } from '@/lib/calendar-taxonomy'
 import {
   CalendarDays, ArrowLeft, CheckCircle, Clock, MapPin, Users, AlertCircle, RefreshCw,
 } from 'lucide-react'
@@ -38,10 +39,15 @@ const initialForm = {
   end_date:         '',
   start_time:       '',
   end_time:         '',
+  // Plain-text override for the time display (e.g. "10 AM & 1 PM",
+  // "Doors at 6:30") — used when start_time/end_time can't describe
+  // the actual schedule.
+  display_time_override: '',
   location_name:    '',
   address:          '',
   city:             '',
   description:      '',
+  category:         '',
   age_range:        '',
   cost_text:        '',
   is_free:          false,
@@ -189,6 +195,19 @@ export default function SubmitEventPage() {
                     <input type="time" className={inp} value={form.end_time} onChange={e => set('end_time', e.target.value)} />
                   </div>
                 </div>
+
+                {/* Optional override for events that don't fit a single
+                    start/end pair: multiple showtimes the same day,
+                    drop-in windows, doors-open notes. */}
+                <div>
+                  <label className={lbl}>Time display note (optional)</label>
+                  <input
+                    className={inp}
+                    value={form.display_time_override}
+                    onChange={e => set('display_time_override', e.target.value)}
+                    placeholder={`Use only if the time above can't describe it. e.g. "10 AM & 1 PM", "Doors at 6:30"`}
+                  />
+                </div>
               </section>
 
               {/* ── Location ── */}
@@ -215,6 +234,20 @@ export default function SubmitEventPage() {
               {/* ── Audience + cost ── */}
               <section className="space-y-4">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">Audience &amp; Cost</h2>
+
+                <div>
+                  <label className={lbl}>Category</label>
+                  <select
+                    className={`${inp} cursor-pointer`}
+                    value={form.category}
+                    onChange={e => set('category', e.target.value)}
+                  >
+                    <option value="">Pick the closest fit (optional)</option>
+                    {EVENT_CATEGORIES.map(c => (
+                      <option key={c.slug} value={c.slug}>{c.emoji} {c.label}</option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
