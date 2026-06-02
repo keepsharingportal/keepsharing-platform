@@ -212,6 +212,28 @@ export default async function EventDetailPage({ params }: Props) {
             {ev.title}
           </h1>
 
+          {/* Event photo — small, framed card sitting between the
+              title and the date/time line. White frame + soft shadow
+              so it reads like a placed-on-the-page poster rather than
+              a full-bleed hero. Hidden when no image. */}
+          {ev.hero_image_url && (
+            <div className="mt-5 mb-1 max-w-md">
+              <div className="bg-white rounded-xl p-2 shadow-[0_10px_28px_rgba(8,38,74,0.10)] ring-1 ring-border/60">
+                <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-muted">
+                  <Image
+                    src={ev.hero_image_url}
+                    alt={ev.title}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 90vw, 440px"
+                    unoptimized
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {ev.start_date && (
             <p className="mt-4 text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5">
@@ -233,26 +255,6 @@ export default async function EventDetailPage({ params }: Props) {
           )}
         </div>
       </section>
-
-      {/* Event photo card — pulled UP so it overlaps the hero band a
-          bit, like a magazine feature image dropped onto the page.
-          Stays clean and crisp (no dark gradient eating the visual)
-          and falls back to nothing if no image. */}
-      {ev.hero_image_url && (
-        <div className="container -mt-6 md:-mt-10 mb-2 md:mb-4">
-          <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden ring-1 ring-border/60 bg-card shadow-[0_18px_45px_rgba(8,38,74,0.10)]">
-            <Image
-              src={ev.hero_image_url}
-              alt={ev.title}
-              fill
-              style={{ objectFit: 'cover' }}
-              sizes="(max-width: 768px) 100vw, 1100px"
-              unoptimized
-              priority
-            />
-          </div>
-        </div>
-      )}
 
       <main className="container py-8 md:py-12">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">
