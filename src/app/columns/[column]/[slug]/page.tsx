@@ -677,6 +677,7 @@ export default async function ArticlePage({ params }: PageParams) {
               headerEyebrow={isGrandsFeature ? 'Family Moments' : null}
               headerTitle={isGrandsFeature ? 'The memories they’re making' : null}
               headerEyebrowColor={isGrandsFeature ? '#6F2C8F' : null}
+              columnLogoUrl={brandedLogoUrl}
             />
 
             {/* Author/subject bio — natural close to the editorial content

@@ -19,7 +19,9 @@ export interface GalleryImage {
 interface Props {
   images:           GalleryImage[]
   columnSlug:       string | null
-  /** Right-side of the eyebrow for Play Ball ("PLAYER SPOTLIGHT" etc). */
+  /** Right-side of the eyebrow for Play Ball ("PLAYER SPOTLIGHT" etc).
+   *  Ignored when columnLogoUrl is set — the lightbox shows the logo
+   *  image instead of the text eyebrow in that case. */
   spotlightEyebrow?: string | null
   /** Optional column-branded header override. When provided, replaces
    *  the default "Photo Gallery" h3 with an eyebrow + title pair so
@@ -29,6 +31,10 @@ interface Props {
   headerTitle?:     string | null
   /** Custom color for the eyebrow text. Defaults to muted-foreground. */
   headerEyebrowColor?: string | null
+  /** Column branding logo. When present, the lightbox header renders the
+   *  logo IMAGE instead of the "BRAND | EYEBROW" text pair — cleaner
+   *  branding and avoids generic / misleading labels like "WINNER". */
+  columnLogoUrl?:   string | null
 }
 
 // ── Public component ─────────────────────────────────────────────────────────
@@ -40,6 +46,7 @@ interface Props {
 export function ArticleGallery({
   images, columnSlug, spotlightEyebrow,
   headerEyebrow, headerTitle, headerEyebrowColor,
+  columnLogoUrl,
 }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const valid = images.filter(img => !!img?.url)
@@ -125,7 +132,7 @@ export function ArticleGallery({
           images={valid}
           startIndex={openIndex}
           onClose={() => setOpenIndex(null)}
-          brand={brand}
+          brand={{ ...brand, logoUrl: columnLogoUrl ?? null }}
         />
       )}
     </>
@@ -138,7 +145,14 @@ interface LightboxProps {
   images:     GalleryImage[]
   startIndex: number
   onClose:    () => void
-  brand:      { primary: string; accent: string; left: string; right: string | null }
+  brand:      {
+    primary: string
+    accent:  string
+    left:    string
+    right:   string | null
+    /** When present, replaces the BRAND | EYEBROW text with the logo image. */
+    logoUrl: string | null
+  }
 }
 
 function ArticleGalleryLightbox({ images, startIndex, onClose, brand }: LightboxProps) {
@@ -189,18 +203,31 @@ function ArticleGalleryLightbox({ images, startIndex, onClose, brand }: Lightbox
         style={{ backgroundColor: brand.primary }}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate">
-            {brand.left}
-          </span>
-          {brand.right && (
+          {brand.logoUrl ? (
+            // Logo image — replaces the "BRAND | EYEBROW" text pair when
+            // the column has uploaded a branded wordmark. Looks cleaner
+            // and avoids generic / misleading labels like "WINNER" on
+            // columns where the subject isn't a contest winner (Grands,
+            // Mom to Mom).
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={brand.logoUrl}
+              alt={brand.left}
+              className="h-8 md:h-10 w-auto max-w-[260px] object-contain"
+            />
+          ) : (
             <>
-              <span className="text-base" style={{ color: brand.accent }}>|</span>
-              {/* Right-side eyebrow ("WINNER" for Teacher, "PLAYER SPOTLIGHT"
-                  for Play Ball, etc) rendered in the accent color so it pops
-                  next to the white column label on the left. */}
-              <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate" style={{ color: brand.accent }}>
-                {brand.right}
+              <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate">
+                {brand.left}
               </span>
+              {brand.right && (
+                <>
+                  <span className="text-base" style={{ color: brand.accent }}>|</span>
+                  <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate" style={{ color: brand.accent }}>
+                    {brand.right}
+                  </span>
+                </>
+              )}
             </>
           )}
         </div>
