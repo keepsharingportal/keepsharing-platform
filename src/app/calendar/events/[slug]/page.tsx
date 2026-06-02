@@ -234,9 +234,6 @@ export default async function EventDetailPage({ params }: Props) {
                     alt={ev.title}
                     fill
                     style={{ objectFit: 'contain' }}
-                    // 672px on desktop + 2x for retina = Next.js serves
-                    // a ~1344px variant. Sharp's source is 1200×750 so
-                    // we get the closest match without upscaling.
                     sizes="(max-width: 768px) 90vw, 672px"
                     unoptimized={shouldSkipNextOptimizer(ev.hero_image_url)}
                     priority
@@ -244,6 +241,34 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Meta line under the photo — date · time · venue at-a-glance,
+              echoed below in the DetailChips but anchored visually to
+              the title + photo so a reader sees the essentials before
+              they scroll. */}
+          {ev.start_date && (
+            <p className="mt-4 text-foreground/85 text-sm md:text-base font-semibold inline-flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-primary" /> {fmtLongDate(ev.start_date)}
+              </span>
+              {(ev.start_time || (ev.display_time_override as string | null | undefined)?.trim()) && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-primary" /> {timeLine}
+                  </span>
+                </>
+              )}
+              {(ev.location_name || ev.address) && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-primary" /> {ev.location_name || ev.address}
+                  </span>
+                </>
+              )}
+            </p>
           )}
         </div>
       </section>
@@ -254,16 +279,16 @@ export default async function EventDetailPage({ params }: Props) {
           {/* Main column */}
           <div className="lg:col-span-8 space-y-8">
 
-            {/* Actions row — Back to Calendar / Save / Share. Sits
-                above the DetailChips so the navigation + utility
-                actions are right where readers expect, and the chip
-                row underneath can stay focused on the event facts. */}
+            {/* Actions row — all three styled as matching button pills.
+                Back to Calendar lives on the left; Save and Share on
+                the right. Same height + ring treatment so they read as
+                a single button group. */}
             <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-border/40">
               <Link
                 href="/calendar"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold hover:ring-foreground/30 transition"
               >
-                <ArrowLeft className="h-4 w-4" /> Back to Calendar
+                <ArrowLeft className="h-3.5 w-3.5" /> Back to Calendar
               </Link>
               <div className="flex items-center gap-2">
                 <button

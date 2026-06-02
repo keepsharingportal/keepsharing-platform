@@ -107,7 +107,7 @@ function ListRow({ ev }: { ev: CalEvent }) {
             <img
               src={ev.hero_image_url}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               loading="lazy"
             />
           ) : (

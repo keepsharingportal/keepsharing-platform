@@ -143,7 +143,22 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
   function clearSelection()   { setSelectedIds(new Set()) }
 
   function handleAdded(ev: EventRow) {
-    setEvents(prev => [ev, ...prev])
+    // Insert the new row, then re-sort by start_date so the optimistic
+    // update matches the server's sort order. Previously we prepended,
+    // which put the new event at the TOP of the list regardless of
+    // its date (e.g. a Jun 10 add showed up before existing Jun 5/9
+    // rows). router.refresh() reloads from the server right after,
+    // but the optimistic placement still has to be correct.
+    setEvents(prev => {
+      const next = [...prev, ev]
+      next.sort((a, b) => {
+        const da = a.start_date ?? ''
+        const db = b.start_date ?? ''
+        if (da !== db) return da.localeCompare(db)
+        return (a.start_time ?? '').localeCompare(b.start_time ?? '')
+      })
+      return next
+    })
     setQuickAdd(false)
     setActiveTab(ev.status === 'pending' ? 'Pending Review' : 'Upcoming')
     setPage(1)

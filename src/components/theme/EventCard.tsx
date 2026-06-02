@@ -88,8 +88,11 @@ export function EventCard({ event }: Props) {
       href={href}
       className="group block bg-card rounded-2xl overflow-hidden ring-1 ring-border hover:ring-primary/30 hover:shadow-lg transition-all flex flex-col h-full"
     >
-      {/* Hero */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+      {/* Hero — object-contain so square posters / portrait flyers fit
+          without losing their edges. Cream bg fills the side bands when
+          the source isn't 16:10, which reads as intentional framing
+          rather than a layout bug. */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-[var(--fg-cream)]">
         {showGraphic ? (
           <CategoryGraphic category={event.category} title={event.title} />
         ) : (
@@ -97,7 +100,7 @@ export function EventCard({ event }: Props) {
             src={event.hero_image_url!}
             alt={event.title}
             fill
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'contain' }}
             className="group-hover:scale-[1.03] transition-transform duration-500"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             unoptimized
