@@ -193,12 +193,9 @@ export default async function EventDetailPage({ params }: Props) {
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
         />
         <div className="container relative z-10 py-10 md:py-14">
-          <Link
-            href="/calendar"
-            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-sm font-semibold mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to Calendar
-          </Link>
+          {/* Back to Calendar moved out — now lives in the actions row
+              below the hero, alongside Save + Share, so the hero band
+              stays focused on the title + photo. */}
 
           <div className="flex flex-wrap gap-2 mb-4">
             {ev.category && (
@@ -256,6 +253,35 @@ export default async function EventDetailPage({ params }: Props) {
 
           {/* Main column */}
           <div className="lg:col-span-8 space-y-8">
+
+            {/* Actions row — Back to Calendar / Save / Share. Sits
+                above the DetailChips so the navigation + utility
+                actions are right where readers expect, and the chip
+                row underneath can stay focused on the event facts. */}
+            <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-border/40">
+              <Link
+                href="/calendar"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to Calendar
+              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold hover:ring-foreground/30 transition"
+                  aria-label="Save event"
+                >
+                  <Heart className="h-3.5 w-3.5" /> Save
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background ring-1 ring-border text-foreground text-xs font-bold hover:ring-foreground/30 transition"
+                  aria-label="Share event"
+                >
+                  <Share2 className="h-3.5 w-3.5" /> Share
+                </button>
+              </div>
+            </div>
 
             {/* Chip row — only show chips that have real content. Empty
                 fields (no time, no cost line, no venue) hide entirely
@@ -432,70 +458,70 @@ export default async function EventDetailPage({ params }: Props) {
           {/* Sidebar — sticky on desktop so Attend stays visible */}
           <aside className="lg:col-span-4 space-y-4 lg:sticky lg:top-24 lg:self-start">
 
-            {/* Attend This Event */}
-            <div className="rounded-2xl bg-card ring-1 ring-border p-5">
-              <h3 className="text-base font-bold text-foreground mb-3">Attend This Event</h3>
-              <ul className="space-y-2.5 text-sm mb-4">
+            {/* Attend This Event — soft peach card with icon rows and
+                two stacked CTAs. Mirrors the screenshot the user
+                shared. Save lives in the actions row above the chips
+                so this card stays focused on the two key actions:
+                add to calendar (or register) + share. */}
+            <div className="rounded-2xl bg-[var(--fg-terra-light)] ring-1 ring-primary/15 p-5 md:p-6 shadow-[0_8px_24px_rgba(8,38,74,0.06)]">
+              <h3 className="text-lg font-bold text-foreground mb-4">Attend This Event</h3>
+              <ul className="space-y-3.5 mb-5">
                 {ev.start_date && (
-                  <li className="inline-flex items-center gap-2 text-foreground">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{fmtLongDate(ev.start_date)}</span>
+                  <li className="flex items-center gap-3 text-foreground">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                      <Calendar className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-semibold leading-snug">{fmtLongDate(ev.start_date)}</span>
                   </li>
                 )}
-                <li className="inline-flex items-center gap-2 text-foreground">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{timeLine}</span>
-                </li>
-                {ev.location_name && (
-                  <li className="inline-flex items-start gap-2 text-foreground">
-                    <MapPin className="h-4 w-4 text-primary mt-0.5" />
-                    <span className="font-medium">{ev.location_name}</span>
+                {(ev.start_time || (ev.display_time_override as string | null | undefined)?.trim()) && (
+                  <li className="flex items-center gap-3 text-foreground">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                      <Clock className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-semibold leading-snug">{timeLine}</span>
                   </li>
                 )}
-                <li className="inline-flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                    ev.is_free
-                      ? 'bg-[var(--fg-sage-light)] text-[var(--fg-sage)] ring-1 ring-[var(--fg-sage)]/20'
-                      : 'bg-muted text-foreground ring-1 ring-border'
-                  }`}>
-                    {costLine}
-                  </span>
-                </li>
+                {(ev.location_name || ev.address) && (
+                  <li className="flex items-start gap-3 text-foreground">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary mt-0.5">
+                      <MapPin className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-semibold leading-snug">{ev.location_name || ev.address}</span>
+                  </li>
+                )}
+                {(ev.is_free || ev.cost_text) && (
+                  <li className="text-sm font-bold text-foreground">
+                    {ev.is_free ? 'Free Admission' : ev.cost_text}
+                  </li>
+                )}
               </ul>
-              <div className="space-y-2">
+
+              <div className="space-y-2.5">
                 {ev.registration_url ? (
                   <a
                     href={ev.registration_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block w-full text-center px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                    className="block w-full text-center px-5 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors shadow-sm"
                   >
                     Register Now
                   </a>
                 ) : (
                   <a
                     href={`/api/calendar/feed.ics?event=${ev.id}`}
-                    className="block w-full text-center px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                    className="block w-full text-center px-5 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors shadow-sm"
                   >
-                    Add to Calendar
+                    Add to My Calendar
                   </a>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-foreground text-xs font-bold ring-1 ring-border hover:bg-accent hover:text-accent-foreground hover:ring-accent transition-colors"
-                    aria-label="Save event"
-                  >
-                    <Heart className="h-3.5 w-3.5" /> Save
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-foreground text-xs font-bold ring-1 ring-border hover:bg-accent hover:text-accent-foreground hover:ring-accent transition-colors"
-                    aria-label="Share event"
-                  >
-                    <Share2 className="h-3.5 w-3.5" /> Share
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-accent text-accent-foreground font-bold text-sm hover:brightness-95 transition-all shadow-sm"
+                  aria-label="Share event"
+                >
+                  <Share2 className="h-4 w-4" /> Share Event
+                </button>
               </div>
             </div>
 
