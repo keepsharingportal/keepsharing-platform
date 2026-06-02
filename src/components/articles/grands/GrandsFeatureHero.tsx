@@ -41,7 +41,7 @@ export function GrandsFeatureHero({
             <img
               src={logoUrl}
               alt="Grands Are The Greatest"
-              className="h-auto w-full max-w-md"
+              className="h-auto w-full max-w-[33.6rem]"
             />
           )}
         </div>

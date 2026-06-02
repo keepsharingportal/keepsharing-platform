@@ -50,7 +50,7 @@ export function TeacherFeatureHero({
             <img
               src={logoUrl}
               alt="Teacher of the Month"
-              className="h-auto w-full max-w-md"
+              className="h-auto w-full max-w-[33.6rem]"
             />
           )}
         </div>

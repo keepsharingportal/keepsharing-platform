@@ -39,7 +39,7 @@ export function MomFeatureHero({
             <img
               src={logoUrl}
               alt="Mom to Mom"
-              className="h-auto w-full max-w-md"
+              className="h-auto w-full max-w-[33.6rem]"
             />
           )}
         </div>
