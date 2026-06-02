@@ -222,26 +222,25 @@ export default async function EventDetailPage({ params }: Props) {
             {ev.title}
           </h1>
 
-          {/* Event photo — sized to roughly a third of the container,
-              with the IMAGE FILLED rather than cropped (object-contain).
-              Posters, flyers, and photos all fit cleanly without losing
-              their edges. Date / time / location intentionally omitted
+          {/* Event photo — 16:9 white-framed card to match the photo
+              proportions used on the community spotlight heros. Image
+              fits without cropping (object-contain), so squareish
+              posters get neutral side bands and landscape photos fill
+              the frame. Date / time / location intentionally omitted
               here — they live in the DetailChip row right below. */}
           {ev.hero_image_url && (
-            <div className="mt-5 max-w-lg">
+            <div className="mt-5 max-w-2xl">
               <div className="bg-white rounded-xl p-2 shadow-[0_10px_28px_rgba(8,38,74,0.10)] ring-1 ring-border/60">
-                <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-muted">
+                <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg bg-muted">
                   <Image
                     src={ev.hero_image_url}
                     alt={ev.title}
                     fill
                     style={{ objectFit: 'contain' }}
-                    // 512px on desktop + 2x for retina = serve a 1024 variant.
-                    // Next.js's optimizer picks the closest match from the
-                    // 1200x750 source so the displayed image stays sharp on
-                    // high-DPR screens. Falls back to unoptimized only for
-                    // external URLs we can't run through Sharp.
-                    sizes="(max-width: 768px) 90vw, 512px"
+                    // 672px on desktop + 2x for retina = Next.js serves
+                    // a ~1344px variant. Sharp's source is 1200×750 so
+                    // we get the closest match without upscaling.
+                    sizes="(max-width: 768px) 90vw, 672px"
                     unoptimized={shouldSkipNextOptimizer(ev.hero_image_url)}
                     priority
                   />
