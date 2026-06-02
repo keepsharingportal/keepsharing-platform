@@ -32,6 +32,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { EventCard } from '@/components/theme'
 import { categoryLabel } from '@/lib/calendar-taxonomy'
 import { shouldSkipNextOptimizer } from '@/lib/images'
@@ -182,6 +183,21 @@ export default async function EventDetailPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
+
+      {/* Breadcrumb trail — Home > Calendar > [Event Title]. Sits in a
+          thin strip above the hero band. Reusable site-wide; rolling
+          out to article, guide, and spotlight detail pages next. */}
+      <div className="border-b border-border/40 bg-background">
+        <div className="container py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Home',     href: '/'         },
+              { label: 'Calendar', href: '/calendar' },
+              { label: ev.title },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Hero — Games-style cream/dot-pattern band with the title in
           dark text. The event photo no longer lives behind the title
