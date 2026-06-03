@@ -15,6 +15,7 @@ import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
+import { deriveIssuuEmbedUrl } from '@/lib/magazine/issuu'
 import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/RecentIssuesCarousel'
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
@@ -318,12 +319,14 @@ async function getHomepageData() {
         label:         currentRow.label,
         tagline:       currentRow.tagline ?? FALLBACK_ISSUE_TAGLINE,
         issuuUrl:      currentRow.issuu_url,
+        embedUrl:      deriveIssuuEmbedUrl(currentRow.issuu_url),
       }
     : {
         coverImageUrl: FALLBACK_ISSUE_COVER,
         label:         FALLBACK_ISSUE_LABEL,
         tagline:       FALLBACK_ISSUE_TAGLINE,
         issuuUrl:      FALLBACK_ISSUE_URL,
+        embedUrl:      deriveIssuuEmbedUrl(FALLBACK_ISSUE_URL),
       }
   // Carousel — everything except the current issue, capped at 8.
   const recentIssues: RecentIssue[] = allIssues
@@ -974,6 +977,7 @@ export default async function HomePage() {
               issueLabel={currentIssue.label}
               issueTagline={currentIssue.tagline}
               issuuUrl={currentIssue.issuuUrl}
+              embedUrl={currentIssue.embedUrl}
             />
 
             {/* Mom Knows Best — sidebar card.
