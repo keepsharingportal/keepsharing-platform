@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
+import { extractIssuuPublicationUrl } from '@/lib/magazine/issuu'
 
 export const runtime = 'nodejs'
 
@@ -68,6 +69,17 @@ export async function POST(req: NextRequest) {
   if (!body.issue_month?.trim()) return NextResponse.json({ error: 'issue_month is required' }, { status: 400 })
   if (!body.issuu_url?.trim())   return NextResponse.json({ error: 'issuu_url is required' },   { status: 400 })
 
+  // Admin can paste the iframe embed code, the embed src URL, or the
+  // publication URL. Normalize to the canonical publication URL so the
+  // homepage's "Open in New Tab" button always lands on the full-screen
+  // reader and the embed derivation has a consistent input.
+  const canonicalUrl = extractIssuuPublicationUrl(body.issuu_url)
+  if (!canonicalUrl) {
+    return NextResponse.json({
+      error: 'Could not recognize this as an Issuu link. Paste the publication URL, the embed src, or the full <iframe> embed code.',
+    }, { status: 400 })
+  }
+
   const sb     = supabaseAdmin()
   const market = body.market?.trim() || 'rrp'
 
@@ -85,7 +97,7 @@ export async function POST(req: NextRequest) {
       tagline:     body.tagline?.trim() || null,
       issue_month: body.issue_month,
       cover_url:   body.cover_url?.trim() || null,
-      issuu_url:   body.issuu_url.trim(),
+      issuu_url:   canonicalUrl,
       is_current:  !!body.is_current,
       sort_order:  body.sort_order ?? null,
       published_at: new Date().toISOString(),
@@ -131,7 +143,15 @@ export async function PATCH(req: NextRequest) {
   if (body.tagline     !== undefined) updates.tagline     = body.tagline
   if (body.issue_month !== undefined) updates.issue_month = body.issue_month
   if (body.cover_url   !== undefined) updates.cover_url   = body.cover_url
-  if (body.issuu_url   !== undefined) updates.issuu_url   = body.issuu_url
+  if (body.issuu_url   !== undefined) {
+    const canonical = extractIssuuPublicationUrl(body.issuu_url)
+    if (!canonical) {
+      return NextResponse.json({
+        error: 'Could not recognize this as an Issuu link. Paste the publication URL, the embed src, or the full <iframe> embed code.',
+      }, { status: 400 })
+    }
+    updates.issuu_url = canonical
+  }
   if (body.sort_order  !== undefined) updates.sort_order  = body.sort_order
 
   const { error } = await sb.from('magazine_issues').update(updates).eq('id', body.id)

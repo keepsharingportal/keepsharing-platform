@@ -31,3 +31,52 @@ export function deriveIssuuEmbedUrl(publicationUrl: string | null | undefined): 
     return null
   }
 }
+
+/**
+ * Normalize any Issuu input into a publication URL — the shape the rest
+ * of the codebase expects. Accepts:
+ *
+ *   1. Full iframe embed snippet:
+ *      <iframe ... src="https://e.issuu.com/embed.html?d=…&u=…"></iframe>
+ *   2. Bare embed src URL:
+ *      https://e.issuu.com/embed.html?d=…&u=…
+ *   3. Publication URL:
+ *      https://issuu.com/{user}/docs/{slug}
+ *
+ * Returns null when the input isn't recognizable. The admin form runs
+ * input through this on save so the editor can paste whatever Issuu's UI
+ * gives them — embed code, src, or the page URL — and we always store
+ * the same canonical publication URL.
+ */
+export function extractIssuuPublicationUrl(input: string | null | undefined): string | null {
+  if (!input) return null
+  const trimmed = input.trim()
+  if (!trimmed) return null
+
+  // If it looks like an iframe snippet, pull out the src.
+  const srcMatch  = trimmed.match(/src=["']([^"']+)["']/i)
+  const candidate = srcMatch?.[1] ?? trimmed
+
+  try {
+    const u = new URL(candidate)
+    if (!/(^|\.)issuu\.com$/i.test(u.hostname)) return null
+
+    // Embed URL — has user + slug in query params.
+    if (u.hostname.toLowerCase().startsWith('e.')) {
+      const slug = u.searchParams.get('d')
+      const user = u.searchParams.get('u')
+      if (!slug || !user) return null
+      return `https://issuu.com/${user}/docs/${slug}`
+    }
+
+    // Publication URL — slug + user in the path.
+    const parts   = u.pathname.split('/').filter(Boolean)
+    const docsIdx = parts.indexOf('docs')
+    if (docsIdx < 1 || !parts[docsIdx + 1]) return null
+    const user = parts[docsIdx - 1]
+    const slug = parts[docsIdx + 1]
+    return `https://issuu.com/${user}/docs/${slug}`
+  } catch {
+    return null
+  }
+}

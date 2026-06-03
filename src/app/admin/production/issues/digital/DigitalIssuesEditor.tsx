@@ -297,7 +297,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
         <FieldText label="Label" value={label} onChange={setLabel} placeholder="May 2026 Issue" />
         <FieldDate label="Issue Month" value={month} onChange={setMonth} />
         <FieldText label="Tagline" value={tagline} onChange={setTagline} placeholder="Summer Fun Issue: 100+ camps…" className="md:col-span-2" />
-        <FieldText label="Issuu URL" value={issuu} onChange={setIssuu} placeholder="https://issuu.com/…" className="md:col-span-2" />
+        <FieldEmbed value={issuu} onChange={setIssuu} />
         <CoverField cover={cover} coverFile={coverFile} setCover={setCover} setCoverFile={setCoverFile} />
         <label className="flex items-center gap-2 text-xs text-gray-700 mt-2 md:mt-0 self-start">
           <input type="checkbox" checked={makeCurrent} onChange={e => setMakeCurrent(e.target.checked)} />
@@ -408,7 +408,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
         <FieldText label="Label" value={label} onChange={setLabel} />
         <FieldDate label="Issue Month" value={month} onChange={setMonth} />
         <FieldText label="Tagline" value={tagline} onChange={setTagline} className="md:col-span-2" />
-        <FieldText label="Issuu URL" value={issuu} onChange={setIssuu} className="md:col-span-2" />
+        <FieldEmbed value={issuu} onChange={setIssuu} />
         <CoverField cover={cover} coverFile={coverFile} setCover={setCover} setCoverFile={setCoverFile} />
       </div>
 
@@ -450,6 +450,28 @@ function FieldText({ label, value, onChange, placeholder, className }: {
   )
 }
 
+function FieldEmbed({ value, onChange }: {
+  value: string; onChange: (s: string) => void
+}) {
+  return (
+    <label className="block md:col-span-2">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Issuu Embed Code</span>
+      <textarea
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={'Paste either the publication URL (https://issuu.com/…) or Issuu\'s full <iframe …> embed code'}
+        rows={3}
+        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-200"
+      />
+      <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+        Paste whatever Issuu gives you — the publication URL, the embed <code className="px-1 bg-gray-100 rounded">src</code> URL,
+        or the full <code className="px-1 bg-gray-100 rounded">&lt;iframe&gt;</code> snippet. We&apos;ll parse it and build the
+        sidebar embed + the &ldquo;Open in New Tab&rdquo; link from the same value.
+      </p>
+    </label>
+  )
+}
+
 function FieldDate({ label, value, onChange }: {
   label: string; value: string; onChange: (s: string) => void
 }) {
@@ -474,8 +496,13 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
 }) {
   return (
     <div>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Cover Image</span>
-      <div className="mt-1 flex items-start gap-3">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+        Cover Image <span className="text-gray-400 normal-case font-normal">(optional)</span>
+      </span>
+      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+        Used as the thumbnail in the homepage &ldquo;Recent Issues&rdquo; carousel for past issues. The current issue&apos;s sidebar uses the embed instead, so this is optional for the current month.
+      </p>
+      <div className="mt-2 flex items-start gap-3">
         <div className="w-16 h-20 rounded-md overflow-hidden bg-gray-100 relative shrink-0">
           {coverFile ? (
             // eslint-disable-next-line @next/next/no-img-element
