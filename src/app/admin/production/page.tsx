@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import {
-  BookOpen, Sparkles, Printer, Map, Package, Calendar, LayoutGrid, ArrowRight,
+  BookOpen, Sparkles, Printer, Map, Package, Calendar, LayoutGrid, ArrowRight, Tablet,
 } from 'lucide-react'
 
 export const metadata = { title: 'Production — KeepSharing Admin' }
@@ -14,6 +14,7 @@ export const dynamic  = 'force-dynamic'
 
 const TILES = [
   { label: 'Issues',             href: '/admin/production/issues',             icon: BookOpen,   blurb: 'Plan monthly issues per market.' },
+  { label: 'Digital Issues',     href: '/admin/production/issues/digital',     icon: Tablet,     blurb: 'Manage Issuu flipbook URLs and covers.' },
   { label: 'Monthly Themes',     href: '/admin/production/themes',             icon: Sparkles,   blurb: 'Market-specific editorial themes.' },
   { label: 'Print Planning',     href: '/admin/production/print-planning',     icon: Printer,    blurb: 'Story placement and print layout.' },
   { label: 'Layout Queue',       href: '/admin/advertisers/layout-sheet',      icon: LayoutGrid, blurb: 'Ad layout sheet for the printer.' },

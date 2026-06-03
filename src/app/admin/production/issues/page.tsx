@@ -57,12 +57,20 @@ export default async function IssuesPage() {
           <h1 className="text-xl font-semibold text-gray-900">Issues</h1>
           <p className="text-sm text-gray-500 mt-0.5">Monthly issues across all markets. Counts come from articles with an issue month.</p>
         </div>
-        <Link
-          href="/admin/articles/new"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={12} /> New Article
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/production/issues/digital"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Digital Issues <ArrowRight size={11} />
+          </Link>
+          <Link
+            href="/admin/articles/new"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus size={12} /> New Article
+          </Link>
+        </div>
       </div>
 
       <section>

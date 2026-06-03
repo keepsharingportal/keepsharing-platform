@@ -3,19 +3,20 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
-import { NewsletterSignup } from '@/components/NewsletterSignup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   TrendingUp, CalendarDays, BookOpen, Star,
-  ArrowRight, Users, Briefcase, Map, MessageCircle, Sparkles,
+  ArrowRight, Users, Briefcase, Map, Sparkles,
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
+import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/RecentIssuesCarousel'
+import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
 import { BestOfBlock } from '@/components/homepage/BestOfBlock'
@@ -24,11 +25,14 @@ import type { Metadata } from 'next'
 
 export const revalidate = 600
 
-// ── Current issue — update these 3 lines each month ──────────────────────────
-const CURRENT_ISSUE_COVER  = '/images/issues/may-2026-cover.jpg'
-const CURRENT_ISSUE_LABEL  = 'May 2026 Issue'
-const CURRENT_ISSUE_TAGLINE = 'Summer Fun Issue: 100+ camps, day trips, and adventures'
-const CURRENT_ISSUE_URL    = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
+// Hardcoded fallback for the current issue — used only when the
+// magazine_issues table is empty or hasn't been migrated yet. Once a
+// row is created in /admin/production/issues/digital, that takes
+// precedence and these constants are ignored.
+const FALLBACK_ISSUE_COVER   = '/images/issues/may-2026-cover.jpg'
+const FALLBACK_ISSUE_LABEL   = 'May 2026 Issue'
+const FALLBACK_ISSUE_TAGLINE = 'Summer Fun Issue: 100+ camps, day trips, and adventures'
+const FALLBACK_ISSUE_URL     = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
 
 
 export const metadata: Metadata = {
@@ -83,6 +87,7 @@ async function getHomepageData() {
     momKnowsPostsRes,
     bloggersRes,
     sectionHeroesRes,
+    magazineIssuesRes,
   ] = await Promise.all([
     // Trending bar — only items currently within their scheduled window.
     // start_at/end_at are nullable; null means "no bound on that side."
@@ -168,6 +173,16 @@ async function getHomepageData() {
     supabase.from('guide_types')
       .select('slug, hero_image_url')
       .in('slug', ['newcomer', 'summer-fun']),
+    // Digital magazine issues — surfaces the "This Month" sidebar block
+    // and the "Recent Issues" carousel. The is_current row drives the
+    // sidebar; everything else (recent-first) feeds the carousel.
+    // Falls back to the hardcoded constants when the table is missing
+    // (migration 112 not applied yet) or empty.
+    supabase.from('magazine_issues')
+      .select('id, label, tagline, issue_month, cover_url, issuu_url, is_current')
+      .eq('market', 'rrp')
+      .order('issue_month', { ascending: false })
+      .limit(12),
   ])
 
   // ── Featured guide tile (top-right) — picked by current-month rule ─────────
@@ -286,6 +301,43 @@ async function getHomepageData() {
     },
   ]
 
+  // ── Magazine issues — current + recent for the carousel ──────────────────
+  // magazineIssuesRes may error (table not yet migrated) or return an empty
+  // list (no rows yet). Either case falls back to the hardcoded constants
+  // so the sidebar still renders. The carousel just hides when there's
+  // nothing recent to show.
+  type MagazineIssueRow = {
+    id: string; label: string; tagline: string | null; issue_month: string;
+    cover_url: string | null; issuu_url: string; is_current: boolean
+  }
+  const allIssues: MagazineIssueRow[] = (magazineIssuesRes.data ?? []) as MagazineIssueRow[]
+  const currentRow = allIssues.find(i => i.is_current) ?? allIssues[0] ?? null
+  const currentIssue = currentRow
+    ? {
+        coverImageUrl: currentRow.cover_url ?? FALLBACK_ISSUE_COVER,
+        label:         currentRow.label,
+        tagline:       currentRow.tagline ?? FALLBACK_ISSUE_TAGLINE,
+        issuuUrl:      currentRow.issuu_url,
+      }
+    : {
+        coverImageUrl: FALLBACK_ISSUE_COVER,
+        label:         FALLBACK_ISSUE_LABEL,
+        tagline:       FALLBACK_ISSUE_TAGLINE,
+        issuuUrl:      FALLBACK_ISSUE_URL,
+      }
+  // Carousel — everything except the current issue, capped at 8.
+  const recentIssues: RecentIssue[] = allIssues
+    .filter(i => i.id !== currentRow?.id)
+    .slice(0, 8)
+    .map(i => ({
+      id:          i.id,
+      label:       i.label,
+      tagline:     i.tagline,
+      issue_month: i.issue_month,
+      cover_url:   i.cover_url,
+      issuu_url:   i.issuu_url,
+    }))
+
   return {
     trending:          trendingRes.data ?? [],
     mainFeature,
@@ -300,6 +352,8 @@ async function getHomepageData() {
     businessSpotlight: businessSpotlightRes.data ?? null,
     bottomAd:          bottomAdRes.data ?? null,
     featuredCategories,
+    currentIssue,
+    recentIssues,
   }
 }
 
@@ -315,7 +369,7 @@ export default async function HomePage() {
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
     inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
-    featuredCategories,
+    featuredCategories, currentIssue, recentIssues,
   } = await getHomepageData()
 
   const fallbackTrending = [
@@ -605,6 +659,9 @@ export default async function HomePage() {
 
         {/* Best of the Region — featured block above the portal */}
         <BestOfBlock />
+
+        {/* Recent Issues — past digital editions, hidden when empty */}
+        <RecentIssuesCarousel issues={recentIssues} />
 
         {/* School Zone — full-width featured block above the portal */}
         <SchoolBitsBlock />
@@ -913,10 +970,10 @@ export default async function HomePage() {
             )}
 
             <IssueSpotlightSidebar
-              coverImageUrl={CURRENT_ISSUE_COVER}
-              issueLabel={CURRENT_ISSUE_LABEL}
-              issueTagline={CURRENT_ISSUE_TAGLINE}
-              issuuUrl={CURRENT_ISSUE_URL}
+              coverImageUrl={currentIssue.coverImageUrl}
+              issueLabel={currentIssue.label}
+              issueTagline={currentIssue.tagline}
+              issuuUrl={currentIssue.issuuUrl}
             />
 
             {/* Mom Knows Best — sidebar card.
@@ -1090,19 +1147,8 @@ export default async function HomePage() {
               </Card>
             )}
 
-            {/* Newsletter */}
-            <Card className="border-primary/20 bg-primary/5 shadow-none" id="newsletter">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-primary" />
-                  Join the Community
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Get the best local family events and stories delivered weekly.</p>
-                <NewsletterSignup variant="inline" source="homepage-sidebar" />
-              </CardContent>
-            </Card>
+            {/* Newsletter — phone-mockup card */}
+            <NewsletterPhoneCard />
           </aside>
         </div>
       </main>
