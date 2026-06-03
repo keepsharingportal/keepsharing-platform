@@ -1,21 +1,62 @@
 // Public-site footer. Server component — it fetches the
-// nav_visibility hidden set on render so editors can flip individual
-// footer items off in /admin/site/navigation without a deploy. The set
-// is cached for 30 seconds at the helper level, so this isn't a per-
-// request DB hit in practice.
+// nav_visibility data on render so editors can rename, hide, add
+// custom links, or flip "open in new tab" without a deploy. The
+// override map is cached for 30 seconds at the helper level, so this
+// isn't a per-request DB hit in practice.
 
 import Link from 'next/link'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
 import {
-  FOOTER_EXPLORE, FOOTER_CONNECT, FOOTER_LEGAL, visibleOnly,
+  FOOTER_EXPLORE, FOOTER_CONNECT, FOOTER_LEGAL, mergeNavItems,
+  type NavItem,
 } from '@/lib/site-nav/items'
-import { getHiddenNavKeys } from '@/lib/site-nav/visibility'
+import { getNavRenderData } from '@/lib/site-nav/visibility'
+
+interface FooterLinkProps {
+  item: NavItem
+  openInNewTab?: boolean
+}
+
+function FooterLink({ item, openInNewTab }: FooterLinkProps) {
+  const isExternal = !!item.external || openInNewTab
+  if (isExternal) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-primary transition-colors"
+      >
+        {item.label}
+      </a>
+    )
+  }
+  return (
+    <Link href={item.href} className="hover:text-primary transition-colors">
+      {item.label}
+    </Link>
+  )
+}
 
 export async function PublicFooter() {
-  const hidden  = await getHiddenNavKeys()
-  const explore = visibleOnly(FOOTER_EXPLORE, hidden)
-  const connect = visibleOnly(FOOTER_CONNECT, hidden)
-  const legal   = visibleOnly(FOOTER_LEGAL,   hidden)
+  const { overrides, customs } = await getNavRenderData()
+
+  // For each column, pull in the matching catalog items + any custom
+  // items the admin nested under the column's parent_key. The footer
+  // columns don't have a parent dropdown in the catalog, so we use
+  // their group-label as the parent_key the admin will assign for
+  // custom items targeting that column.
+  const exploreCustoms = customs.filter(c => c.parentKey === 'footer.explore')
+  const connectCustoms = customs.filter(c => c.parentKey === 'footer.connect')
+  const legalCustoms   = customs.filter(c => c.parentKey === 'footer.legal')
+
+  const explore = mergeNavItems(FOOTER_EXPLORE, overrides, exploreCustoms)
+  const connect = mergeNavItems(FOOTER_CONNECT, overrides, connectCustoms)
+  const legal   = mergeNavItems(FOOTER_LEGAL,   overrides, legalCustoms)
+
+  function newTabFor(key: string): boolean {
+    return overrides.get(key)?.openInNewTab ?? false
+  }
 
   return (
     <footer className="bg-muted pt-14 pb-8 border-t mt-12 font-sans">
@@ -53,15 +94,7 @@ export async function PublicFooter() {
               <ul className="space-y-3 text-sm text-muted-foreground">
                 {explore.map(item => (
                   <li key={item.key}>
-                    {item.external ? (
-                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link href={item.href} className="hover:text-primary transition-colors">
-                        {item.label}
-                      </Link>
-                    )}
+                    <FooterLink item={item} openInNewTab={newTabFor(item.key)} />
                   </li>
                 ))}
               </ul>
@@ -74,15 +107,7 @@ export async function PublicFooter() {
               <ul className="space-y-3 text-sm text-muted-foreground">
                 {connect.map(item => (
                   <li key={item.key}>
-                    {item.external ? (
-                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link href={item.href} className="hover:text-primary transition-colors">
-                        {item.label}
-                      </Link>
-                    )}
+                    <FooterLink item={item} openInNewTab={newTabFor(item.key)} />
                   </li>
                 ))}
               </ul>
@@ -95,9 +120,9 @@ export async function PublicFooter() {
           {legal.length > 0 && (
             <div className="flex gap-4">
               {legal.map(item => (
-                <Link key={item.key} href={item.href} className="hover:text-foreground transition-colors">
-                  {item.label}
-                </Link>
+                <span key={item.key} className="hover:text-foreground transition-colors">
+                  <FooterLink item={item} openInNewTab={newTabFor(item.key)} />
+                </span>
               ))}
             </div>
           )}

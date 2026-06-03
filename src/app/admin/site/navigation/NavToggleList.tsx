@@ -1,21 +1,38 @@
 'use client'
 
 // NavToggleList — interactive list of every nav item in the site
-// catalog, with a per-item Show / Hide toggle. Reads the current
-// hidden-keys set from the API on mount, lets the editor flip them,
-// and writes back through /api/admin/site/nav-visibility.
+// catalog, with per-item Show / Hide / Rename / New-tab controls plus
+// an "+ Add Custom Item" button per group. Reads the current overrides
+// from the admin API on mount, lets the editor mutate them, and writes
+// back through /api/admin/site/nav-visibility.
 //
-// "Hide" is the soft option — flipping it back to On restores the item
-// immediately. We don't expose a hard "delete from catalog" action
-// because the catalog lives in code and editing it requires a deploy;
-// hiding is the right primitive for the launch-week use case.
+// The Header group renders as a nested tree — top-level items first,
+// with each dropdown's children indented immediately under it — so
+// editors see the same shape they see on the public site. Footer
+// columns stay flat.
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Eye, EyeOff, ExternalLink, RefreshCw, AlertTriangle,
+  Eye, EyeOff, ExternalLink, RefreshCw, AlertTriangle, Plus, Trash2,
+  Edit3, X, Check, ChevronDown,
 } from 'lucide-react'
-import type { NavGroup } from '@/lib/site-nav/items'
+import type { NavGroup, NavItem } from '@/lib/site-nav/items'
+
+interface AdminRow {
+  key:               string
+  hidden:            boolean
+  label_override:    string | null
+  href_override:     string | null
+  open_in_new_tab:   boolean
+  is_custom:         boolean
+  parent_key:        string | null
+  sort_order:        number | null
+}
+
+interface OverrideMap {
+  [key: string]: AdminRow
+}
 
 interface Props {
   catalog: NavGroup[]
@@ -24,26 +41,27 @@ interface Props {
 export function NavToggleList({ catalog }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
-  const [hidden,  setHidden]  = useState<Set<string>>(new Set())
+  const [rows,    setRows]    = useState<OverrideMap>({})
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [err,     setErr]     = useState<string | null>(null)
 
-  useEffect(() => {
+  function reload() {
+    setLoading(true)
     fetch('/api/admin/site/nav-visibility', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
-      .then((j: { hidden?: Array<{ key: string }> } | null) => {
-        const set = new Set<string>()
-        for (const row of j?.hidden ?? []) set.add(row.key)
-        setHidden(set)
+      .then((j: { rows?: AdminRow[] } | null) => {
+        const map: OverrideMap = {}
+        for (const row of j?.rows ?? []) map[row.key] = row
+        setRows(map)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { reload() }, [])
 
   async function toggle(key: string, currentlyHidden: boolean) {
-    setBusyKey(key)
-    setErr(null)
+    setBusyKey(key); setErr(null)
     try {
       const res = await fetch('/api/admin/site/nav-visibility', {
         method:  'POST',
@@ -55,50 +73,63 @@ export function NavToggleList({ catalog }: Props) {
         setErr(j?.error ?? `HTTP ${res.status}`)
         return
       }
-      setHidden(prev => {
-        const next = new Set(prev)
-        if (currentlyHidden) next.delete(key)
-        else next.add(key)
-        return next
-      })
+      reload()
       startTransition(() => router.refresh())
     } finally {
       setBusyKey(null)
     }
   }
 
-  // Bulk-toggle every item in a group. Useful for the "9 guides, 7 of
-  // them aren't ready yet" case — one click instead of nine. Fires the
-  // toggles concurrently and waits for them all.
   async function bulkToggle(keys: string[], targetHidden: boolean) {
     setErr(null)
-    const groupBusy = `__group__:${keys.join(',')}`
-    setBusyKey(groupBusy)
+    setBusyKey(`__group__:${keys[0] ?? ''}`)
     try {
-      const results = await Promise.all(
-        keys.map(async key => {
-          // Skip ones that are already in the target state — saves a
-          // round-trip per item and avoids unnecessary updated_at churn.
-          const currentlyHidden = hidden.has(key)
-          if (currentlyHidden === targetHidden) return { ok: true }
-          const res = await fetch('/api/admin/site/nav-visibility', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ key, hidden: targetHidden }),
-          })
-          return { ok: res.ok, key }
-        }),
-      )
-      const failed = results.filter(r => !r.ok)
-      if (failed.length > 0) {
-        setErr(`${failed.length} item${failed.length === 1 ? '' : 's'} failed to update.`)
-      }
-      setHidden(prev => {
-        const next = new Set(prev)
-        if (targetHidden) keys.forEach(k => next.add(k))
-        else keys.forEach(k => next.delete(k))
-        return next
+      await Promise.all(keys.map(async key => {
+        const currentlyHidden = rows[key]?.hidden ?? false
+        if (currentlyHidden === targetHidden) return
+        await fetch('/api/admin/site/nav-visibility', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ key, hidden: targetHidden }),
+        })
+      }))
+      reload()
+      startTransition(() => router.refresh())
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function patch(key: string, updates: Partial<{ labelOverride: string | null; hrefOverride: string | null; openInNewTab: boolean }>) {
+    setBusyKey(key); setErr(null)
+    try {
+      const res = await fetch('/api/admin/site/nav-visibility', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ key, ...updates }),
       })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setErr(j?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      reload()
+      startTransition(() => router.refresh())
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function deleteItem(key: string) {
+    setBusyKey(key); setErr(null)
+    try {
+      const res = await fetch(`/api/admin/site/nav-visibility?key=${encodeURIComponent(key)}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setErr(j?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      reload()
       startTransition(() => router.refresh())
     } finally {
       setBusyKey(null)
@@ -113,94 +144,574 @@ export function NavToggleList({ catalog }: Props) {
         </div>
       )}
 
-      {catalog.map(group => {
-        const groupKeys      = group.items.map(i => i.key)
-        const hiddenInGroup  = groupKeys.filter(k => hidden.has(k)).length
-        const total          = group.items.length
-        const allHidden      = hiddenInGroup === total
-        const allVisible     = hiddenInGroup === 0
-        const groupBusyKey   = `__group__:${groupKeys.join(',')}`
-        const groupBusy      = busyKey === groupBusyKey
-        return (
-        <section key={group.groupLabel} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <header className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-sm font-bold text-gray-900">
-                {group.groupLabel}
-                <span className="ml-2 text-xs font-semibold text-gray-400">
-                  {total - hiddenInGroup} of {total} visible
-                </span>
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Hidden items disappear from the public site within ~30 seconds.
-              </p>
-            </div>
-            {!loading && (
-              <div className="flex items-center gap-2 shrink-0">
+      {catalog.map(group => (
+        <GroupCard
+          key={group.groupLabel}
+          group={group}
+          rows={rows}
+          loading={loading}
+          busyKey={busyKey}
+          customs={Object.values(rows).filter(r => r.is_custom)}
+          onToggle={toggle}
+          onBulk={bulkToggle}
+          onPatch={patch}
+          onDelete={deleteItem}
+          onReload={reload}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ── Group card ────────────────────────────────────────────────────────────
+
+interface GroupCardProps {
+  group:    NavGroup
+  rows:     OverrideMap
+  loading:  boolean
+  busyKey:  string | null
+  customs:  AdminRow[]
+  onToggle: (key: string, currentlyHidden: boolean) => Promise<void>
+  onBulk:   (keys: string[], targetHidden: boolean) => Promise<void>
+  onPatch:  (key: string, updates: Partial<{ labelOverride: string | null; hrefOverride: string | null; openInNewTab: boolean }>) => Promise<void>
+  onDelete: (key: string) => Promise<void>
+  onReload: () => void
+}
+
+function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, onPatch, onDelete, onReload }: GroupCardProps) {
+  const [addingParent, setAddingParent] = useState<string | null>(null)
+
+  // For nested groups, render top-level items first then their children
+  // indented underneath. For flat groups, render every item in catalog
+  // order.
+  const isNested = !!group.nested
+  const topLevel = isNested ? group.items.filter(i => !i.parentKey) : group.items
+  const childrenByParent = new Map<string, NavItem[]>()
+  if (isNested) {
+    for (const child of group.items) {
+      if (!child.parentKey) continue
+      const arr = childrenByParent.get(child.parentKey) ?? []
+      arr.push(child)
+      childrenByParent.set(child.parentKey, arr)
+    }
+  }
+
+  // Custom items grouped by parent_key so admins see their additions
+  // under the right dropdown.
+  const customsByParent = new Map<string | null, AdminRow[]>()
+  for (const c of customs) customsByParent.set(c.parent_key, [...(customsByParent.get(c.parent_key) ?? []), c])
+
+  // Bulk toggle counts the catalog items only (custom items have their
+  // own delete UX).
+  const allKeys     = group.items.map(i => i.key)
+  const hiddenCount = allKeys.filter(k => rows[k]?.hidden).length
+  const total       = group.items.length
+  const allHidden   = hiddenCount === total
+  const allVisible  = hiddenCount === 0
+  const groupBusy   = busyKey === `__group__:${allKeys[0] ?? ''}`
+
+  return (
+    <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <header className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-gray-900">
+            {group.groupLabel}
+            <span className="ml-2 text-xs font-semibold text-gray-400">
+              {total - hiddenCount} of {total} visible
+            </span>
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Hidden items disappear from the public site within ~30 seconds.
+          </p>
+        </div>
+        {!loading && (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => onBulk(allKeys, false)}
+              disabled={groupBusy || allVisible}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <Eye size={11} />}
+              Show all
+            </button>
+            <button
+              type="button"
+              onClick={() => onBulk(allKeys, true)}
+              disabled={groupBusy || allHidden}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <EyeOff size={11} />}
+              Hide all
+            </button>
+          </div>
+        )}
+      </header>
+
+      <ul className="divide-y divide-gray-100">
+        {loading && (
+          <li className="px-5 py-6 text-xs text-gray-400 inline-flex items-center gap-2">
+            <RefreshCw size={11} className="animate-spin" /> Loading items
+          </li>
+        )}
+        {!loading && topLevel.map(item => (
+          <Row
+            key={item.key}
+            item={item}
+            row={rows[item.key]}
+            busy={busyKey === item.key}
+            indent={0}
+            onToggle={onToggle}
+            onPatch={onPatch}
+            onDelete={onDelete}
+          />
+        ))}
+        {!loading && isNested && topLevel.map(item => {
+          // Only show children block if this item has children (catalog or custom).
+          const catalogChildren = childrenByParent.get(item.key) ?? []
+          const customChildren  = (customsByParent.get(item.key) ?? [])
+          if (catalogChildren.length === 0 && customChildren.length === 0 && addingParent !== item.key) return null
+          return null  // children render inline below their parent — handled separately
+        })}
+      </ul>
+
+      {/* For nested groups, render children indented + custom items + add button per parent */}
+      {!loading && isNested && (
+        <div className="border-t border-gray-100">
+          {topLevel.map(parent => {
+            const catalogChildren = childrenByParent.get(parent.key) ?? []
+            const customChildren  = customsByParent.get(parent.key) ?? []
+            if (catalogChildren.length === 0 && customChildren.length === 0) return null
+            return (
+              <div key={`children-${parent.key}`} className="px-5 py-3 bg-gray-50/40">
+                <p className="text-[10px] uppercase tracking-wide font-bold text-gray-400 mb-2">
+                  Children of {rows[parent.key]?.label_override ?? parent.label}
+                </p>
+                <ul className="space-y-0">
+                  {catalogChildren.map(child => (
+                    <Row
+                      key={child.key}
+                      item={child}
+                      row={rows[child.key]}
+                      busy={busyKey === child.key}
+                      indent={1}
+                      onToggle={onToggle}
+                      onPatch={onPatch}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                  {customChildren.map(c => (
+                    <CustomRow
+                      key={c.key}
+                      row={c}
+                      busy={busyKey === c.key}
+                      onPatch={onPatch}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </ul>
                 <button
                   type="button"
-                  onClick={() => bulkToggle(groupKeys, false)}
-                  disabled={groupBusy || allVisible}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={() => setAddingParent(parent.key)}
+                  className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-primary hover:bg-primary/5"
                 >
-                  {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <Eye size={11} />}
-                  Show all
+                  <Plus size={11} /> Add link to {rows[parent.key]?.label_override ?? parent.label}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => bulkToggle(groupKeys, true)}
-                  disabled={groupBusy || allHidden}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <EyeOff size={11} />}
-                  Hide all
-                </button>
+                {addingParent === parent.key && (
+                  <AddCustomItemForm
+                    parentKey={parent.key}
+                    onClose={() => setAddingParent(null)}
+                    onAdded={() => { setAddingParent(null); onReload() }}
+                  />
+                )}
               </div>
+            )
+          })}
+
+          {/* Top-level custom items (no parent) for the Header group */}
+          {(customsByParent.get(null)?.length ?? 0) > 0 && (
+            <div className="px-5 py-3 bg-gray-50/40">
+              <p className="text-[10px] uppercase tracking-wide font-bold text-gray-400 mb-2">
+                Custom top-level items
+              </p>
+              <ul className="space-y-0">
+                {(customsByParent.get(null) ?? []).map(c => (
+                  <CustomRow
+                    key={c.key}
+                    row={c}
+                    busy={busyKey === c.key}
+                    onPatch={onPatch}
+                    onDelete={onDelete}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* For flat groups (footer columns), show custom items + Add button below the catalog list */}
+      {!loading && !isNested && (() => {
+        // Footer columns use a parent_key like 'footer.explore' to scope
+        // custom items to that column. We infer the column from the
+        // first catalog item's key prefix.
+        const inferredParent = group.items[0]?.key.split('.').slice(0, 2).join('.') ?? null
+        const customChildren = customsByParent.get(inferredParent) ?? []
+        return (
+          <div className="px-5 py-3 bg-gray-50/40 border-t border-gray-100">
+            {customChildren.length > 0 && (
+              <>
+                <p className="text-[10px] uppercase tracking-wide font-bold text-gray-400 mb-2">
+                  Custom items
+                </p>
+                <ul className="space-y-0 mb-2">
+                  {customChildren.map(c => (
+                    <CustomRow
+                      key={c.key}
+                      row={c}
+                      busy={busyKey === c.key}
+                      onPatch={onPatch}
+                      onDelete={onDelete}
+                    />
+                  ))}
+                </ul>
+              </>
             )}
-          </header>
-          <ul className="divide-y divide-gray-100">
-            {group.items.map(item => {
-              const isHidden  = hidden.has(item.key)
-              const isBusy    = busyKey === item.key
-              return (
-                <li key={item.key} className="px-5 py-3 flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{item.label}</p>
-                      {item.external && <ExternalLink size={11} className="text-gray-400" />}
-                    </div>
-                    <p className="text-[11px] text-gray-400 truncate mt-0.5 font-mono">
-                      {item.href} · <span className="text-gray-500">{item.key}</span>
-                    </p>
-                  </div>
-                  {loading ? (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <RefreshCw size={11} className="animate-spin" /> Loading
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => toggle(item.key, isHidden)}
-                      disabled={isBusy}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 transition disabled:opacity-50 ${
-                        isHidden
-                          ? 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100'
-                          : 'bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {isBusy
-                        ? <RefreshCw size={11} className="animate-spin" />
-                        : isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
-                      {isHidden ? 'Hidden' : 'Visible'}
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
+            <button
+              type="button"
+              onClick={() => setAddingParent(inferredParent)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-primary hover:bg-primary/5"
+            >
+              <Plus size={11} /> Add link to {group.groupLabel.replace(/^Footer\s*—\s*/i, '')}
+            </button>
+            {addingParent === inferredParent && (
+              <AddCustomItemForm
+                parentKey={inferredParent}
+                onClose={() => setAddingParent(null)}
+                onAdded={() => { setAddingParent(null); onReload() }}
+              />
+            )}
+          </div>
         )
-      })}
+      })()}
+    </section>
+  )
+}
+
+// ── Catalog row ───────────────────────────────────────────────────────────
+
+interface RowProps {
+  item:    NavItem
+  row?:    AdminRow
+  busy:    boolean
+  indent:  number
+  onToggle: (key: string, currentlyHidden: boolean) => Promise<void>
+  onPatch:  (key: string, updates: Partial<{ labelOverride: string | null; hrefOverride: string | null; openInNewTab: boolean }>) => Promise<void>
+  onDelete: (key: string) => Promise<void>
+}
+
+function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps) {
+  const isHidden     = row?.hidden ?? false
+  const labelDisplay = row?.label_override ?? item.label
+  const hrefDisplay  = row?.href_override  ?? item.href
+  const openInNewTab = row?.open_in_new_tab ?? false
+  const hasOverrides = !!(row?.label_override || row?.href_override || row?.open_in_new_tab)
+  const [renaming, setRenaming] = useState(false)
+  const [draftLabel, setDraftLabel] = useState(labelDisplay)
+  const [draftHref,  setDraftHref]  = useState(hrefDisplay)
+
+  function startRename() {
+    setDraftLabel(labelDisplay)
+    setDraftHref(hrefDisplay)
+    setRenaming(true)
+  }
+  async function saveRename() {
+    const next: { labelOverride?: string | null; hrefOverride?: string | null } = {}
+    next.labelOverride = draftLabel.trim() === item.label ? null : draftLabel.trim()
+    next.hrefOverride  = draftHref.trim()  === item.href  ? null : draftHref.trim()
+    await onPatch(item.key, next)
+    setRenaming(false)
+  }
+  function cancelRename() {
+    setRenaming(false)
+  }
+
+  return (
+    <li
+      className="px-5 py-3 flex items-start gap-4"
+      style={{ paddingLeft: `${20 + indent * 24}px` }}
+    >
+      <div className="flex-1 min-w-0">
+        {renaming ? (
+          <div className="space-y-1.5">
+            <input
+              value={draftLabel}
+              onChange={e => setDraftLabel(e.target.value)}
+              placeholder="Label"
+              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              autoFocus
+            />
+            <input
+              value={draftHref}
+              onChange={e => setDraftHref(e.target.value)}
+              placeholder="URL"
+              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+            />
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                type="button"
+                onClick={saveRename}
+                disabled={busy}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                <Check size={10} /> Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelRename}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-gray-600 hover:bg-gray-100"
+              >
+                <X size={10} /> Cancel
+              </button>
+              {hasOverrides && (
+                <button
+                  type="button"
+                  onClick={() => onPatch(item.key, { labelOverride: null, hrefOverride: null }).then(() => setRenaming(false))}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-gray-600 hover:bg-gray-100 ml-auto"
+                  title="Reset to catalog default"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-gray-900 truncate">{labelDisplay}</p>
+              {hasOverrides && (
+                <span className="inline-flex items-center text-[9px] font-bold text-amber-700 bg-amber-50 ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">
+                  Edited
+                </span>
+              )}
+              {item.external && <ExternalLink size={11} className="text-gray-400" />}
+            </div>
+            <p className="text-[11px] text-gray-400 truncate mt-0.5 font-mono">
+              {hrefDisplay} <span className="text-gray-500">· {item.key}</span>
+            </p>
+          </>
+        )}
+      </div>
+
+      {!renaming && (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => onPatch(item.key, { openInNewTab: !openInNewTab })}
+            disabled={busy}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
+              openInNewTab
+                ? 'bg-sky-50 text-sky-700 ring-sky-200'
+                : 'bg-white text-gray-500 ring-gray-200 hover:ring-gray-400'
+            }`}
+            title={openInNewTab ? 'Opens in new tab — click to disable' : 'Click to open in new tab'}
+          >
+            <ExternalLink size={10} /> {openInNewTab ? 'New tab' : 'Same tab'}
+          </button>
+          <button
+            type="button"
+            onClick={startRename}
+            disabled={busy}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-gray-400"
+            title="Rename / change URL"
+          >
+            <Edit3 size={10} /> Rename
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggle(item.key, isHidden)}
+            disabled={busy}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
+              isHidden
+                ? 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100'
+                : 'bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100'
+            }`}
+          >
+            {busy ? <RefreshCw size={11} className="animate-spin" /> : isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
+            {isHidden ? 'Hidden' : 'Visible'}
+          </button>
+        </div>
+      )}
+    </li>
+  )
+}
+
+// ── Custom item row ───────────────────────────────────────────────────────
+
+interface CustomRowProps {
+  row:      AdminRow
+  busy:     boolean
+  onPatch:  (key: string, updates: Partial<{ labelOverride: string | null; hrefOverride: string | null; openInNewTab: boolean }>) => Promise<void>
+  onDelete: (key: string) => Promise<void>
+}
+
+function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
+  const [renaming, setRenaming] = useState(false)
+  const [draftLabel, setDraftLabel] = useState(row.label_override ?? '')
+  const [draftHref,  setDraftHref]  = useState(row.href_override ?? '')
+
+  async function saveRename() {
+    await onPatch(row.key, { labelOverride: draftLabel.trim(), hrefOverride: draftHref.trim() })
+    setRenaming(false)
+  }
+
+  return (
+    <li className="px-5 py-3 flex items-start gap-4 bg-amber-50/30 rounded-md">
+      <div className="flex-1 min-w-0">
+        {renaming ? (
+          <div className="space-y-1.5">
+            <input
+              value={draftLabel}
+              onChange={e => setDraftLabel(e.target.value)}
+              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              autoFocus
+            />
+            <input
+              value={draftHref}
+              onChange={e => setDraftHref(e.target.value)}
+              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+            />
+            <div className="flex items-center gap-2 mt-1">
+              <button type="button" onClick={saveRename} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700">
+                <Check size={10} /> Save
+              </button>
+              <button type="button" onClick={() => setRenaming(false)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-gray-600 hover:bg-gray-100">
+                <X size={10} /> Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-gray-900 truncate">{row.label_override}</p>
+              <span className="inline-flex items-center text-[9px] font-bold text-amber-700 bg-amber-100 ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">Custom</span>
+            </div>
+            <p className="text-[11px] text-gray-400 truncate mt-0.5 font-mono">
+              {row.href_override}
+            </p>
+          </>
+        )}
+      </div>
+
+      {!renaming && (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => onPatch(row.key, { openInNewTab: !row.open_in_new_tab })}
+            disabled={busy}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
+              row.open_in_new_tab
+                ? 'bg-sky-50 text-sky-700 ring-sky-200'
+                : 'bg-white text-gray-500 ring-gray-200 hover:ring-gray-400'
+            }`}
+          >
+            <ExternalLink size={10} /> {row.open_in_new_tab ? 'New tab' : 'Same tab'}
+          </button>
+          <button type="button" onClick={() => setRenaming(true)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-gray-400">
+            <Edit3 size={10} /> Edit
+          </button>
+          <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
+            <Trash2 size={10} /> Delete
+          </button>
+        </div>
+      )}
+    </li>
+  )
+}
+
+// ── Add custom item form ──────────────────────────────────────────────────
+
+interface AddFormProps {
+  parentKey: string | null
+  onClose:   () => void
+  onAdded:   () => void
+}
+
+function AddCustomItemForm({ parentKey, onClose, onAdded }: AddFormProps) {
+  const [label, setLabel] = useState('')
+  const [href,  setHref]  = useState('')
+  const [openInNewTab, setOpenInNewTab] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  async function submit() {
+    if (!label.trim() || !href.trim()) {
+      setErr('Both label and URL are required.')
+      return
+    }
+    setSubmitting(true); setErr(null)
+    try {
+      const res = await fetch('/api/admin/site/nav-visibility', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ label: label.trim(), href: href.trim(), parentKey, openInNewTab }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setErr(j?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      onAdded()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 px-3 py-3 space-y-2">
+      <p className="text-[10px] uppercase tracking-wide font-bold text-amber-800">Add a custom link</p>
+      {err && <p className="text-xs text-rose-700">{err}</p>}
+      <div className="space-y-1.5">
+        <input
+          value={label}
+          onChange={e => setLabel(e.target.value)}
+          placeholder="Label (e.g. Print Edition)"
+          className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary bg-white"
+        />
+        <input
+          value={href}
+          onChange={e => setHref(e.target.value)}
+          placeholder="URL (e.g. https://issuu.com/... or /custom-page)"
+          className="w-full px-2.5 py-1.5 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary bg-white"
+        />
+        <label className="flex items-center gap-2 text-xs text-gray-700">
+          <input
+            type="checkbox"
+            checked={openInNewTab}
+            onChange={e => setOpenInNewTab(e.target.checked)}
+            className="rounded"
+          />
+          Open in new tab
+        </label>
+      </div>
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          type="button"
+          onClick={submit}
+          disabled={submitting}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+        >
+          {submitting ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
+          Add link
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   )
 }

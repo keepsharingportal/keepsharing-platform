@@ -5,7 +5,9 @@
 //
 // To add a new menu item: append to the right array here. To hide
 // one without a code change: toggle it in /admin/site/navigation —
-// that writes hidden=true into nav_visibility against this key.
+// that writes hidden=true into nav_visibility against this key. To
+// rename or add a custom item without a code change: edit it in the
+// same admin page (those overrides also live in nav_visibility).
 
 export interface NavItem {
   /** Stable identifier — used as the nav_visibility primary key. */
@@ -14,38 +16,56 @@ export interface NavItem {
   href:  string
   /** Optional flag for absolute URLs (Instagram etc). */
   external?: boolean
+  /** When set, this item is a child of another item (used by the
+   *  admin to render a nested tree). The catalog still stores children
+   *  in their own arrays; parentKey is the cross-reference. */
+  parentKey?: string
 }
 
 export interface NavGroup {
   /** Human label for the group in the admin UI (not rendered on the site). */
   groupLabel: string
   items: NavItem[]
+  /** Optional — when present, the admin uses parentKey on items to
+   *  render a nested tree (parent + indented children) instead of a
+   *  flat list. */
+  nested?: boolean
 }
 
 // ── HEADER ────────────────────────────────────────────────────────────────
 
 export const HEADER_GUIDES: NavItem[] = [
-  { key: 'header.guides.family-resource',  label: 'Family Resource Guide', href: '/family-resource-guide' },
-  { key: 'header.guides.private-school',   label: 'Private School Guide',  href: '/private-school-guide'  },
-  { key: 'header.guides.summer-camp',      label: 'Summer Camp Guide',     href: '/summer-camp-guide'     },
-  { key: 'header.guides.childcare',        label: 'Childcare Guide',       href: '/childcare-guide'       },
-  { key: 'header.guides.healthy-kids',     label: 'Healthy Kids Guide',    href: '/healthy-kids-guide'    },
-  { key: 'header.guides.summer-fun',       label: 'Summer Fun Guide',      href: '/summer-fun-guide'      },
-  { key: 'header.guides.birthday-party',   label: 'Birthday Party Guide',  href: '/birthday-party-guide'  },
-  { key: 'header.guides.afterschool',      label: 'After-School Guide',    href: '/afterschool-guide'     },
-  { key: 'header.guides.special-needs',    label: 'Special Needs Guide',   href: '/special-needs-guide'   },
+  { key: 'header.guides.family-resource',  label: 'Family Resource Guide', href: '/family-resource-guide', parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.private-school',   label: 'Private School Guide',  href: '/private-school-guide',  parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.summer-camp',      label: 'Summer Camp Guide',     href: '/summer-camp-guide',     parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.childcare',        label: 'Childcare Guide',       href: '/childcare-guide',       parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.healthy-kids',     label: 'Healthy Kids Guide',    href: '/healthy-kids-guide',    parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.summer-fun',       label: 'Summer Fun Guide',      href: '/summer-fun-guide',      parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.birthday-party',   label: 'Birthday Party Guide',  href: '/birthday-party-guide',  parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.afterschool',      label: 'After-School Guide',    href: '/afterschool-guide',     parentKey: 'header.guides.dropdown' },
+  { key: 'header.guides.special-needs',    label: 'Special Needs Guide',   href: '/special-needs-guide',   parentKey: 'header.guides.dropdown' },
+]
+
+// New "Local" dropdown — groups the community spotlight columns +
+// School Zone + Mom Knows Best vertical, freeing room in the top nav.
+export const HEADER_LOCAL: NavItem[] = [
+  { key: 'header.local.school-zone',      label: 'School Zone',            href: '/school-zone',                   parentKey: 'header.local.dropdown' },
+  { key: 'header.local.mom-knows-best',   label: 'Mom Knows Best',         href: '/mom-knows-best',                parentKey: 'header.local.dropdown' },
+  { key: 'header.local.play-ball',        label: 'Play Ball',              href: '/columns/play-ball',             parentKey: 'header.local.dropdown' },
+  { key: 'header.local.teacher',          label: 'Teacher of the Month',   href: '/columns/teacher-of-month',      parentKey: 'header.local.dropdown' },
+  { key: 'header.local.grands',           label: 'Grands Are The Greatest',href: '/columns/grands-greatest',       parentKey: 'header.local.dropdown' },
+  { key: 'header.local.mom-to-mom',       label: 'Mom to Mom',             href: '/columns/mom-to-mom',            parentKey: 'header.local.dropdown' },
 ]
 
 // Top-level items in the desktop header (right of the "Guides" dropdown).
-// The "Guides" dropdown itself toggles via header.guides.dropdown — when
-// hidden, the whole dropdown disappears.
+// Guides + Local each have their own children arrays; toggling the
+// .dropdown key hides the entire group.
 export const HEADER_TOP_LEVEL: NavItem[] = [
   { key: 'header.guides.dropdown', label: 'Guides',         href: '#guides'                  },
   { key: 'header.calendar',        label: 'Calendar',       href: '/calendar'                },
   { key: 'header.articles',        label: 'Articles',       href: '/articles'                },
+  { key: 'header.local.dropdown',  label: 'Local',          href: '#local'                   },
   { key: 'header.summer-fun',      label: 'Summer Fun',     href: '/summer-fun-guide'        },
-  { key: 'header.school-zone',     label: 'School Zone',    href: '/school-zone'             },
-  { key: 'header.mom-knows-best',  label: 'Mom Knows Best', href: '/mom-knows-best'          },
   { key: 'header.games',           label: 'Games & Prizes', href: '/games'                   },
   { key: 'header.partners',        label: 'Partner With Us',href: '/partners'                },
   { key: 'header.get-listed',      label: 'Get Listed',     href: '/partners#strategy-call'  },
@@ -76,17 +96,88 @@ export const FOOTER_LEGAL: NavItem[] = [
 ]
 
 // ── Admin catalog — the shape /admin/site/navigation reads to draw
-//    its toggle list. Add a new group here when you add a new array
-//    above so the admin sees it without further wiring.
+//    its toggle list. Header section uses nested=true so the admin
+//    indents Guides children + Local children under their parent
+//    dropdown row. Footer columns stay flat.
 export const NAV_CATALOG: NavGroup[] = [
-  { groupLabel: 'Header — Top level',     items: HEADER_TOP_LEVEL },
-  { groupLabel: 'Header — Guides menu',   items: HEADER_GUIDES    },
-  { groupLabel: 'Footer — Explore column',items: FOOTER_EXPLORE   },
-  { groupLabel: 'Footer — Connect column',items: FOOTER_CONNECT   },
-  { groupLabel: 'Footer — Legal links',   items: FOOTER_LEGAL     },
+  {
+    groupLabel: 'Header',
+    nested:     true,
+    items:      [
+      ...HEADER_TOP_LEVEL,
+      ...HEADER_GUIDES,
+      ...HEADER_LOCAL,
+    ],
+  },
+  { groupLabel: 'Footer — Explore column', items: FOOTER_EXPLORE },
+  { groupLabel: 'Footer — Connect column', items: FOOTER_CONNECT },
+  { groupLabel: 'Footer — Legal links',    items: FOOTER_LEGAL    },
 ]
 
-/** Filter helper used by the render-side components. */
+// ── Overrides ────────────────────────────────────────────────────────────
+// The DB layer (nav_visibility) stores per-item flags + overrides + a
+// list of custom items added by admins. These types describe the merged
+// shape the renderers consume.
+
+export interface NavItemOverride {
+  hidden?:          boolean
+  labelOverride?:   string | null
+  hrefOverride?:    string | null
+  openInNewTab?:    boolean
+  /** For custom items (is_custom=true), these may be set so we know
+   *  where in the catalog the item should appear. */
+  isCustom?:        boolean
+  parentKey?:       string | null
+  sortOrder?:       number | null
+}
+
+export type OverrideMap = Map<string, NavItemOverride>
+
+/** Apply DB overrides to a single catalog item. Returns the merged
+ *  shape or null if the item is hidden. */
+export function applyOverride(item: NavItem, override?: NavItemOverride): NavItem | null {
+  if (!override) return item
+  if (override.hidden) return null
+  return {
+    ...item,
+    label: override.labelOverride ?? item.label,
+    href:  override.hrefOverride  ?? item.href,
+  }
+}
+
+/** Filter helper used by the render-side components. Hidden keys
+ *  come from the overrides map (Set still works for the legacy call). */
 export function visibleOnly(items: NavItem[], hiddenKeys: Set<string>): NavItem[] {
   return items.filter(i => !hiddenKeys.has(i.key))
+}
+
+/** Merge a list of catalog items with DB overrides + custom items.
+ *  Returns the final rendered list in sort order. Custom items get
+ *  spliced into the right position via sortOrder (lower first); ties
+ *  fall back to catalog order. */
+export function mergeNavItems(
+  catalog:  NavItem[],
+  overrides: OverrideMap,
+  customs:  NavItem[],
+): NavItem[] {
+  const out: Array<NavItem & { _sortOrder: number }> = []
+
+  catalog.forEach((item, i) => {
+    const ov     = overrides.get(item.key)
+    const merged = applyOverride(item, ov)
+    if (!merged) return
+    out.push({ ...merged, _sortOrder: ov?.sortOrder ?? i * 1000 })
+  })
+
+  customs.forEach(item => {
+    const ov = overrides.get(item.key)
+    if (ov?.hidden) return
+    const merged = applyOverride(item, ov)
+    if (!merged) return
+    // Default custom item sort: append at end (high number)
+    out.push({ ...merged, _sortOrder: ov?.sortOrder ?? 999_999 })
+  })
+
+  out.sort((a, b) => a._sortOrder - b._sortOrder)
+  return out.map(({ _sortOrder, ...rest }) => rest)
 }
