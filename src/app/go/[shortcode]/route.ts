@@ -90,8 +90,20 @@ export async function GET(
 }
 
 // ── URL redirect (existing behavior + UTMs) ──────────────────────────────────
+//
+// The destination row stores a path like '/games'. To build a full URL
+// we need a base origin. We PREFER process.env.NEXT_PUBLIC_SITE_URL
+// (the canonical production domain) so that a QR printed when this
+// project still lived at *.vercel.app — once scanned — redirects to
+// riverregionparents.com instead of staying on the preview subdomain.
+// Falls back to the incoming request's origin only when NEXT_PUBLIC_SITE_URL
+// isn't configured.
 function handleUrl(req: NextRequest, row: LinkRow) {
-  const dest = new URL(row.destination, req.nextUrl.origin)
+  const canonicalBase = (process.env.NEXT_PUBLIC_SITE_URL ?? '').trim()
+  const base = canonicalBase || req.nextUrl.origin
+  // Absolute destinations (http://, https://) pass through untouched.
+  // Relative destinations get resolved against the canonical base.
+  const dest = new URL(row.destination, base)
   if (row.utm_source)   dest.searchParams.set('utm_source',   row.utm_source)
   if (row.utm_medium)   dest.searchParams.set('utm_medium',   row.utm_medium)
   if (row.utm_campaign) dest.searchParams.set('utm_campaign', row.utm_campaign)
