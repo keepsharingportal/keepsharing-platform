@@ -14,8 +14,6 @@ import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
-import { IssueSpotlightSidebar } from '@/components/homepage/IssueSpotlightSidebar'
-import { deriveIssuuEmbedUrl } from '@/lib/magazine/issuu'
 import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/RecentIssuesCarousel'
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
@@ -26,14 +24,6 @@ import type { Metadata } from 'next'
 
 export const revalidate = 600
 
-// Hardcoded fallback for the current issue — used only when the
-// magazine_issues table is empty or hasn't been migrated yet. Once a
-// row is created in /admin/production/issues/digital, that takes
-// precedence and these constants are ignored.
-const FALLBACK_ISSUE_COVER   = '/images/issues/may-2026-cover.jpg'
-const FALLBACK_ISSUE_LABEL   = 'May 2026 Issue'
-const FALLBACK_ISSUE_TAGLINE = 'Summer Fun Issue: 100+ camps, day trips, and adventures'
-const FALLBACK_ISSUE_URL     = 'https://issuu.com/keepsharing/docs/river_region_parents_summer_fun_issue_may_2026_'
 
 
 export const metadata: Metadata = {
@@ -174,16 +164,16 @@ async function getHomepageData() {
     supabase.from('guide_types')
       .select('slug, hero_image_url')
       .in('slug', ['newcomer', 'summer-fun']),
-    // Digital magazine issues — surfaces the "This Month" sidebar block
-    // and the "Recent Issues" carousel. The is_current row drives the
-    // sidebar; everything else (recent-first) feeds the carousel.
-    // Falls back to the hardcoded constants when the table is missing
-    // (migration 112 not applied yet) or empty.
+    // Digital magazine issues — drives the homepage "Read the Digital
+    // Magazine" carousel. Pulled with the current issue first (when one
+    // is flagged) then by issue_month desc. Carousel caps at 6; we pull
+    // 6 here too so the sort/limit math matches.
     supabase.from('magazine_issues')
       .select('id, label, tagline, issue_month, cover_url, issuu_url, is_current')
       .eq('market', 'rrp')
+      .order('is_current', { ascending: false })
       .order('issue_month', { ascending: false })
-      .limit(12),
+      .limit(6),
   ])
 
   // ── Featured guide tile (top-right) — picked by current-month rule ─────────
@@ -302,36 +292,25 @@ async function getHomepageData() {
     },
   ]
 
-  // ── Magazine issues — current + recent for the carousel ──────────────────
-  // magazineIssuesRes may error (table not yet migrated) or return an empty
-  // list (no rows yet). Either case falls back to the hardcoded constants
-  // so the sidebar still renders. The carousel just hides when there's
-  // nothing recent to show.
+  // ── Magazine issues — single carousel feed (current first, then recent) ─
+  // The homepage no longer renders a separate sidebar widget for the current
+  // issue — the carousel below shows everything, with the current month
+  // flagged so it surfaces first and gets a "Current" badge. If the table
+  // is empty (no rows yet, or migration 112 not applied), the carousel
+  // component just renders nothing and the homepage flows past it.
   type MagazineIssueRow = {
     id: string; label: string; tagline: string | null; issue_month: string;
     cover_url: string | null; issuu_url: string; is_current: boolean
   }
   const allIssues: MagazineIssueRow[] = (magazineIssuesRes.data ?? []) as MagazineIssueRow[]
-  const currentRow = allIssues.find(i => i.is_current) ?? allIssues[0] ?? null
-  const currentIssue = currentRow
-    ? {
-        coverImageUrl: currentRow.cover_url ?? FALLBACK_ISSUE_COVER,
-        label:         currentRow.label,
-        tagline:       currentRow.tagline ?? FALLBACK_ISSUE_TAGLINE,
-        issuuUrl:      currentRow.issuu_url,
-        embedUrl:      deriveIssuuEmbedUrl(currentRow.issuu_url),
-      }
-    : {
-        coverImageUrl: FALLBACK_ISSUE_COVER,
-        label:         FALLBACK_ISSUE_LABEL,
-        tagline:       FALLBACK_ISSUE_TAGLINE,
-        issuuUrl:      FALLBACK_ISSUE_URL,
-        embedUrl:      deriveIssuuEmbedUrl(FALLBACK_ISSUE_URL),
-      }
-  // Carousel — everything except the current issue, capped at 8.
-  const recentIssues: RecentIssue[] = allIssues
-    .filter(i => i.id !== currentRow?.id)
-    .slice(0, 8)
+  const magazineIssues: RecentIssue[] = allIssues
+    .slice()
+    .sort((a, b) => {
+      if (a.is_current && !b.is_current) return -1
+      if (!a.is_current && b.is_current) return 1
+      return b.issue_month.localeCompare(a.issue_month)
+    })
+    .slice(0, 6)
     .map(i => ({
       id:          i.id,
       label:       i.label,
@@ -339,6 +318,7 @@ async function getHomepageData() {
       issue_month: i.issue_month,
       cover_url:   i.cover_url,
       issuu_url:   i.issuu_url,
+      isCurrent:   i.is_current,
     }))
 
   return {
@@ -355,8 +335,7 @@ async function getHomepageData() {
     businessSpotlight: businessSpotlightRes.data ?? null,
     bottomAd:          bottomAdRes.data ?? null,
     featuredCategories,
-    currentIssue,
-    recentIssues,
+    magazineIssues,
   }
 }
 
@@ -372,7 +351,7 @@ export default async function HomePage() {
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
     inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
-    featuredCategories, currentIssue, recentIssues,
+    featuredCategories, magazineIssues,
   } = await getHomepageData()
 
   const fallbackTrending = [
@@ -663,8 +642,8 @@ export default async function HomePage() {
         {/* Best of the Region — featured block above the portal */}
         <BestOfBlock />
 
-        {/* Recent Issues — past digital editions, hidden when empty */}
-        <RecentIssuesCarousel issues={recentIssues} />
+        {/* Read the Digital Magazine — current + 5 recent issues, hidden when empty */}
+        <RecentIssuesCarousel issues={magazineIssues} />
 
         {/* School Zone — full-width featured block above the portal */}
         <SchoolBitsBlock />
@@ -971,14 +950,6 @@ export default async function HomePage() {
                 </span>
               </Link>
             )}
-
-            <IssueSpotlightSidebar
-              coverImageUrl={currentIssue.coverImageUrl}
-              issueLabel={currentIssue.label}
-              issueTagline={currentIssue.tagline}
-              issuuUrl={currentIssue.issuuUrl}
-              embedUrl={currentIssue.embedUrl}
-            />
 
             {/* Mom Knows Best — sidebar card.
                 When bloggers have published posts, show the 3 most recent.

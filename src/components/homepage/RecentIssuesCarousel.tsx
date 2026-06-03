@@ -1,14 +1,13 @@
-// Recent Issues — horizontally scrollable strip of past digital editions.
-// Inspired by KC Parent's layout: cover thumb, month label, click opens
-// the Issuu flipbook in a new tab.
+// Recent Issues — horizontally scrollable strip of digital editions, with
+// the current issue surfaced first and tagged. Inspired by KC Parent's
+// layout: cover thumb, month label, click opens the Issuu flipbook in a
+// new tab.
 //
 // Renders as a flex row with overflow-x-auto so it works mobile-first
-// (swipe to scroll) and grows into a clean grid on larger screens. We use
-// a server component for the cards but the chevron buttons are progressive
-// enhancement only — scroll works without JS.
+// (swipe to scroll) and grows into a clean grid on larger screens.
 
 import Image from 'next/image'
-import { BookOpen, ExternalLink } from 'lucide-react'
+import { BookOpen, ExternalLink, Star } from 'lucide-react'
 
 export interface RecentIssue {
   id:           string
@@ -17,6 +16,7 @@ export interface RecentIssue {
   issue_month:  string
   cover_url:    string | null
   issuu_url:    string
+  isCurrent?:   boolean
 }
 
 interface Props {
@@ -37,9 +37,9 @@ export function RecentIssuesCarousel({ issues }: Props) {
       <div className="flex items-center justify-between border-b border-border/50 pb-3">
         <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
           <BookOpen className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-          Recent Issues
+          Read the Digital Magazine
         </h2>
-        <span className="text-xs text-muted-foreground">Read past editions</span>
+        <span className="text-xs text-muted-foreground">Current + recent issues</span>
       </div>
 
       <div
@@ -54,7 +54,7 @@ export function RecentIssuesCarousel({ issues }: Props) {
             rel="noopener noreferrer"
             className="group shrink-0 snap-start w-[140px] md:w-[160px] flex flex-col"
           >
-            <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-md transition-shadow">
+            <div className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-md transition-shadow ${issue.isCurrent ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
               {issue.cover_url ? (
                 <Image
                   src={issue.cover_url}
@@ -68,6 +68,12 @@ export function RecentIssuesCarousel({ issues }: Props) {
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground p-2 text-center">
                   {issue.label}
+                </div>
+              )}
+              {issue.isCurrent && (
+                <div className="absolute top-2 left-2 inline-flex items-center gap-1 bg-primary text-primary-foreground rounded-full px-2 py-0.5 shadow-sm">
+                  <Star className="h-2.5 w-2.5" fill="currentColor" />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Current</span>
                 </div>
               )}
               <div className="absolute top-2 right-2 bg-white/90 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
