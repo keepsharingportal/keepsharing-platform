@@ -7,7 +7,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Upload, Check } from 'lucide-react'
 
-interface Props { market: string }
+interface Props {
+  market:     string  // resolved region primary slug, sent to the API as `market`
+  regionName: string  // "River Region"
+  pubLabels:  string  // "RRP + BOOM"
+}
 
 interface ImportResult {
   market:         string
@@ -17,7 +21,7 @@ interface ImportResult {
   skipped:        number
 }
 
-export function CirculationImporter({ market }: Props) {
+export function CirculationImporter({ market, regionName, pubLabels }: Props) {
   const router = useRouter()
   const [file,   setFile]   = useState<File | null>(null)
   const [busy,   setBusy]   = useState(false)
@@ -48,9 +52,14 @@ export function CirculationImporter({ market }: Props) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <p className="text-xs text-gray-600">
-        Upload <code className="px-1 bg-gray-100 rounded">rrp_stops_YYYY-MM-DD.json</code> exported from
+        Upload the stop export JSON from
         <code className="px-1 bg-gray-100 rounded ml-1">drivers.keepsharing.com/admin/import.php</code>.
-        Replaces all existing stops for <span className="font-bold">{market.toUpperCase()}</span>.
+        Each stop carries copy counts for every publication served from this region
+        (<span className="font-semibold">{pubLabels}</span>) — one upload loads the whole{' '}
+        <span className="font-semibold">{regionName}</span> distribution. Replaces all existing stops in this region.
+        Accepts a plain array or an object with a <code className="px-1 bg-gray-100 rounded">stops</code> /
+        <code className="px-1 bg-gray-100 rounded ml-1">data</code> /
+        <code className="px-1 bg-gray-100 rounded ml-1">rows</code> key.
       </p>
       <div className="flex items-center gap-2 flex-wrap">
         <input

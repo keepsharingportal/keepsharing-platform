@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Plus, Truck } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
+import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
 import { NewRouteForm } from './NewRouteForm'
 
 export const metadata = { title: 'Routes — Distribution' }
@@ -18,6 +19,8 @@ interface StopCount { route_id: string }
 export default async function RoutesPage() {
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
+  const region = regionForMarket(market)
+  const dbKey  = region.slug
   const sb     = createAdminClient()
 
   let routes: RouteRow[] = []
@@ -27,10 +30,10 @@ export default async function RoutesPage() {
     const [rRes, sRes] = await Promise.all([
       sb.from('circulation_routes')
         .select('id, name, city, active, sort_order')
-        .eq('market', market)
+        .eq('market', dbKey)
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true }),
-      sb.from('circulation_stops').select('route_id').eq('market', market).eq('active', true),
+      sb.from('circulation_stops').select('route_id').eq('market', dbKey).eq('active', true),
     ])
     routes = (rRes.data ?? []) as RouteRow[]
     const stops = (sRes.data ?? []) as StopCount[]
@@ -49,10 +52,13 @@ export default async function RoutesPage() {
             <Truck size={18} className="text-blue-600" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Routes</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Market: {market.toUpperCase()}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Region: <span className="font-semibold text-gray-700">{region.name}</span>
+            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
+          </p>
         </div>
 
-        <NewRouteForm market={market} />
+        <NewRouteForm market={dbKey} />
 
         <section>
           <AdminSectionHeader title="All routes" count={routes.length} />

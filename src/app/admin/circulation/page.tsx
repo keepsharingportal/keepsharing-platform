@@ -10,6 +10,7 @@ import { Navigation, MapPin, Users, Truck, ArrowRight, Upload, Map as MapIcon } 
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
+import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
 import { CirculationImporter } from './CirculationImporter'
 
 export const metadata = { title: 'Distribution Routes — Admin' }
@@ -20,9 +21,13 @@ interface RouteRow { id: string; name: string; active: boolean }
 interface DriverRow { user_id: string; full_name: string; active: boolean }
 
 export default async function CirculationOverviewPage() {
-  const ctx    = await requireAdmin()
-  const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
-  const sb     = createAdminClient()
+  const ctx     = await requireAdmin()
+  // Distribution is region-scoped, not pub-scoped. Resolve whichever pub
+  // the admin is viewing to its region's primary slug.
+  const market  = ctx.viewingAll ? 'rrp' : ctx.activeMarket
+  const region  = regionForMarket(market)
+  const dbKey   = region.slug
+  const sb      = createAdminClient()
 
   let routes:  RouteRow[]  = []
   let stops:   StopRow[]   = []
@@ -31,9 +36,9 @@ export default async function CirculationOverviewPage() {
 
   try {
     const [rRes, sRes, dRes] = await Promise.all([
-      sb.from('circulation_routes').select('id, name, active').eq('market', market),
-      sb.from('circulation_stops').select('route_id, quantities, lat, lng, active').eq('market', market),
-      sb.from('circulation_drivers').select('user_id, full_name, active').eq('market', market),
+      sb.from('circulation_routes').select('id, name, active').eq('market', dbKey),
+      sb.from('circulation_stops').select('route_id, quantities, lat, lng, active').eq('market', dbKey),
+      sb.from('circulation_drivers').select('user_id, full_name, active').eq('market', dbKey),
     ])
     if (rRes.error && /relation .* does not exist/i.test(rRes.error.message)) tableMissing = true
     routes  = (rRes.data ?? []) as RouteRow[]
@@ -65,7 +70,9 @@ export default async function CirculationOverviewPage() {
           </div>
           <p className="text-sm text-gray-500 max-w-2xl">
             Manage physical magazine delivery — routes, stops, drivers, and the public pickup-location maps.
-            Market: <span className="font-semibold text-gray-700">{market.toUpperCase()}</span>
+            Region: <span className="font-semibold text-gray-700">{region.name}</span>
+            <span className="text-gray-400"> · </span>
+            <span className="font-semibold text-gray-700">{publicationLabelsForRegion(region)}</span>
           </p>
         </header>
 
@@ -137,7 +144,7 @@ export default async function CirculationOverviewPage() {
             title="Import from PHP portal"
             description="Wipes + reloads stops for this market from a JSON export of the standalone drivers.keepsharing.com portal."
           />
-          <CirculationImporter market={market} />
+          <CirculationImporter market={dbKey} regionName={region.name} pubLabels={publicationLabelsForRegion(region)} />
         </section>
 
         {/* ── Deferred features note ─────────────────────────────────────── */}

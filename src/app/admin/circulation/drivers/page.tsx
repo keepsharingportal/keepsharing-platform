@@ -5,6 +5,7 @@ import { ArrowLeft, Users } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
+import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
 import { DriversEditor, type Driver } from './DriversEditor'
 
 export const metadata = { title: 'Drivers — Distribution' }
@@ -13,14 +14,16 @@ export const dynamic  = 'force-dynamic'
 export default async function DriversPage() {
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
+  const region = regionForMarket(market)
+  const dbKey  = region.slug
   const sb     = createAdminClient()
 
   let drivers: Driver[] = []
   let routes: Array<{ id: string; name: string }> = []
   try {
     const [dRes, rRes, arRes] = await Promise.all([
-      sb.from('circulation_drivers').select('*').eq('market', market).order('full_name'),
-      sb.from('circulation_routes').select('id, name').eq('market', market).eq('active', true).order('sort_order').order('name'),
+      sb.from('circulation_drivers').select('*').eq('market', dbKey).order('full_name'),
+      sb.from('circulation_routes').select('id, name').eq('market', dbKey).eq('active', true).order('sort_order').order('name'),
       sb.from('circulation_driver_routes').select('driver_id, route_id'),
     ])
     const baseDrivers = (dRes.data ?? []) as Omit<Driver, 'route_ids'>[]
@@ -46,7 +49,10 @@ export default async function DriversPage() {
             <Users size={18} className="text-blue-600" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Drivers</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Market: {market.toUpperCase()}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Region: <span className="font-semibold text-gray-700">{region.name}</span>
+            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
+          </p>
         </div>
 
         <section>
@@ -55,7 +61,7 @@ export default async function DriversPage() {
             count={drivers.length}
             description="Adding a driver mints a Supabase auth user. They sign in via magic link."
           />
-          <DriversEditor market={market} initialDrivers={drivers} availableRoutes={routes} />
+          <DriversEditor market={dbKey} initialDrivers={drivers} availableRoutes={routes} />
         </section>
       </div>
     </div>
