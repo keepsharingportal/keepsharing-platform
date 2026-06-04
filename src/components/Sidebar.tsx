@@ -123,6 +123,25 @@ const NAV: NavItem[] = [
   { section: 'DISTRIBUTION' },
   { name: 'Distribution', href: '/admin/distribution', icon: Send },
 
+  // ── DISTRIBUTION ROUTES (physical magazine delivery) ──────────────────
+  // Ported from the standalone PHP "Distribution Portal" that ran at
+  // drivers.keepsharing.com. Manages physical magazine delivery: routes,
+  // stops with GPS, drivers, monthly delivery cycles, public Leaflet maps.
+  // Distinct from "Distribution" above (content distribution: homepage,
+  // newsletter, social).
+  { section: 'DISTRIBUTION ROUTES' },
+  {
+    name: 'Distribution Routes',
+    href: '/admin/circulation',
+    icon: Navigation,
+    children: [
+      { name: 'Overview',  href: '/admin/circulation'         },
+      { name: 'Routes',    href: '/admin/circulation/routes'  },
+      { name: 'Drivers',   href: '/admin/circulation/drivers' },
+      { name: 'Map',       href: '/admin/circulation/map'     },
+    ],
+  },
+
   // ── ADS & SPONSORS ──────────────────────────────────────────────────────
   // Slot Map = where every ad spot lives, what it costs, who owns it.
   // All Bookings = raw ad_placements list for power-edit.
