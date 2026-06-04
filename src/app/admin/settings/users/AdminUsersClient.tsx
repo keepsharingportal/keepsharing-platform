@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Plus, Search, RefreshCw, Shield, ShieldCheck, Pencil, Trash2, Mail,
-  CheckCircle2, X, ChevronDown, AlertTriangle, Send,
+  CheckCircle2, X, ChevronDown, AlertTriangle, Send, KeyRound,
 } from 'lucide-react'
 import { MARKETS, marketShort, marketDisplayName } from '@/lib/markets'
 import {
@@ -717,6 +717,109 @@ function EditRowPanel({
           Cancel
         </button>
       </div>
+
+      {/* Password reset — collapsible. Hidden for invited-but-never-logged-in
+          rows; we can't set a password until Supabase has minted an auth user
+          for them. */}
+      <PasswordResetSection row={row} />
+    </div>
+  )
+}
+
+// ── Password reset (collapsible inside the edit panel) ──────────────────────
+
+function PasswordResetSection({ row }: { row: AdminUserRow }) {
+  const [open, setOpen] = useState(false)
+  const [pw1,  setPw1]  = useState('')
+  const [pw2,  setPw2]  = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg,  setMsg]  = useState<{ ok: boolean; text: string } | null>(null)
+
+  const cannotReset = !row.user_id
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    setMsg(null)
+    if (pw1.length < 8) { setMsg({ ok: false, text: 'Password must be at least 8 characters.' }); return }
+    if (pw1 !== pw2)    { setMsg({ ok: false, text: "Passwords don't match." });                  return }
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/admin/users/${row.id}/reset-password`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ password: pw1 }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setMsg({ ok: false, text: json?.error ?? `HTTP ${res.status}` })
+        return
+      }
+      setPw1(''); setPw2('')
+      setMsg({ ok: true, text: `Password updated for ${row.email}. Share it with them through a secure channel.` })
+    } finally { setBusy(false) }
+  }
+
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+
+  return (
+    <div className="mt-4 pt-4 border-t border-blue-100">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-800 hover:text-blue-950"
+      >
+        <KeyRound size={12} />
+        Set or reset password
+        <ChevronDown size={11} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {cannotReset && (
+        <p className="mt-2 text-[11px] text-amber-700 inline-flex items-center gap-1">
+          <AlertTriangle size={11} /> Available once they sign in for the first time via magic link.
+        </p>
+      )}
+      {open && !cannotReset && (
+        <form onSubmit={submit} className="mt-3 grid sm:grid-cols-2 gap-3 max-w-md">
+          <div>
+            <label className={lbl}>New password</label>
+            <input
+              type="password"
+              value={pw1}
+              onChange={e => setPw1(e.target.value)}
+              autoComplete="new-password"
+              placeholder="Min 8 characters"
+              className={inp}
+            />
+          </div>
+          <div>
+            <label className={lbl}>Confirm</label>
+            <input
+              type="password"
+              value={pw2}
+              onChange={e => setPw2(e.target.value)}
+              autoComplete="new-password"
+              placeholder="Repeat password"
+              className={inp}
+            />
+          </div>
+          <div className="sm:col-span-2 flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={busy || !pw1 || !pw2}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+            >
+              {busy ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
+              {busy ? 'Saving…' : 'Set password'}
+            </button>
+            {msg && (
+              <p className={`text-xs font-semibold inline-flex items-center gap-1 ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {msg.ok ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
+                {msg.text}
+              </p>
+            )}
+          </div>
+        </form>
+      )}
     </div>
   )
 }
