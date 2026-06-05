@@ -3,7 +3,7 @@
 // its stops.
 
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Plus, Truck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Plus, Truck, Download, GripVertical } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
@@ -56,6 +56,20 @@ export default async function RoutesPage() {
             Region: <span className="font-semibold text-gray-700">{region.name}</span>
             <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
           </p>
+          <div className="mt-2 flex items-center gap-1.5">
+            <a
+              href={`/api/admin/circulation/export?market=${dbKey}&format=csv`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
+              <Download size={11} /> Export CSV
+            </a>
+            <a
+              href={`/api/admin/circulation/export?market=${dbKey}&format=json`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
+              <Download size={11} /> Export JSON
+            </a>
+          </div>
         </div>
 
         <NewRouteForm market={dbKey} />
@@ -69,21 +83,24 @@ export default async function RoutesPage() {
           ) : (
             <ul className="space-y-2">
               {routes.map(r => (
-                <li key={r.id}>
+                <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3 flex items-center gap-3 hover:border-blue-300 transition-colors">
+                  <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
+                      {r.name}
+                      {!r.active && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {counts.get(r.id) ?? 0} stops {r.city ? ` · ${r.city}` : ''}
+                    </p>
+                  </Link>
                   <Link
-                    href={`/admin/circulation/routes/${r.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300 transition-colors"
+                    href={`/admin/circulation/routes/${r.id}/reorder`}
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
-                        {r.name}
-                        {!r.active && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {counts.get(r.id) ?? 0} stops {r.city ? ` · ${r.city}` : ''}
-                      </p>
-                    </div>
-                    <ArrowRight size={14} className="text-gray-300" />
+                    <GripVertical size={11} /> Reorder
+                  </Link>
+                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-gray-300 hover:text-gray-500">
+                    <ArrowRight size={14} />
                   </Link>
                 </li>
               ))}

@@ -195,8 +195,21 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                 {r.name}
               </button>
             ))}
+            <a
+              href={`/distribution/${market}/driver/run`}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-primary/20 text-primary hover:bg-primary/30"
+            >
+              Full Run →
+            </a>
           </div>
         )}
+
+        {/* Secondary actions strip */}
+        <div className="container pb-3 flex items-center gap-3 text-xs">
+          <a href={`/distribution/${market}/driver/invoices`} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <Send className="h-3 w-3" /> My invoices
+          </a>
+        </div>
 
         {/* Progress bar */}
         {view && (

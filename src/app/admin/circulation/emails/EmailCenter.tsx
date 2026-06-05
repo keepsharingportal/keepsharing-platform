@@ -3,7 +3,7 @@
 // Email Center — interactive admin UI for templates, schedules, manual sends,
 // and queue monitoring.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Loader2, Check, Send, RotateCw, AlertTriangle, ChevronDown,
@@ -91,6 +91,17 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
   const [testEmail, setTestEmail] = useState('')
   const [routeId,   setRouteId]   = useState('')
+
+  // Auto-dismiss the success/error toast after a few seconds. Success messages
+  // fade faster (4s) so the UI stops shouting once the action lands; error
+  // messages linger longer (8s) so the admin can actually read them. Cleanup
+  // the timer if a new result comes in before the previous one expires.
+  useEffect(() => {
+    if (!result) return
+    const ttl = result.ok ? 4000 : 8000
+    const id  = setTimeout(() => setResult(null), ttl)
+    return () => clearTimeout(id)
+  }, [result])
 
   async function call(action: string, extra: Record<string, unknown> = {}) {
     setBusy(action)

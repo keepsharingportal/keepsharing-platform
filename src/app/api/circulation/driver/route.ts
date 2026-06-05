@@ -206,6 +206,54 @@ export async function POST(req: NextRequest) {
 
   const { error } = await sb.from('circulation_delivery_stops').update(updates).eq('id', body.delivery_stop_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // When a driver flips a stop to checked=true, enqueue a stop_delivered
+  // email to the contact (if there is one). Only on the transition into
+  // checked, not when they uncheck and re-check.
+  if (body.checked === true) {
+    try {
+      const { data: ds } = await sb
+        .from('circulation_delivery_stops')
+        .select('id, stop_id, circulation_stops(name, contact_name, contact_email, market), circulation_deliveries(month)')
+        .eq('id', body.delivery_stop_id)
+        .maybeSingle()
+      type DS = { id: string; stop_id: string; circulation_stops?: { name: string; contact_name: string | null; contact_email: string | null; market: string } | null; circulation_deliveries?: { month: string } | null }
+      const row = ds as DS | null
+      const stop = row?.circulation_stops
+      if (stop?.contact_email) {
+        const region = regionForMarket(stop.market)
+        const settings = await getSettings(stop.market)
+        const monthStr = row?.circulation_deliveries?.month ?? ''
+        const monthLabel = monthStr ? new Date(monthStr + '-01T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
+        const rendered = await renderTemplate({
+          market:    stop.market,
+          key:       'stop_delivered',
+          context: {
+            contact_first: (stop.contact_name ?? '').split(' ')[0] ?? '',
+            stop_name:     stop.name,
+            pub_name:      region.publications.map(p => p.toUpperCase()).join(' & '),
+            month:         monthLabel,
+            pub_website:   settings.pub_website ?? '',
+          },
+          brandName:  region.name + ' Distribution',
+          brandColor: '#1A5FA8',
+        })
+        if (rendered) {
+          await enqueue({
+            market:          stop.market,
+            template_key:    'stop_delivered',
+            to_email:        stop.contact_email,
+            to_name:         stop.contact_name,
+            subject:         rendered.subject,
+            body_html:       rendered.html,
+            reply_to:        settings.ops_email || null,
+            related_stop_id: row?.stop_id ?? null,
+          })
+        }
+      }
+    } catch { /* don't block check-off */ }
+  }
+
   return NextResponse.json({ ok: true })
 }
 

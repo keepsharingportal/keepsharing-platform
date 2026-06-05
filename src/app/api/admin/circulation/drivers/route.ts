@@ -13,6 +13,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
+import { renderTemplate, getSettings } from '@/lib/circulation/email'
+import { enqueue } from '@/lib/circulation/emailQueue'
+import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
 
@@ -130,6 +133,44 @@ async function finishDriver(
     const links = body.route_ids.map(rid => ({ driver_id: userId, route_id: rid }))
     await client.from('circulation_driver_routes').insert(links)
   }
+
+  // Fire driver_welcome email — best-effort. Includes the login URL so
+  // they know where to go after the magic link.
+  try {
+    const region   = regionForMarket(market)
+    const settings = await getSettings(market)
+    let routeList = ''
+    if (Array.isArray(body.route_ids) && body.route_ids.length > 0) {
+      const { data: routes } = await client.from('circulation_routes').select('name').in('id', body.route_ids)
+      routeList = (routes ?? []).map(r => (r as { name: string }).name).join(', ')
+    }
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+    const rendered = await renderTemplate({
+      market,
+      key:     'driver_welcome',
+      context: {
+        first_name:    (body.full_name ?? '').split(' ')[0] ?? '',
+        login_url:     `${baseUrl}/distribution/${market}/driver`,
+        driver_email:  body.email ?? '',
+        temp_password: '(use the magic link in this email)',
+        route_list:    routeList || '(none yet — ops will assign soon)',
+      },
+      brandName:  region.name + ' Distribution',
+      brandColor: '#1A5FA8',
+    })
+    if (rendered && body.email) {
+      await enqueue({
+        market,
+        template_key:      'driver_welcome',
+        to_email:          body.email,
+        to_name:           body.full_name ?? null,
+        subject:           rendered.subject,
+        body_html:         rendered.html,
+        reply_to:          settings.ops_email || null,
+        related_driver_id: userId,
+      })
+    }
+  } catch { /* don't block driver creation */ }
 
   return NextResponse.json({ driver: data })
 }

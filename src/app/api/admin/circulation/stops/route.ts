@@ -9,6 +9,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
+import { renderTemplate, getSettings } from '@/lib/circulation/email'
+import { enqueue } from '@/lib/circulation/emailQueue'
+import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
 
@@ -60,8 +63,43 @@ export async function POST(req: NextRequest) {
   }
   for (const f of FIELDS) if (body[f] !== undefined) row[f] = body[f]
 
-  const { data, error } = await sb().from('circulation_stops').insert(row).select('*').single()
+  const client = sb()
+  const { data, error } = await client.from('circulation_stops').insert(row).select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Fire stop_welcome to the new stop's contact, if it has an email.
+  try {
+    type S = { id?: string; market?: string; name?: string; contact_name?: string | null; contact_email?: string | null }
+    const s = data as S
+    if (s.contact_email && s.market) {
+      const region = regionForMarket(s.market)
+      const settings = await getSettings(s.market)
+      const rendered = await renderTemplate({
+        market: s.market,
+        key:    'stop_welcome',
+        context: {
+          contact_first: (s.contact_name ?? '').split(' ')[0] ?? '',
+          stop_name:     s.name ?? '',
+          pub_name:      region.publications.map(p => p.toUpperCase()).join(' & '),
+        },
+        brandName:  region.name + ' Distribution',
+        brandColor: '#1A5FA8',
+      })
+      if (rendered) {
+        await enqueue({
+          market:          s.market,
+          template_key:    'stop_welcome',
+          to_email:        s.contact_email,
+          to_name:         s.contact_name ?? null,
+          subject:         rendered.subject,
+          body_html:       rendered.html,
+          reply_to:        settings.ops_email || null,
+          related_stop_id: s.id ?? null,
+        })
+      }
+    }
+  } catch { /* don't block stop creation */ }
+
   return NextResponse.json({ stop: data })
 }
 
