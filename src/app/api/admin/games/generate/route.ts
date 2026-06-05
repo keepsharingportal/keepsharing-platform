@@ -12,7 +12,11 @@ import { DIFFICULTIES, type Difficulty, type GameId } from '@/lib/games/types'
 import { generateContent } from '@/lib/games/ai-generator'
 
 export const runtime  = 'nodejs'
-export const maxDuration = 120  // give Claude time on big generations
+// Vercel Pro plan caps at 300s. Family Connect at count=5 (16 words ×
+// 4 themed groups × adaptive thinking per puzzle on Sonnet 4.6) was
+// blowing past 120s. 300 gives headroom without burning budget on
+// runaway calls — the Anthropic SDK still cuts off on its own limits.
+export const maxDuration = 300
 
 const VALID_GAMES: GameId[] = ['scramble', 'emoji', 'math', 'trivia', 'memory', 'family-connect']
 
