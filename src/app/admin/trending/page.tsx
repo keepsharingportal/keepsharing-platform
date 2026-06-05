@@ -183,26 +183,40 @@ async function reorderItems(formData: FormData) {
 export default async function TrendingAdminPage() {
   const supabase = await createClient()
 
-  // Auto-archive: anything whose end_at is more than 30 days in the past
-  // and isn't already archived. Cheap because of the partial index on
-  // archived_at. We pull the affected ids back so we can show a small
-  // toast saying how many were swept up.
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: archivedRows } = await supabase
-    .from('trending_items')
-    .update({ archived_at: new Date().toISOString(), is_active: false })
-    .lt('end_at', thirtyDaysAgo)
-    .is('archived_at', null)
-    .select('id')
-  const autoArchivedCount = archivedRows?.length ?? 0
+  // Probe: does the archived_at column exist? If migration 117 hasn't
+  // been applied yet, gracefully skip the auto-archive sweep and the
+  // archived_at filter in the select. The TrendingList component treats
+  // archived_at as null on every row so the rest of the UI still works.
+  const probe = await supabase.from('trending_items').select('archived_at').limit(1)
+  const archiveMigrationApplied = !probe.error
+  let autoArchivedCount = 0
+
+  if (archiveMigrationApplied) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const { data: archivedRows } = await supabase
+      .from('trending_items')
+      .update({ archived_at: new Date().toISOString(), is_active: false })
+      .lt('end_at', thirtyDaysAgo)
+      .is('archived_at', null)
+      .select('id')
+    autoArchivedCount = archivedRows?.length ?? 0
+  }
+
+  const cols = archiveMigrationApplied
+    ? 'id, emoji, label, link, display_order, is_active, start_at, end_at, archived_at, created_at'
+    : 'id, emoji, label, link, display_order, is_active, start_at, end_at, created_at'
 
   const { data } = await supabase
     .from('trending_items')
-    .select('id, emoji, label, link, display_order, is_active, start_at, end_at, archived_at, created_at')
+    .select(cols)
     .order('display_order', { ascending: true })
     .order('created_at',    { ascending: false })
 
-  const items = (data ?? []) as TrendingItem[]
+  type RawRow = Omit<TrendingItem, 'archived_at'> & { archived_at?: string | null }
+  const items: TrendingItem[] = ((data ?? []) as unknown as RawRow[]).map(r => ({
+    ...r,
+    archived_at: r.archived_at ?? null,
+  }))
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
@@ -228,6 +242,36 @@ export default async function TrendingAdminPage() {
             View homepage →
           </a>
         </header>
+
+        {/* Migration banner — only shows until 117 is applied. */}
+        {!archiveMigrationApplied && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-bold">Migration 117 not applied yet</p>
+            <p className="text-xs mt-1">
+              Apply <code className="px-1 bg-amber-100 rounded">supabase/migrations/117_trending_archived.sql</code> in Supabase Studio to enable auto-archive, the Archived filter, and the Archive bulk action. The page works without it — those features just sit dormant.
+            </p>
+          </div>
+        )}
+
+        {/* Fallback notice — when the DB is empty, the homepage falls back
+            to a hardcoded "starter pack" until the editor adds real items.
+            Show that pack here so the editor knows what's rendering and
+            can either add their own items (which take over) or live with
+            the defaults. */}
+        {items.length === 0 && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm">
+            <p className="font-bold text-blue-900 mb-1">No items in the database yet</p>
+            <p className="text-xs text-blue-800 mb-3">
+              While the table is empty, the homepage shows these hardcoded fallback items so the trending strip isn&apos;t blank. Add your first real item below — once you do, the fallback stops rendering.
+            </p>
+            <ul className="space-y-1 text-xs text-blue-900">
+              <li>⛺ Summer Camp Guide 2026 → <code className="bg-blue-100 px-1 rounded">/summer-camp-guide</code></li>
+              <li>🏠 Family Resource Guide → <code className="bg-blue-100 px-1 rounded">/family-resource-guide</code></li>
+              <li>🏆 Nominate a Teacher of the Month → <code className="bg-blue-100 px-1 rounded">/nominate</code></li>
+              <li>📅 Upcoming Community Events → <code className="bg-blue-100 px-1 rounded">/calendar</code></li>
+            </ul>
+          </div>
+        )}
 
         <TrendingList
           initialItems={items}

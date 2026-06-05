@@ -81,10 +81,13 @@ async function getHomepageData() {
   ] = await Promise.all([
     // Trending bar — only items currently within their scheduled window.
     // start_at/end_at are nullable; null means "no bound on that side."
+    // Trending bar — only items currently within their scheduled window.
+    // start_at/end_at are nullable; null means "no bound on that side."
+    // archived_at filter is applied client-side below to stay tolerant of
+    // pre-migration-117 DBs where the column doesn't exist yet.
     supabase.from('trending_items')
       .select('*')
       .eq('is_active', true)
-      .is('archived_at', null)
       .or(`start_at.is.null,start_at.lte.${nowIso}`)
       .or(`end_at.is.null,end_at.gte.${nowIso}`)
       .order('display_order'),
@@ -318,7 +321,12 @@ async function getHomepageData() {
     }))
 
   return {
-    trending:          trendingRes.data ?? [],
+    // Filter archived items client-side so this works whether or not
+    // migration 117 has added the column. Rows without the column have
+    // `archived_at: undefined` which !== null but isn't a problem here —
+    // we explicitly check for a non-null value.
+    trending:          ((trendingRes.data ?? []) as Array<{ archived_at?: string | null }>)
+                         .filter(t => !t.archived_at),
     mainFeature,
     momKnowsPosts:     momKnowsPostsRes.data ?? [],
     bloggers:          bloggersRes.data ?? [],

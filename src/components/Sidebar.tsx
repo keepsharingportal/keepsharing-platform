@@ -103,6 +103,7 @@ const NAV: NavItem[] = [
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
   { name: 'Submitted Content', href: '/admin/community',   icon: Heart     },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
+  { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
 
   // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },
