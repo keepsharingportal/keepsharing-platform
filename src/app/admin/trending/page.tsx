@@ -13,7 +13,7 @@
 import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 import { TrendingUp } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { TrendingList, type TrendingItem } from './TrendingList'
 
 export const metadata: Metadata = { title: 'Trending Bar — Admin' }
@@ -23,7 +23,7 @@ export const dynamic  = 'force-dynamic'
 
 async function createItem(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const emoji         = ((formData.get('emoji')         as string) || '').trim() || null
   const label         = ((formData.get('label')         as string) || '').trim()
   const link          = ((formData.get('link')          as string) || '').trim()
@@ -33,7 +33,7 @@ async function createItem(formData: FormData) {
 
   if (!label || !link) return
 
-  await supabase.from('trending_items').insert({
+  const { error } = await supabase.from('trending_items').insert({
     emoji,
     label,
     link,
@@ -42,6 +42,7 @@ async function createItem(formData: FormData) {
     start_at: start_at ? new Date(start_at).toISOString() : null,
     end_at:   end_at   ? new Date(end_at).toISOString()   : null,
   })
+  if (error) console.error('[trending createItem]', error)
 
   revalidatePath('/admin/trending')
   revalidatePath('/')
@@ -49,7 +50,7 @@ async function createItem(formData: FormData) {
 
 async function updateItem(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id            = (formData.get('id')            as string) || ''
   const emoji         = ((formData.get('emoji')        as string) || '').trim() || null
   const label         = ((formData.get('label')        as string) || '').trim()
@@ -77,7 +78,7 @@ async function updateItem(formData: FormData) {
 // action bar at the bottom of the list.
 async function bulkAction(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const ids    = ((formData.get('ids')    as string) || '').split(',').filter(Boolean)
   const action = (formData.get('action') as string) || ''
   if (ids.length === 0 || !action) return
@@ -110,7 +111,7 @@ async function bulkAction(formData: FormData) {
 // Single-item quick actions used by the per-row buttons.
 async function toggleActive(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id      = (formData.get('id') as string) || ''
   const current = (formData.get('current') as string) === 'true'
   if (!id) return
@@ -121,7 +122,7 @@ async function toggleActive(formData: FormData) {
 
 async function endNow(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id = (formData.get('id') as string) || ''
   if (!id) return
   await supabase.from('trending_items').update({ end_at: new Date().toISOString() }).eq('id', id)
@@ -131,7 +132,7 @@ async function endNow(formData: FormData) {
 
 async function archiveItem(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id = (formData.get('id') as string) || ''
   if (!id) return
   await supabase.from('trending_items').update({
@@ -144,7 +145,7 @@ async function archiveItem(formData: FormData) {
 
 async function restoreItem(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id = (formData.get('id') as string) || ''
   if (!id) return
   await supabase.from('trending_items').update({ archived_at: null }).eq('id', id)
@@ -154,7 +155,7 @@ async function restoreItem(formData: FormData) {
 
 async function deleteItem(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id = (formData.get('id') as string) || ''
   if (!id) return
   await supabase.from('trending_items').delete().eq('id', id)
@@ -166,7 +167,7 @@ async function deleteItem(formData: FormData) {
 // display_order = array index for each. One round trip, all in order.
 async function reorderItems(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const ids = ((formData.get('ids') as string) || '').split(',').filter(Boolean)
   if (ids.length === 0) return
   // Sequential updates; tiny payloads, low contention. Doing them in one
@@ -181,7 +182,7 @@ async function reorderItems(formData: FormData) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function TrendingAdminPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Probe: does the archived_at column exist? If migration 117 hasn't
   // been applied yet, gracefully skip the auto-archive sweep and the
