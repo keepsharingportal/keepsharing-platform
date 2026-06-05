@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   // run on every public request in normal operation.
   if (!path.startsWith('/api/') && !path.startsWith('/go/') && !path.startsWith('/_next/')) {
     const maint = await checkMaintenanceMode()
-    if (maint && !(await hasSupabaseSession(request))) {
+    if (maint && !(await hasAdminSession(request))) {
       return new NextResponse(MAINTENANCE_HTML, {
         status: 503,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '300' },
@@ -145,13 +145,21 @@ async function gateAdmin(request: NextRequest) {
 }
 
 // ── Maintenance bypass for staff ─────────────────────────────────────────
-// Cheap, no-DB session check: if the request carries a Supabase auth
-// cookie that returns a user, let them through the 503. Same Supabase
-// SSR adapter used by gateAdmin — reading cookies, no admin_users
-// lookup. Anyone with a working session can preview the site during
-// maintenance; the actual /admin gate still requires admin_users
-// membership, so this isn't a security loosening.
-async function hasSupabaseSession(request: NextRequest): Promise<boolean> {
+// Previously this allowed ANY signed-in Supabase user through the 503
+// (drivers, bloggers, advertisers, anyone who clicked a magic link
+// once). Tightened to require an admin_users row.
+//
+// Cost: one extra `admin_users` lookup per public request when maintenance
+// is on. Cached per user_id with a 5-minute TTL so it's effectively one
+// query per session per 5min, not one per page. While maintenance is
+// off (the normal case) this function isn't called at all.
+//
+// Why per-user_id cache instead of per-cookie: cookies rotate on token
+// refresh; user_id is stable. So a session that refreshes mid-cache
+// still gets the cached answer.
+const adminUserCache: Map<string, { isAdmin: boolean; expires: number }> = new Map()
+
+async function hasAdminSession(request: NextRequest): Promise<boolean> {
   try {
     const sb = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -164,7 +172,29 @@ async function hasSupabaseSession(request: NextRequest): Promise<boolean> {
       },
     )
     const { data: { user } } = await sb.auth.getUser()
-    return !!user
+    if (!user) return false
+
+    const now = Date.now()
+    const hit = adminUserCache.get(user.id)
+    if (hit && now < hit.expires) return hit.isAdmin
+
+    // Service-role lookup. admin_users RLS would block the anon path, so
+    // we use the service key to settle the question.
+    const admin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { cookies: { getAll: () => [], setAll: () => {} } },
+    )
+    const { data: row } = await admin
+      .from('admin_users')
+      .select('id')
+      .or(`user_id.eq.${user.id},email.ilike.${user.email ?? ''}`)
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle()
+    const isAdmin = !!row
+    adminUserCache.set(user.id, { isAdmin, expires: now + 5 * 60 * 1000 })
+    return isAdmin
   } catch {
     return false
   }

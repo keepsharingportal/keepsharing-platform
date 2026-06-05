@@ -16,7 +16,6 @@ import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-ta
 import { articleHref } from '@/lib/articles/slug'
 import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/RecentIssuesCarousel'
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
-import { SummerFunBlock } from '@/components/homepage/SummerFunBlock'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
 import { BestOfBlock } from '@/components/homepage/BestOfBlock'
 import { ArticleCard, SectionHeader } from '@/components/theme'
@@ -284,12 +283,8 @@ async function getHomepageData() {
       href:  '/family-resource-guide',
       image: sectionHeroes['newcomer'] ?? '/images/heroes/family-resource-hero.jpg',
     },
-    {
-      title: 'Summer Fun',
-      desc:  'Camps, splash pads & family adventures',
-      href:  '/summer-fun-guide',
-      image: sectionHeroes['summer-fun'] ?? '/images/heroes/summer-fun-hero.jpg',
-    },
+    // Summer Fun tile hidden — guide content not ready yet. Restore by
+    // adding the tile back here once /summer-fun-guide is publishable.
   ]
 
   // ── Magazine issues — single carousel feed (current first, then recent) ─
@@ -534,7 +529,12 @@ export default async function HomePage() {
             second card hides itself and the FRG card spans the row. */}
         {(() => {
           const featuredIsFRG = featuredGuide?.url_slug === 'family-resource-guide'
-          const showFeatured  = !!featuredGuide && !featuredIsFRG
+          // Block the Summer Fun guide from showing in this slot until
+          // its content is ready. When guide_configs picks it for the
+          // current month, we just hide the second tile and let FRG
+          // span full-width.
+          const featuredIsNotReady = featuredGuide?.url_slug === 'summer-fun-guide'
+          const showFeatured  = !!featuredGuide && !featuredIsFRG && !featuredIsNotReady
           return (
             <section className={`grid gap-3 md:gap-5 ${showFeatured ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
               {/* Family Resource Guide — always here */}
@@ -636,8 +636,7 @@ export default async function HomePage() {
           ))}
         </section>
 
-        {/* Summer Fun Block */}
-        <SummerFunBlock />
+        {/* Summer Fun Block hidden — guide content not ready yet. */}
 
         {/* Best of the Region — featured block above the portal */}
         <BestOfBlock />
