@@ -232,11 +232,21 @@ async function checkMaintenanceMode(): Promise<boolean> {
   if (maintenanceCache && now < maintenanceCache.expires) {
     return maintenanceCache.on
   }
+  // First — env-var override. If MAINTENANCE_MODE=true is set in Vercel,
+  // force the site offline regardless of what the DB says. Belt-and-
+  // suspenders for the "I can't get the DB read to work" case.
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    maintenanceCache = { on: true, expires: now + 30_000 }
+    return true
+  }
   try {
-    const sb = createServerClient(
+    // Service-role read. site_settings has RLS that blocks the anon key,
+    // which is why the previous version silently returned false even when
+    // the DB had maintenance_mode='true'. Service role bypasses RLS.
+    const sb = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll: () => [], setAll: () => {} } },
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
     )
     const { data } = await sb
       .from('site_settings')
