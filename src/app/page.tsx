@@ -84,6 +84,7 @@ async function getHomepageData() {
     supabase.from('trending_items')
       .select('*')
       .eq('is_active', true)
+      .is('archived_at', null)
       .or(`start_at.is.null,start_at.lte.${nowIso}`)
       .or(`end_at.is.null,end_at.gte.${nowIso}`)
       .order('display_order'),
