@@ -135,10 +135,13 @@ const NAV: NavItem[] = [
     href: '/admin/circulation',
     icon: Navigation,
     children: [
-      { name: 'Overview',  href: '/admin/circulation'         },
-      { name: 'Routes',    href: '/admin/circulation/routes'  },
-      { name: 'Drivers',   href: '/admin/circulation/drivers' },
-      { name: 'Map',       href: '/admin/circulation/map'     },
+      { name: 'Overview',         href: '/admin/circulation'             },
+      { name: 'Routes',           href: '/admin/circulation/routes'      },
+      { name: 'Drivers',          href: '/admin/circulation/drivers'     },
+      { name: 'Map',              href: '/admin/circulation/map'         },
+      { name: 'Deliveries',       href: '/admin/circulation/deliveries'  },
+      { name: 'Change Requests',  href: '/admin/circulation/changes'     },
+      { name: 'Location Requests', href: '/admin/circulation/requests'   },
     ],
   },
 

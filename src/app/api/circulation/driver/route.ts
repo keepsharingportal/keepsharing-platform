@@ -114,43 +114,149 @@ export async function GET(req: NextRequest) {
   })
 }
 
+// POST handles four actions, chosen via the `action` field:
+//   - (default / checked toggle): { delivery_stop_id, checked, notes?, flag?, flag_note?, driver_note?, leftovers?, leftovers_json? }
+//   - action: 'submit-delivery'   → mark a single delivery as submitted
+//   - action: 'submit-all'        → mark every draft delivery for this driver this month as submitted (Full Run)
 export async function POST(req: NextRequest) {
   const driver = await getDriver()
   if (!driver) return NextResponse.json({ error: 'Not a driver' }, { status: 403 })
 
   const body = await req.json().catch(() => null) as {
+    action?:           'submit-delivery' | 'submit-all'
+    delivery_id?:      string
     delivery_stop_id?: string
-    checked?:    boolean
-    notes?:      string | null
-    flag?:       string | null
-    flag_note?:  string | null
+    checked?:          boolean
+    notes?:            string | null    // legacy alias for driver_note
+    driver_note?:      string | null
+    leftovers?:        number
+    leftovers_json?:   Record<string, number>
+    flag?:             string | null
+    flag_note?:        string | null
+    driver_notes?:     string           // for submit-delivery: route-level invoice note
+    month?:            string           // YYYY-MM for submit-all
   } | null
-  if (!body?.delivery_stop_id) return NextResponse.json({ error: 'delivery_stop_id required' }, { status: 400 })
+  if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
 
   const sb = admin()
 
-  // Verify this delivery_stop belongs to a delivery owned by this driver
-  // — drivers can't toggle someone else's checklist by manipulating ids.
+  // ── submit-delivery: driver finishes their route, fires invoice email ───
+  if (body.action === 'submit-delivery') {
+    if (!body.delivery_id) return NextResponse.json({ error: 'delivery_id required' }, { status: 400 })
+    const result = await submitOneDelivery(sb, driver, body.delivery_id, body.driver_notes ?? '')
+    if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status ?? 500 })
+    return NextResponse.json({ ok: true, ...result.summary })
+  }
+
+  // ── submit-all: every draft delivery for this driver this month ─────────
+  if (body.action === 'submit-all') {
+    const month = body.month?.trim() || thisMonth()
+    const { data: drafts } = await sb
+      .from('circulation_deliveries')
+      .select('id')
+      .eq('driver_id', driver.user_id)
+      .eq('month', month)
+      .eq('status', 'draft')
+    if (!drafts || drafts.length === 0) return NextResponse.json({ error: 'No draft deliveries to submit' }, { status: 400 })
+
+    let totalStops = 0
+    let totalPay   = 0
+    for (const d of drafts) {
+      const result = await submitOneDelivery(sb, driver, d.id as string, body.driver_notes ?? '')
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status ?? 500 })
+      totalStops += result.summary?.stops ?? 0
+      totalPay   += result.summary?.pay   ?? 0
+    }
+    return NextResponse.json({ ok: true, submitted: drafts.length, stops: totalStops, pay: totalPay })
+  }
+
+  // ── default: update a single delivery_stop row ──────────────────────────
+  if (!body.delivery_stop_id) return NextResponse.json({ error: 'delivery_stop_id required' }, { status: 400 })
+
+  // Verify ownership.
   const { data: row, error: lookErr } = await sb
     .from('circulation_delivery_stops')
-    .select('id, delivery_id, circulation_deliveries(driver_id)')
+    .select('id, delivery_id, circulation_deliveries(driver_id, status)')
     .eq('id', body.delivery_stop_id)
     .maybeSingle()
   if (lookErr || !row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  // The joined column will look like { driver_id: '...' } when the embed worked.
-  const ownerId = (row as { circulation_deliveries?: { driver_id?: string } | null }).circulation_deliveries?.driver_id
-  if (ownerId !== driver.user_id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const parent = (row as { circulation_deliveries?: { driver_id?: string; status?: string } | null }).circulation_deliveries
+  if (parent?.driver_id !== driver.user_id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  // Lock submitted deliveries — driver can read but can't toggle once submitted.
+  if (parent.status && parent.status !== 'draft') {
+    return NextResponse.json({ error: 'This delivery has already been submitted and is locked.' }, { status: 409 })
+  }
 
   const updates: Record<string, unknown> = {}
   if (body.checked !== undefined) {
     updates.checked    = body.checked
     updates.checked_at = body.checked ? new Date().toISOString() : null
   }
-  if (body.notes      !== undefined) updates.notes      = body.notes
+  // `notes` is the legacy field name from the older API call. `driver_note` is
+  // the canonical new one. Accept both; map to driver_note.
+  if (body.driver_note !== undefined) updates.driver_note = body.driver_note
+  else if (body.notes  !== undefined) updates.driver_note = body.notes
+  if (body.leftovers      !== undefined) updates.leftovers      = body.leftovers
+  if (body.leftovers_json !== undefined) updates.leftovers_json = body.leftovers_json
   if (body.flag       !== undefined) updates.flag       = body.flag
   if (body.flag_note  !== undefined) updates.flag_note  = body.flag_note
 
   const { error } = await sb.from('circulation_delivery_stops').update(updates).eq('id', body.delivery_stop_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
+}
+
+// Shared submit logic — counts completed stops, computes pay, flips status.
+// Used by both single-delivery submit and Full Run submit-all.
+async function submitOneDelivery(
+  sb:        ReturnType<typeof admin>,
+  driver:    { user_id: string; market: string },
+  deliveryId: string,
+  driverNotes: string,
+): Promise<{ ok: true; summary: { stops: number; pay: number } } | { ok: false; error: string; status?: number }> {
+  // Verify ownership + draft status.
+  const { data: del, error: dErr } = await sb
+    .from('circulation_deliveries')
+    .select('id, driver_id, status, route_id')
+    .eq('id', deliveryId)
+    .maybeSingle()
+  if (dErr || !del) return { ok: false, error: 'Delivery not found', status: 404 }
+  if (del.driver_id !== driver.user_id) return { ok: false, error: 'Forbidden', status: 403 }
+  if (del.status !== 'draft') return { ok: false, error: 'Already submitted', status: 409 }
+
+  // Count completed stops excluding pickup-only + not-delivering stops.
+  const { data: stopRows } = await sb
+    .from('circulation_delivery_stops')
+    .select('checked, stop_id, circulation_stops(is_pickup, not_delivering)')
+    .eq('delivery_id', deliveryId)
+  type StopJoin = { checked: boolean; stop_id: string; circulation_stops?: { is_pickup: boolean; not_delivering: boolean } | null }
+  const eligible = (stopRows as StopJoin[] | null ?? []).filter(s => !s.circulation_stops?.is_pickup && !s.circulation_stops?.not_delivering)
+  const done     = eligible.filter(s => s.checked).length
+
+  // Look up the driver's rate.
+  const { data: drv } = await sb
+    .from('circulation_drivers')
+    .select('rate_per_stop, full_name, email')
+    .eq('user_id', driver.user_id)
+    .maybeSingle()
+  const rate = (drv as { rate_per_stop?: number } | null)?.rate_per_stop ?? 0
+  const pay  = Math.round(done * rate * 100) / 100
+
+  const { error: upErr } = await sb
+    .from('circulation_deliveries')
+    .update({
+      status:           'submitted',
+      stops_completed:  done,
+      pay_calculated:   pay,
+      driver_notes:     driverNotes || null,
+      submitted_at:     new Date().toISOString(),
+    })
+    .eq('id', deliveryId)
+  if (upErr) return { ok: false, error: upErr.message, status: 500 }
+
+  // TODO Phase B: enqueue driver_invoice_confirm + admin notify emails via
+  // circulation_email_queue. For now the deliveries admin shows the new row
+  // immediately and the admin can act on it.
+
+  return { ok: true, summary: { stops: done, pay } }
 }

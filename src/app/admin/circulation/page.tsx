@@ -6,7 +6,7 @@
 // Drivers, Map, and (eventually) Deliveries and Email Center.
 
 import Link from 'next/link'
-import { Navigation, MapPin, Users, Truck, ArrowRight, Upload, Map as MapIcon } from 'lucide-react'
+import { Navigation, MapPin, Users, Truck, ArrowRight, Upload, Map as MapIcon, Receipt, AlertTriangle, Package, Mail, GitPullRequest } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
@@ -34,16 +34,50 @@ export default async function CirculationOverviewPage() {
   let drivers: DriverRow[] = []
   let tableMissing = false
 
+  // Pending counts + low performers (from the new deliveries flow)
+  let pendingChanges  = 0
+  let pendingRequests = 0
+  let pendingInvoices = 0
+  interface LowPerf { stop_id: string; stop_name: string; route_name: string; leftovers: number; month: string }
+  let lowPerformers: LowPerf[] = []
+
   try {
-    const [rRes, sRes, dRes] = await Promise.all([
+    const [rRes, sRes, dRes, cReqRes, lReqRes, invRes, lpRes] = await Promise.all([
       sb.from('circulation_routes').select('id, name, active').eq('market', dbKey),
       sb.from('circulation_stops').select('route_id, quantities, lat, lng, active').eq('market', dbKey),
       sb.from('circulation_drivers').select('user_id, full_name, active').eq('market', dbKey),
+      sb.from('circulation_change_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
+      sb.from('circulation_location_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
+      sb.from('circulation_deliveries').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'submitted'),
+      sb.from('circulation_delivery_stops')
+        .select('stop_id, leftovers, circulation_stops!inner(name, market, circulation_routes!inner(name)), circulation_deliveries!inner(month, market)')
+        .gt('leftovers', 0)
+        .order('leftovers', { ascending: false })
+        .limit(10),
     ])
     if (rRes.error && /relation .* does not exist/i.test(rRes.error.message)) tableMissing = true
     routes  = (rRes.data ?? []) as RouteRow[]
     stops   = (sRes.data ?? []) as StopRow[]
     drivers = (dRes.data ?? []) as DriverRow[]
+    pendingChanges  = cReqRes.count ?? 0
+    pendingRequests = lReqRes.count ?? 0
+    pendingInvoices = invRes.count  ?? 0
+
+    type LpRow = {
+      stop_id:   string
+      leftovers: number
+      circulation_stops?: { name?: string; market?: string; circulation_routes?: { name?: string } | null } | null
+      circulation_deliveries?: { month?: string; market?: string } | null
+    }
+    lowPerformers = (lpRes.data as LpRow[] | null ?? [])
+      .filter(r => r.circulation_stops?.market === dbKey)
+      .map(r => ({
+        stop_id:    r.stop_id,
+        stop_name:  r.circulation_stops?.name ?? '(stop)',
+        route_name: r.circulation_stops?.circulation_routes?.name ?? '(route)',
+        leftovers:  r.leftovers ?? 0,
+        month:      r.circulation_deliveries?.month ?? '',
+      }))
   } catch { tableMissing = true }
 
   // ── Aggregations ─────────────────────────────────────────────────────────
@@ -107,6 +141,67 @@ export default async function CirculationOverviewPage() {
           </section>
         )}
 
+        {/* ── Pending actions strip ─────────────────────────────────────── */}
+        {(pendingInvoices + pendingChanges + pendingRequests) > 0 && (
+          <section>
+            <AdminSectionHeader title="Needs your attention" description="Pending items across distribution" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {pendingInvoices > 0 && (
+                <Link href="/admin/circulation/deliveries" className="rounded-xl border border-blue-200 bg-blue-50 p-3 hover:border-blue-300 transition-colors flex items-center gap-3">
+                  <Receipt size={18} className="text-blue-600 shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-blue-900">{pendingInvoices} invoice{pendingInvoices === 1 ? '' : 's'} to review</p>
+                    <p className="text-[11px] text-blue-700">Drivers submitted, awaiting payment</p>
+                  </div>
+                </Link>
+              )}
+              {pendingChanges > 0 && (
+                <Link href="/admin/circulation/changes" className="rounded-xl border border-amber-200 bg-amber-50 p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
+                  <GitPullRequest size={18} className="text-amber-600 shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-amber-900">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>
+                    <p className="text-[11px] text-amber-700">Driver-submitted stop edits</p>
+                  </div>
+                </Link>
+              )}
+              {pendingRequests > 0 && (
+                <Link href="/admin/circulation/requests" className="rounded-xl border border-purple-200 bg-purple-50 p-3 hover:border-purple-300 transition-colors flex items-center gap-3">
+                  <Mail size={18} className="text-purple-600 shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-purple-900">{pendingRequests} location request{pendingRequests === 1 ? '' : 's'}</p>
+                    <p className="text-[11px] text-purple-700">Businesses asking to be added</p>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ── Low performers (high-leftover stops) ──────────────────────── */}
+        {lowPerformers.length > 0 && (
+          <section>
+            <AdminSectionHeader
+              title="Low performers"
+              description="Stops with high leftover counts — candidates for reducing quantities or removing"
+            />
+            <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+              {lowPerformers.map(lp => (
+                <div key={`${lp.stop_id}-${lp.month}`} className="p-3 flex items-center gap-3">
+                  <Package size={14} className="text-amber-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{lp.stop_name}</p>
+                    <p className="text-[11px] text-gray-500 truncate">{lp.route_name} · {lp.month}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-lg font-bold text-amber-700">{lp.leftovers}</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">leftover</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Routes summary ─────────────────────────────────────────────── */}
         <section>
           <AdminSectionHeader
@@ -150,15 +245,15 @@ export default async function CirculationOverviewPage() {
         {/* ── Deferred features note ─────────────────────────────────────── */}
         <section className="rounded-xl border border-gray-200 bg-gray-50 p-4">
           <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">
-            <Upload size={12} /> Coming in follow-up sessions
+            <Upload size={12} /> Coming next
           </p>
           <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
-            <li>Monthly deliveries cycle (driver submits → admin reviews → bookkeeper pays)</li>
-            <li>Email Center — 7 automated templates with editable subject/body</li>
-            <li>Change requests admin (driver-submitted stop edits)</li>
-            <li>Location requests inbox (public form submissions)</li>
+            <li>Email Center — 8 templates with editable subject/body, per-route schedules, queue + manual sends</li>
+            <li>Live delivery progress monitor (real-time view of every active route)</li>
+            <li>Full Run combined view for drivers with multiple routes</li>
+            <li>Route reorder UI (drag-drop + driver suggestion approval + snapshots)</li>
             <li>OpenStreetMap geocoding UI for stops missing lat/lng</li>
-            <li>Per-route schedule + settings page</li>
+            <li>Settings + publications admin pages</li>
           </ul>
         </section>
       </div>

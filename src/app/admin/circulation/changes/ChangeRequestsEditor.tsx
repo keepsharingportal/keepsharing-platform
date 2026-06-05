@@ -1,0 +1,174 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Check, X, Loader2, AlertTriangle, MapPin } from 'lucide-react'
+
+export interface ChangeRequest {
+  id:                   string
+  market:               string
+  type:                 string  // edit | close | new | qty | move
+  field_name:           string | null
+  old_value:            string | null
+  new_value:            string | null
+  notes:                string | null
+  status:               string
+  created_at:           string
+  reviewed_at:          string | null
+  stop_id:              string | null
+  route_id:             string
+  driver_id:            string
+  circulation_stops?:   { name: string; address: string | null; city: string | null } | null
+  circulation_routes?:  { name: string } | null
+  circulation_drivers?: { full_name: string; email: string } | null
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  edit:  'Edit',
+  close: 'Close stop',
+  new:   'New stop',
+  qty:   'Wrong qty',
+  move:  'Move stop',
+}
+const TYPE_BADGE: Record<string, string> = {
+  edit:  'bg-blue-100 text-blue-800',
+  close: 'bg-red-100 text-red-800',
+  new:   'bg-purple-100 text-purple-800',
+  qty:   'bg-amber-100 text-amber-800',
+  move:  'bg-indigo-100 text-indigo-800',
+}
+
+const STATUSES = ['pending', 'approved', 'rejected']
+
+export function ChangeRequestsEditor({ initial, activeStatus }: { initial: ChangeRequest[]; activeStatus: string }) {
+  const router = useRouter()
+  const params = useSearchParams()
+  const [rows,  setRows]  = useState<ChangeRequest[]>(initial)
+  const [busy,  setBusy]  = useState<string | null>(null)
+  const [err,   setErr]   = useState<string | null>(null)
+
+  function gotoStatus(s: string) {
+    const q = new URLSearchParams(params)
+    q.set('status', s)
+    router.push(`/admin/circulation/changes?${q.toString()}`)
+  }
+
+  async function patch(id: string, action: 'approve' | 'reject' | 'apply') {
+    setBusy(`${id}-${action}`)
+    setErr(null)
+    try {
+      const res = await fetch('/api/admin/circulation/change-requests', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id, action }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(j.error ?? 'Action failed')
+      }
+      setRows(prev => prev.filter(r => r.id !== id))
+      router.refresh()
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-gray-500 mr-1">Status:</span>
+        {STATUSES.map(s => (
+          <button
+            key={s}
+            onClick={() => gotoStatus(s)}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {err && <p className="text-xs text-red-600">{err}</p>}
+
+      {rows.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
+          <p className="text-sm text-gray-500">No {activeStatus} change requests.</p>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map(r => (
+            <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3">
+              <div className="flex flex-wrap items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${TYPE_BADGE[r.type] ?? 'bg-gray-100 text-gray-700'}`}>
+                      {TYPE_LABEL[r.type] ?? r.type}
+                    </span>
+                    <p className="text-sm font-bold text-gray-900 truncate">{r.circulation_stops?.name ?? 'New / unknown stop'}</p>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                    <MapPin size={9} className="inline mb-0.5 mr-0.5" />
+                    {r.circulation_routes?.name ?? '(route)'}
+                    {r.circulation_stops?.address && <> · {r.circulation_stops.address}</>}
+                  </p>
+                  <p className="text-[11px] text-gray-700 mt-1">
+                    From <span className="font-semibold">{r.circulation_drivers?.full_name ?? '(driver)'}</span>
+                    {' '} · {new Date(r.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </p>
+                  {r.field_name && (
+                    <p className="text-[11px] text-gray-700 mt-1">
+                      <span className="text-gray-500">Field:</span> <span className="font-semibold">{r.field_name}</span>
+                      {r.new_value && <> · <span className="text-gray-500">Wants:</span> <span className="font-semibold">{r.new_value}</span></>}
+                    </p>
+                  )}
+                  {r.notes && (
+                    <p className="text-[11px] text-gray-700 mt-1 italic">📝 {r.notes}</p>
+                  )}
+                </div>
+
+                {r.status === 'pending' && (
+                  <div className="shrink-0 flex flex-col gap-1.5">
+                    {(r.type === 'edit' || r.type === 'qty' || r.type === 'close') && r.stop_id && (
+                      <button
+                        onClick={() => patch(r.id, 'apply')}
+                        disabled={busy !== null}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {busy === `${r.id}-apply` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                        Apply
+                      </button>
+                    )}
+                    <button
+                      onClick={() => patch(r.id, 'approve')}
+                      disabled={busy !== null}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                    >
+                      {busy === `${r.id}-approve` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                      Approve only
+                    </button>
+                    <button
+                      onClick={() => patch(r.id, 'reject')}
+                      disabled={busy !== null}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {busy === `${r.id}-reject` ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {r.status !== 'pending' && r.type === 'new' && (
+                <p className="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500 inline-flex items-center gap-1">
+                  <AlertTriangle size={11} /> &ldquo;New stop&rdquo; requests need to be created manually in Routes.
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
