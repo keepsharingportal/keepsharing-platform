@@ -15,7 +15,7 @@ export default async function PublicationsPage() {
   const sb = createAdminClient()
   let pubs: Publication[] = []
   try {
-    const { data } = await sb.from('publications').select('*').order('sort_order').order('short_name')
+    const { data } = await sb.from('circulation_publications').select('*').order('sort_order').order('short_name')
     pubs = (data ?? []) as Publication[]
   } catch { /* table missing */ }
 

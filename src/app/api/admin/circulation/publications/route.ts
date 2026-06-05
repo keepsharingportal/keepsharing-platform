@@ -18,7 +18,7 @@ const FIELDS = ['name', 'abbrev', 'color_hex', 'logo_url', 'print_total', 'holdb
 
 export async function GET() {
   await requireAdmin()
-  const { data, error } = await sb().from('publications').select('*').order('sort_order').order('short_name')
+  const { data, error } = await sb().from('circulation_publications').select('*').order('sort_order').order('short_name')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ publications: data ?? [] })
 }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
   const row: Record<string, unknown> = { short_name: body.short_name.trim().toLowerCase(), name: body.name.trim(), abbrev: body.abbrev.trim() }
   for (const f of FIELDS) if (body[f] !== undefined) row[f] = body[f]
-  const { data, error } = await sb().from('publications').insert(row).select('*').single()
+  const { data, error } = await sb().from('circulation_publications').insert(row).select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ publication: data })
 }
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
   if (!body?.id) return NextResponse.json({ error: 'id required' }, { status: 400 })
   const updates: Record<string, unknown> = {}
   for (const f of FIELDS) if (body[f] !== undefined) updates[f] = body[f]
-  const { error } = await sb().from('publications').update(updates).eq('id', body.id)
+  const { error } = await sb().from('circulation_publications').update(updates).eq('id', body.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
