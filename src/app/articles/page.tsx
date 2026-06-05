@@ -293,7 +293,8 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
               {[
                 { label: 'School Zone',          href: '/school-zone',        desc: 'Student spotlights, teacher features, school news', emoji: '🎓' },
                 { label: 'School Bits',           href: '/school-bits',        desc: 'Roundup stories from schools across the River Region', emoji: '📚' },
-                { label: 'Summer Fun Guide',      href: '/summer-fun-guide',   desc: 'Camps, splash pads, day trips, and bucket lists',     emoji: '☀️' },
+                // Summer Fun Guide tile hidden — content not ready yet.
+                // Restore the line when ready: { label: 'Summer Fun Guide', href: '/summer-fun-guide', desc: '...', emoji: '☀️' }
                 { label: 'Family Resource Guide', href: '/family-resource-guide', desc: 'Local services, health, childcare, and support',  emoji: '🏠' },
                 { label: 'Mom to Mom',            href: '/columns/mom-to-mom', desc: 'Real stories from River Region moms',                emoji: '❤️' },
                 { label: 'Events Calendar',       href: '/calendar',           desc: 'What\'s happening around the River Region',          emoji: '📅' },

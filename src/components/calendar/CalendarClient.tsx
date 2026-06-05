@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { EventCard } from '@/components/theme'
 import { EVENT_CATEGORIES, categoryLabel } from '@/lib/calendar-taxonomy'
-import { RecurringEventRow, isRoutineRecurring } from './RecurringEventRow'
+// RecurringEventRow kept as a re-export hook in case we want to bring
+// back the "Weekly Picks" lane later. Not used in current render.
+// import { RecurringEventRow } from './RecurringEventRow'
 import { CalendarAdCard, SponsorAdBanner } from './CalendarAds'
 import type { ActiveAd } from '@/lib/get-active-ads'
 
@@ -61,7 +63,10 @@ const TIME_WINDOWS = [
 // "More" dropdown. Hyperlocal calendars are usually weighted toward a few
 // categories — surfacing the long tail in a dropdown keeps the strip clean
 // without losing access.
-const VISIBLE_CHIPS = 5
+// Mobile: pull 3 chips before going into "More". Desktop: 6. The
+// container scrolls horizontally anyway, but tight chip counts on small
+// screens stop the row from feeling like a scroll trap.
+const VISIBLE_CHIPS = 6
 
 function fmtRange(ev: CalEvent): string {
   if (!ev.start_date) return ''
@@ -86,7 +91,7 @@ function ListRow({ ev }: { ev: CalEvent }) {
     <div className="border-b border-border last:border-0">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full text-left flex items-center gap-4 py-4 hover:bg-muted/50 px-3 rounded-xl transition-colors"
+        className="group w-full text-left flex items-center gap-4 py-4 hover:bg-muted/50 px-3 rounded-xl transition-colors"
       >
         {ev.start_date && (
           <div className="shrink-0 text-center w-14">
@@ -130,7 +135,13 @@ function ListRow({ ev }: { ev: CalEvent }) {
             {ev.category && <span className="opacity-70">· {categoryLabel(ev.category)}</span>}
           </div>
         </div>
-        <ChevronRight className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
+        {/* CTA — visible at all times so readers know there's more to see.
+            Acts as a click affordance on the whole row (the parent
+            button toggles open) and the chevron animates to signal state. */}
+        <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-primary group-hover:bg-primary/10 transition-colors">
+          {open ? 'Hide' : 'View details'}
+          <ChevronRight className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+        </span>
       </button>
       {open && (
         <div className="px-3 pb-4 pl-[calc(3.5rem+1rem+0.75rem)]">
@@ -250,18 +261,29 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 
   return (
     <>
-      {/* Sticky filter bar */}
+      {/* ── Sticky filter bar ─────────────────────────────────────────────
+          Single visual row on desktop: category chips on the left (with
+          horizontal scroll + edge fade so the cut-off doesn't feel like a
+          rendering bug), category dropdown for the rest, then the time +
+          free + search controls tucked into a compact "Filters" cluster
+          on the right, with Grid/List toggle at the very end.
+
+          Mobile: chips wrap to one scrollable row, controls drop to a
+          second row but they're aligned and minimal.  */}
       <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container py-3 space-y-2">
-          {/* Row 1 — category chips + view toggle (mirrors the mockup) */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <div className="container py-3 flex items-center gap-3 flex-wrap md:flex-nowrap">
+
+          {/* Category chips — scrollable on overflow with a soft edge fade
+              so it visually communicates "more this way" instead of just
+              chopping off. */}
+          <div className="flex-1 min-w-0 relative">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pr-6">
               <button
                 onClick={() => mark(setCategory)('all')}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ring-1 ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                   category === 'all'
-                    ? 'bg-foreground text-background ring-foreground'
-                    : 'bg-card text-foreground ring-border hover:bg-muted'
+                    ? 'bg-foreground text-background'
+                    : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
                 }`}
               >
                 All Events
@@ -270,10 +292,10 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                 <button
                   key={c.slug}
                   onClick={() => mark(setCategory)(c.slug)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ring-1 ${
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
                     category === c.slug
-                      ? 'bg-foreground text-background ring-foreground'
-                      : 'bg-card text-foreground ring-border hover:bg-muted'
+                      ? 'bg-foreground text-background'
+                      : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
                   }`}
                 >
                   {c.label}
@@ -285,45 +307,24 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                   onChange={e => mark(setCategory)(e.target.value || 'all')}
                   className="shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-card ring-1 ring-border hover:bg-muted cursor-pointer focus:outline-none"
                 >
-                  <option value="">More…</option>
+                  <option value="">More categories…</option>
                   {overflowCats.map(c => (
                     <option key={c.slug} value={c.slug}>{c.emoji} {c.label}</option>
                   ))}
                 </select>
               )}
             </div>
-
-            {/* Grid / List toggle — coral active background to match the mockup. */}
-            <div className="shrink-0 flex items-center gap-0.5 bg-muted rounded-full p-1">
-              <button
-                onClick={() => setView('grid')}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold transition-colors ${
-                  view === 'grid' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" /> Grid
-              </button>
-              <button
-                onClick={() => setView('list')}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold transition-colors ${
-                  view === 'list' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-                aria-label="List view"
-              >
-                <List className="h-3.5 w-3.5" /> List
-              </button>
-            </div>
+            {/* Right-edge fade — soft white-to-transparent so the cut chip
+                looks intentional rather than a glitch. */}
+            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
 
-          {/* Row 2 — secondary filters: time window, free, search, subscribe */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            {/* Time-window dropdown — collapsed into a small select so the
-                chip row above stays the visual headline. */}
+          {/* Time + free + search — single right-side cluster. */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <select
               value={when}
               onChange={e => mark(setWhen)(e.target.value)}
-              className="px-2.5 py-1 text-xs font-semibold bg-transparent text-muted-foreground hover:text-foreground rounded-full focus:outline-none cursor-pointer"
+              className="px-2.5 py-1.5 text-xs font-semibold bg-card text-foreground rounded-full ring-1 ring-border hover:bg-muted focus:outline-none cursor-pointer"
             >
               {TIME_WINDOWS.map(t => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -332,13 +333,14 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 
             <button
               onClick={() => mark(setFree)(!free)}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
+              title="Show only free events"
+              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 free
                   ? 'bg-[var(--fg-sage-light)] text-[var(--fg-sage)] ring-1 ring-[var(--fg-sage)]/30'
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
               }`}
             >
-              Free only
+              Free
             </button>
 
             {searchOpen ? (
@@ -351,32 +353,58 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                   onChange={e => mark(setSearch)(e.target.value)}
                   onBlur={() => { if (!search) setSearchOpen(false) }}
                   placeholder="Search events…"
-                  className="pl-7 pr-2 py-1 text-xs bg-card rounded-full ring-1 ring-border focus:ring-primary outline-none w-48"
+                  className="pl-7 pr-2 py-1.5 text-xs bg-card rounded-full ring-1 ring-border focus:ring-primary outline-none w-48"
                 />
               </div>
             ) : (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                title="Search events"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
               >
-                <Search className="h-3 w-3" /> Search
+                <Search className="h-3.5 w-3.5" />
               </button>
             )}
+
+            {/* Grid / List toggle */}
+            <div className="flex items-center gap-0.5 bg-muted rounded-full p-1 ml-1">
+              <button
+                onClick={() => setView('grid')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+                  view === 'grid' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                aria-label="Grid view"
+              >
+                <LayoutGrid className="h-3 w-3" /> Grid
+              </button>
+              <button
+                onClick={() => setView('list')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+                  view === 'list' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                aria-label="List view"
+              >
+                <List className="h-3 w-3" /> List
+              </button>
+            </div>
 
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAll}
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                title="Clear all filters"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                <X className="h-3 w-3" /> Clear filters
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
 
-            <div className="ml-auto">
-              <details className="group relative">
-                <summary className="list-none cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-                  <CalIcon className="h-3 w-3" /> Subscribe
-                </summary>
+            <details className="group relative">
+              <summary
+                className="list-none cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
+                title="Subscribe to the calendar"
+              >
+                <CalIcon className="h-3 w-3" /> Subscribe
+              </summary>
                 <div className="absolute right-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-lg p-3 z-50 text-sm">
                   <p className="font-bold text-foreground mb-2">Add to your calendar</p>
                   <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
@@ -399,21 +427,24 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                       Download .ics file
                     </a>
                     <p className="text-[11px] text-muted-foreground mt-2">
-                      Apple Calendar / Outlook: copy the .ics URL and use “Subscribe to Calendar.”
+                      Apple Calendar / Outlook: copy the .ics URL and use &ldquo;Subscribe to Calendar.&rdquo;
                     </p>
                   </div>
                 </div>
               </details>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Events */}
-      <main className="container py-8 space-y-10">
+      <main className="container py-8 space-y-12">
         {/* Top sponsor banner — reads from ad_placements if booked,
-            otherwise renders the "Media Kit" placeholder. */}
-        <SponsorAdBanner placement="calendar-top" variant="tan" ad={topBannerAd} />
+            otherwise renders the "Media Kit" placeholder. mb-4 adds extra
+            breathing room above the first event row so the ad doesn't
+            visually crash into the event list below it. */}
+        <div className="mb-4">
+          <SponsorAdBanner placement="calendar-top" variant="tan" ad={topBannerAd} />
+        </div>
 
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Loading events…</div>
@@ -454,14 +485,16 @@ const PAGE_SIZE  = 12       // events per page, ad slots ON TOP of this
 const AD_INDICES = [3, 8]   // 0-indexed positions inside each batch of PAGE_SIZE
 
 function ThreeTierGrid({ events, inlineAds, bottomBannerAd }: { events: CalEvent[]; inlineAds: ActiveAd[]; bottomBannerAd: ActiveAd | null }) {
+  // Per editor request (Jun 2026): recurring events are no longer pulled
+  // into a separate "Weekly Picks" pile at the bottom. They get one event
+  // card per occurrence in the main grid, just like one-off events.
+  // expandRecurrences() already does the heavy lifting upstream — we
+  // just stop filtering them out here.
   const featured: CalEvent[] = []
   const standard: CalEvent[] = []
-  const routine:  CalEvent[] = []
 
   for (const ev of events) {
-    if (isRoutineRecurring(ev)) {
-      routine.push(ev)
-    } else if (ev.is_featured) {
+    if (ev.is_featured) {
       featured.push(ev)
     } else {
       standard.push(ev)
@@ -562,19 +595,10 @@ function ThreeTierGrid({ events, inlineAds, bottomBannerAd }: { events: CalEvent
         </section>
       )}
 
-      {routine.length > 0 && (
-        <section>
-          <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-1.5 inline-flex items-center gap-2">
-            <span>Weekly picks — recurring favorites</span>
-          </h2>
-          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-            Storytime, library days, weekly movie nights — the routine stuff parents come back for. Click any row for details and add it to your calendar.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-2.5">
-            {routine.map(ev => <RecurringEventRow key={ev.id} event={ev} />)}
-          </div>
-        </section>
-      )}
+      {/* Weekly Picks routine section removed Jun 2026 — recurring events
+          now flow inline in the main grid above (one card per occurrence).
+          The RecurringEventRow component is no longer rendered here but
+          kept in the codebase for possible future use. */}
     </>
   )
 }

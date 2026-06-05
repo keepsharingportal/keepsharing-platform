@@ -61,13 +61,18 @@ export const HEADER_LOCAL: NavItem[] = [
 // Guides + Local each have their own children arrays; toggling the
 // .dropdown key hides the entire group.
 export const HEADER_TOP_LEVEL: NavItem[] = [
-  { key: 'header.guides.dropdown', label: 'Guides',         href: '#guides'                  },
-  { key: 'header.calendar',        label: 'Calendar',       href: '/calendar'                },
-  { key: 'header.articles',        label: 'Articles',       href: '/articles'                },
+  // Order set by the editor (Jun 2026): Local first (community focus),
+  // then Calendar (what's happening), Games (engagement), Articles
+  // (depth), Partner (CTA). Guides + Summer Fun hidden until ready —
+  // restore by uncommenting.
   { key: 'header.local.dropdown',  label: 'Local',          href: '#local'                   },
-  { key: 'header.summer-fun',      label: 'Summer Fun',     href: '/summer-fun-guide'        },
+  { key: 'header.calendar',        label: 'Calendar',       href: '/calendar'                },
   { key: 'header.games',           label: 'Games & Prizes', href: '/games'                   },
+  { key: 'header.articles',        label: 'Articles',       href: '/articles'                },
   { key: 'header.partners',        label: 'Partner With Us',href: '/partners'                },
+  // Hidden during launch — restore when content is ready:
+  // { key: 'header.guides.dropdown', label: 'Guides',     href: '#guides'           },
+  // { key: 'header.summer-fun',      label: 'Summer Fun', href: '/summer-fun-guide' },
   { key: 'header.get-listed',      label: 'Get Listed',     href: '/partners#strategy-call'  },
 ]
 
