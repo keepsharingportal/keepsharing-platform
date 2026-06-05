@@ -25,14 +25,25 @@ type ChildItem = {
   accent?:     boolean
   /** Renders the link with target=_blank — used for previewing public maps. */
   external?:   boolean
-  /** Key matched against a counts payload so we can render pending badges. */
-  badgeKey?:   'pending_changes' | 'pending_requests' | 'pending_deliveries'
+  /**
+   * Key matched against the counts payload so we render a red badge.
+   * Circulation badges come from /api/admin/circulation/counts;
+   * editorial badges (community, school bits, mom insiders) come from
+   * /api/admin/sidebar-counts.
+   */
+  badgeKey?:
+    | 'pending_changes' | 'pending_requests' | 'pending_deliveries'
+    | 'community_nominations' | 'school_bits_pending' | 'mom_insiders_pending'
 }
+
+// Parent items can also carry a badgeKey so the top-level row gets a
+// red number even when the section is collapsed.
+type ParentBadgeKey = NonNullable<ChildItem['badgeKey']>
 
 type NavItem =
   | { section: string }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; settingsOnly?: boolean }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; settingsOnly?: boolean; badgeKey?: ParentBadgeKey }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean; badgeKey?: ParentBadgeKey }
 
 // ── Navigation structure ───────────────────────────────────────────────────
 // Organized around what the user actually does: write/publish content,
@@ -83,7 +94,16 @@ const NAV: NavItem[] = [
     ],
   },
   { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },
-  { name: 'School Bits',       href: '/admin/school-news', icon: GraduationCap },
+  {
+    name: 'School Bits',
+    href: '/admin/school-news',
+    icon: GraduationCap,
+    badgeKey: 'school_bits_pending',
+    children: [
+      { name: 'Active List',          href: '/admin/school-news' },
+      { name: 'Submitted School Bits', href: '/admin/school-news?status=pending', badgeKey: 'school_bits_pending' },
+    ],
+  },
   {
     name: 'Events',
     href: '/admin/events',
@@ -101,7 +121,7 @@ const NAV: NavItem[] = [
     ],
   },
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
-  { name: 'Submitted Content', href: '/admin/community',   icon: Heart     },
+  { name: 'Nominations',       href: '/admin/community',   icon: Heart, badgeKey: 'community_nominations' },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
 
@@ -257,15 +277,20 @@ export function Sidebar() {
     return () => { cancelled = true }
   }, [])
 
-  // Pending counts for the Distribution Portal sidebar badges. Light
-  // single-query endpoint; safe to call every minute.
+  // Pending counts for sidebar badges. Two endpoints: circulation (drivers,
+  // change requests, etc.) and editorial (community nominations, school
+  // bits, mom insiders). Merged into one counts map keyed by badgeKey
+  // string so the render only has to do counts[child.badgeKey].
   useEffect(() => {
     let cancelled = false
     function pull() {
-      fetch('/api/admin/circulation/counts', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() as Promise<Record<string, number>> : null)
-        .then(j => { if (!cancelled && j) setCounts(j) })
-        .catch(() => {/* badges just won't render */})
+      Promise.all([
+        fetch('/api/admin/circulation/counts', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/admin/sidebar-counts',     { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      ]).then(([circ, ed]) => {
+        if (cancelled) return
+        setCounts({ ...(circ ?? {}), ...(ed ?? {}) })
+      })
     }
     pull()
     const id = setInterval(pull, 60_000)
@@ -339,6 +364,13 @@ export function Sidebar() {
           if ('children' in item) {
             const groupActive = isGroupActive(item)
             const isExpanded  = expandedNav === item.name
+            // Show a red badge on the parent row using either the parent's
+            // explicit badgeKey or the sum of all child badges. That way
+            // a collapsed section still tells the editor "something needs
+            // attention in here."
+            const parentBadge = item.badgeKey
+              ? counts[item.badgeKey] ?? 0
+              : item.children.reduce((sum, c) => sum + (c.badgeKey ? counts[c.badgeKey] ?? 0 : 0), 0)
 
             return (
               <div key={item.name}>
@@ -351,6 +383,11 @@ export function Sidebar() {
                 >
                   <item.icon size={15} className="shrink-0" />
                   <span className="flex-1 text-left">{item.name}</span>
+                  {parentBadge > 0 && (
+                    <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                      {parentBadge > 99 ? '99+' : parentBadge}
+                    </span>
+                  )}
                   {isExpanded
                     ? <ChevronDown size={12} className="shrink-0 opacity-40" />
                     : <ChevronRight size={12} className="shrink-0 opacity-40" />}
@@ -431,6 +468,7 @@ export function Sidebar() {
 
           // Single link
           const active = isActive(item.href)
+          const parentBadge = item.badgeKey ? counts[item.badgeKey] ?? 0 : 0
           return (
             <Link
               key={item.name}
@@ -441,7 +479,12 @@ export function Sidebar() {
               )}
             >
               <item.icon size={15} className="shrink-0" />
-              {item.name}
+              <span className="flex-1 truncate">{item.name}</span>
+              {parentBadge > 0 && (
+                <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                  {parentBadge > 99 ? '99+' : parentBadge}
+                </span>
+              )}
             </Link>
           )
         })}

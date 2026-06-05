@@ -6,7 +6,7 @@
 import type { Metadata }         from 'next'
 import { notFound, redirect }    from 'next/navigation'
 import Link                      from 'next/link'
-import { createClient }          from '@/lib/supabase/server'
+import { createAdminClient }     from '@/lib/supabase/admin'
 import { generateCommunityDraft } from '@/lib/community-drafts'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
@@ -198,7 +198,7 @@ export default async function SubmissionDetailPage({
 }) {
   const { id } = await params
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('community_submissions')
@@ -226,7 +226,7 @@ export default async function SubmissionDetailPage({
 
   async function updateStatus(formData: FormData) {
     'use server'
-    const supabase  = await createClient()
+    const supabase  = createAdminClient()
     const newStatus = formData.get('status') as string
     await supabase.from('community_submissions').update({ status: newStatus }).eq('id', id)
     redirect(`/admin/community/${id}`)
@@ -234,7 +234,7 @@ export default async function SubmissionDetailPage({
 
   async function saveEditorNotes(formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const notes    = formData.get('editor_notes') as string
     await supabase.from('community_submissions').update({ editor_notes: notes || null }).eq('id', id)
     redirect(`/admin/community/${id}`)
@@ -242,7 +242,7 @@ export default async function SubmissionDetailPage({
 
   async function saveAssignment(formData: FormData) {
     'use server'
-    const supabase          = await createClient()
+    const supabase          = createAdminClient()
     const assigned_to       = (formData.get('assigned_to')       as string) || null
     const internal_priority =  formData.get('internal_priority') as string
     const issue_month       = (formData.get('issue_month')       as string) || null
@@ -264,7 +264,7 @@ export default async function SubmissionDetailPage({
 
   async function clearDraft(_formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     await supabase
       .from('community_submissions')
       .update({ ai_draft_content: null, ai_draft_status: 'none', ai_prompt_used: null })
@@ -274,7 +274,7 @@ export default async function SubmissionDetailPage({
 
   async function markForEditing(_formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     await supabase
       .from('community_submissions')
       .update({ status: 'in-editing' })
@@ -285,7 +285,7 @@ export default async function SubmissionDetailPage({
   // Saves operator edits to the AI draft; marks it as 'edited' (human-touched).
   async function saveDraftEdits(formData: FormData) {
     'use server'
-    const supabase      = await createClient()
+    const supabase      = createAdminClient()
     const draftContent  = formData.get('draft_content') as string
 
     const { data: cur } = await supabase
@@ -309,7 +309,7 @@ export default async function SubmissionDetailPage({
   // Moves submission into the editorial pipeline queue (status = 'ai-draft-ready').
   async function markReadyForEditorial(_formData: FormData) {
     'use server'
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     await supabase
       .from('community_submissions')
       .update({ status: 'ai-draft-ready' })

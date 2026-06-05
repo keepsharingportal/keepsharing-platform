@@ -44,14 +44,29 @@ const STATUS_FOR_TAB: Record<TabName, string> = {
 const PAGE_SIZE = 30
 
 interface Props {
-  initialBits: SchoolBitRow[]
-  schools:     SchoolOption[]
+  initialBits:    SchoolBitRow[]
+  schools:        SchoolOption[]
+  /**
+   * Status filter to pre-select on mount. Lets the sidebar's "Submitted
+   * School Bits" link land on the pending tab directly. Maps DB status
+   * values ('pending', 'approved', 'rejected') to the matching TabName.
+   */
+  initialStatus?: string | null
 }
 
-export function SchoolNewsClient({ initialBits, schools }: Props) {
+// Reverse lookup so a status query param picks the right tab.
+const TAB_FOR_STATUS: Record<string, TabName> = {
+  pending:  'Pending Review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+}
+
+export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props) {
   const router = useRouter()
   const [bits, setBits]             = useState<SchoolBitRow[]>(initialBits)
-  const [activeTab, setActiveTab]   = useState<TabName>('Pending Review')
+  const [activeTab, setActiveTab]   = useState<TabName>(
+    initialStatus ? (TAB_FOR_STATUS[initialStatus] ?? 'Pending Review') : 'Pending Review'
+  )
   const [quickAdd, setQuickAdd]     = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   // Filters apply to the active tab only — switching tabs preserves them so

@@ -7,7 +7,7 @@
 import type { Metadata }  from 'next'
 import Link               from 'next/link'
 import { revalidatePath } from 'next/cache'
-import { createClient }   from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
   type SubmissionStatus,
@@ -47,7 +47,7 @@ interface Submission {
 
 async function setStatus(formData: FormData) {
   'use server'
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const id       = formData.get('id')     as string
   const status   = formData.get('status') as string
   await supabase.from('community_submissions').update({ status }).eq('id', id)
@@ -103,7 +103,7 @@ export default async function AdminCommunityPage({
 }) {
   const { status: filterStatus, type: filterType } = await searchParams
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Counts-only query for metrics + filter chips
   const { data: allRows } = await supabase

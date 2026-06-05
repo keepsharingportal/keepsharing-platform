@@ -47,8 +47,16 @@ export interface SchoolOption {
   is_private: boolean
 }
 
-export default async function SchoolNewsPage() {
+interface PageProps { searchParams: Promise<{ status?: string }> }
+
+export default async function SchoolNewsPage({ searchParams }: PageProps) {
   const supabase = supabaseAdmin()
+  const sp = await searchParams
+  // status query param ('pending', 'active', etc.) lets the sidebar's
+  // "Submitted School Bits" link land on a pre-filtered view without us
+  // duplicating the page. SchoolNewsClient already supports an initial
+  // status filter prop — we just thread it through.
+  const initialStatus = sp.status ?? null
 
   // Probe — graceful fallback if migration 085 isn't applied yet
   const probe = await supabase.from('school_bits').select('id').limit(1)
@@ -96,7 +104,7 @@ export default async function SchoolNewsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <SchoolNewsClient initialBits={bits} schools={schools} />
+      <SchoolNewsClient initialBits={bits} schools={schools} initialStatus={initialStatus} />
     </div>
   )
 }

@@ -142,6 +142,23 @@ export default async function SubmitTypePage({
       status: 'new',
     })
 
+    // Fire-and-forget editor notification. Best-effort — never block the
+    // submitter on email delivery. Logs failures to Vercel; the
+    // submission row still landed.
+    try {
+      const { notifyEditorOfSubmission } = await import('@/lib/notify/submission-email')
+      await notifyEditorOfSubmission({
+        submissionType: type,
+        submitterName:  submitter_name,
+        submitterEmail: submitter_email,
+        subjectLine:    related_person_name ?? related_business_name ?? related_school_name ?? '(no name given)',
+        payload,
+        photoCount:     photoUrls.length,
+      })
+    } catch (e) {
+      console.error('[submit notify] failed:', e)
+    }
+
     redirect(`/submit/${type}?submitted=true`)
   }
 
