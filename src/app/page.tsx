@@ -19,6 +19,7 @@ import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
 import { BestOfBlock } from '@/components/homepage/BestOfBlock'
 import { ArticleCard, SectionHeader } from '@/components/theme'
+import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
 import type { Metadata } from 'next'
 
 export const revalidate = 600
@@ -66,6 +67,7 @@ async function getHomepageData() {
 
   const [
     trendingRes,
+    autoTrendingRes,
     rotationRes,
     featuredGuideConfigRes,
     eventsRes,
@@ -91,6 +93,13 @@ async function getHomepageData() {
       .or(`start_at.is.null,start_at.lte.${nowIso}`)
       .or(`end_at.is.null,end_at.gte.${nowIso}`)
       .order('display_order'),
+    // Auto-trending — top paths from the last 7 days, used to fill any
+    // trending-bar slots the pinned items don't take. Resolved into
+    // {label, link, emoji} below in buildAutoTrendingItems(). Missing
+    // view (migration 118 not applied yet) degrades to an empty list.
+    supabase.from('trending_paths_7d')
+      .select('path, unique_views')
+      .limit(20),
     // 4-column rotation: latest published article from each rotation column.
     // We fetch them with a single IN query (4 rows max per column would be
     // fine, but 1 each is enough) — done in JS for simplicity.
@@ -328,14 +337,35 @@ async function getHomepageData() {
   if (trendingRes.error) {
     console.warn('[homepage] trending_items query failed:', trendingRes.error.message)
   }
+  // Pre-migration-118 tolerance: if the view doesn't exist yet, the
+  // query returns an error and we just render pinned-only.
+  if (autoTrendingRes.error) {
+    console.warn('[homepage] trending_paths_7d query failed:', autoTrendingRes.error.message)
+  }
+
+  // ── Hybrid trending merge ────────────────────────────────────────────────
+  // Pinned items always win, ordered by display_order. Remaining slots
+  // (up to 4 total) fill from the auto-trending pool, deduped by link.
+  type PinnedRow = {
+    id: string; emoji: string | null; label: string; link: string;
+    display_order: number; archived_at?: string | null
+  }
+  const pinned = ((trendingRes.data ?? []) as PinnedRow[])
+    .filter(t => !t.archived_at)
+  const TRENDING_CAP = 4
+  const remainingSlots = Math.max(0, TRENDING_CAP - pinned.length)
+  const pinnedLinks = new Set(pinned.map(p => p.link))
+  const autoItems = remainingSlots > 0
+    ? await buildAutoTrendingItems(
+        supabase,
+        (autoTrendingRes.data ?? []) as Array<{ path: string; unique_views: number }>,
+        pinnedLinks,
+        remainingSlots,
+      )
+    : []
 
   return {
-    // Filter archived items client-side so this works whether or not
-    // migration 117 has added the column. Rows without the column have
-    // `archived_at: undefined` which !== null but isn't a problem here —
-    // we explicitly check for a non-null value.
-    trending:          ((trendingRes.data ?? []) as Array<{ archived_at?: string | null }>)
-                         .filter(t => !t.archived_at),
+    trending: [...pinned, ...autoItems],
     mainFeature,
     momKnowsPosts:     momKnowsPostsRes.data ?? [],
     bloggers:          bloggersRes.data ?? [],
@@ -388,7 +418,7 @@ export default async function HomePage() {
               Trending:
             </span>
             <div className="w-px h-3.5 bg-primary/30 shrink-0" />
-            {trendingItems.slice(0, 4).map((t: { id?: string; emoji?: string; label?: string; text?: string; href?: string; url?: string; link?: string }, i) => {
+            {trendingItems.slice(0, 4).map((t: { id?: string; emoji?: string | null; label?: string; text?: string; href?: string; url?: string; link?: string }, i) => {
               // DB column is `link`; fallback config uses `href`. Accept either.
               const dest = t.link ?? t.href ?? t.url
               if (!dest) return null   // never render an un-clickable trending item

@@ -72,12 +72,41 @@ function toLocalInput(s: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+interface AutoPreviewItem {
+  id:           string
+  label:        string
+  link:         string
+  emoji:        string | null
+  unique_views: number
+}
+
 export function TrendingList(props: Props) {
   const [items, setItems] = useState<TrendingItem[]>(props.initialItems)
   const [filter, setFilter] = useState<'all-active' | Status>('all-active')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [autoPreview, setAutoPreview] = useState<AutoPreviewItem[]>([])
   const [, startTransition] = useTransition()
+
+  // Fetch the auto-trending pool so the live preview shows EXACTLY what
+  // the homepage renders. Fire on mount + every 2 min so the editor sees
+  // fresh signal while triaging.
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const res  = await fetch('/api/admin/trending/auto')
+        const json = await res.json()
+        if (!cancelled) setAutoPreview(json.items ?? [])
+      } catch {
+        // Auto-trending preview is non-critical — silently ignore so a
+        // missing migration / RLS hiccup doesn't break the page.
+      }
+    }
+    load()
+    const id = setInterval(load, 120_000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
 
   // Reset local state when server-side data changes (after a revalidate).
   useEffect(() => { setItems(props.initialItems); setSelected(new Set()) }, [props.initialItems])
@@ -108,6 +137,21 @@ export function TrendingList(props: Props) {
   }, [items, filter, now])
 
   const liveItems = useMemo(() => items.filter(i => classify(i, now) === 'live'), [items, now])
+
+  // Same merge logic the homepage uses: pinned wins, auto fills the rest
+  // up to 4 total, deduped by link. Lets the editor see what readers see.
+  type PreviewRow = { id: string; label: string; link: string; emoji: string | null; source: 'pinned' | 'auto' }
+  const previewItems: PreviewRow[] = useMemo(() => {
+    const pinned: PreviewRow[] = liveItems.map(i => ({
+      id: i.id, label: i.label, link: i.link, emoji: i.emoji, source: 'pinned',
+    }))
+    const pinnedLinks = new Set(pinned.map(p => p.link))
+    const auto: PreviewRow[] = autoPreview
+      .filter(a => !pinnedLinks.has(a.link))
+      .slice(0, Math.max(0, 4 - pinned.length))
+      .map(a => ({ id: a.id, label: a.label, link: a.link, emoji: a.emoji, source: 'auto' }))
+    return [...pinned, ...auto]
+  }, [liveItems, autoPreview])
 
   // ── Selection ────────────────────────────────────────────────────────────
   function toggleSelect(id: string) {
@@ -175,13 +219,16 @@ export function TrendingList(props: Props) {
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
             <Eye size={14} className="text-gray-400" />
-            Live preview — what the homepage shows right now
+            Live preview — exactly what the homepage shows right now
           </h2>
-          <span className="text-xs text-gray-400">{liveItems.length} of 4 max</span>
+          <span className="text-xs text-gray-400">
+            {previewItems.filter(p => p.source === 'pinned').length} pinned ·{' '}
+            {previewItems.filter(p => p.source === 'auto').length} auto · 4 max
+          </span>
         </div>
         <div className="px-5 py-4 bg-[#fef0eb]">
-          {liveItems.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">No items are live right now. The trending bar won&apos;t render on the homepage until at least one item meets the live criteria.</p>
+          {previewItems.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">Nothing to show. Add a pinned item below, or wait for readers to start visiting pages — auto-trending kicks in once we have view data.</p>
           ) : (
             <div className="flex items-center gap-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary whitespace-nowrap shrink-0">
@@ -189,11 +236,18 @@ export function TrendingList(props: Props) {
                 Trending:
               </span>
               <div className="w-px h-3.5 bg-primary/30 shrink-0" />
-              {liveItems.slice(0, 4).map((t, i) => (
-                <span key={t.id} className="flex items-center gap-1.5 text-sm text-foreground shrink-0 whitespace-nowrap">
+              {previewItems.map((t, i) => (
+                <span
+                  key={t.id}
+                  className="flex items-center gap-1.5 text-sm text-foreground shrink-0 whitespace-nowrap"
+                  title={t.source === 'auto' ? 'Auto-filled from page views' : 'Pinned by you'}
+                >
                   {t.emoji && <span>{t.emoji}</span>}
                   <span className="font-medium">{t.label}</span>
-                  {i < Math.min(liveItems.length, 4) - 1 && <span className="text-primary/30 ml-2">·</span>}
+                  {t.source === 'auto' && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 ml-0.5">auto</span>
+                  )}
+                  {i < previewItems.length - 1 && <span className="text-primary/30 ml-2">·</span>}
                 </span>
               ))}
             </div>
@@ -203,12 +257,14 @@ export function TrendingList(props: Props) {
 
       {/* ── Help ───────────────────────────────────────────────────────── */}
       <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-sm leading-relaxed">
-        <p className="font-bold text-amber-900 mb-1">Smart scheduling</p>
+        <p className="font-bold text-amber-900 mb-1">How the trending bar works</p>
         <ul className="list-disc list-inside text-amber-800 space-y-0.5 text-xs">
+          <li><strong>Pinned items below show first</strong> — these are your editorial picks (Best Of, guides, nominations, etc.).</li>
+          <li><strong>Empty slots auto-fill with the top-visited pages from the last 7 days</strong>. So if you pin 2 items, the bar adds 2 hot pages from real reader traffic.</li>
+          <li>Pin up to 4 items to lock the entire bar. Pin 0 and the bar is 100% data-driven.</li>
           <li><strong>Start</strong> empty = live immediately. <strong>End</strong> empty = no expiry.</li>
-          <li>Each item only appears when it&apos;s active, not archived, AND inside its time window.</li>
-          <li>Drag the grip handle to reorder. Lower order wins when more than 4 items qualify.</li>
-          <li>Items auto-archive 30 days after their <strong>End</strong> date — keeps the list clean, but you can restore from the <em>Archived</em> filter.</li>
+          <li>Drag the grip handle to reorder pinned items.</li>
+          <li>Items auto-archive 30 days after their <strong>End</strong> date — restore from the <em>Archived</em> filter.</li>
         </ul>
       </div>
 
