@@ -10,6 +10,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
+import { renderTemplate, getSettings } from '@/lib/circulation/email'
+import { enqueue } from '@/lib/circulation/emailQueue'
+import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
 
@@ -100,14 +103,16 @@ export async function PATCH(req: NextRequest) {
   const nowIso = new Date().toISOString()
 
   if (body.action === 'mark-paid') {
-    // Pull the current pay_calculated so we can default pay_final to it
-    // when the admin didn't override.
+    // Pull current row for pay_calculated + driver info (need them for the
+    // confirmation email and to default pay_final).
     const { data: cur } = await client
       .from('circulation_deliveries')
-      .select('pay_calculated')
+      .select('pay_calculated, market, month, driver_id, circulation_drivers(full_name, email)')
       .eq('id', body.id)
       .maybeSingle()
-    const calculated = (cur as { pay_calculated?: number } | null)?.pay_calculated ?? 0
+    type Cur = { pay_calculated?: number; market: string; month: string; driver_id: string; circulation_drivers?: { full_name: string; email: string } | null }
+    const row = cur as Cur | null
+    const calculated = row?.pay_calculated ?? 0
     const payFinal = body.pay_final != null && Number.isFinite(body.pay_final) ? body.pay_final : calculated
 
     const { error } = await client
@@ -120,6 +125,44 @@ export async function PATCH(req: NextRequest) {
       })
       .eq('id', body.id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Fire driver_paid email — best-effort.
+    try {
+      if (row?.circulation_drivers?.email) {
+        const market   = row.market
+        const region   = regionForMarket(market)
+        const settings = await getSettings(market)
+        const monthLabel = (() => {
+          const d = new Date(row.month + '-01T12:00:00')
+          return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        })()
+        const rendered = await renderTemplate({
+          market,
+          key:     'driver_paid',
+          context: {
+            first_name: (row.circulation_drivers.full_name ?? '').split(' ')[0] ?? '',
+            month:      monthLabel,
+            pay:        payFinal.toFixed(2),
+          },
+          brandName:  region.name + ' Distribution',
+          brandColor: '#1A5FA8',
+        })
+        if (rendered) {
+          await enqueue({
+            market,
+            template_key:        'driver_paid',
+            to_email:            row.circulation_drivers.email,
+            to_name:             row.circulation_drivers.full_name,
+            subject:             rendered.subject,
+            body_html:           rendered.html,
+            reply_to:            settings.ops_email || null,
+            related_delivery_id: body.id,
+            related_driver_id:   row.driver_id,
+          })
+        }
+      }
+    } catch { /* ignore — payment recorded successfully regardless */ }
+
     return NextResponse.json({ ok: true })
   }
 

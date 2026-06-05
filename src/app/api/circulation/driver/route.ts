@@ -10,6 +10,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { renderTemplate, getSettings } from '@/lib/circulation/email'
+import { enqueue } from '@/lib/circulation/emailQueue'
+import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
 
@@ -254,9 +257,53 @@ async function submitOneDelivery(
     .eq('id', deliveryId)
   if (upErr) return { ok: false, error: upErr.message, status: 500 }
 
-  // TODO Phase B: enqueue driver_invoice_confirm + admin notify emails via
-  // circulation_email_queue. For now the deliveries admin shows the new row
-  // immediately and the admin can act on it.
+  // Enqueue invoice-confirmation email to the driver. Best-effort —
+  // queue failures don't block the submission.
+  try {
+    const drvRow = drv as { full_name?: string; email?: string } | null
+    if (drvRow?.email) {
+      const region = regionForMarket(driver.market)
+      const { data: route } = await sb
+        .from('circulation_routes')
+        .select('name')
+        .eq('id', del.route_id)
+        .maybeSingle()
+      const monthLabel = formatMonth((await sb.from('circulation_deliveries').select('month').eq('id', deliveryId).maybeSingle()).data?.month as string ?? '')
+      const settings   = await getSettings(driver.market)
+      const rendered   = await renderTemplate({
+        market:  driver.market,
+        key:     'driver_invoice_confirm',
+        context: {
+          first_name: (drvRow.full_name ?? '').split(' ')[0] ?? '',
+          month:      monthLabel,
+          stops:      done,
+          pay:        pay.toFixed(2),
+          route_name: (route as { name?: string } | null)?.name ?? '',
+        },
+        brandName:  region.name + ' Distribution',
+        brandColor: '#1A5FA8',
+      })
+      if (rendered) {
+        await enqueue({
+          market:             driver.market,
+          template_key:       'driver_invoice_confirm',
+          to_email:           drvRow.email,
+          to_name:            drvRow.full_name ?? null,
+          subject:            rendered.subject,
+          body_html:          rendered.html,
+          reply_to:           settings.ops_email || null,
+          related_delivery_id: deliveryId,
+          related_driver_id:   driver.user_id,
+        })
+      }
+    }
+  } catch { /* ignore — submission still succeeds */ }
 
   return { ok: true, summary: { stops: done, pay } }
+}
+
+function formatMonth(m: string): string {
+  if (!m) return ''
+  const d = new Date(m + '-01T12:00:00')
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }

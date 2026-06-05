@@ -142,6 +142,7 @@ const NAV: NavItem[] = [
       { name: 'Deliveries',       href: '/admin/circulation/deliveries'  },
       { name: 'Change Requests',  href: '/admin/circulation/changes'     },
       { name: 'Location Requests', href: '/admin/circulation/requests'   },
+      { name: 'Email Center',     href: '/admin/circulation/emails'      },
     ],
   },
 
