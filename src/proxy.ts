@@ -20,6 +20,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 
 const FIRST_TOUCH_COOKIE = 'rrp_first_touch'
 const COOKIE_MAX_AGE     = 60 * 60 * 24 * 30 // 30 days
@@ -178,21 +179,39 @@ async function hasAdminSession(request: NextRequest): Promise<boolean> {
     const hit = adminUserCache.get(user.id)
     if (hit && now < hit.expires) return hit.isAdmin
 
-    // Service-role lookup. admin_users RLS would block the anon path, so
-    // we use the service key to settle the question.
-    const admin = createServerClient(
+    // Service-role lookup. Use plain createClient (not createServerClient)
+    // because we don't need cookie handling and createServerClient expects
+    // an anon-tier key. Two separate queries — by user_id first (the
+    // common case for active accounts), then by email as a fallback for
+    // pre-provisioned rows that haven't backfilled user_id yet. Avoids
+    // the .or() filter which is fragile with mixed operators.
+    const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { cookies: { getAll: () => [], setAll: () => {} } },
+      { auth: { persistSession: false } },
     )
-    const { data: row } = await admin
+
+    let isAdmin = false
+    const { data: byId } = await admin
       .from('admin_users')
       .select('id')
-      .or(`user_id.eq.${user.id},email.ilike.${user.email ?? ''}`)
+      .eq('user_id', user.id)
       .eq('status', 'active')
       .limit(1)
       .maybeSingle()
-    const isAdmin = !!row
+    if (byId) {
+      isAdmin = true
+    } else if (user.email) {
+      const { data: byEmail } = await admin
+        .from('admin_users')
+        .select('id')
+        .ilike('email', user.email)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle()
+      isAdmin = !!byEmail
+    }
+
     adminUserCache.set(user.id, { isAdmin, expires: now + 5 * 60 * 1000 })
     return isAdmin
   } catch {
