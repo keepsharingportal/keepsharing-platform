@@ -47,6 +47,15 @@ export interface SubmissionTypeConfig {
    * to the "email us the photo" instructional flow when false.
    */
   photoUpload?:   boolean
+  /**
+   * How many photos the submitter can attach. Default 1. When > 1 the
+   * file input renders with `multiple` and the server side processes
+   * each one in turn, storing the URLs into community_submissions.photo_urls.
+   * The first photo also lands on web_image_url / print_image_url so
+   * existing downstream code (article hero, magazine pull) still works
+   * without changes.
+   */
+  photoMaxCount?: number
   fields:         SubmissionField[]
   publications:   string[]       // which pubs accept this type
   seasonal?:      boolean
@@ -172,9 +181,11 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Coaches, parents, teammates, volunteers — anyone who knows a player, coach, or team supporter worth celebrating.',
     whatHappensNext: 'Selected nominees are featured with a profile and photo in the magazine and online.',
     estimatedTime: '3 minutes',
-    photoLabel: 'Action or Portrait Photo',
+    photoLabel: 'Action or Portrait Photos',
     photoRequired: false,
-    photoHint: 'A photo of the nominee in action or a sport portrait. Email to photos@riverregionparents.com with their name.',
+    photoUpload:   true,
+    photoMaxCount: 4,
+    photoHint: 'Add up to 4 photos — action shots, team photos, or sport portraits. We\'ll save high-res copies for print and web-optimized copies for the website.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
     fields: [
       { id: 'nominee_type',    label: 'Who are you nominating?', type: 'select', required: true,

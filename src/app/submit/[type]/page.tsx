@@ -85,23 +85,38 @@ export default async function SubmitTypePage({
 
     let webImageUrl:   string | null = null
     let printImageUrl: string | null = null
+    const photoUrls: Array<{ web: string; print: string }> = []
     if (currentConfig.photoUpload) {
-      const file = formData.get('photo') as File | null
-      if (file && file.size > 0) {
+      // formData.getAll('photo') handles both single-file (max=1) and
+      // multi-file (max>1) cases — the input renders with the same name
+      // either way. We cap at the configured max to keep both upload time
+      // and storage bounded; extras silently get dropped.
+      const maxCount = Math.max(1, currentConfig.photoMaxCount ?? 1)
+      const all  = (formData.getAll('photo') as File[]).filter(f => f && f.size > 0).slice(0, maxCount)
+
+      if (all.length === 0 && currentConfig.photoRequired) {
+        redirect(`/submit/${type}?error=${encodeURIComponent('A photo is required for this submission.')}`)
+      }
+
+      for (const file of all) {
         try {
           const uploaded = await uploadSubmissionPhoto({
             file,
             submissionType: type,
             submitterName:  related_person_name ?? submitter_name,
           })
-          webImageUrl   = uploaded.webImageUrl
-          printImageUrl = uploaded.printImageUrl
+          photoUrls.push({ web: uploaded.webImageUrl, print: uploaded.printImageUrl })
         } catch (e) {
           const msg = encodeURIComponent(e instanceof Error ? e.message : 'Photo upload failed')
           redirect(`/submit/${type}?error=${msg}`)
         }
-      } else if (currentConfig.photoRequired) {
-        redirect(`/submit/${type}?error=${encodeURIComponent('A photo is required for this submission.')}`)
+      }
+
+      // First photo populates the legacy single-column fields so downstream
+      // article rendering / print export keeps working without changes.
+      if (photoUrls[0]) {
+        webImageUrl   = photoUrls[0].web
+        printImageUrl = photoUrls[0].print
       }
     }
 
@@ -119,6 +134,11 @@ export default async function SubmitTypePage({
       payload,
       web_image_url:   webImageUrl,
       print_image_url: printImageUrl,
+      // photo_urls captures every uploaded photo. The first matches
+      // web_image_url/print_image_url (set above); the rest are extras.
+      // Stored as JSONB array of { web, print } objects so the editor
+      // can pull either when building the article hero / print spread.
+      photo_urls:      photoUrls.length > 0 ? photoUrls : null,
       status: 'new',
     })
 
@@ -142,7 +162,11 @@ export default async function SubmitTypePage({
             {config.whatHappensNext}
           </p>
 
-          {(config.photoRequired || config.photoHint) && (
+          {/* Thank-you photo reminder — ONLY shows on submission types
+              where photos are emailed in (photoUpload === false). When
+              uploads are wired (Play Ball, Student Spotlight, etc.) the
+              photos already landed with the submission, so no reminder. */}
+          {!config.photoUpload && (config.photoRequired || config.photoHint) && (
             <div className="bg-muted/40 border border-border/50 rounded-2xl px-5 py-4 mb-8 text-left">
               <p className="text-sm font-bold text-foreground mb-1 flex items-center gap-1.5">
                 <Camera className="h-4 w-4" /> {config.photoLabel ?? 'Photo'}
@@ -276,10 +300,14 @@ export default async function SubmitTypePage({
                 name="photo"
                 accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif"
                 required={config.photoRequired}
+                multiple={(config.photoMaxCount ?? 1) > 1}
                 className="block w-full text-sm text-foreground/80 file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-foreground hover:file:bg-muted/70"
               />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                Max 15 MB. JPG, PNG, HEIC, or WebP. We&apos;ll save a high-resolution copy for print and a smaller copy for the website.
+                {(config.photoMaxCount ?? 1) > 1
+                  ? `Up to ${config.photoMaxCount} photos. Hold Ctrl/Cmd to select multiple. Max 15 MB each.`
+                  : 'Max 15 MB.'}
+                {' '}JPG, PNG, HEIC, or WebP. We&apos;ll save high-resolution copies for print and web-optimized copies for the website.
               </p>
             </div>
           ) : (config.photoRequired || config.photoHint) ? (
