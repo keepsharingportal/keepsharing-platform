@@ -8,7 +8,7 @@ import type { ReactNode }      from 'react'
 import { redirect, notFound }  from 'next/navigation'
 import Link                    from 'next/link'
 import { ArrowLeft, ArrowRight, Camera, Clock, Users } from 'lucide-react'
-import { createClient }        from '@/lib/supabase/server'
+import { createAdminClient }   from '@/lib/supabase/admin'
 import {
   SUBMISSION_TYPES, getSubmissionType, TYPE_COLORS,
   type SubmissionField,
@@ -59,7 +59,12 @@ export default async function SubmitTypePage({
   async function submitForm(formData: FormData) {
     'use server'
 
-    const supabase = await createClient()
+    // Service-role client. Public form, so we sidestep RLS entirely
+    // and rely on field validation in this handler to keep junk out.
+    // (Previously this used the SSR anon client, which silently dropped
+    // inserts on tables with restrictive RLS — same failure mode that
+    // hit /admin/trending and /admin/community earlier.)
+    const supabase = createAdminClient()
 
     const submitter_name  = (formData.get('submitter_name')  as string) || ''
     const submitter_email = (formData.get('submitter_email') as string) || ''
@@ -120,7 +125,7 @@ export default async function SubmitTypePage({
       }
     }
 
-    await supabase.from('community_submissions').insert({
+    const { error: insertErr } = await supabase.from('community_submissions').insert({
       submission_type:       type,
       target_publication:    'rrp',
       source_page:           `/submit/${type}`,
@@ -141,6 +146,15 @@ export default async function SubmitTypePage({
       photo_urls:      photoUrls.length > 0 ? photoUrls : null,
       status: 'new',
     })
+
+    if (insertErr) {
+      // Log the real message to Vercel so the next failure is debuggable
+      // instead of the form just "looking like it worked." Bounce the
+      // submitter back with a friendly error so they don't think their
+      // story landed when it didn't.
+      console.error('[submit insert] failed:', type, insertErr.message)
+      redirect(`/submit/${type}?error=${encodeURIComponent('Sorry — we couldn\'t save your submission. Please try again or email us directly.')}`)
+    }
 
     // Fire-and-forget editor notification. Best-effort — never block the
     // submitter on email delivery. Logs failures to Vercel; the
