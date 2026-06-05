@@ -13,7 +13,7 @@
 // reorder + checked state; the rest revalidates after the action settles.
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
-import { TrendingUp, GripVertical, Eye, Pencil, X, Check } from 'lucide-react'
+import { TrendingUp, GripVertical, Eye, Pencil, X, Check, Trash2 } from 'lucide-react'
 
 export interface TrendingItem {
   id:             string
@@ -82,7 +82,15 @@ export function TrendingList(props: Props) {
   // Reset local state when server-side data changes (after a revalidate).
   useEffect(() => { setItems(props.initialItems); setSelected(new Set()) }, [props.initialItems])
 
-  const now = useMemo(() => new Date(), [])
+  // Re-compute `now` every 30s so items that pass their end_at while the
+  // admin is open visibly reclassify from Live → Expired. Previously this
+  // was useMemo([]) so the value froze at mount and the editor's "Live"
+  // pill could lie about already-expired items.
+  const [now, setNow] = useState<Date>(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
   const counts = useMemo(() => {
     const c: Record<Status | 'all-active', number> = { live: 0, scheduled: 0, expired: 0, off: 0, archived: 0, 'all-active': 0 }
     for (const it of items) {
@@ -278,7 +286,7 @@ export function TrendingList(props: Props) {
                         {status === 'archived' ? (
                           <form action={props.restoreItem}>
                             <input type="hidden" name="id" value={item.id} />
-                            <button className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
+                            <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
                               Restore
                             </button>
                           </form>
@@ -287,14 +295,14 @@ export function TrendingList(props: Props) {
                             <form action={props.toggleActive}>
                               <input type="hidden" name="id"      value={item.id} />
                               <input type="hidden" name="current" value={String(item.is_active)} />
-                              <button className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}>
+                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}>
                                 {item.is_active ? 'Turn off' : 'Turn on'}
                               </button>
                             </form>
                             {status === 'live' && (
                               <form action={props.endNow}>
                                 <input type="hidden" name="id" value={item.id} />
-                                <button className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200 text-amber-700 hover:bg-amber-50">
+                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200 text-amber-700 hover:bg-amber-50">
                                   End now
                                 </button>
                               </form>
@@ -302,16 +310,27 @@ export function TrendingList(props: Props) {
                             {(status === 'expired' || status === 'off') && (
                               <form action={props.archiveItem}>
                                 <input type="hidden" name="id" value={item.id} />
-                                <button className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
+                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
                                   Archive
                                 </button>
                               </form>
                             )}
                           </>
                         )}
-                        <button onClick={() => startEdit(item.id)} className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50">
+                        <button type="button" onClick={() => startEdit(item.id)} className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50">
                           <Pencil size={11} /> Edit
                         </button>
+                        {/* Direct Remove — wipes the row entirely. Confirm
+                            client-side so a misclick doesn't nuke history. */}
+                        <form
+                          action={props.deleteItem}
+                          onSubmit={(e) => { if (!confirm(`Permanently delete "${item.label}"? This can't be undone.`)) e.preventDefault() }}
+                        >
+                          <input type="hidden" name="id" value={item.id} />
+                          <button type="submit" title="Remove permanently" className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+                            <Trash2 size={11} /> Remove
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ) : (

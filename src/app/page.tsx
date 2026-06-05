@@ -320,6 +320,15 @@ async function getHomepageData() {
       isCurrent:   i.is_current,
     }))
 
+  // Surface trending query failures in Vercel logs. Silent empty results
+  // are the worst failure mode here — without this log, an RLS denial or
+  // missing service-role key just looks like "no items are live" and the
+  // user blames their schedule. Logged as warn so it doesn't crash the
+  // page, but it's still grep-able in production.
+  if (trendingRes.error) {
+    console.warn('[homepage] trending_items query failed:', trendingRes.error.message)
+  }
+
   return {
     // Filter archived items client-side so this works whether or not
     // migration 117 has added the column. Rows without the column have
