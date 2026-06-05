@@ -19,7 +19,15 @@ import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
 
 // ── NAV item types ─────────────────────────────────────────────────────────
 
-type ChildItem = { name: string; href: string; accent?: boolean }
+type ChildItem = {
+  name:        string
+  href:        string
+  accent?:     boolean
+  /** Renders the link with target=_blank — used for previewing public maps. */
+  external?:   boolean
+  /** Key matched against a counts payload so we can render pending badges. */
+  badgeKey?:   'pending_changes' | 'pending_requests' | 'pending_deliveries'
+}
 
 type NavItem =
   | { section: string }
@@ -131,23 +139,28 @@ const NAV: NavItem[] = [
   // newsletter, social).
   { section: 'DISTRIBUTION ROUTES' },
   {
-    name: 'Distribution Routes',
+    name: 'Distribution Portal',
     href: '/admin/circulation',
     icon: Navigation,
+    // Order + naming intentionally mirrors the legacy PHP portal at
+    // drivers.keepsharing.com so existing users have zero retraining.
     children: [
-      { name: 'Overview',         href: '/admin/circulation'             },
-      { name: 'Routes',           href: '/admin/circulation/routes'      },
-      { name: 'Drivers',          href: '/admin/circulation/drivers'     },
-      { name: 'Map',              href: '/admin/circulation/map'         },
-      { name: 'Deliveries',        href: '/admin/circulation/deliveries'   },
-      { name: 'Progress',          href: '/admin/circulation/progress'     },
-      { name: 'Change Requests',   href: '/admin/circulation/changes'      },
-      { name: 'Location Requests', href: '/admin/circulation/requests'     },
-      { name: 'Email Center',      href: '/admin/circulation/emails'       },
-      { name: 'Publications',      href: '/admin/circulation/publications' },
-      { name: 'Resources',         href: '/admin/circulation/resources'    },
-      { name: 'Geocoding',         href: '/admin/circulation/geocode'      },
-      { name: 'Settings',          href: '/admin/circulation/settings'     },
+      { name: 'Dashboard',         href: '/admin/circulation'                            },
+      { name: 'Live Progress',     href: '/admin/circulation/progress'                   },
+      { name: 'Routes & Stops',    href: '/admin/circulation/routes'                     },
+      { name: 'Import Stops',      href: '/admin/circulation/import'                     },
+      { name: 'Geocode Stops',     href: '/admin/circulation/geocode'                    },
+      { name: 'Route Order',       href: '/admin/circulation/route-order'                },
+      { name: 'Users',             href: '/admin/circulation/drivers'                    },
+      { name: 'Deliveries',        href: '/admin/circulation/deliveries', badgeKey: 'pending_deliveries' },
+      { name: 'Changes',           href: '/admin/circulation/changes',    badgeKey: 'pending_changes'    },
+      { name: 'Publications',      href: '/admin/circulation/publications'               },
+      { name: 'Resources',         href: '/admin/circulation/resources'                  },
+      { name: 'Location Requests', href: '/admin/circulation/requests',   badgeKey: 'pending_requests'   },
+      { name: 'RRP Public Map',    href: '/distribution/rrp/map',         external: true },
+      { name: 'Boom Public Map',   href: '/distribution/boom/map',        external: true },
+      { name: 'Email Center',      href: '/admin/circulation/emails'                     },
+      { name: 'Settings',          href: '/admin/circulation/settings'                   },
     ],
   },
 
@@ -227,6 +240,10 @@ export function Sidebar() {
   const currentQuery = searchParams?.toString() ?? ''
   const [expandedNav, setExpandedNav] = useState<string | null>('Articles')
   const [role, setRole] = useState<AdminRole | null>(null)
+  // Pending counts surfaced as red badges next to nav children with a
+  // badgeKey. Refreshed every 60s + on window focus so admins see new
+  // submissions without reloading.
+  const [counts, setCounts] = useState<Record<string, number>>({})
 
   // Pull the current admin's role so settings-tier nav entries hide for
   // publishers/editors. Cheap call, runs once per session.
@@ -237,6 +254,23 @@ export function Sidebar() {
       .then(j => { if (!cancelled && j?.role) setRole(j.role as AdminRole) })
       .catch(() => {/* sidebar still renders without settings filtering */})
     return () => { cancelled = true }
+  }, [])
+
+  // Pending counts for the Distribution Portal sidebar badges. Light
+  // single-query endpoint; safe to call every minute.
+  useEffect(() => {
+    let cancelled = false
+    function pull() {
+      fetch('/api/admin/circulation/counts', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() as Promise<Record<string, number>> : null)
+        .then(j => { if (!cancelled && j) setCounts(j) })
+        .catch(() => {/* badges just won't render */})
+    }
+    pull()
+    const id = setInterval(pull, 60_000)
+    const onFocus = () => pull()
+    window.addEventListener('focus', onFocus)
+    return () => { cancelled = true; clearInterval(id); window.removeEventListener('focus', onFocus) }
   }, [])
 
   const isSettingsTier = role === 'super' || role === 'admin'
@@ -357,10 +391,15 @@ export function Sidebar() {
                         childActive = true
                       }
                       const accent      = child.accent === true
+                      const badgeCount  = child.badgeKey ? counts[child.badgeKey] ?? 0 : 0
+                      const linkProps   = child.external
+                        ? { target: '_blank', rel: 'noopener noreferrer' as const }
+                        : {}
                       return (
                         <Link
                           key={child.href}
                           href={child.href}
+                          {...linkProps}
                           className={cn(
                             'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] transition-colors',
                             accent
@@ -372,7 +411,13 @@ export function Sidebar() {
                                 : 'text-white/40 hover:text-white hover:bg-white/5'
                           )}
                         >
-                          {child.name}
+                          <span className="flex-1 truncate">{child.name}</span>
+                          {child.external && <span className="text-white/30 text-[10px] shrink-0">↗</span>}
+                          {badgeCount > 0 && (
+                            <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                              {badgeCount > 99 ? '99+' : badgeCount}
+                            </span>
+                          )}
                         </Link>
                       )
                     })}
