@@ -3,8 +3,12 @@
 // layout: cover thumb, month label, click opens the Issuu flipbook in a
 // new tab.
 //
-// Renders as a flex row with overflow-x-auto so it works mobile-first
-// (swipe to scroll) and grows into a clean grid on larger screens.
+// Mobile (<md): flex row with overflow-x-auto so the editor's whole
+// catalogue is reachable via swipe even though only ~2 covers fit on
+// screen.
+// Desktop (md+): up to 5 covers laid out in a row that *centers* —
+// so with fewer than 5 issues the row balances visually instead of
+// piling up on the left edge.
 
 import Image from 'next/image'
 import { BookOpen, ExternalLink, Star } from 'lucide-react'
@@ -43,16 +47,16 @@ export function RecentIssuesCarousel({ issues }: Props) {
       </div>
 
       <div
-        className="flex gap-4 md:gap-5 overflow-x-auto pb-2 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0"
+        className="flex gap-4 md:gap-5 overflow-x-auto md:overflow-x-visible md:flex-wrap md:justify-center pb-2 snap-x snap-mandatory md:snap-none -mx-4 px-4 md:mx-0 md:px-0"
         style={{ scrollbarWidth: 'thin' }}
       >
-        {issues.map(issue => (
+        {issues.slice(0, 5).map(issue => (
           <a
             key={issue.id}
             href={issue.issuu_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group shrink-0 snap-start w-[140px] md:w-[160px] flex flex-col"
+            className="group shrink-0 snap-start w-[140px] md:w-[calc((100%-5rem)/5)] md:max-w-[200px] flex flex-col"
           >
             <div className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-md transition-shadow ${issue.isCurrent ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
               {issue.cover_url ? (
@@ -62,7 +66,7 @@ export function RecentIssuesCarousel({ issues }: Props) {
                   fill
                   style={{ objectFit: 'cover' }}
                   unoptimized
-                  sizes="160px"
+                  sizes="(min-width: 768px) 200px, 140px"
                   className="group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
