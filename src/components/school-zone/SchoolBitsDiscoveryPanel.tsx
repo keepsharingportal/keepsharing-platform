@@ -25,6 +25,7 @@ import {
   type Area,
 } from '@/lib/school-news/areas'
 import { normalizeUnicodeText } from '@/lib/school-news/text'
+import { SchoolBitsLogo } from './SchoolBitsLogo'
 
 const STORAGE_KEY_SCHOOL = 'kp.preferredSchoolId'
 const STORAGE_KEY_AREA   = 'kp.preferredArea'
@@ -289,12 +290,12 @@ export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props)
       {(supporting.length > 0 || loading) && (
         <div className="mt-6">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground inline-flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-primary" />
+            <h3 className="text-base md:text-lg font-bold text-foreground inline-flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
               {selectedSchoolObj ? `More from ${selectedSchoolObj.name}`
                : selectedAreaLabel ? `More from ${selectedAreaLabel}`
-               : 'More recent bits'}
-            </p>
+               : 'More School Bits'}
+            </h3>
             <Link
               href={seeAllUrl}
               className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
@@ -311,6 +312,24 @@ export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props)
                 ))
             }
           </div>
+
+          {/* Prominent CTA below the cards — promotes the latest feed
+              because School Bits is one of the highest-engagement
+              sections on the site. The small 'See all' inline link
+              above stays for users who scan, this one catches
+              everyone who reads through the 3 supporting cards. */}
+          {!loading && supporting.length > 0 && (
+            <div className="mt-6 flex justify-center">
+              <Link
+                href={seeAllUrl}
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-primary text-primary-foreground rounded-full text-sm md:text-base font-bold hover:bg-primary/90 shadow-sm hover:shadow-md transition-all group"
+              >
+                <Sparkles className="h-4 w-4" />
+                See the Latest School Bits
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -414,12 +433,19 @@ function SupportingCard({ bit, area, isPrivate }: { bit: BitForFeatured; area: A
               {badgeLabel}
             </span>
           </div>
+          {/* SchoolBits wordmark in the top-right of the cover so the
+              card visually ties to the rest of the section even when
+              the editorial badge is locale-specific. */}
+          <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2 py-1 rounded shadow-sm">
+            <SchoolBitsLogo size="sm" />
+          </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-primary/15 to-secondary/10 px-3 py-4">
+        <div className="bg-gradient-to-br from-primary/15 to-secondary/10 px-3 py-4 flex items-center justify-between gap-2">
           <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-full ${badgeClass}`}>
             {badgeLabel}
           </span>
+          <SchoolBitsLogo size="sm" />
         </div>
       )}
       <div className="flex flex-col flex-1 p-3.5">

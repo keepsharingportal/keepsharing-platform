@@ -114,6 +114,18 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
     whereItAppears: 'On /school-zone, full-width banner that appears ABOVE each new batch when the reader hits Load More. Premium "attention-grab" position because nothing else is on screen at that moment.',
     description: 'Wide banner shown ABOVE each new batch when the reader hits Load More. Premium attention-grab slot.' },
 
+  { slug: 'school_bits_top_banner',      surface: 'school-bits', category: 'inline',
+    label: 'School Bits — Top banner (above the feed)',
+    whereItAppears: 'On /school-zone/school-bits, wide banner immediately above the bit feed. First ad a reader sees after the hero.',
+    description: 'Wide top-of-feed banner. Equivalent of the calendar_top_banner slot on the events page.',
+    recommendedImageSize: 'Image mode: 1200×320 · Composed: 208×160 image left' },
+
+  { slug: 'school_bits_bottom_banner',   surface: 'school-bits', category: 'footer',
+    label: 'School Bits — Bottom banner (below the feed)',
+    whereItAppears: 'On /school-zone/school-bits, wide banner below the bit feed. Catches readers who scroll all the way through.',
+    description: 'Wide bottom-of-feed banner. Equivalent of the calendar_bottom_banner slot on the events page.',
+    recommendedImageSize: 'Image mode: 1200×320 · Composed: 208×160 image left' },
+
   // ── Articles ─────────────────────────────────────────────────────────────
   { slug: 'article_sidebar_sticky',      surface: 'articles', category: 'sidebar',
     label: 'Article — Sticky sidebar (follows scroll)',
@@ -287,7 +299,7 @@ export const PAGE_SLOTS: Record<string, string[]> = {
     'homepage_bottom_ad',
   ],
   'school-zone':           ['section_sponsor'],
-  'school-bits':           ['school_bits_sponsor', 'school_bits_inline', 'school_bits_transition', 'section_sponsor'],
+  'school-bits':           ['school_bits_sponsor', 'school_bits_top_banner', 'school_bits_inline', 'school_bits_transition', 'school_bits_bottom_banner', 'section_sponsor'],
   'mom-knows-best':        ['section_sponsor'],
   'games':                 ['section_sponsor'],
   'family-resource-guide': ['section_sponsor'],

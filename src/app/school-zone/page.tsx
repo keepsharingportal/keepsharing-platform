@@ -6,7 +6,6 @@ import { PublicFooter } from '@/components/PublicFooter'
 import { SponsorPlaceholder } from '@/components/ads/ContextualSponsorCard'
 import { HeroSponsorCard } from '@/components/verticals/HeroSponsorCard'
 import { SplitColoredTitle } from '@/components/verticals/SplitColoredTitle'
-import { StudentSpotlightCard } from '@/components/school-zone/StudentSpotlightCard'
 import { SchoolBitsDiscoveryPanel } from '@/components/school-zone/SchoolBitsDiscoveryPanel'
 import { getFallback } from '@/lib/image-fallbacks'
 import { articleHref } from '@/lib/articles/slug'
@@ -142,7 +141,7 @@ export default async function SchoolZonePage() {
 
   const [
     verticalRes, sponsorRes,
-    latestBitsRes, teacherRes, studentRes, educationMattersRes,
+    latestBitsRes, teacherRes, educationMattersRes,
     montRes, autaugaRes, pikeRes, privateRes,
     latestNewBitsRes, schoolsRes,
   ] = await Promise.all([
@@ -165,16 +164,14 @@ export default async function SchoolZonePage() {
       .eq('column_slug', 'school-bits').eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false }).limit(6),
 
+    // Teacher of the Month — pull 4 so we get 1 featured + 3 past for
+    // the Community-Spotlights-style sidebar list. Filter trashed
+    // articles so removed nominees stop reappearing.
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, published_at')
       .eq('published', true).eq('column_slug', 'teacher-of-month')
-      .order('published_at', { ascending: false, nullsFirst: false }).limit(3),
-
-    supabase.from('guide_articles')
-      .select('id, slug, title, excerpt, hero_image_url, published_at, school_name, school_region')
-      .eq('published', true)
-      .eq('column_slug', 'student-spotlights')
-      .order('published_at', { ascending: false, nullsFirst: false }).limit(6),
+      .is('deleted_at', null)
+      .order('published_at', { ascending: false, nullsFirst: false }).limit(4),
 
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, published_at, author_name')
@@ -217,8 +214,10 @@ export default async function SchoolZonePage() {
 
   const latestBits       = latestBitsRes.data ?? []  // legacy guide_articles (long-form)
   const teacherArticles  = teacherRes.data    ?? []
-  const studentArticles  = studentRes.data    ?? []
   const educationMatters = educationMattersRes.data ?? []
+  // Featured (current) teacher = newest; past = next 3.
+  const featuredTeacher  = teacherArticles[0] ?? null
+  const pastTeachers     = teacherArticles.slice(1, 4)
 
   // NEW: card-style school_bits from the new submit flow
   interface NewBit {
@@ -244,8 +243,8 @@ export default async function SchoolZonePage() {
   const panelSchools = (schoolsRes.data ?? []) as PanelSchool[]
 
   const hasAnyContent = latestBits.length > 0 || teacherArticles.length > 0
-    || studentArticles.length > 0 || educationMatters.length > 0
-  const totalStories  = latestBits.length + teacherArticles.length + studentArticles.length + educationMatters.length
+    || educationMatters.length > 0
+  const totalStories  = latestBits.length + teacherArticles.length + educationMatters.length
 
   const regionCounts: Record<string, number> = {
     'montgomery-county':  montRes.count    ?? 0,
@@ -380,67 +379,112 @@ export default async function SchoolZonePage() {
           {/* MAIN COLUMN (8/12) — editorial content (School Bits live in the featured block above; this column is now Teacher/Student/Education Matters) */}
           <div className="lg:col-span-8 space-y-10 md:space-y-12">
 
-            {/* ── Teacher + Student side by side (inside the 8-col main) ── */}
-            <div className="grid md:grid-cols-2 gap-8">
-
-              <section>
-                <SectionHead icon={Trophy} title="Teacher of the Month" />
-            {teacherArticles.length === 0 ? (
-              <EmptySection
-                message="Know an outstanding River Region educator? Nominations for Teacher of the Month are always open."
-                cta="Nominate a Teacher"
-                href="/nominate/teacher"
+            {/* ── Teacher of the Month — full-width section ──
+                Current honoree gets a big featured hero card on the
+                left. Past teachers list on the right uses the same
+                avatar-pill treatment as the homepage Community
+                Spotlights so the section feels like a continuation of
+                that pattern. */}
+            <section>
+              <SectionHead
+                icon={Trophy}
+                title="Teacher of the Month"
+                href="/columns/teacher-of-month"
+                linkLabel="See all"
               />
-            ) : (
-              <div className="space-y-3">
-                {teacherArticles.map(a => (
-                  <Link key={a.id} href={`/columns/teacher-of-month/${a.slug.replace(/^teacher-of-month-/, '')}`}
-                    className="group flex gap-3.5 p-3.5 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-muted/30 transition-all">
-                    <div className="relative shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-primary/5">
-                      <Image src={a.hero_image_url || getFallback('school_zone', a.id)} alt={a.title}
-                        fill style={{ objectFit: 'cover' }} sizes="64px" unoptimized />
-                    </div>
-                    <div className="flex flex-col justify-center min-w-0">
-                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">{a.title}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{fmtDate(a.published_at)}</p>
-                    </div>
-                  </Link>
-                ))}
-                <Link href="/nominate"
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/30 text-primary text-sm font-semibold hover:bg-primary/5 transition-colors">
-                  <Trophy className="h-4 w-4" /> Nominate a Teacher →
-                </Link>
-              </div>
-            )}
-          </section>
+              {teacherArticles.length === 0 ? (
+                <EmptySection
+                  message="Know an outstanding River Region educator? Nominations for Teacher of the Month are always open."
+                  cta="Nominate a Teacher"
+                  href="/nominate/teacher"
+                />
+              ) : (
+                <div className="grid md:grid-cols-12 gap-6 md:gap-8 items-stretch">
+                  {/* Featured teacher — big hero card spanning 7/12 */}
+                  {featuredTeacher && (
+                    <Link
+                      href={`/columns/teacher-of-month/${featuredTeacher.slug.replace(/^teacher-of-month-/, '')}`}
+                      className="md:col-span-7 group relative rounded-3xl overflow-hidden flex flex-col justify-end min-h-[320px] md:min-h-[420px] bg-foreground/10"
+                    >
+                      <Image
+                        src={featuredTeacher.hero_image_url || getFallback('school_zone', featuredTeacher.id)}
+                        alt={featuredTeacher.title}
+                        fill
+                        style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                        sizes="(max-width: 768px) 100vw, 58vw"
+                        className="group-hover:scale-[1.02] transition-transform duration-500"
+                        unoptimized
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                      <div className="relative p-5 md:p-7 z-10">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-500 text-white mb-3 shadow-sm">
+                          <Trophy className="h-3 w-3" /> Current Teacher of the Month
+                        </span>
+                        <h3 className="text-2xl md:text-3xl font-black text-white leading-tight mb-2 line-clamp-2 drop-shadow-sm">
+                          {featuredTeacher.title}
+                        </h3>
+                        {featuredTeacher.excerpt && (
+                          <p className="text-sm md:text-base text-white/90 leading-relaxed line-clamp-2 mb-3 max-w-xl">
+                            {featuredTeacher.excerpt}
+                          </p>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-white text-gray-900 rounded-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          Read story <ArrowRight className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </Link>
+                  )}
 
-          <section>
-            <SectionHead icon={Star} title="Student Spotlights" href="/submit/student-spotlight" linkLabel="Submit a Spotlight" />
-            {studentArticles.length === 0 ? (
-              <EmptySection
-                message="Student athletic, artistic, and academic achievements are featured here. Share a story about a River Region student!"
-                cta="Submit a Spotlight"
-                href="/submit/student-spotlight"
-              />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {studentArticles.map(a => (
-                  <StudentSpotlightCard
-                    key={a.id}
-                    id={a.id}
-                    slug={a.slug}
-                    title={a.title}
-                    excerpt={a.excerpt}
-                    hero_image_url={a.hero_image_url}
-                    school_name={a.school_name}
-                    school_region={a.school_region}
-                    published_at={a.published_at}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-            </div>
+                  {/* Past teachers — Community-Spotlights-style list,
+                      spanning 5/12 on desktop, full-width on mobile. */}
+                  <div className="md:col-span-5 bg-card rounded-3xl border border-border/50 p-5 md:p-6 flex flex-col shadow-sm">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Past Teachers of the Month
+                    </h3>
+                    {pastTeachers.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
+                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                          Past honorees will show here as the program grows.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 justify-center flex-1">
+                        {pastTeachers.map(a => (
+                          <Link
+                            key={a.id}
+                            href={`/columns/teacher-of-month/${a.slug.replace(/^teacher-of-month-/, '')}`}
+                            className="group flex items-center gap-3 md:gap-4 p-3 md:p-3.5 rounded-2xl border border-border/40 bg-muted/20 hover:bg-amber-50 hover:border-amber-200 transition-all"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={a.hero_image_url || getFallback('school_zone', a.id)}
+                              alt={a.title}
+                              className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover group-hover:scale-105 transition-transform border-2 md:border-4 border-background shadow-sm shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className="inline-block rounded-full text-[10px] font-bold uppercase tracking-wider mb-1 px-2 py-0.5 bg-amber-100 text-amber-800">
+                                Teacher of the Month
+                              </span>
+                              <h4 className="font-bold text-sm md:text-base leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                                {a.title}
+                              </h4>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{fmtDate(a.published_at)}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    <Link
+                      href="/nominate"
+                      className="flex items-center justify-center gap-2 mt-4 p-3 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
+                    >
+                      <Trophy className="h-4 w-4" /> Nominate a Teacher
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </section>
 
             {/* ── Education Matters ── */}
             <section>

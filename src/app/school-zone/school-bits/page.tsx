@@ -14,6 +14,8 @@ import { AREA_LABELS, isValidArea, type Area } from '@/lib/school-news/areas'
 import { normalizeUnicodeText } from '@/lib/school-news/text'
 import { HeroSponsorCard } from '@/components/verticals/HeroSponsorCard'
 import { SchoolBitsBrowser } from './SchoolBitsBrowser'
+import { getActiveAds } from '@/lib/get-active-ads'
+import { SponsorAdBanner } from '@/components/calendar/CalendarAds'
 
 const SITE_URL    = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 const DEFAULT_DESC = 'Celebrating student achievements, awards, and school news across the River Region.'
@@ -245,11 +247,13 @@ export default async function SchoolBitsPage(_props: PageParams) {
     return <MigrationFallback />
   }
 
-  // Pull bits + schools + all three ad slots in parallel.
+  // Pull bits + schools + all five ad slots in parallel.
   // Future-dated bits (scheduled drip) stay hidden until their publish moment
   // arrives — `lte(published_at, now)` is the time gate.
+  // Top/bottom banners mirror the calendar's top/bottom banner pattern
+  // — same SponsorAdBanner component renders them.
   const nowIso = new Date().toISOString()
-  const [bitsRes, schoolsRes, sponsorRes, inlineAdsRes, transitionAdsRes] = await Promise.all([
+  const [bitsRes, schoolsRes, sponsorRes, inlineAdsRes, transitionAdsRes, topBannerAds, bottomBannerAds] = await Promise.all([
     supabase
       .from('school_bits')
       .select('id, school_id, school_name, title, blurb, image_web_url, image_width, image_height, published_at, created_at')
@@ -296,7 +300,19 @@ export default async function SchoolBitsPage(_props: PageParams) {
       .eq('is_active', true)
       .order('display_priority', { ascending: false })
       .limit(10),
+
+    // Top + bottom banner slots — wide horizontal ads bracketing the
+    // feed. getActiveAds handles archived_at + slot-disable + creative
+    // shape so the SponsorAdBanner component can render directly.
+    getActiveAds('school_bits_top_banner',    'school-bits', 3, { rotate: true }),
+    getActiveAds('school_bits_bottom_banner', 'school-bits', 3, { rotate: true }),
   ])
+
+  // Pick one ad per banner slot. Active rotation lives inside
+  // getActiveAds; we just take the first result. null when nothing is
+  // booked — SponsorAdBanner handles the placeholder state.
+  const topBannerAd    = topBannerAds[0]    ?? null
+  const bottomBannerAd = bottomBannerAds[0] ?? null
 
   const rawBits = (bitsRes.data ?? []) as Array<Omit<PublicSchoolBit, 'image_count'>>
   const schools = (schoolsRes.data ?? []) as PublicSchool[]
@@ -417,7 +433,13 @@ export default async function SchoolBitsPage(_props: PageParams) {
         </div>
       </section>
 
-      <main className="container py-10 md:py-12">
+      <main className="container py-10 md:py-12 space-y-8">
+        {/* Top banner — wide sponsor ad above the feed. Same component
+            as the calendar's top banner. Renders a placeholder when
+            no advertiser is booked so the slot is always visible to
+            potential buyers (and never collapses the layout). */}
+        <SponsorAdBanner placement="school-bits-top" variant="tan" ad={topBannerAd} />
+
         {bits.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-border bg-card p-12 text-center max-w-2xl mx-auto">
             <p className="text-base font-bold text-foreground mb-1">No School Bits published yet</p>
@@ -444,6 +466,11 @@ export default async function SchoolBitsPage(_props: PageParams) {
             />
           </Suspense>
         )}
+
+        {/* Bottom banner — wide sponsor ad after the feed. Coral
+            variant to visually differ from the top banner so it reads
+            as a separate slot to readers (and to ad-blockers' heuristics). */}
+        <SponsorAdBanner placement="school-bits-bottom" variant="coral" ad={bottomBannerAd} />
       </main>
 
       <PublicFooter />
