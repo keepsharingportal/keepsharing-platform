@@ -10,6 +10,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { Mail, AlertTriangle, Check, Clock } from 'lucide-react'
+import { AdsTabs } from '@/components/admin/AdsTabs'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,7 +88,9 @@ export default async function AdRenewalsPage() {
   }))
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
+      <div className="max-w-[1200px] mx-auto space-y-6">
+      <AdsTabs />
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
@@ -217,6 +220,7 @@ export default async function AdRenewalsPage() {
           </div>
         )}
       </section>
+      </div>
     </div>
   )
 }

@@ -11,8 +11,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, RefreshCw, Plus, AlertTriangle, Search, Bookmark } from 'lucide-react'
+import { Star, RefreshCw, Plus, AlertTriangle, Search } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
+import { AdsTabs } from '@/components/admin/AdsTabs'
 
 interface AdPlacement {
   id:                string
@@ -109,6 +110,9 @@ export default function AdminAdsPage() {
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
       <div className="max-w-[1200px] mx-auto space-y-6">
 
+        {/* ── Section tabs ──────────────────────────────────────── */}
+        <AdsTabs />
+
         {/* ── Header ────────────────────────────────────────────── */}
         <header className="flex items-start justify-between flex-wrap gap-3">
           <div>
@@ -144,25 +148,6 @@ export default function AdminAdsPage() {
           <Stat label="Paused"          value={ads.length - activeCount} tone="#6b7280" />
           <Stat label="In rotation"     value={rotationCount}   tone="#7c3aed" />
         </div>
-
-        {/* ── Section Sponsors quick-link ──────────────────────── */}
-        <Link
-          href="/admin/section-sponsors"
-          className="block bg-gradient-to-r from-violet-50 via-white to-white border border-violet-200 rounded-2xl p-4 hover:border-violet-300 hover:shadow-sm transition-all"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 shrink-0">
-              <Bookmark size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900">Section Sponsors</p>
-              <p className="text-xs text-gray-500">
-                Per-column &quot;presented by&quot; sponsors (Play Ball, Teacher of the Month, etc.) — separate from ad placements. Manage them here →
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-violet-700 shrink-0">Open →</span>
-          </div>
-        </Link>
 
         {/* ── Filter + search ──────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">

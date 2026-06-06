@@ -19,6 +19,7 @@ import {
   ArrowRight, Plus, CheckCircle2, Circle, PowerOff,
 } from 'lucide-react'
 import { SlotToggleButton } from './SlotToggleButton'
+import { AdsTabs } from '@/components/admin/AdsTabs'
 
 // Slot Map's surfaces are ALSO the context_slug values that section-scoped
 // placements use (e.g. surface='school-zone' → context_slug='school-zone').
@@ -97,7 +98,8 @@ export default async function AdMapPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+      <div className="px-6 pt-6"><AdsTabs /></div>
+      <div className="bg-white border-b border-gray-200 px-6 py-4 mt-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Ad Map</h1>
           <p className="text-xs text-gray-500 mt-0.5">

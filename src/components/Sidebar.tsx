@@ -261,6 +261,27 @@ export function Sidebar() {
   // carry query params (e.g. /admin/events?new=1 vs ?tab=pending).
   const currentQuery = searchParams?.toString() ?? ''
   const [expandedNav, setExpandedNav] = useState<string | null>('Articles')
+
+  // Auto-expand the parent group whose route matches the current pathname.
+  // Without this, navigating into /admin/ads/anything left "Articles"
+  // expanded and "Ads & Sponsors" collapsed even though the user was
+  // clearly inside it — making it hard to see which sub-section was active.
+  // Re-runs whenever the URL changes.
+  useEffect(() => {
+    for (const item of NAV) {
+      if ('children' in item) {
+        const onParentRoute = pathname === item.href || pathname.startsWith(item.href + '/')
+        const onChildRoute  = item.children.some(c => {
+          const childPath = c.href.split('?')[0]
+          return pathname === childPath || pathname.startsWith(childPath + '/')
+        })
+        if (onParentRoute || onChildRoute) {
+          setExpandedNav(item.name)
+          return
+        }
+      }
+    }
+  }, [pathname])
   const [role, setRole] = useState<AdminRole | null>(null)
   // Pending counts surfaced as red badges next to nav children with a
   // badgeKey. Refreshed every 60s + on window focus so admins see new

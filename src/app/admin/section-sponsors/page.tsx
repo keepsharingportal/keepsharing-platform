@@ -13,10 +13,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowLeft, Plus, RefreshCw, Calendar, Edit2, Trash2, AlertTriangle, Check,
+  Plus, RefreshCw, Calendar, Edit2, Trash2, AlertTriangle, Check, Bookmark,
 } from 'lucide-react'
 import { COMMUNITY_SPOTLIGHT_COLUMNS } from '@/lib/articles/nominate-cta'
 import { getColumnBrand } from '@/lib/articles/column-brand'
+import { AdsTabs } from '@/components/admin/AdsTabs'
 
 interface Sponsor {
   id:              string
@@ -105,20 +106,23 @@ export default function SectionSponsorsPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin" className="text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={18} />
-        </Link>
-        <h1 className="text-2xl font-black text-gray-900">Section Sponsors</h1>
-      </div>
+    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
+      <div className="max-w-[1200px] mx-auto space-y-6">
 
-      <p className="text-sm text-gray-600 leading-relaxed mb-8 max-w-2xl">
-        Assign one advertiser to a community spotlight column for a date range.
-        While active, the sponsor&apos;s branding appears under the hero on mobile,
-        in the sidebar on desktop, and in a footer outro on every article in that column,
-        plus a banner on the column landing page.
-      </p>
+      <AdsTabs />
+
+      <header className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Bookmark size={20} className="text-primary" />
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Section Sponsors</h1>
+          </div>
+          <p className="text-sm text-gray-500 max-w-2xl">
+            One advertiser &quot;owns&quot; a community spotlight column for a date range. Branding shows under the hero on mobile,
+            in the sidebar on desktop, and in a footer outro on every article in that column — plus a banner on the column landing page.
+          </p>
+        </div>
+      </header>
 
       {error && (
         <div className="mb-6 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
@@ -241,6 +245,7 @@ export default function SectionSponsorsPage() {
           onClose={() => setEditing(null)}
         />
       )}
+      </div>
     </div>
   )
 }
