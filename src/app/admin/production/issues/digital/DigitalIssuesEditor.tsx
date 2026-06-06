@@ -11,7 +11,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Plus, Star, Trash2, ExternalLink, Loader2, Pencil, X, Check } from 'lucide-react'
+import { Plus, Star, Trash2, ExternalLink, Loader2, Pencil, X, Check, Upload } from 'lucide-react'
 
 export interface MagazineIssue {
   id:           string
@@ -494,6 +494,10 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
   setCover: (v: string | null) => void
   setCoverFile: (f: File | null) => void
 }) {
+  // The visible preview box is also the click target. <label> wraps the
+  // hidden file input so clicking anywhere on the dashed card opens
+  // the file picker — clearer than a raw 'Choose File' button.
+  const hasCover = !!(cover || coverFile)
   return (
     <div>
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
@@ -502,33 +506,62 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
       <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
         Used as the thumbnail in the homepage &ldquo;Recent Issues&rdquo; carousel for past issues. The current issue&apos;s sidebar uses the embed instead, so this is optional for the current month.
       </p>
-      <div className="mt-2 flex items-start gap-3">
-        <div className="w-16 h-20 rounded-md overflow-hidden bg-gray-100 relative shrink-0">
+      <div className="mt-2 flex items-start gap-4">
+        {/* Click-to-upload preview card. 3:4 aspect matches the magazine
+            cover so what shows here = what shows on the homepage. */}
+        <label
+          className={`relative shrink-0 w-28 aspect-[3/4] rounded-lg overflow-hidden cursor-pointer transition-colors group ${
+            hasCover
+              ? 'ring-1 ring-gray-300 bg-white shadow-sm hover:ring-gray-400'
+              : 'border-2 border-dashed border-gray-300 bg-gray-50 hover:border-primary hover:bg-primary/5'
+          }`}
+        >
           {coverFile ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={URL.createObjectURL(coverFile)} alt="preview" className="w-full h-full object-cover" />
           ) : cover ? (
-            <Image src={cover} alt="cover" fill style={{ objectFit: 'cover' }} unoptimized sizes="64px" />
+            <Image src={cover} alt="cover" fill style={{ objectFit: 'cover' }} unoptimized sizes="112px" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 text-center px-1">No cover</div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center">
+              <Upload size={18} className="text-gray-400 group-hover:text-primary transition-colors" />
+              <span className="text-[10px] font-bold text-gray-500 group-hover:text-primary uppercase tracking-wider transition-colors">Click to upload</span>
+              <span className="text-[9px] text-gray-400 leading-tight">3:4 ratio · PNG / JPG</span>
+            </div>
           )}
-        </div>
-        <div className="flex flex-col gap-1">
+          {hasCover && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 px-2 py-1 rounded">Replace</span>
+            </div>
+          )}
           <input
             type="file"
             accept="image/*"
             onChange={e => setCoverFile(e.target.files?.[0] ?? null)}
-            className="text-xs"
+            className="sr-only"
           />
-          {(cover || coverFile) && (
+        </label>
+        <div className="flex flex-col gap-2 pt-1">
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-700 cursor-pointer">
+            <Upload size={12} /> {hasCover ? 'Replace cover' : 'Choose cover image'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setCoverFile(e.target.files?.[0] ?? null)}
+              className="sr-only"
+            />
+          </label>
+          {hasCover && (
             <button
               onClick={() => { setCover(null); setCoverFile(null) }}
               type="button"
-              className="text-[11px] text-gray-500 hover:text-red-600 text-left"
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 hover:text-red-600 text-left"
             >
-              Remove cover
+              <Trash2 size={11} /> Remove cover
             </button>
           )}
+          <p className="text-[10px] text-gray-400 leading-snug max-w-[180px]">
+            Click the preview tile or this button — both open the file picker.
+          </p>
         </div>
       </div>
     </div>

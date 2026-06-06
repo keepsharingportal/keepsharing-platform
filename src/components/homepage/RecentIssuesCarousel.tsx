@@ -47,7 +47,7 @@ export function RecentIssuesCarousel({ issues }: Props) {
       </div>
 
       <div
-        className="flex gap-4 md:gap-5 overflow-x-auto md:overflow-x-visible md:flex-wrap md:justify-center pb-2 snap-x snap-mandatory md:snap-none -mx-4 px-4 md:mx-0 md:px-0"
+        className="flex gap-4 md:gap-8 overflow-x-auto md:overflow-x-visible md:flex-wrap md:justify-center pb-2 snap-x snap-mandatory md:snap-none -mx-4 px-4 md:mx-0 md:px-0"
         style={{ scrollbarWidth: 'thin' }}
       >
         {issues.slice(0, 5).map(issue => (
@@ -56,7 +56,7 @@ export function RecentIssuesCarousel({ issues }: Props) {
             href={issue.issuu_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group shrink-0 snap-start w-[140px] md:w-[calc((100%-5rem)/5)] md:max-w-[200px] flex flex-col"
+            className="group shrink-0 snap-start w-[140px] md:w-[180px] flex flex-col"
           >
             <div className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-md transition-shadow ${issue.isCurrent ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
               {issue.cover_url ? (
