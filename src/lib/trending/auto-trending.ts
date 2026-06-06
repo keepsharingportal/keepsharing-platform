@@ -77,12 +77,17 @@ export async function buildAutoTrendingItems(
 ): Promise<AutoTrendingItem[]> {
   // Filter out already-pinned paths and obvious non-content (homepage,
   // submit forms, thank-you pages). We don't want "/" itself in the bar.
+  // Also exclude advertiser/business listing pages — those live under
+  // /{guide-name}/listings/{slug} and can 404 mid-cycle when an
+  // advertiser is removed or their slug changes, leaving stale links
+  // in the bar.
   const NON_CONTENT_EXACT = new Set(['/', '/thank-you'])
   const NON_CONTENT_PREFIX = ['/submit', '/auth', '/login', '/maintenance']
   const candidates = raw
     .filter(r => !excludeLinks.has(r.path))
     .filter(r => !NON_CONTENT_EXACT.has(r.path))
     .filter(r => !NON_CONTENT_PREFIX.some(p => r.path.startsWith(p)))
+    .filter(r => !r.path.includes('/listings/'))
 
   if (candidates.length === 0) return []
 
