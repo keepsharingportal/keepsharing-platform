@@ -842,39 +842,10 @@ export default async function HomePage() {
               )}
             </section>
 
-            {/* Guide discovery strip */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  Family Resource Guides
-                </h2>
-                <Link href="/local-guides" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
-                  View All Guides →
-                </Link>
-              </div>
-              <div className="flex overflow-x-auto gap-2.5 pb-1" style={{ scrollbarWidth: 'none' }}>
-                {[
-                  { emoji: '🏠', label: 'Family Resource', href: '/family-resource-guide' },
-                  { emoji: '⛺', label: 'Summer Camps',    href: '/summer-camp-guide' },
-                  { emoji: '🎓', label: 'Private Schools', href: '/private-school-guide' },
-                  { emoji: '👶', label: 'Childcare',       href: '/childcare-guide' },
-                  { emoji: '🏃', label: 'After-School',    href: '/afterschool-guide' },
-                  { emoji: '💪', label: 'Healthy Kids',    href: '/healthy-kids-guide' },
-                  { emoji: '🎂', label: 'Birthday Party',  href: '/birthday-party-guide' },
-                  { emoji: '⭐', label: 'Special Needs',   href: '/special-needs-guide' },
-                ].map(g => (
-                  <Link
-                    key={g.href}
-                    href={g.href}
-                    className="shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 bg-card border border-border/50 rounded-xl hover:border-primary/40 hover:shadow-sm hover:bg-primary/5 transition-all w-[100px] text-center"
-                  >
-                    <span className="text-2xl">{g.emoji}</span>
-                    <span className="text-[11px] font-semibold text-foreground leading-tight">{g.label}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
+            {/* Guide discovery strip — hidden until those guides are
+                live. The Family Resource Guide tile lives in the hero
+                strip up top; the rest don't have content yet. Restore
+                this section once /summer-camp-guide etc. are publishable. */}
 
             {/* Bottom Ad — bigger image (208×160 desktop) */}
             {(bottomAd && bottomAd.ad_link) ? (
