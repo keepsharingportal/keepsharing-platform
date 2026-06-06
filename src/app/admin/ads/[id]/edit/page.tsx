@@ -536,6 +536,18 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 // First section of the form on purpose — everything else (renewal contact,
 // tracked link labels, reports) should descend from "who is this ad for?".
 
+interface CustomerAd {
+  id:               string
+  placement_type:   string
+  context_slug:     string | null
+  ad_headline:      string | null
+  is_active:        boolean
+  starts_at:        string | null
+  ends_at:          string | null
+  impression_count: number
+  click_count:      number
+}
+
 function CustomerSection({ ad, advertisers, onChange }: {
   ad:          AdRow
   advertisers: AdvertiserOption[]
@@ -544,6 +556,27 @@ function CustomerSection({ ad, advertisers, onChange }: {
   const selected = ad.advertiser_account_id
     ? advertisers.find(a => a.id === ad.advertiser_account_id)
     : null
+
+  // Other ads for this advertiser. Fetched lazily when an advertiser
+  // is set. Empty until then; refreshes when the editor switches
+  // advertiser via the dropdown.
+  const [otherAds, setOtherAds] = useState<CustomerAd[]>([])
+  const [adsLoading, setAdsLoading] = useState(false)
+  useEffect(() => {
+    if (!ad.advertiser_account_id) { setOtherAds([]); return }
+    let cancelled = false
+    setAdsLoading(true)
+    fetch(`/api/admin/advertisers/${ad.advertiser_account_id}/ads`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { ads: [] })
+      .then(j => { if (!cancelled) setOtherAds((j.ads ?? []) as CustomerAd[]) })
+      .catch(() => {/* non-critical */})
+      .finally(() => { if (!cancelled) setAdsLoading(false) })
+    return () => { cancelled = true }
+  }, [ad.advertiser_account_id])
+
+  // This ad itself is in the list — exclude it so the editor sees
+  // "what ELSE this customer is running."
+  const otherAdsFiltered = otherAds.filter(o => o.id !== ad.id)
 
   return (
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
@@ -615,8 +648,72 @@ function CustomerSection({ ad, advertisers, onChange }: {
             Pick a current advertiser or leave blank.
           </p>
         )}
+
+        {/* ── Other ads from this customer ─────────────────
+            Helps the editor see "what else is this buyer running" —
+            useful for upsell ("you're already on Calendar; want to
+            add a homepage spot?") and for spotting renewals coming
+            up across multiple slots at once. */}
+        {selected && (
+          <div className="rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+                Other ads from {selected.business_name}
+              </p>
+              {otherAdsFiltered.length > 0 && (
+                <span className="text-[10px] text-gray-500">{otherAdsFiltered.length} other{otherAdsFiltered.length === 1 ? '' : 's'}</span>
+              )}
+            </div>
+            {adsLoading ? (
+              <p className="p-3 text-xs text-gray-400">Loading…</p>
+            ) : otherAdsFiltered.length === 0 ? (
+              <p className="p-3 text-xs text-gray-500 italic">
+                This is the only ad this customer is running. Could be an upsell opportunity.
+              </p>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {otherAdsFiltered.slice(0, 8).map(other => (
+                  <li key={other.id} className="px-4 py-2 flex items-center gap-3 hover:bg-gray-50">
+                    <CustomerAdPill active={other.is_active} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-gray-900 truncate">
+                          {findPlacementType(other.placement_type)?.label ?? other.placement_type}
+                        </p>
+                        {other.context_slug && (
+                          <code className="text-[10px] text-gray-400 font-mono truncate">{other.context_slug}</code>
+                        )}
+                      </div>
+                      {other.ad_headline && (
+                        <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {other.ends_at && (
+                        <p className="text-[10px] text-gray-500">
+                          Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
+                      <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
+                        Open →
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </section>
+  )
+}
+
+function CustomerAdPill({ active }: { active: boolean }) {
+  return active ? (
+    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-green-600 text-white">ON</span>
+  ) : (
+    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-300 text-gray-700">OFF</span>
   )
 }
 
