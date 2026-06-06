@@ -225,15 +225,20 @@ export default function AdminAdsPage() {
                           {ad.ad_headline ?? <span className="text-gray-400">—</span>}
                         </td>
                         <td className="px-4 py-3 text-center">
+                          {/* Hard ON/OFF toggle styled like a switch — green
+                              filled = live on the site, red filled = off.
+                              Clicking flips the state via the toggle API. */}
                           <button
                             onClick={() => toggleActive(ad.id, ad.is_active)}
-                            className={`text-xs font-bold px-3 py-1 rounded-full transition-colors ${
+                            title={`Click to turn ${ad.is_active ? 'OFF' : 'ON'}`}
+                            className={`inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors min-w-[68px] justify-center ${
                               ad.is_active
-                                ? 'bg-green-50 text-green-700 ring-1 ring-green-200 hover:bg-green-100'
-                                : 'bg-gray-100 text-gray-600 ring-1 ring-gray-200 hover:bg-gray-200'
+                                ? 'bg-green-600 text-white hover:bg-green-700 ring-1 ring-green-700'
+                                : 'bg-red-600 text-white hover:bg-red-700 ring-1 ring-red-700'
                             }`}
                           >
-                            {ad.is_active ? 'Active' : 'Paused'}
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-white" />
+                            {ad.is_active ? 'ON' : 'OFF'}
                           </button>
                         </td>
                         <td className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums">
