@@ -267,7 +267,9 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
               // every position when they're alone in the pool.
               type InlineAdRow = {
                 id?: string; ad_headline?: string; ad_description?: string;
-                ad_cta_label?: string; ad_link?: string; rotation_weight?: number
+                ad_cta_label?: string; ad_link?: string; ad_image_url?: string;
+                creative_mode?: 'composed' | 'image' | null
+                rotation_weight?: number
               }
               const pool = (inlineAdRes.data ?? []) as InlineAdRow[]
               const adsWithLinks = pool.filter(p => p.ad_link)
@@ -298,6 +300,8 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                   description={ad.ad_description ?? ''}
                   ctaLabel={ad.ad_cta_label ?? 'Learn More'}
                   ctaUrl={ad.ad_link ?? '#'}
+                  imageUrl={ad.ad_image_url ?? null}
+                  creativeMode={ad.creative_mode ?? 'composed'}
                 />
               ))
               // Legacy single-slot for the templates that still take a

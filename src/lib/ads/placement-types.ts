@@ -20,6 +20,14 @@ export interface PlacementTypeDef {
   surface:        SurfaceKey
   /** Type categorization used by the /admin/ads "By Type" filter. */
   category:       PlacementCategory
+  /** When false, this slot is LOCKED to creative_mode='composed' — the
+   *  edit form hides the mode dropdown. Used for newsletter sponsor blocks,
+   *  footer logo strips, and page sponsor banners where a full-bleed image
+   *  doesn't fit the layout. Default = true (mode toggle visible). */
+  allowsImageMode?: boolean
+  /** Recommended image dimensions surfaced in the edit form so the
+   *  advertiser's designer knows what to deliver. Free-form string. */
+  recommendedImageSize?: string
 }
 
 export type PlacementCategory =
@@ -68,22 +76,26 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
   { slug: 'homepage_inline_ad',          surface: 'homepage', category: 'inline',
     label: 'Homepage — Sponsored card (mid-feed)',
     whereItAppears: 'On the homepage, in the main column, between "Happening Around Town" events and "Latest Stories". Wide horizontal card with image left, copy + CTA right.',
-    description: 'In-feed sponsored card. One rotated by display_priority — the highest priority active row wins.' },
+    description: 'In-feed sponsored card. One rotated by display_priority — the highest priority active row wins.',
+    recommendedImageSize: 'Image mode: 1200×400 · Composed: 208×160 image left' },
 
   { slug: 'homepage_sidebar_ad',         surface: 'homepage', category: 'sidebar',
     label: 'Homepage — Square sidebar card (top of right rail)',
     whereItAppears: 'On the homepage right sidebar, top position — square card, ~340×340. Image fills the card with overlay headline. First sidebar item above the Mom Knows Best block.',
-    description: 'Square sidebar ad. Image-overlay style. Falls back to "Reach River Region Families" CTA when no booking is active.' },
+    description: 'Square sidebar ad. Image-overlay style. Falls back to "Reach River Region Families" CTA when no booking is active.',
+    recommendedImageSize: 'Image mode: 680×680 (1:1 square) · Composed: same image, with overlay text' },
 
   { slug: 'homepage_business_spotlight', surface: 'homepage', category: 'sidebar',
     label: 'Homepage — Dark "Business Spotlight" card (sidebar)',
     whereItAppears: 'On the homepage right sidebar, beneath Mom Knows Best. Dark navy card with the business name + a short pitch + a "Read their story" link.',
-    description: 'Sidebar Business Spotlight card. Promotes one business of the moment.' },
+    description: 'Sidebar Business Spotlight card. Promotes one business of the moment.',
+    recommendedImageSize: 'Composed: 680×320 banner image · Image mode: 680×500' },
 
   { slug: 'homepage_bottom_ad',          surface: 'homepage', category: 'footer',
     label: 'Homepage — Wide banner (bottom of main column)',
     whereItAppears: 'On the homepage, at the bottom of the main column, beneath the Family Resource Guides section. Wide gradient card with the image on the left and headline + CTA on the right.',
-    description: 'Wide ad block below the main homepage feed. Highest-impression homepage spot per scroll.' },
+    description: 'Wide ad block below the main homepage feed. Highest-impression homepage spot per scroll.',
+    recommendedImageSize: 'Image mode: 1200×400 · Composed: 208×160 image left' },
 
   { slug: 'homepage_hero_rotator',       surface: 'homepage', category: 'hero',
     label: 'Homepage — Hero rotator (top of page)',
@@ -94,7 +106,8 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
   { slug: 'school_bits_sponsor',         surface: 'school-bits', category: 'sponsor',
     label: 'School Bits — Annual presenting sponsor (top)',
     whereItAppears: 'On /school-zone, in the School Bits hero. Large branded card at the very top: "School Bits presented by [advertiser]" with logo.',
-    description: 'Annual presenting sponsor card in the School Bits hero.' },
+    description: 'Annual presenting sponsor card in the School Bits hero.',
+    allowsImageMode: false },
 
   { slug: 'school_bits_inline',          surface: 'school-bits', category: 'inline',
     label: 'School Bits — In-feed card (every batch)',
@@ -125,7 +138,8 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
   { slug: 'article_header_sponsor',      surface: 'articles', category: 'sponsor',
     label: 'Article — Header sponsor strip (top of article)',
     whereItAppears: 'On any article page, thin strip directly above the article title. "Presented by [advertiser]" treatment.',
-    description: 'Sponsor strip at the top of an article.' },
+    description: 'Sponsor strip at the top of an article.',
+    allowsImageMode: false },
 
   { slug: 'article_inline_recommendation', surface: 'articles', category: 'in-article',
     label: 'Article — In-body recommendation card',
@@ -172,7 +186,8 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
   { slug: 'section_sponsor',             surface: 'verticals', category: 'sponsor',
     label: 'Page sponsor — Top of section / column',
     whereItAppears: 'At the top of a vertical landing page, guide landing page, or community column. "[Page] presented by [advertiser]" treatment.',
-    description: 'Top-of-page presenting sponsor. The context_slug field scopes which page this sponsor owns (e.g. family-resource-guide, mom-to-mom, calendar).' },
+    description: 'Top-of-page presenting sponsor. The context_slug field scopes which page this sponsor owns (e.g. family-resource-guide, mom-to-mom, calendar).',
+    allowsImageMode: false },
 
   // ── Calendar ─────────────────────────────────────────────────────────────
   { slug: 'calendar_top_banner',         surface: 'calendar', category: 'inline',
@@ -199,13 +214,15 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
   { slug: 'newsletter_sponsor',          surface: 'newsletter', category: 'sponsor',
     label: 'Newsletter — Sponsor block (in email)',
     whereItAppears: 'In the weekly River Region Parents email newsletter. Sponsor block beneath the top stories.',
-    description: 'Sponsor block inside the weekly email newsletter.' },
+    description: 'Sponsor block inside the weekly email newsletter.',
+    allowsImageMode: false },
 
   // ── Site-wide ────────────────────────────────────────────────────────────
   { slug: 'site_footer_partners',        surface: 'site', category: 'footer',
     label: 'Site — Footer partner logos',
     whereItAppears: 'In the site footer on EVERY page. Row of partner logos at the bottom, beneath the navigation links.',
-    description: 'Footer strip of partner logos.' },
+    description: 'Footer strip of partner logos.',
+    allowsImageMode: false },
 ]
 
 export const PLACEMENT_TYPE_SLUGS = PLACEMENT_TYPES.map(p => p.slug)

@@ -202,16 +202,19 @@ export default async function ArticlePage({ params }: PageParams) {
   // multiple advertisers share, weighted by their tier.
   const inlineAdRows: Array<{
     id?: string; ad_headline?: string; ad_description?: string;
-    ad_cta_label?: string; ad_link?: string; advertiser?: { business_name?: string }
-    rotation_weight?: number
+    ad_cta_label?: string; ad_link?: string; ad_image_url?: string;
+    advertiser?: { business_name?: string }
+    rotation_weight?: number; creative_mode?: 'composed' | 'image' | null
   }> = (inlineAdPool as Array<Record<string, unknown>>).map(r => ({
     id:              r.id              as string | undefined,
     ad_headline:     r.ad_headline     as string | undefined,
     ad_description:  r.ad_description  as string | undefined,
     ad_cta_label:    r.ad_cta_label    as string | undefined,
     ad_link:         r.ad_link         as string | undefined,
+    ad_image_url:    r.ad_image_url    as string | undefined,
     advertiser:      r.advertiser      as { business_name?: string } | undefined,
     rotation_weight: typeof r.rotation_weight === 'number' ? r.rotation_weight : 1,
+    creative_mode:   (r.creative_mode as 'composed' | 'image' | null | undefined) ?? 'composed',
   }))
   // Estimate body length cheaply by word count → maps to slot count.
   // Avoids re-parsing the body to count chunks here; the renderer is
@@ -740,6 +743,8 @@ export default async function ArticlePage({ params }: PageParams) {
                     description={ad.ad_description ?? ''}
                     ctaLabel={ad.ad_cta_label ?? 'Learn More'}
                     ctaUrl={ad.ad_link ?? '#'}
+                    imageUrl={ad.ad_image_url ?? null}
+                    creativeMode={ad.creative_mode ?? 'composed'}
                   />
                 ))}
               />

@@ -35,6 +35,8 @@ export interface ActiveAd {
   advertiser_slug?: string | null
   rotation_weight?: number
   price_monthly?:   number | null
+  /** Creative format from migration 125. Render branches on this. */
+  creative_mode?:   'composed' | 'image' | null
 }
 
 interface GetActiveAdsOpts {
@@ -80,7 +82,7 @@ export async function getActiveAds(
     .from('ad_placements')
     .select(`
       id, ad_image_url, ad_eyebrow, ad_headline, ad_description, ad_cta_label, ad_link,
-      rotation_weight, price_monthly,
+      rotation_weight, price_monthly, creative_mode,
       advertiser:advertiser_account_id (id, business_name, slug)
     `)
     .eq('placement_type', placementType)
@@ -131,6 +133,7 @@ export async function getActiveAds(
       advertiser_slug:  advertiser?.slug ?? null,
       rotation_weight:  typeof row.rotation_weight === 'number' ? row.rotation_weight : 1,
       price_monthly:    typeof row.price_monthly === 'number' ? row.price_monthly : null,
+      creative_mode:    (row.creative_mode as 'composed' | 'image' | null | undefined) ?? 'composed',
     }
   })
 

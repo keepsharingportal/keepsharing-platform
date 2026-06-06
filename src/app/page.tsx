@@ -406,6 +406,7 @@ async function getHomepageData() {
     ad_headline?:     string | null
     ad_description?:  string | null
     ad_cta_label?:    string | null
+    creative_mode?:   'composed' | 'image' | null
   }
   const inlineAd         = pickWeighted((inlineAdRes.data         ?? []) as AdRow[])
   const sidebarAd        = pickWeighted((sidebarAdRes.data        ?? []) as AdRow[])
@@ -826,11 +827,27 @@ export default async function HomePage() {
               )}
             </section>
 
-            {/* In-Feed Sponsored Ad — image sized to match the bottom
-                banner (w-full md:w-52 h-40, rounded-2xl) so the two
-                homepage ad spots feel visually consistent instead of
-                "one small thumbnail, one big banner". */}
-            {inlineAd && inlineAd.ad_link && (
+            {/* In-Feed Sponsored Ad — branches by creative_mode.
+                IMAGE mode: full-bleed advertiser-supplied creative,
+                clickable, no platform text added. The agency / designer
+                delivered something they want shown as-is.
+                COMPOSED mode (default): the existing image-left + text-
+                right card with the platform's typography. */}
+            {inlineAd && inlineAd.ad_link && inlineAd.creative_mode === 'image' && inlineAd.ad_image_url && (
+              <Link
+                href={inlineAd.ad_link}
+                className="block rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                aria-label={inlineAd.ad_headline ?? 'Sponsored'}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={inlineAd.ad_image_url}
+                  alt={inlineAd.ad_headline ?? 'Sponsored'}
+                  className="w-full h-auto object-cover"
+                />
+              </Link>
+            )}
+            {inlineAd && inlineAd.ad_link && inlineAd.creative_mode !== 'image' && (
               <Link
                 href={inlineAd.ad_link}
                 className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
@@ -898,8 +915,23 @@ export default async function HomePage() {
                 strip up top; the rest don't have content yet. Restore
                 this section once /summer-camp-guide etc. are publishable. */}
 
-            {/* Bottom Ad — bigger image (208×160 desktop) */}
-            {(bottomAd && bottomAd.ad_link) ? (
+            {/* Bottom Ad — bigger image (208×160 desktop). Branches on
+                creative_mode: image-mode renders the full-bleed JPG;
+                composed renders the existing banner card. */}
+            {(bottomAd && bottomAd.ad_link && bottomAd.creative_mode === 'image' && bottomAd.ad_image_url) ? (
+              <Link
+                href={bottomAd.ad_link}
+                className="block rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                aria-label={bottomAd.ad_headline ?? 'Advertisement'}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bottomAd.ad_image_url}
+                  alt={bottomAd.ad_headline ?? 'Advertisement'}
+                  className="w-full h-auto object-cover"
+                />
+              </Link>
+            ) : (bottomAd && bottomAd.ad_link) ? (
               <Link
                 href={bottomAd.ad_link}
                 className="bg-gradient-to-r from-secondary/10 to-primary/10 border border-border/50 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"

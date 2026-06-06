@@ -58,6 +58,10 @@ interface AdRow {
   accent_color:          string | null
   logo_url:              string | null
   sponsor_tagline:       string | null
+  // Creative format (migration 125).
+  //   'composed' = platform formats eyebrow/headline/desc/CTA + image
+  //   'image'    = full-bleed advertiser-supplied image, click goes to ad_link
+  creative_mode:         'composed' | 'image'
 }
 
 const CONTEXT_SLUGS: Record<string, string[]> = {
@@ -322,27 +326,66 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </Row>
         </Section>
 
-        {/* ── Creative ────────────────────────────────────────── */}
+        {/* ── Creative ──────────────────────────────────────────
+            Two modes per ad row:
+            • Composed — platform formats eyebrow/headline/desc/CTA + image.
+            • Image    — full-bleed advertiser-supplied creative, link only.
+            Sponsor/newsletter/footer slots are locked to Composed (the
+            mode dropdown is hidden) because a full-bleed image doesn't
+            fit their layout. */}
         <Section title="Creative">
-          <Row label="Eyebrow">
-            <input value={ad.ad_eyebrow ?? ''} onChange={e => set('ad_eyebrow', e.target.value)} placeholder="Sponsored · Featured Partner" className={inp} />
-          </Row>
-          <Row label="Headline">
-            <input value={ad.ad_headline ?? ''} onChange={e => set('ad_headline', e.target.value)} className={inp} />
-          </Row>
-          <Row label="Description">
-            <textarea value={ad.ad_description ?? ''} onChange={e => set('ad_description', e.target.value)} rows={3} className={`${inp} resize-y`} />
-          </Row>
-          <Row label="CTA label">
-            <input value={ad.ad_cta_label ?? ''} onChange={e => set('ad_cta_label', e.target.value)} placeholder="Learn More" className={inp} />
-          </Row>
+          {def?.allowsImageMode !== false && (
+            <Row
+              label="Format"
+              hint="Composed = platform formats the ad. Image = your finished JPG/PNG fills the slot, no text added."
+            >
+              <select
+                value={ad.creative_mode ?? 'composed'}
+                onChange={e => set('creative_mode', e.target.value as 'composed' | 'image')}
+                className={inp}
+              >
+                <option value="composed">Composed (we format)</option>
+                <option value="image">Image (full creative)</option>
+              </select>
+              {def?.recommendedImageSize && (
+                <p className="text-[11px] text-gray-600 mt-1.5">
+                  <strong>Recommended size:</strong> {def.recommendedImageSize}
+                </p>
+              )}
+            </Row>
+          )}
+
+          {/* Composed-mode fields. Hidden in Image mode but the data
+              stays on the row so the editor can flip back without
+              re-entering everything. */}
+          {ad.creative_mode !== 'image' && (
+            <>
+              <Row label="Eyebrow">
+                <input value={ad.ad_eyebrow ?? ''} onChange={e => set('ad_eyebrow', e.target.value)} placeholder="Sponsored · Featured Partner" className={inp} />
+              </Row>
+              <Row label="Headline">
+                <input value={ad.ad_headline ?? ''} onChange={e => set('ad_headline', e.target.value)} className={inp} />
+              </Row>
+              <Row label="Description">
+                <textarea value={ad.ad_description ?? ''} onChange={e => set('ad_description', e.target.value)} rows={3} className={`${inp} resize-y`} />
+              </Row>
+              <Row label="CTA label">
+                <input value={ad.ad_cta_label ?? ''} onChange={e => set('ad_cta_label', e.target.value)} placeholder="Learn More" className={inp} />
+              </Row>
+            </>
+          )}
+
+          {/* Both modes need a CTA link + an image. */}
           <Row
             label="CTA link"
             hintNode={<span className="text-red-600 font-semibold">(generate tracked link below for clicks to count in reports)</span>}
           >
             <input value={ad.ad_link ?? ''} onChange={e => set('ad_link', e.target.value)} placeholder="/healthy-kids-guide/listings/…" className={inp} />
           </Row>
-          <Row label="Image" hint="Upload from your device or paste a URL. Drag-and-drop, then use Zoom & adjust to crop.">
+          <Row
+            label={ad.creative_mode === 'image' ? 'Ad image (full creative)' : 'Image'}
+            hint="Upload from your device or paste a URL. Drag-and-drop, then use Zoom & adjust to crop."
+          >
             <HeroImageUpload
               value={ad.ad_image_url ?? ''}
               onChange={(url) => set('ad_image_url', url)}
@@ -1000,6 +1043,15 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
 
 function AdPreview({ ad }: { ad: AdRow }) {
   const def = findPlacementType(ad.placement_type)
+
+  // Image mode — full-bleed image at the slot's natural aspect ratio.
+  // Category drives the dimensions so a sidebar square stays square and
+  // a bottom banner stays wide. Falls back to composed preview if no
+  // image is set (avoids a giant empty rectangle).
+  if (ad.creative_mode === 'image' && ad.ad_image_url) {
+    return <ImageOnlyPreview ad={ad} category={def?.category} placementType={ad.placement_type} />
+  }
+
   // Specific placements get bespoke previews; otherwise fall back to
   // the category-level variant.
   if (ad.placement_type === 'section_sponsor')       return <SponsorPreview ad={ad} />
@@ -1019,6 +1071,45 @@ function AdPreview({ ad }: { ad: AdRow }) {
     case 'sponsor':    return <SponsorPreview ad={ad} />
     default:           return <InlinePreview ad={ad} />
   }
+}
+
+// Image-only preview — full-bleed clickable image at the slot's natural
+// aspect ratio. Wrapper sized per category so sidebar squares stay square,
+// bottom banners stay wide, hero rotator stays 3:1.
+function ImageOnlyPreview({ ad, category, placementType }: {
+  ad:            AdRow
+  category:      string | undefined
+  placementType: string
+}) {
+  const aspect =
+    placementType === 'homepage_sidebar_ad' ? '1 / 1'           :
+    placementType === 'homepage_hero_rotator' ? '3 / 1'         :
+    category === 'sidebar'    ? '1 / 1'                          :
+    category === 'hero'       ? '3 / 1'                          :
+    category === 'footer'     ? '3 / 1'                          :
+    category === 'in-article' ? '5 / 2'                          :
+                                '5 / 2'  // inline default
+  const maxW =
+    category === 'sidebar' ? 'max-w-[224px]' :
+    category === 'hero'    ? 'max-w-2xl'     :
+    category === 'footer'  ? 'max-w-2xl'     :
+                             'max-w-xl'
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl shadow-sm border border-gray-200 ${maxW}`} style={{ aspectRatio: aspect }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={ad.ad_image_url ?? ''}
+        alt={ad.ad_headline ?? ''}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {ad.ad_link && (
+        <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[9px] font-bold bg-white/90 text-gray-700 px-1.5 py-0.5 rounded">
+          <ExternalLink size={9} /> {ad.ad_link.replace(/^https?:\/\//, '').slice(0, 24)}…
+        </span>
+      )}
+    </div>
+  )
 }
 
 // Inline horizontal card — image left, text + CTA right. Default for

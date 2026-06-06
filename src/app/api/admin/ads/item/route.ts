@@ -17,11 +17,12 @@ const FULL_SELECT = `
   advertiser_account_id,
   ad_eyebrow, ad_headline, ad_description, ad_cta_label, ad_link, ad_image_url,
   is_active, display_priority,
-  starts_at, ends_at,
+  starts_at, ends_at, archived_at,
   rotation_group, rotation_weight,
   price_monthly, price_quarterly, price_annual,
   advertiser_email, sales_rep_email,
-  accent_color, logo_url, sponsor_tagline
+  accent_color, logo_url, sponsor_tagline,
+  creative_mode
 `
 
 const MIN_SELECT = `
@@ -70,6 +71,8 @@ const ALLOWED_FIELDS = new Set([
   'advertiser_email', 'sales_rep_email',
   // Section-sponsor (migration 122)
   'accent_color', 'logo_url', 'sponsor_tagline',
+  // Creative mode (migration 125)
+  'creative_mode',
 ])
 
 export async function PATCH(req: NextRequest) {

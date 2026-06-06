@@ -114,6 +114,31 @@ export function SponsorAdBanner({ placement, variant = 'tan', ad }: SponsorAdBan
     ? 'bg-[var(--fg-cream)] ring-amber-200'
     : 'bg-[var(--fg-terra-light)] ring-primary/15'
 
+  // Image mode (migration 125) — full-bleed advertiser-supplied
+  // creative, no platform text. The calendar banner becomes a single
+  // clickable image at the slot's natural aspect ratio.
+  if (ad?.ad_link && ad.creative_mode === 'image' && ad.ad_image_url) {
+    return (
+      <TrackedImpression adPlacementId={ad.id}>
+        <TrackedLink adPlacementId={ad.id} href={ad.ad_link}>
+          <div
+            data-ad-placement={placement}
+            className="rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          >
+            <Image
+              src={ad.ad_image_url}
+              alt={ad.ad_headline ?? 'Sponsored'}
+              width={1200}
+              height={400}
+              className="w-full h-auto object-cover"
+              unoptimized
+            />
+          </div>
+        </TrackedLink>
+      </TrackedImpression>
+    )
+  }
+
   if (ad?.ad_link) {
     return (
       <TrackedImpression adPlacementId={ad.id}>
