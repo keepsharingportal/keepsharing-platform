@@ -16,6 +16,51 @@ import { groupedPlacementTypes, findPlacementType, PLACEMENT_TYPES, SURFACE_LABE
 import { AdsTabs } from '@/components/admin/AdsTabs'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 
+// Every page on the site that can carry an ad — verticals + specific
+// guides flattened so the editor sees the whole universe at once
+// without nesting. Each entry encodes the surface(s) AND the optional
+// context_slug that scopes a placement to that specific page.
+type PageOption = {
+  key:      string
+  label:    string
+  surfaces: SurfaceKey[]                 // placement-type surfaces that count
+  /** ad_placements.context_slug filter:
+   *  - undefined → no context filter (match all contexts on this surface)
+   *  - null      → require context_slug IS NULL / empty (bare index page)
+   *  - string    → require context_slug === string (specific guide/vertical) */
+  context?: string | null
+}
+const PAGE_OPTIONS: PageOption[] = [
+  { key: 'all',                   label: 'All pages',                surfaces: [] },
+  { key: 'homepage',              label: 'Homepage',                 surfaces: ['homepage'] },
+
+  // Verticals — top-level themed pages with dedicated designs
+  { key: 'school-zone',           label: 'School Zone (vertical)',   surfaces: ['verticals'], context: 'school-zone' },
+  { key: 'school-bits',           label: 'School Bits',              surfaces: ['school-bits'] },
+  { key: 'mom-knows-best',        label: 'Mom Knows Best (vertical)', surfaces: ['verticals'], context: 'mom-knows-best' },
+  { key: 'games',                 label: 'Brain Games',              surfaces: ['verticals'], context: 'games' },
+  { key: 'family-resource-guide', label: 'Family Resource Guide (vertical landing)', surfaces: ['verticals'], context: 'family-resource-guide' },
+
+  // Specific guides under the FRG vertical — each its own page design
+  { key: 'private-school-guide',  label: 'Private School Guide',  surfaces: ['guides'], context: 'private-school-guide' },
+  { key: 'special-needs-guide',   label: 'Special Needs Guide',   surfaces: ['guides'], context: 'special-needs-guide' },
+  { key: 'afterschool-guide',     label: 'Afterschool Guide',     surfaces: ['guides'], context: 'afterschool-guide' },
+  { key: 'healthy-kids-guide',    label: 'Healthy Kids Guide',    surfaces: ['guides'], context: 'healthy-kids-guide' },
+  { key: 'summer-camp-guide',     label: 'Summer Camp Guide',     surfaces: ['guides'], context: 'summer-camp-guide' },
+  { key: 'childcare-guide',       label: 'Childcare Guide',       surfaces: ['guides'], context: 'childcare-guide' },
+  { key: 'birthday-party-guide',  label: 'Birthday Party Guide',  surfaces: ['guides'], context: 'birthday-party-guide' },
+  { key: 'summer-fun-guide',      label: 'Summer Fun Guide',      surfaces: ['guides'], context: 'summer-fun-guide' },
+  { key: 'newcomer-guide',        label: 'Newcomer Guide',        surfaces: ['guides'], context: 'newcomer-guide' },
+  { key: 'best-of-guide',         label: 'Best of the Region',    surfaces: ['guides'], context: 'best-of' },
+  { key: 'local-guides-index',    label: 'Local Guides — index',  surfaces: ['guides'], context: null },
+
+  // Cross-page surfaces — apply globally
+  { key: 'articles',              label: 'Articles (any column)',  surfaces: ['articles'] },
+  { key: 'calendar',              label: 'Calendar',               surfaces: ['calendar'] },
+  { key: 'newsletter',            label: 'Newsletter',             surfaces: ['newsletter'] },
+  { key: 'site',                  label: 'Site-wide / footer',     surfaces: ['site'] },
+]
+
 interface AdPlacement {
   id:                string
   placement_type:    string
@@ -32,6 +77,9 @@ interface AdPlacement {
   rotation_group:    string | null
   rotation_weight:   number | null
   advertiser_accounts: { business_name: string } | null
+  /** True when this row is synthesized from column_sponsors. The id is
+   *  prefixed `cs:` so toggle/delete routes know which table to hit. */
+  is_section_sponsor?: boolean
 }
 
 const ctr = (imp: number, clk: number) =>
@@ -43,9 +91,12 @@ export default function AdminAdsPage() {
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState<string | null>(null)
   const [filterType, setFilterType] = useState('')
-  const [filterPage, setFilterPage] = useState<'all' | SurfaceKey>('all')
+  // filterPage is now a key into PAGE_OPTIONS — verticals + each specific
+  // guide live as their own pages, so the editor can filter to "show me
+  // everything on Private School Guide" in one click.
+  const [filterPage, setFilterPage] = useState<string>('all')
   const [search,     setSearch]     = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'on' | 'off'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'on' | 'off' | 'rotation'>('all')
   const [catalogOpen,  setCatalogOpen]  = useState(false)
 
   // Server returns the full set; filtering happens client-side so the
@@ -79,11 +130,27 @@ export default function AdminAdsPage() {
 
   const visibleAds = useMemo(() => {
     const q = search.trim().toLowerCase()
+    const page = PAGE_OPTIONS.find(p => p.key === filterPage)
     return ads.filter(a => {
-      if (filterPage !== 'all' && surfaceForSlug[a.placement_type] !== filterPage) return false
+      // Page filter: (surface matches) AND (context matches, if scoped).
+      // Bookings with an unregistered placement_type fall through to "all
+      // pages" only — they never match a specific page filter.
+      if (page && page.surfaces.length > 0) {
+        const surface = surfaceForSlug[a.placement_type]
+        if (!surface || !page.surfaces.includes(surface)) return false
+        if (page.context !== undefined) {
+          if (page.context === null) {
+            // Page scoped to "no context_slug" — i.e. the bare index page.
+            if (a.context_slug != null && a.context_slug !== '') return false
+          } else {
+            if (a.context_slug !== page.context) return false
+          }
+        }
+      }
       if (filterType && a.placement_type !== filterType) return false
-      if (statusFilter === 'on'  && !a.is_active) return false
-      if (statusFilter === 'off' &&  a.is_active) return false
+      if (statusFilter === 'on'        && !a.is_active) return false
+      if (statusFilter === 'off'       &&  a.is_active) return false
+      if (statusFilter === 'rotation'  && !a.rotation_group) return false
       if (q) {
         const haystack = [
           a.advertiser_accounts?.business_name ?? '',
@@ -194,12 +261,20 @@ export default function AdminAdsPage() {
           </div>
         </header>
 
-        {/* ── Summary stats ─────────────────────────────────────── */}
+        {/* ── Summary stats — click any tile to filter the list to it ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Stat label="Total bookings" value={ads.length}      tone="#0f172a" />
-          <Stat label="Active"          value={activeCount}     tone="#16a34a" />
-          <Stat label="Paused"          value={ads.length - activeCount} tone="#6b7280" />
-          <Stat label="In rotation"     value={rotationCount}   tone="#7c3aed" />
+          <Stat label="Total bookings" value={ads.length}                 tone="#0f172a"
+                active={statusFilter === 'all' && filterPage === 'all' && !filterType}
+                onClick={() => { setStatusFilter('all'); setFilterPage('all'); setFilterType('') }} />
+          <Stat label="Active"          value={activeCount}                tone="#16a34a"
+                active={statusFilter === 'on'}
+                onClick={() => setStatusFilter('on')} />
+          <Stat label="Paused"          value={ads.length - activeCount}   tone="#dc2626"
+                active={statusFilter === 'off'}
+                onClick={() => setStatusFilter('off')} />
+          <Stat label="In rotation"     value={rotationCount}              tone="#7c3aed"
+                active={statusFilter === 'rotation'}
+                onClick={() => setStatusFilter('rotation')} />
         </div>
 
         {/* ── Slot catalog ─────────────────────────────────────── */}
@@ -314,44 +389,42 @@ export default function AdminAdsPage() {
 
         {/* ── Filter + search ──────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
-          {/* Page filter — pill row by surface. Picking a page constrains
-              the placement dropdown below to that page's slots and renders
-              the labeled page-layout diagram in the next section. */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0">Page</label>
-            {([
-              { key: 'all'         as const, label: 'All pages'  },
-              { key: 'homepage'    as const, label: 'Homepage'   },
-              { key: 'articles'    as const, label: 'Articles'   },
-              { key: 'guides'      as const, label: 'Guides'     },
-              { key: 'school-bits' as const, label: 'School Bits'},
-              { key: 'verticals'   as const, label: 'Verticals'  },
-              { key: 'calendar'    as const, label: 'Calendar'   },
-              { key: 'newsletter'  as const, label: 'Newsletter' },
-              { key: 'site'        as const, label: 'Site-wide'  },
-            ]).map(p => {
-              const on = filterPage === p.key
-              return (
-                <button
-                  key={p.key}
-                  onClick={() => {
-                    setFilterPage(p.key)
-                    // Clear placement filter when changing page so the
-                    // dropdown doesn't show stale slots from a previous page.
-                    if (p.key !== 'all' && filterType && surfaceForSlug[filterType] !== p.key) {
-                      setFilterType('')
-                    }
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                    on
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              )
-            })}
+          {/* Page filter — every page on the site, flat. Verticals
+              (themed top-level pages like School Zone, Mom Knows Best)
+              and specific guides (Private School, Special Needs, etc.)
+              each get their own pill so the editor can drill straight
+              to "show me everything on Private School Guide" in one
+              click. Wraps to multiple rows on narrow viewports. */}
+          <div className="flex items-start gap-2 flex-wrap">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0 pt-1.5">Page</label>
+            <div className="flex items-center gap-1.5 flex-wrap flex-1">
+              {PAGE_OPTIONS.map(p => {
+                const on = filterPage === p.key
+                return (
+                  <button
+                    key={p.key}
+                    onClick={() => {
+                      setFilterPage(p.key)
+                      // Clear placement filter when changing page so the
+                      // dropdown doesn't show stale slots from a previous page.
+                      if (p.key !== 'all' && filterType) {
+                        const slotSurface = surfaceForSlug[filterType]
+                        if (!slotSurface || !p.surfaces.includes(slotSurface)) {
+                          setFilterType('')
+                        }
+                      }
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                      on
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
@@ -362,17 +435,25 @@ export default function AdminAdsPage() {
               className="text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white min-w-[260px] flex-1"
             >
               <option value="">
-                {filterPage === 'all' ? 'All placement types' : `All ${SURFACE_LABELS[filterPage as SurfaceKey]} placements`}
+                {(() => {
+                  const page = PAGE_OPTIONS.find(p => p.key === filterPage)
+                  if (!page || page.key === 'all') return 'All placement types'
+                  return `All ${page.label} placements`
+                })()}
               </option>
-              {placementGroups
-                .filter(g => filterPage === 'all' || g.surface === filterPage)
-                .map(group => (
-                  <optgroup key={group.surface} label={group.label}>
-                    {group.entries.map(p => (
-                      <option key={p.slug} value={p.slug}>{p.label}</option>
-                    ))}
-                  </optgroup>
-                ))}
+              {(() => {
+                const page = PAGE_OPTIONS.find(p => p.key === filterPage)
+                const allowedSurfaces = page && page.surfaces.length > 0 ? page.surfaces : null
+                return placementGroups
+                  .filter(g => !allowedSurfaces || allowedSurfaces.includes(g.surface))
+                  .map(group => (
+                    <optgroup key={group.surface} label={group.label}>
+                      {group.entries.map(p => (
+                        <option key={p.slug} value={p.slug}>{p.label}</option>
+                      ))}
+                    </optgroup>
+                  ))
+              })()}
             </select>
             {filterType && (
               <button
@@ -429,51 +510,60 @@ export default function AdminAdsPage() {
         {/* When a Page filter is set, render the labeled page-layout
             diagram with every slot color-coded by booking status. Click
             any slot to filter the booking list to that placement. */}
-        {filterPage !== 'all' && (
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
-                <MapPin size={14} className="text-primary" />
-                {SURFACE_LABELS[filterPage as SurfaceKey]} — slot map
-              </h2>
-            </div>
-            <div className="p-5 grid md:grid-cols-[1fr_minmax(340px,_auto)] gap-5 items-start">
-              <div className="text-xs text-gray-600 space-y-2">
-                <p>
-                  Every ad slot registered for the <strong>{SURFACE_LABELS[filterPage as SurfaceKey]}</strong> page.
-                  Color = booking status: <span className="font-semibold text-green-700">live</span> has at least one
-                  active ad rendering, <span className="font-semibold text-gray-700">paused</span> has bookings but
-                  nothing currently on, <span className="font-semibold text-amber-700">sellable</span> is empty (no
-                  bookings yet — pitch this slot).
-                </p>
-                <p>
-                  Click any slot in the diagram to filter the booking list to that placement. Click <strong>+ Sell
-                  this slot</strong> in the Slot Catalog above to open a new-booking form pre-filled with that
-                  placement.
-                </p>
-                <p className="text-gray-400 italic">
-                  Note: layout diagrams for Articles and Guides are mapped; School Bits / Calendar / Newsletter /
-                  Site-wide will render the slot list inline until I draw their layouts too — say the word.
-                </p>
+        {(() => {
+          const page = PAGE_OPTIONS.find(p => p.key === filterPage)
+          if (!page || page.key === 'all' || page.surfaces.length === 0) return null
+          const primarySurface = page.surfaces[0]
+          // Slot statuses per placement_type for this page. Bookings filtered
+          // to the page's surface AND context_slug — so Private School Guide's
+          // status uses ONLY bookings on Private School Guide.
+          const slotStatuses: Record<string, 'live' | 'paused' | 'sellable' | 'hidden'> = {}
+          for (const pt of PLACEMENT_TYPES.filter(p => page.surfaces.includes(p.surface))) {
+            if (hiddenSlots.has(pt.slug)) { slotStatuses[pt.slug] = 'hidden'; continue }
+            const scoped = ads.filter(a => a.placement_type === pt.slug && (
+              page.context === undefined ? true :
+              page.context === null      ? (a.context_slug == null || a.context_slug === '') :
+                                           a.context_slug === page.context
+            ))
+            if (scoped.length === 0)              slotStatuses[pt.slug] = 'sellable'
+            else if (scoped.some(a => a.is_active)) slotStatuses[pt.slug] = 'live'
+            else                                    slotStatuses[pt.slug] = 'paused'
+          }
+          return (
+            <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                  <MapPin size={14} className="text-primary" />
+                  {page.label} — slot map
+                </h2>
               </div>
-              <PageLayoutPreview
-                surface={filterPage}
-                slotStatuses={Object.fromEntries(
-                  PLACEMENT_TYPES.filter(p => p.surface === filterPage).map(p => {
-                    const c = countsBySlug[p.slug]
-                    const status: 'live' | 'paused' | 'sellable' | 'hidden' =
-                      hiddenSlots.has(p.slug)         ? 'hidden'   :
-                      !c || c.total === 0             ? 'sellable' :
-                      c.active > 0                    ? 'live'     :
-                                                        'paused'
-                    return [p.slug, status]
-                  })
-                ) as Record<string, 'live' | 'paused' | 'sellable' | 'hidden'>}
-                onSlotClick={(slug) => setFilterType(slug)}
-              />
-            </div>
-          </section>
-        )}
+              <div className="p-5 grid md:grid-cols-[1fr_minmax(340px,_auto)] gap-5 items-start">
+                <div className="text-xs text-gray-600 space-y-2">
+                  <p>
+                    Every ad slot that can run on <strong>{page.label}</strong>. Color = booking status on THIS page:{' '}
+                    <span className="font-semibold text-green-700">live</span> · {' '}
+                    <span className="font-semibold text-gray-700">paused</span> (booked, nothing on) · {' '}
+                    <span className="font-semibold text-amber-700">empty</span> (sellable) · {' '}
+                    <span className="font-semibold text-gray-500">hidden</span> (site-wide off).
+                  </p>
+                  <p>
+                    Click any slot to filter the booking list to that placement. Click <strong>+ Sell this slot</strong>{' '}
+                    in the Slot Catalog above to open a new-booking form pre-filled.
+                  </p>
+                  <p className="text-gray-400 italic">
+                    Layouts mapped: Homepage, Articles, Guides. School Bits / Calendar / Newsletter / Site-wide / Verticals
+                    render the slot list inline until I draw their layouts too.
+                  </p>
+                </div>
+                <PageLayoutPreview
+                  surface={primarySurface}
+                  slotStatuses={slotStatuses}
+                  onSlotClick={(slug) => setFilterType(slug)}
+                />
+              </div>
+            </section>
+          )
+        })()}
 
         {/* ── Error ────────────────────────────────────────────── */}
         {error && (
@@ -546,11 +636,16 @@ export default function AdminAdsPage() {
                   {visibleAds.map(ad => {
                     const def = findPlacementType(ad.placement_type)
                     return (
-                      <tr key={ad.id} className="group border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                      <tr key={ad.id} className={`group border-b border-gray-100 last:border-0 hover:bg-gray-50 ${ad.is_section_sponsor ? 'bg-violet-50/30' : ''}`}>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {def ? (
                             <div>
-                              <div className="text-sm font-semibold text-gray-900">{def.label}</div>
+                              <div className="text-sm font-semibold text-gray-900">
+                                {ad.is_section_sponsor && (
+                                  <span className="inline-block mr-1.5 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-violet-600 text-white align-middle">SECTION SPONSOR</span>
+                                )}
+                                {ad.is_section_sponsor && ad.context_slug ? `${ad.context_slug} — presented by` : def.label}
+                              </div>
                               <code className="text-[10px] text-gray-400">{ad.placement_type}</code>
                             </div>
                           ) : (
@@ -601,19 +696,34 @@ export default function AdminAdsPage() {
                           {ctr(ad.impression_count, ad.click_count)}
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap sticky right-0 bg-white group-hover:bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">
-                          <Link
-                            href={`/admin/ads/${ad.id}/edit`}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
-                          >
-                            Edit
-                          </Link>
-                          <span className="text-gray-300 mx-2">·</span>
-                          <button
-                            onClick={() => deleteAd(ad.id)}
-                            className="text-xs font-semibold text-red-600 hover:text-red-800"
-                          >
-                            Delete
-                          </button>
+                          {ad.is_section_sponsor ? (
+                            // Section sponsors live in column_sponsors —
+                            // route Edit to the Section Sponsors tab and
+                            // hide Delete (they're date-windowed, not
+                            // toggled on/off the same way).
+                            <Link
+                              href="/admin/section-sponsors"
+                              className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                            >
+                              Edit in Section Sponsors →
+                            </Link>
+                          ) : (
+                            <>
+                              <Link
+                                href={`/admin/ads/${ad.id}/edit`}
+                                className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                              >
+                                Edit
+                              </Link>
+                              <span className="text-gray-300 mx-2">·</span>
+                              <button
+                                onClick={() => deleteAd(ad.id)}
+                                className="text-xs font-semibold text-red-600 hover:text-red-800"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </td>
                       </tr>
                     )
@@ -631,14 +741,34 @@ export default function AdminAdsPage() {
 
 // ── Stat tile ────────────────────────────────────────────────────────────────
 
-function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4">
+function Stat({ label, value, tone, active, onClick }: {
+  label:   string
+  value:   number
+  tone:    string
+  active?: boolean
+  onClick?: () => void
+}) {
+  const className = `text-left bg-white border rounded-2xl p-4 transition-all ${
+    active
+      ? 'border-2 ring-2 ring-offset-1'
+      : 'border-gray-200 hover:border-gray-300'
+  } ${onClick ? 'cursor-pointer hover:shadow-sm' : ''}`
+  const style: React.CSSProperties = active ? { borderColor: tone, boxShadow: `0 0 0 1px ${tone}33` } : {}
+  const content = (
+    <>
       <div className="flex items-center gap-2 mb-1">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: tone }} />
         <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</p>
       </div>
       <p className="text-2xl font-black text-gray-900 tabular-nums">{value}</p>
-    </div>
+    </>
   )
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={className} style={style} type="button">
+        {content}
+      </button>
+    )
+  }
+  return <div className={className} style={style}>{content}</div>
 }

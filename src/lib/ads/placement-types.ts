@@ -144,6 +144,11 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
     whereItAppears: 'On a guide directory page, woven into the business listing grid. Visually styled like a listing card so it blends in.',
     description: 'Ad woven into the directory listing grid on guide pages.' },
 
+  { slug: 'guides_index_ad',             surface: 'guides',
+    label: 'Guides Index — Featured partner card',
+    whereItAppears: 'On /local-guides (the Family Resource Guide landing page that lists every guide), featured-partner card woven into the guide tile grid.',
+    description: 'Sponsored card on the Local Guides index. Catches readers who are browsing what guide to visit.' },
+
   // ── Verticals (School Zone, Mom Knows Best, etc.) ────────────────────────
   { slug: 'section_sponsor',             surface: 'verticals',
     label: 'Section — Top "presented by" sponsor',
