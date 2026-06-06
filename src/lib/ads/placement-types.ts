@@ -151,15 +151,32 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
     description: 'Presenting-sponsor card in a vertical/guide hero. Filter by placement_context to scope to a specific section (e.g., school-zone, family-resource-guide).' },
 
   // ── Calendar ─────────────────────────────────────────────────────────────
-  { slug: 'calendar_featured_event',     surface: 'calendar',
-    label: 'Calendar — Featured event card',
-    whereItAppears: 'On /calendar, highlighted card at the top of the event list. Larger than regular events, styled with a "featured" badge.',
-    description: 'Highlighted event slot on the calendar page.' },
+  // Top + bottom banners are intentionally SEPARATE placement types so each
+  // can be sold, scheduled, and tracked independently. A "calendar takeover"
+  // means booking both; a single-banner sponsorship picks one. Each supports
+  // its own rotation pool (up to 3 advertisers in the rotation_group field
+  // → 33% / 33% / 33% per request, or weighted if you want a tier bias).
+  { slug: 'calendar_top_banner',         surface: 'calendar',
+    label: 'Calendar — Top banner (above events)',
+    whereItAppears: 'On /calendar, wide banner directly under the filter bar, ABOVE the first event row. First thing readers see when they land on the calendar.',
+    description: 'Top-of-page calendar banner. Sells as exclusive or rotates among up to 3 advertisers.' },
+
+  { slug: 'calendar_bottom_banner',      surface: 'calendar',
+    label: 'Calendar — Bottom banner (under Load More)',
+    whereItAppears: 'On /calendar, wide banner BENEATH the event grid + "Load more events" button. Catches readers who scrolled the full list.',
+    description: 'Bottom-of-page calendar banner. Lower CPM than top but higher intent — sells as exclusive or rotates among up to 3.' },
 
   { slug: 'calendar_inline_promotion',   surface: 'calendar',
-    label: 'Calendar — In-grid promotion',
-    whereItAppears: 'On /calendar, in the event grid, mixed in with regular events. Styled like an event card but marked "Sponsored".',
-    description: 'Promo woven into the calendar grid.' },
+    label: 'Calendar — In-grid rotating promotion',
+    whereItAppears: 'On /calendar, mixed into the event grid every ~6 events. Up to 4 advertisers rotate per batch — same advertiser won\'t appear twice within a single batch of 12 events.',
+    description: 'Promo woven into the calendar grid. Up to 4 in the rotation pool; the renderer enforces "no advertiser twice per batch" so impressions feel curated, not spammy.' },
+
+  // Legacy — kept as a fallback so existing bookings keep rendering. New
+  // bookings should use calendar_top_banner or calendar_bottom_banner.
+  { slug: 'calendar_featured_event',     surface: 'calendar',
+    label: 'Calendar — Featured event (legacy)',
+    whereItAppears: 'Legacy slot — used to power both top and bottom banner before they were split. The calendar page still renders these as a fallback (oldest = top, newest = bottom) until you migrate them.',
+    description: 'DEPRECATED. Use calendar_top_banner or calendar_bottom_banner for new bookings. Existing bookings still display but should be migrated for clarity.' },
 
   // ── Newsletter ───────────────────────────────────────────────────────────
   { slug: 'newsletter_sponsor',          surface: 'newsletter',

@@ -115,11 +115,23 @@ export default async function CalendarPage() {
   // ── Ad lookups (all use the existing ad_placements system) ──────────────
   // Hero sponsor: uses the shared 'section_sponsor' placement with
   // context_slug='calendar' — same pattern School Zone / Mom Knows Best use.
-  // Banner + inline ads: use the calendar-specific placement types.
-  const [heroAds, bannerAds, inlineAds] = await Promise.all([
+  //
+  // Top + bottom banners are NOW separate placement types
+  // (calendar_top_banner, calendar_bottom_banner). The legacy
+  // calendar_featured_event lookup stays as a fallback — if no bookings
+  // exist on the new types, the old slot fills in so existing inventory
+  // keeps rendering during the migration window. Once every old booking
+  // has been re-tagged in /admin/ads, the fallback can be removed.
+  //
+  // Each banner slot uses {rotate: true} + limit=3 so up to three
+  // advertisers share the slot (the share math: 1 ad → 100%, 2 → 50/50,
+  // 3 → 33% each, weighted by rotation_weight if you've set tier biases).
+  const [heroAds, topBannerAds, bottomBannerAds, legacyBannerAds, inlineAds] = await Promise.all([
     getActiveAds('section_sponsor',           'calendar', 1),
+    getActiveAds('calendar_top_banner',       'calendar', 3, { rotate: true }),
+    getActiveAds('calendar_bottom_banner',    'calendar', 3, { rotate: true }),
     getActiveAds('calendar_featured_event',   'calendar', 2),
-    getActiveAds('calendar_inline_promotion', 'calendar', 4),
+    getActiveAds('calendar_inline_promotion', 'calendar', 4, { rotate: true }),
   ])
 
   // Transform hero ad into the HeroSponsorCard shape
@@ -132,9 +144,10 @@ export default async function CalendarPage() {
       }
     : null
 
-  // Split banners: first = top, second = bottom
-  const topBannerAd:    ActiveAd | null = bannerAds[0] ?? null
-  const bottomBannerAd: ActiveAd | null = bannerAds[1] ?? null
+  // Top/bottom banner picks. Prefer the new dedicated types; fall back to
+  // the legacy calendar_featured_event by booking order (oldest = top).
+  const topBannerAd:    ActiveAd | null = topBannerAds[0]    ?? legacyBannerAds[0] ?? null
+  const bottomBannerAd: ActiveAd | null = bottomBannerAds[0] ?? legacyBannerAds[1] ?? null
 
   return (
     <div className="min-h-screen bg-background public-page">
