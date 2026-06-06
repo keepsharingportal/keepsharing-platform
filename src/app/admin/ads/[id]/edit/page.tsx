@@ -203,9 +203,9 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
         </header>
 
         {ad.archived_at && (
-          <ArchivedBanner
-            archivedAt={ad.archived_at}
-            onRestore={async () => {
+          <ExpiredBanner
+            expiredAt={ad.archived_at}
+            onRenew={async () => {
               const res = await fetch('/api/admin/ads/restore', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body:   JSON.stringify({ id }),
@@ -572,35 +572,40 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 // Shown at the top of the edit form when archived_at is set. Restore brings
 // it back; Delete forever (typed-confirm) is for genuine cleanups.
 
-function ArchivedBanner({ archivedAt, onRestore, onDeleteForever }: {
-  archivedAt:      string
-  onRestore:       () => void | Promise<void>
+// ExpiredBanner — surfaces at the top of an expired ad's edit page.
+// "Archived" is the column name (archived_at) but staff-facing language
+// is "Expired" because that's how the editor thinks about ads that have
+// rotated off the active list (renewal lapsed, sale ended, etc.).
+function ExpiredBanner({ expiredAt, onRenew, onDeleteForever }: {
+  expiredAt:       string
+  onRenew:         () => void | Promise<void>
   onDeleteForever: () => void | Promise<void>
 }) {
   return (
-    <div className="bg-gray-100 border border-gray-300 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
-        <p className="text-sm font-bold text-gray-900">
-          This ad is archived (since {new Date(archivedAt).toLocaleDateString()}).
+        <p className="text-sm font-bold text-amber-900">
+          This ad is expired (since {new Date(expiredAt).toLocaleDateString()}).
         </p>
-        <p className="text-xs text-gray-600 mt-0.5">
-          It&apos;s hidden from the public site and from the default /admin/ads list, but kept in the customer&apos;s history.
+        <p className="text-xs text-amber-800 mt-0.5">
+          Hidden from the public site and from the active ads list, but kept in the customer&apos;s history.
         </p>
       </div>
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={onRestore}
+          onClick={onRenew}
           className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
         >
-          Restore
+          Renew (reactivate)
         </button>
         <button
           type="button"
           onClick={onDeleteForever}
           className="px-4 py-2 rounded-lg border border-red-200 text-red-700 text-sm font-bold hover:bg-red-50"
+          title="Permanent delete — for genuine cleanup only"
         >
-          Delete forever
+          Delete permanently
         </button>
       </div>
     </div>
@@ -651,8 +656,11 @@ function CustomerSection({ ad, advertisers, onChange }: {
   }, [ad.advertiser_account_id])
 
   // This ad itself is in the list — exclude it so the editor sees
-  // "what ELSE this customer is running."
+  // "what ELSE this customer is running." Group by active vs expired
+  // for the two-section render.
   const otherAdsFiltered = otherAds.filter(o => o.id !== ad.id)
+  const activeOtherAds   = otherAdsFiltered.filter(o => !o.archived_at)
+  const expiredOtherAds  = otherAdsFiltered.filter(o => o.archived_at)
 
   return (
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
@@ -725,71 +733,34 @@ function CustomerSection({ ad, advertisers, onChange }: {
           </p>
         )}
 
-        {/* ── Other ads from this customer ─────────────────
-            Helps the editor see "what else is this buyer running" —
-            useful for upsell ("you're already on Calendar; want to
-            add a homepage spot?") and for spotting renewals coming
-            up across multiple slots at once. */}
+        {/* ── Ad placements for this customer ────────────────
+            Two groups — Active (currently running, paused, or
+            scheduled) and Expired (rotated off the active list,
+            either manually or automatically). Helps the editor
+            spot upsell opportunities AND see the full ad history
+            with this customer at a glance. */}
         {selected && (
-          <div className="rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
-                Other ads from {selected.business_name}
-              </p>
-              {otherAdsFiltered.length > 0 && (
-                <span className="text-[10px] text-gray-500">{otherAdsFiltered.length} other{otherAdsFiltered.length === 1 ? '' : 's'}</span>
-              )}
-            </div>
+          <div className="space-y-3">
             {adsLoading ? (
-              <p className="p-3 text-xs text-gray-400">Loading…</p>
+              <p className="text-xs text-gray-400">Loading customer ad history…</p>
             ) : otherAdsFiltered.length === 0 ? (
-              <p className="p-3 text-xs text-gray-500 italic">
+              <div className="rounded-xl border border-gray-200 p-3 text-xs text-gray-500 italic">
                 This is the only ad this customer is running. Could be an upsell opportunity.
-              </p>
+              </div>
             ) : (
-              <ul className="divide-y divide-gray-100">
-                {otherAdsFiltered.slice(0, 10).map(other => {
-                  const isArchived = !!other.archived_at
-                  return (
-                    <li key={other.id} className={`px-4 py-2 flex items-center gap-3 hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}>
-                      {isArchived ? (
-                        <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-500 text-white">
-                          Archived
-                        </span>
-                      ) : (
-                        <CustomerAdPill active={other.is_active} />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className={`text-xs font-bold truncate ${isArchived ? 'text-gray-600 line-through decoration-gray-400' : 'text-gray-900'}`}>
-                            {findPlacementType(other.placement_type)?.label ?? other.placement_type}
-                          </p>
-                          {other.context_slug && (
-                            <code className="text-[10px] text-gray-400 font-mono truncate">{other.context_slug}</code>
-                          )}
-                        </div>
-                        {other.ad_headline && (
-                          <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        {isArchived && other.archived_at ? (
-                          <p className="text-[10px] text-gray-500">
-                            Archived {new Date(other.archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        ) : other.ends_at ? (
-                          <p className="text-[10px] text-gray-500">
-                            Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        ) : null}
-                        <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
-                          Open →
-                        </Link>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
+              <>
+                <CustomerAdGroup
+                  label={`Other active ad placements — ${selected.business_name}`}
+                  empty="No other active placements for this customer."
+                  ads={activeOtherAds}
+                />
+                <CustomerAdGroup
+                  label={`Expired ad placements — ${selected.business_name}`}
+                  empty="No expired placements yet."
+                  ads={expiredOtherAds}
+                  isExpired
+                />
+              </>
             )}
           </div>
         )}
@@ -803,6 +774,73 @@ function CustomerAdPill({ active }: { active: boolean }) {
     <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-green-600 text-white">ON</span>
   ) : (
     <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-300 text-gray-700">OFF</span>
+  )
+}
+
+// CustomerAdGroup — one section of the customer's ad history (Active or
+// Expired). Both render the same row shape, with Expired rows muted and
+// tagged differently.
+function CustomerAdGroup({ label, empty, ads, isExpired }: {
+  label:     string
+  empty:     string
+  ads:       CustomerAd[]
+  isExpired?: boolean
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <div className="px-4 py-2 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600">
+          {label}
+        </p>
+        <span className="text-[10px] text-gray-500">
+          {ads.length} {ads.length === 1 ? 'ad' : 'ads'}
+        </span>
+      </div>
+      {ads.length === 0 ? (
+        <p className="p-3 text-xs text-gray-500 italic">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-gray-100">
+          {ads.slice(0, 10).map(other => (
+            <li key={other.id} className={`px-4 py-2 flex items-center gap-3 hover:bg-gray-50 ${isExpired ? 'opacity-70' : ''}`}>
+              {isExpired ? (
+                <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-600 text-white">
+                  Expired
+                </span>
+              ) : (
+                <CustomerAdPill active={other.is_active} />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className={`text-xs font-bold truncate ${isExpired ? 'text-gray-600' : 'text-gray-900'}`}>
+                    {findPlacementType(other.placement_type)?.label ?? other.placement_type}
+                  </p>
+                  {other.context_slug && (
+                    <code className="text-[10px] text-gray-400 font-mono truncate">{other.context_slug}</code>
+                  )}
+                </div>
+                {other.ad_headline && (
+                  <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
+                )}
+              </div>
+              <div className="shrink-0 text-right">
+                {isExpired && other.archived_at ? (
+                  <p className="text-[10px] text-gray-500">
+                    Expired {new Date(other.archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
+                ) : other.ends_at ? (
+                  <p className="text-[10px] text-gray-500">
+                    Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
+                ) : null}
+                <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
+                  Open →
+                </Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

@@ -109,8 +109,8 @@ export default function AdminAdsPage() {
     load()
   }
 
-  async function deleteAd(id: string) {
-    if (!confirm('Delete this ad placement?')) return
+  async function expireAd(id: string) {
+    if (!confirm('Mark this ad as expired? It will be removed from active ads but kept in the customer\'s history.')) return
     await fetch('/api/admin/ads/delete', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -414,7 +414,7 @@ export default function AdminAdsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map(row => <SlotRowItem key={row.key} row={row} onToggleHidden={toggleSlotHidden} onDelete={deleteAd} />)}
+                  {pageRows.map(row => <SlotRowItem key={row.key} row={row} onToggleHidden={toggleSlotHidden} onExpire={expireAd} />)}
                 </tbody>
               </table>
             </div>
@@ -455,11 +455,11 @@ export default function AdminAdsPage() {
 // ── Slot row ─────────────────────────────────────────────────────────────────
 
 function SlotRowItem({
-  row, onToggleHidden, onDelete,
+  row, onToggleHidden, onExpire,
 }: {
   row: SlotRow
   onToggleHidden: (slug: string) => void
-  onDelete:       (id: string) => void
+  onExpire:       (id: string) => void
 }) {
   const isEmpty   = row.status === 'empty'
   const isHidden  = row.status === 'hidden'
@@ -563,10 +563,11 @@ function SlotRowItem({
                 </Link>
                 <span className="text-gray-300">·</span>
                 <button
-                  onClick={() => onDelete(headBooking.id)}
-                  className="font-semibold text-red-600 hover:text-red-800"
+                  onClick={() => onExpire(headBooking.id)}
+                  className="font-semibold text-amber-700 hover:text-amber-900"
+                  title="Mark this ad as expired — moves it out of active ads but keeps it in the customer's history"
                 >
-                  Delete
+                  Mark expired
                 </button>
                 <span className="text-gray-300">·</span>
               </>

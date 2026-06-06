@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
         advertiser_email, sales_rep_email,
         advertiser:advertiser_account_id(business_name, email)
       `)
+      .is('archived_at', null)   // skip already-expired ads
       .not('ends_at', 'is', null),
   ])
 
@@ -101,8 +102,32 @@ export async function GET(req: NextRequest) {
   const templates  = (tplRes.data ?? []) as Template[]
   const placements = (plRes.data  ?? []) as unknown as Placement[]
 
+  // ── Auto-expire past-due ads ────────────────────────────────────────────
+  // Any ad whose ends_at is more than 1 day past gets auto-expired
+  // (archived_at = NOW(), is_active = false). The 1-day grace window
+  // gives the editor + advertiser a beat to renew before the slot
+  // visibly drops off the public site.
+  //
+  // Renewal reminders still fire BEFORE expiry; this step is the
+  // automatic fallback for the day-after follow-up template.
+  const expiryCutoff = new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString()
+  let autoExpired = 0
+  for (const pl of placements) {
+    if (pl.ends_at && pl.ends_at < expiryCutoff) {
+      const { error: expErr } = await supabase
+        .from('ad_placements')
+        .update({ archived_at: new Date().toISOString(), is_active: false })
+        .eq('id', pl.id)
+      if (!expErr) autoExpired++
+      else console.warn('[ad-renewals] auto-expire failed for', pl.id, expErr.message)
+    }
+  }
+  // Drop already-expired-in-this-run from the templates loop so we
+  // don't waste a reminder email on a freshly-expired ad.
+  const activePlacements = placements.filter(p => !p.ends_at || p.ends_at >= expiryCutoff)
+
   if (templates.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, skipped: 0, note: 'No live templates' })
+    return NextResponse.json({ ok: true, sent: 0, skipped: 0, autoExpired, note: 'No live templates' })
   }
 
   const resend = new Resend(apiKey)
@@ -111,7 +136,7 @@ export async function GET(req: NextRequest) {
   let sent = 0, skipped = 0, failed = 0
   const details: Array<{ placement_id: string; template: string; status: string }> = []
 
-  for (const pl of placements) {
+  for (const pl of activePlacements) {
     const offset = dayOffset(pl.ends_at, today)
     const tpl = templates.find(t => t.days_before === offset)
     if (!tpl) continue
@@ -191,5 +216,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, skipped, failed, details })
+  return NextResponse.json({ ok: true, sent, skipped, failed, autoExpired, details })
 }
