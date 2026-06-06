@@ -55,10 +55,13 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // Pull the ad to get its destination + advertiser context for UTMs.
+  // Pull the ad + its advertiser so we can label the short_link with the
+  // business name. That way /admin/content/short-links rows read
+  // "YMCA — Homepage bottom banner" instead of just the ad headline,
+  // and clicks roll up under the right customer in reports.
   const { data: ad, error: adErr } = await supabase
     .from('ad_placements')
-    .select('id, ad_link, placement_type, context_slug, advertiser_account_id, ad_headline')
+    .select('id, ad_link, placement_type, context_slug, advertiser_account_id, ad_headline, advertiser:advertiser_account_id (id, business_name, slug)')
     .eq('id', id)
     .single()
   if (adErr || !ad) return NextResponse.json({ error: adErr?.message ?? 'ad not found' }, { status: 404 })
@@ -66,6 +69,18 @@ export async function POST(req: NextRequest) {
   if (!ad.ad_link) {
     return NextResponse.json({ error: 'Set a CTA link on the ad first — the tracked URL needs a destination to redirect to.' }, { status: 400 })
   }
+
+  // Pull the advertiser business_name + slug for label + utm_content.
+  const adv = (ad as Record<string, unknown>).advertiser as { id?: string; business_name?: string; slug?: string } | null
+  const advertiserName = adv?.business_name ?? null
+  const advertiserSlug = adv?.slug         ?? null
+
+  // Friendly label: "[Advertiser] — [Slot]" or just the slot if no
+  // advertiser is set yet. utm_content gets the slug so it slices
+  // cleanly in analytics.
+  const slotLabel  = ad.placement_type.replace(/_/g, ' ')
+  const label      = advertiserName ? `${advertiserName} — ${slotLabel}` : (ad.ad_headline ?? slotLabel)
+  const utmContent = advertiserSlug ?? ((ad.ad_headline ?? '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60) || null)
 
   // Mint a unique shortcode. Retry on collision (rare with 31^7 ≈ 27 billion).
   let shortcode = ''
@@ -89,8 +104,8 @@ export async function POST(req: NextRequest) {
       utm_source:      'site',
       utm_medium:      'ad',
       utm_campaign:    ad.placement_type,
-      utm_content:     (ad.ad_headline ?? '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60) || null,
-      label:           ad.ad_headline ?? null,
+      utm_content:     utmContent,
+      label,
       ad_placement_id: id,
       advertiser_account_id: ad.advertiser_account_id ?? null,
       market:          'rrp',

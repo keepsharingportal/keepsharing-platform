@@ -11,10 +11,19 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink, Link2, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink, Link2, Copy, Check, Users, Building2 } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+
+interface AdvertiserOption {
+  id:             string
+  business_name:  string
+  slug:           string | null
+  contact_name:   string | null
+  contact_email:  string | null
+  contact_phone:  string | null
+}
 
 interface AdRow {
   id:                    string
@@ -72,6 +81,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState<string | null>(null)
   const [success,  setSuccess]  = useState(false)
+  const [advertisers, setAdvertisers] = useState<AdvertiserOption[]>([])
 
   useEffect(() => {
     fetch(`/api/admin/ads/item?id=${id}`, { cache: 'no-store' })
@@ -82,6 +92,14 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
       })
       .catch(e => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false))
+
+    // Advertiser dropdown options. Loaded in parallel with the ad —
+    // shows up empty for a beat then populates, which is fine on a
+    // form where the existing advertiser_account_id is already shown.
+    fetch('/api/admin/advertisers/list', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { advertisers: [] })
+      .then(j => setAdvertisers((j.advertisers ?? []) as AdvertiserOption[]))
+      .catch(() => {/* silent — advertisers list is optional UX */})
   }, [id])
 
   function set<K extends keyof AdRow>(k: K, v: AdRow[K]) {
@@ -210,6 +228,26 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </section>
         )}
 
+        {/* ── Customer / Advertiser ───────────────────────────────
+            Every ad belongs to a customer. Pick from the advertisers
+            list; the dropdown auto-loads their contact info so renewal
+            reminders + tracked link metadata all wire back to the same
+            advertiser record. */}
+        <CustomerSection
+          ad={ad}
+          advertisers={advertisers}
+          onChange={(advertiserId) => {
+            set('advertiser_account_id', advertiserId)
+            // When the editor picks an advertiser, auto-fill the renewal
+            // contact from their account record IF those fields are blank
+            // (don't clobber an existing override).
+            const adv = advertisers.find(a => a.id === advertiserId)
+            if (adv) {
+              if (!ad.advertiser_email && adv.contact_email) set('advertiser_email', adv.contact_email)
+            }
+          }}
+        />
+
         {/* ── Status + scheduling ─────────────────────────────── */}
         <Section title="Status & scheduling">
           <Row label="Status">
@@ -281,11 +319,13 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </Row>
         </Section>
 
+        {/* ── Tracked CTA link ────────────────────────────────────
+            Sits right under Creative because the CTA Link field is up
+            in Creative — keeping the tracked equivalent next to it
+            means staff doesn't have to scroll to wire one to the other. */}
+        <TrackedLinkSection adId={id} adLink={ad.ad_link ?? ''} />
+
         {/* ── Section sponsor fields — only when this slot IS one ── */}
-        {/* These columns live on every ad_placements row but only mean
-            anything when the placement renders as a "[Section] presented
-            by [Advertiser]" banner. Surfacing them only for that case
-            keeps the standard ad-edit form clean. */}
         {ad.placement_type === 'section_sponsor' && (
           <Section
             title="Section sponsor — branded fields"
@@ -360,12 +400,12 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
         </Section>
 
         {/* ── Ad size (rotation weight under the hood) ─────────────
-            Hidden entirely for sponsor-category slots — those are
-            always exclusive, no sharing, so there's nothing to set.
-            For every other slot, staff picks an Ad Size and the
-            rotation_weight + rotation_group are derived behind the
-            scenes (no raw weight field to confuse anyone). */}
-        {def && def.category !== 'sponsor' && (
+            Only relevant for in-article body ads — that's where the
+            Full/Half/Quarter tier system actually applies (multiple
+            advertisers buy different sizes in the same body slot).
+            For sidebars, in-feed cards, and other rotating slots the
+            sharing is naturally even — no size to pick. */}
+        {def && def.category === 'in-article' && (
           <Section
             title="Ad size"
             subtitle="If multiple advertisers share this slot, larger sizes get more impressions automatically. Full = 4× a Quarter."
@@ -438,15 +478,6 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </Row>
         </Section>
 
-        {/* ── Tracked CTA link ────────────────────────────── */}
-        {/* Mints a short_links row tied to this ad and exposes the /go/
-            URL the editor can swap into print collateral or use as the
-            primary CTA link. Clicks redirect through /go/<code> → the
-            destination, incrementing click_count and applying UTM
-            parameters so this ad's clicks roll into the same reports
-            as magazine QR scans. */}
-        <TrackedLinkSection adId={id} adLink={ad.ad_link ?? ''} />
-
         {/* ── Contacts for renewal reminders ──────────────── */}
         <Section title="Renewal contact"
                  subtitle="The renewal-reminder cron emails these addresses as the contract end date approaches.">
@@ -498,6 +529,94 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
       </div>
       <div>{children}</div>
     </div>
+  )
+}
+
+// ── Customer / Advertiser section ────────────────────────────────────────────
+// First section of the form on purpose — everything else (renewal contact,
+// tracked link labels, reports) should descend from "who is this ad for?".
+
+function CustomerSection({ ad, advertisers, onChange }: {
+  ad:          AdRow
+  advertisers: AdvertiserOption[]
+  onChange:    (advertiserId: string | null) => void
+}) {
+  const selected = ad.advertiser_account_id
+    ? advertisers.find(a => a.id === ad.advertiser_account_id)
+    : null
+
+  return (
+    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+        <h2 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <Users size={16} className="text-primary" />
+          Customer (advertiser)
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">
+          The business this ad belongs to. Their contact info auto-fills the renewal reminder fields below
+          and tracked-link reports group every click back to this customer.
+        </p>
+      </div>
+      <div className="p-5 space-y-4">
+        <Row label="Advertiser" hint="Pick from your customer list. Need to create one first? Open Advertisers.">
+          <select
+            value={ad.advertiser_account_id ?? ''}
+            onChange={e => onChange(e.target.value || null)}
+            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400"
+          >
+            <option value="">(no advertiser selected)</option>
+            {advertisers.map(a => (
+              <option key={a.id} value={a.id}>{a.business_name}</option>
+            ))}
+          </select>
+        </Row>
+
+        {selected && (
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1 flex items-center gap-1">
+                <Building2 size={11} /> Business
+              </p>
+              <p className="text-sm font-bold text-gray-900">{selected.business_name}</p>
+              {selected.slug && (
+                <Link
+                  href={`/admin/advertisers/${selected.id}`}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline mt-1"
+                >
+                  Open in Advertisers <ExternalLink size={10} />
+                </Link>
+              )}
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                Contact
+              </p>
+              {selected.contact_name && <p className="text-sm font-semibold text-gray-900">{selected.contact_name}</p>}
+              {selected.contact_email && (
+                <a href={`mailto:${selected.contact_email}`} className="block text-xs text-blue-700 hover:underline">
+                  {selected.contact_email}
+                </a>
+              )}
+              {selected.contact_phone && (
+                <a href={`tel:${selected.contact_phone}`} className="block text-xs text-gray-700">
+                  {selected.contact_phone}
+                </a>
+              )}
+              {!selected.contact_name && !selected.contact_email && !selected.contact_phone && (
+                <p className="text-xs text-gray-400 italic">No contact info on file.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!selected && ad.advertiser_account_id && (
+          <p className="text-xs text-amber-700">
+            This ad references an advertiser ID that isn&apos;t in your list — they may have been deleted.
+            Pick a current advertiser or leave blank.
+          </p>
+        )}
+      </div>
+    </section>
   )
 }
 
