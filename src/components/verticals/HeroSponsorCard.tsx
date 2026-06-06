@@ -24,6 +24,7 @@
 
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 export interface HeroSponsor {
   businessName: string
@@ -112,8 +113,14 @@ export function HeroSponsorCard({
     )
   }
 
-  // Unsponsored placeholder — same visual treatment, different content
+  // Unsponsored placeholder — same visual treatment, different content.
+  // Lead capture is wired through ClaimSpotButton: clicking the CTA opens
+  // the inquiry modal pre-filled with the vertical (section_sponsor +
+  // verticalSlug context) so the editor gets an email with the right spot.
   const pitchHref = verticalSlug ? `/advertise/${verticalSlug}` : '/advertise'
+  const verticalLabel = verticalSlug
+    ? `Section sponsor — ${verticalSlug}`
+    : 'Section sponsor'
   return (
     <div className={`inline-flex flex-col items-center rounded-2xl bg-card border border-border/60 shadow-sm ${s.container}`}>
       <div className={`flex flex-col sm:flex-row items-center ${s.inner}`}>
@@ -125,12 +132,15 @@ export function HeroSponsorCard({
             {placeholderName}
           </span>
         </div>
-        <Link
+        <ClaimSpotButton
+          as="a"
           href={pitchHref}
+          placementType="section_sponsor"
+          placementLabel={verticalLabel}
           className={`inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors whitespace-nowrap ${s.button}`}
         >
           {placeholderCtaLabel} <ChevronRight className={s.icon} />
-        </Link>
+        </ClaimSpotButton>
       </div>
       <p className={`text-muted-foreground italic leading-relaxed ${s.tagline}`}>
         {placeholderTagline}

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { GraduationCap } from 'lucide-react'
 import { ArticleBody } from '@/components/articles/ArticleBody'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 interface SchoolBit {
   id: string
@@ -201,12 +202,15 @@ function InlineSponsorCard() {
         <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
           Reach River Region families and educators. Contact us to become an Education Partner.
         </p>
-        <a
+        <ClaimSpotButton
+          as="a"
           href="/advertise"
+          placementType="school_bits_inline"
+          placementLabel="School Bits — Education Partner"
           className="inline-block px-5 py-2 rounded-full bg-secondary text-white text-sm font-semibold hover:bg-secondary/90 transition-colors"
         >
           Become an Education Partner
-        </a>
+        </ClaimSpotButton>
       </div>
     </div>
   )

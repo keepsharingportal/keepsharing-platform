@@ -4,6 +4,7 @@
 
 import Link from 'next/link'
 import { Store, ArrowRight } from 'lucide-react'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 interface Props {
   variant?: 'banner' | 'sidebar'
@@ -25,12 +26,15 @@ export function GetListedCTA({ variant = 'banner' }: Props) {
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">
           Reach River Region families who are actively looking. Free, enhanced, and featured listings available.
         </p>
-        <Link
+        <ClaimSpotButton
+          as="a"
           href="/advertise"
+          placementType="guide_directory_inline_ad"
+          placementLabel="Family Resource Guide — directory listing"
           className="inline-flex items-center gap-1.5 w-full justify-center px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs font-bold hover:bg-primary/90 transition-colors"
         >
           Get Listed <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        </ClaimSpotButton>
       </div>
     )
   }
@@ -51,12 +55,15 @@ export function GetListedCTA({ variant = 'banner' }: Props) {
           </p>
         </div>
         <div className="flex flex-col gap-2">
-          <Link
+          <ClaimSpotButton
+            as="a"
             href="/advertise"
+            placementType="guide_directory_inline_ad"
+            placementLabel="Family Resource Guide — directory listing"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
           >
             See Listing Tiers <ArrowRight className="h-4 w-4" />
-          </Link>
+          </ClaimSpotButton>
           <Link
             href="/get-media-kit"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-primary/40 text-primary rounded-full text-sm font-semibold hover:bg-primary/10 transition-colors whitespace-nowrap"

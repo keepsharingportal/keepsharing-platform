@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 interface Props {
   headline: string
@@ -96,9 +97,12 @@ export function SponsorPlaceholder({ context = 'education' }: { context?: string
   const c = config[context] ?? config.education
 
   return (
-    <Link
+    <ClaimSpotButton
+      as="a"
       href="/advertise"
-      className="group flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl border border-dashed border-primary/25 bg-primary/3 hover:bg-primary/6 hover:border-primary/40 transition-all"
+      placementType="article_inline_recommendation"
+      placementLabel={`${c.label} — ${c.headline}`}
+      className="group w-full flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl border border-dashed border-primary/25 bg-primary/3 hover:bg-primary/6 hover:border-primary/40 transition-all text-left"
     >
       <div className="flex items-start gap-4 flex-1 min-w-0">
         <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -113,6 +117,6 @@ export function SponsorPlaceholder({ context = 'education' }: { context?: string
       <span className="shrink-0 inline-flex items-center justify-center gap-1 px-4 py-2 bg-primary/10 border border-primary/25 text-primary text-xs font-bold rounded-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors whitespace-nowrap self-start sm:self-center">
         Claim This Spot <ArrowRight className="h-3 w-3" />
       </span>
-    </Link>
+    </ClaimSpotButton>
   )
 }

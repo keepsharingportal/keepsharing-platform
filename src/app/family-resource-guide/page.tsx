@@ -7,6 +7,7 @@
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 import { ArrowRight, Sparkles, GraduationCap } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -475,9 +476,12 @@ export default async function FamilyResourceGuidePage() {
                 </div>
               </Link>
             ) : (
-              <Link
+              <ClaimSpotButton
+                as="a"
                 href="/advertise/family-resource-guide"
-                className="bg-gradient-to-br from-primary/8 via-background to-secondary/6 aspect-square rounded-3xl border-2 border-dashed border-primary/25 flex flex-col items-center justify-center p-7 text-center relative overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
+                placementType="guide_sidebar_sticky"
+                placementLabel="Family Resource Guide — sidebar sponsor"
+                className="w-full bg-gradient-to-br from-primary/8 via-background to-secondary/6 aspect-square rounded-3xl border-2 border-dashed border-primary/25 flex flex-col items-center justify-center p-7 text-center relative overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest absolute top-4">Premium Placement</span>
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 mt-2 group-hover:scale-105 transition-transform">
@@ -490,7 +494,7 @@ export default async function FamilyResourceGuidePage() {
                 <span className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold group-hover:bg-primary/90 transition-colors shadow-sm">
                   Claim This Spot <ArrowRight className="h-3.5 w-3.5" />
                 </span>
-              </Link>
+              </ClaimSpotButton>
             )}
 
             {/* From the Magazine — print cover + Issuu link */}

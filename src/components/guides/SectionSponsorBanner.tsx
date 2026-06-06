@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Crown, Zap } from 'lucide-react'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 interface Props {
   guideName: string
@@ -36,12 +37,15 @@ export function SectionSponsorBanner({ guideName }: Props) {
           </div>
         </div>
 
-        <Link
+        <ClaimSpotButton
+          as="a"
           href="/advertise"
+          placementType="section_sponsor"
+          placementLabel={`${guideName} — Section sponsor`}
           className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
         >
           Claim This Spot <ArrowRight className="h-4 w-4" />
-        </Link>
+        </ClaimSpotButton>
       </div>
     </div>
   )
