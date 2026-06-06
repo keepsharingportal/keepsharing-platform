@@ -833,7 +833,7 @@ export default async function HomePage() {
                 delivered something they want shown as-is.
                 COMPOSED mode (default): the existing image-left + text-
                 right card with the platform's typography. */}
-            {inlineAd && inlineAd.ad_link && inlineAd.creative_mode === 'image' && inlineAd.ad_image_url && (
+            {inlineAd && inlineAd.ad_link && inlineAd.creative_mode === 'image' && inlineAd.ad_image_url ? (
               <Link
                 href={inlineAd.ad_link}
                 className="block rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -846,8 +846,7 @@ export default async function HomePage() {
                   className="w-full h-auto object-cover"
                 />
               </Link>
-            )}
-            {inlineAd && inlineAd.ad_link && inlineAd.creative_mode !== 'image' && (
+            ) : inlineAd && inlineAd.ad_link ? (
               <Link
                 href={inlineAd.ad_link}
                 className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
@@ -878,6 +877,29 @@ export default async function HomePage() {
                   </span>
                 )}
               </Link>
+            ) : (
+              // Sales placeholder for when the inline slot is empty OR
+              // a booked ad has been toggled Off. Matches the composed
+              // card dimensions so the layout never shifts between an
+              // ad and the placeholder. Opens SlotInquiryModal so the
+              // editor knows which slot the lead came from.
+              <ClaimSpotButton
+                placementType="homepage_inline_ad"
+                placementLabel="Homepage — Sponsored card (mid-feed)"
+                className="w-full bg-gradient-to-r from-primary/6 via-background to-secondary/4 border-2 border-dashed border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden hover:border-primary/40 hover:shadow-md transition-all group text-left"
+              >
+                <div className="w-full md:w-52 h-40 rounded-2xl overflow-hidden shrink-0 z-10 bg-primary/10 flex items-center justify-center">
+                  <Star className="h-12 w-12 text-primary" />
+                </div>
+                <div className="flex-1 text-center sm:text-left z-10 min-w-0">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1 block">Sponsored Spot Available</span>
+                  <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">Your Business, Right in the Feed</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2">Mid-feed sponsored card seen by every homepage visitor. Ask about availability.</p>
+                </div>
+                <span className="shrink-0 z-10 inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold group-hover:bg-primary/90 transition-colors whitespace-nowrap">
+                  Claim This Spot
+                </span>
+              </ClaimSpotButton>
             )}
 
             {/* Latest Stories — always visible, 3-col grid */}
