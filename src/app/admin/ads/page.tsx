@@ -119,6 +119,17 @@ export default function AdminAdsPage() {
     load()
   }
 
+  // Flip is_active on the head booking. Used by the inline On/Off toggle in
+  // the Status column. Optimistic — refresh the list after the round-trip.
+  async function toggleActive(id: string, nextActive: boolean) {
+    await fetch('/api/admin/ads/toggle', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id, is_active: nextActive }),
+    })
+    load()
+  }
+
   // ── Build the slot list ──────────────────────────────────────────────────
   // For each page in PAGES × each placement_type in PAGE_SLOTS[page], emit
   // one SlotRow. Attach matching bookings. Compute status.
@@ -233,7 +244,7 @@ export default function AdminAdsPage() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1200px] mx-auto space-y-6">
+      <div className="max-w-[1400px] mx-auto space-y-6">
 
         <AdsTabs />
 
@@ -391,22 +402,21 @@ export default function AdminAdsPage() {
           ) : (
             <div className="overflow-x-auto">
               {/* Column order: Slot · Advertiser · Page · Type · Status ·
-                  Impr · Actions. Advertiser moved to position #2 because
-                  with rotation pools (e.g. up to 3 in homepage_bottom_ad)
-                  the slot name alone isn't enough — you need to read the
-                  business right next to it. CTR column dropped — derive
-                  it from Impr/Clicks if you really need it. Total = 1170px
-                  with minWidth=1100, fits inside the 1200px container
-                  without horizontal scroll on a typical laptop. */}
-              <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1100 }}>
+                  Impr · Actions. Advertiser is #2 because with rotation
+                  pools (e.g. up to 3 in homepage_bottom_ad) the slot name
+                  alone isn't enough. Status column hosts a real On/Off
+                  toggle when a booking exists, so the editor can pause
+                  without leaving the list. Total = 1310px inside the
+                  1400px container, leaving padding on both sides. */}
+              <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1280 }}>
                 <colgroup>
-                  <col style={{ width: 250 }} />  {/* Slot */}
-                  <col style={{ width: 180 }} />  {/* Advertiser */}
+                  <col style={{ width: 240 }} />  {/* Slot */}
+                  <col style={{ width: 200 }} />  {/* Advertiser */}
                   <col style={{ width: 140 }} />  {/* Page */}
                   <col style={{ width: 90  }} />  {/* Type */}
                   <col style={{ width: 260 }} />  {/* Status / Headline */}
                   <col style={{ width: 80  }} />  {/* Impr. */}
-                  <col style={{ width: 170 }} />  {/* Actions */}
+                  <col style={{ width: 300 }} />  {/* Actions */}
                 </colgroup>
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
@@ -420,7 +430,7 @@ export default function AdminAdsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map(row => <SlotRowItem key={row.key} row={row} onToggleHidden={toggleSlotHidden} onExpire={expireAd} />)}
+                  {pageRows.map(row => <SlotRowItem key={row.key} row={row} onToggleHidden={toggleSlotHidden} onExpire={expireAd} onToggleActive={toggleActive} />)}
                 </tbody>
               </table>
             </div>
@@ -461,11 +471,12 @@ export default function AdminAdsPage() {
 // ── Slot row ─────────────────────────────────────────────────────────────────
 
 function SlotRowItem({
-  row, onToggleHidden, onExpire,
+  row, onToggleHidden, onExpire, onToggleActive,
 }: {
   row: SlotRow
   onToggleHidden: (slug: string) => void
   onExpire:       (id: string) => void
+  onToggleActive: (id: string, nextActive: boolean) => void
 }) {
   const isEmpty   = row.status === 'empty'
   const isHidden  = row.status === 'hidden'
@@ -523,11 +534,23 @@ function SlotRowItem({
       <td className="px-4 py-3 text-xs text-gray-600 capitalize">
         {CATEGORY_LABELS[row.category]}
       </td>
-      {/* STATUS / HEADLINE */}
+      {/* STATUS / HEADLINE — real On/Off toggle when the slot has a booking,
+          static badge for empty/hidden. Clicking the toggle flips is_active
+          via /api/admin/ads/toggle and refreshes the list. */}
       <td className="px-4 py-3">
-        <StatusPill status={row.status} />
+        {headBooking && (isOn || isPaused) ? (
+          <OnOffToggle
+            on={isOn}
+            onChange={next => onToggleActive(headBooking.id, next)}
+          />
+        ) : (
+          <StatusPill status={row.status} />
+        )}
         {isOn && headBooking?.ad_headline && (
           <div className="text-xs text-gray-600 mt-1 truncate">{headBooking.ad_headline}</div>
+        )}
+        {isPaused && headBooking?.ad_headline && (
+          <div className="text-xs text-gray-500 mt-1 truncate">{headBooking.ad_headline}</div>
         )}
         {isEmpty && (
           <div className="text-[11px] text-amber-700 mt-1">Showing sales placeholder on the public site.</div>
@@ -626,6 +649,51 @@ function StatusPill({ status }: { status: SlotRow['status'] }) {
     <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${styles}`}>
       {label}
     </span>
+  )
+}
+
+// Real iOS-style On/Off switch for slot rows that have a booking. Optimistic
+// flip with brief disabled window so rapid double-clicks don't fire two
+// PATCHes against ad_placements.
+function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) => void }) {
+  const [busy, setBusy] = useState(false)
+  const [localOn, setLocalOn] = useState(on)
+  // Sync from prop when the parent re-fetches.
+  useEffect(() => { setLocalOn(on) }, [on])
+
+  async function flip() {
+    if (busy) return
+    setBusy(true)
+    const next = !localOn
+    setLocalOn(next)        // optimistic
+    try { await onChange(next) } finally { setBusy(false) }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={flip}
+      disabled={busy}
+      role="switch"
+      aria-checked={localOn}
+      title={localOn ? 'Currently running — click to pause' : 'Currently paused — click to resume'}
+      className={`group inline-flex items-center gap-2 select-none disabled:opacity-60 disabled:cursor-not-allowed ${busy ? '' : 'cursor-pointer'}`}
+    >
+      <span
+        className={`relative inline-block h-5 w-9 rounded-full transition-colors ${
+          localOn ? 'bg-green-600 group-hover:bg-green-700' : 'bg-gray-300 group-hover:bg-gray-400'
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+            localOn ? 'translate-x-[18px]' : 'translate-x-0.5'
+          }`}
+        />
+      </span>
+      <span className={`text-[11px] font-black uppercase tracking-wider ${localOn ? 'text-green-700' : 'text-gray-500'}`}>
+        {localOn ? 'On' : 'Off'}
+      </span>
+    </button>
   )
 }
 
