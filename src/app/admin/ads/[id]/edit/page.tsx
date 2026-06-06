@@ -38,6 +38,12 @@ interface AdRow {
   price_annual:          number | null
   advertiser_email:      string | null
   sales_rep_email:       string | null
+  // Section-sponsor specific fields (placement_type='section_sponsor').
+  // Live on every ad_placements row but only meaningful when sponsoring
+  // a vertical/column — the edit form only surfaces them in that case.
+  accent_color:          string | null
+  logo_url:              string | null
+  sponsor_tagline:       string | null
 }
 
 const CONTEXT_SLUGS: Record<string, string[]> = {
@@ -268,6 +274,52 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
             <input value={ad.ad_image_url ?? ''} onChange={e => set('ad_image_url', e.target.value)} placeholder="https://… or /images/…" className={inp} />
           </Row>
         </Section>
+
+        {/* ── Section sponsor fields — only when this slot IS one ── */}
+        {/* These columns live on every ad_placements row but only mean
+            anything when the placement renders as a "[Section] presented
+            by [Advertiser]" banner. Surfacing them only for that case
+            keeps the standard ad-edit form clean. */}
+        {ad.placement_type === 'section_sponsor' && (
+          <Section
+            title="Section sponsor — branded fields"
+            subtitle="These fields drive the per-column sponsor banner (Play Ball / Mom to Mom / Teacher of the Month, etc.). They override the generic Creative fields above for the section-sponsor banner render."
+          >
+            <Row label="Logo URL" hint="Distinct from Image URL — rendered as a small square logo on the colored banner.">
+              <input
+                value={ad.logo_url ?? ''}
+                onChange={e => set('logo_url', e.target.value)}
+                placeholder="https://… (small square works best)"
+                className={inp}
+              />
+            </Row>
+            <Row label="Sponsor tagline" hint="Italicized one-liner under the sponsor name on the banner. Optional.">
+              <input
+                value={ad.sponsor_tagline ?? ''}
+                onChange={e => set('sponsor_tagline', e.target.value)}
+                placeholder="e.g. Proud sponsor of community sports"
+                className={inp}
+              />
+            </Row>
+            <Row label="Accent color" hint="Hex color (#ef6442). Banner background tint + button color. Falls back to the column's brand color if blank.">
+              <div className="flex items-center gap-2">
+                <input
+                  value={ad.accent_color ?? ''}
+                  onChange={e => set('accent_color', e.target.value)}
+                  placeholder="#ef6442"
+                  className={`${inp} flex-1`}
+                />
+                {ad.accent_color && (
+                  <span
+                    className="shrink-0 w-9 h-9 rounded-md border border-gray-200"
+                    style={{ backgroundColor: ad.accent_color }}
+                    title={ad.accent_color}
+                  />
+                )}
+              </div>
+            </Row>
+          </Section>
+        )}
 
         {/* ── Placement type / context ─────────────────────── */}
         <Section title="Placement">

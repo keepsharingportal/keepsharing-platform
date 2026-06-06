@@ -12,12 +12,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Star, Map, Bookmark, Mail } from 'lucide-react'
+import { Star, Map, Mail } from 'lucide-react'
 
+// Section Sponsors are no longer a separate tab — since migration 122
+// they live in ad_placements with placement_type='section_sponsor' and
+// surface in All Bookings alongside every other ad. The old
+// /admin/section-sponsors page redirects to /admin/ads filtered to
+// that placement type.
 const TABS = [
   { href: '/admin/ads',              label: 'All Bookings',       icon: Star     },
   { href: '/admin/ads/map',          label: 'Slot Map',           icon: Map      },
-  { href: '/admin/section-sponsors', label: 'Section Sponsors',   icon: Bookmark },
   { href: '/admin/ads/renewals',     label: 'Renewal Reminders',  icon: Mail     },
 ]
 

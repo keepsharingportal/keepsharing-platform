@@ -77,9 +77,6 @@ interface AdPlacement {
   rotation_group:    string | null
   rotation_weight:   number | null
   advertiser_accounts: { business_name: string } | null
-  /** True when this row is synthesized from column_sponsors. The id is
-   *  prefixed `cs:` so toggle/delete routes know which table to hit. */
-  is_section_sponsor?: boolean
 }
 
 const ctr = (imp: number, clk: number) =>
@@ -636,15 +633,15 @@ export default function AdminAdsPage() {
                   {visibleAds.map(ad => {
                     const def = findPlacementType(ad.placement_type)
                     return (
-                      <tr key={ad.id} className={`group border-b border-gray-100 last:border-0 hover:bg-gray-50 ${ad.is_section_sponsor ? 'bg-violet-50/30' : ''}`}>
+                      <tr key={ad.id} className={`group border-b border-gray-100 last:border-0 hover:bg-gray-50 ${ad.placement_type === 'section_sponsor' ? 'bg-violet-50/30' : ''}`}>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {def ? (
                             <div>
                               <div className="text-sm font-semibold text-gray-900">
-                                {ad.is_section_sponsor && (
+                                {ad.placement_type === 'section_sponsor' && (
                                   <span className="inline-block mr-1.5 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-violet-600 text-white align-middle">SECTION SPONSOR</span>
                                 )}
-                                {ad.is_section_sponsor && ad.context_slug ? `${ad.context_slug} — presented by` : def.label}
+                                {ad.placement_type === 'section_sponsor' && ad.context_slug ? `${ad.context_slug} — presented by` : def.label}
                               </div>
                               <code className="text-[10px] text-gray-400">{ad.placement_type}</code>
                             </div>
@@ -696,34 +693,25 @@ export default function AdminAdsPage() {
                           {ctr(ad.impression_count, ad.click_count)}
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap sticky right-0 bg-white group-hover:bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">
-                          {ad.is_section_sponsor ? (
-                            // Section sponsors live in column_sponsors —
-                            // route Edit to the Section Sponsors tab and
-                            // hide Delete (they're date-windowed, not
-                            // toggled on/off the same way).
-                            <Link
-                              href="/admin/section-sponsors"
-                              className="text-xs font-semibold text-blue-600 hover:text-blue-800"
-                            >
-                              Edit in Section Sponsors →
-                            </Link>
-                          ) : (
-                            <>
-                              <Link
-                                href={`/admin/ads/${ad.id}/edit`}
-                                className="text-xs font-semibold text-blue-600 hover:text-blue-800"
-                              >
-                                Edit
-                              </Link>
-                              <span className="text-gray-300 mx-2">·</span>
-                              <button
-                                onClick={() => deleteAd(ad.id)}
-                                className="text-xs font-semibold text-red-600 hover:text-red-800"
-                              >
-                                Delete
-                              </button>
-                            </>
-                          )}
+                          {/* Section sponsors are now real ad_placements
+                              rows since migration 122 — same Edit/Delete
+                              UX as any other booking, with the section-
+                              sponsor-specific fields (logo, tagline,
+                              accent color) appearing on the edit form
+                              when placement_type='section_sponsor'. */}
+                          <Link
+                            href={`/admin/ads/${ad.id}/edit`}
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                          >
+                            Edit
+                          </Link>
+                          <span className="text-gray-300 mx-2">·</span>
+                          <button
+                            onClick={() => deleteAd(ad.id)}
+                            className="text-xs font-semibold text-red-600 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     )

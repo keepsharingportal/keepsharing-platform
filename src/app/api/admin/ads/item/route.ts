@@ -20,7 +20,8 @@ const FULL_SELECT = `
   starts_at, ends_at,
   rotation_group, rotation_weight,
   price_monthly, price_quarterly, price_annual,
-  advertiser_email, sales_rep_email
+  advertiser_email, sales_rep_email,
+  accent_color, logo_url, sponsor_tagline
 `
 
 const MIN_SELECT = `
@@ -67,6 +68,8 @@ const ALLOWED_FIELDS = new Set([
   'rotation_group', 'rotation_weight',
   'price_monthly', 'price_quarterly', 'price_annual',
   'advertiser_email', 'sales_rep_email',
+  // Section-sponsor (migration 122)
+  'accent_color', 'logo_url', 'sponsor_tagline',
 ])
 
 export async function PATCH(req: NextRequest) {

@@ -91,48 +91,9 @@ export async function GET() {
     .filter(s => s.context_slug === null)
     .map(s => s.placement_type)
 
-  // Merge column_sponsors as virtual rows so the editor sees ALL ad
-  // inventory in one list. Each column_sponsor synthesizes a "row" with
-  // placement_type='section_sponsor', context_slug=the column slug, and
-  // a synthetic id prefixed `cs:` so we can route Edit/Delete back to
-  // the right table. is_section_sponsor=true marks the row visually.
-  type ColumnSponsorRow = {
-    id: string; column_slug: string; sponsor_name: string;
-    sponsor_message: string | null; cta_url: string | null;
-    is_active: boolean; start_date: string; end_date: string;
-    advertiser_id: string | null
-  }
-  const { data: columnSponsorRows } = await supabase
-    .from('column_sponsors')
-    .select('id, column_slug, sponsor_name, sponsor_message, cta_url, is_active, start_date, end_date, advertiser_id')
+  // Section sponsors live in ad_placements directly since migration 122,
+  // so no more virtual-row merging — they come back as part of the
+  // normal `ads` query above.
 
-  const today = new Date().toISOString().slice(0, 10)
-  const sponsorRows = ((columnSponsorRows ?? []) as ColumnSponsorRow[]).map(s => {
-    // A column sponsor is "active" when is_active=true AND today is
-    // within its date range. Otherwise it's paused/scheduled/expired.
-    const inWindow = s.start_date <= today && s.end_date >= today
-    return {
-      id:                    `cs:${s.id}`,
-      placement_type:        'section_sponsor',
-      context_type:          'column',
-      context_slug:          s.column_slug,
-      ad_eyebrow:            'Section Sponsor',
-      ad_headline:           s.sponsor_message ?? s.sponsor_name,
-      ad_description:        null,
-      ad_cta_label:          'Learn More',
-      ad_link:               s.cta_url,
-      ad_image_url:          null,
-      is_active:             s.is_active && inWindow,
-      impression_count:      0,
-      click_count:           0,
-      starts_at:             s.start_date,
-      ends_at:               s.end_date,
-      rotation_group:        null,
-      rotation_weight:       null,
-      advertiser_accounts:   s.sponsor_name ? { business_name: s.sponsor_name } : null,
-      is_section_sponsor:    true,    // marker for the client to style + route Edit/Delete
-    }
-  })
-
-  return NextResponse.json({ ads: [...ads, ...sponsorRows], hiddenSlots })
+  return NextResponse.json({ ads, hiddenSlots })
 }

@@ -198,7 +198,8 @@ const NAV: NavItem[] = [
       { name: 'Slot Map',         href: '/admin/ads/map'                  },
       { name: 'All Bookings',     href: '/admin/ads'                      },
       { name: 'Renewal Reminders', href: '/admin/ads/renewals'            },
-      { name: 'Section Sponsors', href: '/admin/section-sponsors', accent: true },
+      // Section Sponsors removed — migration 122 collapsed them into
+      // ad_placements. They now surface in All Bookings.
     ],
   },
 

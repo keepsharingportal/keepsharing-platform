@@ -1,10 +1,13 @@
 // Server-side helper for fetching the active section sponsor for a column.
 //
-// "Active" means: is_active = true AND today falls within [start_date, end_date].
+// "Active" means: is_active = true AND now() falls within [starts_at, ends_at].
 // Returns null when no sponsor is active — components MUST render nothing in
 // that case (no empty boxes, no placeholders).
 //
-// Used by the public article page, column landing page, and admin reporting.
+// Sourced from ad_placements (placement_type='section_sponsor', context_slug=column)
+// since migration 122. The SectionSponsor shape is preserved so existing
+// render components (SectionSponsorMobile/Sidebar/Outro/Banner) don't need
+// to change — we map the ad_placements row back to the legacy shape.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { cache } from 'react'
@@ -32,20 +35,44 @@ export const getActiveSectionSponsor = cache(async (
 ): Promise<SectionSponsor | null> => {
   if (!columnSlug) return null
 
-  // ISO date for today — Supabase column is DATE so we compare YYYY-MM-DD.
-  const today = new Date().toISOString().slice(0, 10)
+  const nowIso = new Date().toISOString()
 
+  // Newest active sponsor wins if more than one is configured for the
+  // column. starts_at/ends_at are timestamptz; we compare against now().
   const { data, error } = await supabase
-    .from('column_sponsors')
-    .select('*')
-    .eq('column_slug', columnSlug)
-    .eq('is_active', true)
-    .lte('start_date', today)
-    .gte('end_date',   today)
-    .order('start_date', { ascending: false })   // newest active wins if more than one
+    .from('ad_placements')
+    .select('id, context_slug, advertiser_account_id, ad_eyebrow, ad_headline, ad_link, ad_cta_label, logo_url, sponsor_tagline, accent_color, starts_at, ends_at')
+    .eq('placement_type', 'section_sponsor')
+    .eq('context_slug',   columnSlug)
+    .eq('is_active',      true)
+    .lte('starts_at', nowIso)
+    .or(`ends_at.is.null,ends_at.gte.${nowIso}`)
+    .order('starts_at', { ascending: false })
     .limit(1)
     .maybeSingle()
 
   if (error || !data) return null
-  return data as SectionSponsor
+
+  // Map ad_placements back to the SectionSponsor shape that the render
+  // components expect. Keeps the public render code unchanged.
+  const r = data as {
+    id: string; context_slug: string | null; advertiser_account_id: string | null;
+    ad_eyebrow: string | null; ad_headline: string | null; ad_link: string | null;
+    ad_cta_label: string | null; logo_url: string | null; sponsor_tagline: string | null;
+    accent_color: string | null; starts_at: string | null; ends_at: string | null
+  }
+  return {
+    id:              r.id,
+    column_slug:     r.context_slug ?? columnSlug,
+    advertiser_id:   r.advertiser_account_id,
+    sponsor_label:   r.ad_eyebrow ?? 'Sponsored by',
+    sponsor_name:    r.ad_headline ?? '',
+    sponsor_message: r.sponsor_tagline,
+    logo_url:        r.logo_url,
+    cta_label:       r.ad_cta_label ?? 'Learn More',
+    cta_url:         r.ad_link,
+    accent_color:    r.accent_color,
+    start_date:      (r.starts_at ?? '').slice(0, 10),
+    end_date:        (r.ends_at   ?? '').slice(0, 10),
+  }
 })
