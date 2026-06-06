@@ -32,9 +32,11 @@ function NewAdInner() {
   // the "Add Placement" button on the advertiser detail page lands
   // straight into a partially-completed form.
   const initialAdvertiserId  = searchParams.get('advertiser_id')        ?? ''
-  // Also accept placement_type so we can deep-link from the Slot Catalog
-  // ("sell this empty slot to a specific advertiser").
+  // Also accept placement_type + context_slug so we can deep-link from the
+  // empty-slot rows in /admin/ads ("sell this empty spot on Family Resource
+  // Guide → advertiser") with all the slot identity pre-filled.
   const initialPlacementType = searchParams.get('placement_type')       ?? 'school_bits_inline'
+  const initialContextSlug   = searchParams.get('context_slug')         ?? ''
 
   const [advertisers, setAdvertisers] = useState<Array<{ id: string; business_name: string }>>([])
   const [saving, setSaving] = useState(false)
@@ -43,7 +45,7 @@ function NewAdInner() {
   const [form, setForm] = useState({
     placement_type: initialPlacementType,
     context_type: 'guide',
-    context_slug: '',
+    context_slug: initialContextSlug,
     advertiser_account_id: initialAdvertiserId,
     ad_eyebrow: '',
     ad_headline: '',
