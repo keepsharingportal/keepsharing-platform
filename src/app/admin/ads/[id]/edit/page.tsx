@@ -11,9 +11,10 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin } from 'lucide-react'
+import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 
 interface AdRow {
   id:                    string
@@ -225,16 +226,10 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               {ad.is_active ? 'ON' : 'OFF'}
             </button>
           </Row>
-          <Row label="Display priority"
-               hint="Higher wins when multiple ads compete for the same slot (0–100, 50 is default).">
-            <input
-              type="number"
-              min={0} max={100}
-              value={ad.display_priority ?? 50}
-              onChange={e => set('display_priority', Number(e.target.value))}
-              className={inp}
-            />
-          </Row>
+          {/* Display priority is now derived automatically — staff
+              shouldn't have to think about it. Hidden by default; we
+              keep the value on the row so future advanced workflows
+              (manual priority bump) can still set it from elsewhere. */}
           <Row label="Starts">
             <input
               type="datetime-local"
@@ -270,8 +265,19 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           <Row label="CTA link">
             <input value={ad.ad_link ?? ''} onChange={e => set('ad_link', e.target.value)} placeholder="/healthy-kids-guide/listings/…" className={inp} />
           </Row>
-          <Row label="Image URL">
-            <input value={ad.ad_image_url ?? ''} onChange={e => set('ad_image_url', e.target.value)} placeholder="https://… or /images/…" className={inp} />
+          <Row label="Image" hint="Upload from your device or paste a URL. Drag-and-drop, then use Zoom & adjust to crop.">
+            <HeroImageUpload
+              value={ad.ad_image_url ?? ''}
+              onChange={(url) => set('ad_image_url', url)}
+              context="asset"
+            />
+          </Row>
+
+          {/* ── Live preview ─────────────────────────────────────
+              Mirrors roughly what readers see for this slot. Updates
+              as the editor types — feels like designing in-place. */}
+          <Row label="Preview" hint="Approximate render — actual styles vary slightly by placement.">
+            <AdPreview ad={ad} />
           </Row>
         </Section>
 
@@ -353,28 +359,52 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           )}
         </Section>
 
-        {/* ── Rotation ─────────────────────────────────────── */}
-        <Section title="Rotation"
-                 subtitle="Leave rotation_group blank to lock this slot as the exclusive booking. Set to a shared name (e.g. 'homepage-inline-pool') to share the spot with up to 2 other ads.">
-          <Row label="Rotation group" hint="Same value on 2-3 ads = they share the slot and rotate per request.">
-            <input
-              value={ad.rotation_group ?? ''}
-              onChange={e => set('rotation_group', e.target.value || null)}
-              placeholder="(blank = exclusive)"
-              className={inp}
-            />
-          </Row>
-          <Row label="Rotation weight" hint="1.0 = equal share. 2.0 = double impressions vs a 1.0-weight ad in the same pool.">
-            <input
-              type="number"
-              step="0.5"
-              min={0.5} max={4}
-              value={ad.rotation_weight ?? 1}
-              onChange={e => set('rotation_weight', Number(e.target.value))}
-              className={inp}
-            />
-          </Row>
-        </Section>
+        {/* ── Ad size (rotation weight under the hood) ─────────────
+            Hidden entirely for sponsor-category slots — those are
+            always exclusive, no sharing, so there's nothing to set.
+            For every other slot, staff picks an Ad Size and the
+            rotation_weight + rotation_group are derived behind the
+            scenes (no raw weight field to confuse anyone). */}
+        {def && def.category !== 'sponsor' && (
+          <Section
+            title="Ad size"
+            subtitle="If multiple advertisers share this slot, larger sizes get more impressions automatically. Full = 4× a Quarter."
+          >
+            <Row label="Size">
+              <select
+                // Map the underlying rotation_weight to a friendly tier.
+                value={
+                  ad.rotation_weight == null || ad.rotation_weight >= 3.5 ? 'full'
+                  : ad.rotation_weight >= 2.5 ? 'half'
+                  : ad.rotation_weight >= 1.5 ? 'third'
+                  : ad.rotation_weight >= 0.75 ? 'quarter'
+                  : 'sixth'
+                }
+                onChange={e => {
+                  const weights: Record<string, number> = {
+                    full: 4, half: 3, third: 2, quarter: 1, sixth: 0.5,
+                  }
+                  set('rotation_weight', weights[e.target.value] ?? 1)
+                  // Default rotation_group when staff sets a size — keeps the
+                  // ad in the slot's shared pool unless they really want to
+                  // lock it. Editor doesn't see this field; it's derived.
+                  if (!ad.rotation_group) set('rotation_group', `${ad.placement_type}-pool`)
+                }}
+                className={inp}
+              >
+                <option value="full">Full page (largest share)</option>
+                <option value="half">Half page</option>
+                <option value="third">Third page</option>
+                <option value="quarter">Quarter page (smallest tier)</option>
+                <option value="sixth">Sixth page (smallest)</option>
+              </select>
+              <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+                Share math is automatic: with 1 advertiser in the slot, this ad gets 100% of impressions
+                regardless of size. With 2+ advertisers, share = this size ÷ total sizes in the pool.
+              </p>
+            </Row>
+          </Section>
+        )}
 
         {/* ── Pricing ──────────────────────────────────────── */}
         <Section title="Pricing"
@@ -441,9 +471,9 @@ const inp = 'w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-        <h2 className="text-sm font-bold text-gray-700">{title}</h2>
-        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+      <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+        <h2 className="text-base font-bold text-gray-900 tracking-tight">{title}</h2>
+        {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
       </div>
       <div className="p-5 space-y-4">{children}</div>
     </section>
@@ -458,6 +488,85 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
         {hint && <p className="text-[11px] text-gray-500 mt-0.5">{hint}</p>}
       </div>
       <div>{children}</div>
+    </div>
+  )
+}
+
+// ── Live preview ─────────────────────────────────────────────────────────────
+// Roughly matches the public render style: image left, text + CTA right.
+// Section-sponsor placements get the branded banner variant instead.
+
+function AdPreview({ ad }: { ad: AdRow }) {
+  const isSponsor = ad.placement_type === 'section_sponsor'
+  const accent    = ad.accent_color && /^#[0-9a-f]{3,8}$/i.test(ad.accent_color) ? ad.accent_color : '#0f172a'
+
+  if (isSponsor) {
+    return (
+      <div className="rounded-xl p-5 text-white shadow-sm" style={{ backgroundColor: accent }}>
+        <div className="flex items-center gap-4">
+          {ad.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={ad.logo_url}
+              alt={ad.ad_headline ?? ''}
+              className="shrink-0 w-14 h-14 rounded-lg bg-white object-contain p-1"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-0.5">
+              {ad.ad_eyebrow || 'Sponsored by'}
+            </p>
+            <p className="text-lg font-black leading-tight truncate">{ad.ad_headline || '(headline)'}</p>
+            {ad.sponsor_tagline && (
+              <p className="text-sm italic opacity-90 leading-snug mt-1 truncate">{ad.sponsor_tagline}</p>
+            )}
+          </div>
+          {ad.ad_cta_label && (
+            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1.5 text-xs font-bold whitespace-nowrap">
+              {ad.ad_cta_label}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Default ad preview (homepage inline / sidebar / article inline / etc.)
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start gap-4">
+        {ad.ad_image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={ad.ad_image_url}
+            alt={ad.ad_headline ?? ''}
+            className="shrink-0 w-20 h-20 rounded-lg object-cover bg-gray-100"
+          />
+        ) : (
+          <div className="shrink-0 w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 text-center px-2">
+            (image)
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          {ad.ad_eyebrow && (
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">
+              {ad.ad_eyebrow}
+            </p>
+          )}
+          <p className="text-base font-bold text-gray-900 leading-snug">
+            {ad.ad_headline || <span className="text-gray-300">(headline)</span>}
+          </p>
+          {ad.ad_description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">{ad.ad_description}</p>
+          )}
+          {ad.ad_cta_label && ad.ad_link && (
+            <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary">
+              {ad.ad_cta_label}
+              <ExternalLink size={10} />
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
