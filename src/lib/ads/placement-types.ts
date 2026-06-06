@@ -97,11 +97,6 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
     description: 'Wide ad block below the main homepage feed. Highest-impression homepage spot per scroll.',
     recommendedImageSize: 'Image mode: 1200×400 · Composed: 208×160 image left' },
 
-  { slug: 'homepage_hero_rotator',       surface: 'homepage', category: 'hero',
-    label: 'Homepage — Hero rotator (top of page)',
-    whereItAppears: 'Currently unused. Reserved for a future rotating hero promo at the very top of the homepage.',
-    description: 'Reserved — not yet rendered on the public site.' },
-
   // ── School Bits ──────────────────────────────────────────────────────────
   { slug: 'school_bits_sponsor',         surface: 'school-bits', category: 'sponsor',
     label: 'School Bits — Annual presenting sponsor (top)',
@@ -289,7 +284,7 @@ export const PAGES: PageDef[] = [
 export const PAGE_SLOTS: Record<string, string[]> = {
   homepage: [
     'homepage_inline_ad', 'homepage_sidebar_ad', 'homepage_business_spotlight',
-    'homepage_bottom_ad', 'homepage_hero_rotator',
+    'homepage_bottom_ad',
   ],
   'school-zone':           ['section_sponsor'],
   'school-bits':           ['school_bits_sponsor', 'school_bits_inline', 'school_bits_transition', 'section_sponsor'],

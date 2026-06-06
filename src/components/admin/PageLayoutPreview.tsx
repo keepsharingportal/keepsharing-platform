@@ -32,7 +32,6 @@ const HOMEPAGE_SLOTS = [
   { slug: 'homepage_sidebar_ad',         x: 70, y: 26, w: 26, h: 26, label: 'Sidebar square'   },
   { slug: 'homepage_business_spotlight', x: 70, y: 56, w: 26, h: 14, label: 'Business Spotlight' },
   { slug: 'homepage_bottom_ad',          x: 4,  y: 78, w: 92, h: 12, label: 'Bottom banner'    },
-  { slug: 'homepage_hero_rotator',       x: 4,  y: 6,  w: 92, h: 14, label: 'Hero rotator'     },
 ]
 
 const ARTICLE_SLOTS = [
