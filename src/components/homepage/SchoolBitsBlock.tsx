@@ -25,11 +25,17 @@ async function getSchoolArticles(): Promise<Article[]> {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     )
+    // Trashed articles set deleted_at + flip published=false. Filter on
+    // both so a half-trashed row (someone updated deleted_at directly
+    // without going through the API) still gets excluded. Migration 076
+    // added deleted_at — if the column is missing the .is() filter
+    // errors out, the outer try/catch returns [], and the block hides.
     const { data } = await supabase
       .from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, editorial_notes')
       .in('column_slug', ['school-bits', 'teacher-of-month', 'student-spotlights'])
       .eq('published', true)
+      .is('deleted_at', null)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(16)
 

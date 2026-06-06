@@ -46,10 +46,11 @@ export const HEADER_GUIDES: NavItem[] = [
   { key: 'header.guides.special-needs',    label: 'Special Needs Guide',   href: '/special-needs-guide',   parentKey: 'header.guides.dropdown' },
 ]
 
-// New "Local" dropdown — groups the community spotlight columns +
-// School Zone + Mom Knows Best vertical, freeing room in the top nav.
+// "Local Spotlights" dropdown — groups the community spotlight columns
+// + Mom Knows Best vertical. School Zone was promoted to a top-level
+// header entry (it gets too much traffic to bury in a dropdown), so
+// it's no longer listed here.
 export const HEADER_LOCAL: NavItem[] = [
-  { key: 'header.local.school-zone',      label: 'School Zone',            href: '/school-zone',                   parentKey: 'header.local.dropdown' },
   { key: 'header.local.mom-knows-best',   label: 'Mom Knows Best',         href: '/mom-knows-best',                parentKey: 'header.local.dropdown' },
   { key: 'header.local.play-ball',        label: 'Play Ball',              href: '/columns/play-ball',             parentKey: 'header.local.dropdown' },
   { key: 'header.local.teacher',          label: 'Teacher of the Month',   href: '/columns/teacher-of-month',      parentKey: 'header.local.dropdown' },
@@ -61,15 +62,18 @@ export const HEADER_LOCAL: NavItem[] = [
 // Guides + Local each have their own children arrays; toggling the
 // .dropdown key hides the entire group.
 export const HEADER_TOP_LEVEL: NavItem[] = [
-  // Order set by the editor (Jun 2026): Local first (community focus),
-  // then Calendar (what's happening), Games (engagement), Articles
-  // (depth), Partner (CTA). Guides + Summer Fun hidden until ready —
-  // restore by uncommenting.
-  { key: 'header.local.dropdown',  label: 'Local',          href: '#local'                   },
-  { key: 'header.calendar',        label: 'Calendar',       href: '/calendar'                },
-  { key: 'header.games',           label: 'Games & Prizes', href: '/games'                   },
-  { key: 'header.articles',        label: 'Articles',       href: '/articles'                },
-  { key: 'header.partners',        label: 'Partner With Us',href: '/partners'                },
+  // Order set by the editor (Jun 2026): Local Spotlights first
+  // (community focus), then School Zone (high-traffic education hub
+  // promoted from inside Local to its own top-level row), Calendar
+  // (what's happening), Games (engagement), Articles (depth), Partner
+  // (CTA). Guides + Summer Fun hidden until ready — restore by
+  // uncommenting.
+  { key: 'header.local.dropdown',  label: 'Local Spotlights', href: '#local'                 },
+  { key: 'header.school-zone',     label: 'School Zone',      href: '/school-zone'           },
+  { key: 'header.calendar',        label: 'Calendar',         href: '/calendar'              },
+  { key: 'header.games',           label: 'Games & Prizes',   href: '/games'                 },
+  { key: 'header.articles',        label: 'Articles',         href: '/articles'              },
+  { key: 'header.partners',        label: 'Partner With Us',  href: '/partners'              },
   // Hidden during launch — restore when content is ready:
   // { key: 'header.guides.dropdown', label: 'Guides',     href: '#guides'           },
   // { key: 'header.summer-fun',      label: 'Summer Fun', href: '/summer-fun-guide' },
