@@ -13,6 +13,7 @@ interface Props {
 
 export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: Props) {
   const [email, setEmail] = useState('')
+  const [name,  setName]  = useState('')
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
 
   async function handleSubmit(e: FormEvent) {
@@ -20,14 +21,19 @@ export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: P
     if (!email || status === 'submitting') return
     setStatus('submitting')
     try {
+      // Send first_name from the "Name" field — the API treats it as
+      // the GHL contact's firstName. Empty string falls through as null
+      // server-side so personalization tokens won't fire on those.
+      const trimmedName = name.trim()
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source }),
+        body: JSON.stringify({ email, source, first_name: trimmedName || undefined }),
       })
       if (!res.ok) throw new Error('Failed')
       setStatus('success')
       setEmail('')
+      setName('')
     } catch {
       setStatus('error')
     }
@@ -48,6 +54,15 @@ export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: P
           </p>
           <form onSubmit={handleSubmit} className="space-y-3">
             <Input
+              type="text"
+              placeholder="First name (optional)"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              disabled={status === 'submitting'}
+              className="bg-background"
+              autoComplete="given-name"
+            />
+            <Input
               type="email"
               placeholder="Email address"
               value={email}
@@ -55,6 +70,7 @@ export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: P
               required
               disabled={status === 'submitting'}
               className="bg-background"
+              autoComplete="email"
             />
             <Button type="submit" disabled={status === 'submitting'} className="w-full rounded-full">
               {status === 'success' ? 'Subscribed!' : status === 'submitting' ? 'Subscribing...' : 'Subscribe'}
@@ -69,24 +85,36 @@ export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: P
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
       <Input
-        type="email"
-        placeholder="Your email address"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        required
+        type="text"
+        placeholder="First name (optional)"
+        value={name}
+        onChange={e => setName(e.target.value)}
         disabled={status === 'submitting'}
-        className="flex-1 bg-white"
+        className="bg-white"
+        autoComplete="given-name"
       />
-      <Button
-        type="submit"
-        disabled={status === 'submitting'}
-        variant="secondary"
-        className="rounded-full"
-      >
-        {status === 'success' ? 'Subscribed!' : status === 'submitting' ? 'Working...' : 'Subscribe Free'}
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          type="email"
+          placeholder="Your email address"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          disabled={status === 'submitting'}
+          className="flex-1 bg-white"
+          autoComplete="email"
+        />
+        <Button
+          type="submit"
+          disabled={status === 'submitting'}
+          variant="secondary"
+          className="rounded-full"
+        >
+          {status === 'success' ? 'Subscribed!' : status === 'submitting' ? 'Working...' : 'Subscribe Free'}
+        </Button>
+      </div>
     </form>
   )
 }

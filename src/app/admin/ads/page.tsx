@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 
 interface AdPlacement {
@@ -18,43 +17,56 @@ interface AdPlacement {
   click_count: number
   starts_at: string
   ends_at: string | null
+  rotation_group: string | null
+  rotation_weight: number | null
   advertiser_accounts: { business_name: string } | null
 }
 
 export default function AdminAdsPage() {
   const [ads, setAds]               = useState<AdPlacement[]>([])
   const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState<string | null>(null)
   const [filterType, setFilterType] = useState('')
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  // Service-role list endpoint — bypasses RLS on advertiser_accounts so
+  // joined rows always come back (the old anon client returned 0 rows
+  // here whenever the joined advertiser was RLS-hidden).
+  const load = useCallback(async () => {
+    setLoading(true); setError(null)
+    try {
+      const res  = await fetch('/api/admin/ads/list', { cache: 'no-store' })
+      const json = await res.json()
+      if (!res.ok) { setError(json?.error ?? `HTTP ${res.status}`); setAds([]); return }
+      const filtered = filterType
+        ? (json.ads as AdPlacement[]).filter(a => a.placement_type === filterType)
+        : (json.ads as AdPlacement[])
+      setAds(filtered)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setAds([])
+    } finally {
+      setLoading(false)
+    }
+  }, [filterType])
 
-  async function load() {
-    setLoading(true)
-    let q = supabase
-      .from('ad_placements')
-      .select('*, advertiser_accounts(business_name)')
-      .order('is_active', { ascending: false })
-      .order('display_priority', { ascending: false })
-
-    if (filterType) q = q.eq('placement_type', filterType)
-    const { data } = await q
-    setAds((data ?? []) as AdPlacement[])
-    setLoading(false)
-  }
-
-  useEffect(() => { load() }, [filterType])
+  useEffect(() => { load() }, [load])
 
   async function toggleActive(id: string, current: boolean) {
-    await supabase.from('ad_placements').update({ is_active: !current }).eq('id', id)
+    await fetch('/api/admin/ads/toggle', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id, is_active: !current }),
+    })
     load()
   }
 
   async function deleteAd(id: string) {
     if (!confirm('Delete this ad placement?')) return
-    await supabase.from('ad_placements').delete().eq('id', id)
+    await fetch('/api/admin/ads/delete', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id }),
+    })
     load()
   }
 
@@ -88,6 +100,12 @@ export default function AdminAdsPage() {
           ))}
         </select>
       </div>
+
+      {error && (
+        <div style={{ padding: 12, marginBottom: 16, backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 13 }}>
+          <strong>Load failed:</strong> {error}
+        </div>
+      )}
 
       {loading ? (
         <p style={{ color: '#888' }}>Loading...</p>

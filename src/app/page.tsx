@@ -38,6 +38,26 @@ function getSupabase() {
   )
 }
 
+// Homepage ad slots support BOTH modes via one query path:
+//   - Exclusive lock-in   → one active ad in the placement_type
+//                            (highest display_priority wins, rotation_weight unused)
+//   - Rotating pool of N  → multiple active ads; we pick one per request
+//                            weighted by rotation_weight
+// Cap the pool at 3 by request so sales can sell three buyers into the
+// same slot without diluting per-impression value below the rate card.
+function pickWeighted<T extends { rotation_weight?: number | null }>(rows: T[]): T | null {
+  if (rows.length === 0) return null
+  if (rows.length === 1) return rows[0]
+  const total = rows.reduce((s, r) => s + (r.rotation_weight ?? 1), 0)
+  if (total <= 0) return rows[0]
+  let r = Math.random() * total
+  for (const row of rows) {
+    r -= row.rotation_weight ?? 1
+    if (r <= 0) return row
+  }
+  return rows[rows.length - 1]
+}
+
 // Columns that rotate between the homepage hero spot and the Community
 // Spotlights sidebar. One of these four is the big hero each render; the
 // other three fill the sidebar. Latest published article per column wins.
@@ -135,26 +155,32 @@ async function getHomepageData() {
       //   - frg-best-of has its own Best Of block
       .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best,frg-best-of)')
       .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
+    // All four homepage ad slots support rotation. We pull up to 3
+    // active rows per slot and pick one weighted by rotation_weight
+    // below — a single active ad still always renders (rotation collapses
+    // to "show the one ad"), so "exclusive" buyers don't need a separate
+    // code path. 3 is the per-slot cap so rotation never dilutes
+    // impressions below 33% per buyer.
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_sidebar_ad').eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_business_spotlight').eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_bottom_ad').eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(3),
     // Mom Knows Best — sidebar block on the homepage. Pulls the 3 most
     // recent published blogger posts. When empty, the render falls back to
     // the Meet the Moms grid (bloggersRes below).
@@ -364,6 +390,23 @@ async function getHomepageData() {
       )
     : []
 
+  // Pick one ad per slot, weighted-random across the active rows. With
+  // a single booking the pick collapses to that ad (exclusive lock-in).
+  // With 2-3 bookings, rotation_weight biases higher-tier advertisers.
+  interface AdRow {
+    rotation_weight?: number | null
+    ad_link?:         string | null
+    ad_image_url?:    string | null
+    ad_eyebrow?:      string | null
+    ad_headline?:     string | null
+    ad_description?:  string | null
+    ad_cta_label?:    string | null
+  }
+  const inlineAd         = pickWeighted((inlineAdRes.data         ?? []) as AdRow[])
+  const sidebarAd        = pickWeighted((sidebarAdRes.data        ?? []) as AdRow[])
+  const businessSpotlight = pickWeighted((businessSpotlightRes.data ?? []) as AdRow[])
+  const bottomAd         = pickWeighted((bottomAdRes.data         ?? []) as AdRow[])
+
   return {
     trending: [...pinned, ...autoItems],
     mainFeature,
@@ -373,10 +416,10 @@ async function getHomepageData() {
     spotlights,
     events:            eventsRes.data ?? [],
     articles:          articlesRes.data ?? [],
-    inlineAd:          inlineAdRes.data ?? null,
-    sidebarAd:         sidebarAdRes.data ?? null,
-    businessSpotlight: businessSpotlightRes.data ?? null,
-    bottomAd:          bottomAdRes.data ?? null,
+    inlineAd,
+    sidebarAd,
+    businessSpotlight,
+    bottomAd,
     featuredCategories,
     magazineIssues,
   }
