@@ -128,6 +128,7 @@ const NAV: NavItem[] = [
   // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },
   { name: 'Issues',              href: '/admin/production/issues',             icon: BookOpen   },
+  { name: 'Digital Issues',      href: '/admin/production/issues/digital',     icon: BookOpen   },
   { name: 'Monthly Themes',      href: '/admin/production/themes',             icon: Sparkles   },
   { name: 'Print Planning',      href: '/admin/production/print-planning',     icon: Printer    },
   { name: 'Layout Queue',        href: '/admin/advertisers/layout-sheet',      icon: LayoutGrid },
