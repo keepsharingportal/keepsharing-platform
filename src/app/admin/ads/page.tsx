@@ -404,17 +404,17 @@ export default function AdminAdsPage() {
               {/* Column order: Slot · Advertiser · Page · Type · Status ·
                   Impr · Actions. Advertiser is #2 because with rotation
                   pools (e.g. up to 3 in homepage_bottom_ad) the slot name
-                  alone isn't enough. Status column hosts a real On/Off
-                  toggle when a booking exists, so the editor can pause
-                  without leaving the list. Total = 1310px inside the
-                  1400px container, leaving padding on both sides. */}
-              <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1280 }}>
+                  alone isn't enough. Status now hosts the On/Off toggle
+                  (no headline duplication — advertiser is already two
+                  columns left). Total = 1280px inside the 1400px
+                  container. */}
+              <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1240 }}>
                 <colgroup>
                   <col style={{ width: 240 }} />  {/* Slot */}
-                  <col style={{ width: 200 }} />  {/* Advertiser */}
-                  <col style={{ width: 140 }} />  {/* Page */}
+                  <col style={{ width: 260 }} />  {/* Advertiser */}
+                  <col style={{ width: 130 }} />  {/* Page */}
                   <col style={{ width: 90  }} />  {/* Type */}
-                  <col style={{ width: 260 }} />  {/* Status / Headline */}
+                  <col style={{ width: 180 }} />  {/* Status */}
                   <col style={{ width: 80  }} />  {/* Impr. */}
                   <col style={{ width: 300 }} />  {/* Actions */}
                 </colgroup>
@@ -424,7 +424,7 @@ export default function AdminAdsPage() {
                     <th className="px-4 py-2 font-semibold">Advertiser</th>
                     <th className="px-4 py-2 font-semibold">Page</th>
                     <th className="px-4 py-2 font-semibold">Type</th>
-                    <th className="px-4 py-2 font-semibold">Status / Headline</th>
+                    <th className="px-4 py-2 font-semibold">Status</th>
                     <th className="px-4 py-2 font-semibold text-right">Impr.</th>
                     <th className="px-4 py-2 font-semibold text-right sticky right-0 bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Actions</th>
                   </tr>
@@ -534,9 +534,11 @@ function SlotRowItem({
       <td className="px-4 py-3 text-xs text-gray-600 capitalize">
         {CATEGORY_LABELS[row.category]}
       </td>
-      {/* STATUS / HEADLINE — real On/Off toggle when the slot has a booking,
-          static badge for empty/hidden. Clicking the toggle flips is_active
-          via /api/admin/ads/toggle and refreshes the list. */}
+      {/* STATUS — real On/Off toggle when the slot has a booking, static
+          badge for empty/hidden. Clicking the toggle flips is_active via
+          /api/admin/ads/toggle and refreshes the list. We no longer
+          duplicate the business name here; it's already in the Advertiser
+          column to the left. */}
       <td className="px-4 py-3">
         {headBooking && (isOn || isPaused) ? (
           <OnOffToggle
@@ -545,12 +547,6 @@ function SlotRowItem({
           />
         ) : (
           <StatusPill status={row.status} />
-        )}
-        {isOn && headBooking?.ad_headline && (
-          <div className="text-xs text-gray-600 mt-1 truncate">{headBooking.ad_headline}</div>
-        )}
-        {isPaused && headBooking?.ad_headline && (
-          <div className="text-xs text-gray-500 mt-1 truncate">{headBooking.ad_headline}</div>
         )}
         {isEmpty && (
           <div className="text-[11px] text-amber-700 mt-1">Showing sales placeholder on the public site.</div>
@@ -652,48 +648,55 @@ function StatusPill({ status }: { status: SlotRow['status'] }) {
   )
 }
 
-// Real iOS-style On/Off switch for slot rows that have a booking. Optimistic
-// flip with brief disabled window so rapid double-clicks don't fire two
-// PATCHes against ad_placements.
+// Segmented On / Off control. Active half is filled (green for On, slate
+// for Off) with white text *inside* the colored pill; inactive half is
+// muted gray text on the surrounding track. Click either half to flip
+// is_active. Optimistic update with a busy lock so rapid double-clicks
+// don't fire two PATCHes against ad_placements.
 function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) => void }) {
   const [busy, setBusy] = useState(false)
   const [localOn, setLocalOn] = useState(on)
   // Sync from prop when the parent re-fetches.
   useEffect(() => { setLocalOn(on) }, [on])
 
-  async function flip() {
-    if (busy) return
+  async function flip(next: boolean) {
+    if (busy || next === localOn) return
     setBusy(true)
-    const next = !localOn
     setLocalOn(next)        // optimistic
     try { await onChange(next) } finally { setBusy(false) }
   }
 
+  const onActiveCls  = 'bg-green-600 text-white shadow-sm'
+  const offActiveCls = 'bg-slate-600 text-white shadow-sm'
+  const inactiveCls  = 'text-gray-400 hover:text-gray-600'
+
   return (
-    <button
-      type="button"
-      onClick={flip}
-      disabled={busy}
-      role="switch"
-      aria-checked={localOn}
-      title={localOn ? 'Currently running — click to pause' : 'Currently paused — click to resume'}
-      className={`group inline-flex items-center gap-2 select-none disabled:opacity-60 disabled:cursor-not-allowed ${busy ? '' : 'cursor-pointer'}`}
+    <div
+      role="group"
+      aria-label="On / Off"
+      className={`inline-flex items-center rounded-full bg-gray-100 ring-1 ring-gray-200 p-0.5 select-none ${busy ? 'opacity-70' : ''}`}
     >
-      <span
-        className={`relative inline-block h-5 w-9 rounded-full transition-colors ${
-          localOn ? 'bg-green-600 group-hover:bg-green-700' : 'bg-gray-300 group-hover:bg-gray-400'
-        }`}
+      <button
+        type="button"
+        onClick={() => flip(true)}
+        disabled={busy}
+        aria-pressed={localOn}
+        title={localOn ? 'Currently running' : 'Click to resume'}
+        className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-colors disabled:cursor-not-allowed ${localOn ? onActiveCls : inactiveCls}`}
       >
-        <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-            localOn ? 'translate-x-[18px]' : 'translate-x-0.5'
-          }`}
-        />
-      </span>
-      <span className={`text-[11px] font-black uppercase tracking-wider ${localOn ? 'text-green-700' : 'text-gray-500'}`}>
-        {localOn ? 'On' : 'Off'}
-      </span>
-    </button>
+        On
+      </button>
+      <button
+        type="button"
+        onClick={() => flip(false)}
+        disabled={busy}
+        aria-pressed={!localOn}
+        title={localOn ? 'Click to pause' : 'Currently paused'}
+        className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-colors disabled:cursor-not-allowed ${!localOn ? offActiveCls : inactiveCls}`}
+      >
+        Off
+      </button>
+    </div>
   )
 }
 
