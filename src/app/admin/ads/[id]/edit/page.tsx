@@ -183,12 +183,31 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Edit placement</span>
             </div>
             {/* Slot name as the actual H1 — it's the most useful thing to
-                see at the top of the page. Recommended size + slug live
-                underneath as supporting context. */}
+                see at the top of the page. Advertiser sits right under it
+                (the second most useful piece of info: "WHOSE ad is this").
+                Recommended size + slug live below as supporting context. */}
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
               {def?.label ?? ad.placement_type}
             </h1>
-            <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+            {(() => {
+              const adv = advertisers.find(a => a.id === ad.advertiser_account_id)
+              if (adv) {
+                return (
+                  <p className="text-base font-semibold text-primary mt-1">
+                    {adv.business_name}
+                  </p>
+                )
+              }
+              if (ad.ad_headline && !ad.advertiser_account_id) {
+                return (
+                  <p className="text-base text-gray-600 mt-1 italic">
+                    {ad.ad_headline} <span className="text-xs text-amber-700 ml-1">(no advertiser linked — pick one below)</span>
+                  </p>
+                )
+              }
+              return null
+            })()}
+            <div className="text-xs text-gray-500 mt-2 space-y-0.5">
               {def?.recommendedImageSize && (
                 <p><strong className="text-gray-700">Recommended size:</strong> {def.recommendedImageSize}</p>
               )}

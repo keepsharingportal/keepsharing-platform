@@ -390,26 +390,32 @@ export default function AdminAdsPage() {
             <p className="p-8 text-center text-sm text-gray-400">No slots match those filters.</p>
           ) : (
             <div className="overflow-x-auto">
+              {/* Column order: Slot · Advertiser · Page · Type · Status ·
+                  Impr · Actions. Advertiser moved to position #2 because
+                  with rotation pools (e.g. up to 3 in homepage_bottom_ad)
+                  the slot name alone isn't enough — you need to read the
+                  business right next to it. CTR column dropped — derive
+                  it from Impr/Clicks if you really need it. Total = 1170px
+                  with minWidth=1100, fits inside the 1200px container
+                  without horizontal scroll on a typical laptop. */}
               <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1100 }}>
                 <colgroup>
-                  <col style={{ width: 270 }} />  {/* Slot */}
-                  <col style={{ width: 160 }} />  {/* Page */}
-                  <col style={{ width: 100 }} />  {/* Type */}
-                  <col style={{ width: 200 }} />  {/* Advertiser */}
-                  <col style={{ width: 220 }} />  {/* Headline / status */}
+                  <col style={{ width: 250 }} />  {/* Slot */}
+                  <col style={{ width: 180 }} />  {/* Advertiser */}
+                  <col style={{ width: 140 }} />  {/* Page */}
+                  <col style={{ width: 90  }} />  {/* Type */}
+                  <col style={{ width: 260 }} />  {/* Status / Headline */}
                   <col style={{ width: 80  }} />  {/* Impr. */}
-                  <col style={{ width: 70  }} />  {/* CTR */}
-                  <col style={{ width: 160 }} />  {/* Actions */}
+                  <col style={{ width: 170 }} />  {/* Actions */}
                 </colgroup>
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
                     <th className="px-4 py-2 font-semibold">Slot</th>
+                    <th className="px-4 py-2 font-semibold">Advertiser</th>
                     <th className="px-4 py-2 font-semibold">Page</th>
                     <th className="px-4 py-2 font-semibold">Type</th>
-                    <th className="px-4 py-2 font-semibold">Advertiser</th>
                     <th className="px-4 py-2 font-semibold">Status / Headline</th>
                     <th className="px-4 py-2 font-semibold text-right">Impr.</th>
-                    <th className="px-4 py-2 font-semibold text-right">CTR</th>
                     <th className="px-4 py-2 font-semibold text-right sticky right-0 bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Actions</th>
                   </tr>
                 </thead>
@@ -481,25 +487,43 @@ function SlotRowItem({
 
   return (
     <tr className={rowClass}>
+      {/* SLOT */}
       <td className="px-4 py-3">
         <div className="text-sm font-semibold text-gray-900 leading-snug">{row.placement_label}</div>
         <code className="text-[10px] text-gray-400">{row.placement_type}</code>
       </td>
-      <td className="px-4 py-3 text-xs text-gray-700">
-        {row.page.label}
-      </td>
-      <td className="px-4 py-3 text-xs text-gray-600 capitalize">
-        {CATEGORY_LABELS[row.category]}
-      </td>
+      {/* ADVERTISER — falls back to ad_headline when the booking row
+          doesn't have a linked advertiser_account_id yet (common for
+          legacy ads created before the Customer section existed). */}
       <td className="px-4 py-3 text-sm text-gray-900">
         {row.bookings.length === 0 ? (
           <span className="text-amber-700 italic font-semibold text-xs">No advertiser</span>
         ) : row.bookings.length === 1 ? (
-          headBooking?.advertiser_accounts?.business_name ?? <span className="text-gray-400">—</span>
+          <span className="font-semibold truncate block">
+            {headBooking?.advertiser_accounts?.business_name
+              ?? headBooking?.ad_headline
+              ?? <span className="text-gray-400 italic">(unlinked)</span>}
+          </span>
         ) : (
-          <span className="text-violet-700 font-semibold text-xs">{row.bookings.length} rotating</span>
+          <div>
+            <span className="text-violet-700 font-semibold text-xs block">{row.bookings.length} rotating</span>
+            {/* Show first 2 advertiser names in rotation pool */}
+            <div className="text-[11px] text-gray-500 mt-0.5">
+              {row.bookings.slice(0, 2).map(b => b.advertiser_accounts?.business_name ?? b.ad_headline).filter(Boolean).join(' · ')}
+              {row.bookings.length > 2 && ` +${row.bookings.length - 2} more`}
+            </div>
+          </div>
         )}
       </td>
+      {/* PAGE */}
+      <td className="px-4 py-3 text-xs text-gray-700">
+        {row.page.label}
+      </td>
+      {/* TYPE */}
+      <td className="px-4 py-3 text-xs text-gray-600 capitalize">
+        {CATEGORY_LABELS[row.category]}
+      </td>
+      {/* STATUS / HEADLINE */}
       <td className="px-4 py-3">
         <StatusPill status={row.status} />
         {isOn && headBooking?.ad_headline && (
@@ -512,15 +536,16 @@ function SlotRowItem({
           <div className="text-[11px] text-gray-500 mt-1">Slot disabled. Nothing renders.</div>
         )}
       </td>
-      <td className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums">
-        {row.bookings.reduce((s, b) => s + (b.impression_count ?? 0), 0).toLocaleString()}
-      </td>
-      <td className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums">
-        {(() => {
+      {/* IMPR. — clicks + CTR roll into the tooltip to save column width */}
+      <td
+        className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums"
+        title={(() => {
           const imp = row.bookings.reduce((s, b) => s + (b.impression_count ?? 0), 0)
           const clk = row.bookings.reduce((s, b) => s + (b.click_count ?? 0), 0)
-          return ctr(imp, clk)
+          return `${clk.toLocaleString()} clicks · ${ctr(imp, clk)} CTR`
         })()}
+      >
+        {row.bookings.reduce((s, b) => s + (b.impression_count ?? 0), 0).toLocaleString()}
       </td>
       <td className={stickyCellClass}>
         {/* Per-status actions:
