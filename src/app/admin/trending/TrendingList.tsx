@@ -14,6 +14,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { TrendingUp, GripVertical, Eye, Pencil, X, Check, Trash2 } from 'lucide-react'
+import { EmojiPicker } from './EmojiPicker'
 
 export interface TrendingItem {
   id:             string
@@ -458,7 +459,7 @@ function AddForm({ onCreate, nextOrder }: { onCreate: (fd: FormData) => Promise<
       <form action={onCreate} className="p-5 grid md:grid-cols-12 gap-3 items-end">
         <div className="md:col-span-1">
           <label className="block text-[11px] font-semibold text-gray-500 mb-1">Emoji</label>
-          <input name="emoji" type="text" maxLength={4} placeholder="☀️" className={inputCls} />
+          <EmojiPicker />
         </div>
         <div className="md:col-span-4">
           <label className="block text-[11px] font-semibold text-gray-500 mb-1">Label *</label>
@@ -511,7 +512,7 @@ function EditForm({ item, onSave, onDelete, onCancel }: {
         <input type="hidden" name="id" value={item.id} />
         <div className="md:col-span-1">
           <label className="block text-[11px] font-semibold text-gray-500 mb-1">Emoji</label>
-          <input name="emoji" type="text" maxLength={4} defaultValue={item.emoji ?? ''} className={inputCls} />
+          <EmojiPicker defaultValue={item.emoji} />
         </div>
         <div className="md:col-span-4">
           <label className="block text-[11px] font-semibold text-gray-500 mb-1">Label</label>
