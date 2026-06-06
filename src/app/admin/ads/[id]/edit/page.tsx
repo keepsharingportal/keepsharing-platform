@@ -251,6 +251,18 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
                 setError(j?.error ?? `HTTP ${res.status}`)
               }
             }}
+            onCloneAndRun={async () => {
+              const res = await fetch('/api/admin/ads/clone', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body:   JSON.stringify({ id }),
+              })
+              const json = await res.json().catch(() => ({}))
+              if (res.ok && json.id) {
+                router.push(`/admin/ads/${json.id}/edit`)
+              } else {
+                setError(json?.error ?? `HTTP ${res.status}`)
+              }
+            }}
             onDeleteForever={async () => {
               const typed = window.prompt('Permanently delete this ad? Type DELETE to confirm. This cannot be undone.')
               if (typed !== 'DELETE') return
@@ -715,9 +727,10 @@ function Row({ label, hint, hintNode, children }: { label: string; hint?: string
 // "Archived" is the column name (archived_at) but staff-facing language
 // is "Expired" because that's how the editor thinks about ads that have
 // rotated off the active list (renewal lapsed, sale ended, etc.).
-function ExpiredBanner({ expiredAt, onRenew, onDeleteForever }: {
+function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
   expiredAt:       string
   onRenew:         () => void | Promise<void>
+  onCloneAndRun:   () => void | Promise<void>
   onDeleteForever: () => void | Promise<void>
 }) {
   return (
@@ -730,11 +743,20 @@ function ExpiredBanner({ expiredAt, onRenew, onDeleteForever }: {
           Hidden from the public site and from the active ads list, but kept in the customer&apos;s history.
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={onCloneAndRun}
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
+          title="Create a new ad copying this one's creative — fresh stats, new dates"
+        >
+          Clone & Run
+        </button>
         <button
           type="button"
           onClick={onRenew}
           className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+          title="Reactivate this exact row — impression/click history continues"
         >
           Renew (reactivate)
         </button>
@@ -773,6 +795,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
   advertisers: AdvertiserOption[]
   onChange:    (advertiserId: string | null) => void
 }) {
+  const router   = useRouter()
   const selected = ad.advertiser_account_id
     ? advertisers.find(a => a.id === ad.advertiser_account_id)
     : null
@@ -898,6 +921,18 @@ function CustomerSection({ ad, advertisers, onChange }: {
                   empty="No expired placements yet."
                   ads={expiredOtherAds}
                   isExpired
+                  onClone={async (cloneId: string) => {
+                    const res = await fetch('/api/admin/ads/clone', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body:   JSON.stringify({ id: cloneId }),
+                    })
+                    const json = await res.json().catch(() => ({}))
+                    if (res.ok && json.id) {
+                      router.push(`/admin/ads/${json.id}/edit`)
+                    } else {
+                      window.alert(json?.error ?? `Clone failed: HTTP ${res.status}`)
+                    }
+                  }}
                 />
               </>
             )}
@@ -919,11 +954,14 @@ function CustomerAdPill({ active }: { active: boolean }) {
 // CustomerAdGroup — one section of the customer's ad history (Active or
 // Expired). Both render the same row shape, with Expired rows muted and
 // tagged differently.
-function CustomerAdGroup({ label, empty, ads, isExpired }: {
+function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
   label:     string
   empty:     string
   ads:       CustomerAd[]
   isExpired?: boolean
+  /** Only meaningful on the Expired group — adds a Clone link on each
+   *  row that mints a new ad row from this one. */
+  onClone?:  (id: string) => void | Promise<void>
 }) {
   return (
     <div className="rounded-xl border border-gray-200 overflow-hidden">
@@ -961,7 +999,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired }: {
                   <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
                 )}
               </div>
-              <div className="shrink-0 text-right">
+              <div className="shrink-0 text-right space-y-0.5">
                 {isExpired && other.archived_at ? (
                   <p className="text-[10px] text-gray-500">
                     Expired {new Date(other.archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -971,9 +1009,21 @@ function CustomerAdGroup({ label, empty, ads, isExpired }: {
                     Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </p>
                 ) : null}
-                <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
-                  Open →
-                </Link>
+                <div className="flex items-center gap-2 justify-end">
+                  {isExpired && onClone && (
+                    <button
+                      type="button"
+                      onClick={() => onClone(other.id)}
+                      className="text-[10px] font-bold text-emerald-700 hover:underline"
+                      title="Copy this ad's creative into a new booking with fresh stats and new dates"
+                    >
+                      Clone & Run
+                    </button>
+                  )}
+                  <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
+                    Open →
+                  </Link>
+                </div>
               </div>
             </li>
           ))}

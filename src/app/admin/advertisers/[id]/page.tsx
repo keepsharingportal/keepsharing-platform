@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { RATE_CARD } from '@/lib/ads/rate-card'
+import { CloneAdButton } from '@/components/admin/CloneAdButton'
 import {
   ArrowLeft, Building2, Mail, Phone, Globe, Calendar, Shield,
   Eye, MousePointer, DollarSign, RotateCw, Lock, Plus, ExternalLink,
@@ -76,12 +77,14 @@ export default async function AdvertiserProfilePage({ params }: Props) {
   const loyaltyTier   = a.loyalty_tier ? String(a.loyalty_tier) : null
   const sponsorGuide  = a.sponsor_guide_slug ? String(a.sponsor_guide_slug) : null
 
-  // Load all their active ad placements
+  // Load all their ad placements (active + expired). Sort: active first
+  // (newest priority), then expired (most-recently-archived first).
   const { data: placements } = await supabase
     .from('ad_placements')
-    .select('id, placement_type, context_type, context_slug, ad_headline, is_active, impression_count, click_count, starts_at, ends_at, rotation_group')
+    .select('id, placement_type, context_type, context_slug, ad_headline, is_active, archived_at, impression_count, click_count, starts_at, ends_at, rotation_group')
     .eq('advertiser_account_id', id)
-    .order('is_active', { ascending: false })
+    .order('archived_at', { ascending: false, nullsFirst: true })
+    .order('is_active',   { ascending: false })
     .order('impression_count', { ascending: false })
 
   // Load their QR codes (short_links) so scans roll into the profile.
@@ -103,6 +106,7 @@ export default async function AdvertiserProfilePage({ params }: Props) {
   type PlacementRow = {
     id: string; placement_type: string; context_type: string | null;
     context_slug: string | null; ad_headline: string | null; is_active: boolean;
+    archived_at: string | null;
     impression_count: number; click_count: number; starts_at: string | null;
     ends_at: string | null; rotation_group: string | null;
   }
@@ -255,33 +259,41 @@ export default async function AdvertiserProfilePage({ params }: Props) {
               ) : (
                 <div className="divide-y divide-gray-50">
                   {plRows.map(p => {
-                    const rate = RATE_CARD.find(r => r.placementType === p.placement_type)
+                    const rate      = RATE_CARD.find(r => r.placementType === p.placement_type)
+                    const isExpired = !!p.archived_at
                     return (
-                      <div key={p.id} className={`px-5 py-3 flex items-center gap-3 ${p.is_active ? '' : 'opacity-50'}`}>
+                      <div key={p.id} className={`px-5 py-3 flex items-center gap-3 ${isExpired ? 'opacity-60 bg-gray-50/60' : p.is_active ? '' : 'opacity-70'}`}>
                         {p.rotation_group ? (
                           <RotateCw size={12} className="text-sky-500 shrink-0" />
                         ) : (
                           <Lock size={12} className="text-amber-500 shrink-0" />
                         )}
-                        <div className="flex-1 min-w-0">
+                        <Link href={`/admin/ads/${p.id}/edit`} className="flex-1 min-w-0 hover:opacity-80">
                           <p className="text-sm font-semibold text-gray-900 truncate">
                             {rate?.label ?? p.placement_type.replace(/_/g, ' ')}
                           </p>
                           <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
                             {p.context_slug && <span className="font-medium">{p.context_slug}</span>}
-                            {p.ad_headline && <span className="truncate max-w-[16rem]">"{p.ad_headline}"</span>}
+                            {p.ad_headline && <span className="truncate max-w-[16rem]">&quot;{p.ad_headline}&quot;</span>}
                             <span>{fmtDate(p.starts_at)} → {fmtDate(p.ends_at)}</span>
                           </div>
-                        </div>
+                        </Link>
                         <div className="flex items-center gap-3 text-[11px] text-gray-500 shrink-0">
                           <span className="inline-flex items-center gap-0.5"><Eye size={10} /> {(p.impression_count ?? 0).toLocaleString()}</span>
                           <span className="inline-flex items-center gap-0.5"><MousePointer size={10} /> {(p.click_count ?? 0).toLocaleString()}</span>
                         </div>
-                        {!p.is_active && (
+                        {isExpired ? (
+                          <>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200 font-bold uppercase tracking-wider shrink-0">
+                              Expired
+                            </span>
+                            <CloneAdButton id={p.id} variant="pill" />
+                          </>
+                        ) : !p.is_active ? (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 ring-1 ring-gray-200 font-bold shrink-0">
                             Inactive
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     )
                   })}
