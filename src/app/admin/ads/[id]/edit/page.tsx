@@ -12,7 +12,7 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink, Link2, Copy, Check, Users, Building2 } from 'lucide-react'
-import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
+import { groupedPlacementTypes, findPlacementType, PAGES, PAGE_SLOTS, type PageDef } from '@/lib/ads/placement-types'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 
@@ -459,37 +459,84 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </Section>
         )}
 
-        {/* ── Placement type / context ─────────────────────── */}
-        <Section title="Placement">
-          <Row label="Placement type">
-            <select value={ad.placement_type} onChange={e => set('placement_type', e.target.value)} className={inp}>
-              {placementGroups.map(group => (
-                <optgroup key={group.surface} label={group.label}>
-                  {group.entries.map(p => (
-                    <option key={p.slug} value={p.slug}>{p.label}</option>
+        {/* ── Page picker ───────────────────────────────────────
+            Only shown when this placement type actually spans multiple
+            pages — section_sponsor (each vertical / column gets its
+            own sponsor) and guide_* placements (the same slot runs on
+            every specific guide). For everything else (homepage,
+            article, calendar, newsletter, site footer) the placement
+            type already implies the page, so we don't ask the editor.
+
+            Selecting a page writes BOTH context_type and context_slug
+            behind the scenes — staff picks the friendly name. */}
+        {needsPagePicker(ad.placement_type) && (() => {
+          const validPages = pagesForPlacement(ad.placement_type)
+          return (
+            <Section
+              title="Page"
+              subtitle="Which page does this ad run on? Same placement type, different page = different ad."
+            >
+              <Row label="Specific page">
+                <select
+                  value={ad.context_slug ?? ''}
+                  onChange={e => {
+                    const slug = e.target.value || null
+                    set('context_slug', slug)
+                    // Auto-derive context_type from the picked page's
+                    // group (Columns → 'column', everything else →
+                    // 'guide' or 'vertical'). Editor never sees this
+                    // field; the renderer needs it.
+                    const picked = validPages.find(p => p.context_slug === slug)
+                    if (picked) {
+                      const ctxType =
+                        picked.group === 'Columns' ? 'column' :
+                        picked.group === 'Guides'  ? 'guide'  :
+                                                     'vertical'
+                      set('context_type', ctxType)
+                    }
+                  }}
+                  className={inp}
+                >
+                  <option value="">(pick a page)</option>
+                  {validPages.map(p => (
+                    <option key={p.key} value={p.context_slug ?? ''}>{p.label}</option>
                   ))}
-                </optgroup>
-              ))}
-            </select>
-            {def && (
-              <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">{def.description}</p>
-            )}
-          </Row>
-          <Row label="Context type">
-            <select value={ad.context_type ?? ''} onChange={e => set('context_type', e.target.value || null)} className={inp}>
-              <option value="">(none)</option>
-              {CONTEXT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </Row>
-          {contextSlugs.length > 0 && (
-            <Row label="Context slug">
-              <select value={ad.context_slug ?? ''} onChange={e => set('context_slug', e.target.value || null)} className={inp}>
-                <option value="">(all / global)</option>
-                {contextSlugs.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Row>
+            </Section>
+          )
+        })()}
+
+        {/* ── Change placement type — advanced / recovery only ─────
+            Collapsed by default. The slot was chosen at booking
+            creation and almost never changes; surfacing it as a
+            top-level section confused staff. Behind <details> it stays
+            available for the rare "I picked the wrong slot" recovery. */}
+        <details className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <summary className="px-5 py-3 bg-gray-50 border-b border-gray-100 cursor-pointer text-sm font-bold text-gray-700 hover:bg-gray-100">
+            Change placement type (advanced)
+          </summary>
+          <div className="p-5">
+            <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+              The placement type was set when this ad was created. Change it only if you originally picked the wrong slot — switching here will move
+              the ad to a different page and may invalidate impression/click history attribution.
+            </p>
+            <Row label="Placement type">
+              <select value={ad.placement_type} onChange={e => set('placement_type', e.target.value)} className={inp}>
+                {placementGroups.map(group => (
+                  <optgroup key={group.surface} label={group.label}>
+                    {group.entries.map(p => (
+                      <option key={p.slug} value={p.slug}>{p.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
+              {def && (
+                <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">{def.description}</p>
+              )}
             </Row>
-          )}
-        </Section>
+          </div>
+        </details>
 
         {/* ── Ad size (rotation weight under the hood) ─────────────
             Only relevant for in-article body ads — that's where the
@@ -599,6 +646,22 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
 }
 
 const inp = 'w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400 transition-colors'
+
+// ── Page-picker helpers ─────────────────────────────────────────────────────
+// Most placement types render on exactly one page (homepage_bottom_ad → the
+// homepage, calendar_top_banner → /calendar, etc.) — the placement type
+// implies the page, so there's nothing for the editor to pick. A handful of
+// placement types span multiple pages (section_sponsor across verticals +
+// columns; guide_* across specific guides). For those, we show a friendly
+// Page dropdown driven by PAGES + PAGE_SLOTS.
+
+function needsPagePicker(placementType: string): boolean {
+  return pagesForPlacement(placementType).length > 1
+}
+
+function pagesForPlacement(placementType: string): PageDef[] {
+  return PAGES.filter(p => (PAGE_SLOTS[p.key] ?? []).includes(placementType))
+}
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
