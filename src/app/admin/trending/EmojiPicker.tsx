@@ -13,7 +13,8 @@
 // symbols). Intentionally not a full Unicode picker — keeping the
 // bundle tiny and the choices on-brand.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, X } from 'lucide-react'
 
 // Each entry: glyph + lowercase keywords used for the search filter.
@@ -187,14 +188,48 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
   const [value, setValue] = useState<string>(defaultValue ?? '')
   const [open,  setOpen]  = useState(false)
   const [query, setQuery] = useState('')
-  const rootRef = useRef<HTMLDivElement | null>(null)
-  const searchRef = useRef<HTMLInputElement | null>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const popRef     = useRef<HTMLDivElement | null>(null)
+  const searchRef  = useRef<HTMLInputElement | null>(null)
 
-  // Close on outside click / Escape.
+  // Compute viewport-relative position from the trigger every time the
+  // popover opens (and on scroll/resize while open). Portaling to body
+  // means we escape any parent overflow:hidden — but it also means
+  // we have to position ourselves.
+  useLayoutEffect(() => {
+    if (!open) return
+    function updatePos() {
+      const r = triggerRef.current?.getBoundingClientRect()
+      if (!r) return
+      // Width matches a comfortable picker (288px / w-72), unless the
+      // trigger is wider — then we widen to match so it doesn't look
+      // detached. Anchor to the right edge of the trigger so the panel
+      // grows leftward if it would otherwise overflow the viewport.
+      const desired   = 288
+      const width     = Math.max(desired, r.width)
+      const rightOver = r.left + width - window.innerWidth + 8
+      const left      = rightOver > 0 ? Math.max(8, r.left - rightOver) : r.left
+      setPos({ top: r.bottom + 4, left, width })
+    }
+    updatePos()
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
+    return () => {
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
+    }
+  }, [open])
+
+  // Close on outside click / Escape. Outside = not in the trigger and
+  // not in the portaled popover.
   useEffect(() => {
     if (!open) return
     function onDocClick(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (triggerRef.current?.contains(t)) return
+      if (popRef.current?.contains(t))     return
+      setOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
@@ -227,38 +262,16 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
     setQuery('')
   }
 
-  return (
-    <div ref={rootRef} className="relative">
-      {/* Hidden input so the surrounding <form action> still posts the
-          value under the original field name. */}
-      <input type="hidden" name={name} value={value} />
-
-      {/* Trigger — keeps the same visual footprint as the old text
-          input (h-9, full-width) so the form layout doesn't shift. */}
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors bg-white hover:bg-gray-50 text-left flex items-center justify-between gap-2"
-        title="Pick an emoji"
-      >
-        {value
-          ? <span className="text-base leading-none">{value}</span>
-          : <span className="text-gray-400">Pick…</span>}
-        {value && (
-          <span
-            role="button"
-            aria-label="Clear emoji"
-            onClick={e => { e.stopPropagation(); clear() }}
-            className="text-gray-300 hover:text-gray-500 inline-flex items-center"
-          >
-            <X size={12} />
-          </span>
-        )}
-      </button>
-
-      {/* Popover */}
-      {open && (
-        <div className="absolute z-30 mt-1 w-72 bg-white rounded-xl border border-gray-200 shadow-lg p-3">
+  // Popover lives in a portal so any ancestor with overflow:hidden
+  // (the AddForm <section>, the page scroll container, etc.) can't
+  // clip it. SSR-safe: only mount the portal on the client.
+  const popover = open && pos && typeof document !== 'undefined'
+    ? createPortal(
+        <div
+          ref={popRef}
+          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width }}
+          className="z-50 bg-white rounded-xl border border-gray-200 shadow-lg p-3"
+        >
           <div className="relative mb-2">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -291,8 +304,42 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
               ))}
             </div>
           )}
-        </div>
-      )}
+        </div>,
+        document.body,
+      )
+    : null
+
+  return (
+    <div className="relative">
+      {/* Hidden input so the surrounding <form action> still posts the
+          value under the original field name. */}
+      <input type="hidden" name={name} value={value} />
+
+      {/* Trigger — keeps the same visual footprint as the old text
+          input (h-9, full-width) so the form layout doesn't shift. */}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors bg-white hover:bg-gray-50 text-left flex items-center justify-between gap-2"
+        title="Pick an emoji"
+      >
+        {value
+          ? <span className="text-base leading-none">{value}</span>
+          : <span className="text-gray-400">Pick…</span>}
+        {value && (
+          <span
+            role="button"
+            aria-label="Clear emoji"
+            onClick={e => { e.stopPropagation(); clear() }}
+            className="text-gray-300 hover:text-gray-500 inline-flex items-center"
+          >
+            <X size={12} />
+          </span>
+        )}
+      </button>
+
+      {popover}
     </div>
   )
 }
