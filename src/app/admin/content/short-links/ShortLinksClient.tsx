@@ -30,10 +30,21 @@ interface Props {
   advertisers: AdvertiserOption[]
 }
 
+// Each row is either a QR-code shortcode (the original use case — gets a
+// printed QR) or an Ad-link shortcode minted by /admin/ads/[id]/edit
+// (tracked CTA on a digital ad). Both live in short_links; the only tell
+// is ad_placement_id IS NOT NULL on the ad-link rows.
+function isAdLink(row: ShortLinkRow): boolean {
+  return !!row.ad_placement_id
+}
+
+type FilterTab = 'all' | 'ads' | 'qr'
+
 export function ShortLinksClient({ initialRows, advertisers }: Props) {
   const router = useRouter()
   const [rows, setRows]     = useState<ShortLinkRow[]>(initialRows)
   const [addOpen, setAddOpen] = useState(false)
+  const [tab, setTab] = useState<FilterTab>('all')
 
   function onCreated(row: ShortLinkRow) {
     setRows(prev => [row, ...prev])
@@ -43,6 +54,14 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
   function onRemoved(id: string) {
     setRows(prev => prev.filter(r => r.id !== id))
   }
+
+  const adCount   = rows.filter(isAdLink).length
+  const qrCount   = rows.length - adCount
+  const visibleRows = rows.filter(r =>
+    tab === 'all' ? true :
+    tab === 'ads' ? isAdLink(r) :
+                    !isAdLink(r)
+  )
 
   return (
     <div className="flex flex-col">
@@ -71,15 +90,51 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         />
       )}
 
+      {/* ── Filter tabs ──────────────────────────────────────────
+          QR codes (the original use case) and Ad-link tracking (added in
+          migration 123) share the same table. The tab strip lets the
+          editor see them mixed or isolate either kind. */}
+      {rows.length > 0 && (
+        <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-1">
+          {([
+            { key: 'all' as const, label: 'All',       count: rows.length },
+            { key: 'ads' as const, label: 'Ad links',  count: adCount     },
+            { key: 'qr'  as const, label: 'QR codes',  count: qrCount     },
+          ]).map(t => {
+            const on = tab === t.key
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                  on
+                    ? t.key === 'ads' ? 'bg-amber-600   text-white'
+                    : t.key === 'qr'  ? 'bg-violet-600  text-white'
+                    :                   'bg-gray-900    text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                {t.label}
+                <span className={`text-[10px] font-bold ${on ? 'opacity-80' : 'text-gray-400'}`}>{t.count}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       <div className="bg-[#f4f5f7] px-4 py-3">
         {rows.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
             <QrCode size={32} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">No QR codes yet. Create one for your first magazine QR.</p>
           </div>
+        ) : visibleRows.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+            <p className="text-sm">No rows match this tab.</p>
+          </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-            {rows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
+            {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
           </div>
         )}
       </div>
@@ -169,6 +224,17 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
             <p className="text-sm font-bold text-gray-900">/go/{local.shortcode}</p>
+            {/* Kind badge — AD (amber) for tracked CTAs on ad_placements,
+                QR (violet) for the print/QR-code use case. */}
+            {isAdLink(local) ? (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider bg-amber-600 text-white">
+                AD
+              </span>
+            ) : (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider bg-violet-600 text-white">
+                QR
+              </span>
+            )}
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 ring-1 ring-gray-200">
               {typeDef.label}
             </span>

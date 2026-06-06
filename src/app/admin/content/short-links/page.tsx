@@ -30,6 +30,9 @@ export interface ShortLinkRow {
   is_active:             boolean
   created_at:            string
   advertiser_account_id: string | null
+  /** Set by /api/admin/ads/tracked-link when the editor generates a
+   *  tracked CTA on an ad. NULL = this row was minted as a QR code. */
+  ad_placement_id:       string | null
   qr_primary_color:      string | null
   qr_bg_color:           string | null
 }
@@ -43,11 +46,18 @@ export default async function ShortLinksPage() {
   await requireAdmin()
 
   const supabase = createAdminClient()
-  const { data } = await supabase
-    .from('short_links')
-    .select('id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, qr_primary_color, qr_bg_color')
-    .order('created_at', { ascending: false })
-    .limit(200)
+  // Try the full select including ad_placement_id (migration 123). If
+  // that column doesn't exist yet, degrade — the client tolerates the
+  // field being undefined and just treats every row as a QR code.
+  const fullCols = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color'
+  const minCols  = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, qr_primary_color, qr_bg_color'
+  let dataRes = await supabase.from('short_links').select(fullCols)
+    .order('created_at', { ascending: false }).limit(200)
+  if (dataRes.error && /column .* does not exist/i.test(dataRes.error.message)) {
+    dataRes = await supabase.from('short_links').select(minCols)
+      .order('created_at', { ascending: false }).limit(200) as typeof dataRes
+  }
+  const data = dataRes.data
 
   // Load advertiser list for the dropdown
   const { data: advData } = await supabase
