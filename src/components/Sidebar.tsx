@@ -197,6 +197,7 @@ const NAV: NavItem[] = [
     children: [
       { name: 'Slot Map',         href: '/admin/ads/map'                  },
       { name: 'All Bookings',     href: '/admin/ads'                      },
+      { name: 'Renewal Reminders', href: '/admin/ads/renewals'            },
       { name: 'Section Sponsors', href: '/admin/section-sponsors', accent: true },
     ],
   },

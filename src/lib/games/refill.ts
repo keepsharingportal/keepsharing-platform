@@ -45,6 +45,20 @@ const COST_ESTIMATE: Partial<Record<GameId, number>> = {
   'trivia':         0.05,
 }
 
+// Worst-case duration of a single generateContent() call, per game.
+// Used to skip starting a new call when there isn't enough time budget
+// left for it to finish — the old check was "have we hit the deadline
+// yet?" which let a Family Connect call start at 240s and run 90s past
+// it (the 504 the editor just saw). This makes the budget honest.
+const CALL_DURATION_MS: Partial<Record<GameId, number>> = {
+  'family-connect': 100_000,   // 60-90s typical, 100s safety margin
+  'memory':          45_000,
+  'scramble':        25_000,
+  'emoji':           25_000,
+  'math':            25_000,
+  'trivia':          40_000,
+}
+
 export interface CellPlan {
   game:       GameId
   difficulty: Difficulty
@@ -190,12 +204,20 @@ export async function runRefill(opts: RefillOptions = {}): Promise<RefillSummary
     }
     // Defaults are safe for any future game added — keeps the cron
     // tolerant of GAMES_LIST drift without crashing.
-    const batchSize = BATCH_SIZE[p.game]    ?? 5
-    const perItem   = COST_ESTIMATE[p.game] ?? 0.10
+    const batchSize = BATCH_SIZE[p.game]      ?? 5
+    const perItem   = COST_ESTIMATE[p.game]   ?? 0.10
+    const callMs    = CALL_DURATION_MS[p.game] ?? 60_000
 
     let remaining = p.needed
     while (remaining > 0) {
-      if (Date.now() > deadline) { result.errors.push('time_budget_exceeded'); break }
+      // Honest budget check: don't START a new call unless its worst-case
+      // duration fits before the deadline. Family Connect routinely runs
+      // 60-90s; without this check, a call started at 240s into a 280s
+      // budget kept running until ~330s and the function 504'd.
+      if (Date.now() + callMs > deadline) {
+        result.errors.push('time_budget_exceeded')
+        break
+      }
       if (spent + perItem > budget) { result.errors.push('cost_budget_exceeded'); break }
 
       const count = Math.min(batchSize, remaining)
