@@ -93,6 +93,7 @@ async function getHomepageData() {
     featuredGuideConfigRes,
     eventsRes,
     articlesRes,
+    heroRotatorAdRes,
     inlineAdRes,
     sidebarAdRes,
     businessSpotlightRes,
@@ -156,12 +157,22 @@ async function getHomepageData() {
       //   - frg-best-of has its own Best Of block
       .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best,frg-best-of)')
       .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
-    // All four homepage ad slots support rotation. We pull up to 3
-    // active rows per slot and pick one weighted by rotation_weight
-    // below — a single active ad still always renders (rotation collapses
-    // to "show the one ad"), so "exclusive" buyers don't need a separate
-    // code path. 3 is the per-slot cap so rotation never dilutes
-    // impressions below 33% per buyer.
+    // Hero rotator — wide 21:9 banner at the very top of the homepage.
+    // Premium inventory (first impression of every visit). Same rotation
+    // rules as the other ad slots: up to 3 active rows, weighted pick
+    // below, single advertiser collapses to exclusive.
+    supabase.from('ad_placements')
+      .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
+      .eq('placement_type', 'homepage_hero_rotator').eq('is_active', true)
+      .is('archived_at', null)
+      .order('display_priority', { ascending: false })
+      .limit(3),
+    // Below: four standard homepage ad slots support rotation. We pull
+    // up to 3 active rows per slot and pick one weighted by
+    // rotation_weight below — a single active ad still always renders
+    // (rotation collapses to "show the one ad"), so "exclusive" buyers
+    // don't need a separate code path. 3 is the per-slot cap so
+    // rotation never dilutes impressions below 33% per buyer.
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
@@ -408,6 +419,7 @@ async function getHomepageData() {
     ad_cta_label?:    string | null
     creative_mode?:   'composed' | 'image' | null
   }
+  const heroRotatorAd    = pickWeighted((heroRotatorAdRes.data    ?? []) as AdRow[])
   const inlineAd         = pickWeighted((inlineAdRes.data         ?? []) as AdRow[])
   const sidebarAd        = pickWeighted((sidebarAdRes.data        ?? []) as AdRow[])
   const businessSpotlight = pickWeighted((businessSpotlightRes.data ?? []) as AdRow[])
@@ -422,6 +434,7 @@ async function getHomepageData() {
     spotlights,
     events:            eventsRes.data ?? [],
     articles:          articlesRes.data ?? [],
+    heroRotatorAd,
     inlineAd,
     sidebarAd,
     businessSpotlight,
@@ -442,7 +455,7 @@ function fmtEventDate(d: string) {
 export default async function HomePage() {
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
-    inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
+    heroRotatorAd, inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
     featuredCategories, magazineIssues,
   } = await getHomepageData()
 
@@ -488,6 +501,63 @@ export default async function HomePage() {
       </div>
 
       <main className="container py-8 space-y-10">
+
+        {/* ── Hero rotator (homepage_hero_rotator) ─────────────────────
+            Premium 21:9 banner at the very top of the page. First thing
+            a visitor sees, so it's the most expensive piece of
+            inventory. Falls back to a "Claim this spot" placeholder
+            when no advertiser is active so the slot is always visible
+            and always sellable. */}
+        {heroRotatorAd && heroRotatorAd.ad_link && heroRotatorAd.ad_image_url ? (
+          <Link
+            href={heroRotatorAd.ad_link}
+            className="block rounded-2xl border border-border overflow-hidden hover:shadow-md transition-shadow"
+            aria-label={heroRotatorAd.ad_headline ?? 'Sponsored'}
+          >
+            <div className="relative overflow-hidden" style={{ aspectRatio: '21/9' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroRotatorAd.ad_image_url}
+                alt={heroRotatorAd.ad_headline ?? 'Sponsored'}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <p className="text-xs font-bold uppercase tracking-wider text-white/80 mb-1">
+                  {heroRotatorAd.ad_eyebrow ?? 'Sponsored'}
+                </p>
+                {heroRotatorAd.ad_headline && (
+                  <h3 className="font-bold text-white text-xl md:text-2xl leading-snug">{heroRotatorAd.ad_headline}</h3>
+                )}
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <ClaimSpotButton
+            placementType="homepage_hero_rotator"
+            placementLabel="Homepage — Hero rotator (top of page)"
+            className="block w-full rounded-2xl border-2 border-dashed border-primary/25 bg-gradient-to-r from-primary/8 via-background to-secondary/8 hover:border-primary/50 hover:shadow-md transition-all group text-left overflow-hidden"
+          >
+            <div className="relative" style={{ aspectRatio: '21/9' }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center px-6 max-w-3xl">
+                  <p className="text-[10px] md:text-xs font-bold text-primary uppercase tracking-widest mb-3">
+                    Premium Hero Placement Available
+                  </p>
+                  <h3 className="text-2xl md:text-4xl font-black text-foreground mb-3 leading-tight group-hover:text-primary transition-colors">
+                    Your Brand at the Top of River Region Parents
+                  </h3>
+                  <p className="text-sm md:text-base text-muted-foreground mb-5 leading-relaxed">
+                    The first thing every visitor sees. Wide hero banner, premium inventory, one advertiser at a time.
+                  </p>
+                  <span className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full text-sm md:text-base font-bold group-hover:bg-primary/90 transition-colors shadow-md">
+                    Claim This Spot <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ClaimSpotButton>
+        )}
 
         {/* Top Featured Area */}
         <section className="grid lg:grid-cols-12 gap-6">
