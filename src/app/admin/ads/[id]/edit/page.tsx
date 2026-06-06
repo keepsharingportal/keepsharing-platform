@@ -336,7 +336,10 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           <Row label="CTA label">
             <input value={ad.ad_cta_label ?? ''} onChange={e => set('ad_cta_label', e.target.value)} placeholder="Learn More" className={inp} />
           </Row>
-          <Row label="CTA link">
+          <Row
+            label="CTA link"
+            hintNode={<span className="text-red-600 font-semibold">(generate tracked link below for clicks to count in reports)</span>}
+          >
             <input value={ad.ad_link ?? ''} onChange={e => set('ad_link', e.target.value)} placeholder="/healthy-kids-guide/listings/…" className={inp} />
           </Row>
           <Row label="Image" hint="Upload from your device or paste a URL. Drag-and-drop, then use Zoom & adjust to crop.">
@@ -556,12 +559,13 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
   )
 }
 
-function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Row({ label, hint, hintNode, children }: { label: string; hint?: string; hintNode?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="grid sm:grid-cols-[180px_1fr] gap-2 sm:gap-4 items-start">
       <div className="pt-2">
         <label className="text-xs font-bold uppercase tracking-wider text-gray-600">{label}</label>
         {hint && <p className="text-[11px] text-gray-500 mt-0.5">{hint}</p>}
+        {hintNode && <p className="text-[11px] mt-0.5">{hintNode}</p>}
       </div>
       <div>{children}</div>
     </div>
