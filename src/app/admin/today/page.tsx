@@ -9,6 +9,8 @@ import { DistributionWidget } from '@/components/distribution/DistributionWidget
 import { fillEmailTemplate } from '@/lib/email-templates'
 import { getOpsSnapshot } from '@/lib/queries/operations'
 import { deriveEcosystemHealth, deriveFocusActions } from '@/lib/queries/health'
+import { MasterTodoList } from '@/components/today/MasterTodoList'
+import { requireAdmin } from '@/lib/admin/auth'
 
 // ── Publication list (static config, data comes from DB) ─────────────────────
 const PUBLICATIONS = [
@@ -153,6 +155,12 @@ export default async function TodayPage() {
 
   const supabase = await createClient()
 
+  // Master backlog is super-admin only — it carries unfinished phase
+  // notes + Stripe/GHL plumbing items that publishers don't need to
+  // see. Falls back gracefully when the user isn't authenticated yet.
+  const adminCtx = await requireAdmin().catch(() => null)
+  const showMasterTodos = adminCtx?.role === 'super'
+
   const [marketStats, actionItems, incoming, opsSnapshot] = await Promise.all([
     getMarketPulse(),
     getActionItems(),
@@ -171,6 +179,11 @@ export default async function TodayPage() {
       </div>
 
       <div className="p-6 space-y-6">
+
+        {/* Master backlog — super-admin only. Sits above the operational
+            sections because finishing those phase-1 items is the gating
+            work for unblocking everything else. */}
+        {showMasterTodos && <MasterTodoList />}
 
         {/* Publisher Command Center — Focus + Health */}
         {focusActions && ecosystemHealth && (
