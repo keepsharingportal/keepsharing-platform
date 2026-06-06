@@ -179,14 +179,24 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               <ArrowLeft size={12} /> Back to all bookings
             </Link>
             <div className="flex items-center gap-2 mb-1">
-              <Pencil size={20} className="text-primary" />
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-                Edit placement
-              </h1>
+              <Pencil size={18} className="text-primary shrink-0" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Edit placement</span>
             </div>
-            <p className="text-sm text-gray-500">
-              {def?.label ?? ad.placement_type} · <code className="text-[11px] text-gray-400">{ad.placement_type}</code>
-            </p>
+            {/* Slot name as the actual H1 — it's the most useful thing to
+                see at the top of the page. Recommended size + slug live
+                underneath as supporting context. */}
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
+              {def?.label ?? ad.placement_type}
+            </h1>
+            <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+              {def?.recommendedImageSize && (
+                <p><strong className="text-gray-700">Recommended size:</strong> {def.recommendedImageSize}</p>
+              )}
+              <p>
+                Slug: <code className="text-[11px] text-gray-400">{ad.placement_type}</code>
+                {ad.context_slug && <> · Page: <code className="text-[11px] text-gray-400">{ad.context_slug}</code></>}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link
