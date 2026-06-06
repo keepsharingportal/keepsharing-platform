@@ -11,9 +11,10 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, RefreshCw, Plus, AlertTriangle, Search, LayoutGrid, ChevronDown, ChevronRight } from 'lucide-react'
+import { Star, RefreshCw, Plus, AlertTriangle, Search, LayoutGrid, ChevronDown, ChevronRight, MapPin } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType, PLACEMENT_TYPES, SURFACE_LABELS, type SurfaceKey } from '@/lib/ads/placement-types'
 import { AdsTabs } from '@/components/admin/AdsTabs'
+import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 
 interface AdPlacement {
   id:                string
@@ -41,6 +42,7 @@ export default function AdminAdsPage() {
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState<string | null>(null)
   const [filterType, setFilterType] = useState('')
+  const [filterPage, setFilterPage] = useState<'all' | SurfaceKey>('all')
   const [search,     setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'on' | 'off'>('all')
   const [catalogOpen,  setCatalogOpen]  = useState(false)
@@ -64,9 +66,19 @@ export default function AdminAdsPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Map of placement_type → its surface, so the page filter can also
+  // constrain by registered placement (a booking whose placement isn't
+  // in the registry still shows under "All Pages").
+  const surfaceForSlug = useMemo(() => {
+    const m: Record<string, SurfaceKey> = {}
+    for (const p of PLACEMENT_TYPES) m[p.slug] = p.surface
+    return m
+  }, [])
+
   const visibleAds = useMemo(() => {
     const q = search.trim().toLowerCase()
     return ads.filter(a => {
+      if (filterPage !== 'all' && surfaceForSlug[a.placement_type] !== filterPage) return false
       if (filterType && a.placement_type !== filterType) return false
       if (statusFilter === 'on'  && !a.is_active) return false
       if (statusFilter === 'off' &&  a.is_active) return false
@@ -82,7 +94,7 @@ export default function AdminAdsPage() {
       }
       return true
     })
-  }, [ads, filterType, statusFilter, search])
+  }, [ads, filterType, filterPage, statusFilter, search, surfaceForSlug])
 
   async function toggleActive(id: string, current: boolean) {
     await fetch('/api/admin/ads/toggle', {
@@ -261,6 +273,46 @@ export default function AdminAdsPage() {
 
         {/* ── Filter + search ──────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+          {/* Page filter — pill row by surface. Picking a page constrains
+              the placement dropdown below to that page's slots and renders
+              the labeled page-layout diagram in the next section. */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0">Page</label>
+            {([
+              { key: 'all'         as const, label: 'All pages'  },
+              { key: 'homepage'    as const, label: 'Homepage'   },
+              { key: 'articles'    as const, label: 'Articles'   },
+              { key: 'guides'      as const, label: 'Guides'     },
+              { key: 'school-bits' as const, label: 'School Bits'},
+              { key: 'verticals'   as const, label: 'Verticals'  },
+              { key: 'calendar'    as const, label: 'Calendar'   },
+              { key: 'newsletter'  as const, label: 'Newsletter' },
+              { key: 'site'        as const, label: 'Site-wide'  },
+            ]).map(p => {
+              const on = filterPage === p.key
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => {
+                    setFilterPage(p.key)
+                    // Clear placement filter when changing page so the
+                    // dropdown doesn't show stale slots from a previous page.
+                    if (p.key !== 'all' && filterType && surfaceForSlug[filterType] !== p.key) {
+                      setFilterType('')
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                    on
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              )
+            })}
+          </div>
+
           <div className="flex items-center gap-3 flex-wrap">
             <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0">Placement</label>
             <select
@@ -268,14 +320,18 @@ export default function AdminAdsPage() {
               onChange={e => setFilterType(e.target.value)}
               className="text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white min-w-[260px] flex-1"
             >
-              <option value="">All placement types</option>
-              {placementGroups.map(group => (
-                <optgroup key={group.surface} label={group.label}>
-                  {group.entries.map(p => (
-                    <option key={p.slug} value={p.slug}>{p.label}</option>
-                  ))}
-                </optgroup>
-              ))}
+              <option value="">
+                {filterPage === 'all' ? 'All placement types' : `All ${SURFACE_LABELS[filterPage as SurfaceKey]} placements`}
+              </option>
+              {placementGroups
+                .filter(g => filterPage === 'all' || g.surface === filterPage)
+                .map(group => (
+                  <optgroup key={group.surface} label={group.label}>
+                    {group.entries.map(p => (
+                      <option key={p.slug} value={p.slug}>{p.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
             </select>
             {filterType && (
               <button
@@ -327,6 +383,55 @@ export default function AdminAdsPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Page layout preview ──────────────────────────────── */}
+        {/* When a Page filter is set, render the labeled page-layout
+            diagram with every slot color-coded by booking status. Click
+            any slot to filter the booking list to that placement. */}
+        {filterPage !== 'all' && (
+          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                <MapPin size={14} className="text-primary" />
+                {SURFACE_LABELS[filterPage as SurfaceKey]} — slot map
+              </h2>
+            </div>
+            <div className="p-5 grid md:grid-cols-[1fr_minmax(340px,_auto)] gap-5 items-start">
+              <div className="text-xs text-gray-600 space-y-2">
+                <p>
+                  Every ad slot registered for the <strong>{SURFACE_LABELS[filterPage as SurfaceKey]}</strong> page.
+                  Color = booking status: <span className="font-semibold text-green-700">live</span> has at least one
+                  active ad rendering, <span className="font-semibold text-gray-700">paused</span> has bookings but
+                  nothing currently on, <span className="font-semibold text-amber-700">sellable</span> is empty (no
+                  bookings yet — pitch this slot).
+                </p>
+                <p>
+                  Click any slot in the diagram to filter the booking list to that placement. Click <strong>+ Sell
+                  this slot</strong> in the Slot Catalog above to open a new-booking form pre-filled with that
+                  placement.
+                </p>
+                <p className="text-gray-400 italic">
+                  Note: layout diagrams for Articles and Guides are mapped; School Bits / Calendar / Newsletter /
+                  Site-wide will render the slot list inline until I draw their layouts too — say the word.
+                </p>
+              </div>
+              <PageLayoutPreview
+                surface={filterPage}
+                slotStatuses={Object.fromEntries(
+                  PLACEMENT_TYPES.filter(p => p.surface === filterPage).map(p => {
+                    const c = countsBySlug[p.slug]
+                    const status: 'live' | 'paused' | 'sellable' =
+                      !c || c.total === 0 ? 'sellable' :
+                      c.active > 0        ? 'live'     :
+                                            'paused'
+                    return [p.slug, status]
+                  })
+                ) as Record<string, 'live' | 'paused' | 'sellable'>}
+                onSlotClick={(slug) => setFilterType(slug)}
+              />
+            </div>
+          </section>
+        )}
 
         {/* ── Error ────────────────────────────────────────────── */}
         {error && (

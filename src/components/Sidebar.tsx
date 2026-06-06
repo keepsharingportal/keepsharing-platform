@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Zap, LayoutGrid, Users, FileText, Settings,
   ChevronDown, ChevronRight, LogOut,
@@ -282,6 +282,22 @@ export function Sidebar() {
       }
     }
   }, [pathname])
+
+  // Auto-scroll the active nav element into view. With the long NAV list,
+  // Ads & Sponsors (and anything below it) was rendering below the visible
+  // scroll area on first paint, so the editor saw a blank "expanded"
+  // section and had to scroll manually. activeNavRef is set on whichever
+  // child link OR parent button is currently active; this effect scrolls
+  // it into view after layout. Uses block: 'nearest' so we don't ratchet
+  // a fully-visible item up/down for no reason.
+  const activeNavRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    // Defer to next frame so the expanded group's children have rendered.
+    const id = requestAnimationFrame(() => {
+      activeNavRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [pathname, expandedNav])
   const [role, setRole] = useState<AdminRole | null>(null)
   // Pending counts surfaced as red badges next to nav children with a
   // badgeKey. Refreshed every 60s + on window focus so admins see new
@@ -397,6 +413,10 @@ export function Sidebar() {
             return (
               <div key={item.name}>
                 <button
+                  // Hold the ref ONLY when this group is active AND not
+                  // currently expanded — the expanded variant scrolls to
+                  // its active child instead. Keeps scroll target accurate.
+                  ref={groupActive && !isExpanded ? (el => { activeNavRef.current = el }) : undefined}
                   onClick={() => setExpandedNav(isExpanded ? null : item.name)}
                   className={cn(
                     'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
@@ -460,6 +480,9 @@ export function Sidebar() {
                           key={child.href}
                           href={child.href}
                           {...linkProps}
+                          // Set the scroll target on the active child so the
+                          // expanded group reveals what we're inside of.
+                          ref={childActive ? (el => { activeNavRef.current = el }) : undefined}
                           className={cn(
                             'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] transition-colors',
                             accent
@@ -495,6 +518,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              ref={active ? (el => { activeNavRef.current = el }) : undefined}
               className={cn(
                 'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
                 active ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'

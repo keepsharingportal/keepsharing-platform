@@ -13,9 +13,18 @@
 // simple — we're communicating LOCATION, not pixel-perfect creative.
 
 interface Props {
-  placementSlug: string
+  /** When provided, this single slot pulses orange and others stay dim.
+   *  Mutually exclusive with `slotStatuses`. */
+  placementSlug?: string
   /** Surface key from PlacementTypeDef. Drives which mockup to render. */
   surface: string
+  /** Per-slot booking status — used by the /admin/ads page filter view
+   *  to show LIVE / PAUSED / SELLABLE across every slot on this page at
+   *  the same time. Map key = slot slug, value = status code. */
+  slotStatuses?: Record<string, 'live' | 'paused' | 'sellable'>
+  /** Click handler — used by the /admin/ads page to filter the list to
+   *  the clicked placement_type. */
+  onSlotClick?: (slug: string) => void
 }
 
 const HOMEPAGE_SLOTS = [
@@ -74,28 +83,61 @@ function surfaceLabel(surface: string): string {
   } as Record<string, string>)[surface] ?? surface
 }
 
-export function PageLayoutPreview({ placementSlug, surface }: Props) {
+export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlotClick }: Props) {
   const slots = getSlots(surface)
+  const multiMode = !!slotStatuses
+
+  // Colors for the multi-status mode. Tuned so the eye reads the page
+  // structure first and then the status as a secondary visual layer.
+  function multiClasses(status: 'live' | 'paused' | 'sellable' | undefined): string {
+    if (status === 'live')     return 'border-green-600 bg-green-100'
+    if (status === 'paused')   return 'border-gray-400 bg-gray-100'
+    if (status === 'sellable') return 'border-amber-400 bg-amber-50'
+    return 'border-gray-300 bg-white'
+  }
+  function multiLabelClass(status: 'live' | 'paused' | 'sellable' | undefined): string {
+    if (status === 'live')     return 'text-green-800 font-bold'
+    if (status === 'paused')   return 'text-gray-600'
+    if (status === 'sellable') return 'text-amber-700 font-semibold'
+    return 'text-gray-400'
+  }
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-      <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{surfaceLabel(surface)}</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">{surfaceLabel(surface)}</p>
+        {multiMode && (
+          <div className="flex items-center gap-2 text-[10px]">
+            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-600" /> Live</span>
+            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Paused</span>
+            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Sellable</span>
+          </div>
+        )}
+      </div>
 
       {slots ? (
         <div className="relative bg-white border border-gray-300 rounded" style={{ aspectRatio: '16 / 11' }}>
           {/* Header chrome — tiny dark bar so the mock reads as a webpage */}
           <div className="absolute top-0 left-0 right-0 h-3 bg-gray-900 rounded-t" />
-          {/* Slots */}
           {slots.map(s => {
-            const active = s.slug === placementSlug
+            const isSingleActive = !multiMode && s.slug === placementSlug
+            const status         = slotStatuses?.[s.slug]
+            const baseClasses    = multiMode
+              ? multiClasses(status)
+              : isSingleActive
+                ? 'border-primary bg-primary/15 z-10 shadow-lg'
+                : 'border-gray-300 bg-white'
+            const labelClass = multiMode
+              ? multiLabelClass(status)
+              : isSingleActive
+                ? 'text-primary font-bold'
+                : 'text-gray-400'
+            const clickable = onSlotClick && multiMode
             return (
               <div
                 key={s.slug}
-                className={`absolute rounded-sm border-2 transition-all ${
-                  active
-                    ? 'border-primary bg-primary/15 z-10 shadow-lg'
-                    : 'border-gray-300 bg-white'
-                }`}
+                onClick={clickable ? () => onSlotClick!(s.slug) : undefined}
+                className={`absolute rounded-sm border-2 transition-all ${baseClasses} ${clickable ? 'cursor-pointer hover:shadow-md hover:scale-[1.02]' : ''}`}
                 style={{
                   left:   `${s.x}%`,
                   top:    `${s.y}%`,
@@ -104,9 +146,7 @@ export function PageLayoutPreview({ placementSlug, surface }: Props) {
                 }}
                 title={s.label}
               >
-                <span className={`absolute inset-0 flex items-center justify-center text-[8px] leading-tight px-1 text-center ${
-                  active ? 'text-primary font-bold' : 'text-gray-400'
-                }`}>
+                <span className={`absolute inset-0 flex items-center justify-center text-[8px] leading-tight px-1 text-center ${labelClass}`}>
                   {s.label}
                 </span>
               </div>
@@ -116,15 +156,21 @@ export function PageLayoutPreview({ placementSlug, surface }: Props) {
       ) : (
         <div className="bg-white border border-gray-300 rounded p-6 text-center">
           <p className="text-xs text-gray-500">
-            This slot lives on a <strong>{surfaceLabel(surface).toLowerCase()}</strong>.
-            Visual preview isn&apos;t mapped for this surface yet — see the &quot;Where it appears&quot; description above.
+            This page&apos;s layout isn&apos;t mapped yet — see the slot list below for the {SURFACE_COUNT(surface)} placements registered for {surfaceLabel(surface).toLowerCase()}.
           </p>
         </div>
       )}
 
       <p className="text-[10px] text-gray-400 mt-2 text-center">
-        Approximate layout — actual page composition shifts with content. Highlighted = the slot you&apos;re editing.
+        {multiMode
+          ? 'Click any slot to filter the booking list. Approximate layout — actual composition shifts with content.'
+          : 'Approximate layout — actual page composition shifts with content. Highlighted = the slot you’re editing.'}
       </p>
     </div>
   )
+}
+
+import { PLACEMENT_TYPES } from '@/lib/ads/placement-types'
+function SURFACE_COUNT(surface: string): number {
+  return PLACEMENT_TYPES.filter(p => p.surface === surface).length
 }

@@ -62,12 +62,16 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
     // slug with spaces/capitalization (URL is always canonicalized via
     // articleHref).
     findArticleBySlug<Record<string, unknown>>(supabase, slug, '*'),
+    // Pull up to 6 active inline ads. The body renderer below distributes
+    // them across 1-3 positions based on article length, weighted by
+    // rotation_weight so full-page advertisers get more visibility than
+    // quarter-page in the same pool.
     supabase.from('ad_placements')
       .select('*')
       .eq('placement_type', 'article_inline')
       .eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(6),
   ])
 
   if (!articleData) {
@@ -258,15 +262,48 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
 
             {/* Article body — template selected by column_slug */}
             {(() => {
-              // Only render the inline ad when it has a real destination URL
-              const adNode = (inlineAdRes.data && inlineAdRes.data.ad_link) ? (
+              // Multi-slot allocation — pick 1-3 inline ads weighted by
+              // rotation_weight with refill so a single advertiser fills
+              // every position when they're alone in the pool.
+              type InlineAdRow = {
+                id?: string; ad_headline?: string; ad_description?: string;
+                ad_cta_label?: string; ad_link?: string; rotation_weight?: number
+              }
+              const pool = (inlineAdRes.data ?? []) as InlineAdRow[]
+              const adsWithLinks = pool.filter(p => p.ad_link)
+              const slotCount = wordCount < 350 ? 0 : wordCount < 600 ? 1 : wordCount < 1100 ? 2 : 3
+              function pickInline(p: InlineAdRow[]): InlineAdRow | null {
+                if (p.length === 0) return null
+                const total = p.reduce((s, a) => s + (a.rotation_weight ?? 1), 0)
+                if (total <= 0) return p[0]
+                let r = Math.random() * total
+                for (const a of p) { r -= a.rotation_weight ?? 1; if (r <= 0) return a }
+                return p[p.length - 1]
+              }
+              const allocated: InlineAdRow[] = []
+              {
+                let p = [...adsWithLinks]
+                for (let i = 0; i < slotCount; i++) {
+                  if (p.length === 0) p = [...adsWithLinks]
+                  const picked = pickInline(p)
+                  if (!picked) break
+                  allocated.push(picked)
+                  p = p.filter(x => x.id !== picked.id)
+                }
+              }
+              const adNodes: React.ReactNode[] = allocated.map((ad, idx) => (
                 <InArticleAd
-                  headline={inlineAdRes.data.ad_headline ?? ''}
-                  description={inlineAdRes.data.ad_description ?? ''}
-                  ctaLabel={inlineAdRes.data.ad_cta_label ?? 'Learn More'}
-                  ctaUrl={inlineAdRes.data.ad_link}
+                  key={`${ad.id ?? 'ad'}-${idx}`}
+                  headline={ad.ad_headline ?? ''}
+                  description={ad.ad_description ?? ''}
+                  ctaLabel={ad.ad_cta_label ?? 'Learn More'}
+                  ctaUrl={ad.ad_link ?? '#'}
                 />
-              ) : undefined
+              ))
+              // Legacy single-slot for the templates that still take a
+              // single inlineAd prop (Teacher, Contributor, etc.) — pass
+              // the first allocated ad so they get one body insertion.
+              const adNode = adNodes[0]
 
               if (isRoundup) {
                 return (
@@ -314,7 +351,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 <ArticleBody
                   body={article.body ?? ''}
                   pullQuotes={pullQuotes}
-                  inlineAd={adNode}
+                  inlineAds={adNodes}
                 />
               )
             })()}
