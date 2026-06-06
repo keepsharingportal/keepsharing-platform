@@ -826,24 +826,27 @@ export default async function HomePage() {
               )}
             </section>
 
-            {/* In-Feed Sponsored Ad */}
+            {/* In-Feed Sponsored Ad — image sized to match the bottom
+                banner (w-full md:w-52 h-40, rounded-2xl) so the two
+                homepage ad spots feel visually consistent instead of
+                "one small thumbnail, one big banner". */}
             {inlineAd && inlineAd.ad_link && (
               <Link
                 href={inlineAd.ad_link}
-                className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
+                className="bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 z-10 bg-background border shadow-sm">
+                <div className="w-full md:w-52 h-40 rounded-2xl overflow-hidden shrink-0 z-10 bg-background shadow-sm">
                   {inlineAd.ad_image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={inlineAd.ad_image_url}
                       alt={inlineAd.ad_headline ?? 'Sponsored'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Star className="h-8 w-8 text-secondary" />
+                      <Star className="h-12 w-12 text-secondary" />
                     </div>
                   )}
                 </div>
