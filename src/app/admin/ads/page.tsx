@@ -11,8 +11,8 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, RefreshCw, Plus, AlertTriangle, Search } from 'lucide-react'
-import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
+import { Star, RefreshCw, Plus, AlertTriangle, Search, LayoutGrid, ChevronDown, ChevronRight } from 'lucide-react'
+import { groupedPlacementTypes, findPlacementType, PLACEMENT_TYPES, SURFACE_LABELS, type SurfaceKey } from '@/lib/ads/placement-types'
 import { AdsTabs } from '@/components/admin/AdsTabs'
 
 interface AdPlacement {
@@ -43,6 +43,7 @@ export default function AdminAdsPage() {
   const [filterType, setFilterType] = useState('')
   const [search,     setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'on' | 'off'>('all')
+  const [catalogOpen,  setCatalogOpen]  = useState(false)
 
   // Server returns the full set; filtering happens client-side so the
   // editor can flip placement / status / search without a round-trip.
@@ -106,6 +107,30 @@ export default function AdminAdsPage() {
   const activeCount     = ads.filter(a => a.is_active).length
   const rotationCount   = ads.filter(a => a.rotation_group).length
 
+  // Per-placement-type booking counts. Lets the catalog show "X bookings"
+  // next to every registered slot so the editor can see which spots are
+  // empty (sellable) vs occupied. Also feeds the "unused" badge.
+  const countsBySlug = useMemo(() => {
+    const m: Record<string, { total: number; active: number }> = {}
+    for (const a of ads) {
+      const k = a.placement_type
+      if (!m[k]) m[k] = { total: 0, active: 0 }
+      m[k].total++
+      if (a.is_active) m[k].active++
+    }
+    return m
+  }, [ads])
+
+  const catalogBySurface = useMemo(() => {
+    const out: Array<{ surface: SurfaceKey; label: string; entries: typeof PLACEMENT_TYPES }> = []
+    const order: SurfaceKey[] = ['homepage', 'school-bits', 'articles', 'guides', 'verticals', 'calendar', 'newsletter', 'site']
+    for (const s of order) {
+      const entries = PLACEMENT_TYPES.filter(p => p.surface === s)
+      if (entries.length > 0) out.push({ surface: s, label: SURFACE_LABELS[s], entries })
+    }
+    return out
+  }, [])
+
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
       <div className="max-w-[1200px] mx-auto space-y-6">
@@ -148,6 +173,77 @@ export default function AdminAdsPage() {
           <Stat label="Paused"          value={ads.length - activeCount} tone="#6b7280" />
           <Stat label="In rotation"     value={rotationCount}   tone="#7c3aed" />
         </div>
+
+        {/* ── Slot catalog ─────────────────────────────────────── */}
+        {/* Every registered placement_type across every page. Shows which
+            slots are SELLABLE (zero bookings) vs LIVE (≥1 active) vs
+            BOOKED-BUT-PAUSED. Lets the editor see the universe of 24
+            slots, not just the 17 they've already booked. Click a card
+            to filter the list below to just that slot. */}
+        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setCatalogOpen(o => !o)}
+            className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100 hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <LayoutGrid size={14} className="text-gray-500" />
+              <h2 className="text-sm font-bold text-gray-700">
+                Slot Catalog · {PLACEMENT_TYPES.length} registered slots
+              </h2>
+              <span className="text-xs text-gray-500 ml-2">
+                ({PLACEMENT_TYPES.filter(p => (countsBySlug[p.slug]?.total ?? 0) === 0).length} sellable · click any slot to filter the list)
+              </span>
+            </div>
+            {catalogOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+          </button>
+          {catalogOpen && (
+            <div className="p-5 space-y-5">
+              {catalogBySurface.map(group => (
+                <div key={group.surface}>
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">{group.label}</h3>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {group.entries.map(p => {
+                      const c       = countsBySlug[p.slug] ?? { total: 0, active: 0 }
+                      const sellable = c.total === 0
+                      const live    = c.active > 0
+                      return (
+                        <button
+                          key={p.slug}
+                          onClick={() => setFilterType(p.slug)}
+                          className={`text-left rounded-xl border p-3 transition-colors ${
+                            filterType === p.slug
+                              ? 'border-primary bg-primary/5'
+                              : sellable
+                                ? 'border-amber-200 bg-amber-50/40 hover:bg-amber-50'
+                                : live
+                                  ? 'border-green-200 bg-green-50/40 hover:bg-green-50'
+                                  : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-semibold text-gray-900 leading-tight">{p.label}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5 font-mono truncate">{p.slug}</p>
+                            </div>
+                            <span className={`shrink-0 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                              sellable
+                                ? 'bg-amber-100 text-amber-800'
+                                : live
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-gray-300 text-gray-700'
+                            }`}>
+                              {sellable ? 'Sellable' : `${c.active}/${c.total} on`}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* ── Filter + search ──────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
@@ -255,10 +351,26 @@ export default function AdminAdsPage() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              {/* Column widths set in a colgroup so the table can't dilate
+                  the right-side metric columns out of view. Actions
+                  sticks to the right edge so Edit/Delete stay reachable
+                  even when the editor scrolls horizontally on a narrow
+                  screen. */}
+              <table className="w-full text-sm" style={{ tableLayout: 'fixed', minWidth: 1100 }}>
+                <colgroup>
+                  <col style={{ width: 260 }} />  {/* Placement */}
+                  <col style={{ width: 110 }} />  {/* Context */}
+                  <col style={{ width: 180 }} />  {/* Advertiser */}
+                  <col style={{ width: 220 }} />  {/* Headline */}
+                  <col style={{ width: 90  }} />  {/* Status */}
+                  <col style={{ width: 70  }} />  {/* Impr. */}
+                  <col style={{ width: 70  }} />  {/* Clicks */}
+                  <col style={{ width: 60  }} />  {/* CTR */}
+                  <col style={{ width: 130 }} />  {/* Actions */}
+                </colgroup>
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
-                    <th className="px-4 py-2 font-semibold whitespace-nowrap">Placement</th>
+                    <th className="px-4 py-2 font-semibold">Placement</th>
                     <th className="px-4 py-2 font-semibold">Context</th>
                     <th className="px-4 py-2 font-semibold">Advertiser</th>
                     <th className="px-4 py-2 font-semibold">Headline</th>
@@ -266,14 +378,14 @@ export default function AdminAdsPage() {
                     <th className="px-4 py-2 font-semibold text-right">Impr.</th>
                     <th className="px-4 py-2 font-semibold text-right">Clicks</th>
                     <th className="px-4 py-2 font-semibold text-right">CTR</th>
-                    <th className="px-4 py-2 font-semibold text-right">Actions</th>
+                    <th className="px-4 py-2 font-semibold text-right sticky right-0 bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {visibleAds.map(ad => {
                     const def = findPlacementType(ad.placement_type)
                     return (
-                      <tr key={ad.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                      <tr key={ad.id} className="group border-b border-gray-100 last:border-0 hover:bg-gray-50">
                         <td className="px-4 py-3 whitespace-nowrap">
                           {def ? (
                             <div>
@@ -327,7 +439,7 @@ export default function AdminAdsPage() {
                         <td className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums">
                           {ctr(ad.impression_count, ad.click_count)}
                         </td>
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <td className="px-4 py-3 text-right whitespace-nowrap sticky right-0 bg-white group-hover:bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">
                           <Link
                             href={`/admin/ads/${ad.id}/edit`}
                             className="text-xs font-semibold text-blue-600 hover:text-blue-800"

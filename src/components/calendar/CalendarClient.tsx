@@ -280,7 +280,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pr-6">
               <button
                 onClick={() => mark(setCategory)('all')}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                className={`shrink-0 h-9 px-4 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                   category === 'all'
                     ? 'bg-foreground text-background'
                     : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
@@ -292,7 +292,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                 <button
                   key={c.slug}
                   onClick={() => mark(setCategory)(c.slug)}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                  className={`shrink-0 h-9 px-4 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                     category === c.slug
                       ? 'bg-foreground text-background'
                       : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
@@ -305,7 +305,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                 <select
                   value={overflowCats.some(c => c.slug === category) ? category : ''}
                   onChange={e => mark(setCategory)(e.target.value || 'all')}
-                  className="shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-card ring-1 ring-border hover:bg-muted cursor-pointer focus:outline-none"
+                  className="shrink-0 h-9 pl-4 pr-3 rounded-full text-xs font-bold bg-card ring-1 ring-border hover:bg-muted cursor-pointer focus:outline-none"
                 >
                   <option value="">More categories…</option>
                   {overflowCats.map(c => (
@@ -319,12 +319,17 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
             <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
 
-          {/* Time + free + search — single right-side cluster. */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Time + free + search — single right-side cluster. Sized to
+              match the Grid/List/Subscribe pill group at the end so the
+              whole row reads as one toolbar instead of two competing
+              clusters. All buttons share py-2 / text-xs / rounded-full
+              with consistent ring widths. */}
+          <div className="flex items-center gap-2 shrink-0">
             <select
               value={when}
               onChange={e => mark(setWhen)(e.target.value)}
-              className="px-2.5 py-1.5 text-xs font-semibold bg-card text-foreground rounded-full ring-1 ring-border hover:bg-muted focus:outline-none cursor-pointer"
+              className="h-9 pl-3 pr-7 text-xs font-bold bg-card text-foreground rounded-full ring-1 ring-border hover:bg-muted focus:outline-none cursor-pointer appearance-none bg-no-repeat bg-[length:10px_10px] bg-[position:right_10px_center]"
+              style={{ backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path d=\'M2 4l3 3 3-3\' stroke=\'%23666\' fill=\'none\' stroke-width=\'1.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>")' }}
             >
               {TIME_WINDOWS.map(t => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -334,9 +339,9 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
             <button
               onClick={() => mark(setFree)(!free)}
               title="Show only free events"
-              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              className={`h-9 px-4 rounded-full text-xs font-bold transition-colors ${
                 free
-                  ? 'bg-[var(--fg-sage-light)] text-[var(--fg-sage)] ring-1 ring-[var(--fg-sage)]/30'
+                  ? 'bg-[var(--fg-sage)] text-white ring-1 ring-[var(--fg-sage)]'
                   : 'bg-card text-foreground ring-1 ring-border hover:bg-muted'
               }`}
             >
@@ -345,7 +350,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 
             {searchOpen ? (
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <input
                   type="search"
                   autoFocus
@@ -353,21 +358,22 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
                   onChange={e => mark(setSearch)(e.target.value)}
                   onBlur={() => { if (!search) setSearchOpen(false) }}
                   placeholder="Search events…"
-                  className="pl-7 pr-2 py-1.5 text-xs bg-card rounded-full ring-1 ring-border focus:ring-primary outline-none w-48"
+                  className="h-9 pl-9 pr-3 text-xs bg-card rounded-full ring-1 ring-border focus:ring-primary outline-none w-48"
                 />
               </div>
             ) : (
               <button
                 onClick={() => setSearchOpen(true)}
                 title="Search events"
-                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
+                className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
               >
                 <Search className="h-3.5 w-3.5" />
               </button>
             )}
 
-            {/* Grid / List toggle */}
-            <div className="flex items-center gap-0.5 bg-muted rounded-full p-1 ml-1">
+            {/* Grid / List toggle — locked to the same h-9 as the other
+                controls so it sits flush. */}
+            <div className="flex items-center gap-0.5 bg-muted rounded-full p-1 h-9">
               <button
                 onClick={() => setView('grid')}
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
@@ -392,7 +398,7 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
               <button
                 onClick={clearAll}
                 title="Clear all filters"
-                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="inline-flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted ring-1 ring-border transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -400,10 +406,10 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 
             <details className="group relative">
               <summary
-                className="list-none cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
+                className="list-none cursor-pointer inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-bold bg-card text-foreground ring-1 ring-border hover:bg-muted transition-colors"
                 title="Subscribe to the calendar"
               >
-                <CalIcon className="h-3 w-3" /> Subscribe
+                <CalIcon className="h-3.5 w-3.5" /> Subscribe
               </summary>
                 <div className="absolute right-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-lg p-3 z-50 text-sm">
                   <p className="font-bold text-foreground mb-2">Add to your calendar</p>
@@ -439,10 +445,12 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
       {/* Events */}
       <main className="container py-8 space-y-12">
         {/* Top sponsor banner — reads from ad_placements if booked,
-            otherwise renders the "Media Kit" placeholder. mb-4 adds extra
-            breathing room above the first event row so the ad doesn't
-            visually crash into the event list below it. */}
-        <div className="mb-4">
+            otherwise renders the "Media Kit" placeholder. pb-6 / mb-8
+            give the ad room to breathe AND the first event row a clear
+            visual break, so the ad doesn't read as "part of the event
+            list." Subtle bottom border under the ad's container reinforces
+            the break without being heavy. */}
+        <div className="mb-8 pb-6 border-b border-border/30">
           <SponsorAdBanner placement="calendar-top" variant="tan" ad={topBannerAd} />
         </div>
 
