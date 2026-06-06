@@ -53,7 +53,15 @@ export async function POST(req: NextRequest) {
   const theme      = body.theme?.trim() || undefined
   const skipReview = body.skip_review === true
 
-  const result = await generateContent({ game, difficulty, count, theme })
+  // Family Connect: ask Claude 1-at-a-time and accumulate. Each puzzle
+  // burns adaptive thinking + 16-word x 4-theme generation; bundling 3+
+  // into a single call routinely runs past Vercel's edge timeout and
+  // returns a 504. Looping keeps each individual call ~30-60s while
+  // still honoring the editor's requested total.
+  // All other games batch fine in a single call.
+  const result = game === 'family-connect' && count > 1
+    ? await loopGenerate({ game, difficulty, count, theme })
+    : await generateContent({ game, difficulty, count, theme })
 
   if (result.items.length === 0) {
     return NextResponse.json({
@@ -131,4 +139,49 @@ export async function POST(req: NextRequest) {
     dropped:     result.errors,
     model_notes: result.model_notes,
   })
+}
+
+// Family Connect-style accumulator. Calls generateContent with count=1
+// in a loop and aggregates the results into the same shape generateContent
+// would normally return. Bails as soon as we run out of time budget so
+// the outer route still returns before Vercel's 300s function timeout.
+async function loopGenerate(opts: {
+  game:       GameId
+  difficulty: Difficulty
+  count:      number
+  theme?:     string
+}): ReturnType<typeof generateContent> {
+  const startedAt = Date.now()
+  const deadline  = startedAt + 270_000   // 270s — leave headroom for the DB insert
+
+  const items:  Awaited<ReturnType<typeof generateContent>>['items']  = []
+  const errors: string[] = []
+  let model = 'unknown'
+  let model_notes: string | null = null
+
+  for (let i = 0; i < opts.count; i++) {
+    if (Date.now() > deadline) {
+      errors.push(`time_budget_exceeded after ${i} of ${opts.count} items`)
+      break
+    }
+    try {
+      const r = await generateContent({
+        game:       opts.game,
+        difficulty: opts.difficulty,
+        count:      1,
+        theme:      opts.theme,
+      })
+      items.push(...r.items)
+      model = r.model
+      // Keep the first non-null notes; the per-item ones are tiny and
+      // not useful to concatenate.
+      if (!model_notes && r.model_notes) model_notes = r.model_notes
+      if (r.errors.length > 0) errors.push(...r.errors.slice(0, 2))
+    } catch (e) {
+      errors.push(`iteration_${i}: ${e instanceof Error ? e.message : String(e)}`)
+      break
+    }
+  }
+
+  return { items, errors, model, model_notes }
 }
