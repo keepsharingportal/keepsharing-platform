@@ -13,8 +13,10 @@ import { AnnouncePanel } from './AnnouncePanel'
 import { GeneratePanel } from './GeneratePanel'
 
 // Daily rotation needs at least this many distinct days of variety per
-// (game, difficulty) so the same content doesn't recycle within a week.
-const TARGET_DAYS_OF_SUPPLY = 7
+// (game, difficulty) so the same content doesn't recycle. Same value
+// the cron refill uses (lib/games/refill.ts reads GAMES_TARGET_DAYS_OF_SUPPLY
+// env var; this constant is the UI's render-side default).
+const TARGET_DAYS_OF_SUPPLY = 10
 
 function daysOfSupply(gameId: GameId, poolCount: number): number {
   const rounds = ROUNDS_PER_SESSION[gameId]

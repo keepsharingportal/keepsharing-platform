@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Wand2, RefreshCw, Check, Zap, X } from 'lucide-react'
+import { Wand2, RefreshCw, Check, Zap, X, ChevronsUp } from 'lucide-react'
 import { GAMES, DIFFICULTIES, DIFFICULTY_LABELS, type Difficulty, type GameId } from '@/lib/games/types'
 
 interface Props {
@@ -36,6 +36,49 @@ export function GeneratePanel({ pendingCount }: Props) {
   const [bulkCount,    setBulkCount]    = useState(7)
   const [skipReview,   setSkipReview]   = useState(false)
   const cancelRef                       = useState({ cancel: false })[0]
+
+  // ── Smart refill (cron-equivalent, on-demand) ───────────────────────────────
+  // Calls the shared refill engine via /api/admin/games/refill. The same
+  // logic runs daily via Vercel cron, but the editor can trigger an
+  // immediate top-up when supply is low. Items go to the review queue
+  // unless GAMES_REFILL_AUTO_APPROVE=true in Vercel env.
+  const [refillBusy,    setRefillBusy]    = useState(false)
+  const [refillResult,  setRefillResult]  = useState<{
+    ok: boolean
+    items_inserted?: number
+    estimated_cost?: number
+    cells_planned?:  number
+    cells_run?:      number
+    elapsed_ms?:     number
+    msg?: string
+  } | null>(null)
+
+  async function runRefill() {
+    setRefillBusy(true); setRefillResult(null)
+    try {
+      const res  = await fetch('/api/admin/games/refill', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({}),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRefillResult({ ok: false, msg: json?.error ?? `HTTP ${res.status}` })
+        return
+      }
+      setRefillResult({
+        ok: true,
+        items_inserted: json.items_inserted,
+        estimated_cost: json.estimated_cost,
+        cells_planned:  json.cells_planned,
+        cells_run:      json.cells_run,
+        elapsed_ms:     json.elapsed_ms,
+      })
+      router.refresh()
+    } catch (e) {
+      setRefillResult({ ok: false, msg: e instanceof Error ? e.message : String(e) })
+    } finally { setRefillBusy(false) }
+  }
 
   // ── single-batch generation ────────────────────────────────────────────────
   async function run() {
@@ -239,6 +282,60 @@ export function GeneratePanel({ pendingCount }: Props) {
                   ))}
                 </ul>
               </details>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── SMART REFILL BAND ──────────────────────────────────────────────── */}
+      {/* Same logic the daily cron runs — tops up every cell to the configured
+          target days of supply (env: GAMES_TARGET_DAYS_OF_SUPPLY, default 10).
+          Cost-capped via GAMES_REFILL_DAILY_BUDGET (default $20) so an error
+          loop can't burn the API credit overnight. */}
+      <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex-1 min-w-[260px]">
+            <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+              <ChevronsUp size={14} className="text-emerald-600" />
+              Smart refill — top up every low cell to the target
+            </p>
+            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+              Reads current supply per (game × tier), generates only what&apos;s missing to hit the target days
+              of supply. Same engine runs nightly via Vercel cron (5am UTC) so the pool self-heals — use this
+              button when you need an immediate top-up. Hard $20/day cost cap; items go to the review queue
+              unless you&apos;ve set <code className="text-[10px] bg-white px-1 py-0.5 rounded">GAMES_REFILL_AUTO_APPROVE=true</code>.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={runRefill}
+            disabled={refillBusy || busy || bulkBusy}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-40"
+          >
+            {refillBusy
+              ? (<><RefreshCw size={14} className="animate-spin" /> Refilling…</>)
+              : (<><ChevronsUp size={14} /> Refill all low cells</>)}
+          </button>
+        </div>
+        {refillResult && (
+          <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-emerald-200 text-gray-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+            {refillResult.ok ? (
+              <>
+                <strong className="text-emerald-700">Done.</strong>{' '}
+                {refillResult.items_inserted ?? 0} item{(refillResult.items_inserted ?? 0) === 1 ? '' : 's'} added across{' '}
+                {refillResult.cells_run ?? 0} of {refillResult.cells_planned ?? 0} planned cells
+                {refillResult.estimated_cost !== undefined && (
+                  <> · est. cost <strong>${refillResult.estimated_cost.toFixed(2)}</strong></>
+                )}
+                {refillResult.elapsed_ms !== undefined && (
+                  <span className="text-gray-500"> · {(refillResult.elapsed_ms / 1000).toFixed(1)}s</span>
+                )}
+                {(refillResult.cells_run ?? 0) < (refillResult.cells_planned ?? 0) && (
+                  <p className="mt-1 text-amber-700">Time or budget budget cut us short — re-run to keep filling the rest.</p>
+                )}
+              </>
+            ) : (
+              <>{refillResult.msg}</>
             )}
           </div>
         )}

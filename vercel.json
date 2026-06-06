@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/circulation-emails",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/games-refill",
+      "schedule": "0 9 * * *"
     }
   ]
 }
