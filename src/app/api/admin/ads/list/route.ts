@@ -65,6 +65,14 @@ export async function GET() {
     return NextResponse.json({ error: error.message, ads: [] }, { status: 500 })
   }
 
+  // Also fetch ad_slot_settings so the admin page can render the
+  // 3-state slot status (ON / EMPTY / HIDDEN). Pre-117 deploys may not
+  // have the table — degrade silently to "no hidden slots."
+  const { data: slotSettings } = await supabase
+    .from('ad_slot_settings')
+    .select('placement_type, context_slug, disabled')
+    .eq('disabled', true)
+
   // Flatten the advertiser shape so the client doesn't have to deal with
   // the nested object that PostgREST returns from the FK embed.
   const ads = (data ?? []).map(row => {
@@ -76,5 +84,12 @@ export async function GET() {
     }
   })
 
-  return NextResponse.json({ ads })
+  // Hidden slot list — site-wide disables. Keyed by placement_type so
+  // the admin page can show a HIDE badge per slot without having to
+  // group by context.
+  const hiddenSlots = ((slotSettings ?? []) as Array<{ placement_type: string; context_slug: string | null; disabled: boolean }>)
+    .filter(s => s.context_slug === null)
+    .map(s => s.placement_type)
+
+  return NextResponse.json({ ads, hiddenSlots })
 }

@@ -19,9 +19,9 @@ interface Props {
   /** Surface key from PlacementTypeDef. Drives which mockup to render. */
   surface: string
   /** Per-slot booking status — used by the /admin/ads page filter view
-   *  to show LIVE / PAUSED / SELLABLE across every slot on this page at
-   *  the same time. Map key = slot slug, value = status code. */
-  slotStatuses?: Record<string, 'live' | 'paused' | 'sellable'>
+   *  to show LIVE / PAUSED / SELLABLE / HIDDEN across every slot on this
+   *  page at the same time. Map key = slot slug, value = status code. */
+  slotStatuses?: Record<string, 'live' | 'paused' | 'sellable' | 'hidden'>
   /** Click handler — used by the /admin/ads page to filter the list to
    *  the clicked placement_type. */
   onSlotClick?: (slug: string) => void
@@ -89,16 +89,19 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
 
   // Colors for the multi-status mode. Tuned so the eye reads the page
   // structure first and then the status as a secondary visual layer.
-  function multiClasses(status: 'live' | 'paused' | 'sellable' | undefined): string {
+  type SlotStatus = 'live' | 'paused' | 'sellable' | 'hidden' | undefined
+  function multiClasses(status: SlotStatus): string {
     if (status === 'live')     return 'border-green-600 bg-green-100'
     if (status === 'paused')   return 'border-gray-400 bg-gray-100'
     if (status === 'sellable') return 'border-amber-400 bg-amber-50'
+    if (status === 'hidden')   return 'border-gray-300 bg-gray-50 opacity-50'
     return 'border-gray-300 bg-white'
   }
-  function multiLabelClass(status: 'live' | 'paused' | 'sellable' | undefined): string {
+  function multiLabelClass(status: SlotStatus): string {
     if (status === 'live')     return 'text-green-800 font-bold'
     if (status === 'paused')   return 'text-gray-600'
     if (status === 'sellable') return 'text-amber-700 font-semibold'
+    if (status === 'hidden')   return 'text-gray-500 line-through'
     return 'text-gray-400'
   }
 
@@ -107,10 +110,11 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-bold uppercase tracking-wider text-gray-500">{surfaceLabel(surface)}</p>
         {multiMode && (
-          <div className="flex items-center gap-2 text-[10px]">
+          <div className="flex items-center gap-2 text-[10px] flex-wrap">
             <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-600" /> Live</span>
+            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Empty</span>
             <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Paused</span>
-            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Sellable</span>
+            <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-300" /> Hidden</span>
           </div>
         )}
       </div>

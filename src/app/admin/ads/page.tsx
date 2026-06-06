@@ -11,7 +11,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, RefreshCw, Plus, AlertTriangle, Search, LayoutGrid, ChevronDown, ChevronRight, MapPin } from 'lucide-react'
+import { Star, RefreshCw, Plus, AlertTriangle, Search, LayoutGrid, ChevronDown, ChevronRight, MapPin, EyeOff, Eye } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType, PLACEMENT_TYPES, SURFACE_LABELS, type SurfaceKey } from '@/lib/ads/placement-types'
 import { AdsTabs } from '@/components/admin/AdsTabs'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
@@ -39,6 +39,7 @@ const ctr = (imp: number, clk: number) =>
 
 export default function AdminAdsPage() {
   const [ads,        setAds]        = useState<AdPlacement[]>([])
+  const [hiddenSlots, setHiddenSlots] = useState<Set<string>>(new Set())
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState<string | null>(null)
   const [filterType, setFilterType] = useState('')
@@ -56,6 +57,7 @@ export default function AdminAdsPage() {
       const json = await res.json()
       if (!res.ok) { setError(json?.error ?? `HTTP ${res.status}`); setAds([]); return }
       setAds(json.ads as AdPlacement[])
+      setHiddenSlots(new Set((json.hiddenSlots ?? []) as string[]))
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setAds([])
@@ -111,6 +113,20 @@ export default function AdminAdsPage() {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ id }),
+    })
+    load()
+  }
+
+  // Site-wide Hide/Show for an empty slot. When hidden, the slot won't
+  // even render its sales placeholder ("Claim This Spot") — useful for
+  // article-body inline ads where you don't want a pitch in the middle
+  // of the copy.
+  async function toggleSlotHidden(placementType: string) {
+    const isHidden = hiddenSlots.has(placementType)
+    await fetch('/api/admin/ads/slot-toggle', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ placementType, contextSlug: null, disabled: !isHidden }),
     })
     load()
   }
@@ -215,38 +231,49 @@ export default function AdminAdsPage() {
                   <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">{group.label}</h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {group.entries.map(p => {
-                      const c       = countsBySlug[p.slug] ?? { total: 0, active: 0 }
-                      const sellable = c.total === 0
-                      const live    = c.active > 0
+                      const c        = countsBySlug[p.slug] ?? { total: 0, active: 0 }
+                      const isHidden = hiddenSlots.has(p.slug)
+                      // 3-state status: HIDDEN > LIVE > SELLABLE > BOOKED-BUT-OFF
+                      const state: 'hidden' | 'live' | 'sellable' | 'paused' =
+                        isHidden       ? 'hidden'   :
+                        c.active > 0   ? 'live'     :
+                        c.total === 0  ? 'sellable' :
+                                         'paused'
+                      const cardClasses = {
+                        hidden:   'border-gray-300 bg-gray-100/60 hover:bg-gray-100',
+                        live:     'border-green-200 bg-green-50/40 hover:bg-green-50',
+                        sellable: 'border-amber-200 bg-amber-50/40 hover:bg-amber-50',
+                        paused:   'border-gray-200 bg-gray-50 hover:bg-gray-100',
+                      }[state]
+                      const badgeClasses = {
+                        hidden:   'bg-gray-700  text-white',
+                        live:     'bg-green-600 text-white',
+                        sellable: 'bg-amber-100 text-amber-800',
+                        paused:   'bg-gray-300  text-gray-700',
+                      }[state]
+                      const badgeLabel = {
+                        hidden:   'Hidden',
+                        live:     `${c.active}/${c.total} ON`,
+                        sellable: 'Empty',
+                        paused:   `0/${c.total} ON`,
+                      }[state]
                       return (
                         <div
                           key={p.slug}
                           className={`rounded-xl border p-3 transition-colors ${
-                            filterType === p.slug
-                              ? 'border-primary bg-primary/5'
-                              : sellable
-                                ? 'border-amber-200 bg-amber-50/40 hover:bg-amber-50'
-                                : live
-                                  ? 'border-green-200 bg-green-50/40 hover:bg-green-50'
-                                  : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
-                          }`}
+                            filterType === p.slug ? 'border-primary bg-primary/5' : cardClasses
+                          } ${isHidden ? 'opacity-70' : ''}`}
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-semibold text-gray-900 leading-tight">{p.label}</p>
+                              <p className={`text-[13px] font-semibold leading-tight ${isHidden ? 'text-gray-600 line-through decoration-gray-400' : 'text-gray-900'}`}>{p.label}</p>
                               <p className="text-[10px] text-gray-400 mt-0.5 font-mono truncate">{p.slug}</p>
                             </div>
-                            <span className={`shrink-0 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                              sellable
-                                ? 'bg-amber-100 text-amber-800'
-                                : live
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-300 text-gray-700'
-                            }`}>
-                              {sellable ? 'Sellable' : `${c.active}/${c.total} on`}
+                            <span className={`shrink-0 text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${badgeClasses}`}>
+                              {badgeLabel}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-[11px]">
+                          <div className="flex items-center gap-2 text-[11px] flex-wrap">
                             <button
                               onClick={() => setFilterType(p.slug)}
                               className="font-semibold text-gray-600 hover:text-gray-900"
@@ -254,12 +281,26 @@ export default function AdminAdsPage() {
                               Filter list
                             </button>
                             <span className="text-gray-300">·</span>
-                            <Link
-                              href={`/admin/ads/new?placement_type=${encodeURIComponent(p.slug)}`}
-                              className="font-bold text-primary hover:underline"
+                            {!isHidden && (
+                              <>
+                                <Link
+                                  href={`/admin/ads/new?placement_type=${encodeURIComponent(p.slug)}`}
+                                  className="font-bold text-primary hover:underline"
+                                >
+                                  + Sell
+                                </Link>
+                                <span className="text-gray-300">·</span>
+                              </>
+                            )}
+                            <button
+                              onClick={() => toggleSlotHidden(p.slug)}
+                              className={`inline-flex items-center gap-1 font-bold ${isHidden ? 'text-emerald-600 hover:text-emerald-800' : 'text-gray-600 hover:text-gray-900'}`}
+                              title={isHidden ? 'Show this slot again (re-render bookings + placeholders)' : 'Hide this slot site-wide (no ad, no placeholder)'}
                             >
-                              + Sell this slot
-                            </Link>
+                              {isHidden
+                                ? <><Eye size={11} /> Show</>
+                                : <><EyeOff size={11} /> Hide</>}
+                            </button>
                           </div>
                         </div>
                       )
@@ -420,13 +461,14 @@ export default function AdminAdsPage() {
                 slotStatuses={Object.fromEntries(
                   PLACEMENT_TYPES.filter(p => p.surface === filterPage).map(p => {
                     const c = countsBySlug[p.slug]
-                    const status: 'live' | 'paused' | 'sellable' =
-                      !c || c.total === 0 ? 'sellable' :
-                      c.active > 0        ? 'live'     :
-                                            'paused'
+                    const status: 'live' | 'paused' | 'sellable' | 'hidden' =
+                      hiddenSlots.has(p.slug)         ? 'hidden'   :
+                      !c || c.total === 0             ? 'sellable' :
+                      c.active > 0                    ? 'live'     :
+                                                        'paused'
                     return [p.slug, status]
                   })
-                ) as Record<string, 'live' | 'paused' | 'sellable'>}
+                ) as Record<string, 'live' | 'paused' | 'sellable' | 'hidden'>}
                 onSlotClick={(slug) => setFilterType(slug)}
               />
             </div>

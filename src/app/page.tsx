@@ -18,6 +18,7 @@ import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/Re
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
 import { BestOfBlock } from '@/components/homepage/BestOfBlock'
+import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 import { ArticleCard, SectionHeader } from '@/components/theme'
 import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
 import type { Metadata } from 'next'
@@ -918,9 +919,10 @@ export default async function HomePage() {
                 )}
               </Link>
             ) : (
-              <Link
-                href="/advertise"
-                className="bg-gradient-to-r from-primary/6 via-secondary/4 to-accent/6 border-2 border-dashed border-primary/20 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden hover:border-primary/40 hover:shadow-md transition-all group"
+              <ClaimSpotButton
+                placementType="homepage_bottom_ad"
+                placementLabel="Homepage — Wide banner (bottom of main column)"
+                className="w-full bg-gradient-to-r from-primary/6 via-secondary/4 to-accent/6 border-2 border-dashed border-primary/20 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden hover:border-primary/40 hover:shadow-md transition-all group text-left"
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest absolute top-4 right-6">Partner Opportunity</span>
                 <div className="flex-1 text-center md:text-left">
@@ -934,9 +936,9 @@ export default async function HomePage() {
                   </p>
                 </div>
                 <span className="shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full text-base font-bold group-hover:bg-primary/90 transition-colors shadow-md whitespace-nowrap">
-                  See Opportunities <ArrowRight className="h-4 w-4" />
+                  Claim This Spot <ArrowRight className="h-4 w-4" />
                 </span>
-              </Link>
+              </ClaimSpotButton>
             )}
           </div>
 
@@ -994,9 +996,10 @@ export default async function HomePage() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/advertise"
-                className="bg-gradient-to-br from-primary/8 via-background to-secondary/6 aspect-square rounded-3xl border-2 border-dashed border-primary/25 flex flex-col items-center justify-center p-7 text-center relative overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
+              <ClaimSpotButton
+                placementType="homepage_sidebar_ad"
+                placementLabel="Homepage — Square sidebar card (top of right rail)"
+                className="w-full bg-gradient-to-br from-primary/8 via-background to-secondary/6 aspect-square rounded-3xl border-2 border-dashed border-primary/25 flex flex-col items-center justify-center p-7 text-center relative overflow-hidden hover:border-primary/50 hover:shadow-md transition-all group"
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest absolute top-4">Premium Placement</span>
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 mt-2 group-hover:scale-105 transition-transform">
@@ -1009,7 +1012,7 @@ export default async function HomePage() {
                 <span className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold group-hover:bg-primary/90 transition-colors shadow-sm">
                   Claim This Spot <ArrowRight className="h-3.5 w-3.5" />
                 </span>
-              </Link>
+              </ClaimSpotButton>
             )}
 
             {/* Mom Knows Best — sidebar card.
