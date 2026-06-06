@@ -207,10 +207,9 @@ export default function AdminAdsPage() {
                       const sellable = c.total === 0
                       const live    = c.active > 0
                       return (
-                        <button
+                        <div
                           key={p.slug}
-                          onClick={() => setFilterType(p.slug)}
-                          className={`text-left rounded-xl border p-3 transition-colors ${
+                          className={`rounded-xl border p-3 transition-colors ${
                             filterType === p.slug
                               ? 'border-primary bg-primary/5'
                               : sellable
@@ -220,7 +219,7 @@ export default function AdminAdsPage() {
                                   : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex-1 min-w-0">
                               <p className="text-[13px] font-semibold text-gray-900 leading-tight">{p.label}</p>
                               <p className="text-[10px] text-gray-400 mt-0.5 font-mono truncate">{p.slug}</p>
@@ -235,7 +234,22 @@ export default function AdminAdsPage() {
                               {sellable ? 'Sellable' : `${c.active}/${c.total} on`}
                             </span>
                           </div>
-                        </button>
+                          <div className="flex items-center gap-2 text-[11px]">
+                            <button
+                              onClick={() => setFilterType(p.slug)}
+                              className="font-semibold text-gray-600 hover:text-gray-900"
+                            >
+                              Filter list
+                            </button>
+                            <span className="text-gray-300">·</span>
+                            <Link
+                              href={`/admin/ads/new?placement_type=${encodeURIComponent(p.slug)}`}
+                              className="font-bold text-primary hover:underline"
+                            >
+                              + Sell this slot
+                            </Link>
+                          </div>
+                        </div>
                       )
                     })}
                   </div>

@@ -128,12 +128,17 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .eq('is_active', true)
       .order('display_priority', { ascending: false })
       .limit(1).maybeSingle(),
+    // Pull up to 6 active inline-body ads. The allocator below distributes
+    // them across 1-3 positions in the article body, weighted by
+    // rotation_weight so a full-page advertiser (weight 4) appears more
+    // often than a quarter-page advertiser (weight 1) in the same pool.
+    // If only one ad is active, it fills every position (exclusive lock-in).
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug)')
       .eq('placement_type', 'article_inline')
       .eq('is_active', true)
       .order('display_priority', { ascending: false })
-      .limit(1).maybeSingle(),
+      .limit(6),
     /* Latest article from each OTHER community spotlight column —
        drives the cross-promo strip at the bottom of the article.
        We over-fetch (limit 12) and de-dupe to one per column in JS,
@@ -168,7 +173,9 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
     series:     seriesRes.data ?? [],
     stickyAd:   stickyAdRes.data,
     sponsoredAd: sponsoredAdRes.data,
-    inlineAd:   inlineAdRes.data,
+    // Array of up to 6 active inline ads. ArticlePage below decides how
+    // many positions the body can carry and allocates them weighted-random.
+    inlineAdPool: (inlineAdRes.data ?? []) as Array<Record<string, unknown>>,
     otherSpotlights,
   }
 }
@@ -188,7 +195,49 @@ export default async function ArticlePage({ params }: PageParams) {
   const data = await getArticleData(column, slug)
   if (!data) notFound()
 
-  const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAd, otherSpotlights } = data
+  const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAdPool, otherSpotlights } = data
+
+  // Pick 1-3 inline body ads based on article length, distribute by
+  // rotation_weight. One advertiser = exclusive in every position;
+  // multiple advertisers share, weighted by their tier.
+  const inlineAdRows: Array<{
+    id?: string; ad_headline?: string; ad_description?: string;
+    ad_cta_label?: string; ad_link?: string; advertiser?: { business_name?: string }
+    rotation_weight?: number
+  }> = (inlineAdPool as Array<Record<string, unknown>>).map(r => ({
+    id:              r.id              as string | undefined,
+    ad_headline:     r.ad_headline     as string | undefined,
+    ad_description:  r.ad_description  as string | undefined,
+    ad_cta_label:    r.ad_cta_label    as string | undefined,
+    ad_link:         r.ad_link         as string | undefined,
+    advertiser:      r.advertiser      as { business_name?: string } | undefined,
+    rotation_weight: typeof r.rotation_weight === 'number' ? r.rotation_weight : 1,
+  }))
+  // Estimate body length cheaply by word count → maps to slot count.
+  // Avoids re-parsing the body to count chunks here; the renderer is
+  // tolerant of empty arrays so an over-eager estimate is harmless.
+  const bodyWords = ((article.body as string) ?? '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
+  const slotCount = bodyWords < 350 ? 0 : bodyWords < 600 ? 1 : bodyWords < 1100 ? 2 : 3
+  // Weighted random pick with refill (one advertiser fills all slots).
+  function pickInlineSlot(pool: typeof inlineAdRows): typeof inlineAdRows[number] | null {
+    if (pool.length === 0) return null
+    const total = pool.reduce((s, a) => s + (a.rotation_weight ?? 1), 0)
+    if (total <= 0) return pool[0]
+    let r = Math.random() * total
+    for (const a of pool) { r -= a.rotation_weight ?? 1; if (r <= 0) return a }
+    return pool[pool.length - 1]
+  }
+  const allocatedInlineAds: typeof inlineAdRows = []
+  {
+    let pool = [...inlineAdRows]
+    for (let i = 0; i < slotCount; i++) {
+      if (pool.length === 0) pool = [...inlineAdRows]
+      const picked = pickInlineSlot(pool)
+      if (!picked) break
+      allocatedInlineAds.push(picked)
+      pool = pool.filter(p => p.id !== picked.id)
+    }
+  }
 
   // Section sponsor — when active, overrides the rotating sidebar sticky ad
   // and gets premium placement under the hero on mobile + sidebar on desktop.
@@ -684,14 +733,15 @@ export default async function ArticlePage({ params }: PageParams) {
                 }
                 pullQuotes={pullQuotes}
                 columnSlug={column}
-                inlineAd={inlineAd ? (
+                inlineAds={allocatedInlineAds.map((ad, idx) => (
                   <InArticleAd
-                    headline={inlineAd.ad_headline ?? ''}
-                    description={inlineAd.ad_description ?? ''}
-                    ctaLabel={inlineAd.ad_cta_label ?? 'Learn More'}
-                    ctaUrl={inlineAd.ad_link ?? '#'}
+                    key={`${ad.id ?? 'ad'}-${idx}`}
+                    headline={ad.ad_headline ?? ''}
+                    description={ad.ad_description ?? ''}
+                    ctaLabel={ad.ad_cta_label ?? 'Learn More'}
+                    ctaUrl={ad.ad_link ?? '#'}
                   />
-                ) : undefined}
+                ))}
               />
             )}
 

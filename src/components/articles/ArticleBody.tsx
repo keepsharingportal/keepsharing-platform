@@ -18,7 +18,11 @@ import { BrandWatermark } from '@/components/articles/BrandDecor'
 interface Props {
   body: string
   pullQuotes?: string[]
+  /** Single in-body ad (legacy single-slot). Renders ~55% through the article. */
   inlineAd?: ReactNode
+  /** Multi-slot in-body ads. Renders at 30%, 55%, 80% (count depends on body length).
+   *  Falls back to `inlineAd` when both are passed — the array wins. */
+  inlineAds?: ReactNode[]
   inlineCta?: ReactNode
   /** Column slug — when set, enables column-branded Q&A + Rapid Fire styling. */
   columnSlug?: string | null
@@ -142,7 +146,7 @@ function parseRapidFireItems(html: string): RapidFireItem[] {
   return items
 }
 
-export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, columnSlug }: Props) {
+export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inlineCta, columnSlug }: Props) {
   const brand = getColumnBrand(columnSlug)
   // Imported articles may have markdown body until edited in the rich editor.
   // Convert to HTML so they render correctly on the public site.
@@ -223,7 +227,22 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
   }
 
   const inlineCtaIndex = inlineCta ? Math.floor(chunks.length * 0.3) : -1
-  const inlineAdIndex  = inlineAd  ? Math.floor(chunks.length * 0.55) : -1
+
+  // Multi-slot inline ads — when `inlineAds` is set, render up to 3 ads
+  // at 30%, 55%, 80% through the chunks. Filter out null/undefined first
+  // so a partly-filled array doesn't leave gaps in the body. Falls back
+  // to the single-slot `inlineAd` for legacy callers (one slot at 55%).
+  const inlineAdSlots: ReactNode[] = inlineAds
+    ? inlineAds.filter((n): n is ReactNode => n != null)
+    : inlineAd
+      ? [inlineAd]
+      : []
+  const AD_POSITIONS = [0.30, 0.55, 0.80]
+  // Map each ad to its chunk index — same length as inlineAdSlots.
+  const inlineAdIndices: number[] = inlineAdSlots.map((_, i) =>
+    Math.floor(chunks.length * AD_POSITIONS[Math.min(i, AD_POSITIONS.length - 1)])
+  )
+
   const quoteIndices   = pullQuotes.map((_, i) =>
     Math.floor(chunks.length * ((i + 1) / (pullQuotes.length + 1)))
   )
@@ -516,8 +535,14 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineCta, column
     if (i === inlineCtaIndex && inlineCta) {
       elements.push(<div key={`cta-${i}`} className="my-10">{inlineCta}</div>)
     }
-    if (i === inlineAdIndex && inlineAd) {
-      elements.push(<div key={`ad-${i}`} className="my-10">{inlineAd}</div>)
+    // Multi-slot inline ads — insert each ad at its mapped chunk index.
+    // Loops over ALL slots each iteration so a single chunk can host more
+    // than one ad (rare, only when chunks.length is very small and two
+    // percentages map to the same index — defensive in case of ties).
+    for (let s = 0; s < inlineAdSlots.length; s++) {
+      if (i === inlineAdIndices[s]) {
+        elements.push(<div key={`ad-${i}-${s}`} className="my-10">{inlineAdSlots[s]}</div>)
+      }
     }
 
     const quoteIndex = quoteIndices.indexOf(i)

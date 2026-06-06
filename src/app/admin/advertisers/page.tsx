@@ -16,32 +16,60 @@ const TABS = ['Active Advertisers', 'Pipeline', 'Agreements', 'Ad Proofs', 'Busi
 const PAGE_SIZE = 25
 
 interface Props {
-  searchParams: Promise<{ page?: string; pub?: string; q?: string }>
+  searchParams: Promise<{ page?: string; pub?: string; q?: string; status?: string }>
 }
+
+// "Active" = currently running an ad (Closed Won, Renewed, Verbal).
+// "Inactive" = dropped or otherwise lapsed. Everything else (Prospect)
+// only shows on the "All" tab so the editor can find them via search
+// but they don't pollute the active/inactive views.
+const ACTIVE_STAGES   = new Set(['Closed Won', 'Renewed', 'Verbal'])
+const INACTIVE_STAGES = new Set(['Dropped'])
 
 export default async function AdvertisersPage({ searchParams }: Props) {
   const params = await searchParams
   const page   = Math.max(1, parseInt(params.page ?? '1', 10))
-  const pubFilter = params.pub ?? 'RRP'
-  const query  = params.q ?? ''
+  const pubFilter    = params.pub ?? 'RRP'
+  const query        = params.q ?? ''
+  const statusFilter = (params.status ?? 'active') as 'active' | 'inactive' | 'all'
 
   const allAds = await getAllAdvertisers()
 
-  // Filter to current pub + current issue (latest per pub)
+  // Filter to current pub + active/inactive stage + optional search.
   const pubAds = allAds
     .filter((a) => {
       const matchPub = a.publication === pubFilter || a.issue.startsWith(pubFilter + ' ')
       const matchQ   = !query || a.businessName.toLowerCase().includes(query.toLowerCase())
-      return matchPub && matchQ
+      const matchStatus =
+        statusFilter === 'all'      ? true
+      : statusFilter === 'active'   ? ACTIVE_STAGES.has(a.stage)
+      : statusFilter === 'inactive' ? INACTIVE_STAGES.has(a.stage)
+      : true
+      return matchPub && matchQ && matchStatus
     })
     .sort((a, b) => a.businessName.localeCompare(b.businessName))
+
+  // Pre-compute counts for the status tabs so each shows its row total.
+  const allMatchingPub = allAds.filter(a =>
+    (a.publication === pubFilter || a.issue.startsWith(pubFilter + ' ')) &&
+    (!query || a.businessName.toLowerCase().includes(query.toLowerCase()))
+  )
+  const statusCounts = {
+    active:   allMatchingPub.filter(a => ACTIVE_STAGES.has(a.stage)).length,
+    inactive: allMatchingPub.filter(a => INACTIVE_STAGES.has(a.stage)).length,
+    all:      allMatchingPub.length,
+  }
 
   const totalPages  = Math.max(1, Math.ceil(pubAds.length / PAGE_SIZE))
   const paginated   = pubAds.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const totalRevenue = pubAds.reduce((s, a) => s + a.amount, 0)
   const totalPgs     = pubAds.reduce((s, a) => s + a.size, 0)
 
-  const buildHref = (p: number) => `/admin/advertisers?pub=${pubFilter}&page=${p}${query ? `&q=${encodeURIComponent(query)}` : ''}`
+  const buildHref = (p: number) =>
+    `/admin/advertisers?pub=${pubFilter}&page=${p}${query ? `&q=${encodeURIComponent(query)}` : ''}${statusFilter !== 'active' ? `&status=${statusFilter}` : ''}`
+
+  const statusHref = (s: 'active' | 'inactive' | 'all') =>
+    `/admin/advertisers?pub=${pubFilter}${query ? `&q=${encodeURIComponent(query)}` : ''}${s !== 'active' ? `&status=${s}` : ''}`
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -107,9 +135,40 @@ export default async function AdvertisersPage({ searchParams }: Props) {
 
       {/* ── Toolbar ──────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 shrink-0">
+        {/* Status filter pills — Active / Inactive / All. Defaults to
+            Active so the page lands on what's currently running. */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+          {([
+            { key: 'active'  as const, label: 'Active',   count: statusCounts.active   },
+            { key: 'inactive'as const, label: 'Inactive', count: statusCounts.inactive },
+            { key: 'all'     as const, label: 'All',      count: statusCounts.all      },
+          ]).map(s => {
+            const isOn = statusFilter === s.key
+            return (
+              <a
+                key={s.key}
+                href={statusHref(s.key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition-colors ${
+                  isOn
+                    ? s.key === 'active'   ? 'bg-green-600 text-white' :
+                      s.key === 'inactive' ? 'bg-red-600 text-white'   :
+                                             'bg-gray-900 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                }`}
+              >
+                {s.label}
+                <span className={`text-[10px] font-bold ${isOn ? 'opacity-80' : 'text-gray-400'}`}>
+                  {s.count}
+                </span>
+              </a>
+            )
+          })}
+        </div>
+
         {/* Search */}
         <form className="relative flex-1 max-w-sm" action="/admin/advertisers" method="get">
           <input type="hidden" name="pub" value={pubFilter} />
+          {statusFilter !== 'active' && <input type="hidden" name="status" value={statusFilter} />}
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"

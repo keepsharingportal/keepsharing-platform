@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 
@@ -17,16 +17,34 @@ const CONTEXT_SLUGS: Record<string, string[]> = {
 }
 
 export default function NewAdPage() {
-  const router = useRouter()
+  // useSearchParams suspends in app router — wrap the inner UI.
+  return (
+    <Suspense fallback={<div style={{ padding: 24 }}>Loading…</div>}>
+      <NewAdInner />
+    </Suspense>
+  )
+}
+
+function NewAdInner() {
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  // /admin/ads/new?advertiser_id=… pre-fills the advertiser dropdown so
+  // the "Add Placement" button on the advertiser detail page lands
+  // straight into a partially-completed form.
+  const initialAdvertiserId  = searchParams.get('advertiser_id')        ?? ''
+  // Also accept placement_type so we can deep-link from the Slot Catalog
+  // ("sell this empty slot to a specific advertiser").
+  const initialPlacementType = searchParams.get('placement_type')       ?? 'school_bits_inline'
+
   const [advertisers, setAdvertisers] = useState<Array<{ id: string; business_name: string }>>([])
   const [saving, setSaving] = useState(false)
   const placementGroups = groupedPlacementTypes()
 
   const [form, setForm] = useState({
-    placement_type: 'school_bits_inline',
+    placement_type: initialPlacementType,
     context_type: 'guide',
     context_slug: '',
-    advertiser_account_id: '',
+    advertiser_account_id: initialAdvertiserId,
     ad_eyebrow: '',
     ad_headline: '',
     ad_description: '',
