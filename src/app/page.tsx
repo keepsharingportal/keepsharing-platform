@@ -385,12 +385,24 @@ async function getHomepageData() {
     .filter(t => !t.archived_at)
   const TRENDING_CAP = 4
   const remainingSlots = Math.max(0, TRENDING_CAP - pinned.length)
-  const pinnedLinks = new Set(pinned.map(p => p.link))
+
+  // Pull the editor's manual blocklist for auto-filled paths and fold
+  // it into the exclude set alongside pinned links. Migration-tolerant:
+  // a fresh DB without 126 just returns an error and the blocklist is
+  // treated as empty.
+  const { data: blockedRows } = await supabase
+    .from('trending_blocked_paths')
+    .select('path')
+  const excludeLinks = new Set<string>(pinned.map(p => p.link))
+  for (const r of (blockedRows ?? []) as Array<{ path: string }>) {
+    excludeLinks.add(r.path)
+  }
+
   const autoItems = remainingSlots > 0
     ? await buildAutoTrendingItems(
         supabase,
         (autoTrendingRes.data ?? []) as Array<{ path: string; unique_views: number }>,
-        pinnedLinks,
+        excludeLinks,
         remainingSlots,
       )
     : []

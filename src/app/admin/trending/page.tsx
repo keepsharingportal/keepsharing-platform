@@ -14,7 +14,9 @@ import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 import { TrendingUp } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
 import { TrendingList, type TrendingItem } from './TrendingList'
+import { AutoTrendingPreview, type AutoCandidate, type BlockedPath } from './AutoTrendingPreview'
 
 export const metadata: Metadata = { title: 'Trending Bar — Admin' }
 export const dynamic  = 'force-dynamic'
@@ -163,6 +165,36 @@ async function deleteItem(formData: FormData) {
   revalidatePath('/')
 }
 
+// Block an auto-trending path so it stops filling the bar. Writes to
+// trending_blocked_paths (migration 126). The label is a snapshot of
+// what the editor saw at the moment they clicked Block — kept purely
+// for the admin UI's recognition of "what was this?".
+async function blockAutoPath(formData: FormData) {
+  'use server'
+  const supabase = createAdminClient()
+  const path  = ((formData.get('path')  as string) || '').trim()
+  const label = ((formData.get('label') as string) || '').trim() || null
+  if (!path) return
+
+  await supabase
+    .from('trending_blocked_paths')
+    .upsert({ path, label }, { onConflict: 'path' })
+
+  revalidatePath('/admin/trending')
+  revalidatePath('/')
+}
+
+async function unblockAutoPath(formData: FormData) {
+  'use server'
+  const supabase = createAdminClient()
+  const path = ((formData.get('path') as string) || '').trim()
+  if (!path) return
+
+  await supabase.from('trending_blocked_paths').delete().eq('path', path)
+  revalidatePath('/admin/trending')
+  revalidatePath('/')
+}
+
 // Drag-to-reorder — accepts comma-sep ids in new order. Writes
 // display_order = array index for each. One round trip, all in order.
 async function reorderItems(formData: FormData) {
@@ -218,6 +250,45 @@ export default async function TrendingAdminPage() {
     ...r,
     archived_at: r.archived_at ?? null,
   }))
+
+  // ── Auto-trending preview ───────────────────────────────────────────────
+  // Mirror what the homepage does: build the exclude set from pinned
+  // (live) items + the manual blocklist, then ask buildAutoTrendingItems
+  // for the top 10 candidates. Migration-tolerant: pre-126 DBs get
+  // empty blockedRows so the page still loads.
+  const nowIso = new Date().toISOString()
+  const pinnedActive = items.filter(t =>
+    t.is_active && !t.archived_at &&
+    (!t.start_at || t.start_at <= nowIso) &&
+    (!t.end_at   || t.end_at   >= nowIso)
+  )
+  const blockedRes = await supabase
+    .from('trending_blocked_paths')
+    .select('path, label, blocked_at')
+    .order('blocked_at', { ascending: false })
+  const blockedRows: BlockedPath[] = (blockedRes.data ?? []) as BlockedPath[]
+  const blocklistMigrationApplied = !blockedRes.error
+
+  const excludeLinks = new Set<string>(pinnedActive.map(p => p.link))
+  for (const b of blockedRows) excludeLinks.add(b.path)
+
+  const pathsRes = await supabase
+    .from('trending_paths_7d')
+    .select('path, unique_views')
+    .limit(40)              // pull extra so we still get 10 after filters
+  const autoCandidates: AutoCandidate[] = !pathsRes.error
+    ? (await buildAutoTrendingItems(
+        supabase,
+        (pathsRes.data ?? []) as Array<{ path: string; unique_views: number }>,
+        excludeLinks,
+        10,
+      )).map(c => ({
+        path:         c.link,
+        label:        c.label,
+        emoji:        c.emoji,
+        unique_views: c.unique_views,
+      }))
+    : []
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
@@ -286,6 +357,26 @@ export default async function TrendingAdminPage() {
           bulkAction={bulkAction}
           reorderItems={reorderItems}
         />
+
+        {/* Auto-fill preview + manual blocklist. Migration 126 must be
+            applied for the blocklist actions to persist — until then the
+            preview still renders, but the Block button writes 0 rows and
+            the path comes back next refresh. */}
+        {blocklistMigrationApplied ? (
+          <AutoTrendingPreview
+            candidates={autoCandidates}
+            blocked={blockedRows}
+            blockAction={blockAutoPath}
+            unblockAction={unblockAutoPath}
+          />
+        ) : (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-bold">Migration 126 not applied yet</p>
+            <p className="text-xs mt-1">
+              Apply <code className="px-1 bg-amber-100 rounded">supabase/migrations/126_trending_blocked_paths.sql</code> in Supabase Studio to enable the auto-trending preview and the manual blocklist.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
