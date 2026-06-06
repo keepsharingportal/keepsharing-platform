@@ -35,6 +35,9 @@ interface AdPlacement {
   click_count:       number
   starts_at:         string
   ends_at:           string | null
+  /** Set when an ad is soft-archived. Present in the DB but hidden from
+   *  the default list — only shows up when Status filter = Archived. */
+  archived_at:       string | null
   rotation_group:    string | null
   rotation_weight:   number | null
   advertiser_accounts: { business_name: string } | null
@@ -122,8 +125,12 @@ export default function AdminAdsPage() {
   const slotRows: SlotRow[] = useMemo(() => {
     const rows: SlotRow[] = []
     // Index bookings by (placement_type, context_slug) for fast attach.
+    // Exclude archived ads from the bookings attached to slots — the editor
+    // doesn't want archived YMCA cluttering the homepage Wide-banner row;
+    // they live under the Archived filter instead.
     const adsBySlot: Record<string, AdPlacement[]> = {}
     for (const a of ads) {
+      if (a.archived_at) continue
       const ctx = a.context_slug ?? ''
       const k = `${a.placement_type}|${ctx}`
       if (!adsBySlot[k]) adsBySlot[k] = []

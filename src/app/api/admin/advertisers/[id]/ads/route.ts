@@ -22,13 +22,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const supabase = createAdminClient()
+  // Include archived ads — the customer's full history (active + paused
+  // + archived) is what makes the "Other ads from this customer" panel
+  // useful. Caller renders archived rows muted.
   const { data, error } = await supabase
     .from('ad_placements')
-    .select('id, placement_type, context_slug, ad_headline, is_active, starts_at, ends_at, impression_count, click_count')
+    .select('id, placement_type, context_slug, ad_headline, is_active, starts_at, ends_at, archived_at, impression_count, click_count')
     .eq('advertiser_account_id', id)
-    .order('is_active', { ascending: false })
-    .order('ends_at',   { ascending: true, nullsFirst: false })
-    .limit(20)
+    .order('archived_at', { ascending: false, nullsFirst: true })
+    .order('is_active',   { ascending: false })
+    .order('ends_at',     { ascending: true, nullsFirst: false })
+    .limit(30)
 
   if (error) return NextResponse.json({ error: error.message, ads: [] }, { status: 500 })
   return NextResponse.json({ ads: data ?? [] })

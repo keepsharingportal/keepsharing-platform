@@ -48,6 +48,10 @@ interface AdRow {
   price_annual:          number | null
   advertiser_email:      string | null
   sales_rep_email:       string | null
+  // Soft archive (migration 124). When set, the ad is hidden from the
+  // public site and from /admin/ads default views, but preserved in the
+  // customer's history.
+  archived_at:           string | null
   // Section-sponsor specific fields (placement_type='section_sponsor').
   // Live on every ad_placements row but only meaningful when sponsoring
   // a vertical/column — the edit form only surfaces them in that case.
@@ -198,6 +202,38 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </div>
         </header>
 
+        {ad.archived_at && (
+          <ArchivedBanner
+            archivedAt={ad.archived_at}
+            onRestore={async () => {
+              const res = await fetch('/api/admin/ads/restore', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body:   JSON.stringify({ id }),
+              })
+              if (res.ok) {
+                set('archived_at', null)
+                setSuccess(true)
+              } else {
+                const j = await res.json().catch(() => ({}))
+                setError(j?.error ?? `HTTP ${res.status}`)
+              }
+            }}
+            onDeleteForever={async () => {
+              const typed = window.prompt('Permanently delete this ad? Type DELETE to confirm. This cannot be undone.')
+              if (typed !== 'DELETE') return
+              const res = await fetch('/api/admin/ads/delete-forever', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body:   JSON.stringify({ id }),
+              })
+              if (res.ok) {
+                router.push('/admin/ads')
+              } else {
+                const j = await res.json().catch(() => ({}))
+                setError(j?.error ?? `HTTP ${res.status}`)
+              }
+            }}
+          />
+        )}
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800">
             ✓ Saved. Public homepage may take up to ~10 min to refresh (revalidate cache).
@@ -532,6 +568,45 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   )
 }
 
+// ── Archived banner ──────────────────────────────────────────────────────────
+// Shown at the top of the edit form when archived_at is set. Restore brings
+// it back; Delete forever (typed-confirm) is for genuine cleanups.
+
+function ArchivedBanner({ archivedAt, onRestore, onDeleteForever }: {
+  archivedAt:      string
+  onRestore:       () => void | Promise<void>
+  onDeleteForever: () => void | Promise<void>
+}) {
+  return (
+    <div className="bg-gray-100 border border-gray-300 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+      <div>
+        <p className="text-sm font-bold text-gray-900">
+          This ad is archived (since {new Date(archivedAt).toLocaleDateString()}).
+        </p>
+        <p className="text-xs text-gray-600 mt-0.5">
+          It&apos;s hidden from the public site and from the default /admin/ads list, but kept in the customer&apos;s history.
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onRestore}
+          className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+        >
+          Restore
+        </button>
+        <button
+          type="button"
+          onClick={onDeleteForever}
+          className="px-4 py-2 rounded-lg border border-red-200 text-red-700 text-sm font-bold hover:bg-red-50"
+        >
+          Delete forever
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Customer / Advertiser section ────────────────────────────────────────────
 // First section of the form on purpose — everything else (renewal contact,
 // tracked link labels, reports) should descend from "who is this ad for?".
@@ -544,6 +619,7 @@ interface CustomerAd {
   is_active:        boolean
   starts_at:        string | null
   ends_at:          string | null
+  archived_at:      string | null
   impression_count: number
   click_count:      number
 }
@@ -672,34 +748,47 @@ function CustomerSection({ ad, advertisers, onChange }: {
               </p>
             ) : (
               <ul className="divide-y divide-gray-100">
-                {otherAdsFiltered.slice(0, 8).map(other => (
-                  <li key={other.id} className="px-4 py-2 flex items-center gap-3 hover:bg-gray-50">
-                    <CustomerAdPill active={other.is_active} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-bold text-gray-900 truncate">
-                          {findPlacementType(other.placement_type)?.label ?? other.placement_type}
-                        </p>
-                        {other.context_slug && (
-                          <code className="text-[10px] text-gray-400 font-mono truncate">{other.context_slug}</code>
+                {otherAdsFiltered.slice(0, 10).map(other => {
+                  const isArchived = !!other.archived_at
+                  return (
+                    <li key={other.id} className={`px-4 py-2 flex items-center gap-3 hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}>
+                      {isArchived ? (
+                        <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-500 text-white">
+                          Archived
+                        </span>
+                      ) : (
+                        <CustomerAdPill active={other.is_active} />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className={`text-xs font-bold truncate ${isArchived ? 'text-gray-600 line-through decoration-gray-400' : 'text-gray-900'}`}>
+                            {findPlacementType(other.placement_type)?.label ?? other.placement_type}
+                          </p>
+                          {other.context_slug && (
+                            <code className="text-[10px] text-gray-400 font-mono truncate">{other.context_slug}</code>
+                          )}
+                        </div>
+                        {other.ad_headline && (
+                          <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
                         )}
                       </div>
-                      {other.ad_headline && (
-                        <p className="text-[11px] text-gray-500 truncate mt-0.5">{other.ad_headline}</p>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      {other.ends_at && (
-                        <p className="text-[10px] text-gray-500">
-                          Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </p>
-                      )}
-                      <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
-                        Open →
-                      </Link>
-                    </div>
-                  </li>
-                ))}
+                      <div className="shrink-0 text-right">
+                        {isArchived && other.archived_at ? (
+                          <p className="text-[10px] text-gray-500">
+                            Archived {new Date(other.archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </p>
+                        ) : other.ends_at ? (
+                          <p className="text-[10px] text-gray-500">
+                            Ends {new Date(other.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </p>
+                        ) : null}
+                        <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
+                          Open →
+                        </Link>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>

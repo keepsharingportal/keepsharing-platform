@@ -25,7 +25,7 @@ const FULL_SELECT = `
   id, placement_type, context_type, context_slug,
   ad_eyebrow, ad_headline, ad_description, ad_cta_label, ad_link, ad_image_url,
   is_active, impression_count, click_count,
-  starts_at, ends_at,
+  starts_at, ends_at, archived_at,
   rotation_group, rotation_weight,
   price_monthly, price_quarterly, price_annual,
   advertiser:advertiser_account_id ( business_name )

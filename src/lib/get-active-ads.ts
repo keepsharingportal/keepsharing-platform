@@ -85,6 +85,7 @@ export async function getActiveAds(
     `)
     .eq('placement_type', placementType)
     .eq('is_active', true)
+    .is('archived_at', null)
     .lte('starts_at', now)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
     .order('display_priority', { ascending: false })

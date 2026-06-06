@@ -165,21 +165,25 @@ async function getHomepageData() {
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
+      .is('archived_at', null)
       .order('display_priority', { ascending: false })
       .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_sidebar_ad').eq('is_active', true)
+      .is('archived_at', null)
       .order('display_priority', { ascending: false })
       .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_business_spotlight').eq('is_active', true)
+      .is('archived_at', null)
       .order('display_priority', { ascending: false })
       .limit(3),
     supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_bottom_ad').eq('is_active', true)
+      .is('archived_at', null)
       .order('display_priority', { ascending: false })
       .limit(3),
     // Mom Knows Best — sidebar block on the homepage. Pulls the 3 most
