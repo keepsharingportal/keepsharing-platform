@@ -11,8 +11,9 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Pencil, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
+import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 
 interface AdRow {
   id:                    string
@@ -181,6 +182,25 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-800">
             {error}
           </div>
+        )}
+
+        {/* ── Where on the page is this? ────────────────────────── */}
+        {def && (
+          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+              <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                <MapPin size={14} className="text-primary" />
+                Where this appears on the site
+              </h2>
+            </div>
+            <div className="p-5 grid md:grid-cols-2 gap-5">
+              <div className="space-y-2 text-sm text-gray-700 leading-relaxed">
+                <p>{def.whereItAppears}</p>
+                <p className="text-xs text-gray-500 italic">{def.description}</p>
+              </div>
+              <PageLayoutPreview placementSlug={def.slug} surface={def.surface} />
+            </div>
+          </section>
         )}
 
         {/* ── Status + scheduling ─────────────────────────────── */}

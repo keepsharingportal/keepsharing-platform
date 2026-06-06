@@ -9,9 +9,9 @@
 // Inline-style version was hardcoding padding outside this wrapper which
 // is why the list ran off-screen.
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Star, RefreshCw, Plus, AlertTriangle } from 'lucide-react'
+import { Star, RefreshCw, Plus, AlertTriangle, Search, Bookmark } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 
 interface AdPlacement {
@@ -40,26 +40,47 @@ export default function AdminAdsPage() {
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState<string | null>(null)
   const [filterType, setFilterType] = useState('')
+  const [search,     setSearch]     = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'on' | 'off'>('all')
 
+  // Server returns the full set; filtering happens client-side so the
+  // editor can flip placement / status / search without a round-trip.
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
       const res  = await fetch('/api/admin/ads/list', { cache: 'no-store' })
       const json = await res.json()
       if (!res.ok) { setError(json?.error ?? `HTTP ${res.status}`); setAds([]); return }
-      const filtered = filterType
-        ? (json.ads as AdPlacement[]).filter(a => a.placement_type === filterType)
-        : (json.ads as AdPlacement[])
-      setAds(filtered)
+      setAds(json.ads as AdPlacement[])
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setAds([])
     } finally {
       setLoading(false)
     }
-  }, [filterType])
+  }, [])
 
   useEffect(() => { load() }, [load])
+
+  const visibleAds = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return ads.filter(a => {
+      if (filterType && a.placement_type !== filterType) return false
+      if (statusFilter === 'on'  && !a.is_active) return false
+      if (statusFilter === 'off' &&  a.is_active) return false
+      if (q) {
+        const haystack = [
+          a.advertiser_accounts?.business_name ?? '',
+          a.ad_headline ?? '',
+          a.ad_eyebrow  ?? '',
+          a.placement_type,
+          a.context_slug ?? '',
+        ].join(' ').toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
+      return true
+    })
+  }, [ads, filterType, statusFilter, search])
 
   async function toggleActive(id: string, current: boolean) {
     await fetch('/api/admin/ads/toggle', {
@@ -124,31 +145,92 @@ export default function AdminAdsPage() {
           <Stat label="In rotation"     value={rotationCount}   tone="#7c3aed" />
         </div>
 
-        {/* ── Filter ───────────────────────────────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 flex-wrap">
-          <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Filter</label>
-          <select
-            value={filterType}
-            onChange={e => setFilterType(e.target.value)}
-            className="text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white min-w-[260px]"
-          >
-            <option value="">All placement types</option>
-            {placementGroups.map(group => (
-              <optgroup key={group.surface} label={group.label}>
-                {group.entries.map(p => (
-                  <option key={p.slug} value={p.slug}>{p.label}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          {filterType && (
-            <button
-              onClick={() => setFilterType('')}
-              className="text-xs text-gray-500 hover:text-gray-700"
+        {/* ── Section Sponsors quick-link ──────────────────────── */}
+        <Link
+          href="/admin/section-sponsors"
+          className="block bg-gradient-to-r from-violet-50 via-white to-white border border-violet-200 rounded-2xl p-4 hover:border-violet-300 hover:shadow-sm transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 shrink-0">
+              <Bookmark size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900">Section Sponsors</p>
+              <p className="text-xs text-gray-500">
+                Per-column &quot;presented by&quot; sponsors (Play Ball, Teacher of the Month, etc.) — separate from ad placements. Manage them here →
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-violet-700 shrink-0">Open →</span>
+          </div>
+        </Link>
+
+        {/* ── Filter + search ──────────────────────────────────── */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0">Placement</label>
+            <select
+              value={filterType}
+              onChange={e => setFilterType(e.target.value)}
+              className="text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white min-w-[260px] flex-1"
             >
-              Clear
-            </button>
-          )}
+              <option value="">All placement types</option>
+              {placementGroups.map(group => (
+                <optgroup key={group.surface} label={group.label}>
+                  {group.entries.map(p => (
+                    <option key={p.slug} value={p.slug}>{p.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {filterType && (
+              <button
+                onClick={() => setFilterType('')}
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0">Search</label>
+            <div className="relative flex-1 min-w-[260px]">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Business name, headline, context…"
+                className="w-full text-sm pl-9 pr-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 shrink-0 ml-2">Status</label>
+            <div className="flex items-center gap-1">
+              {(['all', 'on', 'off'] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md border transition-colors ${
+                    statusFilter === s
+                      ? s === 'on'  ? 'bg-green-600 text-white border-green-700' :
+                        s === 'off' ? 'bg-red-600   text-white border-red-700'   :
+                                      'bg-gray-900  text-white border-gray-900'
+                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {s === 'all' ? 'All' : s.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ── Error ────────────────────────────────────────────── */}
@@ -166,15 +248,25 @@ export default function AdminAdsPage() {
         <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-700">
-              {ads.length} {ads.length === 1 ? 'placement' : 'placements'}
+              {visibleAds.length} of {ads.length} {ads.length === 1 ? 'placement' : 'placements'}
             </h2>
+            {(filterType || search || statusFilter !== 'all') && (
+              <button
+                onClick={() => { setFilterType(''); setSearch(''); setStatusFilter('all') }}
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
 
           {loading ? (
             <p className="p-8 text-center text-sm text-gray-400">Loading…</p>
-          ) : ads.length === 0 ? (
+          ) : visibleAds.length === 0 ? (
             <p className="p-8 text-center text-sm text-gray-400">
-              No ad placements yet. <Link href="/admin/ads/new" className="text-primary font-semibold hover:underline">Create one →</Link>
+              {ads.length === 0
+                ? <>No ad placements yet. <Link href="/admin/ads/new" className="text-primary font-semibold hover:underline">Create one →</Link></>
+                : 'No placements match those filters.'}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -193,7 +285,7 @@ export default function AdminAdsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ads.map(ad => {
+                  {visibleAds.map(ad => {
                     const def = findPlacementType(ad.placement_type)
                     return (
                       <tr key={ad.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
