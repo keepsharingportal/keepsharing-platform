@@ -11,7 +11,7 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Save, Pencil, AlertTriangle, MapPin, ExternalLink, Link2, Copy, Check } from 'lucide-react'
 import { groupedPlacementTypes, findPlacementType } from '@/lib/ads/placement-types'
 import { PageLayoutPreview } from '@/components/admin/PageLayoutPreview'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
@@ -438,6 +438,15 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           </Row>
         </Section>
 
+        {/* ── Tracked CTA link ────────────────────────────── */}
+        {/* Mints a short_links row tied to this ad and exposes the /go/
+            URL the editor can swap into print collateral or use as the
+            primary CTA link. Clicks redirect through /go/<code> → the
+            destination, incrementing click_count and applying UTM
+            parameters so this ad's clicks roll into the same reports
+            as magazine QR scans. */}
+        <TrackedLinkSection adId={id} adLink={ad.ad_link ?? ''} />
+
         {/* ── Contacts for renewal reminders ──────────────── */}
         <Section title="Renewal contact"
                  subtitle="The renewal-reminder cron emails these addresses as the contract end date approaches.">
@@ -492,81 +501,445 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   )
 }
 
-// ── Live preview ─────────────────────────────────────────────────────────────
-// Roughly matches the public render style: image left, text + CTA right.
-// Section-sponsor placements get the branded banner variant instead.
+// ── Tracked link section ─────────────────────────────────────────────────────
+// Generates a /go/<shortcode> redirect for this ad. Click count rolls into
+// the same dashboard as magazine QR codes — same pipeline, different surface.
 
-function AdPreview({ ad }: { ad: AdRow }) {
-  const isSponsor = ad.placement_type === 'section_sponsor'
-  const accent    = ad.accent_color && /^#[0-9a-f]{3,8}$/i.test(ad.accent_color) ? ad.accent_color : '#0f172a'
+interface TrackedLink {
+  id:           string
+  shortcode:    string
+  destination:  string
+  click_count:  number
+  is_active:    boolean
+  created_at:   string
+}
 
-  if (isSponsor) {
-    return (
-      <div className="rounded-xl p-5 text-white shadow-sm" style={{ backgroundColor: accent }}>
-        <div className="flex items-center gap-4">
-          {ad.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={ad.logo_url}
-              alt={ad.ad_headline ?? ''}
-              className="shrink-0 w-14 h-14 rounded-lg bg-white object-contain p-1"
-            />
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-0.5">
-              {ad.ad_eyebrow || 'Sponsored by'}
-            </p>
-            <p className="text-lg font-black leading-tight truncate">{ad.ad_headline || '(headline)'}</p>
-            {ad.sponsor_tagline && (
-              <p className="text-sm italic opacity-90 leading-snug mt-1 truncate">{ad.sponsor_tagline}</p>
-            )}
-          </div>
-          {ad.ad_cta_label && (
-            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1.5 text-xs font-bold whitespace-nowrap">
-              {ad.ad_cta_label}
-            </span>
-          )}
-        </div>
-      </div>
-    )
+function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) {
+  const [loading, setLoading] = useState(true)
+  const [busy,    setBusy]    = useState(false)
+  const [link,    setLink]    = useState<TrackedLink | null>(null)
+  const [error,   setError]   = useState<string | null>(null)
+  const [copied,  setCopied]  = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/admin/ads/tracked-link?id=${adId}`)
+      .then(r => r.json())
+      .then(j => { if (!cancelled) { setLink(j.link); setError(j.error ?? null) } })
+      .catch(() => {/* silent — tracking is optional */})
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [adId])
+
+  async function create() {
+    if (busy) return
+    setBusy(true); setError(null)
+    try {
+      const res  = await fetch('/api/admin/ads/tracked-link', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id: adId }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json?.error ?? `HTTP ${res.status}`); return }
+      setLink(json.link as TrackedLink)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
   }
 
-  // Default ad preview (homepage inline / sidebar / article inline / etc.)
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const trackedUrl = link ? `${origin}/go/${link.shortcode}` : null
+
+  async function copy() {
+    if (!trackedUrl) return
+    try {
+      await navigator.clipboard.writeText(trackedUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {/* clipboard blocked — user can select manually */}
+  }
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start gap-4">
-        {ad.ad_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={ad.ad_image_url}
-            alt={ad.ad_headline ?? ''}
-            className="shrink-0 w-20 h-20 rounded-lg object-cover bg-gray-100"
-          />
+    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+        <h2 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <Link2 size={16} className="text-primary" />
+          Tracked CTA link
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Optional. Generate a <code className="text-[11px] bg-gray-100 px-1 rounded">/go/&lt;shortcode&gt;</code> redirect
+          for this ad — every click is counted and tagged with UTM parameters, same as a magazine QR. Reports roll up
+          alongside print scans.
+        </p>
+      </div>
+      <div className="p-5 space-y-3">
+        {loading ? (
+          <p className="text-sm text-gray-400">Loading…</p>
+        ) : !link ? (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={create}
+              disabled={busy || !adLink}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-gray-700 disabled:opacity-40"
+            >
+              <Link2 size={14} />
+              {busy ? 'Generating…' : 'Generate tracked link'}
+            </button>
+            {!adLink && (
+              <p className="text-[11px] text-amber-700">
+                Set a CTA link in the Creative section first — the tracked URL needs a destination to redirect to.
+              </p>
+            )}
+            {error && <p className="text-xs text-red-700">{error}</p>}
+          </div>
         ) : (
-          <div className="shrink-0 w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 text-center px-2">
-            (image)
+          <div className="space-y-3">
+            <div className="grid sm:grid-cols-[1fr_auto] gap-2 items-center">
+              <code className="block bg-gray-100 px-3 py-2 rounded-lg text-sm font-mono text-gray-900 truncate">
+                {trackedUrl}
+              </code>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={copy}
+                  className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50"
+                >
+                  {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+                </button>
+                {trackedUrl && (
+                  <a
+                    href={trackedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50"
+                  >
+                    <ExternalLink size={12} /> Open
+                  </a>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div className="bg-gray-50 rounded-lg p-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Clicks</p>
+                <p className="text-base font-black text-gray-900 tabular-nums">{link.click_count.toLocaleString()}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Destination</p>
+                <p className="text-[11px] text-gray-700 truncate font-mono">{link.destination}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Created</p>
+                <p className="text-[11px] text-gray-700">{new Date(link.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              <strong>Tip:</strong> swap the Creative CTA link to this tracked URL if you want every public click
+              to count. The site still works with the raw URL; switching is optional.
+            </p>
           </div>
         )}
+      </div>
+    </section>
+  )
+}
+
+// ── Live preview ─────────────────────────────────────────────────────────────
+// Picks a render variant based on the placement's category so the editor
+// sees a preview that roughly matches the public site for that slot.
+
+function AdPreview({ ad }: { ad: AdRow }) {
+  const def = findPlacementType(ad.placement_type)
+  // Specific placements get bespoke previews; otherwise fall back to
+  // the category-level variant.
+  if (ad.placement_type === 'section_sponsor')       return <SponsorPreview ad={ad} />
+  if (ad.placement_type === 'homepage_sidebar_ad')   return <SquareCardPreview ad={ad} />
+  if (ad.placement_type === 'homepage_business_spotlight') return <DarkCardPreview ad={ad} />
+  if (ad.placement_type === 'homepage_bottom_ad')    return <BannerPreview ad={ad} wide />
+  if (ad.placement_type === 'homepage_hero_rotator') return <HeroPreview ad={ad} />
+  if (ad.placement_type === 'newsletter_sponsor')    return <NewsletterPreview ad={ad} />
+  if (ad.placement_type === 'site_footer_partners')  return <FooterPreview ad={ad} />
+
+  switch (def?.category) {
+    case 'sidebar':    return <SquareCardPreview ad={ad} />
+    case 'inline':     return <InlinePreview ad={ad} />
+    case 'in-article': return <InArticlePreview ad={ad} />
+    case 'footer':     return <BannerPreview ad={ad} wide />
+    case 'hero':       return <HeroPreview ad={ad} />
+    case 'sponsor':    return <SponsorPreview ad={ad} />
+    default:           return <InlinePreview ad={ad} />
+  }
+}
+
+// Inline horizontal card — image left, text + CTA right. Default for
+// most in-feed/sidebar/article placements.
+function InlinePreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm max-w-xl">
+      <div className="flex items-start gap-4">
+        <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={80} />
         <div className="flex-1 min-w-0">
-          {ad.ad_eyebrow && (
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">
-              {ad.ad_eyebrow}
-            </p>
-          )}
-          <p className="text-base font-bold text-gray-900 leading-snug">
-            {ad.ad_headline || <span className="text-gray-300">(headline)</span>}
-          </p>
+          <PreviewEyebrow text={ad.ad_eyebrow} />
+          <PreviewHeadline text={ad.ad_headline} size="md" />
           {ad.ad_description && (
             <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">{ad.ad_description}</p>
           )}
-          {ad.ad_cta_label && ad.ad_link && (
-            <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary">
-              {ad.ad_cta_label}
-              <ExternalLink size={10} />
-            </span>
-          )}
+          <PreviewCta label={ad.ad_cta_label} hasLink={!!ad.ad_link} />
         </div>
       </div>
     </div>
+  )
+}
+
+// Square sidebar card with overlay text — homepage_sidebar_ad style.
+function SquareCardPreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="relative w-56 aspect-square rounded-2xl overflow-hidden shadow-sm bg-gray-200">
+      {ad.ad_image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={ad.ad_image_url} alt={ad.ad_headline ?? ''} className="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-[11px] text-gray-500">(image)</div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+      <div className="absolute top-3 left-3">
+        <span className="text-[9px] text-white/90 font-bold uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">
+          {ad.ad_eyebrow || 'Advertisement'}
+        </span>
+      </div>
+      <div className="absolute bottom-3 left-3 right-3 text-white">
+        <p className="text-base font-bold leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+          {ad.ad_headline || <span className="text-white/60 italic">(headline)</span>}
+        </p>
+        {ad.ad_cta_label && (
+          <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-bold bg-white text-gray-900 px-2.5 py-1 rounded-full">
+            {ad.ad_cta_label}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Dark Business Spotlight card — homepage_business_spotlight style.
+function DarkCardPreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="rounded-2xl bg-gray-900 text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {ad.ad_image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={ad.ad_image_url} alt="" className="w-full h-24 object-cover rounded-lg mb-3" />
+      )}
+      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">
+        {ad.ad_eyebrow || 'Business Spotlight'}
+      </p>
+      <p className="text-lg font-bold leading-tight">
+        {ad.ad_headline || <span className="text-white/40">(headline)</span>}
+      </p>
+      {ad.ad_description && (
+        <p className="text-sm text-white/75 mt-2 line-clamp-2">{ad.ad_description}</p>
+      )}
+      {ad.ad_cta_label && (
+        <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-primary">
+          {ad.ad_cta_label} <ExternalLink size={10} />
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Wide gradient banner — homepage_bottom_ad / footer variants.
+function BannerPreview({ ad, wide }: { ad: AdRow; wide?: boolean }) {
+  return (
+    <div className={`rounded-2xl bg-gradient-to-r from-secondary/10 to-primary/10 border border-gray-200 p-5 shadow-sm ${wide ? 'max-w-2xl' : 'max-w-xl'}`}>
+      <div className="flex items-center gap-5">
+        <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={120} rounded="rounded-2xl" />
+        <div className="flex-1 min-w-0">
+          <PreviewEyebrow text={ad.ad_eyebrow} />
+          <PreviewHeadline text={ad.ad_headline} size="lg" />
+          {ad.ad_description && (
+            <p className="text-sm text-gray-600 mt-1 leading-snug">{ad.ad_description}</p>
+          )}
+        </div>
+        {ad.ad_cta_label && (
+          <span className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-bold whitespace-nowrap">
+            {ad.ad_cta_label}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// In-article body break — appears mid-paragraph, wider.
+function InArticlePreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 max-w-xl">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+        {ad.ad_eyebrow || 'Sponsored'}
+      </p>
+      <div className="flex items-center gap-3">
+        <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={64} />
+        <div className="flex-1 min-w-0">
+          <PreviewHeadline text={ad.ad_headline} size="md" />
+          {ad.ad_description && (
+            <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">{ad.ad_description}</p>
+          )}
+        </div>
+        {ad.ad_cta_label && (
+          <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-bold">
+            {ad.ad_cta_label}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Big hero rotator — used at the very top of homepage.
+function HeroPreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="relative aspect-[3/1] w-full max-w-2xl rounded-2xl overflow-hidden bg-gray-200 shadow-sm">
+      {ad.ad_image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={ad.ad_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-[12px] text-gray-500">(hero image)</div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+      <div className="absolute inset-0 flex flex-col justify-center p-6 text-white">
+        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">{ad.ad_eyebrow || 'Featured'}</p>
+        <p className="text-2xl font-black leading-tight max-w-md" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+          {ad.ad_headline || <span className="opacity-60 italic">(headline)</span>}
+        </p>
+        {ad.ad_cta_label && (
+          <span className="inline-flex items-center gap-1 mt-3 px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-bold w-fit">
+            {ad.ad_cta_label} <ExternalLink size={12} />
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Newsletter sponsor block — styled to look like an email body row.
+function NewsletterPreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="max-w-md mx-auto rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+        {ad.ad_eyebrow || 'Sponsored'}
+      </p>
+      {ad.ad_image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={ad.ad_image_url} alt="" className="w-full h-32 object-cover rounded-md mb-3" />
+      )}
+      <p className="text-lg font-bold text-gray-900 leading-tight">
+        {ad.ad_headline || <span className="text-gray-300">(headline)</span>}
+      </p>
+      {ad.ad_description && (
+        <p className="text-sm text-gray-600 mt-1 leading-snug">{ad.ad_description}</p>
+      )}
+      {ad.ad_cta_label && (
+        <a className="inline-flex items-center gap-1 mt-3 px-4 py-2 bg-primary text-white rounded-md text-sm font-bold no-underline">
+          {ad.ad_cta_label}
+        </a>
+      )}
+    </div>
+  )
+}
+
+// Footer partner logo strip — just shows the image as a logo, smaller.
+function FooterPreview({ ad }: { ad: AdRow }) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4 max-w-sm">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Footer partner</p>
+      <div className="flex items-center gap-3">
+        {ad.ad_image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={ad.ad_image_url} alt={ad.ad_headline ?? ''} className="h-10 w-auto object-contain" />
+        ) : (
+          <div className="h-10 w-24 bg-gray-100 rounded flex items-center justify-center text-[9px] text-gray-400">
+            (logo)
+          </div>
+        )}
+        <span className="text-xs text-gray-700 font-semibold">{ad.ad_headline || '(name)'}</span>
+      </div>
+    </div>
+  )
+}
+
+// Section sponsor — the "presented by" branded banner.
+function SponsorPreview({ ad }: { ad: AdRow }) {
+  const accent = ad.accent_color && /^#[0-9a-f]{3,8}$/i.test(ad.accent_color) ? ad.accent_color : '#0f172a'
+  return (
+    <div className="rounded-xl p-5 text-white shadow-sm max-w-2xl" style={{ backgroundColor: accent }}>
+      <div className="flex items-center gap-4">
+        {ad.logo_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={ad.logo_url}
+            alt={ad.ad_headline ?? ''}
+            className="shrink-0 w-14 h-14 rounded-lg bg-white object-contain p-1"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-0.5">
+            {ad.ad_eyebrow || 'Sponsored by'}
+          </p>
+          <p className="text-lg font-black leading-tight truncate">{ad.ad_headline || '(headline)'}</p>
+          {ad.sponsor_tagline && (
+            <p className="text-sm italic opacity-90 leading-snug mt-1 truncate">{ad.sponsor_tagline}</p>
+          )}
+        </div>
+        {ad.ad_cta_label && (
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-1.5 text-xs font-bold whitespace-nowrap">
+            {ad.ad_cta_label}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Preview building blocks ─────────────────────────────────────────────────
+
+function PreviewImage({ src, alt, size, rounded }: { src: string | null; alt: string | null; size: number; rounded?: string }) {
+  const r = rounded ?? 'rounded-lg'
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt={alt ?? ''} style={{ width: size, height: size }} className={`shrink-0 ${r} object-cover bg-gray-100`} />
+    )
+  }
+  return (
+    <div style={{ width: size, height: size }} className={`shrink-0 ${r} bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 text-center px-2`}>
+      (image)
+    </div>
+  )
+}
+
+function PreviewEyebrow({ text }: { text: string | null }) {
+  if (!text) return null
+  return (
+    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">{text}</p>
+  )
+}
+
+function PreviewHeadline({ text, size }: { text: string | null; size: 'md' | 'lg' }) {
+  const cls = size === 'lg'
+    ? 'text-lg font-bold text-gray-900 leading-snug'
+    : 'text-base font-bold text-gray-900 leading-snug'
+  return <p className={cls}>{text || <span className="text-gray-300">(headline)</span>}</p>
+}
+
+function PreviewCta({ label, hasLink }: { label: string | null; hasLink: boolean }) {
+  if (!label || !hasLink) return null
+  return (
+    <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary">
+      {label} <ExternalLink size={10} />
+    </span>
   )
 }
