@@ -31,9 +31,9 @@ interface Row {
   price:           number | null
   social_budget:   number | null
   layout_notes:    string | null
-  specific_months: string[] | null
   expires_month:   string | null
   notes:           string | null
+  is_ongoing:      boolean | null
   advertiser:      { business_name: string } | { business_name: string }[] | null
 }
 
@@ -44,14 +44,19 @@ function getBiz(r: Row): string {
 }
 
 const HEADERS = [
-  'Business', 'Design', 'Directory', 'Size', 'Layout',
-  'Price', 'Social Budget', 'Layout Notes', 'Specific Months',
-  'Expires', 'Notes',
+  'Business', 'Status', 'Design', 'Directory', 'Size', 'Layout',
+  'Price', 'Social Budget', 'Layout Notes', 'Expires', 'Notes',
 ]
 
-function rowToCells(r: Row): string[] {
+function statusFor(r: Row, issue: string): string {
+  if (r.expires_month && r.expires_month < issue) return 'EXPIRED'
+  return r.is_ongoing === false ? 'CHECK' : 'Ongoing'
+}
+
+function rowToCells(r: Row, issue: string): string[] {
   return [
     csvCell(getBiz(r)),
+    csvCell(statusFor(r, issue)),
     csvCell(r.design),
     r.directory ? 'Yes' : 'No',
     String(r.size),
@@ -59,7 +64,6 @@ function rowToCells(r: Row): string[] {
     r.price         != null ? String(r.price)         : '',
     r.social_budget != null ? String(r.social_budget) : '',
     csvCell(r.layout_notes ?? ''),
-    csvCell((r.specific_months ?? []).join('; ')),
     csvCell(r.expires_month ?? ''),
     csvCell(r.notes ?? ''),
   ]
@@ -71,12 +75,12 @@ function totalsRow(rows: Row[]): string[] {
   const social  = rows.reduce((s, r) => s + (r.social_budget ?? 0), 0)
   return [
     csvCell(`TOTAL — ${rows.length} placement${rows.length === 1 ? '' : 's'}`),
-    '', '',
+    '', '', '',
     pages.toFixed(2),
     '',
     String(price),
     String(social),
-    '', '', '', '',
+    '', '', '',
   ]
 }
 
@@ -90,7 +94,7 @@ export async function GET(req: NextRequest) {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('print_ad_placements')
-    .select('id, design, directory, size, layout, price, social_budget, layout_notes, specific_months, expires_month, notes, advertiser:advertiser_account_id (business_name)')
+    .select('id, design, directory, size, layout, price, social_budget, layout_notes, expires_month, notes, is_ongoing, advertiser:advertiser_account_id (business_name)')
     .eq('issue_month', issue)
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -110,7 +114,7 @@ export async function GET(req: NextRequest) {
   function section(title: string, sorted: Row[]) {
     lines.push(csvCell(`=== ${title} ===`))
     lines.push(HEADERS.join(','))
-    for (const r of sorted) lines.push(rowToCells(r).join(','))
+    for (const r of sorted) lines.push(rowToCells(r, issue).join(','))
     lines.push(totalsRow(sorted).join(','))
     lines.push('')
   }

@@ -10,16 +10,14 @@
 //
 // Body: { from_month: 'YYYY-MM', to_month: 'YYYY-MM', ids?: string[] }
 //
-// Carry-forward rules:
-//   - is_ongoing=TRUE   → carry unless expires_month < to_month.
-//   - is_ongoing=FALSE  → carry only if specific_months contains
-//                         to_month. Seasonal sponsors who only buy
-//                         certain months get respected.
-//   - Already-on-target (same advertiser, same to_month) → skip
-//     (idempotent — re-running the clone is safe).
+// Carry-forward rule: every source row carries unless an
+// advertiser already has a row on the target month (idempotent — re-
+// running the clone is safe). Expired commitments still carry forward,
+// flagged red in the UI so the editor can renew (bump expires_month)
+// or delete the row. Silently dropping them would hide re-up
+// candidates from the editor.
 //
-// Returns: created + skippedExpired + skippedOutOfSeason +
-//          skippedDuplicate counts.
+// Returns: { created, skippedDuplicate }.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -36,11 +34,6 @@ interface Body {
 }
 
 const YYYYMM = /^[0-9]{4}-[0-9]{2}$/
-
-function compareMonth(a: string, b: string): number {
-  // YYYY-MM strings compare lexicographically correctly.
-  return a < b ? -1 : a > b ? 1 : 0
-}
 
 export async function POST(req: NextRequest) {
   await requireAdmin()
@@ -69,7 +62,7 @@ export async function POST(req: NextRequest) {
   }
   const source = sourceRes.data ?? []
   if (source.length === 0) {
-    return NextResponse.json({ ok: true, created: 0, skippedExpired: 0, skippedOutOfSeason: 0, skippedDuplicate: 0, errors: [] })
+    return NextResponse.json({ ok: true, created: 0, skippedDuplicate: 0, errors: [] })
   }
 
   // 2. Pre-fetch destination month's existing rows so we can dedup
@@ -83,21 +76,12 @@ export async function POST(req: NextRequest) {
   const alreadyOnTarget = new Set(((existingRes.data ?? []) as Array<{ advertiser_account_id: string }>)
     .map(r => r.advertiser_account_id))
 
-  // 3. Build the insert payload, applying the carry-forward rules.
-  let skippedExpired      = 0
-  let skippedOutOfSeason  = 0
-  let skippedDuplicate    = 0
+  // 3. Build the insert payload.
+  let skippedDuplicate = 0
   const rowsToInsert: Array<Record<string, unknown>> = []
   for (const r of source) {
-    const advId        = r.advertiser_account_id as string
-    const exp          = (r.expires_month ?? null) as string | null
-    const isOngoing    = (r.is_ongoing ?? true) as boolean
-    const months       = (r.specific_months ?? []) as string[]
-    // Hard skips:
-    if (exp && compareMonth(exp, to) < 0)      { skippedExpired++;    continue }
-    if (alreadyOnTarget.has(advId))            { skippedDuplicate++;  continue }
-    // Seasonal sponsors only carry into months they explicitly bought.
-    if (!isOngoing && !months.includes(to))    { skippedOutOfSeason++; continue }
+    const advId = r.advertiser_account_id as string
+    if (alreadyOnTarget.has(advId)) { skippedDuplicate++; continue }
     rowsToInsert.push({
       advertiser_account_id: advId,
       issue_month:           to,
@@ -108,29 +92,27 @@ export async function POST(req: NextRequest) {
       price:                 r.price,
       social_budget:         r.social_budget,
       layout_notes:          r.layout_notes,
-      specific_months:       months,
+      specific_months:       r.specific_months ?? [],
       expires_month:         r.expires_month,
       notes:                 r.notes,
-      is_ongoing:            isOngoing,
+      is_ongoing:            r.is_ongoing ?? true,
     })
   }
 
   // 4. Bulk insert; surface DB errors individually if any.
   if (rowsToInsert.length === 0) {
-    return NextResponse.json({ ok: true, created: 0, skippedExpired, skippedOutOfSeason, skippedDuplicate, errors: [] })
+    return NextResponse.json({ ok: true, created: 0, skippedDuplicate, errors: [] })
   }
   const { error: insertErr } = await supabase
     .from('print_ad_placements')
     .insert(rowsToInsert)
   if (insertErr) {
-    return NextResponse.json({ error: insertErr.message, created: 0, skippedExpired, skippedOutOfSeason, skippedDuplicate }, { status: 500 })
+    return NextResponse.json({ error: insertErr.message, created: 0, skippedDuplicate }, { status: 500 })
   }
   return NextResponse.json({
-    ok: true,
-    created:            rowsToInsert.length,
-    skippedExpired,
-    skippedOutOfSeason,
+    ok:                true,
+    created:           rowsToInsert.length,
     skippedDuplicate,
-    errors:             [],
+    errors:            [],
   })
 }

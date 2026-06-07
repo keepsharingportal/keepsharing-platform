@@ -125,6 +125,12 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
   const [sortKey, setSortKey] = useState<SortKey>('size')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
+  // Status filter. Editor's monthly pass: click 'Check Status' to see
+  // only the advertisers she needs to verify, click 'Expired' to see
+  // the re-up candidates. 'All' restores the full sheet.
+  type StatusFilter = 'all' | 'ongoing' | 'check' | 'expired'
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
   function clickSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
@@ -157,12 +163,45 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
     return out
   }, [rows, sortKey, sortDir])
 
+  // Expired = the commitment date is now in the past relative to this
+  // issue. We carry forward anyway so the editor can decide; the row
+  // just goes red until she bumps expires_month (re-up) or deletes it.
+  function isExpired(r: PrintPlacement): boolean {
+    return !!r.expires_month && r.expires_month < issue
+  }
+
+  // Status counts power the top-of-page filter pills. Expired wins over
+  // the run_mode (an expired ongoing is shown red, not green) so the
+  // editor sees decision points first.
+  const statusCounts = useMemo(() => {
+    let ongoing = 0, check = 0, expired = 0
+    for (const r of rows) {
+      if (isExpired(r))      expired++
+      else if (r.is_ongoing) ongoing++
+      else                   check++
+    }
+    return { ongoing, check, expired, all: rows.length }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, issue])
+
+  const visibleRows = useMemo(() => {
+    if (statusFilter === 'all') return sortedRows
+    return sortedRows.filter(r => {
+      const exp = isExpired(r)
+      if (statusFilter === 'expired') return exp
+      if (statusFilter === 'ongoing') return !exp && r.is_ongoing
+      if (statusFilter === 'check')   return !exp && !r.is_ongoing
+      return true
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedRows, statusFilter, issue])
+
   // Selection helpers — work off the visible set so 'select all'
   // matches what the editor's actually looking at.
-  const allSelected = sortedRows.length > 0 && sortedRows.every(r => selected.has(r.id))
-  const someSelected = !allSelected && sortedRows.some(r => selected.has(r.id))
+  const allSelected = visibleRows.length > 0 && visibleRows.every(r => selected.has(r.id))
+  const someSelected = !allSelected && visibleRows.some(r => selected.has(r.id))
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(sortedRows.map(r => r.id)))
+    setSelected(allSelected ? new Set() : new Set(visibleRows.map(r => r.id)))
   }
   function toggleOne(id: string) {
     setSelected(prev => {
@@ -209,10 +248,8 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
         return
       }
       const parts: string[] = []
-      if (json.created)            parts.push(`${json.created} duplicated`)
-      if (json.skippedExpired)     parts.push(`${json.skippedExpired} expired`)
-      if (json.skippedOutOfSeason) parts.push(`${json.skippedOutOfSeason} out-of-season`)
-      if (json.skippedDuplicate)   parts.push(`${json.skippedDuplicate} already on ${shortMonth(nextMonth)}`)
+      if (json.created)          parts.push(`${json.created} duplicated`)
+      if (json.skippedDuplicate) parts.push(`${json.skippedDuplicate} already on ${shortMonth(nextMonth)}`)
       window.alert(parts.length > 0 ? parts.join(' · ') : 'Nothing to duplicate')
       clearSelection()
     })
@@ -245,7 +282,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
   }
 
   async function onClone() {
-    if (!confirm(`Clone every committed placement from ${fmtIssue(prevMonth)} into ${fmtIssue(issue)}? Expired commitments and duplicates are skipped.`)) return
+    if (!confirm(`Clone every committed placement from ${fmtIssue(prevMonth)} into ${fmtIssue(issue)}? Existing rows on the target month are skipped; expired commitments carry forward flagged red so you can re-up or remove them.`)) return
     startTransition(async () => {
       const res = await fetch('/api/admin/print-placements/clone-month', {
         method:  'POST',
@@ -259,7 +296,6 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
       }
       const parts: string[] = []
       if (json.created)          parts.push(`${json.created} added`)
-      if (json.skippedExpired)   parts.push(`${json.skippedExpired} expired`)
       if (json.skippedDuplicate) parts.push(`${json.skippedDuplicate} already here`)
       window.alert(parts.length > 0 ? parts.join(' · ') : 'Nothing to clone')
       router.refresh()
@@ -368,6 +404,41 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           </div>
         </div>
 
+        {/* Status filter pills — Ongoing / Check Status / Expired with
+            running counts. Editor's monthly pass: click Check Status to
+            see who needs a verify, click Expired to see who needs a
+            re-up decision. */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <StatusPill
+            label="All"
+            count={statusCounts.all}
+            tone="neutral"
+            active={statusFilter === 'all'}
+            onClick={() => setStatusFilter('all')}
+          />
+          <StatusPill
+            label="Ongoing"
+            count={statusCounts.ongoing}
+            tone="green"
+            active={statusFilter === 'ongoing'}
+            onClick={() => setStatusFilter('ongoing')}
+          />
+          <StatusPill
+            label="Check Status"
+            count={statusCounts.check}
+            tone="amber"
+            active={statusFilter === 'check'}
+            onClick={() => setStatusFilter('check')}
+          />
+          <StatusPill
+            label="Expired"
+            count={statusCounts.expired}
+            tone="rose"
+            active={statusFilter === 'expired'}
+            onClick={() => setStatusFilter('expired')}
+          />
+        </div>
+
         {/* Migration banner — until 129 is applied. */}
         {tableMissing && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -469,14 +540,13 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   <SortHeader label="Layout"   sortKey="layout"        active={sortKey} dir={sortDir} onClick={clickSort} />
                   <SortHeader label="Price"    sortKey="price"         active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
                   <SortHeader label="Social"   sortKey="social_budget" active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
-                  <th className="px-3 py-2 font-semibold">Months</th>
                   <SortHeader label="Expires"  sortKey="expires_month" active={sortKey} dir={sortDir} onClick={clickSort} />
                   <th className="px-3 py-2 font-semibold">Notes</th>
                   <th className="px-3 py-2 font-semibold print:hidden"></th>
                 </tr>
               </thead>
               <tbody>
-                {sortedRows.map(r => editing === r.id ? (
+                {visibleRows.map(r => editing === r.id ? (
                   <EditRow
                     key={r.id}
                     row={r}
@@ -491,6 +561,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   <ReadRow
                     key={r.id}
                     row={r}
+                    isExpired={isExpired(r)}
                     selected={selected.has(r.id)}
                     onToggle={() => toggleOne(r.id)}
                     onEdit={() => { setEditing(r.id); setAdding(false) }}
@@ -568,23 +639,31 @@ function SortHeader({
 
 // ── Read-only row ───────────────────────────────────────────────────────────
 
-function ReadRow({ row, selected, onToggle, onEdit, onDelete }: {
-  row: PrintPlacement; selected: boolean; onToggle: () => void;
+function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
+  row: PrintPlacement; isExpired: boolean; selected: boolean; onToggle: () => void;
   onEdit: () => void; onDelete: () => void
 }) {
+  // Row-level visual state: expired wins over selection (re-up decision
+  // is more urgent than 'I picked this one'), then check-status, then
+  // selection, then default.
+  const rowBg = isExpired
+    ? 'bg-rose-50 hover:bg-rose-100'
+    : !row.is_ongoing
+      ? (selected ? 'bg-amber-100/70' : 'bg-amber-50/60 hover:bg-amber-50')
+      : (selected ? 'bg-amber-50/40' : 'hover:bg-gray-50')
   return (
-    <tr className={`border-b border-gray-100 last:border-0 hover:bg-gray-50 group ${selected ? 'bg-amber-50/40' : ''}`}>
+    <tr className={`border-b border-gray-100 last:border-0 group ${rowBg}`}>
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
-      <td className="px-4 py-2 font-bold text-gray-900">{row.business_name}</td>
+      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-gray-900'}`}>{row.business_name}</td>
       <td className="px-3 py-2 text-xs capitalize">{row.design}</td>
       <td className="px-3 py-2 text-xs">
         <div className="flex flex-col gap-0.5">
           <span>{row.directory ? 'Yes' : '—'}</span>
-          {!row.is_ongoing && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Seasonal — only runs the specific months listed.">
-              Seasonal
+          {!isExpired && !row.is_ongoing && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Check status — sporadic advertiser, verify before issue ships.">
+              Check
             </span>
           )}
         </div>
@@ -593,10 +672,16 @@ function ReadRow({ row, selected, onToggle, onEdit, onDelete }: {
       <td className="px-3 py-2 text-xs capitalize">{row.layout ?? '—'}</td>
       <td className="px-3 py-2 text-xs text-right tabular-nums">{row.price != null ? `$${row.price.toLocaleString()}` : '—'}</td>
       <td className="px-3 py-2 text-xs text-right tabular-nums">{row.social_budget != null ? `$${row.social_budget.toLocaleString()}` : '—'}</td>
-      <td className="px-3 py-2 text-[10px] text-gray-500 truncate max-w-[140px]">
-        {(row.specific_months ?? []).map(m => shortMonth(m)).join(', ') || '—'}
+      <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-rose-700 font-bold' : 'text-gray-600'}`}>
+        <div className="flex flex-col gap-0.5">
+          <span>{row.expires_month ? shortMonth(row.expires_month) : '—'}</span>
+          {isExpired && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Past expires_month — re-up by bumping the date, or delete the row to let lapse.">
+              Expired
+            </span>
+          )}
+        </div>
       </td>
-      <td className="px-3 py-2 text-[11px] text-gray-600">{row.expires_month ? shortMonth(row.expires_month) : '—'}</td>
       <td className="px-3 py-2 text-[11px] text-gray-500 truncate max-w-[180px]" title={row.layout_notes ?? ''}>
         {row.layout_notes ?? '—'}
       </td>
@@ -624,7 +709,6 @@ interface PatchShape {
   price?:           number | null
   social_budget?:   number | null
   layout_notes?:    string | null
-  specific_months?: string[]
   expires_month?:   string | null
   notes?:           string | null
   is_ongoing?:      boolean
@@ -644,7 +728,6 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
   const [price,    setPrice]    = useState<string>(row.price       != null ? String(row.price)         : '')
   const [social,   setSocial]   = useState<string>(row.social_budget != null ? String(row.social_budget) : '')
   const [layoutNotes, setLayoutNotes] = useState(row.layout_notes ?? '')
-  const [months,   setMonths]   = useState<string[]>(row.specific_months ?? [])
   const [expires,  setExpires]  = useState<string>(row.expires_month ?? '')
   const [ongoing,  setOngoing]  = useState<boolean>(row.is_ongoing ?? true)
   const [saving, setSaving] = useState(false)
@@ -660,15 +743,10 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         price:           price.trim()  === '' ? null : Number(price),
         social_budget:   social.trim() === '' ? null : Number(social),
         layout_notes:    layoutNotes.trim() || null,
-        specific_months: months,
         expires_month:   expires || null,
         is_ongoing:      ongoing,
       })
     } finally { setSaving(false) }
-  }
-
-  function toggleMonth(m: string) {
-    setMonths(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])
   }
 
   const inp = 'w-full text-xs border border-gray-200 rounded px-2 py-1 outline-none focus:border-gray-400'
@@ -688,9 +766,9 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
             <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
             {directory ? 'Yes' : 'No'}
           </label>
-          <label className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-500" title="Ongoing = runs every month until cancelled. Off = only the specific months ticked below.">
+          <label className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-500" title="Ongoing = runs every month. Off = Check Status (sporadic — verify before each issue).">
             <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
-            {ongoing ? 'Ongoing' : 'Seasonal'}
+            {ongoing ? 'Ongoing' : 'Check'}
           </label>
         </div>
       </td>
@@ -728,21 +806,6 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         </div>
       </td>
       <td className="px-3 py-2 align-top">
-        <details className="text-xs">
-          <summary className="cursor-pointer text-primary">
-            {months.length > 0 ? `${months.length} month${months.length === 1 ? '' : 's'}` : 'Pick months'}
-          </summary>
-          <div className="mt-1 grid grid-cols-3 gap-x-1 gap-y-0.5 max-h-40 overflow-y-auto p-1 bg-white border border-gray-200 rounded">
-            {monthOptions.map(m => (
-              <label key={m} className="inline-flex items-center gap-1 text-[10px] cursor-pointer">
-                <input type="checkbox" checked={months.includes(m)} onChange={() => toggleMonth(m)} />
-                {shortMonth(m)}
-              </label>
-            ))}
-          </div>
-        </details>
-      </td>
-      <td className="px-3 py-2 align-top">
         <select value={expires} onChange={e => setExpires(e.target.value)} className={inp}>
           <option value="">—</option>
           {monthOptions.map(m => <option key={m} value={m}>{shortMonth(m)}</option>)}
@@ -768,6 +831,41 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         </div>
       </td>
     </tr>
+  )
+}
+
+// StatusPill — counter chip for the top-of-page status filter. Active
+// state shows filled colour, inactive shows muted outline; click swaps
+// the page filter to that status.
+function StatusPill({ label, count, tone, active, onClick }: {
+  label:   string
+  count:   number
+  tone:    'neutral' | 'green' | 'amber' | 'rose'
+  active:  boolean
+  onClick: () => void
+}) {
+  const toneActive: Record<string, string> = {
+    neutral: 'bg-gray-900 text-white border-gray-900',
+    green:   'bg-emerald-600 text-white border-emerald-600',
+    amber:   'bg-amber-500 text-white border-amber-500',
+    rose:    'bg-rose-600 text-white border-rose-600',
+  }
+  const toneIdle: Record<string, string> = {
+    neutral: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
+    green:   'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50',
+    amber:   'bg-white text-amber-700 border-amber-200 hover:bg-amber-50',
+    rose:    'bg-white text-rose-700 border-rose-200 hover:bg-rose-50',
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold transition-colors ${active ? toneActive[tone] : toneIdle[tone]}`}
+      aria-pressed={active}
+    >
+      <span>{label}</span>
+      <span className={`tabular-nums ${active ? 'opacity-90' : 'opacity-70'}`}>{count}</span>
+    </button>
   )
 }
 
@@ -873,10 +971,10 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
               {directory ? 'Yes (in directory)' : 'No (not in directory)'}
             </label>
           </FieldRow>
-          <FieldRow enabled={enabled} onToggle={toggle} field="is_ongoing" label="Run schedule">
+          <FieldRow enabled={enabled} onToggle={toggle} field="is_ongoing" label="Status">
             <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
               <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
-              {ongoing ? 'Ongoing (every month)' : 'Specific months only'}
+              {ongoing ? 'Ongoing (every month)' : 'Check Status (sporadic)'}
             </label>
           </FieldRow>
           <FieldRow enabled={enabled} onToggle={toggle} field="size" label="Size">
@@ -947,7 +1045,6 @@ interface AddFormShape {
   price:                 number | null
   social_budget:         number | null
   layout_notes:          string | null
-  specific_months:       string[]
   expires_month:         string | null
   is_ongoing:            boolean
 }
@@ -967,10 +1064,10 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
   const [price,    setPrice]    = useState('')
   const [social,   setSocial]   = useState('')
   const [layoutNotes, setLayoutNotes] = useState('')
-  const [months,   setMonths]   = useState<string[]>([])
   const [expires,  setExpires]  = useState('')
-  // Default ongoing=true — by far the most common case. Editors flip
-  // it off for seasonal sponsors who only buy specific months.
+  // Default ongoing=true — runs every month until cancelled. Editor
+  // unticks for sporadic advertisers who need a verify each issue
+  // ('Check Status').
   const [ongoing,  setOngoing]  = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -988,13 +1085,9 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
         social_budget:   social.trim() === '' ? null : Number(social),
         layout_notes:    layoutNotes.trim() || null,
         is_ongoing:      ongoing,
-        specific_months: months,
         expires_month:   expires || null,
       })
     } finally { setSaving(false) }
-  }
-  function toggleMonth(m: string) {
-    setMonths(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])
   }
 
   const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
@@ -1043,10 +1136,10 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
           </label>
         </div>
         <div>
-          <label className={lbl}>Run schedule</label>
-          <label className="inline-flex items-center gap-2 cursor-pointer text-sm pt-2">
+          <label className={lbl}>Status</label>
+          <label className="inline-flex items-center gap-2 cursor-pointer text-sm pt-2" title="Ongoing = runs every month. Off = Check Status (sporadic — needs monthly verification).">
             <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
-            {ongoing ? 'Ongoing (every month)' : 'Specific months only'}
+            {ongoing ? 'Ongoing' : 'Check Status'}
           </label>
         </div>
         <div>
@@ -1075,19 +1168,6 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
             {monthOptions.map(m => <option key={m} value={m}>{shortMonth(m)}</option>)}
           </select>
         </div>
-        {!ongoing && (
-          <div className="sm:col-span-2 lg:col-span-4">
-            <label className={lbl}>Specific months purchased</label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-y-0.5 gap-x-2 p-2 bg-gray-50 rounded-lg">
-              {monthOptions.map(m => (
-                <label key={m} className="inline-flex items-center gap-1 text-[11px] cursor-pointer">
-                  <input type="checkbox" checked={months.includes(m)} onChange={() => toggleMonth(m)} />
-                  {shortMonth(m)}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
         <div className="sm:col-span-2 lg:col-span-4">
           <label className={lbl}>Layout notes</label>
           <input value={layoutNotes} onChange={e => setLayoutNotes(e.target.value)} placeholder="Layout notes for the design team…" className={inp} />
