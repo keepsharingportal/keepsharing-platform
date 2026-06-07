@@ -72,7 +72,6 @@ export function FRGHero({
           placeholderName="Your Business Here"
           placeholderTagline="Own the Family Resource Guide for a year — your business anchors every page River Region moms use to find services."
           placeholderCtaLabel="Claim This Spot"
-          size="sm"
         />
       </div>
     </div>

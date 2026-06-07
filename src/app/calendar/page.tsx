@@ -140,6 +140,10 @@ export default async function CalendarPage() {
         businessName: heroAds[0].advertiser_name,
         slug:         heroAds[0].advertiser_slug ?? null,
         headline:     heroAds[0].ad_headline ?? null,
+        imageUrl:     heroAds[0].ad_image_url ?? null,
+        description:  heroAds[0].ad_description ?? null,
+        ctaLabel:     heroAds[0].ad_cta_label ?? null,
+        link:         heroAds[0].ad_link ?? null,
         placementId:  heroAds[0].id,
       }
     : null

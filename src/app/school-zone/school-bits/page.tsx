@@ -222,6 +222,11 @@ export interface SchoolBitsSponsor {
   businessName: string
   slug:         string | null
   headline:     string | null
+  // YMCA-inline-ad fields — fed into HeroSponsorCard's image/copy/CTA.
+  imageUrl?:    string | null
+  description?: string | null
+  ctaLabel?:    string | null
+  link?:        string | null
   placementId:  string
 }
 
@@ -275,7 +280,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
     // anchors. Match on placement_context so the same DB shape works for
     // every vertical.
     supabase.from('ad_placements')
-      .select('id, ad_headline, advertiser:advertiser_accounts(business_name, slug)')
+      .select('id, ad_headline, ad_description, ad_cta_label, ad_link, ad_image_url, advertiser:advertiser_accounts(business_name, slug)')
       .eq('placement_type', 'section_sponsor')
       .eq('is_active', true)
       .ilike('placement_context', '%school-bits%')
@@ -371,15 +376,23 @@ export default async function SchoolBitsPage(_props: PageParams) {
   }
 
   const sponsorRow = sponsorRes.data as {
-    id:          string
-    ad_headline: string | null
-    advertiser:  { business_name?: string | null; slug?: string | null } | null
+    id:             string
+    ad_headline:    string | null
+    ad_description: string | null
+    ad_cta_label:   string | null
+    ad_link:        string | null
+    ad_image_url:   string | null
+    advertiser:     { business_name?: string | null; slug?: string | null } | null
   } | null
   const sponsor: SchoolBitsSponsor | null = sponsorRow?.advertiser?.business_name
     ? {
         businessName: sponsorRow.advertiser.business_name,
         slug:         sponsorRow.advertiser.slug ?? null,
         headline:     sponsorRow.ad_headline ?? null,
+        imageUrl:     sponsorRow.ad_image_url ?? null,
+        description:  sponsorRow.ad_description ?? null,
+        ctaLabel:     sponsorRow.ad_cta_label ?? null,
+        link:         sponsorRow.ad_link ?? null,
         placementId:  sponsorRow.id,
       }
     : null
@@ -422,12 +435,11 @@ export default async function SchoolBitsPage(_props: PageParams) {
           <div className="flex justify-center pb-2 md:pb-4">
             <HeroSponsorCard
               sponsor={sponsor}
-              sponsorLabel="Proudly Presented By"
+              aboveLabel="School Bits Is Sponsored By"
               verticalSlug="school-bits"
               placeholderName="Your Business Here"
               placeholderTagline="Anchor School Bits for the year — your business sits at the top of every page parents and grandparents land on."
               placeholderCtaLabel="Claim This Spot"
-              size="sm"
             />
           </div>
         </div>

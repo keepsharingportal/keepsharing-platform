@@ -14,7 +14,7 @@ import {
 import { HeroSponsorCard } from '@/components/verticals/HeroSponsorCard'
 import { getActiveAds } from '@/lib/get-active-ads'
 import { GAMES, DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty, type GameId } from '@/lib/games/types'
-import { isoWeek, isoWeekString } from '@/lib/games/weekly'
+import { isoWeekString } from '@/lib/games/weekly'
 import { DifficultyChooser } from './DifficultyChooser'
 import { createClient } from '@supabase/supabase-js'
 
@@ -148,7 +148,9 @@ interface PageProps {
 export default async function GamesHubPage({ searchParams }: PageProps) {
   const sp         = await searchParams
   const difficulty: Difficulty = isValidDifficulty(sp.diff) ? sp.diff : DEFAULT_DIFFICULTY
-  const week       = isoWeek()
+  // (week label was rendered in the hero — copy was redundant with the
+  // subhead and got pruned. isoWeek() can come back when we add another
+  // copy block that genuinely needs it.)
 
   const ticker     = await recentScores()
   const tickerItems: string[] = ticker.length > 0
@@ -165,6 +167,11 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
         businessName: sponsorAds[0].advertiser_name,
         slug:         sponsorAds[0].advertiser_slug ?? null,
         headline:     sponsorAds[0].ad_headline ?? null,
+        // Extra fields powering the YMCA-inline-ad layout.
+        imageUrl:     sponsorAds[0].ad_image_url ?? null,
+        description:  sponsorAds[0].ad_description ?? null,
+        ctaLabel:     sponsorAds[0].ad_cta_label ?? null,
+        link:         sponsorAds[0].ad_link ?? null,
         placementId:  sponsorAds[0].id,
       }
     : null
@@ -179,45 +186,39 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           className="absolute inset-0 opacity-[0.10] pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
         />
-        <div className="container relative z-10 py-16 md:py-24 text-center">
-          <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest px-5 py-2 rounded-full bg-secondary text-secondary-foreground mb-7 shadow-sm">
-            <Sparkles className="h-4 w-4" />
-            Daily Challenge
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black text-foreground mb-5 leading-[1.05]">Family Brain Games</h1>
-          <p className="text-xl md:text-2xl font-bold text-foreground/85 max-w-2xl mx-auto mb-6 leading-snug">
-            New puzzles every day. Three $10 winners every week. The most fun a parent can have in 15 minutes.
+        <div className="container relative z-10 py-12 md:py-16 text-center">
+          <h1 className="text-5xl md:text-7xl font-black text-foreground mb-4 leading-[1.05]">Family Brain Games</h1>
+          <p className="text-lg md:text-xl text-foreground/80 max-w-xl mx-auto mb-6 leading-snug">
+            Quick puzzles. Three $10 winners every Monday.
           </p>
 
-          {/* Last week's 3 × $10 winners */}
-          <div className="inline-flex items-center gap-2 mb-3 rounded-full bg-background/80 border border-primary/30 px-4 py-2 shadow-sm max-w-full">
-            <Trophy className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-sm font-semibold text-foreground">
-              {lastWeek && lastWeek.winners.length > 0
-                ? <>
-                    Last week&apos;s $10 winners:&nbsp;
-                    <strong className="text-primary">
-                      {lastWeek.winners
-                        .sort((a, b) => a.slot - b.slot)
-                        .map(w => `${w.first_name} ${w.last_initial}.`)
-                        .join(', ')}
-                    </strong>
-                    {' '}<span className="text-muted-foreground font-normal">({lastWeek.week_label})</span>
-                  </>
-                : <>First weekly drawing coming Monday — every play this week is an entry.</>}
-            </span>
-          </div>
+          {/* Winners pill — only renders when last week actually has
+              winners. The placeholder 'first drawing coming Monday'
+              version got dropped because it repeats the subhead and
+              adds visual noise without telling the player anything
+              they don't already know. */}
+          {lastWeek && lastWeek.winners.length > 0 && (
+            <div className="inline-flex items-center gap-2 mb-8 rounded-full bg-background/80 border border-primary/30 px-4 py-2 shadow-sm max-w-full">
+              <Trophy className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-semibold text-foreground">
+                Last week&apos;s $10 winners:&nbsp;
+                <strong className="text-primary">
+                  {lastWeek.winners
+                    .sort((a, b) => a.slot - b.slot)
+                    .map(w => `${w.first_name} ${w.last_initial}.`)
+                    .join(', ')}
+                </strong>
+                {' '}<span className="text-muted-foreground font-normal">({lastWeek.week_label})</span>
+              </span>
+            </div>
+          )}
 
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-3 mb-10">
-            New games every morning · Week {week.week}, {week.year}
-          </p>
-
-          {/* Sponsor — reads from ad_placements via getActiveAds.
-              When no sponsor is booked, shows the "Your Business Here" placeholder.
-              Previously hardcoded to "Brainy Kids Academy". */}
+          {/* Sponsor — YMCA-inline-ad layout, with a small label
+              above the box. Reads from ad_placements via
+              getActiveAds; placeholder when nothing is booked. */}
           <HeroSponsorCard
             sponsor={gamesSponsor}
-            sponsorLabel="Sponsored By"
+            aboveLabel="Family Brain Games Are Sponsored By"
             verticalSlug="games"
             placeholderName="Your Business Here"
             placeholderTagline="Sponsor Family Brain Games — your business anchors every game page River Region families play."
