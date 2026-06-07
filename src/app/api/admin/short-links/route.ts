@@ -27,7 +27,13 @@ interface Body {
   utm_content?:           string | null
   advertiser_account_id?: string | null
   qr_primary_color?:      string | null
+  // Migration 127 fields. Both optional so a fresh DB (no migration)
+  // or an older client (no purpose/channel in body) still inserts cleanly.
+  purpose?:               string
+  channel?:               string | null
 }
+
+const VALID_PURPOSES = ['qr', 'ad', 'campaign'] as const
 
 export async function POST(req: NextRequest) {
   try { await requireAdmin() }
@@ -54,23 +60,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Shortcode "${shortcode}" already exists` }, { status: 409 })
   }
 
-  const { data, error } = await supabase
+  // Normalize purpose — anything outside the allowlist falls back to 'qr'
+  // (the column default). Channel passes through as-is; the UI controls
+  // the curated list.
+  const purpose = body.purpose && (VALID_PURPOSES as readonly string[]).includes(body.purpose)
+    ? body.purpose
+    : 'qr'
+
+  // Build the insert object. Try with the migration-127 columns first;
+  // fall back to the older shape if the DB hasn't been migrated yet.
+  const baseInsert = {
+    shortcode,
+    destination,
+    content_type:          body.content_type   || 'url',
+    content_data:          body.content_data    || {},
+    label:                 body.label           ?? null,
+    utm_source:            body.utm_source      || 'magazine',
+    utm_medium:            body.utm_medium      || 'qr',
+    utm_campaign:          body.utm_campaign    || null,
+    utm_content:           body.utm_content     || null,
+    advertiser_account_id: body.advertiser_account_id || null,
+    qr_primary_color:      body.qr_primary_color || '#ef6442',
+  }
+  let res = await supabase
     .from('short_links')
-    .insert({
-      shortcode,
-      destination,
-      content_type:          body.content_type   || 'url',
-      content_data:          body.content_data    || {},
-      label:                 body.label           ?? null,
-      utm_source:            body.utm_source      || 'magazine',
-      utm_medium:            body.utm_medium      || 'qr',
-      utm_campaign:          body.utm_campaign    || null,
-      utm_content:           body.utm_content     || null,
-      advertiser_account_id: body.advertiser_account_id || null,
-      qr_primary_color:      body.qr_primary_color || '#ef6442',
-    })
+    .insert({ ...baseInsert, purpose, channel: body.channel ?? null })
     .select('*')
     .single()
+  if (res.error && /column .* does not exist/i.test(res.error.message)) {
+    res = await supabase
+      .from('short_links')
+      .insert(baseInsert)
+      .select('*')
+      .single()
+  }
+  const { data, error } = res
 
   if (error) {
     console.error('[admin/short-links POST]', error)

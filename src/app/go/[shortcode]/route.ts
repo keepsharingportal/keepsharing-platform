@@ -61,8 +61,17 @@ export async function GET(
 
   const row = data as LinkRow
 
-  // Fire-and-forget click count bump
+  // Fire-and-forget click count bump + last_clicked_at stamp. The RPC
+  // owns the atomic increment of click_count; the second call sets
+  // last_clicked_at to NOW() so the admin "Most recently clicked" sort
+  // works. Errors on the timestamp update are silently swallowed for
+  // the same reason the count bump is — a missing last_clicked_at
+  // column (pre-127) just means no timestamp, never a failed redirect.
   sb.rpc('increment_short_link_click', { p_id: row.id }).then(() => {}, () => {})
+  sb.from('short_links')
+    .update({ last_clicked_at: new Date().toISOString() })
+    .eq('id', row.id)
+    .then(() => {}, () => {})
 
   switch (row.content_type) {
     case 'url':

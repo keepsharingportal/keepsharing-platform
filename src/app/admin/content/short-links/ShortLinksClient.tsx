@@ -1,17 +1,24 @@
 'use client'
 
-// ShortLinksClient — full QR code management tool.
+// ShortLinksClient — tracked-link management tool.
+// Three use cases share one redirect mechanism (see ./link-taxonomy):
+//   1. QR codes (printable)
+//   2. Ad links (on-site CTA, minted by the ad editor)
+//   3. Campaign links (external — Facebook ads, Instagram, email, etc.)
 // Replaces the external QR Code Studio subscription.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import {
   Plus, Copy, Check, ExternalLink, RefreshCw, Trash2, QrCode,
   MousePointer, AlertTriangle, Download, Link2, Phone, Mail, MessageSquare,
-  FileText, Calendar, User, Pencil,
+  FileText, Calendar, User, Pencil, Search, X,
 } from 'lucide-react'
 import type { ShortLinkRow, AdvertiserOption } from './page'
+import {
+  PURPOSE_LIST, purposeOf, type Purpose,
+  CHANNEL_LIST, CHANNELS, channelOf, channelsForPurpose, type Channel,
+} from './link-taxonomy'
 
 const SITE_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'https://riverregionparents.com'
 
@@ -30,21 +37,41 @@ interface Props {
   advertisers: AdvertiserOption[]
 }
 
-// Each row is either a QR-code shortcode (the original use case — gets a
-// printed QR) or an Ad-link shortcode minted by /admin/ads/[id]/edit
-// (tracked CTA on a digital ad). Both live in short_links; the only tell
-// is ad_placement_id IS NOT NULL on the ad-link rows.
-function isAdLink(row: ShortLinkRow): boolean {
-  return !!row.ad_placement_id
+// Resolve a row's effective purpose. Reads the column first; falls back
+// to legacy heuristic (ad_placement_id IS NOT NULL = ad) so pre-migration
+// rows still partition correctly across the filter chips.
+function purposeFor(row: ShortLinkRow): Purpose {
+  if (row.purpose === 'ad' || row.purpose === 'qr' || row.purpose === 'campaign') {
+    return row.purpose
+  }
+  return row.ad_placement_id ? 'ad' : 'qr'
 }
 
-type FilterTab = 'all' | 'ads' | 'qr'
+// Audience filter — derived from advertiser_account_id presence. No
+// new column needed.
+type Audience = 'all' | 'in_house' | 'client'
+type SortKey  = 'newest' | 'oldest' | 'clicks' | 'recent'
+
+const SORT_LABELS: Record<SortKey, string> = {
+  newest: 'Newest first',
+  oldest: 'Oldest first',
+  clicks: 'Most clicks',
+  recent: 'Most recently clicked',
+}
 
 export function ShortLinksClient({ initialRows, advertisers }: Props) {
   const router = useRouter()
-  const [rows, setRows]     = useState<ShortLinkRow[]>(initialRows)
+  const [rows, setRows]       = useState<ShortLinkRow[]>(initialRows)
   const [addOpen, setAddOpen] = useState(false)
-  const [tab, setTab] = useState<FilterTab>('all')
+
+  // Filter state
+  const [tab, setTab]                       = useState<'all' | Purpose>('all')
+  const [search, setSearch]                 = useState('')
+  const [channelFilter, setChannelFilter]   = useState<'all' | Channel>('all')
+  const [audienceFilter, setAudienceFilter] = useState<Audience>('all')
+  const [contentTypeFilter, setContentTypeFilter] = useState<string>('all')
+  const [advertiserFilter, setAdvertiserFilter]   = useState<string>('all')
+  const [sortKey, setSortKey]               = useState<SortKey>('newest')
 
   function onCreated(row: ShortLinkRow) {
     setRows(prev => [row, ...prev])
@@ -55,12 +82,68 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
     setRows(prev => prev.filter(r => r.id !== id))
   }
 
-  const adCount   = rows.filter(isAdLink).length
-  const qrCount   = rows.length - adCount
-  const visibleRows = rows.filter(r =>
-    tab === 'all' ? true :
-    tab === 'ads' ? isAdLink(r) :
-                    !isAdLink(r)
+  // Counts per purpose (drives the tab strip + stat tiles).
+  const counts = useMemo(() => {
+    const c = { all: rows.length, qr: 0, ad: 0, campaign: 0 }
+    for (const r of rows) c[purposeFor(r)]++
+    return c
+  }, [rows])
+
+  // Apply all filters + sort.
+  const visibleRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const advLookup = new Map(advertisers.map(a => [a.id, a.business_name.toLowerCase()]))
+    let out = rows.filter(r => {
+      if (tab !== 'all' && purposeFor(r) !== tab) return false
+      if (channelFilter !== 'all' && (r.channel ?? '') !== channelFilter) return false
+      if (audienceFilter === 'in_house' && r.advertiser_account_id) return false
+      if (audienceFilter === 'client'   && !r.advertiser_account_id) return false
+      if (contentTypeFilter !== 'all' && r.content_type !== contentTypeFilter) return false
+      if (advertiserFilter !== 'all' && r.advertiser_account_id !== advertiserFilter) return false
+      if (q) {
+        const advName = r.advertiser_account_id ? (advLookup.get(r.advertiser_account_id) ?? '') : ''
+        const hay = [
+          r.shortcode, r.destination, r.label ?? '', r.utm_campaign ?? '', advName,
+        ].join(' ').toLowerCase()
+        if (!hay.includes(q)) return false
+      }
+      return true
+    })
+
+    // Sort
+    out = [...out]
+    switch (sortKey) {
+      case 'newest':
+        out.sort((a, b) => b.created_at.localeCompare(a.created_at))
+        break
+      case 'oldest':
+        out.sort((a, b) => a.created_at.localeCompare(b.created_at))
+        break
+      case 'clicks':
+        out.sort((a, b) => b.click_count - a.click_count)
+        break
+      case 'recent':
+        out.sort((a, b) => (b.last_clicked_at ?? '').localeCompare(a.last_clicked_at ?? ''))
+        break
+    }
+    return out
+  }, [rows, tab, channelFilter, audienceFilter, contentTypeFilter, advertiserFilter, search, sortKey, advertisers])
+
+  const anyFilterActive = tab !== 'all' || channelFilter !== 'all' || audienceFilter !== 'all'
+    || contentTypeFilter !== 'all' || advertiserFilter !== 'all' || search.trim() !== ''
+
+  function clearAllFilters() {
+    setTab('all')
+    setChannelFilter('all')
+    setAudienceFilter('all')
+    setContentTypeFilter('all')
+    setAdvertiserFilter('all')
+    setSearch('')
+  }
+
+  const advertiserCount = useMemo(
+    () => new Set(rows.filter(r => r.advertiser_account_id).map(r => r.advertiser_account_id)).size,
+    [rows],
   )
 
   return (
@@ -68,17 +151,17 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-            <QrCode size={18} className="text-primary" /> QR Codes & Short Links
+            <QrCode size={18} className="text-primary" /> Tracked Links
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Create QR codes for print — URLs, phone numbers, vCards, events. Every scan is tracked and linked to advertisers.
+            QR codes, on-site ad CTAs, and external campaign links. Every click is tracked, UTMs auto-append on redirect, and rows tie back to advertisers for measurement.
           </p>
         </div>
         <button
           onClick={() => setAddOpen(v => !v)}
           className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
         >
-          <Plus size={14} /> New QR Code
+          <Plus size={14} /> New Tracked Link
         </button>
       </div>
 
@@ -90,35 +173,80 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         />
       )}
 
-      {/* ── Filter tabs ──────────────────────────────────────────
-          QR codes (the original use case) and Ad-link tracking (added in
-          migration 123) share the same table. The tab strip lets the
-          editor see them mixed or isolate either kind. */}
+      {/* ── Stat tiles ────────────────────────────────────────────
+          One tile per purpose + a totals tile. Clicking a tile sets
+          the purpose tab — same affordance as the chips below, but
+          larger and easier to find when the editor first lands. */}
       {rows.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-1">
-          {([
-            { key: 'all' as const, label: 'All',       count: rows.length },
-            { key: 'ads' as const, label: 'Ad links',  count: adCount     },
-            { key: 'qr'  as const, label: 'QR codes',  count: qrCount     },
-          ]).map(t => {
-            const on = tab === t.key
-            return (
+        <div className="bg-white border-b border-gray-200 px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatTile label="All links"      value={counts.all}      active={tab === 'all'}      onClick={() => setTab('all')}      accent="#0f172a" />
+          <StatTile label="QR codes"       value={counts.qr}       active={tab === 'qr'}       onClick={() => setTab('qr')}       accent="#7c3aed" />
+          <StatTile label="Ad links"       value={counts.ad}       active={tab === 'ad'}       onClick={() => setTab('ad')}       accent="#d97706" />
+          <StatTile label="Campaign links" value={counts.campaign} active={tab === 'campaign'} onClick={() => setTab('campaign')} accent="#0284c7" />
+        </div>
+      )}
+
+      {/* ── Search + filter bar ─────────────────────────────────── */}
+      {rows.length > 0 && (
+        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* Search — lg:col-span-2 to give it visual priority. */}
+          <div className="lg:col-span-2 relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by label, shortcode, destination, advertiser…"
+              className="w-full text-sm pl-9 pr-9 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+            />
+            {search && (
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                  on
-                    ? t.key === 'ads' ? 'bg-amber-600   text-white'
-                    : t.key === 'qr'  ? 'bg-violet-600  text-white'
-                    :                   'bg-gray-900    text-white'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                aria-label="Clear search"
               >
-                {t.label}
-                <span className={`text-[10px] font-bold ${on ? 'opacity-80' : 'text-gray-400'}`}>{t.count}</span>
+                <X size={14} />
               </button>
-            )
-          })}
+            )}
+          </div>
+          <FilterSelect
+            label="Channel"
+            value={channelFilter}
+            onChange={v => setChannelFilter(v as 'all' | Channel)}
+            options={[
+              { value: 'all', label: 'All channels' },
+              ...CHANNEL_LIST.map(c => ({ value: c.value, label: c.label })),
+            ]}
+          />
+          <FilterSelect
+            label="Audience"
+            value={audienceFilter}
+            onChange={v => setAudienceFilter(v as Audience)}
+            options={[
+              { value: 'all',      label: `All (${rows.length})` },
+              { value: 'in_house', label: 'In-house (no advertiser)' },
+              { value: 'client',   label: `Client (${advertiserCount} businesses)` },
+            ]}
+          />
+          <FilterSelect
+            label="Sort"
+            value={sortKey}
+            onChange={v => setSortKey(v as SortKey)}
+            options={(Object.entries(SORT_LABELS) as Array<[SortKey, string]>).map(([v, l]) => ({ value: v, label: l }))}
+          />
+        </div>
+      )}
+
+      {/* ── Secondary filter chips ─────────────────────────────── */}
+      {rows.length > 0 && anyFilterActive && (
+        <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-2 text-xs flex-wrap">
+          <span className="text-gray-500 font-semibold">Showing {visibleRows.length} of {rows.length}</span>
+          <button
+            onClick={clearAllFilters}
+            className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900 font-semibold"
+          >
+            <X size={12} /> Clear all filters
+          </button>
         </div>
       )}
 
@@ -126,11 +254,12 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         {rows.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
             <QrCode size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No QR codes yet. Create one for your first magazine QR.</p>
+            <p className="text-sm">No tracked links yet. Create one for your first QR or campaign.</p>
           </div>
         ) : visibleRows.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
-            <p className="text-sm">No rows match this tab.</p>
+            <p className="text-sm">No rows match these filters.</p>
+            <button onClick={clearAllFilters} className="mt-2 text-xs font-semibold text-primary hover:underline">Clear all filters</button>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
@@ -139,6 +268,54 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         )}
       </div>
     </div>
+  )
+}
+
+// ── Small filter UI bits ────────────────────────────────────────────────────
+
+function FilterSelect({ label, value, onChange, options }: {
+  label:    string
+  value:    string
+  onChange: (v: string) => void
+  options:  Array<{ value: string; label: string }>
+}) {
+  return (
+    <div>
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400 cursor-pointer"
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  )
+}
+
+function StatTile({ label, value, accent, active, onClick }: {
+  label:   string
+  value:   number
+  accent:  string
+  active:  boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-left bg-white border rounded-2xl px-4 py-3 transition-all ${
+        active
+          ? 'border-2 ring-2 ring-offset-1'
+          : 'border border-gray-200 hover:border-gray-300'
+      }`}
+      style={active ? { borderColor: accent, boxShadow: `0 0 0 2px ${accent}33` } : undefined}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accent }} />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</span>
+      </div>
+      <p className="text-2xl font-black text-gray-900 tabular-nums leading-none">{value.toLocaleString()}</p>
+    </button>
   )
 }
 
@@ -224,17 +401,29 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
             <p className="text-sm font-bold text-gray-900">/go/{local.shortcode}</p>
-            {/* Kind badge — AD (amber) for tracked CTAs on ad_placements,
-                QR (violet) for the print/QR-code use case. */}
-            {isAdLink(local) ? (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider bg-amber-600 text-white">
-                AD
-              </span>
-            ) : (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider bg-violet-600 text-white">
-                QR
-              </span>
-            )}
+            {/* Purpose badge — color-coded by qr/ad/campaign so the
+                editor can scan the list at a glance. */}
+            {(() => {
+              const p = purposeOf(purposeFor(local))
+              return (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider ${p.badgeClass}`}>
+                  {p.label}
+                </span>
+              )
+            })()}
+            {/* Channel badge — soft-tinted, only renders when the row
+                has a channel pinned. Tells the editor where the link
+                actually lives without opening the row. */}
+            {(() => {
+              const ch = channelOf(local.channel)
+              if (!ch) return null
+              const ChIcon = ch.icon
+              return (
+                <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${ch.badgeClass}`}>
+                  <ChIcon size={9} /> {ch.label}
+                </span>
+              )
+            })()}
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 ring-1 ring-gray-200">
               {typeDef.label}
             </span>
@@ -397,6 +586,14 @@ function AddPanel({
   onCancel:    () => void
   onCreated:   (r: ShortLinkRow) => void
 }) {
+  // Purpose drives the whole form view. QR shows the QR preview pane;
+  // Campaign hides it and surfaces external-channel dropdown options;
+  // Ad is here for completeness but ad links are normally minted from
+  // the ad editor (this form lets staff mint one manually if needed).
+  const [purpose, setPurpose]         = useState<Purpose>('qr')
+  // Channel — UTM source + medium auto-fill when this changes. The
+  // editor can still tweak source/medium manually after the change.
+  const [channel, setChannel]         = useState<Channel | ''>('print')
   const [contentType, setContentType] = useState<string>('url')
   const [shortcode,   setShortcode]   = useState('')
   const [destination, setDestination] = useState('')
@@ -406,6 +603,37 @@ function AddPanel({
   const [utmMedium,   setUtmMedium]   = useState('qr')
   const [utmCampaign, setUtmCampaign] = useState('')
   const [primaryColor, setPrimaryColor] = useState('#ef6442')
+
+  const compatibleChannels = useMemo(() => channelsForPurpose(purpose), [purpose])
+
+  // When channel changes, auto-fill UTM source/medium with the
+  // curated defaults. Skip if the editor has already typed something
+  // custom — we don't want to clobber their work.
+  function applyChannel(next: Channel | '') {
+    setChannel(next)
+    if (!next) return
+    const def = CHANNELS[next]
+    // Only overwrite when the current value matches a previously
+    // auto-filled default — preserves manual edits.
+    const knownSources = new Set(CHANNEL_LIST.map(c => c.utmSource))
+    const knownMediums = new Set(CHANNEL_LIST.map(c => c.utmMedium))
+    if (knownSources.has(utmSource) || utmSource === '') setUtmSource(def.utmSource)
+    if (knownMediums.has(utmMedium) || utmMedium === '') setUtmMedium(def.utmMedium)
+  }
+
+  // When the editor swaps purpose, snap the channel + UTMs to the
+  // first compatible channel of the new purpose. Doing this on click
+  // (not in a useEffect) avoids the cascading-render lint warning
+  // and gives the editor a deterministic 'reset' moment.
+  function pickPurpose(next: Purpose) {
+    setPurpose(next)
+    const compat = channelsForPurpose(next)
+    const stillValid = channel && compat.some(c => c.value === channel)
+    if (!stillValid) {
+      const first = (compat[0]?.value ?? '') as Channel | ''
+      applyChannel(first)
+    }
+  }
 
   // Quick-add advertiser inline form
   const [showAddAdv, setShowAddAdv] = useState(false)
@@ -515,6 +743,8 @@ function AddPanel({
           utm_campaign:          utmCampaign.trim() || null,
           advertiser_account_id: advertiserId || null,
           qr_primary_color:      primaryColor,
+          purpose,
+          channel:               channel || null,
         }),
       })
       const json = await res.json().catch(() => ({}))
@@ -529,8 +759,40 @@ function AddPanel({
   return (
     <form onSubmit={submit} className="bg-blue-50/40 border-b border-blue-100 px-6 py-5">
       <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2 mb-4">
-        <QrCode size={14} /> New QR Code
+        {(() => { const Icon = purposeOf(purpose).icon; return <Icon size={14} /> })()}
+        New {purposeOf(purpose).label}
       </h2>
+
+      {/* ── Purpose selector — drives the whole form view ────────
+          The three cards swap the form's title, submit-button label,
+          channel dropdown options, and whether the QR preview pane
+          shows on the right. */}
+      <div className="grid sm:grid-cols-3 gap-3 mb-5">
+        {PURPOSE_LIST.map(p => {
+          const PIcon  = p.icon
+          const active = purpose === p.value
+          return (
+            <button
+              key={p.value}
+              type="button"
+              onClick={() => pickPurpose(p.value)}
+              className={`text-left rounded-xl border p-3 transition-all ${
+                active
+                  ? 'border-2 border-primary bg-white shadow-sm'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg ${p.badgeClass}`}>
+                  <PIcon size={14} />
+                </span>
+                <span className="text-sm font-bold text-gray-900">{p.label}</span>
+              </div>
+              <p className="text-[11px] text-gray-500 leading-snug">{p.hint}</p>
+            </button>
+          )
+        })}
+      </div>
 
       {/* Content type selector */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -554,7 +816,9 @@ function AddPanel({
         })}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_200px] gap-6">
+      {/* Layout — drop the QR preview column when the editor is
+          creating a non-QR link, since they don't need a QR for it. */}
+      <div className={`grid gap-6 ${purpose === 'qr' ? 'lg:grid-cols-[1fr_200px]' : 'lg:grid-cols-1'}`}>
         <div className="space-y-3">
           {/* Shortcode + label */}
           <div className="grid sm:grid-cols-2 gap-3">
@@ -629,8 +893,26 @@ function AddPanel({
             </div>
           )}
 
-          {/* UTM + advertiser + color */}
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Channel + UTM + advertiser + color */}
+          <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label className={lbl}>Channel (where it lives)</label>
+              <select
+                value={channel}
+                onChange={e => applyChannel(e.target.value as Channel | '')}
+                className={`${inp} cursor-pointer`}
+              >
+                <option value="">— Not specified —</option>
+                {compatibleChannels.map(c => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+              {channel && (
+                <p className="mt-1 text-[10px] text-blue-700">
+                  Auto-fills UTM source &amp; medium — override below if needed.
+                </p>
+              )}
+            </div>
             <div>
               <label className={lbl}>UTM Campaign</label>
               <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026" className={inp} />
@@ -731,13 +1013,16 @@ function AddPanel({
           <div className="flex items-center gap-2 pt-1">
             <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40">
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <Plus size={12} />}
-              {busy ? 'Creating…' : 'Create QR Code'}
+              {busy ? 'Creating…' : `Create ${purposeOf(purpose).label}`}
             </button>
             <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">Cancel</button>
           </div>
         </div>
 
-        {/* QR Preview */}
+        {/* QR Preview — only relevant for printable QR codes. Ad
+            and Campaign links don't need a scannable visual since
+            they're used as plain URLs in browsers / Facebook fields. */}
+        {purpose === 'qr' && (
         <div className="flex flex-col items-center">
           <p className={lbl}>QR Preview</p>
           <div className="w-[180px] h-[180px] rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden mb-2">
@@ -763,6 +1048,7 @@ function AddPanel({
             riverregionparents.com<br />/go/{previewCode}
           </p>
         </div>
+        )}
       </div>
     </form>
   )

@@ -35,6 +35,20 @@ export interface ShortLinkRow {
   ad_placement_id:       string | null
   qr_primary_color:      string | null
   qr_bg_color:           string | null
+  /** Migration 127. The WHAT — 'qr' (printable), 'ad' (on-site CTA),
+   *  or 'campaign' (external distribution). Always present after the
+   *  migration runs (column has a NOT NULL default of 'qr'); typed
+   *  as `string` to stay tolerant of pre-migration DBs. */
+  purpose:               string
+  /** Migration 127. The WHERE — 'print' | 'on_site' | 'facebook' |
+   *  'instagram' | 'tiktok' | 'email' | 'landing_page' | 'other'.
+   *  Nullable: a row that's not pinned to a specific channel just
+   *  isn't filtered on that axis. */
+  channel:               string | null
+  /** Migration 127. Stamped by /go/[shortcode] on every click. NULL
+   *  for rows that haven't been hit since the migration. Drives the
+   *  "Most recently clicked" sort. */
+  last_clicked_at:       string | null
 }
 
 export interface AdvertiserOption {
@@ -46,18 +60,35 @@ export default async function ShortLinksPage() {
   await requireAdmin()
 
   const supabase = createAdminClient()
-  // Try the full select including ad_placement_id (migration 123). If
-  // that column doesn't exist yet, degrade — the client tolerates the
-  // field being undefined and just treats every row as a QR code.
-  const fullCols = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color'
-  const minCols  = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, qr_primary_color, qr_bg_color'
-  let dataRes = await supabase.from('short_links').select(fullCols)
+  // Three-tier fallback to stay tolerant of mid-migration DBs.
+  //   max: migration 127 (purpose + channel + last_clicked_at)
+  //   mid: migration 123 (ad_placement_id)
+  //   min: pre-123
+  // Each fallback only fires when the previous one errors with a
+  // "column does not exist" — any other failure surfaces.
+  const cols127 = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color, purpose, channel, last_clicked_at'
+  const cols123 = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color'
+  const colsMin = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, qr_primary_color, qr_bg_color'
+  let dataRes = await supabase.from('short_links').select(cols127)
     .order('created_at', { ascending: false }).limit(200)
   if (dataRes.error && /column .* does not exist/i.test(dataRes.error.message)) {
-    dataRes = await supabase.from('short_links').select(minCols)
+    dataRes = await supabase.from('short_links').select(cols123)
       .order('created_at', { ascending: false }).limit(200) as typeof dataRes
   }
-  const data = dataRes.data
+  if (dataRes.error && /column .* does not exist/i.test(dataRes.error.message)) {
+    dataRes = await supabase.from('short_links').select(colsMin)
+      .order('created_at', { ascending: false }).limit(200) as typeof dataRes
+  }
+  // Normalize: rows from older selects miss the migration-127 fields.
+  // Default purpose by ad_placement_id presence so client filters still
+  // partition correctly; channel + last_clicked_at default to null.
+  const raw = (dataRes.data ?? []) as Array<Partial<ShortLinkRow> & { ad_placement_id: string | null }>
+  const data = raw.map(r => ({
+    ...r,
+    purpose:         r.purpose         ?? (r.ad_placement_id ? 'ad' : 'qr'),
+    channel:         r.channel         ?? null,
+    last_clicked_at: r.last_clicked_at ?? null,
+  })) as ShortLinkRow[]
 
   // Load advertiser list for the dropdown
   const { data: advData } = await supabase
@@ -69,7 +100,7 @@ export default async function ShortLinksPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <ShortLinksClient
-        initialRows={(data ?? []) as ShortLinkRow[]}
+        initialRows={data}
         advertisers={(advData ?? []) as AdvertiserOption[]}
       />
     </div>

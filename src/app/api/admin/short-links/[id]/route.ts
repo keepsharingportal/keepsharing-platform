@@ -23,11 +23,14 @@ function supabaseAdmin() {
 }
 
 // Fields the operator can change after creation. Deliberately excludes
-// shortcode (would orphan printed QRs) and click_count (system-managed).
+// shortcode (would orphan printed QRs), click_count (system-managed),
+// and last_clicked_at (stamped by /go/[shortcode]).
 const EDITABLE = new Set([
   'destination', 'content_type', 'content_data', 'label',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content',
   'advertiser_account_id', 'qr_primary_color', 'is_active',
+  // Migration 127 — let the editor recategorize a row after creation.
+  'purpose', 'channel',
 ])
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -50,13 +53,31 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   updates.updated_at = new Date().toISOString()
 
   const supabase = supabaseAdmin()
-  const { data, error } = await supabase
+  let updateRes = await supabase
     .from('short_links')
     .update(updates)
     .eq('id', id)
     .select('*')
     .single()
 
+  // Migration-tolerant: if the DB lacks migration-127 columns and the
+  // editor sent purpose/channel, drop those and retry. The rest of the
+  // patch still applies.
+  if (updateRes.error && /column .* does not exist/i.test(updateRes.error.message)) {
+    const safe = { ...updates }
+    delete safe.purpose
+    delete safe.channel
+    if (Object.keys(safe).length > 1) {            // > 1 because updated_at is always added
+      updateRes = await supabase
+        .from('short_links')
+        .update(safe)
+        .eq('id', id)
+        .select('*')
+        .single()
+    }
+  }
+
+  const { data, error } = updateRes
   if (error) {
     console.error('[admin/short-links PATCH]', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

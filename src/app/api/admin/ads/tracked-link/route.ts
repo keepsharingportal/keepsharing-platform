@@ -96,24 +96,35 @@ export async function POST(req: NextRequest) {
   }
   if (!shortcode) return NextResponse.json({ error: 'shortcode collision — try again' }, { status: 500 })
 
-  const { data: created, error: createErr } = await supabase
+  // Try inserting with migration-127 fields (purpose + channel). If the
+  // DB hasn't been migrated yet the second attempt drops them — the
+  // row still works, it just isn't classified.
+  const baseInsert = {
+    shortcode,
+    destination:     ad.ad_link,
+    utm_source:      'site',
+    utm_medium:      'ad',
+    utm_campaign:    ad.placement_type,
+    utm_content:     utmContent,
+    label,
+    ad_placement_id: id,
+    advertiser_account_id: ad.advertiser_account_id ?? null,
+    market:          'rrp',
+    is_active:       true,
+  }
+  let createRes = await supabase
     .from('short_links')
-    .insert({
-      shortcode,
-      destination:     ad.ad_link,
-      utm_source:      'site',
-      utm_medium:      'ad',
-      utm_campaign:    ad.placement_type,
-      utm_content:     utmContent,
-      label,
-      ad_placement_id: id,
-      advertiser_account_id: ad.advertiser_account_id ?? null,
-      market:          'rrp',
-      is_active:       true,
-    })
+    .insert({ ...baseInsert, purpose: 'ad', channel: 'on_site' })
     .select('id, shortcode, destination, click_count, is_active, created_at')
     .single()
+  if (createRes.error && /column .* does not exist/i.test(createRes.error.message)) {
+    createRes = await supabase
+      .from('short_links')
+      .insert(baseInsert)
+      .select('id, shortcode, destination, click_count, is_active, created_at')
+      .single()
+  }
 
-  if (createErr) return NextResponse.json({ error: createErr.message }, { status: 500 })
-  return NextResponse.json({ link: created })
+  if (createRes.error) return NextResponse.json({ error: createRes.error.message }, { status: 500 })
+  return NextResponse.json({ link: createRes.data })
 }
