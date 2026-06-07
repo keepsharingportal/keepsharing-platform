@@ -7,11 +7,11 @@
 // and the placeholder copy in the new-row form. Defining everything in
 // one place keeps those views in sync.
 
-// Note: lucide-react doesn't ship icons for individual social networks
-// (Facebook / Instagram / TikTok). We use semantically-close icons
-// instead — Share2 for Facebook (sharing/social), Camera for Instagram
-// (photo-first network), Music2 for TikTok (audio/video).
-import { QrCode, Megaphone, Sparkles, Printer, Layout, Mail, Share2, Camera, Music2, Globe, Tag } from 'lucide-react'
+// Note: lucide-react doesn't ship icons for individual social networks.
+// Share2 stands in for Meta (Facebook + Instagram, treated as one
+// channel since unified Meta Ads runs both placements from a single
+// campaign); Music2 stands in for TikTok.
+import { QrCode, Megaphone, Sparkles, Printer, Layout, Mail, Share2, Music2, Globe, Tag } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 // ── PURPOSE ───────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ export function purposeOf(value: string | null | undefined): PurposeDef {
 // pre-fills UTM source + medium so analytics groups cleanly.
 
 export type Channel =
-  | 'print' | 'on_site' | 'facebook' | 'instagram' | 'tiktok'
+  | 'print' | 'on_site' | 'meta' | 'tiktok'
   | 'email' | 'landing_page' | 'other'
 
 export interface ChannelDef {
@@ -112,21 +112,12 @@ export const CHANNELS: Record<Channel, ChannelDef> = {
     utmMedium:  'ad',
     worksWith:  ['ad'],
   },
-  facebook: {
-    value:      'facebook',
-    label:      'Facebook',
+  meta: {
+    value:      'meta',
+    label:      'Meta (Facebook / Instagram)',
     icon:       Share2,
     badgeClass: 'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
-    utmSource:  'facebook',
-    utmMedium:  'social',
-    worksWith:  ['campaign'],
-  },
-  instagram: {
-    value:      'instagram',
-    label:      'Instagram',
-    icon:       Camera,
-    badgeClass: 'bg-pink-100 text-pink-800 ring-1 ring-pink-200',
-    utmSource:  'instagram',
+    utmSource:  'meta',
     utmMedium:  'social',
     worksWith:  ['campaign'],
   },
@@ -169,12 +160,22 @@ export const CHANNELS: Record<Channel, ChannelDef> = {
 }
 
 export const CHANNEL_LIST: ChannelDef[] = [
-  'print', 'on_site', 'facebook', 'instagram', 'tiktok', 'email', 'landing_page', 'other',
+  'print', 'on_site', 'meta', 'tiktok', 'email', 'landing_page', 'other',
 ].map(k => CHANNELS[k as Channel])
+
+// Legacy aliases — rows created before the Meta consolidation may have
+// channel='facebook' or channel='instagram' stamped in the DB. Display
+// those as Meta so the UI doesn't show 'unknown channel' on old rows.
+const LEGACY_CHANNEL_ALIASES: Record<string, Channel> = {
+  facebook:  'meta',
+  instagram: 'meta',
+}
 
 export function channelOf(value: string | null | undefined): ChannelDef | null {
   if (!value) return null
   if (value in CHANNELS) return CHANNELS[value as Channel]
+  const aliased = LEGACY_CHANNEL_ALIASES[value]
+  if (aliased) return CHANNELS[aliased]
   return null
 }
 
