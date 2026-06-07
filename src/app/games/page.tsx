@@ -228,8 +228,8 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
             sponsor={gamesSponsor}
             aboveLabel="Family Brain Games Are Sponsored By"
             verticalSlug="games"
-            placeholderName="Your Business Here"
-            placeholderTagline="Sponsor Family Brain Games — your business anchors every game page River Region families play."
+            placeholderName="Own Family Brain Games for a year"
+            placeholderTagline="One advertiser, anchored on every game page parents and kids play. Daily traffic, weekly drawing entries, repeat visits — exclusive to your brand."
             placeholderCtaLabel="Claim This Spot"
           />
         </div>

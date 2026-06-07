@@ -196,10 +196,10 @@ export default async function CalendarPage() {
               booked, renders the "Your Business Here" placeholder. */}
           <HeroSponsorCard
             sponsor={heroSponsor}
-            sponsorLabel="Proudly Presented By"
+            aboveLabel="The Family Calendar Is Sponsored By"
             verticalSlug="calendar"
-            placeholderName="Your Business Here"
-            placeholderTagline="Own the Family Calendar for a Year — Your Business Anchors Every Page River Region Families Check for Weekend Plans."
+            placeholderName="Own the Family Calendar for the year"
+            placeholderTagline="One advertiser, every weekend plan. River Region families check this page when they're deciding where to go — be the brand they see while they decide."
             placeholderCtaLabel="Claim This Spot"
           />
         </div>

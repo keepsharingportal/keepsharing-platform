@@ -324,8 +324,8 @@ export default async function SchoolZonePage() {
             sponsor={sponsor}
             sponsorLabel={sponsorLabel}
             verticalSlug="school-zone"
-            placeholderName="Your Business Here"
-            placeholderTagline="Own School Zone for a Year — Your Business Anchors Every Page River Region Families See in This Vertical."
+            placeholderName="Anchor School Zone for the year"
+            placeholderTagline="One advertiser owns the education hub — Teacher of the Month, School Bits, district news, and every story families share. Your logo on every page."
             placeholderCtaLabel="Claim This Spot"
           />
         </div>

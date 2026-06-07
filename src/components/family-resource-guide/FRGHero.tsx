@@ -69,8 +69,8 @@ export function FRGHero({
           sponsor={sponsor}
           sponsorLabel={sponsorLabel}
           verticalSlug="family-resource-guide"
-          placeholderName="Your Business Here"
-          placeholderTagline="Own the Family Resource Guide for a year — your business anchors every page River Region moms use to find services."
+          placeholderName="Own the Family Resource Guide for the year"
+          placeholderTagline="One advertiser, every search. Moms come here when they need a service now — your brand sits at the top of the answer."
           placeholderCtaLabel="Claim This Spot"
         />
       </div>

@@ -22,7 +22,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star } from 'lucide-react'
+import { Star, Trophy, CheckCircle2, ChevronRight } from 'lucide-react'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 
 export interface HeroSponsor {
@@ -151,12 +151,27 @@ export function HeroSponsorCard({
     )
   }
 
-  // Unsponsored placeholder — lead-capture via ClaimSpotButton so the
-  // inquiry email arrives pre-filled with the vertical context.
+  // ── Unsponsored placeholder — explicit sales card ─────────────────────────
+  //
+  // Different layout from the sponsored state. The YMCA-style image+
+  // text+CTA layout reads as a thin half-empty skeleton when there's
+  // no advertiser yet — the giant empty image box and the muted
+  // outline CTA together fail to sell.
+  //
+  // This version is a focused pitch:
+  //   - Trophy chip + 'SPONSOR OPPORTUNITY' eyebrow
+  //   - Punchy headline (placeholderName, repurposed)
+  //   - Supporting one-liner (placeholderTagline)
+  //   - Three quick value bullets so prospects can see what they get
+  //   - One bold primary-color CTA pill
+  //
+  // Lead capture still routes through ClaimSpotButton so the inquiry
+  // email arrives pre-filled with the vertical context.
   const pitchHref = verticalSlug ? `/advertise/${verticalSlug}` : '/advertise'
   const verticalLabel = verticalSlug
     ? `Section sponsor — ${verticalSlug}`
     : 'Section sponsor'
+  const placeholderCardCls = 'relative overflow-hidden bg-card border-2 border-primary/40 rounded-2xl p-6 md:p-8 w-full text-center md:text-left flex flex-col md:flex-row items-center gap-6 hover:border-primary hover:shadow-lg transition-all group'
   return (
     <div className="max-w-3xl mx-auto w-full">
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">
@@ -167,16 +182,42 @@ export function HeroSponsorCard({
         href={pitchHref}
         placementType="section_sponsor"
         placementLabel={verticalLabel}
-        className={cardCls}
+        className={placeholderCardCls}
       >
-        <CardInner
-          imageUrl={null}
-          eyebrow="Sponsor Opportunity"
-          headline={placeholderName}
-          description={placeholderTagline}
-          ctaLabel={placeholderCtaLabel}
-          isPlaceholder
-        />
+        {/* Decorative orb — same one as the sponsored card so the
+            two states share family resemblance. */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex-1 z-10">
+          <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
+            <Trophy className="h-3 w-3" />
+            Sponsor Opportunity
+          </div>
+          <h3 className="font-black text-foreground text-2xl md:text-3xl leading-tight mb-2">
+            {placeholderName}
+          </h3>
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 max-w-lg md:mx-0 mx-auto">
+            {placeholderTagline}
+          </p>
+          <ul className="hidden md:flex flex-wrap gap-x-5 gap-y-1 text-xs font-semibold text-foreground/80 mb-1">
+            <li className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              One advertiser
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              Top of every page
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              Annual exclusive
+            </li>
+          </ul>
+        </div>
+
+        <span className="shrink-0 z-10 inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-primary text-primary-foreground text-sm md:text-base font-bold shadow-sm group-hover:bg-primary/90 group-hover:gap-2 transition-all whitespace-nowrap">
+          {placeholderCtaLabel} <ChevronRight className="h-4 w-4" />
+        </span>
       </ClaimSpotButton>
     </div>
   )

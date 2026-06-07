@@ -437,8 +437,8 @@ export default async function SchoolBitsPage(_props: PageParams) {
               sponsor={sponsor}
               aboveLabel="School Bits Is Sponsored By"
               verticalSlug="school-bits"
-              placeholderName="Your Business Here"
-              placeholderTagline="Anchor School Bits for the year — your business sits at the top of every page parents and grandparents land on."
+              placeholderName="Anchor School Bits for the year"
+              placeholderTagline="One advertiser, every brag. Parents and grandparents come here to read about their kid's school — your brand sits at the top of every moment."
               placeholderCtaLabel="Claim This Spot"
             />
           </div>
