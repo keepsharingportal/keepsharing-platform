@@ -209,8 +209,11 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             Performance for the last {days} days
           </p>
         </div>
+        {/* /admin/advertisers/businesses was dropped in the CRM
+            consolidation — the main advertiser list IS the business
+            list now. Point at the list with the search pre-filled. */}
         <Link
-          href={`/admin/advertisers/businesses?slug=${slug}`}
+          href={`/admin/advertisers?q=${encodeURIComponent(slug)}`}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
         >
           Manage Account <ExternalLink size={11} />
