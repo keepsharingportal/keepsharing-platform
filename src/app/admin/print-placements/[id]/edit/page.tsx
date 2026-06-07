@@ -23,7 +23,7 @@ export default async function PrintPlacementEditPage({ params }: Props) {
     .select(`
       id, advertiser_account_id, issue_month, design, directory, size,
       layout, price, social_budget, layout_notes, expires_month, notes,
-      is_ongoing, ad_label,
+      is_ongoing, ad_label, specific_months,
       advertiser:advertiser_account_id (id, business_name, slug)
     `)
     .eq('id', id)

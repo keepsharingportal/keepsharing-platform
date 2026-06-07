@@ -30,6 +30,7 @@ export interface EditablePlacement {
   notes:                 string | null
   is_ongoing:            boolean
   ad_label:              string | null
+  specific_months:       string[] | null
   business_name:         string
   advertiser_slug:       string | null
 }
@@ -90,10 +91,22 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
   const [directory,   setDirectory]   = useState<boolean>(placement.directory)
   const [price,       setPrice]       = useState<string>(placement.price != null ? String(placement.price) : '')
   const [social,      setSocial]      = useState<string>(placement.social_budget != null ? String(placement.social_budget) : '')
+  // 'No Social Ad Running' shortcut. social_budget = 0 explicitly
+  // signals 'sold but no social' (vs null = 'unspecified'). The
+  // toggle just zeroes the spend in one click.
+  const [noSocial,    setNoSocial]    = useState<boolean>(placement.social_budget === 0)
   const [ongoing,     setOngoing]     = useState<boolean>(placement.is_ongoing)
   const [expires,     setExpires]     = useState<string>(placement.expires_month ?? '')
+  // Specific months this ad is running in. Independent of the
+  // ongoing/check-status flag — editors use it to scope-mark which
+  // issues are confirmed (e.g. 'Mar/Apr/May for the spring campaign').
+  const [months,      setMonths]      = useState<string[]>(placement.specific_months ?? [])
   const [layoutNotes, setLayoutNotes] = useState<string>(placement.layout_notes ?? '')
   const [notes,       setNotes]       = useState<string>(placement.notes ?? '')
+
+  function toggleMonth(m: string) {
+    setMonths(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])
+  }
 
   const monthOptions = buildMonthOptions(placement.issue_month)
   const backHref     = `/admin/print-layout?issue=${placement.issue_month}`
@@ -108,13 +121,16 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
         directory,
         size,
         layout,
-        price:         price.trim()  === '' ? null : Number(price),
-        social_budget: social.trim() === '' ? null : Number(social),
-        layout_notes:  layoutNotes.trim() || null,
-        notes:         notes.trim()       || null,
-        expires_month: expires             || null,
-        is_ongoing:    ongoing,
-        ad_label:      adLabel.trim()      || null,
+        price:           price.trim()  === '' ? null : Number(price),
+        // 'No Social' wins over any value in the input — editor toggled
+        // it on intentionally to zero the budget.
+        social_budget:   noSocial ? 0 : (social.trim() === '' ? null : Number(social)),
+        layout_notes:    layoutNotes.trim() || null,
+        notes:           notes.trim()       || null,
+        expires_month:   expires             || null,
+        is_ongoing:      ongoing,
+        ad_label:        adLabel.trim()      || null,
+        specific_months: months,
       }
       const res = await fetch(`/api/admin/print-placements/${placement.id}`, {
         method:  'PATCH',
@@ -241,10 +257,10 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             {LAYOUT_OPTIONS.map(o => <option key={o.label} value={o.value ?? ''}>{o.label}</option>)}
           </select>
         </FieldRow>
-        <FieldRow label="Directory">
+        <FieldRow label="Include in Directory" hint="Check when this advertiser has agreed to a directory listing in this issue.">
           <label className="inline-flex items-center gap-2 cursor-pointer text-sm pt-1">
             <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
-            <span>{directory ? 'In the print directory listing' : 'Not in directory'}</span>
+            <span>{directory ? 'Yes — include in print directory' : 'Not included'}</span>
           </label>
         </FieldRow>
       </Section>
@@ -261,17 +277,40 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
           />
         </FieldRow>
         <FieldRow label="Social budget ($)" hint="Bundled social promotion spend. Pick a preset or type a custom amount.">
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={SOCIAL_PRESETS.includes(Number(social)) ? social : 'custom'}
-              onChange={e => { if (e.target.value !== 'custom') setSocial(e.target.value) }}
-              className={`${inp} cursor-pointer`}
-            >
-              <option value="">— None —</option>
-              {SOCIAL_PRESETS.map(v => <option key={v} value={v}>${v}</option>)}
-              <option value="custom">Custom…</option>
-            </select>
-            <input type="number" value={social} onChange={e => setSocial(e.target.value)} placeholder="$ custom" className={inp} />
+          <div className="space-y-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={noSocial}
+                onChange={e => {
+                  setNoSocial(e.target.checked)
+                  if (e.target.checked) setSocial('')                  // visual cue: clear the input too
+                }}
+              />
+              <span className={noSocial ? 'font-semibold text-gray-900' : 'text-gray-700'}>
+                No social ad running
+              </span>
+            </label>
+            <div className={`grid grid-cols-2 gap-2 ${noSocial ? 'opacity-40 pointer-events-none' : ''}`}>
+              <select
+                value={SOCIAL_PRESETS.includes(Number(social)) ? social : 'custom'}
+                onChange={e => { if (e.target.value !== 'custom') setSocial(e.target.value) }}
+                className={`${inp} cursor-pointer`}
+                disabled={noSocial}
+              >
+                <option value="">— None —</option>
+                {SOCIAL_PRESETS.map(v => <option key={v} value={v}>${v}</option>)}
+                <option value="custom">Custom…</option>
+              </select>
+              <input
+                type="number"
+                value={social}
+                onChange={e => setSocial(e.target.value)}
+                placeholder="$ custom"
+                className={inp}
+                disabled={noSocial}
+              />
+            </div>
           </div>
         </FieldRow>
       </Section>
@@ -294,6 +333,25 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             >
               Check Status
             </button>
+          </div>
+        </FieldRow>
+        <FieldRow
+          label="Months running"
+          hint="Tick the issues this placement covers. Useful for tracking partial-year buys and confirming Check Status sponsors month-by-month."
+        >
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-y-1 gap-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            {monthOptions.map(m => {
+              const checked = months.includes(m)
+              return (
+                <label
+                  key={m}
+                  className={`inline-flex items-center gap-1.5 text-xs cursor-pointer rounded px-1.5 py-1 ${checked ? 'bg-white border border-gray-200 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
+                >
+                  <input type="checkbox" checked={checked} onChange={() => toggleMonth(m)} />
+                  {shortMonth(m)}
+                </label>
+              )
+            })}
           </div>
         </FieldRow>
         <FieldRow label="Expires (last committed issue)" hint="Bump this forward to re-up. Past dates flag the row red on the layout sheet.">
