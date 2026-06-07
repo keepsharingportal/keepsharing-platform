@@ -39,6 +39,11 @@ export interface PrintPlacement {
   // until expires_month (or cancelled). FALSE = seasonal — only runs
   // the months listed in specific_months.
   is_ongoing:            boolean
+  // Migration 131. Optional ad-specific display name. Set when the
+  // editor imports a CSV row whose business cell is the AD's name
+  // (e.g. 'Macon East Academy Senior Ad') and that ad attaches to a
+  // canonical business with a different name. Null = use business_name.
+  ad_label:              string | null
 }
 
 export interface AdvertiserOption {
@@ -692,6 +697,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           issue={issue}
           monthOptions={buildIssueWindow(issue)}
           fmtIssue={fmtIssue}
+          advertisers={advertisers}
           onClose={() => setImporting(false)}
           onCommitted={() => router.refresh()}
         />
@@ -749,7 +755,14 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
-      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-gray-900'}`}>{row.business_name}</td>
+      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-gray-900'}`}>
+        {row.business_name}
+        {row.ad_label && row.ad_label.trim() && row.ad_label.trim().toLowerCase() !== row.business_name.toLowerCase() && (
+          <span className="block text-[10px] font-normal text-gray-500 mt-0.5" title="Ad-specific label (from CSV import or manual entry)">
+            ↳ {row.ad_label}
+          </span>
+        )}
+      </td>
       <td className="px-3 py-2 text-xs capitalize">{row.design}</td>
       <td className="px-3 py-2 text-xs">
         <div className="flex flex-col gap-0.5">
@@ -805,6 +818,7 @@ interface PatchShape {
   expires_month?:   string | null
   notes?:           string | null
   is_ongoing?:      boolean
+  ad_label?:        string | null
 }
 
 function EditRow({ row, issue, onCancel, onSubmit }: {
@@ -823,6 +837,7 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
   const [layoutNotes, setLayoutNotes] = useState(row.layout_notes ?? '')
   const [expires,  setExpires]  = useState<string>(row.expires_month ?? '')
   const [ongoing,  setOngoing]  = useState<boolean>(row.is_ongoing ?? true)
+  const [adLabel,  setAdLabel]  = useState<string>(row.ad_label ?? '')
   const [saving, setSaving] = useState(false)
 
   async function save() {
@@ -838,6 +853,7 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         layout_notes:    layoutNotes.trim() || null,
         expires_month:   expires || null,
         is_ongoing:      ongoing,
+        ad_label:        adLabel.trim() || null,
       })
     } finally { setSaving(false) }
   }
@@ -847,7 +863,17 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
   return (
     <tr className="border-b border-gray-100 bg-amber-50/60">
       <td className="px-3 py-2 w-8 align-top print:hidden"></td>
-      <td className="px-4 py-2 font-bold text-gray-900 align-top">{row.business_name}</td>
+      <td className="px-4 py-2 font-bold text-gray-900 align-top">
+        {row.business_name}
+        <input
+          type="text"
+          value={adLabel}
+          onChange={e => setAdLabel(e.target.value)}
+          placeholder="Ad label (optional)"
+          className="mt-1 w-full text-[11px] font-normal border border-gray-200 rounded px-2 py-1 bg-white outline-none focus:border-gray-400"
+          title="Ad-specific name when this business runs multiple ads in the same issue"
+        />
+      </td>
       <td className="px-3 py-2 align-top">
         <select value={design} onChange={e => setDesign(e.target.value)} className={inp}>
           {DESIGN_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1140,6 +1166,7 @@ interface AddFormShape {
   layout_notes:          string | null
   expires_month:         string | null
   is_ongoing:            boolean
+  ad_label:              string | null
 }
 
 function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmit }: {
@@ -1165,6 +1192,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
   // unticks for sporadic advertisers who need a verify each issue
   // ('Check Status').
   const [ongoing,  setOngoing]  = useState(true)
+  const [adLabel,  setAdLabel]  = useState('')
   const [saving, setSaving] = useState(false)
 
   async function save() {
@@ -1182,6 +1210,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
         layout_notes:    layoutNotes.trim() || null,
         is_ongoing:      ongoing,
         expires_month:   expires || null,
+        ad_label:        adLabel.trim() || null,
       })
     } finally { setSaving(false) }
   }
@@ -1205,6 +1234,17 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
             <option value="">— Pick a business —</option>
             {advertisers.map(a => <option key={a.id} value={a.id}>{a.business_name}</option>)}
           </select>
+        </div>
+        <div>
+          <label className={lbl}>Ad label <span className="text-gray-400 normal-case font-normal">(optional)</span></label>
+          <input
+            type="text"
+            value={adLabel}
+            onChange={e => setAdLabel(e.target.value)}
+            placeholder="e.g. Senior Ad"
+            className={inp}
+            title="Only fill if this business has multiple ads in the same issue"
+          />
         </div>
         <div>
           <label className={lbl}>Design</label>

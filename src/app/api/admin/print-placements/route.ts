@@ -40,6 +40,7 @@ interface Body {
   expires_month?:         string | null
   notes?:                 string | null
   is_ongoing?:            boolean
+  ad_label?:              string | null
 }
 
 export async function POST(req: NextRequest) {
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       // Default ongoing=true — covers the 80% of advertisers who run
       // every month until cancelled. Explicit false marks seasonal buys.
       is_ongoing:            body.is_ongoing ?? true,
+      ad_label:              body.ad_label?.trim() || null,
     })
     .select('*')
     .single()

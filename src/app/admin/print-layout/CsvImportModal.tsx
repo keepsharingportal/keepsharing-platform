@@ -72,11 +72,12 @@ interface Props {
   issue:        string
   monthOptions: string[]
   fmtIssue:     (m: string) => string
+  advertisers:  Array<{ id: string; business_name: string }>
   onClose:      () => void
   onCommitted:  () => void
 }
 
-export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommitted }: Props) {
+export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onClose, onCommitted }: Props) {
   const [step, setStep]               = useState<Step>('upload')
   const [targetMonth, setTargetMonth] = useState(issue)
   // Raw grid from the file: rawRows[0] is the header row.
@@ -161,13 +162,19 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
       }
       setPlan(json.plan)
       setCounts(json.counts)
-      // Seed resolutions: matched/new auto-decide; fuzzy defaults to
-      // top candidate so the editor can scan + correct outliers fast.
+      // Seed resolutions:
+      //   matched   → auto-attach (clean exact match, no review needed)
+      //   duplicate → auto-skip (advertiser already has a row on issue)
+      //   fuzzy     → seed top candidate but surface for review
+      //   new       → seed 'create new with CSV name' but surface for
+      //               review — editor can correct the business name or
+      //               attach to a different existing advertiser by
+      //               typing the canonical name.
       const seed: Record<number, Resolution> = {}
       for (const p of json.plan) {
         if (p.status === 'matched' && p.matched_id)   seed[p.index] = { advertiser_id: p.matched_id }
-        else if (p.status === 'new')                  seed[p.index] = { create_new: { business_name: p.input.business } }
         else if (p.status === 'duplicate')            seed[p.index] = { skip: true }
+        else if (p.status === 'new')                  seed[p.index] = { create_new: { business_name: p.input.business } }
         else if (p.status === 'fuzzy' && p.fuzzy_candidates?.[0]) {
           seed[p.index] = { advertiser_id: p.fuzzy_candidates[0].id }
         }
@@ -222,7 +229,9 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
   }
 
   const visiblePlan = useMemo(() => plan ?? [], [plan])
-  const needsAttention = visiblePlan.filter(p => p.status === 'fuzzy').length
+  // Both 'fuzzy' and 'new' need editor input. 'matched' is silent
+  // auto-attach; 'duplicate' is silent auto-skip.
+  const reviewRows = visiblePlan.filter(p => p.status === 'fuzzy' || p.status === 'new')
   const headers = rawRows[0] ?? []
   const sampleRow = rawRows[1] ?? []
   const dataRowCount = Math.max(0, rawRows.length - 1)
@@ -332,16 +341,18 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
           <>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                {counts.matched} matched
+                {counts.matched} auto-matched
               </span>
               {counts.fuzzy > 0 && (
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
-                  {counts.fuzzy} need confirm
+                  {counts.fuzzy} fuzzy
                 </span>
               )}
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
-                {counts.new} new advertiser{counts.new === 1 ? '' : 's'}
-              </span>
+              {counts.new > 0 && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                  {counts.new} no match
+                </span>
+              )}
               {counts.duplicate > 0 && (
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
                   {counts.duplicate} already on issue (skipped)
@@ -349,15 +360,19 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
               )}
             </div>
 
-            {needsAttention > 0 && (
+            {reviewRows.length > 0 && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-xs font-bold text-amber-900 mb-2">Review {needsAttention} fuzzy match{needsAttention === 1 ? '' : 'es'}</p>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {visiblePlan.filter(p => p.status === 'fuzzy').map(p => (
-                    <FuzzyRow
+                <p className="text-xs font-bold text-amber-900 mb-2">
+                  Review {reviewRows.length} row{reviewRows.length === 1 ? '' : 's'}
+                  <span className="font-normal ml-1 text-amber-700">— pick existing business or type a new one</span>
+                </p>
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {reviewRows.map(p => (
+                    <ReviewRow
                       key={p.index}
                       planned={p}
                       resolution={resolutions[p.index]}
+                      advertisers={advertisers}
                       onChange={r => setResolution(p.index, r)}
                     />
                   ))}
@@ -409,38 +424,99 @@ function StepPill({ step }: { step: Step }) {
   )
 }
 
-// FuzzyRow — radio buttons for one ambiguous row. Editor picks a
-// candidate, creates new, or skips entirely.
-function FuzzyRow({ planned, resolution, onChange }: {
+// ReviewRow — one ambiguous CSV row. Editor confirms which business
+// the ad attaches to:
+//   - Pick from the algorithm's fuzzy suggestions (if any)
+//   - Type a custom business name → server attaches to existing if it
+//     matches an exact name (case-insensitive), creates new otherwise.
+//     A <datalist> of every advertiser gives typeahead suggestions so
+//     'Macon East' completes to 'Macon East Academy' as she types.
+//   - Skip the row entirely.
+//
+// The CSV's original business cell (the AD name like 'Macon East
+// Academy Senior Ad') is preserved on the placement as ad_label —
+// this control only decides which canonical business it attaches to.
+function ReviewRow({ planned, resolution, advertisers, onChange }: {
   planned:    PlannedRow
   resolution: Resolution | undefined
+  advertisers: Array<{ id: string; business_name: string }>
   onChange:   (r: Resolution) => void
 }) {
-  const picked = resolution?.advertiser_id ?? (resolution?.create_new ? '__new__' : resolution?.skip ? '__skip__' : '')
+  // Visible name in the input. Defaults to the seed resolution: CSV
+  // value when create_new is selected; existing name when fuzzy radio
+  // is selected (so editor can switch modes by typing).
+  const seedCustomName =
+    resolution?.create_new?.business_name
+    ?? (resolution?.advertiser_id
+          ? advertisers.find(a => a.id === resolution.advertiser_id)?.business_name ?? planned.input.business
+          : planned.input.business)
+  const [customName, setCustomName] = useState<string>(seedCustomName)
+
+  const picked = resolution?.advertiser_id
+    ? `existing:${resolution.advertiser_id}`
+    : resolution?.create_new ? '__custom__'
+    : resolution?.skip ? '__skip__' : ''
+
+  // Editor typed a name. If it case-insensitively matches an existing
+  // advertiser, switch the resolution to that one (so the server
+  // attaches instead of creating). Otherwise hold as create_new.
+  function onCustomChange(v: string) {
+    setCustomName(v)
+    const trimmed = v.trim()
+    if (!trimmed) {
+      onChange({ create_new: { business_name: planned.input.business } })
+      return
+    }
+    const hit = advertisers.find(a => a.business_name.toLowerCase() === trimmed.toLowerCase())
+    if (hit) onChange({ advertiser_id: hit.id })
+    else     onChange({ create_new: { business_name: trimmed } })
+  }
+
   return (
     <div className="rounded-lg border border-amber-100 bg-white p-2.5 text-xs">
-      <p className="font-bold text-gray-900">{planned.input.business}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-bold text-gray-900">{planned.input.business}</p>
+        <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700'}`}>
+          {planned.status === 'new' ? 'No match' : 'Fuzzy'}
+        </span>
+      </div>
       <div className="mt-1.5 space-y-1">
         {(planned.fuzzy_candidates ?? []).map(c => (
           <label key={c.id} className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name={`r-${planned.index}`}
-              checked={picked === c.id}
-              onChange={() => onChange({ advertiser_id: c.id })}
+              checked={picked === `existing:${c.id}`}
+              onChange={() => { setCustomName(c.name); onChange({ advertiser_id: c.id }) }}
             />
             <span>Use existing: <b>{c.name}</b></span>
             <span className="ml-auto text-[10px] text-gray-400">{Math.round(c.score * 100)}% match</span>
           </label>
         ))}
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-start gap-2 cursor-pointer">
           <input
             type="radio"
             name={`r-${planned.index}`}
-            checked={picked === '__new__'}
-            onChange={() => onChange({ create_new: { business_name: planned.input.business } })}
+            className="mt-1"
+            checked={picked === '__custom__' || picked.startsWith('existing:')}
+            onChange={() => onCustomChange(customName)}
           />
-          <span>Create new advertiser: <b>{planned.input.business}</b></span>
+          <span className="flex-1">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-0.5">
+              Business name (type or pick)
+            </span>
+            <input
+              type="text"
+              list={`adv-${planned.index}`}
+              value={customName}
+              onChange={e => onCustomChange(e.target.value)}
+              placeholder="Canonical business name…"
+              className="w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+            />
+            <datalist id={`adv-${planned.index}`}>
+              {advertisers.map(a => <option key={a.id} value={a.business_name} />)}
+            </datalist>
+          </span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer text-gray-500">
           <input

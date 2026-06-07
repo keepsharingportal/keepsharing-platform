@@ -55,7 +55,7 @@ export default async function PrintLayoutPage({ searchParams }: Props) {
   const [placementsRes, advertisersRes, prevCountRes] = await Promise.all([
     supabase
       .from('print_ad_placements')
-      .select('id, advertiser_account_id, issue_month, design, directory, size, layout, price, social_budget, layout_notes, specific_months, expires_month, notes, is_ongoing, advertiser:advertiser_account_id (business_name)')
+      .select('id, advertiser_account_id, issue_month, design, directory, size, layout, price, social_budget, layout_notes, specific_months, expires_month, notes, is_ongoing, ad_label, advertiser:advertiser_account_id (business_name)')
       .eq('issue_month', issue)
       .order('size', { ascending: false }),
     supabase

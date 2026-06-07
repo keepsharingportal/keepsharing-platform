@@ -15,7 +15,7 @@ export const runtime = 'nodejs'
 const EDITABLE = new Set([
   'issue_month', 'design', 'directory', 'size', 'layout',
   'price', 'social_budget', 'layout_notes', 'specific_months',
-  'expires_month', 'notes', 'is_ongoing',
+  'expires_month', 'notes', 'is_ongoing', 'ad_label',
 ])
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {

@@ -285,6 +285,10 @@ async function handleCommit(
       layout_notes:          (r.layout_notes ?? '').toString().trim() || null,
       expires_month:         coerceExpires(r.expires_month),
       is_ongoing:            coerceStatus(r.status),
+      // CSV 'Business' column is the AD name (e.g. 'Macon East Academy
+      // Senior Ad'), which may differ from the canonical business it
+      // attaches to. Preserve it verbatim as the placement's label.
+      ad_label:              (r.business ?? '').trim() || null,
     }
     const ins = await supabase.from('print_ad_placements').insert(payload)
     if (ins.error) {
