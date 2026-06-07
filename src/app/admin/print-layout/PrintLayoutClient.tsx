@@ -13,9 +13,10 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Printer, Download, ChevronLeft, ChevronRight, Plus, Trash2,
-  Copy, RefreshCw, Check, X, Pencil, ArrowUp, ArrowDown, Edit3,
+  Printer, Download, ChevronLeft, ChevronRight, ChevronDown, Plus, Trash2,
+  Copy, RefreshCw, Check, X, Pencil, ArrowUp, ArrowDown, Edit3, Upload,
 } from 'lucide-react'
+import { CsvImportModal } from './CsvImportModal'
 
 // ── Shapes ──────────────────────────────────────────────────────────────────
 
@@ -90,11 +91,24 @@ function shortMonth(yyyymm: string): string {
 }
 
 // Build 18 months out from a given anchor (current + 17 ahead). Used for
-// the multi-select "specific months purchased" picker.
+// the Expires-month dropdown in the Add/Edit forms.
 function build18Months(anchor: string): string[] {
   const [y, m] = anchor.split('-').map(s => parseInt(s, 10))
   const out: string[] = []
   for (let i = 0; i < 18; i++) {
+    const d = new Date(y, m - 1 + i, 1)
+    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+  return out
+}
+
+// Build a 42-month window: 24 months back from anchor through 18 ahead.
+// Powers the title-bar issue picker so the editor can jump to past
+// issues (audit old layouts, recover what ran a year ago).
+function buildIssueWindow(anchor: string): string[] {
+  const [y, m] = anchor.split('-').map(s => parseInt(s, 10))
+  const out: string[] = []
+  for (let i = -24; i <= 18; i++) {
     const d = new Date(y, m - 1 + i, 1)
     out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
@@ -113,6 +127,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
   const [rows, setRows]       = useState<PrintPlacement[]>(initial)
   const [editing, setEditing] = useState<string | null>(null)
   const [adding,  setAdding]  = useState(false)
+  const [importing, setImporting] = useState(false)
   const [busy, startTransition] = useTransition()
 
   // Selection (bulk operations). Set keys = row ids; nothing fancy.
@@ -354,7 +369,24 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
               <ChevronLeft size={16} />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">Print Layout — {fmtIssue(issue)}</h1>
+              {/* Title doubles as a month picker — wraps a native select
+                  so the editor can jump straight to e.g. Jun 2025 to
+                  audit who ran. The select sits on top transparently;
+                  the visible text follows the selection. */}
+              <h1 className="text-xl font-bold text-gray-900 leading-tight inline-flex items-center gap-1 relative cursor-pointer hover:text-primary">
+                <span>Print Layout — {fmtIssue(issue)}</span>
+                <ChevronDown size={14} className="text-gray-400" aria-hidden />
+                <select
+                  value={issue}
+                  onChange={e => navigateIssue(e.target.value)}
+                  aria-label="Jump to issue month"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                >
+                  {buildIssueWindow(issue).map(m => (
+                    <option key={m} value={m}>{fmtIssue(m)}</option>
+                  ))}
+                </select>
+              </h1>
               <p className="text-xs text-gray-500">
                 {rows.length} {rows.length === 1 ? 'placement' : 'placements'}
                 {' · '}{totalPages.toFixed(2)} pages
@@ -385,6 +417,14 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             >
               {busy ? <RefreshCw size={14} className="animate-spin" /> : <Copy size={14} />}
               Clone from {shortMonth(prevMonth)} {prevMonthCount > 0 && `(${prevMonthCount})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setImporting(true)}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-lg hover:bg-gray-50"
+              title="Upload a CSV to back-fill a past month"
+            >
+              <Upload size={14} /> Import CSV
             </button>
             <a
               href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}`}
@@ -601,6 +641,16 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           count={selected.size}
           onCancel={() => setBulkEditing(false)}
           onApply={onBulkEditApply}
+        />
+      )}
+
+      {importing && (
+        <CsvImportModal
+          issue={issue}
+          monthOptions={buildIssueWindow(issue)}
+          fmtIssue={fmtIssue}
+          onClose={() => setImporting(false)}
+          onCommitted={() => router.refresh()}
         />
       )}
     </>
