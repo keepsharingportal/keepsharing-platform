@@ -125,7 +125,10 @@ export function HeroSponsorCard({
 
   // Card container classes — mirrors the homepage inline ad (YMCA
   // pattern) so sponsor blocks look the same wherever they appear.
-  const cardCls = 'bg-muted/50 border border-border/50 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/30 hover:shadow-md transition-all w-full text-left'
+  // Border bumped to border-2 + full-opacity border-border so the
+  // card reads clearly against tinted-cream hero backgrounds (where
+  // the original border/50 was washing out and almost invisible).
+  const cardCls = 'bg-card border-2 border-border rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group hover:border-primary/40 hover:shadow-md transition-all w-full text-left'
 
   if (sponsor) {
     const href = sponsor.link ?? (sponsor.slug ? `/business/${sponsor.slug}` : '#')

@@ -187,9 +187,17 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
         />
         <div className="container relative z-10 py-12 md:py-16 text-center">
+          {/* Daily Challenge eyebrow — the green pill is the visual
+              tone-setter for this hub. The pill already carries the
+              'daily' beat, so the subhead doesn't need to repeat
+              'every day / every morning' beats. */}
+          <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest px-5 py-2 rounded-full bg-secondary text-secondary-foreground mb-6 shadow-sm">
+            <Sparkles className="h-4 w-4" />
+            Daily Challenge
+          </div>
           <h1 className="text-5xl md:text-7xl font-black text-foreground mb-4 leading-[1.05]">Family Brain Games</h1>
-          <p className="text-lg md:text-xl text-foreground/80 max-w-xl mx-auto mb-6 leading-snug">
-            Quick puzzles. Three $10 winners every Monday.
+          <p className="text-lg md:text-xl font-semibold text-foreground/85 max-w-2xl mx-auto mb-6 leading-snug">
+            Three $10 winners every Monday. The most fun a parent can have in 15 minutes.
           </p>
 
           {/* Winners pill — only renders when last week actually has
