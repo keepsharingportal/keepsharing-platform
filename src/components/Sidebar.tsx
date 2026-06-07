@@ -187,18 +187,20 @@ const NAV: NavItem[] = [
   },
 
   // ── ADS & SPONSORS ──────────────────────────────────────────────────────
-  // Slot Map = where every ad spot lives, what it costs, who owns it.
-  // All Bookings = raw ad_placements list for power-edit.
-  // Section Sponsors = column_sponsors (Play Ball "presented by X").
+  // All Bookings = the full inventory grid (every slot, ON/OFF toggle,
+  //                booking-level edit). This is the day-to-day landing
+  //                page for ad ops, so parent click navigates here.
+  // Slot Map     = pricing + revenue view of the catalog.
+  // Renewal Reminders = upcoming expirations.
   { section: 'ADS & SPONSORS' },
   {
     name: 'Ads & Sponsors',
-    href: '/admin/ads/map',
+    href: '/admin/ads',
     icon: Star,
     children: [
-      { name: 'Slot Map',         href: '/admin/ads/map'                  },
-      { name: 'All Bookings',     href: '/admin/ads'                      },
-      { name: 'Renewal Reminders', href: '/admin/ads/renewals'            },
+      { name: 'All Bookings',      href: '/admin/ads'         },
+      { name: 'Slot Map',          href: '/admin/ads/map'     },
+      { name: 'Renewal Reminders', href: '/admin/ads/renewals'},
       // Section Sponsors removed — migration 122 collapsed them into
       // ad_placements. They now surface in All Bookings.
     ],
@@ -285,13 +287,15 @@ export function Sidebar() {
     }
   }, [pathname])
 
-  // Auto-scroll the active nav element into view. With the long NAV list,
-  // Ads & Sponsors (and anything below it) was rendering below the visible
-  // scroll area on first paint, so the editor saw a blank "expanded"
-  // section and had to scroll manually. activeNavRef is set on whichever
-  // child link OR parent button is currently active; this effect scrolls
-  // it into view after layout. Uses block: 'nearest' so we don't ratchet
-  // a fully-visible item up/down for no reason.
+  // Auto-scroll the active nav element into view on URL change. Helps
+  // when the editor lands on a deep route and the relevant section is
+  // below the visible scroll area on first paint. block:'nearest' so
+  // we don't ratchet a fully-visible item up/down for no reason.
+  //
+  // Critical: only fire on pathname change, NOT on expandedNav change.
+  // Otherwise clicking a collapsed section to expand it would re-scroll
+  // to whatever the OLD active item was, undoing the editor's manual
+  // scroll to the section they just clicked.
   const activeNavRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
     // Defer to next frame so the expanded group's children have rendered.
@@ -299,7 +303,7 @@ export function Sidebar() {
       activeNavRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
     })
     return () => cancelAnimationFrame(id)
-  }, [pathname, expandedNav])
+  }, [pathname])
   const [role, setRole] = useState<AdminRole | null>(null)
   // Pending counts surfaced as red badges next to nav children with a
   // badgeKey. Refreshed every 60s + on window focus so admins see new
@@ -414,12 +418,18 @@ export function Sidebar() {
 
             return (
               <div key={item.name}>
-                <button
+                <Link
                   // Hold the ref ONLY when this group is active AND not
                   // currently expanded — the expanded variant scrolls to
                   // its active child instead. Keeps scroll target accurate.
                   ref={groupActive && !isExpanded ? (el => { activeNavRef.current = el }) : undefined}
-                  onClick={() => setExpandedNav(isExpanded ? null : item.name)}
+                  href={item.href}
+                  // Clicking the parent navigates AND expands. Never
+                  // collapses on parent click — to collapse, expand a
+                  // different parent (only one expanded at a time).
+                  // Keeps the editor on a predictable "click → land
+                  // on the first child" flow.
+                  onClick={() => setExpandedNav(item.name)}
                   className={cn(
                     'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] transition-colors',
                     groupActive ? 'bg-white/10 text-white font-semibold' : 'text-white/55 hover:text-white hover:bg-white/5 font-medium'
@@ -435,7 +445,7 @@ export function Sidebar() {
                   {isExpanded
                     ? <ChevronDown size={12} className="shrink-0 opacity-40" />
                     : <ChevronRight size={12} className="shrink-0 opacity-40" />}
-                </button>
+                </Link>
 
                 {isExpanded && (() => {
                   // Pre-parse every child href so we can disambiguate

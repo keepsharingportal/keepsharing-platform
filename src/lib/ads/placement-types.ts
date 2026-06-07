@@ -344,9 +344,13 @@ export function findPlacementType(slug: string | null | undefined): PlacementTyp
 
 export function groupedPlacementTypes(): Array<{ surface: SurfaceKey; label: string; entries: PlacementTypeDef[] }> {
   const out: Array<{ surface: SurfaceKey; label: string; entries: PlacementTypeDef[] }> = []
+  // 'site' first — these are the highest-visibility, highest-value spots
+  // (top banner on every page). Putting them at the top of the dropdown
+  // surfaces premium inventory before page-specific slots.
   const surfaceOrder: SurfaceKey[] = [
+    'site',
     'homepage', 'school-bits', 'articles', 'guides', 'verticals',
-    'calendar', 'newsletter', 'site',
+    'calendar', 'newsletter',
   ]
   for (const surface of surfaceOrder) {
     const entries = PLACEMENT_TYPES.filter(p => p.surface === surface)
