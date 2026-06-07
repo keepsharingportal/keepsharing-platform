@@ -138,6 +138,56 @@ export default async function AdvertiserProfilePage({ params }: Props) {
     .order('click_count', { ascending: false })
   if (!qrRes.error) qrCodes = (qrRes.data ?? []) as QrRow[]
 
+  // Guide Listings — every guide this business appears in. Tied via
+  // advertiser_account_id FK from migration 028. Render with the
+  // guide_type display_name (join) so the editor sees 'Birthday Party
+  // Guide' not 'birthday-parties'.
+  type GuideListingRow = {
+    id: string; listing_tier: string | null; category: string | null;
+    is_published: boolean; listing_year: number | null;
+    guide_type_slug: string | null;
+    guide_type: { display_name: string } | { display_name: string }[] | null;
+  }
+  const glRes = await supabase
+    .from('guide_listings')
+    .select('id, listing_tier, category, is_published, listing_year, guide_type_slug, guide_type:guide_types (display_name)')
+    .eq('advertiser_account_id', id)
+    .order('is_published', { ascending: false })
+    .order('listing_year',  { ascending: false, nullsFirst: false })
+  const guideListings = (glRes.error ? [] : (glRes.data ?? [])) as GuideListingRow[]
+
+  // Proposals — links to the advertiser via:
+  //   1. advertiser_account_id FK once migration 132 is applied
+  //   2. Falls back to business_name (case-insensitive) for any rows
+  //      that pre-date the FK or didn't auto-backfill
+  // The two-pass approach lets the page render cleanly whether or not
+  // 132 has been run. Post-132 the FK path is the source of truth.
+  type ProposalRow = {
+    id: string; token_slug: string; status: string | null;
+    recommended_tier: string | null; custom_monthly_price: number | null;
+    sent_at: string | null; viewed_at: string | null; accepted_at: string | null;
+    expires_at: string | null; created_at: string;
+  }
+  const proposalsByName = supabase
+    .from('proposals')
+    .select('id, token_slug, status, recommended_tier, custom_monthly_price, sent_at, viewed_at, accepted_at, expires_at, created_at')
+    .ilike('business_name', name)
+    .order('created_at', { ascending: false })
+    .limit(10)
+  const proposalsByFk = supabase
+    .from('proposals')
+    .select('id, token_slug, status, recommended_tier, custom_monthly_price, sent_at, viewed_at, accepted_at, expires_at, created_at')
+    .eq('advertiser_account_id', id)
+    .order('created_at', { ascending: false })
+    .limit(10)
+  const [fkRes, nameRes] = await Promise.all([proposalsByFk, proposalsByName])
+  // FK path returns an error when migration 132 hasn't been applied
+  // ('column does not exist'). Swallow that — name match still works.
+  const fkRows   = (fkRes.error   ? [] : (fkRes.data   ?? [])) as ProposalRow[]
+  const nameRows = (nameRes.error ? [] : (nameRes.data ?? [])) as ProposalRow[]
+  const seenIds = new Set(fkRows.map(r => r.id))
+  const proposals = [...fkRows, ...nameRows.filter(r => !seenIds.has(r.id))]
+
   type PlacementRow = {
     id: string; placement_type: string; context_type: string | null;
     context_slug: string | null; ad_headline: string | null; is_active: boolean;
@@ -413,6 +463,106 @@ export default async function AdvertiserProfilePage({ params }: Props) {
                       </span>
                     </div>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* Guide Listings — every guide this business is listed in.
+                Surfaced here so the editor sees the full publishing
+                footprint without hopping into the guides admin. */}
+            {guideListings.length > 0 && (
+              <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden mt-4">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Guide Listings ({guideListings.length})
+                  </h2>
+                  <Link
+                    href={`/admin/listings?advertiser_id=${id}`}
+                    className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                  >
+                    All
+                  </Link>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {guideListings.slice(0, 8).map(g => {
+                    const guide = Array.isArray(g.guide_type) ? g.guide_type[0] : g.guide_type
+                    const name  = guide?.display_name ?? g.guide_type_slug ?? '(unknown guide)'
+                    return (
+                      <div key={g.id} className={`px-5 py-2.5 flex items-center gap-3 ${g.is_published ? '' : 'opacity-60'}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                            {g.category   && <span>{g.category}</span>}
+                            {g.listing_year && <span>{g.listing_year}</span>}
+                            <span className={`uppercase tracking-wider font-bold text-[9px] px-1.5 py-0.5 rounded ${
+                              g.listing_tier === 'sponsor'    ? 'bg-amber-100 text-amber-800'   :
+                              g.listing_tier === 'premium'    ? 'bg-violet-100 text-violet-800' :
+                                                                'bg-gray-100 text-gray-600'
+                            }`}>
+                              {g.listing_tier ?? 'free'}
+                            </span>
+                          </div>
+                        </div>
+                        {!g.is_published && (
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Draft</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Proposals — loose match by business_name (the proposals
+                table from migration 022 predates advertiser_accounts FK).
+                Surfaced with a label that calls out the looseness so
+                the editor knows mismatches are possible. */}
+            {proposals.length > 0 && (
+              <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden mt-4">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Proposals ({proposals.length})
+                    <span className="ml-2 text-[9px] font-normal text-gray-400 normal-case tracking-normal">
+                      matched by business name
+                    </span>
+                  </h2>
+                  <Link
+                    href={`/admin/advertisers/proposals?q=${encodeURIComponent(name)}`}
+                    className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                  >
+                    All
+                  </Link>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {proposals.map(p => {
+                    const stage = (p.status ?? 'draft').toLowerCase()
+                    const stageBadge: Record<string, string> =
+                      { draft: 'bg-gray-100 text-gray-700', sent: 'bg-sky-100 text-sky-800', viewed: 'bg-violet-100 text-violet-800', accepted: 'bg-emerald-100 text-emerald-800', declined: 'bg-rose-100 text-rose-800', expired: 'bg-gray-100 text-gray-400' }
+                    return (
+                      <Link
+                        key={p.id}
+                        href={`/admin/advertisers/proposals/${p.id}`}
+                        className="px-5 py-2.5 flex items-center gap-3 hover:bg-gray-50"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {p.recommended_tier ?? '—'}
+                            {p.custom_monthly_price != null && (
+                              <span className="ml-2 text-xs font-normal text-gray-500">${p.custom_monthly_price.toLocaleString()}/mo</span>
+                            )}
+                          </p>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                            <code className="font-mono">/{p.token_slug}</code>
+                            <span>{fmtDate(p.created_at)}</span>
+                            {p.viewed_at && <span>Viewed {fmtDate(p.viewed_at)}</span>}
+                          </div>
+                        </div>
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${stageBadge[stage] ?? stageBadge.draft}`}>
+                          {stage}
+                        </span>
+                      </Link>
+                    )
+                  })}
                 </div>
               </section>
             )}

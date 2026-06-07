@@ -170,18 +170,22 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
       //   matched   → auto-attach (clean exact match, no review needed)
       //   duplicate → auto-skip (advertiser already has a row on issue)
       //   fuzzy     → seed top candidate but surface for review
-      //   new       → seed 'create new with CSV name' but surface for
-      //               review — editor can correct the business name or
-      //               attach to a different existing advertiser by
-      //               typing the canonical name.
+      //   new       → NO seed. The editor must consciously type or
+      //               pick a canonical business — auto-defaulting to
+      //               the CSV's 'Business' cell silently pollutes
+      //               advertiser_accounts with ad-variant names (the
+      //               cell is usually the ad's display label, not the
+      //               canonical business). Leaving the resolution
+      //               undefined forces a deliberate choice; the
+      //               commit step rejects rows without one.
       const seed: Record<number, Resolution> = {}
       for (const p of json.plan) {
         if (p.status === 'matched' && p.matched_id)   seed[p.index] = { advertiser_id: p.matched_id }
         else if (p.status === 'duplicate')            seed[p.index] = { skip: true }
-        else if (p.status === 'new')                  seed[p.index] = { create_new: { business_name: p.input.business } }
         else if (p.status === 'fuzzy' && p.fuzzy_candidates?.[0]) {
           seed[p.index] = { advertiser_id: p.fuzzy_candidates[0].id }
         }
+        // p.status === 'new' → left undefined intentionally
       }
       setResolutions(seed)
       setStep('plan')
@@ -236,6 +240,16 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
   // Both 'fuzzy' and 'new' need editor input. 'matched' is silent
   // auto-attach; 'duplicate' is silent auto-skip.
   const reviewRows = visiblePlan.filter(p => p.status === 'fuzzy' || p.status === 'new')
+  // Unresolved rows = 'new' (no fuzzy candidates) rows the editor
+  // hasn't typed/picked a business for. Block commit until every one
+  // is resolved (either named or explicitly skipped) — silently
+  // skipping them at commit would lose placements without a warning.
+  const unresolvedNewCount = visiblePlan.filter(p => {
+    if (p.status !== 'new') return false
+    const r = resolutions[p.index]
+    if (!r) return true
+    return !r.advertiser_id && !r.create_new && !r.skip
+  }).length
   const headers = rawRows[0] ?? []
   const sampleRow = rawRows[1] ?? []
   const dataRowCount = Math.max(0, rawRows.length - 1)
@@ -397,12 +411,21 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
               <button
                 type="button"
                 onClick={onCommit}
-                disabled={committing}
+                disabled={committing || unresolvedNewCount > 0}
+                title={unresolvedNewCount > 0
+                  ? `${unresolvedNewCount} no-match row${unresolvedNewCount === 1 ? '' : 's'} still need a business name or Skip`
+                  : ''}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
               >
                 {committing ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {committing ? 'Importing…' : `Import to ${fmtIssue(targetMonth)}`}
               </button>
+              {unresolvedNewCount > 0 && (
+                <span className="text-xs text-amber-700 inline-flex items-center gap-1">
+                  <AlertCircle size={12}/>
+                  {unresolvedNewCount} no-match row{unresolvedNewCount === 1 ? '' : 's'} still need a business name or Skip
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => { setPlan(null); setCounts(null); setResolutions({}); setStep('map') }}
@@ -504,14 +527,18 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
   advertisers: Array<{ id: string; business_name: string }>
   onChange:   (r: Resolution) => void
 }) {
-  // Visible name in the input. Defaults to the seed resolution: CSV
-  // value when create_new is selected; existing name when fuzzy radio
-  // is selected (so editor can switch modes by typing).
+  // Visible name in the input. For 'fuzzy' rows we pre-fill with the
+  // top candidate's name (so the editor can switch modes by typing).
+  // For 'new' rows (no candidate, no match) we leave it BLANK — the
+  // CSV's business cell is usually the AD name, not the canonical
+  // business, so auto-defaulting it pollutes advertiser_accounts with
+  // ad-variant rows. Blank forces the editor to type / pick a clean
+  // canonical name.
   const seedCustomName =
     resolution?.create_new?.business_name
     ?? (resolution?.advertiser_id
-          ? advertisers.find(a => a.id === resolution.advertiser_id)?.business_name ?? planned.input.business
-          : planned.input.business)
+          ? advertisers.find(a => a.id === resolution.advertiser_id)?.business_name ?? ''
+          : '')
   const [customName, setCustomName] = useState<string>(seedCustomName)
 
   const picked = resolution?.advertiser_id
@@ -528,7 +555,15 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
   // creating a dup; the radio visual is just consistent.
   function onCustomChange(v: string) {
     setCustomName(v)
-    onChange({ create_new: { business_name: v.trim() || planned.input.business } })
+    const trimmed = v.trim()
+    // Blank → resolution is unset, forcing the editor to either fill
+    // in a name or pick Skip. Without this the create_new would carry
+    // the empty string and the commit would fail mid-import.
+    if (!trimmed) {
+      onChange({})
+      return
+    }
+    onChange({ create_new: { business_name: trimmed } })
   }
 
   return (
