@@ -216,10 +216,12 @@ const NAV: NavItem[] = [
     icon: Users,
     children: [
       // No "Active Advertisers" child — clicking the parent already goes
-      // to the active list. Pipeline / Businesses / Agreements / Ad Proofs
-      // are hidden until they're backed by real data.
+      // to the active list. Pipeline + Businesses live in the section
+      // tab strip instead. Duplicates is a maintenance tool we surface
+      // here so the editor can find it without hunting.
       { name: 'Category Ownership', href: '/admin/advertisers/sponsor-inventory' },
       { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true },
+      { name: 'Duplicates',         href: '/admin/advertisers/duplicates'  },
     ],
   },
   { name: 'Proposals',     href: '/admin/advertisers/proposals', icon: FileText },
