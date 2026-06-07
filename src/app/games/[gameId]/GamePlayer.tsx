@@ -1133,9 +1133,11 @@ function WinScreen({
               {/* Secondary CTA — skip the form, head back to play
                   more. Lower hierarchy than Submit but still
                   obviously clickable so repeat players don't feel
-                  cornered by the form. */}
+                  cornered by the form. Links to #pick-level so the
+                  player lands on the difficulty + game grid instead
+                  of having to scroll past the hero. */}
               <a
-                href={`/games?diff=${difficulty}`}
+                href={`/games?diff=${difficulty}#pick-level`}
                 className="block w-full px-4 py-3 text-sm font-bold text-center text-muted-foreground hover:text-foreground rounded-xl border border-border bg-background hover:bg-muted/40 transition-colors"
               >
                 No thanks — take me back to games
@@ -1163,7 +1165,7 @@ function WinScreen({
               newBest={newBest}
             />
 
-            <a href={`/games?diff=${difficulty}`}
+            <a href={`/games?diff=${difficulty}#pick-level`}
               className="inline-flex items-center gap-1.5 mt-5 px-5 py-3 text-sm font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
               Play another game <ChevronRight className="h-4 w-4" />
             </a>

@@ -239,8 +239,13 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        {/* DIFFICULTY SELECTOR */}
-        <DifficultyChooser current={difficulty} />
+        {/* DIFFICULTY SELECTOR
+            Anchor id="pick-level" — the post-game 'Take me back to games'
+            CTA uses /games?diff=...#pick-level so returning players land
+            right at the chooser instead of scrolling past the hero. */}
+        <div id="pick-level" className="scroll-mt-16 md:scroll-mt-20">
+          <DifficultyChooser current={difficulty} />
+        </div>
 
         {/* GAMES GRID — large icon-box cards matching the original AI Studio reference */}
         <section className="grid md:grid-cols-2 gap-5">
