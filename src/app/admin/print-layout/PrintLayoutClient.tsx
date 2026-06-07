@@ -262,6 +262,19 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortedRows, statusFilter, issue])
 
+  // Per-advertiser placement count for this issue. Used to decide
+  // whether to surface ad_label — only worth showing when one
+  // advertiser has multiple ads in the same issue and the editor
+  // needs to tell them apart. Solo placements just clutter the row
+  // with the CSV's original cell value.
+  const advertiserCounts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of rows) {
+      m.set(r.advertiser_account_id, (m.get(r.advertiser_account_id) ?? 0) + 1)
+    }
+    return m
+  }, [rows])
+
   // Selection helpers — work off the visible set so 'select all'
   // matches what the editor's actually looking at.
   const allSelected = visibleRows.length > 0 && visibleRows.every(r => selected.has(r.id))
@@ -470,13 +483,25 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             >
               <Upload size={14} /> Import CSV
             </button>
-            <a
-              href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}`}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-lg hover:bg-gray-50"
-              title="Download CSV"
-            >
-              <Download size={14} /> CSV
-            </a>
+            {/* Two single-view CSV downloads — the editor sends both
+                to the layout team: size view is the designer's source
+                of truth, name view is for billing reconciliation. */}
+            <div className="inline-flex rounded-lg overflow-hidden border border-gray-300">
+              <a
+                href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}&view=size`}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-gray-50"
+                title="Download CSV sorted by size (largest first)"
+              >
+                <Download size={14} /> By Size
+              </a>
+              <a
+                href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}&view=name`}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-gray-50 border-l border-gray-300"
+                title="Download CSV sorted by business name (A→Z)"
+              >
+                <Download size={14} /> By Name
+              </a>
+            </div>
             <button
               type="button"
               onClick={() => window.print()}
@@ -636,6 +661,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                     key={r.id}
                     row={r}
                     isExpired={isExpired(r)}
+                    showVariant={(advertiserCounts.get(r.advertiser_account_id) ?? 0) > 1}
                     selected={selected.has(r.id)}
                     onToggle={() => toggleOne(r.id)}
                     onEdit={() => router.push(`/admin/print-placements/${r.id}/edit`)}
@@ -724,8 +750,8 @@ function SortHeader({
 
 // ── Read-only row ───────────────────────────────────────────────────────────
 
-function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
-  row: PrintPlacement; isExpired: boolean; selected: boolean; onToggle: () => void;
+function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDelete }: {
+  row: PrintPlacement; isExpired: boolean; showVariant: boolean; selected: boolean; onToggle: () => void;
   onEdit: () => void; onDelete: () => void
 }) {
   // Row-level visual state: expired wins over selection (re-up decision
@@ -736,11 +762,18 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
     : !row.is_ongoing
       ? (selected ? 'bg-amber-100/70' : 'bg-amber-50/60 hover:bg-amber-50')
       : (selected ? 'bg-amber-50/40' : 'hover:bg-gray-50')
-  // Show ad_label only when it carries different content than the
-  // canonical business name (CSV imports often have label == name).
-  const adVariant = row.ad_label && row.ad_label.trim() && row.ad_label.trim().toLowerCase() !== row.business_name.toLowerCase()
-    ? row.ad_label.trim()
-    : null
+  // Show ad_label only when:
+  //   - It exists and differs from the canonical business name AND
+  //   - The advertiser has more than one placement on this issue
+  // (multi-ad businesses are the only case where the variant label
+  // adds real signal — for solo placements it just clutters the row
+  // with the CSV's original cell text).
+  const adVariant = showVariant
+    && row.ad_label
+    && row.ad_label.trim()
+    && row.ad_label.trim().toLowerCase() !== row.business_name.toLowerCase()
+      ? row.ad_label.trim()
+      : null
   return (
     <tr className={`border-b border-gray-100 last:border-0 group ${rowBg}`}>
       <td className="px-3 py-2 w-8 print:hidden">
@@ -776,7 +809,13 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
       <td className="px-3 py-2 text-xs tabular-nums">{row.size}</td>
       <td className="px-3 py-2 text-xs capitalize">{row.layout ?? ''}</td>
       <td className="px-3 py-2 text-xs text-right tabular-nums">{row.price != null ? `$${row.price.toLocaleString()}` : ''}</td>
-      <td className="px-3 py-2 text-xs text-right tabular-nums">{row.social_budget != null ? `$${row.social_budget.toLocaleString()}` : ''}</td>
+      <td className="px-3 py-2 text-xs text-right tabular-nums">
+        {row.social_budget == null
+          ? ''
+          : row.social_budget === 0
+            ? <span className="text-gray-400">N/A</span>
+            : `$${row.social_budget.toLocaleString()}`}
+      </td>
       <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-rose-700 font-bold' : 'text-gray-600'}`}>
         <div className="flex flex-col gap-0.5">
           <span>{row.expires_month ? shortMonth(row.expires_month) : ''}</span>
