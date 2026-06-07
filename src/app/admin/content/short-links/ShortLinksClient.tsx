@@ -8,7 +8,7 @@
 // Replaces the external QR Code Studio subscription.
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Plus, Copy, Check, ExternalLink, RefreshCw, Trash2, QrCode,
   MousePointer, AlertTriangle, Download, Link2, Phone, Mail, MessageSquare,
@@ -60,9 +60,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 }
 
 export function ShortLinksClient({ initialRows, advertisers }: Props) {
-  const router = useRouter()
-  const [rows, setRows]       = useState<ShortLinkRow[]>(initialRows)
-  const [addOpen, setAddOpen] = useState(false)
+  const [rows, setRows] = useState<ShortLinkRow[]>(initialRows)
 
   // Filter state
   const [tab, setTab]                       = useState<'all' | Purpose>('all')
@@ -73,21 +71,9 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
   const [advertiserFilter, setAdvertiserFilter]   = useState<string>('all')
   const [sortKey, setSortKey]               = useState<SortKey>('newest')
 
-  function onCreated(row: ShortLinkRow) {
-    setRows(prev => [row, ...prev])
-    setAddOpen(false)
-    router.refresh()
-  }
   function onRemoved(id: string) {
     setRows(prev => prev.filter(r => r.id !== id))
   }
-
-  // Counts per purpose (drives the tab strip + stat tiles).
-  const counts = useMemo(() => {
-    const c = { all: rows.length, qr: 0, ad: 0, campaign: 0 }
-    for (const r of rows) c[purposeFor(r)]++
-    return c
-  }, [rows])
 
   // Apply all filters + sort.
   const visibleRows = useMemo(() => {
@@ -141,10 +127,6 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
     setSearch('')
   }
 
-  const advertiserCount = useMemo(
-    () => new Set(rows.filter(r => r.advertiser_account_id).map(r => r.advertiser_account_id)).size,
-    [rows],
-  )
 
   return (
     <div className="flex flex-col">
@@ -157,38 +139,17 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
             QR codes, on-site ad CTAs, and external campaign links. Every click is tracked, UTMs auto-append on redirect, and rows tie back to advertisers for measurement.
           </p>
         </div>
-        <button
-          onClick={() => setAddOpen(v => !v)}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+        <Link
+          href="/admin/content/short-links/new"
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
         >
           <Plus size={14} /> New Tracked Link
-        </button>
+        </Link>
       </div>
-
-      {addOpen && (
-        <AddPanel
-          advertisers={advertisers}
-          onCancel={() => setAddOpen(false)}
-          onCreated={onCreated}
-        />
-      )}
-
-      {/* ── Stat tiles ────────────────────────────────────────────
-          One tile per purpose + a totals tile. Clicking a tile sets
-          the purpose tab — same affordance as the chips below, but
-          larger and easier to find when the editor first lands. */}
-      {rows.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatTile label="All links"      value={counts.all}      active={tab === 'all'}      onClick={() => setTab('all')}      accent="#0f172a" />
-          <StatTile label="QR codes"       value={counts.qr}       active={tab === 'qr'}       onClick={() => setTab('qr')}       accent="#7c3aed" />
-          <StatTile label="Ad links"       value={counts.ad}       active={tab === 'ad'}       onClick={() => setTab('ad')}       accent="#d97706" />
-          <StatTile label="Campaign links" value={counts.campaign} active={tab === 'campaign'} onClick={() => setTab('campaign')} accent="#0284c7" />
-        </div>
-      )}
 
       {/* ── Search + filter bar ─────────────────────────────────── */}
       {rows.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
           {/* Search — lg:col-span-2 to give it visual priority. */}
           <div className="lg:col-span-2">
             <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Search</label>
@@ -212,6 +173,19 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
               )}
             </div>
           </div>
+          {/* Purpose dropdown — replaces the old stat tiles. Single
+              source of filter chrome instead of cards + chips. */}
+          <FilterSelect
+            label="Type"
+            value={tab}
+            onChange={v => setTab(v as 'all' | Purpose)}
+            options={[
+              { value: 'all',      label: 'All types' },
+              { value: 'qr',       label: 'QR codes' },
+              { value: 'ad',       label: 'Ad links' },
+              { value: 'campaign', label: 'Campaign links' },
+            ]}
+          />
           <FilterSelect
             label="Channel"
             value={channelFilter}
@@ -226,9 +200,9 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
             value={audienceFilter}
             onChange={v => setAudienceFilter(v as Audience)}
             options={[
-              { value: 'all',      label: `All (${rows.length})` },
-              { value: 'in_house', label: 'In-house (no advertiser)' },
-              { value: 'client',   label: `Client (${advertiserCount} businesses)` },
+              { value: 'all',      label: 'All' },
+              { value: 'in_house', label: 'In-house' },
+              { value: 'client',   label: 'Client' },
             ]}
           />
           <FilterSelect
@@ -240,10 +214,10 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         </div>
       )}
 
-      {/* ── Secondary filter chips ─────────────────────────────── */}
+      {/* Clear-filters chip — only when something is filtered. No
+          'Showing X of Y' line; that's just count clutter. */}
       {rows.length > 0 && anyFilterActive && (
         <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-2 text-xs flex-wrap">
-          <span className="text-gray-500 font-semibold">Showing {visibleRows.length} of {rows.length}</span>
           <button
             onClick={clearAllFilters}
             className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900 font-semibold"
@@ -293,32 +267,6 @@ function FilterSelect({ label, value, onChange, options }: {
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
-  )
-}
-
-function StatTile({ label, value, accent, active, onClick }: {
-  label:   string
-  value:   number
-  accent:  string
-  active:  boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`text-left bg-white border rounded-2xl px-4 py-3 transition-all ${
-        active
-          ? 'border-2 ring-2 ring-offset-1'
-          : 'border border-gray-200 hover:border-gray-300'
-      }`}
-      style={active ? { borderColor: accent, boxShadow: `0 0 0 2px ${accent}33` } : undefined}
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accent }} />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</span>
-      </div>
-      <p className="text-2xl font-black text-gray-900 tabular-nums leading-none">{value.toLocaleString()}</p>
-    </button>
   )
 }
 
@@ -582,7 +530,9 @@ function EditRow({
 }
 
 // ── Add panel ───────────────────────────────────────────────────────────────
-function AddPanel({
+// Exported so the dedicated /admin/content/short-links/new route can mount
+// the same form on its own page (where save/cancel both router.push back).
+export function AddPanel({
   advertisers, onCancel, onCreated,
 }: {
   advertisers: AdvertiserOption[]
