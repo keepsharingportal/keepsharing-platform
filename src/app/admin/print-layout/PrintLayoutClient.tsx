@@ -10,11 +10,11 @@
 // client maintains its own row list and syncs back on each save so the
 // editor sees changes immediately without a page refresh.
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Printer, Download, ChevronLeft, ChevronRight, Plus, Trash2,
-  Copy, RefreshCw, Check, X, Pencil,
+  Copy, RefreshCw, Check, X, Pencil, ArrowUp, ArrowDown, Edit3,
 } from 'lucide-react'
 
 // ── Shapes ──────────────────────────────────────────────────────────────────
@@ -99,12 +99,117 @@ function build18Months(anchor: string): string[] {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
+// Columns the editor can sort by. Keys match PrintPlacement field names
+// so the sort function can read row[key] without a switch.
+type SortKey = 'business_name' | 'design' | 'directory' | 'size' | 'layout' | 'price' | 'social_budget' | 'expires_month'
+type SortDir = 'asc' | 'desc'
+
 export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount, initial, advertisers, tableMissing }: Props) {
   const router = useRouter()
   const [rows, setRows]       = useState<PrintPlacement[]>(initial)
   const [editing, setEditing] = useState<string | null>(null)
   const [adding,  setAdding]  = useState(false)
   const [busy, startTransition] = useTransition()
+
+  // Selection (bulk operations). Set keys = row ids; nothing fancy.
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkEditing, setBulkEditing] = useState(false)
+
+  // Sort. Default: size desc (mirrors initial server order so the page
+  // doesn't visually jump after first load). Editors switch to
+  // business_name asc for the second printout.
+  const [sortKey, setSortKey] = useState<SortKey>('size')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  function clickSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      // Numeric columns feel right starting desc (biggest first);
+      // text columns start asc.
+      setSortDir(['size', 'price', 'social_budget'].includes(key) ? 'desc' : 'asc')
+    }
+  }
+
+  // Apply current sort + memoize so we don't resort on unrelated renders.
+  const sortedRows = useMemo(() => {
+    const out = [...rows]
+    out.sort((a, b) => {
+      const av = (a as unknown as Record<string, unknown>)[sortKey]
+      const bv = (b as unknown as Record<string, unknown>)[sortKey]
+      // Nulls last regardless of direction (visually predictable).
+      const aNull = av == null || av === ''
+      const bNull = bv == null || bv === ''
+      if (aNull && bNull) return 0
+      if (aNull) return 1
+      if (bNull) return -1
+      let cmp = 0
+      if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv
+      else if (typeof av === 'boolean' && typeof bv === 'boolean') cmp = (av === bv) ? 0 : av ? 1 : -1
+      else cmp = String(av).localeCompare(String(bv))
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+    return out
+  }, [rows, sortKey, sortDir])
+
+  // Selection helpers — work off the visible set so 'select all'
+  // matches what the editor's actually looking at.
+  const allSelected = sortedRows.length > 0 && sortedRows.every(r => selected.has(r.id))
+  const someSelected = !allSelected && sortedRows.some(r => selected.has(r.id))
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(sortedRows.map(r => r.id)))
+  }
+  function toggleOne(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  function clearSelection() { setSelected(new Set()) }
+
+  async function onBulkDelete() {
+    if (selected.size === 0) return
+    if (!confirm(`Delete ${selected.size} placement${selected.size === 1 ? '' : 's'} from ${fmtIssue(issue)}?`)) return
+    const ids = Array.from(selected)
+    startTransition(async () => {
+      const res = await fetch('/api/admin/print-placements/bulk-delete', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ids }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        window.alert(json?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      setRows(prev => prev.filter(r => !selected.has(r.id)))
+      clearSelection()
+    })
+  }
+
+  async function onBulkEditApply(patch: Record<string, unknown>) {
+    if (selected.size === 0) return
+    const ids = Array.from(selected)
+    const res = await fetch('/api/admin/print-placements/bulk', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ids, patch }),
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      window.alert(json?.error ?? `HTTP ${res.status}`)
+      return
+    }
+    // Patch local rows so the table updates without a refresh.
+    setRows(prev => prev.map(r => selected.has(r.id) ? { ...r, ...patch } as PrintPlacement : r))
+    clearSelection()
+    setBulkEditing(false)
+    // Background refresh ensures any DB-side normalization (NULLs from
+    // empty strings, trigger updates) reaches the UI on the next paint.
+    router.refresh()
+  }
 
   function navigateIssue(targetMonth: string) {
     router.push(`/admin/print-layout?issue=${encodeURIComponent(targetMonth)}`)
@@ -257,6 +362,43 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
         />
       )}
 
+      {/* ── Bulk action bar ─────────────────────────────────────────
+          Slides in above the table whenever the editor has rows
+          selected. Stays sticky-visible until they Clear. */}
+      {selected.size > 0 && (
+        <div className="mx-4 mt-3 bg-gray-900 text-white rounded-xl px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 print:hidden">
+          <span className="text-sm font-bold">
+            {selected.size} {selected.size === 1 ? 'placement' : 'placements'} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setBulkEditing(true)}
+              disabled={busy}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg disabled:opacity-40"
+            >
+              <Edit3 size={12} /> Edit fields
+            </button>
+            <button
+              type="button"
+              onClick={onBulkDelete}
+              disabled={busy}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 rounded-lg disabled:opacity-40"
+            >
+              {busy ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white/70 hover:text-white"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Table ──────────────────────────────────────────────────── */}
       <div className="px-4 py-4 print:px-0 print:py-0">
         {rows.length === 0 ? (
@@ -271,21 +413,32 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200 text-[10px] uppercase tracking-wider text-gray-600">
                 <tr className="text-left">
-                  <th className="px-4 py-2 font-semibold">Business</th>
-                  <th className="px-3 py-2 font-semibold">Design</th>
-                  <th className="px-3 py-2 font-semibold">Dir.</th>
-                  <th className="px-3 py-2 font-semibold">Size</th>
-                  <th className="px-3 py-2 font-semibold">Layout</th>
-                  <th className="px-3 py-2 font-semibold text-right">Price</th>
-                  <th className="px-3 py-2 font-semibold text-right">Social</th>
+                  {/* Select-all checkbox; indeterminate visual when a
+                      subset is selected. */}
+                  <th className="px-3 py-2 w-8 print:hidden">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected }}
+                      onChange={toggleAll}
+                      aria-label="Select all rows"
+                    />
+                  </th>
+                  <SortHeader label="Business" sortKey="business_name" active={sortKey} dir={sortDir} onClick={clickSort} className="px-4 py-2" />
+                  <SortHeader label="Design"   sortKey="design"        active={sortKey} dir={sortDir} onClick={clickSort} />
+                  <SortHeader label="Dir."     sortKey="directory"     active={sortKey} dir={sortDir} onClick={clickSort} />
+                  <SortHeader label="Size"     sortKey="size"          active={sortKey} dir={sortDir} onClick={clickSort} />
+                  <SortHeader label="Layout"   sortKey="layout"        active={sortKey} dir={sortDir} onClick={clickSort} />
+                  <SortHeader label="Price"    sortKey="price"         active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
+                  <SortHeader label="Social"   sortKey="social_budget" active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
                   <th className="px-3 py-2 font-semibold">Months</th>
-                  <th className="px-3 py-2 font-semibold">Expires</th>
+                  <SortHeader label="Expires"  sortKey="expires_month" active={sortKey} dir={sortDir} onClick={clickSort} />
                   <th className="px-3 py-2 font-semibold">Notes</th>
                   <th className="px-3 py-2 font-semibold print:hidden"></th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map(r => editing === r.id ? (
+                {sortedRows.map(r => editing === r.id ? (
                   <EditRow
                     key={r.id}
                     row={r}
@@ -300,24 +453,92 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   <ReadRow
                     key={r.id}
                     row={r}
+                    selected={selected.has(r.id)}
+                    onToggle={() => toggleOne(r.id)}
                     onEdit={() => { setEditing(r.id); setAdding(false) }}
                     onDelete={() => onDelete(r.id, r.business_name)}
                   />
                 ))}
               </tbody>
+              {/* Totals footer — page count, revenue, social.
+                  Surfaces at the bottom of the print page too so the
+                  layout team sees the issue's totals at a glance. */}
+              <tfoot className="bg-gray-50 border-t-2 border-gray-300 text-xs font-bold">
+                <tr>
+                  <td className="px-3 py-2 print:hidden"></td>
+                  <td className="px-4 py-2 text-gray-700">
+                    {rows.length} {rows.length === 1 ? 'placement' : 'placements'}
+                  </td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2 tabular-nums text-gray-900">{totalPages.toFixed(2)} pp</td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2 tabular-nums text-right text-gray-900">${totalRevenue.toLocaleString()}</td>
+                  <td className="px-3 py-2 tabular-nums text-right text-gray-900">{totalSocial > 0 ? `$${totalSocial.toLocaleString()}` : '—'}</td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2 print:hidden"></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </div>
+
+      {bulkEditing && (
+        <BulkEditModal
+          issue={issue}
+          count={selected.size}
+          onCancel={() => setBulkEditing(false)}
+          onApply={onBulkEditApply}
+        />
+      )}
     </>
+  )
+}
+
+// ── Sortable column header ──────────────────────────────────────────────────
+
+function SortHeader({
+  label, sortKey, active, dir, onClick, align, className,
+}: {
+  label:     string
+  sortKey:   SortKey
+  active:    SortKey
+  dir:       SortDir
+  onClick:   (k: SortKey) => void
+  align?:    'left' | 'right'
+  className?: string
+}) {
+  const isActive = active === sortKey
+  return (
+    <th className={`px-3 py-2 font-semibold ${align === 'right' ? 'text-right' : 'text-left'} ${className ?? ''}`}>
+      <button
+        type="button"
+        onClick={() => onClick(sortKey)}
+        className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end w-full' : ''} ${isActive ? 'text-gray-900' : 'hover:text-gray-900'}`}
+      >
+        {label}
+        {isActive && (dir === 'asc'
+          ? <ArrowUp   size={9} className="text-gray-700" />
+          : <ArrowDown size={9} className="text-gray-700" />)}
+      </button>
+    </th>
   )
 }
 
 // ── Read-only row ───────────────────────────────────────────────────────────
 
-function ReadRow({ row, onEdit, onDelete }: { row: PrintPlacement; onEdit: () => void; onDelete: () => void }) {
+function ReadRow({ row, selected, onToggle, onEdit, onDelete }: {
+  row: PrintPlacement; selected: boolean; onToggle: () => void;
+  onEdit: () => void; onDelete: () => void
+}) {
   return (
-    <tr className="border-b border-gray-100 last:border-0 hover:bg-gray-50 group">
+    <tr className={`border-b border-gray-100 last:border-0 hover:bg-gray-50 group ${selected ? 'bg-amber-50/40' : ''}`}>
+      <td className="px-3 py-2 w-8 print:hidden">
+        <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
+      </td>
       <td className="px-4 py-2 font-bold text-gray-900">{row.business_name}</td>
       <td className="px-3 py-2 text-xs capitalize">{row.design}</td>
       <td className="px-3 py-2 text-xs">{row.directory ? 'Yes' : '—'}</td>
@@ -404,6 +625,7 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
 
   return (
     <tr className="border-b border-gray-100 bg-amber-50/60">
+      <td className="px-3 py-2 w-8 align-top print:hidden"></td>
       <td className="px-4 py-2 font-bold text-gray-900 align-top">{row.business_name}</td>
       <td className="px-3 py-2 align-top">
         <select value={design} onChange={e => setDesign(e.target.value)} className={inp}>
@@ -490,6 +712,163 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         </div>
       </td>
     </tr>
+  )
+}
+
+// FieldRow — checkbox + label + value control. Lives at module scope
+// (not inside BulkEditModal) so the static-components rule passes:
+// React would otherwise rebuild the component on every modal render.
+function FieldRow({ enabled, onToggle, field, label, children }: {
+  enabled:  Record<string, boolean>
+  onToggle: (field: string) => void
+  field:    string
+  label:    string
+  children: React.ReactNode
+}) {
+  const on = !!enabled[field]
+  return (
+    <div className="grid grid-cols-[24px_140px_1fr] gap-3 items-center">
+      <input
+        type="checkbox"
+        checked={on}
+        onChange={() => onToggle(field)}
+        aria-label={`Update ${label}`}
+      />
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{label}</label>
+      <div className={on ? '' : 'opacity-40 pointer-events-none'}>{children}</div>
+    </div>
+  )
+}
+
+// ── Bulk edit modal ─────────────────────────────────────────────────────────
+//
+// One field at a time per checkbox; only checked fields get applied to
+// every selected row. Modeled on Zoho/Salesforce mass-update — the
+// editor's most common ask is 'change design from new to pickup on
+// these 12' or 'set price=$X on the whole picked-up batch'.
+
+function BulkEditModal({ issue, count, onCancel, onApply }: {
+  issue:    string
+  count:    number
+  onCancel: () => void
+  onApply:  (patch: Record<string, unknown>) => Promise<void>
+}) {
+  const monthOptions = build18Months(issue)
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({})
+  const [design,    setDesign]    = useState<'new' | 'pickup'>('new')
+  const [directory, setDirectory] = useState(false)
+  const [size,      setSize]      = useState<number>(0.25)
+  const [layout,    setLayout]    = useState<string>('')
+  const [price,     setPrice]     = useState('')
+  const [social,    setSocial]    = useState('')
+  const [expires,   setExpires]   = useState('')
+  const [layoutNotes, setLayoutNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  function toggle(field: string) {
+    setEnabled(e => ({ ...e, [field]: !e[field] }))
+  }
+
+  async function apply() {
+    const patch: Record<string, unknown> = {}
+    if (enabled.design)        patch.design          = design
+    if (enabled.directory)     patch.directory       = directory
+    if (enabled.size)          patch.size            = size
+    if (enabled.layout)        patch.layout          = layout || null
+    if (enabled.price)         patch.price           = price.trim() === '' ? null : Number(price)
+    if (enabled.social_budget) patch.social_budget   = social.trim() === '' ? null : Number(social)
+    if (enabled.expires_month) patch.expires_month   = expires || null
+    if (enabled.layout_notes)  patch.layout_notes    = layoutNotes.trim() || null
+    if (Object.keys(patch).length === 0) {
+      window.alert('Tick the box next to at least one field to update.')
+      return
+    }
+    setSaving(true)
+    try { await onApply(patch) }
+    finally { setSaving(false) }
+  }
+
+  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 overflow-y-auto" onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-5 my-12 space-y-4">
+        <header className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-1.5">
+            <Edit3 size={14} /> Bulk edit {count} placement{count === 1 ? '' : 's'}
+          </h3>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-700"><X size={14} /></button>
+        </header>
+        <p className="text-xs text-gray-500">
+          Tick a field to update it across every selected row. Unticked fields are left alone.
+        </p>
+
+        <div className="space-y-3">
+          <FieldRow enabled={enabled} onToggle={toggle} field="design" label="Design">
+            <select value={design} onChange={e => setDesign(e.target.value as 'new' | 'pickup')} className={`${inp} cursor-pointer capitalize`}>
+              {DESIGN_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="directory" label="Directory">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+              <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
+              {directory ? 'Yes (in directory)' : 'No (not in directory)'}
+            </label>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="size" label="Size">
+            <select value={size} onChange={e => setSize(parseFloat(e.target.value))} className={`${inp} cursor-pointer`}>
+              {SIZE_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="layout" label="Layout">
+            <select value={layout} onChange={e => setLayout(e.target.value)} className={`${inp} cursor-pointer`}>
+              {LAYOUT_OPTIONS.map(l => <option key={l.label} value={l.value ?? ''}>{l.label}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="price" label="Price ($)">
+            <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="leave blank to clear" className={inp} />
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="social_budget" label="Social budget ($)">
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={SOCIAL_PRESETS.includes(Number(social)) ? social : 'custom'}
+                onChange={e => { if (e.target.value !== 'custom') setSocial(e.target.value) }}
+                className={`${inp} cursor-pointer text-xs`}
+              >
+                <option value="">—</option>
+                {SOCIAL_PRESETS.map(v => <option key={v} value={v}>${v}</option>)}
+                <option value="custom">Custom…</option>
+              </select>
+              <input type="number" value={social} onChange={e => setSocial(e.target.value)} placeholder="$" className={`${inp} text-xs`} />
+            </div>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="expires_month" label="Expires">
+            <select value={expires} onChange={e => setExpires(e.target.value)} className={`${inp} cursor-pointer`}>
+              <option value="">— Clear —</option>
+              {monthOptions.map(m => <option key={m} value={m}>{shortMonth(m)}</option>)}
+            </select>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="layout_notes" label="Layout notes">
+            <input value={layoutNotes} onChange={e => setLayoutNotes(e.target.value)} placeholder="leave blank to clear" className={inp} />
+          </FieldRow>
+        </div>
+
+        <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={apply}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+          >
+            {saving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+            {saving ? 'Applying…' : `Apply to ${count}`}
+          </button>
+          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
