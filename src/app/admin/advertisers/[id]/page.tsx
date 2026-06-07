@@ -13,6 +13,7 @@ import { RATE_CARD } from '@/lib/ads/rate-card'
 import { CloneAdButton } from '@/components/admin/CloneAdButton'
 import { AdvertiserContactsPanel } from '@/components/admin/AdvertiserContactsPanel'
 import { GhlSyncButton } from '@/components/admin/GhlSyncButton'
+import { AdvertiserPrintPlacements, type PrintPlacementSummary } from '@/components/admin/AdvertiserPrintPlacements'
 import {
   ArrowLeft, Building2, Mail, Phone, Globe, Calendar,
   Eye, MousePointer, DollarSign, RotateCw, Lock, Plus, ExternalLink,
@@ -97,6 +98,19 @@ export default async function AdvertiserProfilePage({ params }: Props) {
     is_primary: boolean; notes: string | null
   }>
   const contactsTableMissing = !!contactsRes.error
+
+  // Print bookings (migration 129). Same migration-tolerant pattern as
+  // contacts: empty array + 'tableMissing' flag when 129 isn't applied.
+  const printRes = await supabase
+    .from('print_ad_placements')
+    .select('id, issue_month, design, size, layout, price, expires_month')
+    .eq('advertiser_account_id', id)
+    .order('issue_month', { ascending: false })
+    .limit(24)
+  const printPlacements: PrintPlacementSummary[] = printRes.error
+    ? []
+    : (printRes.data ?? []) as PrintPlacementSummary[]
+  const printTableMissing = !!printRes.error
 
   // Load all their ad placements (active + expired). Sort: active first
   // (newest priority), then expired (most-recently-archived first).
@@ -285,6 +299,17 @@ export default async function AdvertiserProfilePage({ params }: Props) {
               </p>
               <GhlSyncButton advertiserId={id} />
             </section>
+
+            {/* Print bookings — every print_ad_placements row tied to
+                this business, sorted upcoming-first. Click any row to
+                open the monthly Print Layout sheet with that issue
+                pre-loaded. Hides itself behind a notice until
+                migration 129 is applied. */}
+            <AdvertiserPrintPlacements
+              advertiserId={id}
+              initial={printPlacements}
+              tableMissing={printTableMissing}
+            />
           </div>
 
           {/* Right column: active placements */}
