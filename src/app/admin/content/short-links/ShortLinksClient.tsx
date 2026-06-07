@@ -188,26 +188,29 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
 
       {/* ── Search + filter bar ─────────────────────────────────── */}
       {rows.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
           {/* Search — lg:col-span-2 to give it visual priority. */}
-          <div className="lg:col-span-2 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by label, shortcode, destination, advertiser…"
-              className="w-full text-sm pl-9 pr-9 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
-                aria-label="Clear search"
-              >
-                <X size={14} />
-              </button>
-            )}
+          <div className="lg:col-span-2">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Search</label>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Label, shortcode, destination, advertiser…"
+                className="w-full text-sm pl-9 pr-9 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
           <FilterSelect
             label="Channel"
@@ -586,14 +589,13 @@ function AddPanel({
   onCancel:    () => void
   onCreated:   (r: ShortLinkRow) => void
 }) {
-  // Purpose drives the whole form view. QR shows the QR preview pane;
-  // Campaign hides it and surfaces external-channel dropdown options;
-  // Ad is here for completeness but ad links are normally minted from
-  // the ad editor (this form lets staff mint one manually if needed).
-  const [purpose, setPurpose]         = useState<Purpose>('qr')
+  // Purpose drives the whole form view. Null until the editor picks
+  // a card — progressive disclosure: the form starts collapsed and
+  // expands as choices are made.
+  const [purpose, setPurpose]         = useState<Purpose | null>(null)
   // Channel — UTM source + medium auto-fill when this changes. The
   // editor can still tweak source/medium manually after the change.
-  const [channel, setChannel]         = useState<Channel | ''>('print')
+  const [channel, setChannel]         = useState<Channel | ''>('')
   const [contentType, setContentType] = useState<string>('url')
   const [shortcode,   setShortcode]   = useState('')
   const [destination, setDestination] = useState('')
@@ -606,7 +608,10 @@ function AddPanel({
   // print convention. Editor can still tweak before generating.
   const [primaryColor, setPrimaryColor] = useState('#000000')
 
-  const compatibleChannels = useMemo(() => channelsForPurpose(purpose), [purpose])
+  const compatibleChannels = useMemo(
+    () => purpose ? channelsForPurpose(purpose) : [],
+    [purpose],
+  )
 
   // When channel changes, auto-fill UTM source/medium with the
   // curated defaults. Skip if the editor has already typed something
@@ -627,13 +632,49 @@ function AddPanel({
   // first compatible channel of the new purpose. Doing this on click
   // (not in a useEffect) avoids the cascading-render lint warning
   // and gives the editor a deterministic 'reset' moment.
+  // Also auto-pick a sensible content type: QR keeps multi-type
+  // options, but Ad + Campaign are always URL (the only sensible
+  // form for clickable distribution).
   function pickPurpose(next: Purpose) {
     setPurpose(next)
+    if (next !== 'qr') setContentType('url')
     const compat = channelsForPurpose(next)
     const stillValid = channel && compat.some(c => c.value === channel)
     if (!stillValid) {
       const first = (compat[0]?.value ?? '') as Channel | ''
       applyChannel(first)
+    }
+  }
+
+  function pickAdvertiser(idValue: string) {
+    if (idValue === '__add_new__') {
+      setShowAddAdv(true)
+      setAdvertiserId('')
+      return
+    }
+    setAdvertiserId(idValue)
+    setShowAddAdv(false)
+    if (!idValue) return
+    const match = localAdvertisers.find(a => a.id === idValue)
+    if (!match) return
+    // Auto-fill destination from business website if URL type + empty.
+    if (contentType === 'url' && !destination && 'business_url' in match) {
+      const url = String((match as Record<string, unknown>).business_url ?? '')
+      if (url) setDestination(url)
+    }
+    // Auto-fill label with business name if empty.
+    if (!label) setLabel(`${match.business_name}${utmCampaign ? ` — ${utmCampaign}` : ''}`)
+    // Auto-suggest a shortcode for Ad + Campaign purposes only. Ad +
+    // Campaign shortcodes are invisible to readers (they only see the
+    // destination after the redirect), so a deterministic 'advertiser-
+    // channel-suffix' pattern saves the editor inventing one. QR codes
+    // skip this — editors typically want a memorable printed handle.
+    if (purpose && purpose !== 'qr' && !shortcode) {
+      const slug   = match.business_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24)
+      const chPart = channel ? channel.replace('_', '').slice(0, 4) : ''
+      // eslint-disable-next-line react-hooks/purity
+      const r      = Date.now().toString(36).slice(-4)
+      setShortcode([slug, chPart, r].filter(Boolean).join('-'))
     }
   }
 
@@ -769,10 +810,12 @@ function AddPanel({
       <div className="flex items-start justify-between mb-6">
         <div>
           <h2 className="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
-            {(() => { const Icon = purposeOf(purpose).icon; return <Icon size={18} className="text-gray-700" /> })()}
-            New {purposeOf(purpose).label}
+            {purpose
+              ? (() => { const Icon = purposeOf(purpose).icon; return <Icon size={18} className="text-gray-700" /> })()
+              : <Plus size={18} className="text-gray-700" />}
+            New {purpose ? purposeOf(purpose).label : 'Tracked Link'}
           </h2>
-          <p className="text-xs text-gray-500 mt-1">Follow the steps below — only the QR Code path generates a printable QR.</p>
+          <p className="text-xs text-gray-500 mt-1">Start by picking what kind of link you&apos;re building — the rest of the form opens up after that.</p>
         </div>
         <button
           type="button"
@@ -818,35 +861,127 @@ function AddPanel({
         </div>
       </StepSection>
 
-      {/* ── Step 2 — Content type ──────────────────────────────────
-          What the destination IS. URL is the default; the rest are
-          QR-specific scan behaviors (phone dialer, vCard download,
-          calendar event, etc.). */}
-      <StepSection step={2} title="What kind of destination?" hint="URL is the default. The other types are mainly useful for QR codes (dialer, contact card, calendar event).">
-        <div className="flex flex-wrap gap-2">
-          {CONTENT_TYPES.map(ct => {
-            const I = ct.icon
-            const active = contentType === ct.value
-            return (
-              <button
-                key={ct.value}
-                type="button"
-                onClick={() => setContentType(ct.value)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
-                  active
-                    ? 'bg-gray-900 text-white ring-gray-900'
-                    : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50 hover:ring-gray-300'
-                }`}
+      {/* Steps 2+ progressively reveal once the editor has picked
+          a purpose — keeps the form digestible. */}
+      {purpose && (
+      <>
+
+      {/* ── Step 2 — Who's it for? (Advertiser) ───────────────────
+          Promoted to its own step because picking an advertiser
+          auto-fills the rest: destination URL (their website),
+          shortcode (for ad+campaign — slug-based), and the label.
+          'Internal' is an explicit option for in-house QR codes
+          that don't tie back to a paying client. */}
+      <StepSection step={2} title="Who's this link for?" hint="Pick a client to auto-fill the destination URL + suggest a shortcode. Use 'Internal' for in-house QR codes that don't tie back to an advertiser.">
+        <div className="space-y-3">
+          <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+            <div>
+              <label className={lbl}>Advertiser</label>
+              <select
+                value={advertiserId}
+                onChange={e => pickAdvertiser(e.target.value)}
+                className={`${inp} cursor-pointer`}
               >
-                <I size={12} /> {ct.label}
+                <option value="">— Internal / In-house —</option>
+                {localAdvertisers.map(a => (
+                  <option key={a.id} value={a.id}>{a.business_name}</option>
+                ))}
+                <option value="__add_new__">+ Add new advertiser…</option>
+              </select>
+            </div>
+            {advertiserId && (
+              <button
+                type="button"
+                onClick={() => setAdvertiserId('')}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-900 px-3 py-2"
+              >
+                Clear
               </button>
-            )
-          })}
+            )}
+          </div>
+
+          {/* Inline quick-add advertiser — moved here from Step 3
+              so the editor adds the missing client before doing
+              anything else. */}
+          {showAddAdv && (
+            <div className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4 space-y-3">
+              <p className="text-xs font-bold text-gray-900 inline-flex items-center gap-1.5">
+                <Plus size={12} /> Quick-Add Advertiser
+              </p>
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
+                  <input value={newAdvName} onChange={e => setNewAdvName(e.target.value)} placeholder="Dentistry for Children" className={inp} />
+                </div>
+                <div>
+                  <label className={lbl}>Contact Email</label>
+                  <input type="email" value={newAdvEmail} onChange={e => setNewAdvEmail(e.target.value)} placeholder="info@business.com" className={inp} />
+                </div>
+                <div>
+                  <label className={lbl}>Phone</label>
+                  <input value={newAdvPhone} onChange={e => setNewAdvPhone(e.target.value)} placeholder="334-555-1234" className={inp} />
+                </div>
+                <div>
+                  <label className={lbl}>Website</label>
+                  <input value={newAdvUrl} onChange={e => setNewAdvUrl(e.target.value)} placeholder="https://business.com" className={inp} />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={createAdvertiser}
+                  disabled={advBusy || !newAdvName.trim()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
+                >
+                  {advBusy ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
+                  {advBusy ? 'Saving…' : 'Save & Associate'}
+                </button>
+                <button type="button" onClick={() => setShowAddAdv(false)} className="text-xs text-gray-500 hover:text-gray-900">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </StepSection>
 
-      {/* ── Step 3 — Shortcode + destination + distribution ──────── */}
-      <StepSection step={3} title="Fill in the details" hint="Shortcode is what becomes /go/<this>. Once printed or shared, the shortcode is permanent — only the destination can be edited later.">
+      {/* ── Step 3 (QR only) — Content type ───────────────────────
+          What the destination IS. URL is the default; the rest are
+          QR-specific scan behaviors (phone dialer, vCard download,
+          calendar event, etc.). Hidden for Ad + Campaign purposes
+          because they always point to a URL. */}
+      {purpose === 'qr' && (
+        <StepSection step={3} title="What kind of destination?" hint="URL is the default. The other types are mainly useful for QR codes (dialer, contact card, calendar event).">
+          <div className="flex flex-wrap gap-2">
+            {CONTENT_TYPES.map(ct => {
+              const I = ct.icon
+              const active = contentType === ct.value
+              return (
+                <button
+                  key={ct.value}
+                  type="button"
+                  onClick={() => setContentType(ct.value)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
+                    active
+                      ? 'bg-gray-900 text-white ring-gray-900'
+                      : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50 hover:ring-gray-300'
+                  }`}
+                >
+                  <I size={12} /> {ct.label}
+                </button>
+              )
+            })}
+          </div>
+        </StepSection>
+      )}
+
+      {/* ── Step (3 or 4) — Shortcode + destination + distribution ──
+          Step number flexes based on whether Content Type was shown. */}
+      <StepSection step={purpose === 'qr' ? 4 : 3} title="Fill in the details" hint={
+        purpose === 'qr'
+          ? 'Shortcode is what becomes /go/<this>. Once printed, the shortcode is permanent — only the destination can be edited later.'
+          : 'Shortcode auto-fills from the advertiser since readers never see it — feel free to keep or override.'
+      }>
       {/* Layout — drop the QR preview column when the editor is
           creating a non-QR link, since they don't need a QR for it. */}
       <div className={`grid gap-6 ${purpose === 'qr' ? 'lg:grid-cols-[1fr_220px]' : 'lg:grid-cols-1'}`}>
@@ -924,9 +1059,11 @@ function AddPanel({
             </div>
           )}
 
-          {/* Channel + UTM + advertiser + (QR color, qr-only).
-              4 cols when no QR color; 5 cols when there is. */}
-          <div className={`grid sm:grid-cols-2 gap-3 ${purpose === 'qr' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
+          {/* Channel + UTM campaign + (QR color, qr-only) + UTM
+              source/medium. Advertiser moved to Step 2. 4 cols when
+              QR (channel/campaign/qr-color/source-medium), 3 cols
+              otherwise (channel/campaign/source-medium). */}
+          <div className={`grid sm:grid-cols-2 gap-3 ${purpose === 'qr' ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
             <div>
               <label className={lbl}>Channel (where it lives)</label>
               <select
@@ -949,36 +1086,6 @@ function AddPanel({
               <label className={lbl}>UTM Campaign</label>
               <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026" className={inp} />
             </div>
-            <div>
-              <label className={lbl}>Advertiser (optional)</label>
-              <select
-                value={advertiserId}
-                onChange={e => {
-                  const v = e.target.value
-                  if (v === '__add_new__') {
-                    setShowAddAdv(true)
-                    setAdvertiserId('')
-                  } else {
-                    setAdvertiserId(v)
-                    setShowAddAdv(false)
-                    // Auto-fill destination with their website when picking an advertiser
-                    if (v && contentType === 'url' && !destination) {
-                      const match = localAdvertisers.find(a => a.id === v)
-                      if (match && 'business_url' in match) {
-                        setDestination(String((match as Record<string, unknown>).business_url ?? ''))
-                      }
-                    }
-                  }
-                }}
-                className={`${inp} cursor-pointer`}
-              >
-                <option value="">— None (internal) —</option>
-                {localAdvertisers.map(a => (
-                  <option key={a.id} value={a.id}>{a.business_name}</option>
-                ))}
-                <option value="__add_new__">+ Add New Advertiser…</option>
-              </select>
-            </div>
             {purpose === 'qr' && (
               <div>
                 <label className={lbl}>QR Color</label>
@@ -997,46 +1104,9 @@ function AddPanel({
             </div>
           </div>
 
-          {/* Inline quick-add advertiser form */}
-          {showAddAdv && (
-            <div className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4 space-y-3">
-              <p className="text-xs font-bold text-gray-900 inline-flex items-center gap-1.5">
-                <Plus size={12} /> Quick-Add Advertiser
-              </p>
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
-                  <input value={newAdvName} onChange={e => setNewAdvName(e.target.value)} placeholder="Dentistry for Children" className={inp} />
-                </div>
-                <div>
-                  <label className={lbl}>Contact Email</label>
-                  <input type="email" value={newAdvEmail} onChange={e => setNewAdvEmail(e.target.value)} placeholder="info@business.com" className={inp} />
-                </div>
-                <div>
-                  <label className={lbl}>Phone</label>
-                  <input value={newAdvPhone} onChange={e => setNewAdvPhone(e.target.value)} placeholder="334-555-1234" className={inp} />
-                </div>
-                <div>
-                  <label className={lbl}>Website</label>
-                  <input value={newAdvUrl} onChange={e => setNewAdvUrl(e.target.value)} placeholder="https://business.com" className={inp} />
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={createAdvertiser}
-                  disabled={advBusy || !newAdvName.trim()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
-                >
-                  {advBusy ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
-                  {advBusy ? 'Creating…' : 'Create & Select'}
-                </button>
-                <button type="button" onClick={() => setShowAddAdv(false)} className="text-xs text-gray-500 hover:text-gray-900">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+          {/* (Advertiser block + Quick-Add form moved up to Step 2.
+              Selecting an advertiser there auto-fills shortcode +
+              destination URL + label before this step opens.) */}
 
           {err && (
             <p className="text-xs text-rose-700 font-semibold inline-flex items-center gap-1">
@@ -1087,6 +1157,9 @@ function AddPanel({
         )}
       </div>
       </StepSection>
+
+      </>
+      )}
     </form>
   )
 }

@@ -69,14 +69,22 @@ export default async function ShortLinksPage() {
   const cols127 = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color, purpose, channel, last_clicked_at'
   const cols123 = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, ad_placement_id, qr_primary_color, qr_bg_color'
   const colsMin = 'id, shortcode, destination, content_type, content_data, utm_source, utm_medium, utm_campaign, utm_content, label, click_count, is_active, created_at, advertiser_account_id, qr_primary_color, qr_bg_color'
+  // is_active=false rows are soft-deleted — the /go redirect drops
+  // them gracefully (goes home instead of 404) but we shouldn't
+  // surface them in the editor's list. Hard-deleting would break
+  // printed QR codes pointing to the shortcode, so soft-delete +
+  // hide here is the safe pattern.
   let dataRes = await supabase.from('short_links').select(cols127)
+    .eq('is_active', true)
     .order('created_at', { ascending: false }).limit(200)
   if (dataRes.error && /column .* does not exist/i.test(dataRes.error.message)) {
     dataRes = await supabase.from('short_links').select(cols123)
+      .eq('is_active', true)
       .order('created_at', { ascending: false }).limit(200) as typeof dataRes
   }
   if (dataRes.error && /column .* does not exist/i.test(dataRes.error.message)) {
     dataRes = await supabase.from('short_links').select(colsMin)
+      .eq('is_active', true)
       .order('created_at', { ascending: false }).limit(200) as typeof dataRes
   }
   // Normalize: rows from older selects miss the migration-127 fields.
