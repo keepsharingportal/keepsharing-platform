@@ -12,7 +12,11 @@ const STAGE_DOT: Record<string, string> = {
   'Closed Won': 'bg-green-500', Verbal: 'bg-amber-500',
   Prospect: 'bg-blue-500', Renewed: 'bg-purple-500', Dropped: 'bg-red-500',
 }
-const TABS = ['Active Advertisers', 'Pipeline', 'Agreements', 'Ad Proofs', 'Businesses']
+// Tabs are the section nav for /admin/advertisers/*. Agreements + Ad Proofs
+// were mock-only placeholders and got removed in the contacts/CRM cleanup.
+// When either is rebuilt against real data, add it back here and in
+// /pipeline/page.tsx.
+const TABS = ['Active Advertisers', 'Pipeline', 'Businesses']
 const PAGE_SIZE = 25
 
 interface Props {
@@ -117,7 +121,9 @@ export default async function AdvertisersPage({ searchParams }: Props) {
       <div className="bg-white border-b border-gray-200 px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map((tab) => {
-            const href = tab === 'Active Advertisers' ? '/admin/advertisers' : tab === 'Pipeline' ? '/admin/advertisers/pipeline' : tab === 'Agreements' ? '/admin/advertisers/agreements' : tab === 'Ad Proofs' ? '/admin/advertisers/ad-proofs' : '/admin/advertisers/businesses'
+            const href = tab === 'Active Advertisers' ? '/admin/advertisers'
+              : tab === 'Pipeline'                    ? '/admin/advertisers/pipeline'
+              :                                         '/admin/advertisers/businesses'
             return (
               <a key={tab} href={href}
                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${

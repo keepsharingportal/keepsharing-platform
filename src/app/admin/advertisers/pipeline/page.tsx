@@ -9,7 +9,9 @@ const STAGE_CONFIG = [
   { stage: 'Dropped',    color: 'bg-red-400',    light: 'bg-red-50 text-red-600 ring-red-200' },
 ]
 
-const TABS = ['Active Advertisers', 'Pipeline', 'Agreements', 'Ad Proofs', 'Businesses']
+// Tabs trimmed to match /admin/advertisers/page.tsx — Agreements + Ad Proofs
+// were mock-only routes and got removed in the contacts/CRM cleanup.
+const TABS = ['Active Advertisers', 'Pipeline', 'Businesses']
 
 export default async function PipelinePage() {
   const allAds = await getAllAdvertisers()
@@ -24,7 +26,9 @@ export default async function PipelinePage() {
           {TABS.map((tab) => (
             <a
               key={tab}
-              href={tab === 'Active Advertisers' ? '/admin/advertisers' : tab === 'Pipeline' ? '/admin/advertisers/pipeline' : tab === 'Agreements' ? '/admin/advertisers/agreements' : tab === 'Ad Proofs' ? '/admin/advertisers/ad-proofs' : '/admin/advertisers/businesses'}
+              href={tab === 'Active Advertisers' ? '/admin/advertisers'
+                : tab === 'Pipeline'              ? '/admin/advertisers/pipeline'
+                :                                   '/admin/advertisers/businesses'}
               className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
                 tab === 'Pipeline'
                   ? 'text-blue-600 border-blue-600'

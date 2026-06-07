@@ -11,8 +11,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { RATE_CARD } from '@/lib/ads/rate-card'
 import { CloneAdButton } from '@/components/admin/CloneAdButton'
+import { AdvertiserContactsPanel } from '@/components/admin/AdvertiserContactsPanel'
 import {
-  ArrowLeft, Building2, Mail, Phone, Globe, Calendar, Shield,
+  ArrowLeft, Building2, Mail, Phone, Globe, Calendar,
   Eye, MousePointer, DollarSign, RotateCw, Lock, Plus, ExternalLink,
   Star,
 } from 'lucide-react'
@@ -76,6 +77,25 @@ export default async function AdvertiserProfilePage({ params }: Props) {
   const opsNotes      = a.ops_notes ? String(a.ops_notes) : null
   const loyaltyTier   = a.loyalty_tier ? String(a.loyalty_tier) : null
   const sponsorGuide  = a.sponsor_guide_slug ? String(a.sponsor_guide_slug) : null
+
+  // Load contacts (migration 128). When the table doesn't exist yet,
+  // the catch in the wrapping select falls back gracefully to the
+  // inline contact_name/email/phone fields above. Once 128 is applied
+  // the backfill creates one row per existing account, so this is
+  // non-empty for any account that had a contact previously.
+  const contactsRes = await supabase
+    .from('advertiser_contacts')
+    .select('id, advertiser_account_id, name, email, phone, role, is_primary, notes')
+    .eq('advertiser_account_id', id)
+    .order('is_primary', { ascending: false })
+    .order('name',       { ascending: true })
+  const contacts = (contactsRes.error ? [] : contactsRes.data ?? []) as Array<{
+    id: string; advertiser_account_id: string; name: string;
+    email: string | null; phone: string | null;
+    role: 'ad_rep' | 'billing' | 'listing_owner' | 'decision_maker' | 'other';
+    is_primary: boolean; notes: string | null
+  }>
+  const contactsTableMissing = !!contactsRes.error
 
   // Load all their ad placements (active + expired). Sort: active first
   // (newest priority), then expired (most-recently-archived first).
@@ -201,25 +221,40 @@ export default async function AdvertiserProfilePage({ params }: Props) {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left column: contact + contract */}
+          {/* Left column: contacts + contract */}
           <div className="space-y-4">
-            <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact</h2>
-              {contactName && <p className="font-bold text-gray-900">{contactName}</p>}
-              {contactEmail && (
-                <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 text-primary hover:underline">
-                  <Mail size={13} /> {contactEmail}
-                </a>
-              )}
-              {contactPhone && (
-                <p className="flex items-center gap-1.5 text-gray-700"><Phone size={13} /> {contactPhone}</p>
-              )}
-              {businessUrl && (
-                <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline">
+            {/* New Contacts panel (migration 128) handles multi-contact
+                + role + primary flag. Falls back to the legacy single-
+                contact view when the table isn't created yet. */}
+            {contactsTableMissing ? (
+              <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact</h2>
+                {contactName && <p className="font-bold text-gray-900">{contactName}</p>}
+                {contactEmail && (
+                  <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                    <Mail size={13} /> {contactEmail}
+                  </a>
+                )}
+                {contactPhone && (
+                  <p className="flex items-center gap-1.5 text-gray-700"><Phone size={13} /> {contactPhone}</p>
+                )}
+                <p className="text-[10px] text-amber-700 mt-2">
+                  Multi-contact support pending — apply migration 128 (advertiser_contacts) in Supabase.
+                </p>
+              </section>
+            ) : (
+              <AdvertiserContactsPanel advertiserId={id} initial={contacts} />
+            )}
+            {/* Business website stays on its own little card so it's
+                always one click away from the header. */}
+            {businessUrl && (
+              <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Website</h2>
+                <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline break-all">
                   <Globe size={13} /> {businessUrl.replace(/^https?:\/\//, '')}
                 </a>
-              )}
-            </section>
+              </section>
+            )}
 
             <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contract</h2>

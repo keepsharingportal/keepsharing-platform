@@ -24,13 +24,15 @@ export interface BusinessRecord {
   renewalScore: 'high' | 'medium' | 'low' | 'new'
 }
 
-const ADVERTISER_TABS = ['Active Advertisers', 'Layout Sheet', 'Pipeline', 'Agreements', 'Ad Proofs', 'Businesses']
+// Agreements + Ad Proofs were placeholder-only routes; removed in the
+// contacts/CRM cleanup. Re-add the entries here and in the sibling tab
+// strips (/admin/advertisers/page.tsx + /pipeline/page.tsx) when those
+// surfaces get rebuilt against real data.
+const ADVERTISER_TABS = ['Active Advertisers', 'Layout Sheet', 'Pipeline', 'Businesses']
 const ADVERTISER_HREFS: Record<string, string> = {
   'Active Advertisers': '/admin/advertisers',
   'Layout Sheet':       '/admin/advertisers/layout-sheet',
   'Pipeline':           '/admin/advertisers/pipeline',
-  'Agreements':         '/admin/advertisers/agreements',
-  'Ad Proofs':          '/admin/advertisers/ad-proofs',
   'Businesses':         '/admin/advertisers/businesses',
 }
 
