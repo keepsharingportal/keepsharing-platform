@@ -1,22 +1,37 @@
 // CSV import modal for /admin/print-layout.
 //
-// Flow:
-//   1. Editor uploads a CSV (her editor's standard column layout).
-//   2. Picks the target issue month (defaults to whatever's on screen).
-//   3. Client parses, sends a 'plan' to the server.
-//   4. Server returns matched / fuzzy / new / duplicate per row.
-//   5. Editor confirms fuzzy candidates row-by-row (radio per row).
-//   6. Editor commits → server creates advertisers and placements.
-//
-// Header matching is fuzzy: 'Business' / 'Business Name' / 'Advertiser'
-// all map to the business field; case + punctuation insensitive.
+// Three steps:
+//   1. Upload — editor picks a file + target issue month.
+//   2. Map    — editor confirms which CSV column maps to which field.
+//               Auto-detection seeds sensible defaults from the header
+//               names (Business / Design / Directory / Size / ...), so
+//               for a tidy export the editor just hits Continue.
+//   3. Plan   — server returns matched / fuzzy / new / duplicate per
+//               row; editor confirms fuzzy candidates before commit.
 
 'use client'
 
 import { useMemo, useState } from 'react'
-import { X, Upload, Check, AlertCircle, Loader2, RefreshCw } from 'lucide-react'
+import { X, Upload, Check, AlertCircle, Loader2, RefreshCw, ArrowLeft } from 'lucide-react'
 
+type Step = 'upload' | 'map' | 'plan'
 type RowStatus = 'matched' | 'fuzzy' | 'new' | 'duplicate'
+
+// Canonical fields the editor can map a CSV column to. 'business' is
+// required; everything else is optional. '' means 'ignore this column'.
+const FIELD_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '',              label: '— Ignore —' },
+  { value: 'business',      label: 'Business name (required)' },
+  { value: 'design',        label: 'Design (New / Pickup)' },
+  { value: 'directory',     label: 'Directory (Yes/No)' },
+  { value: 'size',          label: 'Size (page fraction)' },
+  { value: 'layout',        label: 'Layout (horizontal/vertical/square)' },
+  { value: 'price',         label: 'Price ($)' },
+  { value: 'social_budget', label: 'Social budget ($)' },
+  { value: 'layout_notes',  label: 'Layout notes' },
+  { value: 'expires_month', label: 'Expires (YYYY-MM)' },
+  { value: 'status',        label: 'Status (Ongoing / Check)' },
+]
 
 interface CsvRow {
   business:      string
@@ -62,8 +77,12 @@ interface Props {
 }
 
 export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommitted }: Props) {
+  const [step, setStep]               = useState<Step>('upload')
   const [targetMonth, setTargetMonth] = useState(issue)
-  const [rows, setRows]               = useState<CsvRow[]>([])
+  // Raw grid from the file: rawRows[0] is the header row.
+  const [rawRows, setRawRows]         = useState<string[][]>([])
+  // Per-column canonical field assignment; index keyed.
+  const [mapping, setMapping]         = useState<string[]>([])
   const [planning, setPlanning]       = useState(false)
   const [committing, setCommitting]   = useState(false)
   const [plan, setPlan]               = useState<PlannedRow[] | null>(null)
@@ -80,15 +99,53 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
     setResolutions({})
     try {
       const text = await file.text()
-      const parsed = parseCsv(text)
-      setRows(parsed)
+      const grid = parseCsvGrid(text)
+      if (grid.length < 2) {
+        setError('CSV has no data rows.')
+        setRawRows([])
+        return
+      }
+      setRawRows(grid)
+      // Seed mapping from auto-detection so the typical case is one click.
+      const headers = grid[0]
+      setMapping(headers.map(h => canonicalHeader(h)))
+      setStep('map')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to read file')
     }
   }
 
+  // Build CsvRow[] from the rawRows + current column mapping. Skips
+  // entirely blank rows + rows whose mapped business cell is empty.
+  function buildRows(): CsvRow[] {
+    if (rawRows.length < 2) return []
+    const data = rawRows.slice(1)
+    const out: CsvRow[] = []
+    for (const cells of data) {
+      if (cells.length === 0 || cells.every(c => c.trim() === '')) continue
+      const obj: Record<string, string> = {}
+      for (let c = 0; c < mapping.length; c++) {
+        const key = mapping[c]
+        if (!key) continue
+        const val = (cells[c] ?? '').trim()
+        if (val) obj[key] = val
+      }
+      if (!obj.business) continue
+      out.push(obj as unknown as CsvRow)
+    }
+    return out
+  }
+
   async function onPlan() {
-    if (rows.length === 0) { setError('Pick a CSV first.'); return }
+    const rows = buildRows()
+    if (rows.length === 0) {
+      setError('No usable rows. Map a column to Business name and try again.')
+      return
+    }
+    if (!mapping.includes('business')) {
+      setError('Map at least one column to Business name.')
+      return
+    }
     setPlanning(true)
     setError(null)
     try {
@@ -104,7 +161,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
       }
       setPlan(json.plan)
       setCounts(json.counts)
-      // Pre-seed resolutions: matched/new auto-decide; fuzzy defaults to
+      // Seed resolutions: matched/new auto-decide; fuzzy defaults to
       // top candidate so the editor can scan + correct outliers fast.
       const seed: Record<number, Resolution> = {}
       for (const p of json.plan) {
@@ -116,6 +173,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
         }
       }
       setResolutions(seed)
+      setStep('plan')
     } finally {
       setPlanning(false)
     }
@@ -165,6 +223,9 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
 
   const visiblePlan = useMemo(() => plan ?? [], [plan])
   const needsAttention = visiblePlan.filter(p => p.status === 'fuzzy').length
+  const headers = rawRows[0] ?? []
+  const sampleRow = rawRows[1] ?? []
+  const dataRowCount = Math.max(0, rawRows.length - 1)
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
@@ -172,53 +233,102 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
         <header className="flex items-center justify-between">
           <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-1.5">
             <Upload size={14} /> Import CSV
+            <StepPill step={step} />
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={14} /></button>
         </header>
 
         {/* Step 1 — file + month */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">CSV file</label>
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              onChange={onFile}
-              className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-xs file:font-semibold hover:file:bg-gray-200"
-            />
-            {rows.length > 0 && (
-              <p className="text-[11px] text-gray-500 mt-1">{rows.length} rows detected</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Target issue</label>
-            <select
-              value={targetMonth}
-              onChange={e => { setTargetMonth(e.target.value); setPlan(null); setResolutions({}) }}
-              className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white cursor-pointer"
-            >
-              {monthOptions.map(m => <option key={m} value={m}>{fmtIssue(m)}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {!plan && (
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onPlan}
-              disabled={rows.length === 0 || planning}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
-            >
-              {planning ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-              {planning ? 'Analyzing…' : 'Preview import'}
-            </button>
-            {error && <span className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
-          </div>
+        {step === 'upload' && (
+          <>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">CSV file</label>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={onFile}
+                  className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-xs file:font-semibold hover:file:bg-gray-200"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Target issue</label>
+                <select
+                  value={targetMonth}
+                  onChange={e => setTargetMonth(e.target.value)}
+                  className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white cursor-pointer"
+                >
+                  {monthOptions.map(m => <option key={m} value={m}>{fmtIssue(m)}</option>)}
+                </select>
+              </div>
+            </div>
+            {error && <p className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</p>}
+          </>
         )}
 
-        {/* Step 2 — plan summary + fuzzy resolutions */}
-        {plan && counts && (
+        {/* Step 2 — column mapping */}
+        {step === 'map' && (
+          <>
+            <p className="text-xs text-gray-500">
+              {dataRowCount} data row{dataRowCount === 1 ? '' : 's'} detected. Confirm which CSV column maps to which field. Unmapped columns are ignored.
+            </p>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-500">CSV column</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-500">Sample value</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-500">Maps to</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {headers.map((h, i) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-0">
+                      <td className="px-3 py-2 font-bold text-gray-900">
+                        {h || <span className="text-gray-400 italic">(blank header)</span>}
+                      </td>
+                      <td className="px-3 py-2 text-gray-500 truncate max-w-[180px]" title={sampleRow[i] ?? ''}>
+                        {sampleRow[i] ?? ''}
+                      </td>
+                      <td className="px-3 py-2">
+                        <select
+                          value={mapping[i] ?? ''}
+                          onChange={e => setMapping(prev => prev.map((v, idx) => idx === i ? e.target.value : v))}
+                          className="block text-xs border border-gray-200 rounded px-2 py-1 bg-white cursor-pointer"
+                        >
+                          {FIELD_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setStep('upload')}
+                disabled={planning}
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
+              >
+                <ArrowLeft size={12} /> Back
+              </button>
+              <button
+                type="button"
+                onClick={onPlan}
+                disabled={planning}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+              >
+                {planning ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                {planning ? 'Analyzing…' : 'Preview import'}
+              </button>
+              {error && <span className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
+            </div>
+          </>
+        )}
+
+        {/* Step 3 — plan summary + fuzzy resolutions */}
+        {step === 'plan' && plan && counts && (
           <>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
@@ -255,7 +365,15 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
               </div>
             )}
 
-            <div className="flex items-center gap-2 pt-1 border-t border-gray-100 pt-3">
+            <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
+              <button
+                type="button"
+                onClick={() => setStep('map')}
+                disabled={committing}
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
+              >
+                <ArrowLeft size={12} /> Back
+              </button>
               <button
                 type="button"
                 onClick={onCommit}
@@ -267,7 +385,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
               </button>
               <button
                 type="button"
-                onClick={() => { setPlan(null); setResolutions({}) }}
+                onClick={() => { setPlan(null); setCounts(null); setResolutions({}); setStep('map') }}
                 disabled={committing}
                 className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
               >
@@ -279,6 +397,15 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, onClose, onCommi
         )}
       </div>
     </div>
+  )
+}
+
+function StepPill({ step }: { step: Step }) {
+  const labels: Record<Step, string> = { upload: '1 of 3', map: '2 of 3', plan: '3 of 3' }
+  return (
+    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+      {labels[step]}
+    </span>
   )
 }
 
@@ -330,10 +457,8 @@ function FuzzyRow({ planned, resolution, onChange }: {
 }
 
 // Minimal CSV parser — handles quoted cells with embedded commas, CRLF,
-// and double-quote escapes. The editor's exports come from Excel which
-// uses standard CSV; this is enough for that. Maps the first row as
-// headers and produces objects keyed by our canonical field names.
-function parseCsv(text: string): CsvRow[] {
+// and double-quote escapes. Returns the raw grid; mapping happens later.
+function parseCsvGrid(text: string): string[][] {
   const rows: string[][] = []
   let row: string[] = []
   let cell = ''
@@ -353,27 +478,12 @@ function parseCsv(text: string): CsvRow[] {
     }
   }
   if (cell.length > 0 || row.length > 0) { row.push(cell); rows.push(row) }
-
-  if (rows.length < 2) return []
-  const headers = rows[0].map(h => canonicalHeader(h))
-  const out: CsvRow[] = []
-  for (let r = 1; r < rows.length; r++) {
-    const cells = rows[r]
-    if (cells.length === 0 || cells.every(c => c.trim() === '')) continue
-    const obj: Record<string, string> = {}
-    for (let c = 0; c < headers.length; c++) {
-      const key = headers[c]
-      if (!key) continue
-      obj[key] = (cells[c] ?? '').trim()
-    }
-    if (!obj.business) continue                              // every row needs a name
-    out.push(obj as unknown as CsvRow)
-  }
-  return out
+  return rows
 }
 
-// Map a CSV header cell to our canonical field name. Returns '' for
-// headers we don't recognize (they're ignored downstream).
+// Map a CSV header cell to our canonical field name (auto-detection
+// for the mapping step's defaults). Returns '' for headers we don't
+// recognize — the editor maps them by hand.
 function canonicalHeader(raw: string): string {
   const s = raw.trim().toLowerCase().replace(/[^a-z0-9 ]+/g, '').replace(/\s+/g, ' ')
   if (s === 'business' || s === 'business name' || s === 'advertiser' || s === 'company') return 'business'

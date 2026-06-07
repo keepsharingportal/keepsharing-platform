@@ -378,16 +378,24 @@ export default async function AdvertiserProfilePage({ params }: Props) {
             {/* QR Codes linked to this advertiser */}
             {qrCodes.length > 0 && (
               <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden mt-4">
-                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
                     QR Codes ({qrCodes.length})
                   </h2>
-                  <Link
-                    href={`/admin/content/short-links?advertiser_id=${id}`}
-                    className="text-[11px] font-bold text-primary hover:underline"
-                  >
-                    Manage →
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/content/short-links/new?advertiser_id=${id}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+                    >
+                      <Plus size={11} /> New QR Code
+                    </Link>
+                    <Link
+                      href={`/admin/content/short-links?advertiser_id=${id}`}
+                      className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                    >
+                      All
+                    </Link>
+                  </div>
                 </div>
                 <div className="divide-y divide-gray-50">
                   {qrCodes.map(q => (

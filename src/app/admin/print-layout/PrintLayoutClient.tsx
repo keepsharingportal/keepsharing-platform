@@ -54,6 +54,10 @@ interface Props {
   initial:        PrintPlacement[]
   advertisers:    AdvertiserOption[]
   tableMissing:   boolean
+  // Deep-link from advertiser profile: opens Add form with this id pre-
+  // picked. Null when arriving from the toolbar's Add button.
+  initialAdd?:           boolean
+  initialAdvertiserId?:  string | null
 }
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -102,17 +106,51 @@ function build18Months(anchor: string): string[] {
   return out
 }
 
-// Build a 42-month window: 24 months back from anchor through 18 ahead.
-// Powers the title-bar issue picker so the editor can jump to past
-// issues (audit old layouts, recover what ran a year ago).
+// Issue picker window — no back-limit (editors audit issues from years
+// ago), always at least 24 months ahead of today + the viewed anchor
+// (so booking a far-future month doesn't strand the editor without an
+// option to step further). Bottom bound is hard-pinned to 2015-01;
+// anything older is reachable by typing the issue= URL param directly.
+const ISSUE_FLOOR_YYYYMM = '2015-01'
+
 function buildIssueWindow(anchor: string): string[] {
-  const [y, m] = anchor.split('-').map(s => parseInt(s, 10))
+  const today = new Date()
+  today.setDate(15)
+  const [ay, am] = anchor.split('-').map(s => parseInt(s, 10))
+  const anchorDate = new Date(ay, am - 1, 15)
+
+  // End: 24 months past whichever is later (today vs the viewed
+  // anchor). Editor viewing Aug 2027 still sees Aug 2029 as an option.
+  const endAnchor = anchorDate.getTime() > today.getTime() ? anchorDate : today
+  const end = new Date(endAnchor.getFullYear(), endAnchor.getMonth() + 24, 15)
+
+  const [fy, fm] = ISSUE_FLOOR_YYYYMM.split('-').map(s => parseInt(s, 10))
   const out: string[] = []
-  for (let i = -24; i <= 18; i++) {
-    const d = new Date(y, m - 1 + i, 1)
-    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  const cur = new Date(fy, fm - 1, 15)
+  while (cur.getTime() <= end.getTime()) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`)
+    cur.setMonth(cur.getMonth() + 1)
   }
-  return out
+  // Newest at top — editors work forward most of the time. The anchor
+  // is highlighted by the <select>'s value attribute regardless of pos.
+  return out.reverse()
+}
+
+// Bucket months by year for <optgroup> rendering. Returns groups
+// already in display order (matches buildIssueWindow's newest-first).
+interface IssueGroup { year: number; months: string[] }
+function groupByYear(months: string[]): IssueGroup[] {
+  const byYear = new Map<number, string[]>()
+  for (const m of months) {
+    const y = parseInt(m.slice(0, 4), 10)
+    const list = byYear.get(y) ?? []
+    list.push(m)
+    byYear.set(y, list)
+  }
+  // Sort descending: newest year first. Maps are insertion-ordered;
+  // since `months` is newest-first, the first time we touch year Y is
+  // the latest month in Y — iterating keys here is already descending.
+  return Array.from(byYear.entries()).map(([year, months]) => ({ year, months }))
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -122,11 +160,11 @@ function buildIssueWindow(anchor: string): string[] {
 type SortKey = 'business_name' | 'design' | 'directory' | 'size' | 'layout' | 'price' | 'social_budget' | 'expires_month'
 type SortDir = 'asc' | 'desc'
 
-export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount, initial, advertisers, tableMissing }: Props) {
+export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount, initial, advertisers, tableMissing, initialAdd, initialAdvertiserId }: Props) {
   const router = useRouter()
   const [rows, setRows]       = useState<PrintPlacement[]>(initial)
   const [editing, setEditing] = useState<string | null>(null)
-  const [adding,  setAdding]  = useState(false)
+  const [adding,  setAdding]  = useState(!!initialAdd)
   const [importing, setImporting] = useState(false)
   const [busy, startTransition] = useTransition()
 
@@ -382,8 +420,12 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   aria-label="Jump to issue month"
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 >
-                  {buildIssueWindow(issue).map(m => (
-                    <option key={m} value={m}>{fmtIssue(m)}</option>
+                  {groupByYear(buildIssueWindow(issue)).map(g => (
+                    <optgroup key={g.year} label={String(g.year)}>
+                      {g.months.map(m => (
+                        <option key={m} value={m}>{fmtIssue(m)}</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </h1>
@@ -494,6 +536,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
         <AddRowForm
           advertisers={advertisers}
           issue={issue}
+          initialAdvertiserId={initialAdvertiserId ?? null}
           onCancel={() => setAdding(false)}
           onSubmit={async form => {
             const ok = await onAdd(form)
@@ -1099,14 +1142,17 @@ interface AddFormShape {
   is_ongoing:            boolean
 }
 
-function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
-  advertisers: AdvertiserOption[]
-  issue:       string
-  onCancel:    () => void
-  onSubmit:    (form: AddFormShape) => Promise<void>
+function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmit }: {
+  advertisers:          AdvertiserOption[]
+  issue:                string
+  initialAdvertiserId?: string | null
+  onCancel:             () => void
+  onSubmit:             (form: AddFormShape) => Promise<void>
 }) {
   const monthOptions = build18Months(issue)
-  const [advId,    setAdvId]    = useState('')
+  // Pre-select the advertiser when the form was opened from a specific
+  // advertiser profile (?add=1&advertiser_id=X). Empty otherwise.
+  const [advId,    setAdvId]    = useState(initialAdvertiserId ?? '')
   const [design,   setDesign]   = useState<'new' | 'pickup'>('new')
   const [directory, setDirectory] = useState(false)
   const [size,     setSize]     = useState<number>(0.25)

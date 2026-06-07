@@ -533,11 +533,12 @@ function EditRow({
 // Exported so the dedicated /admin/content/short-links/new route can mount
 // the same form on its own page (where save/cancel both router.push back).
 export function AddPanel({
-  advertisers, onCancel, onCreated,
+  advertisers, initialAdvertiserId, onCancel, onCreated,
 }: {
-  advertisers: AdvertiserOption[]
-  onCancel:    () => void
-  onCreated:   (r: ShortLinkRow) => void
+  advertisers:          AdvertiserOption[]
+  initialAdvertiserId?: string
+  onCancel:             () => void
+  onCreated:            (r: ShortLinkRow) => void
 }) {
   // Purpose drives the whole form view. Null until the editor picks
   // a card — progressive disclosure: the form starts collapsed and
@@ -545,9 +546,9 @@ export function AddPanel({
   const [purpose, setPurpose]         = useState<Purpose | null>(null)
   // Step 2 (Advertiser) gate. Step 3 doesn't show until the editor
   // has either picked an advertiser OR explicitly clicked the
-  // 'Continue without advertiser' button. Keeps the form feeling
-  // guided instead of dumping everything at once.
-  const [step2Done, setStep2Done]     = useState(false)
+  // 'Continue without advertiser' button. Pre-completed when the
+  // page was opened from an advertiser profile.
+  const [step2Done, setStep2Done]     = useState(!!initialAdvertiserId)
   // Channel — UTM source + medium auto-fill when this changes. The
   // editor can still tweak source/medium manually after the change.
   const [channel, setChannel]         = useState<Channel | ''>('')
@@ -555,7 +556,7 @@ export function AddPanel({
   const [shortcode,   setShortcode]   = useState('')
   const [destination, setDestination] = useState('')
   const [label,       setLabel]       = useState('')
-  const [advertiserId, setAdvertiserId] = useState('')
+  const [advertiserId, setAdvertiserId] = useState(initialAdvertiserId ?? '')
   const [utmSource,   setUtmSource]   = useState('magazine')
   const [utmMedium,   setUtmMedium]   = useState('qr')
   const [utmCampaign, setUtmCampaign] = useState('')

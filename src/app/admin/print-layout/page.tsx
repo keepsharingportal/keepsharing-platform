@@ -27,7 +27,7 @@ function defaultIssueMonth(): string {
 }
 
 interface Props {
-  searchParams: Promise<{ issue?: string }>
+  searchParams: Promise<{ issue?: string; add?: string; advertiser_id?: string }>
 }
 
 export default async function PrintLayoutPage({ searchParams }: Props) {
@@ -36,6 +36,11 @@ export default async function PrintLayoutPage({ searchParams }: Props) {
   const issue  = /^[0-9]{4}-[0-9]{2}$/.test(sp.issue ?? '')
     ? (sp.issue as string)
     : defaultIssueMonth()
+  // Deep-link from the advertiser profile page: ?add=1&advertiser_id=X
+  // opens the Add Placement form with X pre-selected so the editor lands
+  // ready to type, not ready to scroll the dropdown.
+  const initialAdd        = sp.add === '1'
+  const initialAdvertiser = sp.advertiser_id?.trim() || null
 
   const supabase = createAdminClient()
 
@@ -89,6 +94,8 @@ export default async function PrintLayoutPage({ searchParams }: Props) {
         initial={rows}
         advertisers={advertisers}
         tableMissing={tableMissing}
+        initialAdd={initialAdd}
+        initialAdvertiserId={initialAdvertiser}
       />
     </div>
   )

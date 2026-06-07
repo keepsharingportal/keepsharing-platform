@@ -68,26 +68,35 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
 
   return (
     <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm space-y-3">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-2">
         <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 inline-flex items-center gap-1.5">
           <Printer size={11} /> Print Placements {initial.length > 0 && <span className="text-gray-400">({initial.length})</span>}
         </h2>
-        <Link
-          href={`/admin/print-layout?issue=${addIssue}`}
-          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
-        >
-          <Plus size={11} /> Manage
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/print-layout?issue=${addIssue}&add=1&advertiser_id=${advertiserId}`}
+            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+            title={`Book a print ad for the ${fmtIssue(addIssue)} issue`}
+          >
+            <Plus size={11} /> New Print Ad
+          </Link>
+          <Link
+            href={`/admin/print-layout?issue=${addIssue}`}
+            className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+          >
+            All
+          </Link>
+        </div>
       </header>
 
       {sorted.length === 0 ? (
         <div className="text-center py-3 border border-dashed border-gray-200 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">No print bookings yet.</p>
           <Link
-            href={`/admin/print-layout?issue=${todayYM}`}
+            href={`/admin/print-layout?issue=${todayYM}&add=1&advertiser_id=${advertiserId}`}
             className="text-xs font-bold text-primary hover:underline"
           >
-            Open Print Layout → add one
+            Book the first one →
           </Link>
         </div>
       ) : (

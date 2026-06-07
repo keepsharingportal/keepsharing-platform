@@ -8,12 +8,16 @@ import { useRouter } from 'next/navigation'
 import { AddPanel } from '../ShortLinksClient'
 import type { AdvertiserOption } from '../page'
 
-export function NewTrackedLinkClient({ advertisers }: { advertisers: AdvertiserOption[] }) {
+export function NewTrackedLinkClient({ advertisers, initialAdvertiserId }: {
+  advertisers:          AdvertiserOption[]
+  initialAdvertiserId?: string
+}) {
   const router = useRouter()
   const back = () => router.push('/admin/content/short-links')
   return (
     <AddPanel
       advertisers={advertisers}
+      initialAdvertiserId={initialAdvertiserId}
       onCancel={back}
       onCreated={back}
     />

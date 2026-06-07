@@ -15,8 +15,14 @@ import type { AdvertiserOption } from '../page'
 export const metadata: Metadata = { title: 'New Tracked Link — Admin' }
 export const dynamic  = 'force-dynamic'
 
-export default async function NewTrackedLinkPage() {
+interface Props {
+  searchParams: Promise<{ advertiser_id?: string }>
+}
+
+export default async function NewTrackedLinkPage({ searchParams }: Props) {
   await requireAdmin()
+  const sp = await searchParams
+  const initialAdvertiserId = sp.advertiser_id?.trim() || undefined
   const supabase = createAdminClient()
 
   const { data: advData } = await supabase
@@ -37,7 +43,10 @@ export default async function NewTrackedLinkPage() {
         <h1 className="text-xl font-semibold text-gray-900">New Tracked Link</h1>
       </div>
       <div className="max-w-5xl mx-auto p-4 md:p-6">
-        <NewTrackedLinkClient advertisers={(advData ?? []) as AdvertiserOption[]} />
+        <NewTrackedLinkClient
+          advertisers={(advData ?? []) as AdvertiserOption[]}
+          initialAdvertiserId={initialAdvertiserId}
+        />
       </div>
     </div>
   )
