@@ -51,6 +51,49 @@ const GUIDE_SLOTS = [
   { slug: 'guide_sidebar_sticky',     x: 70, y: 32, w: 26, h: 26, label: 'Sticky sidebar' },
 ]
 
+// Calendar layout — hero sponsor band at top, banner (top + bottom
+// positions share the same slug), and grid-card inline drops into the
+// event grid every few cards.
+const CALENDAR_SLOTS = [
+  { slug: 'section_sponsor',           x: 4,  y: 4,  w: 92, h: 8,  label: 'Hero sponsor'   },
+  { slug: 'calendar_featured_event',   x: 4,  y: 16, w: 92, h: 6,  label: 'Top banner'     },
+  { slug: 'calendar_inline_promotion', x: 36, y: 40, w: 28, h: 10, label: 'Grid card'      },
+  { slug: 'calendar_inline_promotion', x: 36, y: 64, w: 28, h: 10, label: 'Grid card #2'   },
+  { slug: 'calendar_featured_event',   x: 4,  y: 80, w: 92, h: 6,  label: 'Bottom banner'  },
+]
+
+// School Zone — single hero sponsor band, lots of editorial below it
+// (Teacher block, School Bits panel, Education Matters). Only the
+// sponsor slot is registered ad inventory on this surface.
+const SCHOOL_ZONE_SLOTS = [
+  { slug: 'section_sponsor', x: 4,  y: 4, w: 92, h: 10, label: 'Hero sponsor' },
+]
+
+// School Bits — heavy ad surface. Top sponsor, top/bottom banners
+// bracketing the feed, in-feed cards every batch, transition banners
+// between batches.
+const SCHOOL_BITS_SLOTS = [
+  { slug: 'school_bits_sponsor',       x: 4,  y: 4,  w: 92, h: 8,  label: 'Top sponsor'     },
+  { slug: 'school_bits_top_banner',    x: 4,  y: 16, w: 92, h: 6,  label: 'Top banner'      },
+  { slug: 'school_bits_inline',        x: 4,  y: 30, w: 44, h: 8,  label: 'In-feed card'    },
+  { slug: 'school_bits_transition',    x: 4,  y: 46, w: 92, h: 6,  label: 'Transition'      },
+  { slug: 'school_bits_inline',        x: 4,  y: 60, w: 44, h: 8,  label: 'In-feed card #2' },
+  { slug: 'school_bits_bottom_banner', x: 4,  y: 82, w: 92, h: 6,  label: 'Bottom banner'   },
+]
+
+// Newsletter — single sponsor block in the middle of the email body.
+// Visual is intentionally simple since email layouts have fewer slots.
+const NEWSLETTER_SLOTS = [
+  { slug: 'newsletter_sponsor', x: 4, y: 30, w: 92, h: 8, label: 'Newsletter sponsor' },
+]
+
+// Site-wide — leaderboard at the very top of every page + partner
+// strip in the footer. Tiny header bar represents the nav.
+const SITE_SLOTS = [
+  { slug: 'site_top_banner',      x: 4, y: 2,  w: 92, h: 10, label: 'Top banner (above nav)' },
+  { slug: 'site_footer_partners', x: 4, y: 88, w: 92, h: 8,  label: 'Footer partners'         },
+]
+
 interface Slot {
   slug:  string
   x:     number   // % left
@@ -62,10 +105,15 @@ interface Slot {
 
 function getSlots(surface: string): Slot[] | null {
   switch (surface) {
-    case 'homepage':    return HOMEPAGE_SLOTS
-    case 'articles':    return ARTICLE_SLOTS
-    case 'guides':      return GUIDE_SLOTS
-    default:            return null
+    case 'homepage':     return HOMEPAGE_SLOTS
+    case 'articles':     return ARTICLE_SLOTS
+    case 'guides':       return GUIDE_SLOTS
+    case 'calendar':     return CALENDAR_SLOTS
+    case 'school-zone':  return SCHOOL_ZONE_SLOTS
+    case 'school-bits':  return SCHOOL_BITS_SLOTS
+    case 'newsletter':   return NEWSLETTER_SLOTS
+    case 'site':         return SITE_SLOTS
+    default:             return null
   }
 }
 

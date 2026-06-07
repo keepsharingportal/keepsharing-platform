@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { SlotToggleButton } from './SlotToggleButton'
 import { AdsTabs } from '@/components/admin/AdsTabs'
+import { SlotMapVisual } from './SlotMapVisual'
 
 // Slot Map's surfaces are ALSO the context_slug values that section-scoped
 // placements use (e.g. surface='school-zone' → context_slug='school-zone').
@@ -138,15 +139,45 @@ export default async function AdMapPage() {
         />
       </div>
 
-      <div className="px-6 py-6 space-y-8 max-w-6xl">
+      <div className="px-6 py-6 space-y-10 max-w-6xl">
         {SURFACE_ORDER.map(surface => {
           const slots = bySurface.get(surface)
           if (!slots || slots.length === 0) return null
+
+          // Per-slot status keyed by placementType — drives the
+          // wireframe overlay colors. Disabled wins; then booked;
+          // then sellable (open).
+          const slotStatuses: Record<string, 'live' | 'paused' | 'sellable' | 'hidden'> = {}
+          for (const slot of slots) {
+            const key       = `${slot.placementType}|${slot.surface}`
+            const live      = liveMap.get(key) ?? []
+            const toggleCtx = toggleContextFor(slot.surface)
+            const disabled  = isSlotDisabled(slot.placementType, toggleCtx)
+            slotStatuses[slot.placementType] = disabled
+              ? 'hidden'
+              : live.length > 0
+                ? 'live'
+                : 'sellable'
+          }
+
           return (
             <section key={surface}>
-              <h2 className="text-sm font-bold text-gray-900 mb-3 inline-flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900 mb-3 inline-flex items-center gap-2">
                 <span>{SURFACE_LABELS[surface] ?? surface}</span>
+                <span className="text-[11px] font-medium text-gray-400">
+                  {slots.length} {slots.length === 1 ? 'slot' : 'slots'}
+                </span>
               </h2>
+
+              {/* Visual wireframe — communicates WHERE each slot lives
+                  on the actual page. Falls back to a tiny notice when
+                  the surface doesn't have a wireframe registered yet. */}
+              <div className="mb-4">
+                <SlotMapVisual surface={surface} slotStatuses={slotStatuses} />
+              </div>
+
+              {/* Detail cards — pricing + advertiser + impressions
+                  + on/off toggle. Same as before. */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {slots.map(slot => {
                   const key = `${slot.placementType}|${slot.surface}`
