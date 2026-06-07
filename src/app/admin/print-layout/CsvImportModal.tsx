@@ -13,6 +13,10 @@
 
 import { useMemo, useState } from 'react'
 import { X, Upload, Check, AlertCircle, Loader2, RefreshCw, ArrowLeft } from 'lucide-react'
+import {
+  coerceBool, coerceDesign, coerceExpires, coerceLayout,
+  coerceMoney, coerceSize, coerceStatus,
+} from './csv-coerce'
 
 type Step = 'upload' | 'map' | 'plan'
 type RowStatus = 'matched' | 'fuzzy' | 'new' | 'duplicate'
@@ -296,8 +300,9 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                       <td className="px-3 py-2 font-bold text-gray-900">
                         {h || <span className="text-gray-400 italic">(blank header)</span>}
                       </td>
-                      <td className="px-3 py-2 text-gray-500 truncate max-w-[180px]" title={sampleRow[i] ?? ''}>
-                        {sampleRow[i] ?? ''}
+                      <td className="px-3 py-2 text-gray-500 max-w-[260px]">
+                        <div className="truncate" title={sampleRow[i] ?? ''}>{sampleRow[i] ?? ''}</div>
+                        <PreviewCoerce field={mapping[i] ?? ''} raw={sampleRow[i] ?? ''} />
                       </td>
                       <td className="px-3 py-2">
                         <select
@@ -413,6 +418,63 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
       </div>
     </div>
   )
+}
+
+// PreviewCoerce — small '→ value' hint under the raw sample, so the
+// editor can see at a glance how 'Pick-up' becomes 'pickup', '1/4'
+// becomes 0.25, 'Jul 2026' becomes 2026-07, etc. For fields with no
+// coercion (business / layout_notes), prints nothing. Renders muted
+// when the raw == coerced (no transformation) and emerald when the
+// coercion changed the value (e.g. 'Pick-up → pickup').
+function PreviewCoerce({ field, raw }: { field: string; raw: string }) {
+  if (!field || !raw) return null
+  const txt = previewFor(field, raw)
+  if (txt == null) return null
+  const [coerced, changed] = txt
+  if (!changed && field !== 'expires_month') return null         // hide noise
+  return (
+    <div className={`mt-0.5 text-[10px] font-mono inline-flex items-center gap-1 ${changed ? 'text-emerald-600' : 'text-gray-400'}`}>
+      → {coerced}
+    </div>
+  )
+}
+
+// Returns [display string, didCoercionChangeValue]. The 'changed'
+// flag drives the green vs grey visual: green = we transformed the
+// cell, grey = it was already canonical.
+function previewFor(field: string, raw: string): [string, boolean] | null {
+  switch (field) {
+    case 'design': {
+      const c = coerceDesign(raw)
+      return [c, c !== raw.trim().toLowerCase()]
+    }
+    case 'directory': {
+      const c = coerceBool(raw)
+      return [c ? 'Yes' : 'No', String(c) !== raw.trim().toLowerCase()]
+    }
+    case 'size': {
+      const c = coerceSize(raw)
+      return [String(c), String(c) !== raw.trim()]
+    }
+    case 'layout': {
+      const c = coerceLayout(raw)
+      return [c ?? '(none)', (c ?? '') !== raw.trim().toLowerCase()]
+    }
+    case 'price':
+    case 'social_budget': {
+      const c = coerceMoney(raw)
+      return [c == null ? '(none)' : `$${c}`, true]
+    }
+    case 'expires_month': {
+      const c = coerceExpires(raw)
+      return [c ?? '(invalid)', true]
+    }
+    case 'status': {
+      const c = coerceStatus(raw)
+      return [c ? 'Ongoing' : 'Check Status', true]
+    }
+    default: return null
+  }
 }
 
 function StepPill({ step }: { step: Step }) {

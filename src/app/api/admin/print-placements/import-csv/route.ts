@@ -25,6 +25,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalize, similarity } from '@/lib/advertisers/dedup'
+import {
+  coerceBool, coerceDesign, coerceExpires, coerceLayout,
+  coerceMoney, coerceSize, coerceStatus,
+} from '@/app/admin/print-layout/csv-coerce'
 
 export const runtime = 'nodejs'
 
@@ -73,50 +77,6 @@ interface PlannedRow {
   fuzzy_candidates?:  Array<{ id: string; name: string; score: number }>
 }
 
-function coerceBool(v: unknown): boolean {
-  if (typeof v === 'boolean') return v
-  if (v == null) return false
-  const s = String(v).trim().toLowerCase()
-  return s !== '' && s !== 'no' && s !== 'false' && s !== '0' && s !== '—'
-}
-
-function coerceSize(v: unknown): number {
-  if (typeof v === 'number') return v
-  if (v == null || v === '') return 0.25                  // sensible default
-  const n = Number(String(v).replace(/[^0-9.]/g, ''))
-  return Number.isFinite(n) && n > 0 ? n : 0.25
-}
-
-function coerceMoney(v: unknown): number | null {
-  if (v == null || v === '') return null
-  if (typeof v === 'number') return v
-  const n = Number(String(v).replace(/[$,]/g, '').trim())
-  return Number.isFinite(n) ? n : null
-}
-
-function coerceDesign(v: unknown): 'new' | 'pickup' {
-  // The editor's CSVs use 'New' / 'Pick-up' (with hyphen). Fold both.
-  const s = String(v ?? '').trim().toLowerCase().replace(/[-_\s]/g, '')
-  if (s === 'new') return 'new'
-  return 'pickup'                                          // default historic
-}
-
-function coerceLayout(v: unknown): string | null {
-  const s = String(v ?? '').trim().toLowerCase()
-  if (s === 'horizontal' || s === 'vertical' || s === 'square') return s
-  return null
-}
-
-function coerceStatus(v: unknown): boolean {
-  // is_ongoing TRUE unless the CSV explicitly says 'check'.
-  const s = String(v ?? '').trim().toLowerCase()
-  return !(s.startsWith('check') || s === 'sporadic')
-}
-
-function coerceExpires(v: unknown): string | null {
-  const s = String(v ?? '').trim()
-  return YYYYMM.test(s) ? s : null
-}
 
 export async function POST(req: NextRequest) {
   await requireAdmin()
