@@ -602,7 +602,9 @@ function AddPanel({
   const [utmSource,   setUtmSource]   = useState('magazine')
   const [utmMedium,   setUtmMedium]   = useState('qr')
   const [utmCampaign, setUtmCampaign] = useState('')
-  const [primaryColor, setPrimaryColor] = useState('#ef6442')
+  // QR default is black — readable on any background and matches the
+  // print convention. Editor can still tweak before generating.
+  const [primaryColor, setPrimaryColor] = useState('#000000')
 
   const compatibleChannels = useMemo(() => channelsForPurpose(purpose), [purpose])
 
@@ -753,79 +755,108 @@ function AddPanel({
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  // Neutral form chrome — was blue-tinted everywhere which fought with
+  // the orange brand color for attention. Inputs and labels now sit
+  // on white with gray-200 hairlines; the only orange in the form is
+  // the final Create button.
+  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5'
 
   return (
-    <form onSubmit={submit} className="bg-blue-50/40 border-b border-blue-100 px-6 py-5">
-      <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2 mb-4">
-        {(() => { const Icon = purposeOf(purpose).icon; return <Icon size={14} /> })()}
-        New {purposeOf(purpose).label}
-      </h2>
-
-      {/* ── Purpose selector — drives the whole form view ────────
-          The three cards swap the form's title, submit-button label,
-          channel dropdown options, and whether the QR preview pane
-          shows on the right. */}
-      <div className="grid sm:grid-cols-3 gap-3 mb-5">
-        {PURPOSE_LIST.map(p => {
-          const PIcon  = p.icon
-          const active = purpose === p.value
-          return (
-            <button
-              key={p.value}
-              type="button"
-              onClick={() => pickPurpose(p.value)}
-              className={`text-left rounded-xl border p-3 transition-all ${
-                active
-                  ? 'border-2 border-primary bg-white shadow-sm'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg ${p.badgeClass}`}>
-                  <PIcon size={14} />
-                </span>
-                <span className="text-sm font-bold text-gray-900">{p.label}</span>
-              </div>
-              <p className="text-[11px] text-gray-500 leading-snug">{p.hint}</p>
-            </button>
-          )
-        })}
+    <form onSubmit={submit} className="bg-gray-50 border-b border-gray-200 px-6 py-6">
+      {/* Header — step-numbered sequence so editors know how the form
+          flows top-to-bottom. */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
+            {(() => { const Icon = purposeOf(purpose).icon; return <Icon size={18} className="text-gray-700" /> })()}
+            New {purposeOf(purpose).label}
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">Follow the steps below — only the QR Code path generates a printable QR.</p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-gray-400 hover:text-gray-700 p-1"
+          aria-label="Close form"
+          title="Cancel"
+        >
+          <X size={16} />
+        </button>
       </div>
 
-      {/* Content type selector */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {CONTENT_TYPES.map(ct => {
-          const I = ct.icon
-          const active = contentType === ct.value
-          return (
-            <button
-              key={ct.value}
-              type="button"
-              onClick={() => setContentType(ct.value)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ring-1 ${
-                active
-                  ? 'bg-primary text-white ring-primary'
-                  : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              <I size={12} /> {ct.label}
-            </button>
-          )
-        })}
-      </div>
+      {/* ── Step 1 — Purpose ────────────────────────────────────────
+          The three cards drive the rest of the form. Active card uses
+          a neutral dark border + soft tint instead of orange, so the
+          orange "Create" button later is unambiguously the action. */}
+      <StepSection step={1} title="Pick what this link is for" hint="Determines which channels are available and whether a QR gets generated.">
+        <div className="grid sm:grid-cols-3 gap-3">
+          {PURPOSE_LIST.map(p => {
+            const PIcon  = p.icon
+            const active = purpose === p.value
+            return (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => pickPurpose(p.value)}
+                className={`text-left rounded-xl border p-3.5 transition-all ${
+                  active
+                    ? 'border-2 border-gray-900 bg-white shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${p.badgeClass}`}>
+                    <PIcon size={14} />
+                  </span>
+                  <span className="text-sm font-bold text-gray-900">{p.label}</span>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-snug">{p.hint}</p>
+              </button>
+            )
+          })}
+        </div>
+      </StepSection>
 
+      {/* ── Step 2 — Content type ──────────────────────────────────
+          What the destination IS. URL is the default; the rest are
+          QR-specific scan behaviors (phone dialer, vCard download,
+          calendar event, etc.). */}
+      <StepSection step={2} title="What kind of destination?" hint="URL is the default. The other types are mainly useful for QR codes (dialer, contact card, calendar event).">
+        <div className="flex flex-wrap gap-2">
+          {CONTENT_TYPES.map(ct => {
+            const I = ct.icon
+            const active = contentType === ct.value
+            return (
+              <button
+                key={ct.value}
+                type="button"
+                onClick={() => setContentType(ct.value)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
+                  active
+                    ? 'bg-gray-900 text-white ring-gray-900'
+                    : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50 hover:ring-gray-300'
+                }`}
+              >
+                <I size={12} /> {ct.label}
+              </button>
+            )
+          })}
+        </div>
+      </StepSection>
+
+      {/* ── Step 3 — Shortcode + destination + distribution ──────── */}
+      <StepSection step={3} title="Fill in the details" hint="Shortcode is what becomes /go/<this>. Once printed or shared, the shortcode is permanent — only the destination can be edited later.">
       {/* Layout — drop the QR preview column when the editor is
           creating a non-QR link, since they don't need a QR for it. */}
-      <div className={`grid gap-6 ${purpose === 'qr' ? 'lg:grid-cols-[1fr_200px]' : 'lg:grid-cols-1'}`}>
-        <div className="space-y-3">
+      <div className={`grid gap-6 ${purpose === 'qr' ? 'lg:grid-cols-[1fr_220px]' : 'lg:grid-cols-1'}`}>
+        <div className="space-y-5">
           {/* Shortcode + label */}
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className={lbl}>Shortcode <span className="text-rose-600">*</span></label>
               <div className="flex items-center">
-                <span className="text-xs text-gray-500 bg-gray-100 border border-r-0 border-blue-200 rounded-l-lg px-2 py-2">/go/</span>
+                <span className="text-xs text-gray-500 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg px-2.5 py-2">/go/</span>
                 <input value={shortcode} onChange={e => setShortcode(e.target.value)} required autoFocus placeholder="playball-jun26" className={`${inp} rounded-l-none`} />
               </div>
             </div>
@@ -893,8 +924,9 @@ function AddPanel({
             </div>
           )}
 
-          {/* Channel + UTM + advertiser + color */}
-          <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-3">
+          {/* Channel + UTM + advertiser + (QR color, qr-only).
+              4 cols when no QR color; 5 cols when there is. */}
+          <div className={`grid sm:grid-cols-2 gap-3 ${purpose === 'qr' ? 'md:grid-cols-5' : 'md:grid-cols-4'}`}>
             <div>
               <label className={lbl}>Channel (where it lives)</label>
               <select
@@ -908,7 +940,7 @@ function AddPanel({
                 ))}
               </select>
               {channel && (
-                <p className="mt-1 text-[10px] text-blue-700">
+                <p className="mt-1 text-[10px] text-gray-500">
                   Auto-fills UTM source &amp; medium — override below if needed.
                 </p>
               )}
@@ -947,13 +979,15 @@ function AddPanel({
                 <option value="__add_new__">+ Add New Advertiser…</option>
               </select>
             </div>
-            <div>
-              <label className={lbl}>QR Color</label>
-              <div className="flex items-center gap-2">
-                <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                <input value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className={`${inp} font-mono text-xs`} />
+            {purpose === 'qr' && (
+              <div>
+                <label className={lbl}>QR Color</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
+                  <input value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className={`${inp} font-mono text-xs`} />
+                </div>
               </div>
-            </div>
+            )}
             <div>
               <label className={lbl}>UTM Source / Medium</label>
               <div className="flex gap-1">
@@ -965,8 +999,8 @@ function AddPanel({
 
           {/* Inline quick-add advertiser form */}
           {showAddAdv && (
-            <div className="rounded-xl bg-white ring-1 ring-blue-200 p-4 space-y-3">
-              <p className="text-xs font-bold text-blue-900 inline-flex items-center gap-1.5">
+            <div className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4 space-y-3">
+              <p className="text-xs font-bold text-gray-900 inline-flex items-center gap-1.5">
                 <Plus size={12} /> Quick-Add Advertiser
               </p>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -992,7 +1026,7 @@ function AddPanel({
                   type="button"
                   onClick={createAdvertiser}
                   disabled={advBusy || !newAdvName.trim()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
                 >
                   {advBusy ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
                   {advBusy ? 'Creating…' : 'Create & Select'}
@@ -1010,12 +1044,14 @@ function AddPanel({
             </p>
           )}
 
-          <div className="flex items-center gap-2 pt-1">
-            <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40">
-              {busy ? <RefreshCw size={12} className="animate-spin" /> : <Plus size={12} />}
+          {/* Footer actions — bigger, breathing room, only orange in
+              the form so the Create CTA is unambiguous. */}
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100 mt-2">
+            <button type="submit" disabled={busy} className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm">
+              {busy ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
               {busy ? 'Creating…' : `Create ${purposeOf(purpose).label}`}
             </button>
-            <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">Cancel</button>
+            <button type="button" onClick={onCancel} className="px-4 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
           </div>
         </div>
 
@@ -1050,6 +1086,30 @@ function AddPanel({
         </div>
         )}
       </div>
+      </StepSection>
     </form>
+  )
+}
+
+// ── StepSection — visual scaffold for a numbered form step ────────────────
+function StepSection({ step, title, hint, children }: {
+  step:     number
+  title:    string
+  hint?:    string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 mb-5 last:mb-0">
+      <header className="flex items-start gap-3 mb-4">
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-900 text-white text-xs font-black shrink-0">
+          {step}
+        </span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-bold text-gray-900 leading-tight">{title}</h3>
+          {hint && <p className="text-xs text-gray-500 mt-0.5 leading-snug">{hint}</p>}
+        </div>
+      </header>
+      <div className="pl-0 md:pl-10">{children}</div>
+    </section>
   )
 }
