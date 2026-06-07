@@ -12,9 +12,10 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
+import { normalize, findClusters, type DupCandidate } from '@/lib/advertisers/dedup'
 import {
   Plus, Search, ChevronLeft, ChevronRight, Megaphone, DollarSign,
-  Mail, Phone, Star, Download, Table2,
+  Mail, Phone, Star, Download, Table2, AlertTriangle, ArrowRight,
 } from 'lucide-react'
 
 const PAGE_SIZE = 25
@@ -93,6 +94,20 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     const r = rollupMap.get(a.id) ?? { activePlacements: 0, monthlyRevenue: 0, totalPlacements: 0 }
     return { ...a, ...r }
   })
+
+  // Duplicate cluster count — surfaces a banner at the top of the page
+  // pushing the editor to clean these up. The CSV import workflow gets
+  // dramatically smoother once advertiser_accounts has one row per
+  // business; each merge collapses N→1 'fuzzy match' prompts the
+  // import would otherwise ask about every month. Computed once
+  // per page load (O(n²) on tokens, fine at ~hundreds of accounts).
+  const candidates: DupCandidate[] = accounts.map(a => ({
+    id:            a.id,
+    business_name: a.business_name,
+    slug:          a.slug ?? '',
+    tokens:        normalize(a.business_name),
+  }))
+  const dupClusterCount = findClusters(candidates).length
 
   // Search + status filter applied in memory.
   const filtered = decorated.filter(a => {
@@ -182,6 +197,30 @@ export default async function AdvertisersPage({ searchParams }: Props) {
           })}
         </div>
       </div>
+
+      {/* ── Duplicate cleanup nag ────────────────────────
+          Surfaced here because every dup cluster turns into a 'fuzzy
+          match' prompt in the CSV importer every month. Cleaning these
+          once saves the editor that friction permanently. */}
+      {dupClusterCount > 0 && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 shrink-0">
+          <Link
+            href="/admin/advertisers/duplicates"
+            className="flex items-center justify-between gap-3 group"
+          >
+            <div className="flex items-center gap-2 text-sm text-amber-900">
+              <AlertTriangle size={14} className="text-amber-700 shrink-0" />
+              <span>
+                <span className="font-bold">{dupClusterCount}</span> likely-duplicate cluster{dupClusterCount === 1 ? '' : 's'} found
+                <span className="text-amber-700"> — merge them to stop repeating &ldquo;use existing or create new?&rdquo; prompts every CSV import.</span>
+              </span>
+            </div>
+            <span className="text-xs font-bold text-amber-900 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all whitespace-nowrap">
+              Review &amp; merge <ArrowRight size={11} />
+            </span>
+          </Link>
+        </div>
+      )}
 
       {/* ── Search + status chips + totals ──────────────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">

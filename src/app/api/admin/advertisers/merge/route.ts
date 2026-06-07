@@ -8,6 +8,7 @@
 //
 // Tables we touch (all via advertiser_account_id FK):
 //   - ad_placements
+//   - print_ad_placements (migration 129)
 //   - advertiser_contacts (migration 128)
 //   - short_links
 //   - lead_submissions (target_advertiser_id)
@@ -28,8 +29,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export const runtime = 'nodejs'
 
 interface Body {
-  survivorId?: string
-  mergeIds?:   string[]
+  survivorId?:   string
+  mergeIds?:     string[]
+  /** Optional rename for the survivor's business_name. When set, the
+   *  survivor row's business_name is updated as part of the merge so
+   *  the editor can pick a 'final canonical' name that differs from
+   *  any of the cluster members' existing names. */
+  survivorName?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -45,8 +51,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'survivorId cannot also be in mergeIds' }, { status: 400 })
   }
 
+  const survivorName = body.survivorName?.trim() || null
   const supabase = createAdminClient()
-  const stats = { ad_placements: 0, advertiser_contacts: 0, short_links: 0, lead_submissions: 0, guide_listings: 0 }
+  const stats = { ad_placements: 0, print_ad_placements: 0, advertiser_contacts: 0, short_links: 0, lead_submissions: 0, guide_listings: 0 }
 
   // Helper — update one table, swallow 'column does not exist' so
   // migration-tolerant tables work. Returns updated count.
@@ -70,14 +77,28 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    stats.ad_placements        = await repoint('ad_placements',       'advertiser_account_id')
-    stats.advertiser_contacts  = await repoint('advertiser_contacts', 'advertiser_account_id')
-    stats.short_links          = await repoint('short_links',         'advertiser_account_id')
-    stats.lead_submissions     = await repoint('lead_submissions',    'target_advertiser_id')
-    stats.guide_listings       = await repoint('guide_listings',      'advertiser_account_id')
+    stats.ad_placements        = await repoint('ad_placements',         'advertiser_account_id')
+    stats.print_ad_placements  = await repoint('print_ad_placements',   'advertiser_account_id')
+    stats.advertiser_contacts  = await repoint('advertiser_contacts',   'advertiser_account_id')
+    stats.short_links          = await repoint('short_links',           'advertiser_account_id')
+    stats.lead_submissions     = await repoint('lead_submissions',      'target_advertiser_id')
+    stats.guide_listings       = await repoint('guide_listings',        'advertiser_account_id')
   } catch (e) {
     const err = e as { message?: string }
     return NextResponse.json({ error: err.message ?? 'merge failed', stats }, { status: 500 })
+  }
+
+  // Optional rename — applied after the repoint so the survivor's
+  // business_name reflects the editor's final pick. Done before the
+  // delete so any partial failure still leaves a coherent survivor.
+  if (survivorName) {
+    const { error: renameErr } = await supabase
+      .from('advertiser_accounts')
+      .update({ business_name: survivorName })
+      .eq('id', survivorId)
+    if (renameErr) {
+      return NextResponse.json({ error: `Repoint succeeded but rename failed: ${renameErr.message}`, stats }, { status: 500 })
+    }
   }
 
   // Finally, delete the merged advertiser rows. With FKs now repointed,

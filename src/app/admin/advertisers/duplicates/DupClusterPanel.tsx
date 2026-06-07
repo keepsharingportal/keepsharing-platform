@@ -36,9 +36,25 @@ export function DupClusterPanel({ cluster }: Props) {
   // on oldest created_at — older rows are usually the "real" original.
   const defaultSurvivor = pickDefaultSurvivor(cluster.members)
   const [survivorId, setSurvivorId] = useState<string>(defaultSurvivor)
+  // Editable canonical name for the survivor. Pre-fills with the
+  // selected survivor's existing name; the editor can override to
+  // something more accurate (e.g. drop trailing punctuation, fix
+  // capitalization, expand an abbreviation) and that becomes the
+  // business_name on the kept row when the merge commits.
+  const initialName = cluster.members.find(m => m.id === defaultSurvivor)?.business_name ?? ''
+  const [survivorName, setSurvivorName] = useState<string>(initialName)
   const [busy, startTransition]     = useTransition()
   const [merged, setMerged]         = useState(false)
   const [err, setErr]               = useState<string | null>(null)
+
+  // Keep the rename input in sync when the editor picks a different
+  // survivor radio — otherwise it'd stay stuck on whoever was the
+  // initial default.
+  function pickSurvivor(id: string) {
+    setSurvivorId(id)
+    const m = cluster.members.find(x => x.id === id)
+    if (m) setSurvivorName(m.business_name)
+  }
 
   if (merged) {
     // Render a tiny success placeholder where the cluster used to be —
@@ -54,9 +70,12 @@ export function DupClusterPanel({ cluster }: Props) {
     const mergeIds = cluster.members.map(m => m.id).filter(id => id !== survivorId)
     const survivor = cluster.members.find(m => m.id === survivorId)
     if (!survivor || mergeIds.length === 0) return
+    const finalName = survivorName.trim() || survivor.business_name
+    const renaming  = finalName.toLowerCase() !== survivor.business_name.toLowerCase()
     if (!confirm(
-      `Merge ${mergeIds.length} duplicate(s) into "${survivor.business_name}"?\n\n` +
-      `All ad placements, contacts, and tracked links from the merged rows will be repointed at the survivor. The merged rows themselves will be deleted.`
+      `Merge ${mergeIds.length} duplicate${mergeIds.length === 1 ? '' : 's'} into "${finalName}"?\n\n` +
+      (renaming ? `The survivor row's name will change from "${survivor.business_name}" to "${finalName}".\n\n` : '') +
+      `All ad placements (digital + print), contacts, and tracked links from the merged rows will be repointed at the survivor. The merged rows themselves will be deleted.`
     )) return
 
     setErr(null)
@@ -64,7 +83,11 @@ export function DupClusterPanel({ cluster }: Props) {
       const res = await fetch('/api/admin/advertisers/merge', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ survivorId, mergeIds }),
+        body:    JSON.stringify({
+          survivorId,
+          mergeIds,
+          survivorName: renaming ? finalName : undefined,
+        }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -96,6 +119,25 @@ export function DupClusterPanel({ cluster }: Props) {
         </button>
       </header>
 
+      {/* Rename input — pre-filled with the selected survivor's name.
+          Editor can leave as-is or type a different canonical name
+          that becomes the survivor's business_name post-merge. */}
+      <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
+        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+          Final business name
+        </label>
+        <input
+          type="text"
+          value={survivorName}
+          onChange={e => setSurvivorName(e.target.value)}
+          placeholder="Canonical business name (defaults to the picked survivor)"
+          className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-gray-400"
+        />
+        <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+          Default is the picked survivor&apos;s name. Edit if you want the kept row to use a cleaner spelling.
+        </p>
+      </div>
+
       <ul className="divide-y divide-gray-100">
         {cluster.members.map(m => {
           const isSurvivor = m.id === survivorId
@@ -106,7 +148,7 @@ export function DupClusterPanel({ cluster }: Props) {
                   type="radio"
                   name={`survivor-${cluster.key}`}
                   checked={isSurvivor}
-                  onChange={() => setSurvivorId(m.id)}
+                  onChange={() => pickSurvivor(m.id)}
                   className="cursor-pointer accent-emerald-600"
                 />
               </label>
