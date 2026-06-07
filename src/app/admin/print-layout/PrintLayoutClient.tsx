@@ -34,6 +34,10 @@ export interface PrintPlacement {
   specific_months:       string[] | null
   expires_month:         string | null
   notes:                 string | null
+  // Migration 130. TRUE = recurring sponsor that runs every month
+  // until expires_month (or cancelled). FALSE = seasonal — only runs
+  // the months listed in specific_months.
+  is_ongoing:            boolean
 }
 
 export interface AdvertiserOption {
@@ -185,6 +189,31 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
         return
       }
       setRows(prev => prev.filter(r => !selected.has(r.id)))
+      clearSelection()
+    })
+  }
+
+  async function onDuplicateSelected() {
+    if (selected.size === 0) return
+    if (!confirm(`Duplicate ${selected.size} selected placement${selected.size === 1 ? '' : 's'} into ${fmtIssue(nextMonth)}? (Existing rows on the target month are skipped.)`)) return
+    const ids = Array.from(selected)
+    startTransition(async () => {
+      const res = await fetch('/api/admin/print-placements/clone-month', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ from_month: issue, to_month: nextMonth, ids }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        window.alert(json?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      const parts: string[] = []
+      if (json.created)            parts.push(`${json.created} duplicated`)
+      if (json.skippedExpired)     parts.push(`${json.skippedExpired} expired`)
+      if (json.skippedOutOfSeason) parts.push(`${json.skippedOutOfSeason} out-of-season`)
+      if (json.skippedDuplicate)   parts.push(`${json.skippedDuplicate} already on ${shortMonth(nextMonth)}`)
+      window.alert(parts.length > 0 ? parts.join(' · ') : 'Nothing to duplicate')
       clearSelection()
     })
   }
@@ -373,6 +402,15 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={onDuplicateSelected}
+              disabled={busy}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg disabled:opacity-40"
+              title={`Duplicate selected rows into ${fmtIssue(nextMonth)}`}
+            >
+              <Copy size={12} /> Duplicate to {shortMonth(nextMonth)}
+            </button>
+            <button
+              type="button"
               onClick={() => setBulkEditing(true)}
               disabled={busy}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg disabled:opacity-40"
@@ -541,7 +579,16 @@ function ReadRow({ row, selected, onToggle, onEdit, onDelete }: {
       </td>
       <td className="px-4 py-2 font-bold text-gray-900">{row.business_name}</td>
       <td className="px-3 py-2 text-xs capitalize">{row.design}</td>
-      <td className="px-3 py-2 text-xs">{row.directory ? 'Yes' : '—'}</td>
+      <td className="px-3 py-2 text-xs">
+        <div className="flex flex-col gap-0.5">
+          <span>{row.directory ? 'Yes' : '—'}</span>
+          {!row.is_ongoing && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Seasonal — only runs the specific months listed.">
+              Seasonal
+            </span>
+          )}
+        </div>
+      </td>
       <td className="px-3 py-2 text-xs tabular-nums">{row.size}</td>
       <td className="px-3 py-2 text-xs capitalize">{row.layout ?? '—'}</td>
       <td className="px-3 py-2 text-xs text-right tabular-nums">{row.price != null ? `$${row.price.toLocaleString()}` : '—'}</td>
@@ -580,6 +627,7 @@ interface PatchShape {
   specific_months?: string[]
   expires_month?:   string | null
   notes?:           string | null
+  is_ongoing?:      boolean
 }
 
 function EditRow({ row, issue, onCancel, onSubmit }: {
@@ -598,6 +646,7 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
   const [layoutNotes, setLayoutNotes] = useState(row.layout_notes ?? '')
   const [months,   setMonths]   = useState<string[]>(row.specific_months ?? [])
   const [expires,  setExpires]  = useState<string>(row.expires_month ?? '')
+  const [ongoing,  setOngoing]  = useState<boolean>(row.is_ongoing ?? true)
   const [saving, setSaving] = useState(false)
 
   async function save() {
@@ -613,6 +662,7 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         layout_notes:    layoutNotes.trim() || null,
         specific_months: months,
         expires_month:   expires || null,
+        is_ongoing:      ongoing,
       })
     } finally { setSaving(false) }
   }
@@ -633,10 +683,16 @@ function EditRow({ row, issue, onCancel, onSubmit }: {
         </select>
       </td>
       <td className="px-3 py-2 align-top">
-        <label className="inline-flex items-center gap-1 cursor-pointer text-xs">
-          <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
-          {directory ? 'Yes' : 'No'}
-        </label>
+        <div className="flex flex-col gap-1">
+          <label className="inline-flex items-center gap-1 cursor-pointer text-xs">
+            <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
+            {directory ? 'Yes' : 'No'}
+          </label>
+          <label className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-500" title="Ongoing = runs every month until cancelled. Off = only the specific months ticked below.">
+            <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
+            {ongoing ? 'Ongoing' : 'Seasonal'}
+          </label>
+        </div>
       </td>
       <td className="px-3 py-2 align-top">
         <select value={size} onChange={e => setSize(parseFloat(e.target.value))} className={inp}>
@@ -763,6 +819,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
   const [social,    setSocial]    = useState('')
   const [expires,   setExpires]   = useState('')
   const [layoutNotes, setLayoutNotes] = useState('')
+  const [ongoing,   setOngoing]   = useState(true)
   const [saving, setSaving] = useState(false)
 
   function toggle(field: string) {
@@ -779,6 +836,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
     if (enabled.social_budget) patch.social_budget   = social.trim() === '' ? null : Number(social)
     if (enabled.expires_month) patch.expires_month   = expires || null
     if (enabled.layout_notes)  patch.layout_notes    = layoutNotes.trim() || null
+    if (enabled.is_ongoing)    patch.is_ongoing      = ongoing
     if (Object.keys(patch).length === 0) {
       window.alert('Tick the box next to at least one field to update.')
       return
@@ -813,6 +871,12 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
             <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
               <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
               {directory ? 'Yes (in directory)' : 'No (not in directory)'}
+            </label>
+          </FieldRow>
+          <FieldRow enabled={enabled} onToggle={toggle} field="is_ongoing" label="Run schedule">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
+              <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
+              {ongoing ? 'Ongoing (every month)' : 'Specific months only'}
             </label>
           </FieldRow>
           <FieldRow enabled={enabled} onToggle={toggle} field="size" label="Size">
@@ -885,6 +949,7 @@ interface AddFormShape {
   layout_notes:          string | null
   specific_months:       string[]
   expires_month:         string | null
+  is_ongoing:            boolean
 }
 
 function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
@@ -904,6 +969,9 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
   const [layoutNotes, setLayoutNotes] = useState('')
   const [months,   setMonths]   = useState<string[]>([])
   const [expires,  setExpires]  = useState('')
+  // Default ongoing=true — by far the most common case. Editors flip
+  // it off for seasonal sponsors who only buy specific months.
+  const [ongoing,  setOngoing]  = useState(true)
   const [saving, setSaving] = useState(false)
 
   async function save() {
@@ -919,6 +987,7 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
         price:           price.trim()  === '' ? null : Number(price),
         social_budget:   social.trim() === '' ? null : Number(social),
         layout_notes:    layoutNotes.trim() || null,
+        is_ongoing:      ongoing,
         specific_months: months,
         expires_month:   expires || null,
       })
@@ -974,6 +1043,13 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
           </label>
         </div>
         <div>
+          <label className={lbl}>Run schedule</label>
+          <label className="inline-flex items-center gap-2 cursor-pointer text-sm pt-2">
+            <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
+            {ongoing ? 'Ongoing (every month)' : 'Specific months only'}
+          </label>
+        </div>
+        <div>
           <label className={lbl}>Price ($)</label>
           <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0" className={inp} />
         </div>
@@ -999,17 +1075,19 @@ function AddRowForm({ advertisers, issue, onCancel, onSubmit }: {
             {monthOptions.map(m => <option key={m} value={m}>{shortMonth(m)}</option>)}
           </select>
         </div>
-        <div className="sm:col-span-2 lg:col-span-4">
-          <label className={lbl}>Specific months purchased</label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-y-0.5 gap-x-2 p-2 bg-gray-50 rounded-lg">
-            {monthOptions.map(m => (
-              <label key={m} className="inline-flex items-center gap-1 text-[11px] cursor-pointer">
-                <input type="checkbox" checked={months.includes(m)} onChange={() => toggleMonth(m)} />
-                {shortMonth(m)}
-              </label>
-            ))}
+        {!ongoing && (
+          <div className="sm:col-span-2 lg:col-span-4">
+            <label className={lbl}>Specific months purchased</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-y-0.5 gap-x-2 p-2 bg-gray-50 rounded-lg">
+              {monthOptions.map(m => (
+                <label key={m} className="inline-flex items-center gap-1 text-[11px] cursor-pointer">
+                  <input type="checkbox" checked={months.includes(m)} onChange={() => toggleMonth(m)} />
+                  {shortMonth(m)}
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <div className="sm:col-span-2 lg:col-span-4">
           <label className={lbl}>Layout notes</label>
           <input value={layoutNotes} onChange={e => setLayoutNotes(e.target.value)} placeholder="Layout notes for the design team…" className={inp} />
