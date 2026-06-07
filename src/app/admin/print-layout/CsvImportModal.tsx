@@ -519,19 +519,16 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
     : resolution?.create_new ? '__custom__'
     : resolution?.skip ? '__skip__' : ''
 
-  // Editor typed a name. If it case-insensitively matches an existing
-  // advertiser, switch the resolution to that one (so the server
-  // attaches instead of creating). Otherwise hold as create_new.
+  // Editor typed a name. Always treats it as 'create new with this
+  // name' — the radio state stays on the custom row so the editor
+  // sees they're typing, not auto-jumping into an existing radio.
+  // The server still attaches to an exact-match existing advertiser
+  // at commit time (case-insensitive on business_name), so typing the
+  // exact name of an existing advertiser still attaches instead of
+  // creating a dup; the radio visual is just consistent.
   function onCustomChange(v: string) {
     setCustomName(v)
-    const trimmed = v.trim()
-    if (!trimmed) {
-      onChange({ create_new: { business_name: planned.input.business } })
-      return
-    }
-    const hit = advertisers.find(a => a.business_name.toLowerCase() === trimmed.toLowerCase())
-    if (hit) onChange({ advertiser_id: hit.id })
-    else     onChange({ create_new: { business_name: trimmed } })
+    onChange({ create_new: { business_name: v.trim() || planned.input.business } })
   }
 
   return (
@@ -560,7 +557,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
             type="radio"
             name={`r-${planned.index}`}
             className="mt-1"
-            checked={picked === '__custom__' || picked.startsWith('existing:')}
+            checked={picked === '__custom__'}
             onChange={() => onCustomChange(customName)}
           />
           <span className="flex-1">

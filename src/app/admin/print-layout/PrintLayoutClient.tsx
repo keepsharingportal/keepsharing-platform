@@ -10,7 +10,7 @@
 // client maintains its own row list and syncs back on each save so the
 // editor sees changes immediately without a page refresh.
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Printer, Download, ChevronLeft, ChevronRight, ChevronDown, Plus, Trash2,
@@ -162,12 +162,21 @@ function groupByYear(months: string[]): IssueGroup[] {
 
 // Columns the editor can sort by. Keys match PrintPlacement field names
 // so the sort function can read row[key] without a switch.
-type SortKey = 'business_name' | 'design' | 'directory' | 'size' | 'layout' | 'price' | 'social_budget' | 'expires_month'
+type SortKey = 'business_name' | 'design' | 'directory' | 'size' | 'layout' | 'price' | 'social_budget' | 'expires_month' | 'layout_notes'
 type SortDir = 'asc' | 'desc'
 
 export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount, initial, advertisers, tableMissing, initialAdd, initialAdvertiserId }: Props) {
   const router = useRouter()
   const [rows, setRows]       = useState<PrintPlacement[]>(initial)
+  // Sync local rows whenever a server refresh delivers a new initial.
+  // Without this, router.refresh() (fired after CSV import, clone,
+  // bulk-delete etc) updates the server payload but the existing
+  // useState ignores the new prop, leaving the table stale until a
+  // hard reload. The cost is dropping any uncommitted optimistic
+  // edits when a refresh lands — acceptable since refreshes only
+  // happen after a server confirmed mutation.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setRows(initial) }, [initial])
   const [editing, setEditing] = useState<string | null>(null)
   const [adding,  setAdding]  = useState(!!initialAdd)
   const [importing, setImporting] = useState(false)
@@ -629,7 +638,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   <SortHeader label="Price"    sortKey="price"         active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
                   <SortHeader label="Social"   sortKey="social_budget" active={sortKey} dir={sortDir} onClick={clickSort} align="right" />
                   <SortHeader label="Expires"  sortKey="expires_month" active={sortKey} dir={sortDir} onClick={clickSort} />
-                  <th className="px-3 py-2 font-semibold">Notes</th>
+                  <SortHeader label="Notes"    sortKey="layout_notes"  active={sortKey} dir={sortDir} onClick={clickSort} />
                   <th className="px-3 py-2 font-semibold print:hidden"></th>
                 </tr>
               </thead>
@@ -750,23 +759,36 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
     : !row.is_ongoing
       ? (selected ? 'bg-amber-100/70' : 'bg-amber-50/60 hover:bg-amber-50')
       : (selected ? 'bg-amber-50/40' : 'hover:bg-gray-50')
+  // Show ad_label only when it carries different content than the
+  // canonical business name (CSV imports often have label == name).
+  const adVariant = row.ad_label && row.ad_label.trim() && row.ad_label.trim().toLowerCase() !== row.business_name.toLowerCase()
+    ? row.ad_label.trim()
+    : null
   return (
     <tr className={`border-b border-gray-100 last:border-0 group ${rowBg}`}>
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
       <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-gray-900'}`}>
-        {row.business_name}
-        {row.ad_label && row.ad_label.trim() && row.ad_label.trim().toLowerCase() !== row.business_name.toLowerCase() && (
-          <span className="block text-[10px] font-normal text-gray-500 mt-0.5" title="Ad-specific label (from CSV import or manual entry)">
-            ↳ {row.ad_label}
-          </span>
-        )}
+        {/* Click anywhere on the business name to open the inline editor
+            — matches the convention on /admin/advertisers and saves a
+            hover-and-aim at the tiny pencil icon. */}
+        <button
+          type="button"
+          onClick={onEdit}
+          className={`text-left hover:text-primary inline-flex flex-col items-start ${isExpired ? 'hover:text-rose-700' : ''}`}
+          title="Click to edit this placement"
+        >
+          <span>{row.business_name}</span>
+          {adVariant && (
+            <span className="text-[10px] font-normal text-gray-500 mt-0.5">↳ {adVariant}</span>
+          )}
+        </button>
       </td>
       <td className="px-3 py-2 text-xs capitalize">{row.design}</td>
       <td className="px-3 py-2 text-xs">
         <div className="flex flex-col gap-0.5">
-          <span>{row.directory ? 'Yes' : '—'}</span>
+          {row.directory && <span>Yes</span>}
           {!isExpired && !row.is_ongoing && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Check status — sporadic advertiser, verify before issue ships.">
               Check
@@ -775,12 +797,12 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
         </div>
       </td>
       <td className="px-3 py-2 text-xs tabular-nums">{row.size}</td>
-      <td className="px-3 py-2 text-xs capitalize">{row.layout ?? '—'}</td>
-      <td className="px-3 py-2 text-xs text-right tabular-nums">{row.price != null ? `$${row.price.toLocaleString()}` : '—'}</td>
-      <td className="px-3 py-2 text-xs text-right tabular-nums">{row.social_budget != null ? `$${row.social_budget.toLocaleString()}` : '—'}</td>
+      <td className="px-3 py-2 text-xs capitalize">{row.layout ?? ''}</td>
+      <td className="px-3 py-2 text-xs text-right tabular-nums">{row.price != null ? `$${row.price.toLocaleString()}` : ''}</td>
+      <td className="px-3 py-2 text-xs text-right tabular-nums">{row.social_budget != null ? `$${row.social_budget.toLocaleString()}` : ''}</td>
       <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-rose-700 font-bold' : 'text-gray-600'}`}>
         <div className="flex flex-col gap-0.5">
-          <span>{row.expires_month ? shortMonth(row.expires_month) : '—'}</span>
+          <span>{row.expires_month ? shortMonth(row.expires_month) : ''}</span>
           {isExpired && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Past expires_month — re-up by bumping the date, or delete the row to let lapse.">
               Expired
@@ -789,14 +811,14 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
         </div>
       </td>
       <td className="px-3 py-2 text-[11px] text-gray-500 truncate max-w-[180px]" title={row.layout_notes ?? ''}>
-        {row.layout_notes ?? '—'}
+        {row.layout_notes ?? ''}
       </td>
       <td className="px-3 py-2 print:hidden">
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-gray-500" aria-label="Edit">
+        <div className="flex items-center gap-1">
+          <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-900" aria-label="Edit">
             <Pencil size={11} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-rose-50 text-gray-400 hover:text-rose-600" aria-label="Delete">
+          <button onClick={onDelete} className="p-1 rounded hover:bg-rose-50 text-gray-300 hover:text-rose-600" aria-label="Delete">
             <Trash2 size={11} />
           </button>
         </div>

@@ -119,16 +119,22 @@ async function handlePlan(
   exactByLower: Map<string, { id: string; business_name: string }>,
 ) {
   // Pull the target month's existing rows so duplicates surface in the
-  // plan instead of getting silently rejected on commit.
+  // plan instead of getting silently rejected on commit. Dedup key is
+  // (advertiser_id, lowercase ad_label) — same business CAN have
+  // multiple ads in one issue (Macon East Academy main brand AND a
+  // Senior Ad variant). Re-imports of the same CSV row still dedup
+  // because both advertiser AND label match.
   const existRes = await supabase
     .from('print_ad_placements')
-    .select('advertiser_account_id')
+    .select('advertiser_account_id, ad_label')
     .eq('issue_month', body.issue_month)
   if (existRes.error) {
     return NextResponse.json({ error: existRes.error.message }, { status: 500 })
   }
-  const alreadyOn = new Set(((existRes.data ?? []) as Array<{ advertiser_account_id: string }>)
-    .map(r => r.advertiser_account_id))
+  const alreadyOnKeys = new Set(
+    ((existRes.data ?? []) as Array<{ advertiser_account_id: string; ad_label: string | null }>)
+      .map(r => dupKey(r.advertiser_account_id, r.ad_label))
+  )
 
   const FUZZY_THRESHOLD = 0.85
   const plan: PlannedRow[] = []
@@ -139,7 +145,11 @@ async function handlePlan(
     const lower   = biz.toLowerCase()
     const exact   = exactByLower.get(lower)
     if (exact) {
-      if (alreadyOn.has(exact.id)) {
+      // Dedup check: same business AND same ad_label already on issue
+      // means re-import of the same row → skip. Different ad_label
+      // (Macon East Academy main brand vs Senior Ad variant) keeps
+      // both as separate placements.
+      if (alreadyOnKeys.has(dupKey(exact.id, biz))) {
         plan.push({ index: i, input: r, status: 'duplicate', matched_id: exact.id, matched_name: exact.business_name })
       } else {
         plan.push({ index: i, input: r, status: 'matched',   matched_id: exact.id, matched_name: exact.business_name })
@@ -170,6 +180,12 @@ async function handlePlan(
     duplicate: plan.filter(p => p.status === 'duplicate').length,
   }
   return NextResponse.json({ ok: true, plan, counts })
+}
+
+// Dedup key for placements: (advertiser_id, lowercase ad_label or '').
+// Pulled into a helper so plan + commit agree on the same shape.
+function dupKey(advertiserId: string, adLabel: string | null | undefined): string {
+  return `${advertiserId}|${(adLabel ?? '').trim().toLowerCase()}`
 }
 
 // Slug from business name. Must satisfy advertiser_accounts.slug
@@ -208,16 +224,19 @@ async function handleCommit(
     return out
   }
   // Re-check duplicates at commit time — protects against another editor
-  // adding rows between plan and commit.
+  // adding rows between plan and commit. Same (advertiser, ad_label)
+  // dedup as the planner; see dupKey().
   const existRes = await supabase
     .from('print_ad_placements')
-    .select('advertiser_account_id')
+    .select('advertiser_account_id, ad_label')
     .eq('issue_month', body.issue_month)
   if (existRes.error) {
     return NextResponse.json({ error: existRes.error.message }, { status: 500 })
   }
-  const alreadyOn = new Set(((existRes.data ?? []) as Array<{ advertiser_account_id: string }>)
-    .map(r => r.advertiser_account_id))
+  const alreadyOnKeys = new Set(
+    ((existRes.data ?? []) as Array<{ advertiser_account_id: string; ad_label: string | null }>)
+      .map(r => dupKey(r.advertiser_account_id, r.ad_label))
+  )
 
   let createdAdvertisers = 0
   let createdPlacements  = 0
@@ -261,9 +280,10 @@ async function handleCommit(
       errors.push(`Row "${res.row.business}": no advertiser_id and no create_new — nothing to attach to`)
       continue
     }
-    if (alreadyOn.has(advertiserId)) { skippedDuplicate++; continue }
-    alreadyOn.add(advertiserId)        // prevent same-import dupes
     const r = res.row
+    const placementKey = dupKey(advertiserId, r.business)
+    if (alreadyOnKeys.has(placementKey)) { skippedDuplicate++; continue }
+    alreadyOnKeys.add(placementKey)    // prevent same-import re-uploads
     const payload = {
       advertiser_account_id: advertiserId,
       issue_month:           body.issue_month,
