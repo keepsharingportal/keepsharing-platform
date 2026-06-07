@@ -215,13 +215,13 @@ const NAV: NavItem[] = [
     href: '/admin/advertisers',
     icon: Users,
     children: [
-      // No "Active Advertisers" child — clicking the parent already goes
-      // to the active list. Pipeline + Businesses live in the section
-      // tab strip instead. Duplicates is a maintenance tool we surface
-      // here so the editor can find it without hunting.
-      { name: 'Category Ownership', href: '/admin/advertisers/sponsor-inventory' },
-      { name: 'Onboarding',         href: '/admin/advertisers/onboarding', accent: true },
-      { name: 'Duplicates',         href: '/admin/advertisers/duplicates'  },
+      // Clicking the parent goes to the active list. Pipeline +
+      // Businesses live in the section tab strip; Onboarding +
+      // Sponsor Inventory + Proposals + Partner Ops live in the
+      // top button row on /admin/advertisers — no point doubling
+      // them up in the sidebar. Duplicates stays here because it's
+      // a maintenance tool that isn't surfaced anywhere else.
+      { name: 'Duplicates', href: '/admin/advertisers/duplicates' },
     ],
   },
   { name: 'Proposals',     href: '/admin/advertisers/proposals', icon: FileText },
@@ -418,13 +418,27 @@ export function Sidebar() {
               ? counts[item.badgeKey] ?? 0
               : item.children.reduce((sum, c) => sum + (c.badgeKey ? counts[c.badgeKey] ?? 0 : 0), 0)
 
+            // Whether any expanded child matches the current pathname.
+            // When the parent route itself is active (e.g. /admin/advertisers
+            // exactly) and no child matches, we want the ref on the parent
+            // button so the auto-scroll has something to anchor on. Without
+            // this, navigating to a parent route after expanding it leaves
+            // activeNavRef pointing at the previously-active item and the
+            // sidebar jumps back to that.
+            const anyChildOnPath = isExpanded && item.children.some(c => {
+              const childPath = c.href.split('?')[0]
+              return pathname === childPath || pathname.startsWith(childPath + '/')
+            })
+
             return (
               <div key={item.name}>
                 <Link
-                  // Hold the ref ONLY when this group is active AND not
-                  // currently expanded — the expanded variant scrolls to
-                  // its active child instead. Keeps scroll target accurate.
-                  ref={groupActive && !isExpanded ? (el => { activeNavRef.current = el }) : undefined}
+                  // Hold the ref when this group is the active route AND
+                  // either (a) it's collapsed (no children visible), or
+                  // (b) it's expanded but no child route matches.
+                  ref={groupActive && (!isExpanded || !anyChildOnPath)
+                        ? (el => { activeNavRef.current = el })
+                        : undefined}
                   href={item.href}
                   // Clicking the parent navigates AND expands. Never
                   // collapses on parent click — to collapse, expand a

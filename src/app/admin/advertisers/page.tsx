@@ -111,9 +111,12 @@ export default async function AdvertisersPage({ searchParams }: Props) {
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Partner Ops
           </Link>
-          <button className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+          <Link
+            href="/admin/advertisers/new"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
             <Plus size={14} /> Add Advertiser
-          </button>
+          </Link>
         </div>
       </div>
 
