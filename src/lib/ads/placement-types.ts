@@ -225,6 +225,12 @@ export const PLACEMENT_TYPES: PlacementTypeDef[] = [
     allowsImageMode: false },
 
   // ── Site-wide ────────────────────────────────────────────────────────────
+  { slug: 'site_top_banner',             surface: 'site', category: 'inline',
+    label: 'Site — Top banner (above nav, every page)',
+    whereItAppears: 'At the very top of EVERY page — above the navigation. First thing every visitor sees on every page view. Rotates up to 5 advertisers; one ad per page view, weighted by rotation_weight. Auto-hides when no live booking exists (no placeholder).',
+    description: 'Premium site-wide leaderboard above the nav. Highest-impression slot on the platform.',
+    recommendedImageSize: 'Desktop: 1200×180 · Mobile: 600×140 (or one responsive image at 1200×180 — gets letterboxed on mobile)' },
+
   { slug: 'site_footer_partners',        surface: 'site', category: 'footer',
     label: 'Site — Footer partner logos',
     whereItAppears: 'In the site footer on EVERY page. Row of partner logos at the bottom, beneath the navigation links.',
@@ -328,7 +334,7 @@ export const PAGE_SLOTS: Record<string, string[]> = {
   articles: ['article_sidebar_sticky', 'article_sidebar_sponsored', 'article_inline', 'article_header_sponsor', 'article_inline_recommendation', 'article_footer_listings'],
   calendar: ['calendar_top_banner', 'calendar_bottom_banner', 'calendar_inline_promotion', 'calendar_featured_event', 'section_sponsor'],
   newsletter: ['newsletter_sponsor'],
-  site:     ['site_footer_partners'],
+  site:     ['site_top_banner', 'site_footer_partners'],
 }
 
 export function findPlacementType(slug: string | null | undefined): PlacementTypeDef | null {
