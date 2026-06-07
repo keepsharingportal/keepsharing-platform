@@ -177,7 +177,6 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
   // happen after a server confirmed mutation.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setRows(initial) }, [initial])
-  const [editing, setEditing] = useState<string | null>(null)
   const [adding,  setAdding]  = useState(!!initialAdd)
   const [importing, setImporting] = useState(false)
   const [busy, startTransition] = useTransition()
@@ -382,17 +381,6 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
     })
   }
 
-  async function onSave(id: string, patch: Partial<PrintPlacement>): Promise<boolean> {
-    const res = await fetch(`/api/admin/print-placements/${id}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(patch),
-    })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok || !json.placement) { window.alert(json?.error ?? `HTTP ${res.status}`); return false }
-    setRows(prev => prev.map(r => r.id === id ? { ...r, ...json.placement, business_name: r.business_name } : r))
-    return true
-  }
 
   async function onAdd(form: AddFormShape): Promise<boolean> {
     const res = await fetch('/api/admin/print-placements', {
@@ -457,7 +445,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => { setAdding(v => !v); setEditing(null) }}
+              onClick={() => setAdding(v => !v)}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-700"
             >
               <Plus size={14} /> Add Placement
@@ -643,25 +631,14 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map(r => editing === r.id ? (
-                  <EditRow
-                    key={r.id}
-                    row={r}
-                    issue={issue}
-                    onCancel={() => setEditing(null)}
-                    onSubmit={async patch => {
-                      const ok = await onSave(r.id, patch)
-                      if (ok) setEditing(null)
-                    }}
-                  />
-                ) : (
+                {visibleRows.map(r => (
                   <ReadRow
                     key={r.id}
                     row={r}
                     isExpired={isExpired(r)}
                     selected={selected.has(r.id)}
                     onToggle={() => toggleOne(r.id)}
-                    onEdit={() => { setEditing(r.id); setAdding(false) }}
+                    onEdit={() => router.push(`/admin/print-placements/${r.id}/edit`)}
                     onDelete={() => onDelete(r.id, r.business_name)}
                   />
                 ))}
@@ -827,153 +804,6 @@ function ReadRow({ row, isExpired, selected, onToggle, onEdit, onDelete }: {
   )
 }
 
-// ── Edit row (inline) ───────────────────────────────────────────────────────
-
-interface PatchShape {
-  design?:          string
-  directory?:       boolean
-  size?:            number
-  layout?:          string | null
-  price?:           number | null
-  social_budget?:   number | null
-  layout_notes?:    string | null
-  expires_month?:   string | null
-  notes?:           string | null
-  is_ongoing?:      boolean
-  ad_label?:        string | null
-}
-
-function EditRow({ row, issue, onCancel, onSubmit }: {
-  row:      PrintPlacement
-  issue:    string
-  onCancel: () => void
-  onSubmit: (patch: PatchShape) => Promise<void>
-}) {
-  const monthOptions = build18Months(issue)
-  const [design,   setDesign]   = useState(row.design)
-  const [directory, setDirectory] = useState(row.directory)
-  const [size,     setSize]     = useState(row.size)
-  const [layout,   setLayout]   = useState<string | null>(row.layout)
-  const [price,    setPrice]    = useState<string>(row.price       != null ? String(row.price)         : '')
-  const [social,   setSocial]   = useState<string>(row.social_budget != null ? String(row.social_budget) : '')
-  const [layoutNotes, setLayoutNotes] = useState(row.layout_notes ?? '')
-  const [expires,  setExpires]  = useState<string>(row.expires_month ?? '')
-  const [ongoing,  setOngoing]  = useState<boolean>(row.is_ongoing ?? true)
-  const [adLabel,  setAdLabel]  = useState<string>(row.ad_label ?? '')
-  const [saving, setSaving] = useState(false)
-
-  async function save() {
-    setSaving(true)
-    try {
-      await onSubmit({
-        design,
-        directory,
-        size,
-        layout,
-        price:           price.trim()  === '' ? null : Number(price),
-        social_budget:   social.trim() === '' ? null : Number(social),
-        layout_notes:    layoutNotes.trim() || null,
-        expires_month:   expires || null,
-        is_ongoing:      ongoing,
-        ad_label:        adLabel.trim() || null,
-      })
-    } finally { setSaving(false) }
-  }
-
-  const inp = 'w-full text-xs border border-gray-200 rounded px-2 py-1 outline-none focus:border-gray-400'
-
-  return (
-    <tr className="border-b border-gray-100 bg-amber-50/60">
-      <td className="px-3 py-2 w-8 align-top print:hidden"></td>
-      <td className="px-4 py-2 font-bold text-gray-900 align-top">
-        {row.business_name}
-        <input
-          type="text"
-          value={adLabel}
-          onChange={e => setAdLabel(e.target.value)}
-          placeholder="Ad label (optional)"
-          className="mt-1 w-full text-[11px] font-normal border border-gray-200 rounded px-2 py-1 bg-white outline-none focus:border-gray-400"
-          title="Ad-specific name when this business runs multiple ads in the same issue"
-        />
-      </td>
-      <td className="px-3 py-2 align-top">
-        <select value={design} onChange={e => setDesign(e.target.value)} className={inp}>
-          {DESIGN_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <div className="flex flex-col gap-1">
-          <label className="inline-flex items-center gap-1 cursor-pointer text-xs">
-            <input type="checkbox" checked={directory} onChange={e => setDirectory(e.target.checked)} />
-            {directory ? 'Yes' : 'No'}
-          </label>
-          <label className="inline-flex items-center gap-1 cursor-pointer text-[10px] text-gray-500" title="Ongoing = runs every month. Off = Check Status (sporadic — verify before each issue).">
-            <input type="checkbox" checked={ongoing} onChange={e => setOngoing(e.target.checked)} />
-            {ongoing ? 'Ongoing' : 'Check'}
-          </label>
-        </div>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <select value={size} onChange={e => setSize(parseFloat(e.target.value))} className={inp}>
-          {SIZE_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <select
-          value={layout ?? ''}
-          onChange={e => setLayout(e.target.value || null)}
-          className={inp}
-        >
-          {LAYOUT_OPTIONS.map(l => <option key={l.label} value={l.value ?? ''}>{l.label}</option>)}
-        </select>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0" className={`${inp} text-right`} />
-      </td>
-      <td className="px-3 py-2 align-top">
-        <div className="flex flex-col gap-1">
-          <select
-            value={SOCIAL_PRESETS.includes(Number(social)) ? social : 'custom'}
-            onChange={e => {
-              if (e.target.value !== 'custom') setSocial(e.target.value)
-            }}
-            className={inp}
-          >
-            <option value="">—</option>
-            {SOCIAL_PRESETS.map(v => <option key={v} value={v}>${v}</option>)}
-            <option value="custom">Custom…</option>
-          </select>
-          <input type="number" value={social} onChange={e => setSocial(e.target.value)} placeholder="custom $" className={`${inp} text-right`} />
-        </div>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <select value={expires} onChange={e => setExpires(e.target.value)} className={inp}>
-          <option value="">—</option>
-          {monthOptions.map(m => <option key={m} value={m}>{shortMonth(m)}</option>)}
-        </select>
-      </td>
-      <td className="px-3 py-2 align-top">
-        <input value={layoutNotes} onChange={e => setLayoutNotes(e.target.value)} placeholder="Layout notes" className={inp} />
-      </td>
-      <td className="px-3 py-2 align-top">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving}
-            className="inline-flex items-center gap-0.5 px-2 py-1 text-[10px] font-bold bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-40"
-          >
-            {saving ? <RefreshCw size={10} className="animate-spin" /> : <Check size={10} />}
-            Save
-          </button>
-          <button type="button" onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-700">
-            <X size={11} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  )
-}
 
 // StatusPill — counter chip for the top-of-page status filter. Active
 // state shows filled colour, inactive shows muted outline; click swaps
