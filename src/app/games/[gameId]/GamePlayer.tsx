@@ -1075,20 +1075,26 @@ function WinScreen({
 
   return (
     <div className="rounded-3xl border-2 border-primary/20 bg-card shadow-lg overflow-hidden">
-      <div className="bg-primary/5 px-6 py-10 md:py-14 text-center border-b border-primary/10">
-        <div className="w-20 h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-5 shadow-md">
-          <Trophy className="h-9 w-9" />
+      {/* Unified celebration card — score on top, drawing form right
+          underneath. Tighter padding so the page reads as one moment
+          rather than two stacked sections. The secondary 'back to
+          games' CTA lets repeat players skip the drawing form without
+          feeling pestered, which keeps them in the loop instead of
+          dropping off. */}
+      <div className="bg-primary/5 px-6 pt-8 pb-5 md:pt-10 md:pb-6 text-center">
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md">
+          <Trophy className="h-7 w-7 md:h-9 md:w-9" />
         </div>
-        <h2 className="text-3xl md:text-4xl font-black text-foreground mb-2">Level Cleared!</h2>
+        <h2 className="text-3xl md:text-4xl font-black text-foreground mb-1">Level Cleared!</h2>
         <p className="text-base text-muted-foreground">
           Final Score: <strong className="text-primary text-2xl ml-1">{score}</strong>
         </p>
-        <div className="mt-4 flex items-center justify-center gap-2 flex-wrap text-sm">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background font-bold tabular-nums">
+        <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-sm">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-foreground text-background font-bold tabular-nums">
             <Clock className="h-3.5 w-3.5" /> {formatTime(durationSeconds)}
           </span>
           {newBest ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500 text-white font-bold">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500 text-white font-bold">
               <Flame className="h-3.5 w-3.5" />
               New personal best!
               {prevBest != null && <span className="opacity-90 font-semibold ml-1">(beat {formatTime(prevBest)})</span>}
@@ -1101,13 +1107,17 @@ function WinScreen({
         </div>
       </div>
 
-      <div className="px-6 py-10 md:px-12 md:py-12">
+      <div className="px-6 pt-5 pb-6 md:px-12 md:pt-6 md:pb-8">
         {!submitted ? (
           <div className="max-w-md mx-auto">
-            <div className="text-center mb-6">
-              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1">Enter the Weekly Drawing</h3>
-              <p className="text-sm text-muted-foreground">3 winners every Monday — $10 each. Every completion = one entry.</p>
-            </div>
+            {/* One-line lead-in instead of a separate header block —
+                visually ties the drawing to the score above. */}
+            <p className="text-center text-sm font-bold text-foreground mb-1">
+              Drop your name in this week&apos;s drawing
+            </p>
+            <p className="text-center text-xs text-muted-foreground mb-4">
+              3 winners every Monday · $10 each · every completion = one entry
+            </p>
             <form onSubmit={submit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <input required value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="First name" className={inputCls} />
@@ -1120,6 +1130,16 @@ function WinScreen({
                 className="w-full px-4 py-3 text-base font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                 {busy ? 'Submitting…' : 'Submit Score & Enter'}
               </button>
+              {/* Secondary CTA — skip the form, head back to play
+                  more. Lower hierarchy than Submit but still
+                  obviously clickable so repeat players don't feel
+                  cornered by the form. */}
+              <a
+                href={`/games?diff=${difficulty}`}
+                className="block w-full px-4 py-3 text-sm font-bold text-center text-muted-foreground hover:text-foreground rounded-xl border border-border bg-background hover:bg-muted/40 transition-colors"
+              >
+                No thanks — take me back to games
+              </a>
               <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                 By submitting, you agree to receive the Weekly Scoop newsletter. Unsubscribe any time.
               </p>
