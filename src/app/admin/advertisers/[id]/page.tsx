@@ -12,6 +12,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { RATE_CARD } from '@/lib/ads/rate-card'
 import { CloneAdButton } from '@/components/admin/CloneAdButton'
 import { AdvertiserContactsPanel } from '@/components/admin/AdvertiserContactsPanel'
+import { GhlSyncButton } from '@/components/admin/GhlSyncButton'
 import {
   ArrowLeft, Building2, Mail, Phone, Globe, Calendar,
   Eye, MousePointer, DollarSign, RotateCw, Lock, Plus, ExternalLink,
@@ -270,6 +271,19 @@ export default async function AdvertiserProfilePage({ params }: Props) {
               {opsNotes && (
                 <p className="text-xs text-gray-500 italic mt-2 leading-relaxed">{opsNotes}</p>
               )}
+            </section>
+
+            {/* GHL sync — pushes every contact on this advertiser into
+                GoHighLevel with role + tier + lifecycle tags. Existing
+                GHL workflows fire automatically off those tags. */}
+            <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-2 text-sm">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">GoHighLevel</h2>
+              <p className="text-[11px] text-gray-500 leading-snug">
+                Sync this advertiser&apos;s contacts to GHL with role + tier tags.
+                The expired-ad re-engagement cron handles tagging automatically;
+                this button is for on-demand pushes after a contact edit.
+              </p>
+              <GhlSyncButton advertiserId={id} />
             </section>
           </div>
 
