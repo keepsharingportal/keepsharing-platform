@@ -172,11 +172,41 @@ async function handlePlan(
   return NextResponse.json({ ok: true, plan, counts })
 }
 
+// Slug from business name. Must satisfy advertiser_accounts.slug
+// (NOT NULL UNIQUE); we generate a kebab-case slug and disambiguate
+// against the existing slug set with a -2, -3, ... suffix.
+function makeSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/['']/g, '')                       // strip apostrophes pre-tokenize
+    .replace(/[^a-z0-9]+/g, '-')                // everything else → hyphen
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'advertiser'
+}
+
 async function handleCommit(
   supabase: ReturnType<typeof createAdminClient>,
   body:     CommitBody,
   exactByLower: Map<string, { id: string; business_name: string }>,
 ) {
+  // Pre-load every existing slug so we can disambiguate without
+  // round-tripping per insert. Cheap at thousands of advertisers.
+  const slugRes = await supabase
+    .from('advertiser_accounts')
+    .select('slug')
+    .limit(10000)
+  const existingSlugs = new Set<string>(
+    ((slugRes.data ?? []) as Array<{ slug: string }>).map(r => r.slug)
+  )
+  function uniqueSlug(name: string): string {
+    const base = makeSlug(name)
+    if (!existingSlugs.has(base)) { existingSlugs.add(base); return base }
+    let n = 2
+    while (existingSlugs.has(`${base}-${n}`)) n++
+    const out = `${base}-${n}`
+    existingSlugs.add(out)
+    return out
+  }
   // Re-check duplicates at commit time — protects against another editor
   // adding rows between plan and commit.
   const existRes = await supabase
@@ -210,9 +240,10 @@ async function handleCommit(
       if (existing) {
         advertiserId = existing.id
       } else {
+        const slug = uniqueSlug(name)
         const insAdv = await supabase
           .from('advertiser_accounts')
-          .insert({ business_name: name })
+          .insert({ business_name: name, slug })
           .select('id, business_name')
           .single()
         if (insAdv.error || !insAdv.data) {
