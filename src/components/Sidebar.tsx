@@ -240,7 +240,7 @@ const NAV: NavItem[] = [
   { name: 'Imports',         href: '/admin/content/imports',  icon: Upload     },
   { name: 'AI Tasks',        href: '/admin/ai-tasks',         icon: Bot        },
   { name: 'Geocode',         href: '/admin/guides/geocode',   icon: MapPin     },
-  { name: 'QR Codes',        href: '/admin/content/short-links', icon: Share2  },
+  { name: 'QR Codes / Links', href: '/admin/content/short-links', icon: Share2  },
   { name: 'Word Search',     href: '/admin/content/word-search', icon: Search  },
   {
     name: 'Settings',
