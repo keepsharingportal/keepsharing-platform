@@ -507,8 +507,8 @@ function EditRow({
           <input value={label} onChange={e => setLabel(e.target.value)} className={inp} />
         </div>
         <div>
-          <label className={lbl}>UTM Campaign</label>
-          <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} className={inp} />
+          <label className={lbl}>Campaign Tag</label>
+          <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026 · summer-promo" className={inp} />
         </div>
         <div className="flex items-end">
           <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer pb-2">
@@ -543,6 +543,11 @@ export function AddPanel({
   // a card — progressive disclosure: the form starts collapsed and
   // expands as choices are made.
   const [purpose, setPurpose]         = useState<Purpose | null>(null)
+  // Step 2 (Advertiser) gate. Step 3 doesn't show until the editor
+  // has either picked an advertiser OR explicitly clicked the
+  // 'Continue without advertiser' button. Keeps the form feeling
+  // guided instead of dumping everything at once.
+  const [step2Done, setStep2Done]     = useState(false)
   // Channel — UTM source + medium auto-fill when this changes. The
   // editor can still tweak source/medium manually after the change.
   const [channel, setChannel]         = useState<Channel | ''>('')
@@ -587,6 +592,9 @@ export function AddPanel({
   // form for clickable distribution).
   function pickPurpose(next: Purpose) {
     setPurpose(next)
+    // Reset Step 2 gate when purpose changes so the editor goes
+    // through the advertiser pick fresh.
+    setStep2Done(false)
     if (next !== 'qr') setContentType('url')
     const compat = channelsForPurpose(next)
     const stillValid = channel && compat.some(c => c.value === channel)
@@ -604,6 +612,9 @@ export function AddPanel({
     }
     setAdvertiserId(idValue)
     setShowAddAdv(false)
+    // Picking an advertiser counts as completing Step 2 — Step 3
+    // can now reveal with auto-filled details.
+    if (idValue) setStep2Done(true)
     if (!idValue) return
     const match = localAdvertisers.find(a => a.id === idValue)
     if (!match) return
@@ -658,6 +669,8 @@ export function AddPanel({
         const newAdv = { id: json.id, business_name: newAdvName.trim() }
         setLocalAdvertisers(prev => [...prev, newAdv].sort((a, b) => a.business_name.localeCompare(b.business_name)))
         setAdvertiserId(json.id)
+        // Quick-adding an advertiser counts as completing Step 2.
+        setStep2Done(true)
         // If the advertiser has a website, auto-fill the destination for URL type
         if (newAdvUrl.trim() && contentType === 'url' && !destination) {
           setDestination(newAdvUrl.trim())
@@ -716,7 +729,19 @@ export function AddPanel({
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr(null)
-    if (!shortcode.trim()) { setErr('Shortcode is required'); return }
+    // QR codes need a manual shortcode (it gets printed). Ad + Campaign
+    // links don't show the shortcode in the UI, so we auto-generate
+    // one when missing — same pattern pickAdvertiser uses but as a
+    // submit-time safety net for the Internal path where no
+    // advertiser was picked.
+    let resolvedShortcode = shortcode.trim().toLowerCase().replace(/[^a-z0-9-]/g, '')
+    if (!resolvedShortcode) {
+      if (purpose === 'qr') { setErr('Shortcode is required'); return }
+      const labelSlug = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24)
+      const chPart    = channel ? channel.replace('_', '').slice(0, 4) : (purpose ?? 'link')
+      const r         = Date.now().toString(36).slice(-5)
+      resolvedShortcode = [labelSlug || purpose, chPart, r].filter(Boolean).join('-')
+    }
     const dest = resolveDestination()
     if (!dest) { setErr('Please fill in the required content fields'); return }
 
@@ -726,7 +751,7 @@ export function AddPanel({
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          shortcode:             shortcode.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''),
+          shortcode:             resolvedShortcode,
           destination:           dest,
           content_type:          contentType,
           content_data:          buildContentData(),
@@ -842,13 +867,28 @@ export function AddPanel({
             {advertiserId && (
               <button
                 type="button"
-                onClick={() => setAdvertiserId('')}
+                onClick={() => { setAdvertiserId(''); setStep2Done(false) }}
                 className="text-xs font-semibold text-gray-500 hover:text-gray-900 px-3 py-2"
               >
                 Clear
               </button>
             )}
           </div>
+
+          {/* 'Continue as Internal' — explicit confirmation for the
+              in-house path. Without it, Step 3 would never reveal
+              for internal links because the dropdown's default value
+              ('') doesn't count as a user action. Hidden once Step 2
+              is acknowledged so the editor doesn't see a stale CTA. */}
+          {!advertiserId && !step2Done && !showAddAdv && (
+            <button
+              type="button"
+              onClick={() => setStep2Done(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700"
+            >
+              <Check size={14} /> Continue as Internal Link
+            </button>
+          )}
 
           {/* Inline quick-add advertiser — moved here from Step 3
               so the editor adds the missing client before doing
@@ -895,6 +935,13 @@ export function AddPanel({
         </div>
       </StepSection>
 
+      {/* Steps 3+ progressively reveal once Step 2 is acknowledged
+          (advertiser picked, quick-added, or 'Continue as Internal'
+          clicked). Keeps the form feeling guided one decision at
+          a time instead of dropping everything below at once. */}
+      {step2Done && (
+      <>
+
       {/* ── Step 3 (QR only) — Content type ───────────────────────
           What the destination IS. URL is the default; the rest are
           QR-specific scan behaviors (phone dialer, vCard download,
@@ -936,20 +983,36 @@ export function AddPanel({
           creating a non-QR link, since they don't need a QR for it. */}
       <div className={`grid gap-6 ${purpose === 'qr' ? 'lg:grid-cols-[1fr_220px]' : 'lg:grid-cols-1'}`}>
         <div className="space-y-5">
-          {/* Shortcode + label */}
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className={lbl}>Shortcode <span className="text-rose-600">*</span></label>
-              <div className="flex items-center">
-                <span className="text-xs text-gray-500 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg px-2.5 py-2">/go/</span>
-                <input value={shortcode} onChange={e => setShortcode(e.target.value)} required autoFocus placeholder="playball-jun26" className={`${inp} rounded-l-none`} />
+          {/* Shortcode (QR only) + label. Shortcode is what gets
+              printed on a QR code, so QR editors need to see + edit it.
+              For Ad + Campaign links the shortcode is invisible to
+              readers (only the destination matters), so we hide the
+              field entirely and auto-generate it on submit. Less to
+              think about, less chance of typing a typo into a URL
+              nobody will ever type. */}
+          {purpose === 'qr' ? (
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Shortcode <span className="text-rose-600">*</span></label>
+                <div className="flex items-center">
+                  <span className="text-xs text-gray-500 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg px-2.5 py-2">/go/</span>
+                  <input value={shortcode} onChange={e => setShortcode(e.target.value)} required autoFocus placeholder="playball-jun26" className={`${inp} rounded-l-none`} />
+                </div>
+              </div>
+              <div>
+                <label className={lbl}>Label (internal)</label>
+                <input value={label} onChange={e => setLabel(e.target.value)} placeholder="Play Ball June 2026 QR" className={inp} />
               </div>
             </div>
+          ) : (
             <div>
-              <label className={lbl}>Label (internal)</label>
-              <input value={label} onChange={e => setLabel(e.target.value)} placeholder="Play Ball June 2026 QR" className={inp} />
+              <label className={lbl}>Label (internal — for your reference only)</label>
+              <input value={label} onChange={e => setLabel(e.target.value)} placeholder="YMCA Summer Push — June Facebook ad" className={inp} />
+              <p className="mt-1 text-[10px] text-gray-500">
+                A shortcode will be generated automatically. Readers only see the destination URL after the redirect, not the /go/&lt;code&gt; link.
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Content fields — change by type */}
           {contentType === 'url' && (
@@ -1033,8 +1096,11 @@ export function AddPanel({
               )}
             </div>
             <div>
-              <label className={lbl}>UTM Campaign</label>
-              <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026" className={inp} />
+              <label className={lbl}>Campaign Tag</label>
+              <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026 · summer-promo" className={inp} />
+              <p className="mt-1 text-[10px] text-gray-500 leading-snug">
+                Groups related links in reports. Use a month code (jun2026) for ongoing efforts or a name (back-to-school) for one-offs.
+              </p>
             </div>
             {purpose === 'qr' && (
               <div>
@@ -1110,6 +1176,11 @@ export function AddPanel({
 
       </>
       )}
+      {/* end step2Done && */}
+
+      </>
+      )}
+      {/* end purpose && */}
     </form>
   )
 }
