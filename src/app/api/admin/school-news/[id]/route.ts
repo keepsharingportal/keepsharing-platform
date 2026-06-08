@@ -25,8 +25,8 @@ import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import {
   processAndUpload, supabaseAdminForImages, persistBitImages,
-  recropFromOriginal, isValidGravity,
-  ALLOWED_TYPES, MAX_BYTES,
+  recropFromOriginal, manualCropFromOriginal, origDimensions, isValidGravity,
+  ALLOWED_TYPES, MAX_BYTES, BUCKET_ORIG,
 } from '@/lib/school-news/image-pipeline'
 
 export const runtime  = 'nodejs'
@@ -40,16 +40,23 @@ function supabaseAdmin() {
 }
 
 interface JsonBody {
-  action?:         'approve' | 'reject' | 'edit' | 'reopen' | 're-crop'
+  action?:         'approve' | 'reject' | 'edit' | 'reopen' | 're-crop' | 'manual-crop'
   title?:          string
   blurb?:          string
   reviewer_notes?: string
   issue_month?:    string | null
   // Backfill + scheduling support on edit. ISO string or YYYY-MM-DD.
   published_at?:   string | null
+  // Reassign the bit to a different school. Both fields move together so
+  // the denormalized school_name stays in sync.
+  school_id?:      string
+  school_name?:    string
   // re-crop only: one of the 9 compass positions, or 'attention'/'entropy'
   // to re-run the auto strategies. Validated via isValidGravity().
   gravity?:        string
+  // manual-crop only: normalized (0..1) rectangle on the saved original.
+  // Aspect ratio is enforced server-side at 16:10.
+  crop?: { x: number; y: number; width: number; height: number }
 }
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -70,6 +77,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   // image_web_url, so handle it before the generic patch builder.
   if (body.action === 're-crop') {
     return handleRecrop(id, body.gravity)
+  }
+
+  // Manual rectangle crop on the saved original.
+  if (body.action === 'manual-crop') {
+    return handleManualCrop(id, body.crop)
   }
 
   const supabase = supabaseAdmin()
@@ -107,6 +119,19 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       if (body.title !== undefined)       patch.title        = body.title.trim()
       if (body.blurb !== undefined)       patch.blurb        = body.blurb.trim()
       if (body.issue_month !== undefined) patch.issue_month  = body.issue_month
+      // Reassign to a different school. Caller passes both id + name so we
+      // don't have to do a second lookup; we still re-fetch to ensure the
+      // canonical name (in case the form is stale).
+      if (body.school_id !== undefined && body.school_id) {
+        const { data: school } = await supabase
+          .from('schools')
+          .select('id, name')
+          .eq('id', body.school_id)
+          .maybeSingle()
+        if (!school) return NextResponse.json({ error: 'school not found' }, { status: 400 })
+        patch.school_id   = (school as { id: string }).id
+        patch.school_name = (school as { name: string }).name
+      }
       // published_at: '' means "clear it"; otherwise parse + validate.
       if (body.published_at !== undefined) {
         if (body.published_at === null || body.published_at === '') {
@@ -266,4 +291,86 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
 
   revalidatePath('/admin/school-news')
   return NextResponse.json({ success: true })
+}
+
+// GET ?with=crop-source — returns a signed URL to the saved original plus
+// its (EXIF-rotated) dimensions, used by the admin manual-crop UI to set up
+// react-easy-crop. The original lives in a private bucket, so the cropper
+// can't load it directly.
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+  const url = new URL(req.url)
+  if (url.searchParams.get('with') !== 'crop-source') {
+    return NextResponse.json({ error: 'unknown query' }, { status: 400 })
+  }
+  const supabase = supabaseAdminForImages()
+  const { data: bit } = await supabase
+    .from('school_bits')
+    .select('id, image_orig_path')
+    .eq('id', id)
+    .maybeSingle()
+  const row = bit as { image_orig_path: string | null } | null
+  if (!row?.image_orig_path) {
+    return NextResponse.json({ error: 'this bit has no saved original to crop' }, { status: 400 })
+  }
+  const signed = await supabase.storage.from(BUCKET_ORIG).createSignedUrl(row.image_orig_path, 60 * 10)
+  if (signed.error || !signed.data) {
+    return NextResponse.json({ error: signed.error?.message ?? 'sign failed' }, { status: 500 })
+  }
+  try {
+    const dims = await origDimensions({ supabase, origPath: row.image_orig_path })
+    return NextResponse.json({ url: signed.data.signedUrl, width: dims.width, height: dims.height })
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
+  }
+}
+
+// ── Manual rectangle crop handler ─────────────────────────────────────────────
+// Operator drew a 16:10 rectangle on the saved original via react-easy-crop.
+// We re-extract that rectangle and resize to the card variant.
+async function handleManualCrop(id: string, crop?: { x: number; y: number; width: number; height: number }) {
+  if (!crop || typeof crop.x !== 'number' || typeof crop.y !== 'number' || typeof crop.width !== 'number' || typeof crop.height !== 'number') {
+    return NextResponse.json({ error: 'crop {x, y, width, height} required (normalized 0..1)' }, { status: 400 })
+  }
+  const supabase = supabaseAdminForImages()
+  const { data: bit } = await supabase
+    .from('school_bits')
+    .select('id, school_name, image_orig_path')
+    .eq('id', id)
+    .maybeSingle()
+  if (!bit) return NextResponse.json({ error: 'bit not found' }, { status: 404 })
+  const row = bit as { school_name: string; image_orig_path: string | null }
+  if (!row.image_orig_path) {
+    return NextResponse.json({ error: 'this bit has no saved original to crop' }, { status: 400 })
+  }
+
+  try {
+    const { image_card_url } = await manualCropFromOriginal({
+      supabase,
+      origPath:   row.image_orig_path,
+      schoolName: row.school_name,
+      crop,
+    })
+
+    const { error: updErr } = await supabase
+      .from('school_bits')
+      .update({ image_web_url: image_card_url })
+      .eq('id', id)
+    if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 })
+
+    await supabase
+      .from('school_bit_images')
+      .update({ card_url: image_card_url })
+      .eq('bit_id', id)
+      .eq('is_hero', true)
+
+    revalidatePath('/admin/school-news')
+    revalidatePath('/family-resource-guide')
+    revalidatePath('/school-zone')
+    revalidatePath('/school-bits')
+    return NextResponse.json({ success: true, image_web_url: image_card_url })
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
+  }
 }

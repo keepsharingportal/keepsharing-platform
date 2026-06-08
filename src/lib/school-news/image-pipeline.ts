@@ -261,6 +261,80 @@ export async function recropFromOriginal(opts: {
   return { image_card_url }
 }
 
+/**
+ * Re-crop the saved original using a manually-drawn rectangle (normalized
+ * 0..1 coordinates relative to the original image dimensions, EXIF-rotated).
+ * Extracts the rectangle, then resizes to the 16:10 feed-card variant. The
+ * caller (admin manual-crop API) supplies the rectangle; aspect enforcement
+ * happens client-side in the UI.
+ */
+export async function manualCropFromOriginal(opts: {
+  supabase:   SupabaseClient
+  origPath:   string                       // path inside BUCKET_ORIG
+  schoolName: string
+  crop:       { x: number; y: number; width: number; height: number }  // normalized 0..1
+}): Promise<{ image_card_url: string }> {
+  const { x, y, width, height } = opts.crop
+  if (
+    !Number.isFinite(x) || !Number.isFinite(y) ||
+    !Number.isFinite(width) || !Number.isFinite(height) ||
+    x < 0 || y < 0 || width <= 0 || height <= 0 ||
+    x + width > 1.0001 || y + height > 1.0001
+  ) {
+    throw new Error('crop rectangle out of bounds')
+  }
+
+  const dl = await opts.supabase.storage.from(BUCKET_ORIG).download(opts.origPath)
+  if (dl.error || !dl.data) {
+    throw new Error(`Could not read original image: ${dl.error?.message ?? 'unknown error'}`)
+  }
+  const buffer = Buffer.from(await dl.data.arrayBuffer())
+
+  // Rotate first so the source dimensions match what the operator drew on
+  // (EXIF orientation already applied). Then convert normalized → pixels and
+  // round inward so we never exceed the source.
+  const rotated = await sharp(buffer).rotate().toBuffer({ resolveWithObject: true })
+  const srcW = rotated.info.width
+  const srcH = rotated.info.height
+  const left   = Math.max(0, Math.floor(x * srcW))
+  const top    = Math.max(0, Math.floor(y * srcH))
+  const cropW  = Math.min(srcW - left, Math.floor(width  * srcW))
+  const cropH  = Math.min(srcH - top,  Math.floor(height * srcH))
+
+  const cardOut = await sharp(rotated.data)
+    .extract({ left, top, width: cropW, height: cropH })
+    .resize({ width: CARD_WIDTH, height: CARD_HEIGHT, fit: 'fill' })
+    .webp({ quality: WEB_QUALITY })
+    .toBuffer()
+
+  const uid      = crypto.randomUUID().slice(0, 8)
+  const slug     = slugify(opts.schoolName)
+  const cardPath = storagePath(`${slug}-${uid}-card.webp`)
+
+  await opts.supabase.storage.createBucket(BUCKET_WEB, { public: true }).catch(() => {})
+  const up = await opts.supabase.storage.from(BUCKET_WEB)
+    .upload(cardPath, cardOut, { contentType: 'image/webp', upsert: false })
+  if (up.error) throw new Error(`Card upload failed: ${up.error.message}`)
+
+  const image_card_url = opts.supabase.storage.from(BUCKET_WEB).getPublicUrl(cardPath).data.publicUrl
+  return { image_card_url }
+}
+
+// Return the EXIF-rotated dimensions of the saved original. The manual crop
+// UI uses these to set up react-easy-crop with the right source size.
+export async function origDimensions(opts: {
+  supabase: SupabaseClient
+  origPath: string
+}): Promise<{ width: number; height: number }> {
+  const dl = await opts.supabase.storage.from(BUCKET_ORIG).download(opts.origPath)
+  if (dl.error || !dl.data) {
+    throw new Error(`Could not read original image: ${dl.error?.message ?? 'unknown error'}`)
+  }
+  const buffer = Buffer.from(await dl.data.arrayBuffer())
+  const meta = await sharp(buffer).rotate().metadata()
+  return { width: meta.width ?? 0, height: meta.height ?? 0 }
+}
+
 // ── Persisting images to school_bit_images ─────────────────────────────────
 // After processing, callers want to (a) snapshot the hero onto school_bits
 // and (b) insert one row per image into school_bit_images. This helper

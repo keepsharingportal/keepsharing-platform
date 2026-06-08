@@ -7,8 +7,9 @@ import Link from 'next/link'
 import {
   CheckCircle2, X, Plus, Link as LinkIcon, School, RefreshCw, ExternalLink,
   Settings, Camera, Upload, Calendar, Clock, Search, ChevronLeft, ChevronRight,
-  MoreVertical, ImageIcon, Trash2, RotateCcw, Pencil,
+  MoreVertical, ImageIcon, Trash2, RotateCcw, Pencil, Crop,
 } from 'lucide-react'
+import Cropper from 'react-easy-crop'
 import type { SchoolBitRow, SchoolOption } from './page'
 import { SchoolTypeahead, type TypeaheadSchool } from './SchoolTypeahead'
 import { PrintExportPanel } from './PrintExportPanel'
@@ -32,7 +33,9 @@ const SOURCE_LABEL: Record<string, string> = {
   staff_manual:   'Manual',
 }
 
-const TABS = ['Pending Review', 'Approved', 'Rejected'] as const
+// Approved comes first — that's the day-to-day editor surface. Pending is
+// a queue you visit when there's something to review.
+const TABS = ['Approved', 'Pending Review', 'Rejected'] as const
 type TabName = typeof TABS[number]
 
 const STATUS_FOR_TAB: Record<TabName, string> = {
@@ -64,8 +67,11 @@ const TAB_FOR_STATUS: Record<string, TabName> = {
 export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props) {
   const router = useRouter()
   const [bits, setBits]             = useState<SchoolBitRow[]>(initialBits)
+  // Default landing is Approved — the day-to-day editor view. Pending is a
+  // queue; jump there explicitly via tab or the sidebar's "Submitted School
+  // Bits" link.
   const [activeTab, setActiveTab]   = useState<TabName>(
-    initialStatus ? (TAB_FOR_STATUS[initialStatus] ?? 'Pending Review') : 'Pending Review'
+    initialStatus ? (TAB_FOR_STATUS[initialStatus] ?? 'Approved') : 'Approved'
   )
   const [quickAdd, setQuickAdd]     = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -205,6 +211,40 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
     router.refresh()
   }
 
+  // Bulk reopen — moves selected approved/rejected bits back to Pending.
+  // No dedicated endpoint; loop the per-id PATCH (small N, fine in parallel).
+  async function bulkReopenSelected() {
+    if (selectedIds.size === 0) return
+    const ids = Array.from(selectedIds)
+    const results = await Promise.allSettled(ids.map(id =>
+      fetch(`/api/admin/school-news/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:   JSON.stringify({ action: 'reopen' }),
+      }),
+    ))
+    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length
+    if (failed > 0) alert(`${failed} bit${failed === 1 ? '' : 's'} failed to reopen.`)
+    setBits(prev => prev.map(b => ids.includes(b.id) ? { ...b, status: 'pending' } : b))
+    clearSelection()
+    router.refresh()
+  }
+
+  async function bulkDeleteSelected() {
+    if (selectedIds.size === 0) return
+    const ids = Array.from(selectedIds)
+    const noun = ids.length === 1 ? 'bit' : `${ids.length} bits`
+    if (!confirm(`Delete ${noun}? This cannot be undone.`)) return
+    const results = await Promise.allSettled(ids.map(id =>
+      fetch(`/api/admin/school-news/${id}`, { method: 'DELETE' }),
+    ))
+    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length
+    if (failed > 0) alert(`${failed} bit${failed === 1 ? '' : 's'} failed to delete.`)
+    setBits(prev => prev.filter(b => !ids.includes(b.id)))
+    clearSelection()
+    router.refresh()
+  }
+
   function handleAdded(bit: SchoolBitRow) {
     setBits(prev => [bit, ...prev])
     setQuickAdd(false)
@@ -313,9 +353,10 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
         onReset={resetFilters}
       />
 
-      {/* Bulk action bar — Pending only. Select-all checkbox + Approve N +
-           drip-schedule. Selection is page-scoped (resets on tab/page change). */}
-      {activeTab === 'Pending Review' && paged.length > 0 && (
+      {/* Bulk action bar — actions vary by tab. Pending shows Approve +
+           drip-schedule; Approved/Rejected show Reopen + Delete. Selection
+           is page-scoped (resets on tab/page change). */}
+      {paged.length > 0 && activeTab === 'Pending Review' && (
         <BulkActionBar
           totalVisible={paged.length}
           selectedCount={selectedIds.size}
@@ -323,6 +364,16 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
           onClear={clearSelection}
           onSchedule={dripScheduleSelected}
           onApproveAll={bulkApproveSelected}
+        />
+      )}
+      {paged.length > 0 && activeTab !== 'Pending Review' && (
+        <ReviewedBulkActionBar
+          totalVisible={paged.length}
+          selectedCount={selectedIds.size}
+          onSelectAll={selectAllVisible}
+          onClear={clearSelection}
+          onReopen={bulkReopenSelected}
+          onDelete={bulkDeleteSelected}
         />
       )}
 
@@ -337,7 +388,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
                 key={item.id}
                 item={item}
                 school={item.school_id ? schoolMap.get(item.school_id) : undefined}
-                selectable={activeTab === 'Pending Review'}
+                selectable={true}
                 selected={selectedIds.has(item.id)}
                 onToggleSelect={() => toggleSelection(item.id)}
                 onEdit={() => setEditingId(item.id)}
@@ -386,6 +437,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
               <div className="px-6 py-5">
                 <BitRowEditor
                   item={item}
+                  schools={schools}
                   onCancel={() => setEditingId(null)}
                   onSaved={(patch) => { handleUpdated(item.id, patch); setEditingId(null) }}
                 />
@@ -534,11 +586,13 @@ function BitRow({
   const [err,  setErr]  = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Date shown in the right column — published for approved, created otherwise
+  // Date shown in the right column — published for approved, created otherwise.
+  // Format matches the Articles list (short month, day, 2-digit year).
   const date = item.status === 'approved' && item.published_at
     ? new Date(item.published_at)
     : new Date(item.created_at)
-  const dateLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const dateLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+  const dateCaption = item.status === 'approved' && item.published_at ? 'Published' : 'Created'
 
   // Scheduled = approved with future published_at
   const scheduledFor = item.status === 'approved' && item.published_at && new Date(item.published_at).getTime() > Date.now()
@@ -614,7 +668,14 @@ function BitRow({
         {/* Title / blurb / meta */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-            <h3 className="text-sm font-bold text-portal-text truncate">{item.title}</h3>
+            <button
+              type="button"
+              onClick={onEdit}
+              className="text-sm font-bold text-portal-text hover:text-portal-blue truncate text-left"
+              title="Open editor"
+            >
+              {item.title}
+            </button>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ring-1 ${SOURCE_BADGE[item.source_type] ?? SOURCE_BADGE.staff_manual}`}>
               {SOURCE_LABEL[item.source_type] ?? item.source_type}
             </span>
@@ -652,8 +713,9 @@ function BitRow({
         </div>
 
         {/* Date column */}
-        <div className="shrink-0 text-right text-[11px] text-portal-sub leading-tight w-24 pt-1">
-          {dateLabel}
+        <div className="shrink-0 text-right leading-tight w-28 pt-1">
+          <div className="text-[10px] uppercase tracking-wider text-portal-muted">{dateCaption}</div>
+          <div className="text-xs text-portal-text font-semibold tabular-nums">{dateLabel}</div>
         </div>
 
         {/* Per-status action buttons */}
@@ -735,14 +797,16 @@ function BitRow({
 // Title, blurb, published_at, issue_month, replace-image. Works on any status.
 
 function BitRowEditor({
-  item, onCancel, onSaved,
+  item, schools, onCancel, onSaved,
 }: {
   item:    SchoolBitRow
+  schools: SchoolOption[]
   onCancel: () => void
   onSaved: (patch: Partial<SchoolBitRow>) => void
 }) {
   const [title, setTitle] = useState(item.title)
   const [blurb, setBlurb] = useState(item.blurb)
+  const [schoolId, setSchoolId] = useState<string>(item.school_id ?? '')
   // published_at: native input wants YYYY-MM-DD; convert from ISO
   const initialPublishedAt = item.published_at
     ? new Date(item.published_at).toISOString().slice(0, 10)
@@ -756,6 +820,7 @@ function BitRowEditor({
   // cropBusy tracks the gravity being applied so we can show a spinner on
   // just the active grid cell (not the whole 9-grid).
   const [cropBusy,  setCropBusy]  = useState<string | null>(null)
+  const [manualCropOpen, setManualCropOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -764,6 +829,7 @@ function BitRowEditor({
   async function save() {
     setBusy(true); setErr(null)
     try {
+      const schoolChanged = schoolId && schoolId !== item.school_id
       const res = await fetch(`/api/admin/school-news/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -771,6 +837,7 @@ function BitRowEditor({
           action: 'edit',
           title,
           blurb,
+          school_id: schoolChanged ? schoolId : undefined,
           // null clears them; empty string also clears (matches API contract)
           published_at: publishedAt || null,
           issue_month:  issueMonth  ? `${issueMonth}-01` : null,
@@ -778,11 +845,13 @@ function BitRowEditor({
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
+      const newSchool = schoolChanged ? schools.find(s => s.id === schoolId) : undefined
       onSaved({
         title,
         blurb,
         published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
         issue_month:  issueMonth  ? `${issueMonth}-01` : null,
+        ...(newSchool ? { school_id: newSchool.id, school_name: newSchool.name } : {}),
       })
     } finally { setBusy(false) }
   }
@@ -866,10 +935,37 @@ function BitRowEditor({
             disabled={imageBusy || cropBusy !== null}
             onPick={recrop}
           />
+
+          {/* Manual rectangle crop — for cases where the gravity grid still
+              misses the subject. Opens a modal with react-easy-crop. */}
+          <button
+            type="button"
+            onClick={() => setManualCropOpen(true)}
+            disabled={imageBusy || cropBusy !== null}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-semibold rounded-lg border border-portal-blue/30 bg-white hover:border-portal-blue hover:bg-portal-blue-lt text-portal-blue disabled:opacity-50"
+          >
+            <Crop size={12} /> Crop manually…
+          </button>
         </div>
 
         {/* Editable fields */}
         <div className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">School</label>
+            <select
+              value={schoolId}
+              onChange={e => setSchoolId(e.target.value)}
+              className="w-full text-sm font-semibold border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white cursor-pointer"
+            >
+              <option value="" disabled>— Select school —</option>
+              {schools.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            {item.school_name && schoolId !== item.school_id && (
+              <p className="text-[10px] text-portal-amber mt-0.5">Was: {item.school_name}</p>
+            )}
+          </div>
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">Title</label>
             <input
@@ -919,6 +1015,167 @@ function BitRowEditor({
               Save changes
             </button>
             <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-portal-navy">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      {manualCropOpen && (
+        <ManualCropModal
+          bitId={item.id}
+          onClose={() => setManualCropOpen(false)}
+          onApplied={(newUrl) => {
+            const fresh = `${newUrl}?t=${Date.now()}`
+            setPreviewUrl(fresh)
+            onSaved({ image_web_url: newUrl })
+            setManualCropOpen(false)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Manual rectangle crop modal ────────────────────────────────────────────
+// Loads the saved original via a short-lived signed URL and lets the
+// operator drag/zoom a 16:10 box around the subject. Sends normalized
+// pixel coords back to the manual-crop API which extracts the rectangle
+// and regenerates the feed-card variant.
+
+function ManualCropModal({
+  bitId, onClose, onApplied,
+}: {
+  bitId:     string
+  onClose:   () => void
+  onApplied: (newUrl: string) => void
+}) {
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
+  const [loadErr,   setLoadErr]   = useState<string | null>(null)
+  const [crop,      setCrop]      = useState({ x: 0, y: 0 })
+  const [zoom,      setZoom]      = useState(1)
+  // react-easy-crop reports the crop rectangle in pixels relative to the
+  // natural source image. We hold onto those + the source dimensions so we
+  // can normalize to 0..1 on submit.
+  const [pixelCrop, setPixelCrop] = useState<{ x: number; y: number; width: number; height: number } | null>(null)
+  const [srcDims,   setSrcDims]   = useState<{ width: number; height: number } | null>(null)
+  const [busy,      setBusy]      = useState(false)
+  const [err,       setErr]       = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/admin/school-news/${bitId}?with=crop-source`)
+        const json = await res.json().catch(() => ({}))
+        if (cancelled) return
+        if (!res.ok) { setLoadErr(json?.error ?? `HTTP ${res.status}`); return }
+        setSourceUrl(json.url)
+        setSrcDims({ width: json.width, height: json.height })
+      } catch (e) {
+        if (!cancelled) setLoadErr(e instanceof Error ? e.message : String(e))
+      }
+    })()
+    return () => { cancelled = true }
+  }, [bitId])
+
+  const ASPECT = 16 / 10
+
+  async function apply() {
+    if (!pixelCrop || !srcDims) return
+    setBusy(true); setErr(null)
+    try {
+      const normalized = {
+        x:      pixelCrop.x      / srcDims.width,
+        y:      pixelCrop.y      / srcDims.height,
+        width:  pixelCrop.width  / srcDims.width,
+        height: pixelCrop.height / srcDims.height,
+      }
+      const res = await fetch(`/api/admin/school-news/${bitId}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action: 'manual-crop', crop: normalized }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
+      onApplied(json.image_web_url)
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] bg-black/60 flex items-start justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="bg-white rounded-lg shadow-md w-full max-w-3xl my-12 border border-portal-border overflow-hidden"
+      >
+        <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
+          <div>
+            <h2 className="text-base font-bold text-portal-text">Crop image</h2>
+            <p className="text-xs text-portal-sub mt-0.5">Drag to pan, scroll or use the slider to zoom. Aspect locked to 16:10 (card crop).</p>
+          </div>
+          <button type="button" onClick={onClose} className="text-portal-muted hover:text-portal-text" aria-label="Close">
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="px-6 py-5 space-y-3">
+          <div className="relative bg-portal-bg rounded-lg overflow-hidden" style={{ height: 380 }}>
+            {loadErr && (
+              <div className="absolute inset-0 flex items-center justify-center text-portal-red text-sm font-semibold">{loadErr}</div>
+            )}
+            {!sourceUrl && !loadErr && (
+              <div className="absolute inset-0 flex items-center justify-center text-portal-muted text-sm">
+                <RefreshCw size={14} className="animate-spin mr-2" /> Loading original…
+              </div>
+            )}
+            {sourceUrl && (
+              <Cropper
+                image={sourceUrl}
+                crop={crop}
+                zoom={zoom}
+                aspect={ASPECT}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(_, areaPixels) => setPixelCrop(areaPixels)}
+                restrictPosition
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-portal-sub">
+            <span className="font-semibold">Zoom</span>
+            <input
+              type="range"
+              min={1}
+              max={4}
+              step={0.05}
+              value={zoom}
+              onChange={e => setZoom(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-10 tabular-nums text-right">{zoom.toFixed(2)}x</span>
+          </div>
+
+          {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
+
+          <div className="flex items-center gap-2 pt-2 border-t border-portal-border">
+            <button
+              type="button"
+              onClick={apply}
+              disabled={busy || !pixelCrop || !srcDims}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
+            >
+              {busy ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+              {busy ? 'Applying…' : 'Apply crop'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 text-xs text-portal-sub hover:text-portal-text"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>
@@ -1343,6 +1600,91 @@ function QuickAddPanel({
           <button onClick={onCancel} className="ml-auto px-3 py-2 text-sm text-portal-blue hover:text-portal-navy">Cancel</button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Reviewed Bulk Action Bar ────────────────────────────────────────────────
+// Sticky bar shown on Approved / Rejected. Reopen sends rows back to the
+// Pending queue; Delete removes them. Loops PATCH/DELETE client-side — no
+// dedicated bulk endpoint (small N, fine in parallel).
+
+function ReviewedBulkActionBar({
+  totalVisible, selectedCount, onSelectAll, onClear, onReopen, onDelete,
+}: {
+  totalVisible:  number
+  selectedCount: number
+  onSelectAll:   () => void
+  onClear:       () => void
+  onReopen:      () => Promise<void>
+  onDelete:      () => Promise<void>
+}) {
+  const [busy, setBusy] = useState<'reopen' | 'delete' | null>(null)
+  const checkboxRef = useRef<HTMLInputElement>(null)
+  const allOnPageSelected = selectedCount === totalVisible && totalVisible > 0
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = selectedCount > 0 && !allOnPageSelected
+    }
+  }, [selectedCount, allOnPageSelected])
+
+  async function reopen() {
+    setBusy('reopen')
+    try { await onReopen() } finally { setBusy(null) }
+  }
+  async function del() {
+    setBusy('delete')
+    try { await onDelete() } finally { setBusy(null) }
+  }
+
+  return (
+    <div className="bg-white border-b border-portal-border px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap text-sm">
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+          <input
+            ref={checkboxRef}
+            type="checkbox"
+            checked={allOnPageSelected}
+            onChange={() => (allOnPageSelected ? onClear() : onSelectAll())}
+            className="h-4 w-4 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue cursor-pointer"
+            aria-label="Select all on this page"
+          />
+          <span className={selectedCount > 0 ? 'font-bold text-portal-text' : 'text-portal-sub'}>
+            {selectedCount === 0
+              ? `Select all ${totalVisible} on this page`
+              : `${selectedCount} selected`}
+          </span>
+        </label>
+        {selectedCount > 0 && (
+          <button type="button" onClick={onClear} className="text-xs text-portal-sub hover:text-portal-text underline">
+            Clear
+          </button>
+        )}
+      </div>
+
+      {selectedCount > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={reopen}
+            disabled={busy !== null}
+            title="Move selected bits back to Pending Review"
+            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 bg-white text-portal-text border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
+          >
+            {busy === 'reopen' ? <RefreshCw size={11} className="animate-spin" /> : <RotateCcw size={11} />}
+            {busy === 'reopen' ? 'Reopening…' : `Reopen ${selectedCount}`}
+          </button>
+          <button
+            type="button"
+            onClick={del}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 bg-white text-portal-red border border-portal-red/30 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
+          >
+            {busy === 'delete' ? <RefreshCw size={11} className="animate-spin" /> : <Trash2 size={11} />}
+            {busy === 'delete' ? 'Deleting…' : `Delete ${selectedCount}`}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
