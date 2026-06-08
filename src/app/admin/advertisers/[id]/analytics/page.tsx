@@ -75,10 +75,10 @@ export default async function AnalyticsTab({ params }: Props) {
         className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
       >
         <div className="flex items-center gap-3">
-          <FileText size={20} className="text-gray-400 group-hover:text-portal-blue transition-colors" />
+          <FileText size={20} className="text-portal-muted group-hover:text-portal-blue transition-colors" />
           <div>
-            <p className="text-sm font-bold text-gray-900">Generate Monthly Report</p>
-            <p className="text-xs text-gray-500">Printable performance snapshot for this business&apos;s contacts.</p>
+            <p className="text-sm font-bold text-portal-text">Generate Monthly Report</p>
+            <p className="text-xs text-portal-sub">Printable performance snapshot for this business&apos;s contacts.</p>
           </div>
         </div>
         <ArrowRight size={16} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
@@ -100,12 +100,12 @@ export default async function AnalyticsTab({ params }: Props) {
       {/* ── Per-placement breakdown ─────────────────────── */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
         <header className="px-5 py-3 border-b border-gray-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
             Placement Performance ({activeCount} active{plRows.length > activeCount && ` · ${plRows.length} total`})
           </h2>
         </header>
         {byImpressions.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">
+          <div className="p-8 text-center text-sm text-portal-muted">
             No placement data yet. Once ads start running, performance shows up here.
           </div>
         ) : (
@@ -116,14 +116,14 @@ export default async function AnalyticsTab({ params }: Props) {
                 <li key={p.id} className="px-5 py-3 flex items-center gap-3">
                   <RotateCw size={11} className={p.rotation_group ? 'text-sky-500 shrink-0' : 'text-gray-300 shrink-0'} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-sm font-semibold text-portal-text truncate">
                       {p.ad_headline ?? p.placement_type.replace(/_/g, ' ')}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 text-[11px] text-gray-500 shrink-0 tabular-nums">
+                  <div className="flex items-center gap-4 text-[11px] text-portal-sub shrink-0 tabular-nums">
                     <span><Eye size={10} className="inline mr-0.5" />{p.impression_count.toLocaleString()}</span>
                     <span><MousePointer size={10} className="inline mr-0.5" />{p.click_count.toLocaleString()}</span>
-                    <span className="font-bold text-gray-700">{ctrPct}%</span>
+                    <span className="font-bold text-portal-text">{ctrPct}%</span>
                   </div>
                 </li>
               )
@@ -136,16 +136,16 @@ export default async function AnalyticsTab({ params }: Props) {
       {qrRows.length > 0 && (
         <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
           <header className="px-5 py-3 border-b border-gray-100">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">QR Performance</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">QR Performance</h2>
           </header>
           <ul className="divide-y divide-gray-50">
             {[...qrRows].sort((a, b) => b.click_count - a.click_count).slice(0, 5).map(q => (
               <li key={q.id} className="px-5 py-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">/go/{q.shortcode}</p>
-                  {q.label && <p className="text-[11px] text-gray-500 truncate">{q.label}</p>}
+                  <p className="text-sm font-semibold text-portal-text">/go/{q.shortcode}</p>
+                  {q.label && <p className="text-[11px] text-portal-sub truncate">{q.label}</p>}
                 </div>
-                <span className="text-xs font-bold text-gray-700 tabular-nums">
+                <span className="text-xs font-bold text-portal-text tabular-nums">
                   {q.click_count.toLocaleString()} scans
                 </span>
               </li>
@@ -160,9 +160,9 @@ export default async function AnalyticsTab({ params }: Props) {
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-4">
-      <div className="text-gray-400 mb-1">{icon}</div>
-      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
+      <div className="text-portal-muted mb-1">{icon}</div>
+      <p className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">{label}</p>
+      <p className="text-xl font-bold text-portal-text">{value}</p>
     </div>
   )
 }

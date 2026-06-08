@@ -54,13 +54,13 @@ export default async function IssuesPage() {
           <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Production
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Issues</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Monthly issues across all markets. Counts come from articles with an issue month.</p>
+          <h1 className="text-xl font-semibold text-portal-text">Issues</h1>
+          <p className="text-sm text-portal-sub mt-0.5">Monthly issues across all markets. Counts come from articles with an issue month.</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/admin/production/issues/digital"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border-2 text-portal-text rounded-lg hover:bg-portal-bg"
           >
             Digital Issues <ArrowRight size={11} />
           </Link>
@@ -76,9 +76,9 @@ export default async function IssuesPage() {
       <section>
         <AdminSectionHeader title="Recent Issues" count={months.length} />
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-500">No articles have an issue month set yet.</p>
-            <p className="text-xs text-gray-400 mt-1">Set <code className="px-1 bg-gray-100 rounded">source_issue_month</code> on articles to populate this view.</p>
+          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <p className="text-sm text-portal-sub">No articles have an issue month set yet.</p>
+            <p className="text-xs text-portal-muted mt-1">Set <code className="px-1 bg-gray-100 rounded">source_issue_month</code> on articles to populate this view.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -86,11 +86,11 @@ export default async function IssuesPage() {
               const info = byMonth[m]
               const pct  = info.total > 0 ? Math.round((info.published / info.total) * 100) : 0
               return (
-                <div key={m} className="rounded-xl border border-gray-200 bg-white p-4">
+                <div key={m} className="rounded-xl border border-portal-border bg-white p-4">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div>
-                      <p className="text-sm font-bold text-gray-900">{fmtMonth(m)}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{info.published} of {info.total} published ({pct}%)</p>
+                      <p className="text-sm font-bold text-portal-text">{fmtMonth(m)}</p>
+                      <p className="text-[11px] text-portal-sub mt-0.5">{info.published} of {info.total} published ({pct}%)</p>
                     </div>
                     <Link
                       href={`/admin/articles?filter=month-${m}`}

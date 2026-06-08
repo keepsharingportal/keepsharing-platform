@@ -258,11 +258,11 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 my-8 space-y-4">
         <header className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-1.5">
+          <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-1.5">
             <Upload size={14} /> Import CSV
             <StepPill step={step} />
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={14} /></button>
+          <button onClick={onClose} className="text-portal-muted hover:text-portal-text"><X size={14} /></button>
         </header>
 
         {/* Step 1 — file + month */}
@@ -270,20 +270,20 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
           <>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">CSV file</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">CSV file</label>
                 <input
                   type="file"
                   accept=".csv,text/csv"
                   onChange={onFile}
-                  className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-xs file:font-semibold hover:file:bg-gray-200"
+                  className="block w-full text-sm border border-portal-border rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-xs file:font-semibold hover:file:bg-gray-200"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Target issue</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Target issue</label>
                 <select
                   value={targetMonth}
                   onChange={e => setTargetMonth(e.target.value)}
-                  className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white cursor-pointer"
+                  className="block w-full text-sm border border-portal-border rounded-lg px-3 py-2 bg-white cursor-pointer"
                 >
                   {monthOptions.map(m => <option key={m} value={m}>{fmtIssue(m)}</option>)}
                 </select>
@@ -296,25 +296,25 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
         {/* Step 2 — column mapping */}
         {step === 'map' && (
           <>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-portal-sub">
               {dataRowCount} data row{dataRowCount === 1 ? '' : 's'} detected. Confirm which CSV column maps to which field. Unmapped columns are ignored.
             </p>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="border border-portal-border rounded-lg overflow-hidden">
               <table className="w-full text-xs">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-500">CSV column</th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-500">Sample value</th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-500">Maps to</th>
+                    <th className="text-left px-3 py-2 font-semibold text-portal-sub">CSV column</th>
+                    <th className="text-left px-3 py-2 font-semibold text-portal-sub">Sample value</th>
+                    <th className="text-left px-3 py-2 font-semibold text-portal-sub">Maps to</th>
                   </tr>
                 </thead>
                 <tbody>
                   {headers.map((h, i) => (
                     <tr key={i} className="border-b border-gray-100 last:border-0">
-                      <td className="px-3 py-2 font-bold text-gray-900">
-                        {h || <span className="text-gray-400 italic">(blank header)</span>}
+                      <td className="px-3 py-2 font-bold text-portal-text">
+                        {h || <span className="text-portal-muted italic">(blank header)</span>}
                       </td>
-                      <td className="px-3 py-2 text-gray-500 max-w-[260px]">
+                      <td className="px-3 py-2 text-portal-sub max-w-[260px]">
                         <div className="truncate" title={sampleRow[i] ?? ''}>{sampleRow[i] ?? ''}</div>
                         <PreviewCoerce field={mapping[i] ?? ''} raw={sampleRow[i] ?? ''} />
                       </td>
@@ -322,7 +322,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                         <select
                           value={mapping[i] ?? ''}
                           onChange={e => setMapping(prev => prev.map((v, idx) => idx === i ? e.target.value : v))}
-                          className="block text-xs border border-gray-200 rounded px-2 py-1 bg-white cursor-pointer"
+                          className="block text-xs border border-portal-border rounded px-2 py-1 bg-white cursor-pointer"
                         >
                           {FIELD_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
@@ -337,7 +337,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 type="button"
                 onClick={() => setStep('upload')}
                 disabled={planning}
-                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-portal-sub hover:text-portal-text"
               >
                 <ArrowLeft size={12} /> Back
               </button>
@@ -373,7 +373,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 </span>
               )}
               {counts.duplicate > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-portal-sub border border-portal-border font-semibold">
                   {counts.duplicate} already on issue (skipped)
                 </span>
               )}
@@ -404,7 +404,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 type="button"
                 onClick={() => setStep('map')}
                 disabled={committing}
-                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-portal-sub hover:text-portal-text"
               >
                 <ArrowLeft size={12} /> Back
               </button>
@@ -430,7 +430,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 type="button"
                 onClick={() => { setPlan(null); setCounts(null); setResolutions({}); setStep('map') }}
                 disabled={committing}
-                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-gray-900"
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs text-portal-sub hover:text-portal-text"
               >
                 <RefreshCw size={12} /> Re-analyze
               </button>
@@ -456,7 +456,7 @@ function PreviewCoerce({ field, raw }: { field: string; raw: string }) {
   const [coerced, changed] = txt
   if (!changed && field !== 'expires_month') return null         // hide noise
   return (
-    <div className={`mt-0.5 text-[10px] font-mono inline-flex items-center gap-1 ${changed ? 'text-emerald-600' : 'text-gray-400'}`}>
+    <div className={`mt-0.5 text-[10px] font-mono inline-flex items-center gap-1 ${changed ? 'text-emerald-600' : 'text-portal-muted'}`}>
       → {coerced}
     </div>
   )
@@ -503,7 +503,7 @@ function previewFor(field: string, raw: string): [string, boolean] | null {
 function StepPill({ step }: { step: Step }) {
   const labels: Record<Step, string> = { upload: '1 of 3', map: '2 of 3', plan: '3 of 3' }
   return (
-    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-portal-sub">
       {labels[step]}
     </span>
   )
@@ -569,7 +569,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
   return (
     <div className="rounded-lg border border-amber-100 bg-white p-2.5 text-xs">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-bold text-gray-900">{planned.input.business}</p>
+        <p className="font-bold text-portal-text">{planned.input.business}</p>
         <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-portal-amber-lt text-portal-amber'}`}>
           {planned.status === 'new' ? 'No match' : 'Fuzzy'}
         </span>
@@ -584,7 +584,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
               onChange={() => { setCustomName(c.name); onChange({ advertiser_id: c.id }) }}
             />
             <span>Use existing: <b>{c.name}</b></span>
-            <span className="ml-auto text-[10px] text-gray-400">{Math.round(c.score * 100)}% match</span>
+            <span className="ml-auto text-[10px] text-portal-muted">{Math.round(c.score * 100)}% match</span>
           </label>
         ))}
         <label className="flex items-start gap-2 cursor-pointer">
@@ -596,7 +596,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
             onChange={() => onCustomChange(customName)}
           />
           <span className="flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-0.5">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-0.5">
               Business name (type or pick)
             </span>
             <input
@@ -605,14 +605,14 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
               value={customName}
               onChange={e => onCustomChange(e.target.value)}
               placeholder="Canonical business name…"
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white"
+              className="w-full text-xs border border-portal-border rounded px-2 py-1 bg-white"
             />
             <datalist id={`adv-${planned.index}`}>
               {advertisers.map(a => <option key={a.id} value={a.business_name} />)}
             </datalist>
           </span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer text-gray-500">
+        <label className="flex items-center gap-2 cursor-pointer text-portal-sub">
           <input
             type="radio"
             name={`r-${planned.index}`}

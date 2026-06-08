@@ -80,11 +80,11 @@ export default async function PendingEventsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
           <Inbox className="h-5 w-5 text-portal-blue" />
           Pending Events
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="text-sm text-portal-sub mt-0.5">
           Events submitted by the community via{' '}
           <Link href="/calendar/submit" className="text-portal-blue hover:underline">/calendar/submit</Link>.
           Approve to publish, or reject with reason.
@@ -94,9 +94,9 @@ export default async function PendingEventsPage() {
       <section>
         <AdminSectionHeader title="Submissions" count={rows.length} />
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-500">No pending submissions right now.</p>
-            <p className="text-xs text-gray-400 mt-1">New submissions will appear here automatically.</p>
+          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <p className="text-sm text-portal-sub">No pending submissions right now.</p>
+            <p className="text-xs text-portal-muted mt-1">New submissions will appear here automatically.</p>
           </div>
         ) : (
           <PendingEventsClient events={rows} />

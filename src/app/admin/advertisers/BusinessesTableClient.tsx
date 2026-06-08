@@ -189,7 +189,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="p-12 text-center text-sm text-gray-500">
+      <div className="p-12 text-center text-sm text-portal-sub">
         {query ? <>No businesses match &ldquo;{query}&rdquo;.</> : 'No businesses in this view.'}
       </div>
     )
@@ -321,20 +321,20 @@ export function BusinessesTableClient({ rows, query }: Props) {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmOpen(false)}>
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-2">
+              <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <AlertTriangle size={16} className="text-rose-600" />
                 Delete {previewIds.length} business{previewIds.length === 1 ? '' : 'es'}?
               </h3>
-              <button onClick={() => !deleting && setConfirmOpen(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => !deleting && setConfirmOpen(false)} className="text-portal-muted hover:text-portal-text">
                 <X size={14} />
               </button>
             </header>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-portal-text">
               This cannot be undone. The following related rows will also be deleted by cascade:
             </p>
 
-            <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
+            <div className="bg-portal-bg rounded-xl p-3 text-sm space-y-1">
               <CascadeLine label="Digital ad placements" value={preview.ad_placements} />
               <CascadeLine label="Print ad placements" value={preview.print_ad_placements} />
               <CascadeLine label="Contacts"             value={preview.advertiser_contacts} />
@@ -374,7 +374,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 type="button"
                 onClick={() => !deleting && setConfirmOpen(false)}
                 disabled={deleting}
-                className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text"
               >
                 Cancel
               </button>
@@ -391,27 +391,27 @@ export function BusinessesTableClient({ rows, query }: Props) {
         >
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-2">
+              <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <GitMerge size={16} className="text-amber-600" />
                 Merge {selected.size} businesses into one
               </h3>
-              <button onClick={() => !merging && setMergeOpen(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => !merging && setMergeOpen(false)} className="text-portal-muted hover:text-portal-text">
                 <X size={14} />
               </button>
             </header>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-portal-text">
               Pick the row to KEEP. Every ad placement, contact, listing, and proposal from the other rows gets
               repointed at the survivor; the others are deleted.
             </p>
 
-            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+            <div className="max-h-64 overflow-y-auto border border-portal-border rounded-lg divide-y divide-gray-100">
               {rows.filter(r => selected.has(r.id)).map(r => {
                 const isSurvivor = r.id === mergeSurvivorId
                 return (
                   <label
                     key={r.id}
-                    className={`flex items-start gap-2 px-3 py-2 cursor-pointer ${isSurvivor ? 'bg-portal-green-lt/60' : 'hover:bg-gray-50'}`}
+                    className={`flex items-start gap-2 px-3 py-2 cursor-pointer ${isSurvivor ? 'bg-portal-green-lt/60' : 'hover:bg-portal-bg'}`}
                   >
                     <input
                       type="radio"
@@ -425,14 +425,14 @@ export function BusinessesTableClient({ rows, query }: Props) {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <p className="text-sm font-bold text-gray-900 truncate">{r.business_name}</p>
+                        <p className="text-sm font-bold text-portal-text truncate">{r.business_name}</p>
                         {isSurvivor && (
                           <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
                             Keep
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                      <p className="text-[11px] text-portal-sub mt-0.5">
                         {r.activePlacements} active ad{r.activePlacements === 1 ? '' : 's'}
                         {r.contact_email && ` · ${r.contact_email}`}
                         {r.contact_phone && ` · ${r.contact_phone}`}
@@ -444,7 +444,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">
                 Final business name
               </label>
               <input
@@ -452,9 +452,9 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 value={mergeSurvivorName}
                 onChange={e => setMergeSurvivorName(e.target.value)}
                 placeholder="Canonical business name…"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white"
               />
-              <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+              <p className="text-[11px] text-portal-sub mt-1 leading-snug">
                 Defaults to the picked survivor&apos;s name. Edit to give the merged record a cleaner canonical
                 name (e.g. drop punctuation, fix capitalization).
               </p>
@@ -480,7 +480,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 type="button"
                 onClick={() => !merging && setMergeOpen(false)}
                 disabled={merging}
-                className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text"
               >
                 Cancel
               </button>
@@ -497,7 +497,7 @@ function CascadeLine({ label, value }: { label: string; value: number | null }) 
   // render dim 'not tracked' so the editor knows we just don't know.
   if (value == null) {
     return (
-      <div className="flex items-center justify-between text-gray-400">
+      <div className="flex items-center justify-between text-portal-muted">
         <span>{label}</span>
         <span className="text-[10px] italic">not tracked here</span>
       </div>
@@ -505,14 +505,14 @@ function CascadeLine({ label, value }: { label: string; value: number | null }) 
   }
   if (value === 0) {
     return (
-      <div className="flex items-center justify-between text-gray-400">
+      <div className="flex items-center justify-between text-portal-muted">
         <span>{label}</span>
         <span className="tabular-nums">0</span>
       </div>
     )
   }
   return (
-    <div className="flex items-center justify-between text-gray-900 font-semibold">
+    <div className="flex items-center justify-between text-portal-text font-semibold">
       <span>{label}</span>
       <span className="tabular-nums">{value}</span>
     </div>

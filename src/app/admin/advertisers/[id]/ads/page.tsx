@@ -86,8 +86,8 @@ export default async function AdsTab({ params }: Props) {
       {/* ── Digital Ad Placements ─────────────────────────── */}
       <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 inline-flex items-center gap-1.5">
-            <Megaphone size={11} /> Digital Placements {plRows.length > 0 && <span className="text-gray-400">({plRows.length})</span>}
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
+            <Megaphone size={11} /> Digital Placements {plRows.length > 0 && <span className="text-portal-muted">({plRows.length})</span>}
           </h2>
           <Link
             href={`/admin/ads/new?advertiser_id=${id}`}
@@ -97,7 +97,7 @@ export default async function AdsTab({ params }: Props) {
           </Link>
         </div>
         {plRows.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">
+          <div className="p-8 text-center text-sm text-portal-muted">
             No digital placements yet. <Link href={`/admin/ads/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Assign one →</Link>
           </div>
         ) : (
@@ -106,23 +106,23 @@ export default async function AdsTab({ params }: Props) {
               const rate      = RATE_CARD.find(r => r.placementType === p.placement_type)
               const isExpired = !!p.archived_at
               return (
-                <div key={p.id} className={`px-5 py-3 flex items-center gap-3 ${isExpired ? 'opacity-60 bg-gray-50/60' : p.is_active ? '' : 'opacity-70'}`}>
+                <div key={p.id} className={`px-5 py-3 flex items-center gap-3 ${isExpired ? 'opacity-60 bg-portal-bg/60' : p.is_active ? '' : 'opacity-70'}`}>
                   {p.rotation_group ? (
                     <RotateCw size={12} className="text-sky-500 shrink-0" />
                   ) : (
                     <Lock size={12} className="text-amber-500 shrink-0" />
                   )}
                   <Link href={`/admin/ads/${p.id}/edit`} className="flex-1 min-w-0 hover:opacity-80">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-sm font-semibold text-portal-text truncate">
                       {rate?.label ?? p.placement_type.replace(/_/g, ' ')}
                     </p>
-                    <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                    <div className="flex items-center gap-3 text-[11px] text-portal-sub mt-0.5">
                       {p.context_slug && <span className="font-medium">{p.context_slug}</span>}
                       {p.ad_headline && <span className="truncate max-w-[16rem]">&quot;{p.ad_headline}&quot;</span>}
                       <span>{fmtDate(p.starts_at)} → {fmtDate(p.ends_at)}</span>
                     </div>
                   </Link>
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500 shrink-0">
+                  <div className="flex items-center gap-3 text-[11px] text-portal-sub shrink-0">
                     <span className="inline-flex items-center gap-0.5"><Eye size={10} /> {(p.impression_count ?? 0).toLocaleString()}</span>
                     <span className="inline-flex items-center gap-0.5"><MousePointer size={10} /> {(p.click_count ?? 0).toLocaleString()}</span>
                   </div>
@@ -134,7 +134,7 @@ export default async function AdsTab({ params }: Props) {
                       <CloneAdButton id={p.id} variant="pill" />
                     </>
                   ) : !p.is_active ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 ring-1 ring-gray-200 font-bold shrink-0">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-portal-sub ring-1 ring-gray-200 font-bold shrink-0">
                       Inactive
                     </span>
                   ) : null}
@@ -149,7 +149,7 @@ export default async function AdsTab({ params }: Props) {
       {qrCodes.length > 0 && (
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               QR Codes ({qrCodes.length})
             </h2>
             <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default async function AdsTab({ params }: Props) {
               </Link>
               <Link
                 href={`/admin/content/short-links?advertiser_id=${id}`}
-                className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+                className="text-[11px] font-semibold text-portal-sub hover:text-portal-text"
               >
                 All
               </Link>
@@ -171,14 +171,14 @@ export default async function AdsTab({ params }: Props) {
             {qrCodes.map(q => (
               <div key={q.id} className={`px-5 py-3 flex items-center gap-3 ${q.is_active ? '' : 'opacity-50'}`}>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">/go/{q.shortcode}</p>
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
+                  <p className="text-sm font-semibold text-portal-text">/go/{q.shortcode}</p>
+                  <div className="flex items-center gap-3 text-[11px] text-portal-sub mt-0.5">
                     <span className="capitalize">{q.content_type}</span>
                     {q.label && <span>{q.label}</span>}
                     {q.utm_campaign && <span>campaign={q.utm_campaign}</span>}
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 shrink-0">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-portal-text shrink-0">
                   <MousePointer size={11} /> {q.click_count.toLocaleString()} scans
                 </span>
               </div>
@@ -190,8 +190,8 @@ export default async function AdsTab({ params }: Props) {
       {/* ── Available Slots ───────────────────────────────── */}
       <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Available Slots</h2>
-          <p className="text-[11px] text-gray-400 mt-0.5">Open positions this business could fill. Click to assign.</p>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Available Slots</h2>
+          <p className="text-[11px] text-portal-muted mt-0.5">Open positions this business could fill. Click to assign.</p>
         </div>
         <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
           {RATE_CARD.filter(slot => !plRows.some(p => p.placement_type === slot.placementType && p.is_active))
@@ -200,7 +200,7 @@ export default async function AdsTab({ params }: Props) {
               <Link
                 key={`${slot.placementType}-${slot.surface}`}
                 href={`/admin/ads/new?placement_type=${slot.placementType}&context_slug=${slot.surface}&advertiser_id=${id}`}
-                className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-5 py-2.5 hover:bg-portal-bg transition-colors"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   {slot.locked ? (
@@ -208,9 +208,9 @@ export default async function AdsTab({ params }: Props) {
                   ) : (
                     <RotateCw size={10} className="text-sky-500 shrink-0" />
                   )}
-                  <span className="text-xs font-semibold text-gray-900 truncate">{slot.label}</span>
+                  <span className="text-xs font-semibold text-portal-text truncate">{slot.label}</span>
                 </div>
-                <span className="text-[11px] text-gray-500 shrink-0">${slot.monthly}/mo</span>
+                <span className="text-[11px] text-portal-sub shrink-0">${slot.monthly}/mo</span>
               </Link>
             ))}
         </div>

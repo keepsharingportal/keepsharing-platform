@@ -55,13 +55,13 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
     } finally { setBusy(false) }
   }
 
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
+  const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
 
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
         <Megaphone size={14} className="text-portal-blue" />
-        <h2 className="text-sm font-bold text-gray-700">Announce new games</h2>
+        <h2 className="text-sm font-bold text-portal-text">Announce new games</h2>
         {!webhookConfigured && (
           <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-portal-amber bg-portal-amber-lt px-2 py-0.5 rounded">
             Webhook not configured
@@ -77,37 +77,37 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
       )}
 
       <div className="p-5 space-y-3">
-        <p className="text-sm text-gray-600 leading-relaxed">
+        <p className="text-sm text-portal-sub leading-relaxed">
           Sends a short HTML email to your subscriber list announcing this week's puzzles.
           One-paragraph intro, big "Play now" CTA, links to all six games. Each play is still a $50 drawing entry —
           this is the nudge that turns the rotation into a list-grower.
         </p>
 
         <div>
-          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Subject line</label>
+          <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Subject line</label>
           <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className={inputCls} />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">GHL list / tag</label>
+            <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">GHL list / tag</label>
             <input type="text" value={listTag} onChange={e => setListTag(e.target.value)} placeholder="weekly-scoop" className={inputCls} />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">For week</label>
-            <p className="text-sm font-semibold text-gray-900 pt-2">Week {isoWeek}, {isoYear}</p>
+            <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">For week</label>
+            <p className="text-sm font-semibold text-portal-text pt-2">Week {isoWeek}, {isoYear}</p>
           </div>
         </div>
 
         <div>
-          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">When to send</label>
+          <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">When to send</label>
           <div className="flex gap-2 mb-2">
             <button type="button" onClick={() => setScheduleMode('now')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
               <Send size={11} /> Send now
             </button>
             <button type="button" onClick={() => setScheduleMode('later')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
               <Clock size={11} /> Schedule (next Sunday 8 AM)
             </button>
           </div>

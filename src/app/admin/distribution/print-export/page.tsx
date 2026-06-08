@@ -44,18 +44,18 @@ export default async function PrintExportPage() {
         <Link href="/admin/distribution" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Distribution
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
           <Printer size={18} className="text-portal-blue" /> Print Export
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Hand-off package for each issue: article manifest, image URLs, and print-readiness flags.</p>
+        <p className="text-sm text-portal-sub mt-0.5">Hand-off package for each issue: article manifest, image URLs, and print-readiness flags.</p>
       </div>
 
       <section>
         <AdminSectionHeader title="Issues Ready to Export" count={months.length} />
 
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-500">No issues with tagged articles yet.</p>
+          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <p className="text-sm text-portal-sub">No issues with tagged articles yet.</p>
             <Link href="/admin/production/issues" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Issues <ArrowRight size={11} />
             </Link>
@@ -67,20 +67,20 @@ export default async function PrintExportPage() {
               const ready = readyCount(rows)
               const pct   = rows.length > 0 ? Math.round((ready / rows.length) * 100) : 0
               return (
-                <div key={m} className="rounded-xl border border-gray-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3">
+                <div key={m} className="rounded-xl border border-portal-border bg-white p-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-portal-blue-lt flex items-center justify-center shrink-0">
                       <Printer size={15} className="text-portal-blue" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{fmtMonth(m)}</p>
-                      <p className="text-[11px] text-gray-500">{rows.length} articles · {ready} print-ready ({pct}%)</p>
+                      <p className="text-sm font-semibold text-portal-text">{fmtMonth(m)}</p>
+                      <p className="text-[11px] text-portal-sub">{rows.length} articles · {ready} print-ready ({pct}%)</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/production/print-planning?month=${m}&pub=RRP`}
-                      className="px-3 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      className="px-3 py-1.5 text-xs font-semibold text-portal-text border border-portal-border rounded-lg hover:bg-portal-bg"
                     >
                       Review readiness
                     </Link>
@@ -97,7 +97,7 @@ export default async function PrintExportPage() {
           </div>
         )}
 
-        <p className="text-[11px] text-gray-400 mt-3">
+        <p className="text-[11px] text-portal-muted mt-3">
           The Manifest CSV is the source-of-truth for InDesign or any layout tool.
           Print-ready means each article has a hero image, byline, and body content over 100 chars.
         </p>

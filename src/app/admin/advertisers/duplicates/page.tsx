@@ -103,12 +103,12 @@ export default async function DuplicatesPage({ searchParams }: Props) {
           <div>
             <Link
               href="/admin/advertisers"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-2"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-portal-sub hover:text-portal-text mb-2"
             >
               <ArrowLeft size={12} /> Back to Advertisers
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">Duplicate Advertisers</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h1 className="text-xl font-bold text-portal-text">Duplicate Advertisers</h1>
+            <p className="text-sm text-portal-sub mt-0.5">
               Likely duplicates surfaced by fuzzy-matching business names.
               Pick the row to keep, merge the rest, every related ad placement / contact / link follows.
             </p>
@@ -119,8 +119,8 @@ export default async function DuplicatesPage({ searchParams }: Props) {
             is 'Advertisers' so the editor sees paid-customer dups first;
             she can switch to Directory-only when she's ready to clean
             that bigger pile. Cross-kind merges aren't offered. */}
-        <div className="bg-white rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">View:</span>
+        <div className="bg-white rounded-2xl border border-portal-border px-4 py-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">View:</span>
           {([
             { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-portal-navy'  },
             { k: 'directory_only', label: 'Directory only', count: directoryClusters.length,  tone: 'bg-gray-500' },
@@ -131,10 +131,10 @@ export default async function DuplicatesPage({ searchParams }: Props) {
             return (
               <a key={c.k} href={href}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                  on ? `${c.tone} text-white` : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
+                  on ? `${c.tone} text-white` : 'text-portal-sub hover:text-portal-text bg-gray-100 hover:bg-gray-200'
                 }`}>
                 {c.label}
-                <span className={`text-[10px] ${on ? 'opacity-80' : 'text-gray-400'}`}>{c.count}</span>
+                <span className={`text-[10px] ${on ? 'opacity-80' : 'text-portal-muted'}`}>{c.count}</span>
               </a>
             )
           })}
@@ -163,10 +163,10 @@ export default async function DuplicatesPage({ searchParams }: Props) {
         </div>
 
         {clusters.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+          <div className="bg-white rounded-2xl border border-portal-border p-8 text-center">
             <CheckCircle2 size={28} className="mx-auto mb-3 text-emerald-500" />
-            <p className="text-sm font-semibold text-gray-900">No duplicate clusters found</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-sm font-semibold text-portal-text">No duplicate clusters found</p>
+            <p className="text-xs text-portal-sub mt-1">
               Fuzzy match scanned every business name; nothing crossed the similarity threshold.
             </p>
           </div>
@@ -217,12 +217,12 @@ function SummaryTile({ label, value, icon: Icon, tone }: {
   const accent =
     tone === 'good' ? 'text-portal-green' :
     tone === 'warn' ? 'text-portal-amber'   :
-                      'text-gray-900'
+                      'text-portal-text'
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
+    <div className="bg-white border border-portal-border rounded-2xl px-4 py-3">
       <div className="flex items-center gap-2 mb-1">
-        <Icon size={12} className="text-gray-400" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</span>
+        <Icon size={12} className="text-portal-muted" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">{label}</span>
       </div>
       <p className={`text-2xl font-black tabular-nums leading-none ${accent}`}>{value.toLocaleString()}</p>
     </div>

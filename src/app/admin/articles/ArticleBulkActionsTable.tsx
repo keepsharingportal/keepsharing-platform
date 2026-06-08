@@ -139,8 +139,8 @@ export function ArticleBulkActionsTable({
 
   if (articles.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <p className="text-gray-500 text-sm mb-3">No articles in this view.</p>
+      <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+        <p className="text-portal-sub text-sm mb-3">No articles in this view.</p>
         <Link href="/admin/articles/new" className="text-sm font-semibold text-portal-blue hover:text-portal-blue">
           Write your first article →
         </Link>
@@ -159,7 +159,7 @@ export function ArticleBulkActionsTable({
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
           resultMsg.ok
             ? 'bg-green-50 border border-green-200 text-green-700'
-            : 'bg-red-50 border border-red-200 text-red-600'
+            : 'bg-red-50 border border-red-200 text-portal-red'
         }`}>
           {resultMsg.text}
         </div>
@@ -190,7 +190,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'draft')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-gray-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-portal-text text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-portal-border"
             >
               <FileText size={12} />
               Move to Draft
@@ -198,7 +198,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'archive')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-500 text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-gray-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-portal-sub text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-portal-border"
             >
               <Archive size={12} />
               Archive
@@ -216,26 +216,26 @@ export function ArticleBulkActionsTable({
       )}
 
       <div className="flex items-center justify-between mb-3 px-1">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-portal-muted">
           {total === 0
             ? 'No articles'
             : `Showing ${rangeStart}–${rangeEnd} of ${total} article${total !== 1 ? 's' : ''}`}
         </p>
         {totalPages > 1 && (
-          <p className="text-[11px] text-gray-400">Page {page} of {totalPages}</p>
+          <p className="text-[11px] text-portal-muted">Page {page} of {totalPages}</p>
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
+        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-gray-100 bg-portal-bg">
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
               checked={allChecked}
               ref={el => { if (el) el.indeterminate = someChecked }}
               onChange={toggleAll}
-              className="w-4 h-4 rounded border-gray-300 text-portal-blue cursor-pointer"
+              className="w-4 h-4 rounded border-portal-border-2 text-portal-blue cursor-pointer"
               aria-label="Select all articles"
             />
           </div>
@@ -243,7 +243,7 @@ export function ArticleBulkActionsTable({
           <Link
             href={sortHref('title')}
             scroll={false}
-            className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-portal-blue inline-flex items-center gap-1"
+            className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hover:text-portal-blue inline-flex items-center gap-1"
             title="Sort by title A→Z"
           >
             Title
@@ -251,13 +251,13 @@ export function ArticleBulkActionsTable({
               ? <ChevronDown size={11} />
               : <ArrowUpDown size={10} className="opacity-40" />}
           </Link>
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden md:block">Status</div>
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:block">Section</div>
+          <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden md:block">Status</div>
+          <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden lg:block">Section</div>
           <Link
             href={sortHref('views')}
             scroll={false}
             className={`text-[11px] font-semibold uppercase tracking-wider hidden md:inline-flex items-center gap-1 ${
-              showViewsIndicator ? 'text-portal-blue' : 'text-gray-400 hover:text-portal-blue'
+              showViewsIndicator ? 'text-portal-blue' : 'text-portal-muted hover:text-portal-blue'
             }`}
             title="Sort by views (highest first)"
           >
@@ -269,7 +269,7 @@ export function ArticleBulkActionsTable({
             href={sortLocked ? '#' : sortHref(dateNextSort)}
             scroll={false}
             className={`text-[11px] font-semibold uppercase tracking-wider hidden xl:inline-flex items-center gap-1 ${
-              sortLocked ? 'opacity-40 pointer-events-none' : showDateIndicator ? 'text-portal-blue' : 'text-gray-400 hover:text-portal-blue'
+              sortLocked ? 'opacity-40 pointer-events-none' : showDateIndicator ? 'text-portal-blue' : 'text-portal-muted hover:text-portal-blue'
             }`}
             title={activeSort === 'newest' ? 'Sort oldest first' : 'Sort newest first'}
           >
@@ -278,7 +278,7 @@ export function ArticleBulkActionsTable({
               ? (activeSort === 'newest' ? <ChevronDown size={11} /> : <ChevronUp size={11} />)
               : <ArrowUpDown size={10} className="opacity-40" />}
           </Link>
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Actions</div>
+          <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Actions</div>
         </div>
 
         {/* Rows */}
@@ -302,7 +302,7 @@ export function ArticleBulkActionsTable({
               <div
                 key={a.id}
                 className={`grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-3 transition-colors ${
-                  isSelected ? 'bg-portal-blue-lt' : 'hover:bg-gray-50'
+                  isSelected ? 'bg-portal-blue-lt' : 'hover:bg-portal-bg'
                 }`}
               >
                 {/* Checkbox */}
@@ -311,7 +311,7 @@ export function ArticleBulkActionsTable({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleOne(a.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-portal-blue cursor-pointer"
+                    className="w-4 h-4 rounded border-portal-border-2 text-portal-blue cursor-pointer"
                     aria-label={`Select ${a.title}`}
                   />
                 </div>
@@ -326,8 +326,8 @@ export function ArticleBulkActionsTable({
 
                 {/* Title + slug */}
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{a.title}</p>
-                  <p className="text-[11px] text-gray-400 truncate mt-0.5">/{a.slug}</p>
+                  <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
+                  <p className="text-[11px] text-portal-muted truncate mt-0.5">/{a.slug}</p>
                 </div>
 
                 {/* Status */}
@@ -339,13 +339,13 @@ export function ArticleBulkActionsTable({
 
                 {/* Section */}
                 <div className="hidden lg:block">
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{sec}</span>
+                  <span className="text-xs text-portal-sub whitespace-nowrap">{sec}</span>
                 </div>
 
                 {/* Views */}
                 <div className="hidden md:block tabular-nums text-right">
                   <span className={`text-xs whitespace-nowrap ${
-                    (a.view_count ?? 0) > 0 ? 'text-gray-700 font-semibold' : 'text-gray-300'
+                    (a.view_count ?? 0) > 0 ? 'text-portal-text font-semibold' : 'text-gray-300'
                   }`}>
                     {fmtViews(a.view_count)}
                   </span>
@@ -353,7 +353,7 @@ export function ArticleBulkActionsTable({
 
                 {/* Date */}
                 <div className="hidden xl:block">
-                  <span className="text-xs text-gray-400 whitespace-nowrap">{date}</span>
+                  <span className="text-xs text-portal-muted whitespace-nowrap">{date}</span>
                 </div>
 
                 {/* Row actions */}
@@ -377,7 +377,7 @@ export function ArticleBulkActionsTable({
                     <Link
                       href={articleHref(a)}
                       target="_blank"
-                      className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="p-1.5 text-portal-muted hover:text-portal-text rounded-lg hover:bg-portal-row-hover transition-colors"
                       title="View live article"
                     >
                       <Eye size={13} />
@@ -399,15 +399,15 @@ export function ArticleBulkActionsTable({
             aria-disabled={page <= 1}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
               page <= 1
-                ? 'border-gray-200 text-gray-300 pointer-events-none'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'border-portal-border text-gray-300 pointer-events-none'
+                : 'border-portal-border-2 text-portal-text hover:bg-portal-bg'
             }`}
           >
             <ChevronLeft size={12} /> Previous
           </Link>
 
-          <span className="text-[11px] text-gray-500">
-            Page <strong className="text-gray-700">{page}</strong> of {totalPages}
+          <span className="text-[11px] text-portal-sub">
+            Page <strong className="text-portal-text">{page}</strong> of {totalPages}
           </span>
 
           <Link
@@ -416,8 +416,8 @@ export function ArticleBulkActionsTable({
             aria-disabled={page >= totalPages}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
               page >= totalPages
-                ? 'border-gray-200 text-gray-300 pointer-events-none'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'border-portal-border text-gray-300 pointer-events-none'
+                : 'border-portal-border-2 text-portal-text hover:bg-portal-bg'
             }`}
           >
             Next <ChevronRight size={12} />

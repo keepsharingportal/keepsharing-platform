@@ -49,11 +49,11 @@ export default async function DigitalIssuesPage() {
         </Link>
         <div className="flex items-center gap-2">
           <BookOpen size={18} className="text-portal-blue" />
-          <h1 className="text-xl font-semibold text-gray-900">Digital Issues</h1>
+          <h1 className="text-xl font-semibold text-portal-text">Digital Issues</h1>
         </div>
-        <p className="text-sm text-gray-500 mt-1 max-w-2xl">
+        <p className="text-sm text-portal-sub mt-1 max-w-2xl">
           Manage the Issuu flipbook URLs and covers shown on the public homepage.
-          The issue marked <span className="font-semibold text-gray-700">Current</span> drives the
+          The issue marked <span className="font-semibold text-portal-text">Current</span> drives the
           &ldquo;This Month&rsquo;s Issue&rdquo; sidebar block; the rest feed the
           &ldquo;Recent Issues&rdquo; carousel.
         </p>

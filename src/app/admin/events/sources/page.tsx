@@ -130,7 +130,7 @@ export default async function SourcesAdminPage() {
   const aiCount      = sources.filter(s => s.is_active && s.ingestion_method === 'ai-extract').length
   const manualCount  = sources.filter(s => s.is_active && s.ingestion_method === 'manual').length
 
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 transition-colors'
+  const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
 
   return (
     <main className="p-6 max-w-[1200px] mx-auto space-y-6 pb-16">
@@ -140,9 +140,9 @@ export default async function SourcesAdminPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Globe size={20} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Trusted Event Sources</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Trusted Event Sources</h1>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-portal-sub">
             Organizations whose events we ingest. iCal feeds run automatically; AI extraction and manual entries
             need an operator. New events from any source always land in <Link href="/admin/events/pending" className="text-portal-blue hover:underline">Pending Events</Link>.
           </p>
@@ -152,7 +152,7 @@ export default async function SourcesAdminPage() {
           <Link href="/admin/events/extract" className="text-sm font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 hover:bg-purple-100">
             AI extract →
           </Link>
-          <Link href="/admin/events/pending" className="text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50">
+          <Link href="/admin/events/pending" className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
             Pending queue →
           </Link>
         </div>
@@ -177,12 +177,12 @@ export default async function SourcesAdminPage() {
             { label: 'AI extraction',  value: aiCount,     tone: '#8b5cf6' },
             { label: 'Manual only',    value: manualCount, tone: '#9ca3af' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+            <div key={s.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.tone }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{s.label}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-portal-muted">{s.label}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+              <p className="text-2xl font-bold text-portal-text">{s.value}</p>
             </div>
           ))}
         </div>
@@ -190,46 +190,46 @@ export default async function SourcesAdminPage() {
 
       {/* ADD NEW */}
       {!tableMissing && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-            <Plus size={14} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-700">Add a source</h2>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+            <Plus size={14} className="text-portal-muted" />
+            <h2 className="text-sm font-bold text-portal-text">Add a source</h2>
           </div>
           <form action={createSource} className="p-5 grid md:grid-cols-12 gap-3 items-end">
             <div className="md:col-span-3">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Name *</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Name *</label>
               <input name="name" type="text" required placeholder="Montgomery Zoo" className={inputCls} />
             </div>
             <div className="md:col-span-4">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Events URL *</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Events URL *</label>
               <input name="events_url" type="url" required placeholder="https://example.org/events" className={inputCls} />
             </div>
             <div className="md:col-span-3">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Org URL (optional)</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Org URL (optional)</label>
               <input name="org_url" type="url" placeholder="https://example.org" className={inputCls} />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Method</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Method</label>
               <select name="ingestion_method" defaultValue="ai-extract" className={inputCls}>
                 {METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
             </div>
             <div className="md:col-span-4">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">iCal URL (if known)</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">iCal URL (if known)</label>
               <input name="ical_url" type="url" placeholder="https://example.org/events.ics" className={inputCls} />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Frequency</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Frequency</label>
               <select name="scrape_frequency" defaultValue="weekly" className={inputCls}>
                 {FREQUENCIES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Market</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Market</label>
               <input name="market" type="text" defaultValue="rrp" className={inputCls} />
             </div>
             <div className="md:col-span-4">
-              <label className="block text-[11px] font-semibold text-gray-500 mb-1">Notes</label>
+              <label className="block text-[11px] font-semibold text-portal-sub mb-1">Notes</label>
               <input name="notes" type="text" placeholder="Internal notes (auth needed, feed flaky, etc.)" className={inputCls} />
             </div>
             <div className="md:col-span-12">
@@ -243,14 +243,14 @@ export default async function SourcesAdminPage() {
 
       {/* LIST */}
       {!tableMissing && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-700">All sources</h2>
-            <span className="text-xs text-gray-400">{sources.length} total · {activeCount} active</span>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+            <h2 className="text-sm font-bold text-portal-text">All sources</h2>
+            <span className="text-xs text-portal-muted">{sources.length} total · {activeCount} active</span>
           </div>
 
           {sources.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">No sources yet. Add one above.</p>
+            <p className="p-8 text-center text-sm text-portal-muted">No sources yet. Add one above.</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {sources.map(s => (
@@ -258,24 +258,24 @@ export default async function SourcesAdminPage() {
                   <div className="flex items-start gap-3 mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-gray-900">{s.name}</p>
+                        <p className="text-sm font-semibold text-portal-text">{s.name}</p>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                           s.ingestion_method === 'ical'       ? 'bg-portal-blue-lt text-portal-blue'    :
                           s.ingestion_method === 'ai-extract' ? 'bg-purple-100 text-purple-800' :
-                          s.ingestion_method === 'manual'     ? 'bg-gray-100 text-gray-700'    :
+                          s.ingestion_method === 'manual'     ? 'bg-gray-100 text-portal-text'    :
                                                                 'bg-portal-amber-lt text-portal-amber'
                         }`}>{s.ingestion_method}</span>
                         {!s.is_active && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-500">Off</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-portal-sub">Off</span>
                         )}
                       </div>
                       <a href={s.events_url} target="_blank" rel="noreferrer" className="text-xs text-portal-blue hover:underline font-mono break-all inline-flex items-center gap-1 mt-0.5">
                         {s.events_url} <ExternalLink size={10} />
                       </a>
-                      <div className="text-[11px] text-gray-400 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span>Market: <strong className="text-gray-600">{s.market}</strong></span>
-                        <span>Frequency: <strong className="text-gray-600">{s.scrape_frequency ?? '—'}</strong></span>
-                        <span>Last ingested: <strong className="text-gray-600">{fmtDateTime(s.last_ingested_at)}</strong> ({s.last_ingested_count} events)</span>
+                      <div className="text-[11px] text-portal-muted mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                        <span>Market: <strong className="text-portal-sub">{s.market}</strong></span>
+                        <span>Frequency: <strong className="text-portal-sub">{s.scrape_frequency ?? '—'}</strong></span>
+                        <span>Last ingested: <strong className="text-portal-sub">{fmtDateTime(s.last_ingested_at)}</strong> ({s.last_ingested_count} events)</span>
                       </div>
                     </div>
                     <form action={toggleActive}>
@@ -283,7 +283,7 @@ export default async function SourcesAdminPage() {
                       <input type="hidden" name="current" value={String(s.is_active)} />
                       <button type="submit" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                         s.is_active
-                          ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
                           : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                       }`}>
                         {s.is_active ? 'Turn off' : 'Turn on'}
@@ -292,11 +292,11 @@ export default async function SourcesAdminPage() {
                   </div>
 
                   {s.notes && (
-                    <p className="text-xs text-gray-500 italic bg-gray-50 rounded px-3 py-1.5 mb-2">{s.notes}</p>
+                    <p className="text-xs text-portal-sub italic bg-portal-bg rounded px-3 py-1.5 mb-2">{s.notes}</p>
                   )}
 
                   {s.ical_url && (
-                    <p className="text-[11px] text-gray-400 mb-2">
+                    <p className="text-[11px] text-portal-muted mb-2">
                       iCal feed: <a href={s.ical_url} target="_blank" rel="noreferrer" className="text-portal-blue hover:underline font-mono break-all">{s.ical_url}</a>
                     </p>
                   )}
@@ -312,41 +312,41 @@ export default async function SourcesAdminPage() {
                   </div>
 
                   <details className="group">
-                    <summary className="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700 select-none">
+                    <summary className="text-xs font-semibold text-portal-sub cursor-pointer hover:text-portal-text select-none">
                       Edit
                     </summary>
                     <form action={updateSource} className="mt-3 grid md:grid-cols-12 gap-3 items-end">
                       <input type="hidden" name="id" value={s.id} />
                       <div className="md:col-span-3">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Name</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Name</label>
                         <input name="name" type="text" required defaultValue={s.name} className={inputCls} />
                       </div>
                       <div className="md:col-span-4">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Events URL</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Events URL</label>
                         <input name="events_url" type="url" required defaultValue={s.events_url} className={inputCls} />
                       </div>
                       <div className="md:col-span-3">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Org URL</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Org URL</label>
                         <input name="org_url" type="url" defaultValue={s.org_url ?? ''} className={inputCls} />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Method</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Method</label>
                         <select name="ingestion_method" defaultValue={s.ingestion_method} className={inputCls}>
                           {METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                         </select>
                       </div>
                       <div className="md:col-span-5">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">iCal URL</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">iCal URL</label>
                         <input name="ical_url" type="url" defaultValue={s.ical_url ?? ''} className={inputCls} />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Frequency</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Frequency</label>
                         <select name="scrape_frequency" defaultValue={s.scrape_frequency ?? 'weekly'} className={inputCls}>
                           {FREQUENCIES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
                         </select>
                       </div>
                       <div className="md:col-span-5">
-                        <label className="block text-[11px] font-semibold text-gray-500 mb-1">Notes</label>
+                        <label className="block text-[11px] font-semibold text-portal-sub mb-1">Notes</label>
                         <input name="notes" type="text" defaultValue={s.notes ?? ''} className={inputCls} />
                       </div>
                       <div className="md:col-span-12 flex gap-2">
@@ -357,7 +357,7 @@ export default async function SourcesAdminPage() {
                     </form>
                     <form action={deleteSource} className="mt-2">
                       <input type="hidden" name="id" value={s.id} />
-                      <button type="submit" className="text-xs text-red-600 hover:text-red-700 font-semibold">
+                      <button type="submit" className="text-xs text-portal-red hover:text-red-700 font-semibold">
                         Delete permanently
                       </button>
                     </form>

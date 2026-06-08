@@ -129,16 +129,16 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
   return (
     <section>
       <SectionHeading icon={Send} title="Quick actions" description="Enqueue scheduled templates manually or drain the queue right now" />
-      <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+      <div className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* On-our-way */}
-          <div className="rounded-md border border-gray-200 p-3 space-y-2">
-            <p className="text-sm font-bold text-gray-900">Send &ldquo;On our way&rdquo;</p>
-            <p className="text-[11px] text-gray-500">To every stop with a contact email{routeId ? ' on the selected route' : ' in this region'}.</p>
+          <div className="rounded-md border border-portal-border p-3 space-y-2">
+            <p className="text-sm font-bold text-portal-text">Send &ldquo;On our way&rdquo;</p>
+            <p className="text-[11px] text-portal-sub">To every stop with a contact email{routeId ? ' on the selected route' : ' in this region'}.</p>
             <select
               value={routeId}
               onChange={e => setRouteId(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+              className="w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
             >
               <option value="">— Whole region —</option>
               {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -154,9 +154,9 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
           </div>
 
           {/* Reminders */}
-          <div className="rounded-md border border-gray-200 p-3 space-y-2">
-            <p className="text-sm font-bold text-gray-900">Send invoice reminders</p>
-            <p className="text-[11px] text-gray-500">To drivers who haven&apos;t submitted yet this month.</p>
+          <div className="rounded-md border border-portal-border p-3 space-y-2">
+            <p className="text-sm font-bold text-portal-text">Send invoice reminders</p>
+            <p className="text-[11px] text-portal-sub">To drivers who haven&apos;t submitted yet this month.</p>
             <button
               onClick={() => call('send-reminders')}
               disabled={busy !== null}
@@ -168,14 +168,14 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
           </div>
 
           {/* Test */}
-          <div className="rounded-md border border-gray-200 p-3 space-y-2">
-            <p className="text-sm font-bold text-gray-900">Send a test email</p>
+          <div className="rounded-md border border-portal-border p-3 space-y-2">
+            <p className="text-sm font-bold text-portal-text">Send a test email</p>
             <input
               type="email"
               value={testEmail}
               onChange={e => setTestEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+              className="w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
             />
             <button
               onClick={() => call('send-test', { to_email: testEmail })}
@@ -188,9 +188,9 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
           </div>
 
           {/* Drain queue */}
-          <div className="rounded-md border border-gray-200 p-3 space-y-2">
-            <p className="text-sm font-bold text-gray-900">Process queue now</p>
-            <p className="text-[11px] text-gray-500">Drains the pending queue (batch 30) via Resend.</p>
+          <div className="rounded-md border border-portal-border p-3 space-y-2">
+            <p className="text-sm font-bold text-portal-text">Process queue now</p>
+            <p className="text-[11px] text-portal-sub">Drains the pending queue (batch 30) via Resend.</p>
             <button
               onClick={() => call('process-queue', { batch_size: 30 })}
               disabled={busy !== null}
@@ -203,7 +203,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
         </div>
 
         {result && (
-          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-red-600'} flex items-center gap-1`}>
+          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-portal-red'} flex items-center gap-1`}>
             {result.ok ? <Check size={11} /> : <AlertTriangle size={11} />}
             {result.text}
           </p>
@@ -247,15 +247,15 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
         {templates.map(t => {
           const isOpen = openId === t.id
           return (
-            <li key={t.id} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <li key={t.id} className="rounded-xl border border-portal-border bg-white overflow-hidden">
               <button
                 onClick={() => setOpenId(isOpen ? null : t.id)}
-                className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50"
+                className="w-full flex items-center gap-3 p-3 text-left hover:bg-portal-bg"
               >
-                <Mail size={14} className="text-gray-400 shrink-0" />
+                <Mail size={14} className="text-portal-muted shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{t.name}</p>
-                  <p className="text-[11px] text-gray-500 truncate">
+                  <p className="text-sm font-bold text-portal-text truncate">{t.name}</p>
+                  <p className="text-[11px] text-portal-sub truncate">
                     {t.trigger_type === 'scheduled' ? `Scheduled · day ${t.send_day}` : 'Triggered automatically'}
                     {!t.active && ' · disabled'}
                     {t.description ? ` · ${t.description}` : ''}
@@ -264,14 +264,14 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
                 <ChevronDown size={14} className={`text-gray-300 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               {isOpen && (
-                <div className="border-t border-gray-100 p-3 space-y-2 bg-gray-50">
+                <div className="border-t border-gray-100 p-3 space-y-2 bg-portal-bg">
                   <FieldText label="Subject" value={t.subject} onChange={v => patch(t.id, { subject: v })} />
                   <FieldArea label="Body (HTML — supports {{tokens}})" value={t.body_html} onChange={v => patch(t.id, { body_html: v })} rows={8} />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
                     {t.trigger_type === 'scheduled' && (
                       <FieldNumber label="Send day" value={t.send_day} onChange={v => patch(t.id, { send_day: v })} />
                     )}
-                    <label className="flex items-center gap-1.5 text-xs text-gray-700">
+                    <label className="flex items-center gap-1.5 text-xs text-portal-text">
                       <input type="checkbox" checked={t.active} onChange={e => patch(t.id, { active: e.target.checked })} />
                       Active
                     </label>
@@ -292,7 +292,7 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
           )
         })}
         {templates.length === 0 && (
-          <p className="text-xs text-gray-500 italic px-3">No templates seeded yet — apply migration 114 first.</p>
+          <p className="text-xs text-portal-sub italic px-3">No templates seeded yet — apply migration 114 first.</p>
         )}
       </ul>
     </section>
@@ -334,13 +334,13 @@ function SchedulesEditor({ schedules, onChange }: { schedules: RouteSchedule[]; 
     <section>
       <SectionHeading icon={Calendar} title="Per-route schedules" description="When does each route's monthly cycle fire?" />
       {schedules.length === 0 ? (
-        <p className="text-xs text-gray-500 italic px-3">Add routes first to configure their schedules.</p>
+        <p className="text-xs text-portal-sub italic px-3">Add routes first to configure their schedules.</p>
       ) : (
         <ul className="space-y-2">
           {schedules.map(s => (
-            <li key={s.route_id} className="rounded-xl border border-gray-200 bg-white p-3">
+            <li key={s.route_id} className="rounded-xl border border-portal-border bg-white p-3">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-bold text-gray-900">{s.route_name}</p>
+                <p className="text-sm font-bold text-portal-text">{s.route_name}</p>
                 <button
                   onClick={() => save(s)}
                   disabled={busy === s.route_id}
@@ -370,35 +370,35 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
   return (
     <section>
       <SectionHeading icon={Inbox} title="Queue" description="Recent 50 outbound emails" />
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
         <div className="flex items-center gap-3 p-3 border-b border-gray-100 text-xs">
           <Badge label="Pending"  count={stats.pending  ?? 0} color="amber" />
           <Badge label="Sending"  count={stats.sending  ?? 0} color="blue"  />
           <Badge label="Sent"     count={stats.sent     ?? 0} color="green" />
           <Badge label="Failed"   count={stats.failed   ?? 0} color="red"   />
-          <button onClick={onRefresh} className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-gray-600 hover:text-gray-900">
+          <button onClick={onRefresh} className="ml-auto inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-portal-sub hover:text-portal-text">
             <RotateCw size={11} /> Refresh
           </button>
         </div>
         {queue.length === 0 ? (
-          <p className="text-xs text-gray-500 italic p-4">No emails sent yet.</p>
+          <p className="text-xs text-portal-sub italic p-4">No emails sent yet.</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {queue.map(r => (
               <li key={r.id} className="p-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{r.subject}</p>
-                  <p className="text-[11px] text-gray-500 truncate">
+                  <p className="text-sm font-semibold text-portal-text truncate">{r.subject}</p>
+                  <p className="text-[11px] text-portal-sub truncate">
                     {r.to_email}
                     {r.template_key && <> · <code className="bg-gray-100 px-1 rounded">{r.template_key}</code></>}
                   </p>
                   {r.last_error && (
-                    <p className="text-[11px] text-red-600 mt-0.5">⚠ {r.last_error}</p>
+                    <p className="text-[11px] text-portal-red mt-0.5">⚠ {r.last_error}</p>
                   )}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className={`text-[10px] font-bold uppercase tracking-wider ${STATUS_COLOR[r.status] ?? 'text-gray-500'}`}>{r.status}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+                  <p className={`text-[10px] font-bold uppercase tracking-wider ${STATUS_COLOR[r.status] ?? 'text-portal-sub'}`}>{r.status}</p>
+                  <p className="text-[10px] text-portal-muted mt-0.5">{new Date(r.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
                 </div>
               </li>
             ))}
@@ -413,7 +413,7 @@ const STATUS_COLOR: Record<string, string> = {
   pending: 'text-amber-600',
   sending: 'text-portal-blue',
   sent:    'text-emerald-600',
-  failed:  'text-red-600',
+  failed:  'text-portal-red',
 }
 
 function Badge({ label, count, color }: { label: string; count: number; color: 'amber' | 'blue' | 'green' | 'red' }) {
@@ -436,10 +436,10 @@ function Badge({ label, count, color }: { label: string; count: number; color: '
 function SectionHeading({ icon: Icon, title, description }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; description?: string }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <Icon size={14} className="text-gray-400 shrink-0" />
+      <Icon size={14} className="text-portal-muted shrink-0" />
       <div>
-        <h2 className="text-sm font-bold text-gray-900">{title}</h2>
-        {description && <p className="text-[11px] text-gray-500">{description}</p>}
+        <h2 className="text-sm font-bold text-portal-text">{title}</h2>
+        {description && <p className="text-[11px] text-portal-sub">{description}</p>}
       </div>
     </div>
   )
@@ -448,11 +448,11 @@ function SectionHeading({ icon: Icon, title, description }: { icon: React.Compon
 function FieldText({ label, value, onChange }: { label: string; value: string; onChange: (s: string) => void }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -461,12 +461,12 @@ function FieldText({ label, value, onChange }: { label: string; value: string; o
 function FieldArea({ label, value, onChange, rows = 4 }: { label: string; value: string; onChange: (s: string) => void; rows?: number }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <textarea
         value={value}
         onChange={e => onChange(e.target.value)}
         rows={rows}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
+        className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
       />
     </label>
   )
@@ -475,14 +475,14 @@ function FieldArea({ label, value, onChange, rows = 4 }: { label: string; value:
 function FieldNumber({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <input
         type="number"
         value={value}
         min={1}
         max={31}
         onChange={e => onChange(parseInt(e.target.value || '0', 10))}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )

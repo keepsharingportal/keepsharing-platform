@@ -22,7 +22,7 @@ function StatusDot({ status }: { status: Status }) {
 
 function StatCard({ label, value, sub, status }: { label: string; value: number | string; sub?: string; status: Status }) {
   const bg = status === 'ok' ? 'bg-green-50 border-green-200' : status === 'warn' ? 'bg-portal-amber-lt border-amber-200' : 'bg-red-50 border-red-200'
-  const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-portal-amber' : 'text-red-600'
+  const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-portal-amber' : 'text-portal-red'
   return (
     <div className={`rounded-xl border px-5 py-4 ${bg}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>

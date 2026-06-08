@@ -123,7 +123,7 @@ export function GalleryEditor({ value, onChange }: Props) {
       {safeValue.length > 0 && (
         <ul className="space-y-2">
           {safeValue.map((img, i) => (
-            <li key={`${img.url}-${i}`} className="flex gap-3 p-2.5 rounded-lg border border-gray-200 bg-white">
+            <li key={`${img.url}-${i}`} className="flex gap-3 p-2.5 rounded-lg border border-portal-border bg-white">
               {/* Thumb */}
               <div className="relative w-24 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0 ring-1 ring-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,23 +136,23 @@ export function GalleryEditor({ value, onChange }: Props) {
               {/* Fields */}
               <div className="flex-1 min-w-0 space-y-1.5">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Alt text (for screen readers + SEO)</label>
+                  <label className="block text-[10px] font-bold text-portal-muted uppercase tracking-wider mb-0.5">Alt text (for screen readers + SEO)</label>
                   <input
                     type="text"
                     value={img.alt ?? ''}
                     onChange={e => patchAt(i, { alt: e.target.value })}
                     placeholder="Harper Love serving at state semifinals"
-                    className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 outline-none focus:border-blue-400 bg-white"
+                    className="w-full px-2 py-1.5 text-xs rounded-md border border-portal-border outline-none focus:border-portal-blue bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Caption (optional, shown in lightbox)</label>
+                  <label className="block text-[10px] font-bold text-portal-muted uppercase tracking-wider mb-0.5">Caption (optional, shown in lightbox)</label>
                   <input
                     type="text"
                     value={img.caption ?? ''}
                     onChange={e => patchAt(i, { caption: e.target.value })}
                     placeholder="Spring 2025 sectional semifinal"
-                    className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 outline-none focus:border-blue-400 bg-white"
+                    className="w-full px-2 py-1.5 text-xs rounded-md border border-portal-border outline-none focus:border-portal-blue bg-white"
                   />
                 </div>
               </div>
@@ -160,17 +160,17 @@ export function GalleryEditor({ value, onChange }: Props) {
               {/* Controls */}
               <div className="flex flex-col gap-1 shrink-0">
                 <button type="button" onClick={() => move(i, -1)} disabled={i === 0}
-                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-portal-bg hover:bg-portal-row-hover text-portal-sub disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move up">
                   <ArrowUp size={13} />
                 </button>
                 <button type="button" onClick={() => move(i, 1)} disabled={i === safeValue.length - 1}
-                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-gray-50 hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-portal-bg hover:bg-portal-row-hover text-portal-sub disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move down">
                   <ArrowDown size={13} />
                 </button>
                 <button type="button" onClick={() => removeAt(i)}
-                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-red-50 hover:bg-red-100 text-red-600"
+                  className="w-7 h-7 inline-flex items-center justify-center rounded-md bg-red-50 hover:bg-red-100 text-portal-red"
                   title="Remove image">
                   <X size={13} />
                 </button>
@@ -186,29 +186,29 @@ export function GalleryEditor({ value, onChange }: Props) {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
+          className="w-full flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border-2 border-dashed border-portal-border bg-portal-bg hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <>
               <RefreshCw size={16} className="text-portal-blue animate-spin" />
-              <span className="text-xs font-semibold text-gray-600">
+              <span className="text-xs font-semibold text-portal-sub">
                 Uploading {progress ? `${progress.done} of ${progress.total}` : '…'}
               </span>
             </>
           ) : (
             <>
-              <ImageIcon size={16} className="text-gray-400" />
-              <span className="text-xs font-semibold text-gray-600">
+              <ImageIcon size={16} className="text-portal-muted" />
+              <span className="text-xs font-semibold text-portal-sub">
                 {safeValue.length === 0 ? 'Add photos to the gallery' : '+ Add more photos'}
               </span>
-              <span className="text-[10px] text-gray-400">Multi-select supported · JPEG, PNG, WebP · max 15 MB each</span>
+              <span className="text-[10px] text-portal-muted">Multi-select supported · JPEG, PNG, WebP · max 15 MB each</span>
             </>
           )}
         </button>
       )}
 
       {safeValue.length >= MAX_IMAGES && (
-        <p className="text-xs text-gray-500 italic">Gallery cap reached ({MAX_IMAGES} images). Remove one to add another.</p>
+        <p className="text-xs text-portal-sub italic">Gallery cap reached ({MAX_IMAGES} images). Remove one to add another.</p>
       )}
 
       {error && (
@@ -219,7 +219,7 @@ export function GalleryEditor({ value, onChange }: Props) {
       )}
 
       {/* Helper text — explains how this fits with the body editor */}
-      <p className="text-[11px] text-gray-500 leading-relaxed">
+      <p className="text-[11px] text-portal-sub leading-relaxed">
         Gallery photos appear in a grid below the article body and pop up in a branded lightbox when clicked.
         Use this for supporting photos that don&apos;t need to live inside the story — the rich text editor still handles inline images that wrap with the prose.
       </p>

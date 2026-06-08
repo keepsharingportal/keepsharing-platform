@@ -187,7 +187,7 @@ export function StopEditor({ routeId, market, initialStops }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-700">{stops.length} stops</p>
+        <p className="text-sm font-semibold text-portal-text">{stops.length} stops</p>
         <button
           onClick={addStop}
           disabled={busy !== null}
@@ -198,13 +198,13 @@ export function StopEditor({ routeId, market, initialStops }: Props) {
         </button>
       </div>
 
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
 
       <ul className="space-y-2">
         {stops.map((stop, idx) => (
           <li
             key={stop.id}
-            className={`rounded-xl border bg-white ${editing === stop.id ? 'border-portal-border-2 ring-1 ring-portal-blue/20' : 'border-gray-200'}`}
+            className={`rounded-xl border bg-white ${editing === stop.id ? 'border-portal-border-2 ring-1 ring-portal-blue/20' : 'border-portal-border'}`}
           >
             {editing === stop.id ? (
               <EditRow
@@ -243,39 +243,39 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
   return (
     <div className="flex items-start gap-3 p-3">
       <div className="flex flex-col items-center gap-0.5 text-gray-300 shrink-0">
-        <button onClick={onUp}   disabled={idx === 0 || busyReorder} className="disabled:opacity-30 hover:text-gray-600"><ArrowUp   size={12} /></button>
-        <span className="text-[10px] font-bold text-gray-400 tabular-nums">{idx + 1}</span>
-        <button onClick={onDown} disabled={last || busyReorder} className="disabled:opacity-30 hover:text-gray-600"><ArrowDown size={12} /></button>
+        <button onClick={onUp}   disabled={idx === 0 || busyReorder} className="disabled:opacity-30 hover:text-portal-sub"><ArrowUp   size={12} /></button>
+        <span className="text-[10px] font-bold text-portal-muted tabular-nums">{idx + 1}</span>
+        <button onClick={onDown} disabled={last || busyReorder} className="disabled:opacity-30 hover:text-portal-sub"><ArrowDown size={12} /></button>
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <p className="text-sm font-bold text-gray-900 truncate">{stop.name}</p>
+          <p className="text-sm font-bold text-portal-text truncate">{stop.name}</p>
           {stop.is_advertiser   && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-semibold">Advertiser</span>}
           {stop.ad_level === 'platinum' && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-0.5"><Star size={9} fill="currentColor" /> Platinum</span>}
           {stop.ad_level === 'gold'     && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">Gold</span>}
           {stop.not_delivering  && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">Not delivering</span>}
-          {!stop.active         && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+          {!stop.active         && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
           {hasGeo               && <span title="Geocoded" className="text-[10px] inline-flex items-center gap-0.5 text-green-700"><MapPin size={9} /></span>}
         </div>
-        <p className="text-xs text-gray-500 mt-0.5 truncate">
+        <p className="text-xs text-portal-sub mt-0.5 truncate">
           {stop.address}{stop.city ? ` · ${stop.city}` : ''}
         </p>
         {stop.quantities && Object.keys(stop.quantities).length > 0 && (
-          <p className="text-[11px] text-gray-600 mt-0.5">
+          <p className="text-[11px] text-portal-sub mt-0.5">
             {Object.entries(stop.quantities).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(' · ')}
           </p>
         )}
         {stop.notes && (
-          <p className="text-[11px] text-gray-500 mt-0.5 italic truncate">{stop.notes}</p>
+          <p className="text-[11px] text-portal-sub mt-0.5 italic truncate">{stop.notes}</p>
         )}
       </div>
 
       <div className="flex flex-col gap-1 shrink-0">
-        <button onClick={onEdit} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50">
+        <button onClick={onEdit} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg">
           <Pencil size={11} /> Edit
         </button>
-        <button onClick={onDelete} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+        <button onClick={onDelete} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
           <Trash2 size={11} /> Delete
         </button>
       </div>
@@ -292,8 +292,8 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
   return (
     <div className="p-3 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-900">Editing stop</p>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+        <p className="text-sm font-bold text-portal-text">Editing stop</p>
+        <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -315,7 +315,7 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
         <FieldArea label="Notes" value={stop.notes ?? ''} onChange={v => patch({ notes: v || null })} className="md:col-span-2" />
       </div>
 
-      <div className="flex flex-wrap gap-3 items-center text-xs text-gray-700">
+      <div className="flex flex-wrap gap-3 items-center text-xs text-portal-text">
         <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={stop.active} onChange={e => patch({ active: e.target.checked })} />
           Active
@@ -334,7 +334,7 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
         </label>
         <label className="flex items-center gap-1.5">
           Ad level:
-          <select value={stop.ad_level} onChange={e => patch({ ad_level: e.target.value })} className="border border-gray-300 rounded-md px-2 py-1 text-xs">
+          <select value={stop.ad_level} onChange={e => patch({ ad_level: e.target.value })} className="border border-portal-border-2 rounded-md px-2 py-1 text-xs">
             <option value="">none</option>
             <option value="gold">Gold</option>
             <option value="platinum">Platinum</option>
@@ -351,7 +351,7 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-portal-sub rounded-lg hover:bg-portal-row-hover">Cancel</button>
       </div>
     </div>
   )
@@ -360,11 +360,11 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
 function Field({ label, value, onChange, className }: { label: string; value: string; onChange: (s: string) => void; className?: string }) {
   return (
     <label className={`block ${className ?? ''}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -373,12 +373,12 @@ function Field({ label, value, onChange, className }: { label: string; value: st
 function FieldArea({ label, value, onChange, className }: { label: string; value: string; onChange: (s: string) => void; className?: string }) {
   return (
     <label className={`block ${className ?? ''}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <textarea
         value={value}
         rows={2}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
+        className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
       />
     </label>
   )

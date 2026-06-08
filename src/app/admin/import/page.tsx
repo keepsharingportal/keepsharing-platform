@@ -3,11 +3,11 @@ import { ImportClient } from '@/components/advertisers/ImportClient'
 export default function ImportPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Import Zoho Data</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h1 className="text-xl font-semibold text-portal-text">Import Zoho Data</h1>
+            <p className="text-sm text-portal-sub mt-0.5">
               Upload your Zoho CRM CSV export · Businesses and contacts are auto-created
             </p>
           </div>

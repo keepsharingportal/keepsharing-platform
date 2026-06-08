@@ -39,7 +39,7 @@ const ROLE_BADGE: Record<AdminRole, string> = {
   super:     'bg-portal-amber-lt text-portal-amber ring-amber-200',
   admin:     'bg-violet-100 text-violet-800 ring-violet-200',
   publisher: 'bg-sky-100 text-sky-800 ring-sky-200',
-  editor:    'bg-gray-100 text-gray-700 ring-gray-200',
+  editor:    'bg-gray-100 text-portal-text ring-gray-200',
 }
 
 function fmtDate(iso: string | null): string {
@@ -101,12 +101,12 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
             <Shield size={18} className="text-portal-blue" /> Admin Users
           </h1>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-portal-sub">
             Staff who can sign into the admin
           </span>
         </div>
@@ -119,7 +119,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
       </div>
 
       {/* Stat strip */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 flex-wrap">
         <StatChip label="Super Admin" count={counts.super}     accent="amber" />
         <StatChip label="Admin"       count={counts.admin}     accent="violet" />
         <StatChip label="Publisher"   count={counts.publisher} accent="sky" />
@@ -127,7 +127,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
         {counts.suspended > 0 && (
           <StatChip label="Suspended"   count={counts.suspended} accent="rose" />
         )}
-        <span className="ml-auto text-[11px] text-gray-500">
+        <span className="ml-auto text-[11px] text-portal-sub">
           {counts.total} {counts.total === 1 ? 'total account' : 'total accounts'}
         </span>
       </div>
@@ -141,21 +141,21 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
       )}
 
       {/* Filter bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
         <div className="relative flex-1 min-w-[220px] max-w-xs">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
           <input
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name, email…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value as 'all' | AdminRole)}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
+          className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="all">All roles</option>
           <option value="super">Super Admin</option>
@@ -166,7 +166,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as 'active' | 'suspended' | 'all')}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
+          className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="active">Active</option>
           <option value="suspended">Suspended</option>
@@ -177,12 +177,12 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
             <Shield size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No admins match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
             {filtered.map(row => (
               <AdminRowItem
                 key={row.id}
@@ -209,7 +209,7 @@ function StatChip({ label, count, accent }: { label: string; count: number; acce
     amber:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
     violet: 'bg-violet-50 text-violet-800 ring-violet-200',
     sky:    'bg-sky-50 text-sky-800 ring-sky-200',
-    gray:   'bg-gray-50 text-gray-700 ring-gray-200',
+    gray:   'bg-portal-bg text-portal-text ring-gray-200',
     rose:   'bg-portal-red-lt text-portal-red ring-rose-200',
   }
   return (
@@ -278,7 +278,7 @@ function InvitePanel({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -320,7 +320,7 @@ function InvitePanel({
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
                       ? 'bg-portal-navy text-white ring-blue-600'
-                      : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50'
+                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg'
                   }`}
                 >
                   {m.short} <span className="opacity-70">· {m.displayName}</span>
@@ -328,7 +328,7 @@ function InvitePanel({
               )
             })}
           </div>
-          <p className="mt-1.5 text-[11px] text-gray-500">
+          <p className="mt-1.5 text-[11px] text-portal-sub">
             {role === 'publisher' ? 'Publishers' : 'Editors'} only see content for the markets you select.
           </p>
         </div>
@@ -443,17 +443,17 @@ function AdminRowItem({
       : (row.allowed_markets ?? []).map(m => marketShort(m)).join(', ')
 
   return (
-    <div className={`transition-colors ${row.status === 'suspended' ? 'bg-gray-50/60 opacity-70' : 'bg-white hover:bg-gray-50/60'}`}>
+    <div className={`transition-colors ${row.status === 'suspended' ? 'bg-portal-bg/60 opacity-70' : 'bg-white hover:bg-portal-bg/60'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         {/* Avatar */}
-        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 ring-1 ring-gray-200 flex items-center justify-center text-sm font-bold text-gray-500">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 ring-1 ring-gray-200 flex items-center justify-center text-sm font-bold text-portal-sub">
           {(row.full_name || row.email).slice(0, 1).toUpperCase()}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-            <h3 className="text-sm font-bold text-gray-900 truncate">
+            <h3 className="text-sm font-bold text-portal-text truncate">
               {row.full_name || row.email.split('@')[0]}
             </h3>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${ROLE_BADGE[row.role]}`}>
@@ -475,17 +475,17 @@ function AdminRowItem({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-portal-sub">
             <span className="inline-flex items-center gap-1">
               <Mail size={11} /> {row.email}
             </span>
             <span>
-              <span className="text-gray-400">Markets:</span>{' '}
-              <span className="font-semibold text-gray-700">{marketsDisplay}</span>
+              <span className="text-portal-muted">Markets:</span>{' '}
+              <span className="font-semibold text-portal-text">{marketsDisplay}</span>
             </span>
             <span>
-              <span className="text-gray-400">Last seen:</span>{' '}
-              <span className="font-semibold text-gray-700">{fmtDate(row.last_login_at)}</span>
+              <span className="text-portal-muted">Last seen:</span>{' '}
+              <span className="font-semibold text-portal-text">{fmtDate(row.last_login_at)}</span>
             </span>
           </div>
           {err && <p className="text-xs text-portal-red font-semibold mt-1">{err}</p>}
@@ -511,7 +511,7 @@ function AdminRowItem({
                   onClick={() => setStatus('suspended')}
                   disabled={busy !== null || isSelf}
                   title={isSelf ? "You can't suspend yourself" : 'Suspend admin access'}
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
                 >
                   {busy === 'suspend' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                   Suspend
@@ -528,7 +528,7 @@ function AdminRowItem({
               )}
               <button
                 onClick={editing ? onCancelEdit : onEdit}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
               >
                 <Pencil size={11} />
                 {editing ? 'Close' : 'Edit'}
@@ -537,14 +537,14 @@ function AdminRowItem({
                 onClick={remove}
                 disabled={busy !== null || isSelf}
                 title={isSelf ? "You can't delete yourself" : 'Delete admin'}
-                className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40 disabled:hover:text-gray-400 disabled:hover:bg-transparent"
+                className="p-1 text-portal-muted hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40 disabled:hover:text-portal-muted disabled:hover:bg-transparent"
               >
                 {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
               </button>
             </>
           ) : (
             <span
-              className="text-[11px] text-gray-400 italic px-2"
+              className="text-[11px] text-portal-muted italic px-2"
               title={manage.reason}
             >
               Locked
@@ -637,7 +637,7 @@ function EditRowPanel({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -654,13 +654,13 @@ function EditRowPanel({
               value={role}
               onChange={e => setRole(e.target.value as AdminRole)}
               disabled={roleLocked}
-              className={`${inp} cursor-pointer disabled:bg-gray-50 disabled:cursor-not-allowed appearance-none pr-8`}
+              className={`${inp} cursor-pointer disabled:bg-portal-bg disabled:cursor-not-allowed appearance-none pr-8`}
             >
               {targetRoleOpts.map(r => (
                 <option key={r} value={r}>{ROLE_LABELS[r]}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
           </div>
         </div>
       </div>
@@ -679,7 +679,7 @@ function EditRowPanel({
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
                       ? 'bg-portal-navy text-white ring-blue-600'
-                      : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50'
+                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg'
                   }`}
                   title={marketDisplayName(m.slug)}
                 >
@@ -759,7 +759,7 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (

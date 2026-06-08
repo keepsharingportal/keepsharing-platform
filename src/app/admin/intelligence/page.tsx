@@ -636,9 +636,9 @@ export default async function IntelligencePage({
         {/* ── Recommended Actions ─────────────────────────────────────── */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-base font-bold text-gray-900">Recommended Actions</h2>
+            <h2 className="text-base font-bold text-portal-text">Recommended Actions</h2>
             <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-[11px] text-gray-400">{recommendedActions.length} items</span>
+            <span className="text-[11px] text-portal-muted">{recommendedActions.length} items</span>
           </div>
 
           {recommendedActions.length === 0 ? (
@@ -663,16 +663,16 @@ export default async function IntelligencePage({
                       <span className="text-xl mt-0.5 shrink-0">{action.icon}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-gray-900 flex-1">{action.title}</p>
+                          <p className="text-sm font-semibold text-portal-text flex-1">{action.title}</p>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 ${style.label}`}>
                             {action.priority}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{action.detail}</p>
+                        <p className="text-xs text-portal-sub mt-0.5 leading-relaxed">{action.detail}</p>
                       </div>
                       <Link
                         href={action.href}
-                        className="text-xs font-bold text-gray-600 hover:text-gray-900 shrink-0 pt-0.5 hover:underline"
+                        className="text-xs font-bold text-portal-sub hover:text-portal-text shrink-0 pt-0.5 hover:underline"
                       >
                         Go →
                       </Link>
@@ -690,7 +690,7 @@ export default async function IntelligencePage({
           {/* Revenue Intelligence */}
           <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700">Revenue Intelligence</h2>
+              <h2 className="text-sm font-bold text-portal-text">Revenue Intelligence</h2>
               <Link href="/admin/advertisers" className="text-xs text-indigo-600 hover:underline font-semibold">Advertisers →</Link>
             </div>
             <div className="p-5 space-y-4">
@@ -702,43 +702,43 @@ export default async function IntelligencePage({
                   { label: 'Upgrading', val: upgradeReady.length, color: '#d97706' },
                   { label: 'At-Risk',   val: atRisk.length,       color: atRisk.length > 0 ? '#dc2626' : '#9ca3af' },
                 ] as const).map(({ label, val, color }) => (
-                  <div key={label} className="text-center bg-gray-50 rounded-xl py-3">
+                  <div key={label} className="text-center bg-portal-bg rounded-xl py-3">
                     <p className="text-2xl font-bold" style={{ color }}>{val}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{label}</p>
+                    <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
 
               {/* Proposals */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Proposals</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Proposals</p>
                 <div className="space-y-1.5">
                   {proposalsSent.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Open / sent</span>
-                      <span className="font-semibold text-gray-800">{proposalsSent.length}</span>
+                      <span className="text-portal-sub">Open / sent</span>
+                      <span className="font-semibold text-portal-text">{proposalsSent.length}</span>
                     </div>
                   )}
                   {proposalsViewed.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Viewed (intent signal)</span>
+                      <span className="text-portal-sub">Viewed (intent signal)</span>
                       <span className="font-semibold text-amber-600">{proposalsViewed.length}</span>
                     </div>
                   )}
                   {proposalsExpiring.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Expiring ≤7 days</span>
-                      <span className="font-semibold text-red-600">{proposalsExpiring.length}</span>
+                      <span className="text-portal-sub">Expiring ≤7 days</span>
+                      <span className="font-semibold text-portal-red">{proposalsExpiring.length}</span>
                     </div>
                   )}
                   {proposalsAccepted > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Accepted</span>
+                      <span className="text-portal-sub">Accepted</span>
                       <span className="font-semibold text-green-600">{proposalsAccepted}</span>
                     </div>
                   )}
                   {proposals.length === 0 && (
-                    <p className="text-xs text-gray-400">No proposals yet.</p>
+                    <p className="text-xs text-portal-muted">No proposals yet.</p>
                   )}
                 </div>
               </div>
@@ -746,12 +746,12 @@ export default async function IntelligencePage({
               {/* Sponsor coverage gaps */}
               {sponsorGaps.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Unsponsored Category Gaps</p>
+                  <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Unsponsored Category Gaps</p>
                   <div className="space-y-1">
                     {sponsorGaps.map(cat => (
                       <div key={cat} className="flex items-center gap-2 text-xs">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                        <span className="text-gray-600 truncate font-mono text-[11px]">{cat}</span>
+                        <span className="text-portal-sub truncate font-mono text-[11px]">{cat}</span>
                         <span className="text-red-500 font-semibold shrink-0">No sponsor</span>
                       </div>
                     ))}
@@ -776,14 +776,14 @@ export default async function IntelligencePage({
               {/* Ad placement signals */}
               {totalImpressions > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Ad Placement Activity</p>
+                  <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1.5">Ad Placement Activity</p>
                   <div className="flex items-center gap-4 text-xs">
-                    <span className="text-gray-600">{totalImpressions.toLocaleString()} impressions</span>
-                    <span className="text-gray-400">·</span>
-                    <span className="text-gray-600">{totalClicks.toLocaleString()} clicks</span>
+                    <span className="text-portal-sub">{totalImpressions.toLocaleString()} impressions</span>
+                    <span className="text-portal-muted">·</span>
+                    <span className="text-portal-sub">{totalClicks.toLocaleString()} clicks</span>
                     {totalImpressions > 0 && (
                       <>
-                        <span className="text-gray-400">·</span>
+                        <span className="text-portal-muted">·</span>
                         <span className="font-semibold text-indigo-600">{((totalClicks / totalImpressions) * 100).toFixed(1)}% CTR</span>
                       </>
                     )}
@@ -796,7 +796,7 @@ export default async function IntelligencePage({
           {/* Editorial Intelligence */}
           <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700">Editorial Intelligence</h2>
+              <h2 className="text-sm font-bold text-portal-text">Editorial Intelligence</h2>
               <Link href="/admin/community" className="text-xs text-indigo-600 hover:underline font-semibold">Community →</Link>
             </div>
             <div className="p-5 space-y-4">
@@ -808,16 +808,16 @@ export default async function IntelligencePage({
                   { label: 'In Work',    val: inProgress.length,    color: '#2563eb' },
                   { label: 'Ready',      val: readyToPublish.length, color: '#16a34a' },
                 ] as const).map(({ label, val, color }) => (
-                  <div key={label} className="text-center bg-gray-50 rounded-xl py-3">
+                  <div key={label} className="text-center bg-portal-bg rounded-xl py-3">
                     <p className="text-2xl font-bold" style={{ color }}>{val}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{label}</p>
+                    <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
 
               {/* Distribution readiness */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Distribution Readiness</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Distribution Readiness</p>
                 <div className="space-y-2">
                   {[
                     { label: 'Social approved', val: socialReady.length,       suffix: `${socialUnexported.length} not yet exported`, color: '#7c3aed' },
@@ -826,9 +826,9 @@ export default async function IntelligencePage({
                   ].map(({ label, val, suffix, color }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                      <span className="text-xs text-gray-700 flex-1">{label}</span>
-                      <span className="text-xs font-bold text-gray-800">{val}</span>
-                      <span className="text-[10px] text-gray-400 shrink-0">{suffix}</span>
+                      <span className="text-xs text-portal-text flex-1">{label}</span>
+                      <span className="text-xs font-bold text-portal-text">{val}</span>
+                      <span className="text-[10px] text-portal-muted shrink-0">{suffix}</span>
                     </div>
                   ))}
                 </div>
@@ -836,7 +836,7 @@ export default async function IntelligencePage({
 
               {/* Guide health */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Guide Health</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Guide Health</p>
                 <div className="space-y-1.5">
                   {guideHealth.slice(0, 6).map(g => {
                     const statusColor =
@@ -846,7 +846,7 @@ export default async function IntelligencePage({
                     return (
                       <div key={g.slug} className="flex items-center gap-2">
                         <span className="text-sm shrink-0">{g.emoji}</span>
-                        <span className="text-xs text-gray-600 flex-1 truncate">{g.name}</span>
+                        <span className="text-xs text-portal-sub flex-1 truncate">{g.name}</span>
                         <span className="text-[10px] font-semibold shrink-0" style={{ color: statusColor }}>
                           {g.count} articles
                         </span>
@@ -890,14 +890,14 @@ export default async function IntelligencePage({
           {/* Operational Intelligence */}
           <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700">Operational Intelligence</h2>
+              <h2 className="text-sm font-bold text-portal-text">Operational Intelligence</h2>
               <Link href="/admin/assets" className="text-xs text-indigo-600 hover:underline font-semibold">Assets →</Link>
             </div>
             <div className="p-5 space-y-4">
 
               {/* Asset readiness */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Asset Readiness ({totalAssets} total)</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Asset Readiness ({totalAssets} total)</p>
                 <div className="space-y-2">
                   {[
                     { label: 'Need design/Canva work', val: assetsNeedDesign,     color: '#ea580c', href: '/admin/assets?view=design'     },
@@ -912,7 +912,7 @@ export default async function IntelligencePage({
                         />
                       </div>
                       <span className="text-[11px] font-bold w-6 text-right" style={{ color }}>{val}</span>
-                      <Link href={href} className="text-[11px] text-gray-400 hover:text-indigo-600 hover:underline truncate max-w-[120px]">
+                      <Link href={href} className="text-[11px] text-portal-muted hover:text-indigo-600 hover:underline truncate max-w-[120px]">
                         {label}
                       </Link>
                     </div>
@@ -922,35 +922,35 @@ export default async function IntelligencePage({
 
               {/* Workflow bottlenecks */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Workflow Bottlenecks</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Workflow Bottlenecks</p>
                 <div className="space-y-2">
                   {pendingReview.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Editorial review queue</span>
-                      <Link href="/admin/community" className="font-semibold text-red-600 hover:underline">{pendingReview.length} waiting</Link>
+                      <span className="text-portal-sub">Editorial review queue</span>
+                      <Link href="/admin/community" className="font-semibold text-portal-red hover:underline">{pendingReview.length} waiting</Link>
                     </div>
                   )}
                   {noTeaser.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Newsletter teasers needed</span>
+                      <span className="text-portal-sub">Newsletter teasers needed</span>
                       <Link href="/admin/editorial/approval" className="font-semibold text-amber-600 hover:underline">{noTeaser.length} items</Link>
                     </div>
                   )}
                   {socialUnexported.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Social export pending</span>
+                      <span className="text-portal-sub">Social export pending</span>
                       <Link href="/admin/distribution/social-export" className="font-semibold text-purple-600 hover:underline">{socialUnexported.length} ready</Link>
                     </div>
                   )}
                   {pendingReview.length === 0 && noTeaser.length === 0 && socialUnexported.length === 0 && (
-                    <p className="text-xs text-gray-400">No workflow bottlenecks detected.</p>
+                    <p className="text-xs text-portal-muted">No workflow bottlenecks detected.</p>
                   )}
                 </div>
               </div>
 
               {/* Distribution summary */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Quick Navigation</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Quick Navigation</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { label: '📋 Editorial',    href: '/admin/editorial'              },
@@ -963,7 +963,7 @@ export default async function IntelligencePage({
                     <Link
                       key={href}
                       href={href}
-                      className="text-[11px] font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                      className="text-[11px] font-semibold text-portal-sub hover:text-portal-text hover:bg-portal-bg px-3 py-2 rounded-lg border border-gray-100 hover:border-portal-border transition-colors"
                     >
                       {label}
                     </Link>
@@ -976,18 +976,18 @@ export default async function IntelligencePage({
           {/* Audience Intelligence */}
           <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700">Audience Intelligence</h2>
+              <h2 className="text-sm font-bold text-portal-text">Audience Intelligence</h2>
               <Link href="/admin/engagement" className="text-xs text-indigo-600 hover:underline font-semibold">Engagement →</Link>
             </div>
             <div className="p-5 space-y-4">
 
               {/* Newsletter growth */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Newsletter Audience</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Newsletter Audience</p>
                 <div className="flex items-end gap-3">
                   <div>
-                    <p className="text-3xl font-bold text-gray-900">{totalSubscribers.toLocaleString()}</p>
-                    <p className="text-[11px] text-gray-400">subscribers across all publications</p>
+                    <p className="text-3xl font-bold text-portal-text">{totalSubscribers.toLocaleString()}</p>
+                    <p className="text-[11px] text-portal-muted">subscribers across all publications</p>
                   </div>
                   {newSubs24h > 0 && (
                     <span className="text-sm font-bold text-green-600 mb-0.5">+{newSubs24h} today</span>
@@ -997,7 +997,7 @@ export default async function IntelligencePage({
 
               {/* Participation signals */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Participation Signals (Active Queue)</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Participation Signals (Active Queue)</p>
                 <div className="space-y-2">
                   {[...subTypeCounts.entries()]
                     .sort((a, b) => b[1] - a[1])
@@ -1012,37 +1012,37 @@ export default async function IntelligencePage({
                           <span className="text-base w-5 shrink-0">{tc?.emoji}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1 mb-0.5">
-                              <p className="text-[11px] font-semibold text-gray-700 truncate">{tc?.shortLabel ?? type}</p>
+                              <p className="text-[11px] font-semibold text-portal-text truncate">{tc?.shortLabel ?? type}</p>
                               {isHS && <span className="text-[9px] bg-pink-100 text-pink-600 px-1 rounded font-bold shrink-0">🔥</span>}
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="flex-1 bg-gray-100 rounded-full h-1">
                                 <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${pct}%` }} />
                               </div>
-                              <span className="text-[11px] font-bold text-gray-600 w-4 text-right">{count}</span>
+                              <span className="text-[11px] font-bold text-portal-sub w-4 text-right">{count}</span>
                             </div>
                           </div>
                         </div>
                       )
                     })}
                   {subTypeCounts.size === 0 && (
-                    <p className="text-xs text-gray-400">No active submissions in queue.</p>
+                    <p className="text-xs text-portal-muted">No active submissions in queue.</p>
                   )}
                 </div>
               </div>
 
               {/* Family Favorites */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Family Favorites</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Family Favorites</p>
                 <div className="flex items-center gap-4 text-xs">
                   <div className="text-center">
                     <p className="text-xl font-bold text-yellow-500">{ffActive + ffPending}</p>
-                    <p className="text-[10px] text-gray-400">nominations</p>
+                    <p className="text-[10px] text-portal-muted">nominations</p>
                   </div>
                   {ffPending > 0 && (
                     <div className="text-center">
                       <p className="text-xl font-bold text-amber-500">{ffPending}</p>
-                      <p className="text-[10px] text-gray-400">pending review</p>
+                      <p className="text-[10px] text-portal-muted">pending review</p>
                     </div>
                   )}
                 </div>
@@ -1053,12 +1053,12 @@ export default async function IntelligencePage({
 
               {/* Leads yesterday */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Partner Leads (Last 24h)</p>
+                <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1.5">Partner Leads (Last 24h)</p>
                 <div className="flex items-center gap-3">
                   <p className="text-2xl font-bold" style={{ color: leadsYesterday > 0 ? '#16a34a' : '#9ca3af' }}>
                     {leadsYesterday}
                   </p>
-                  <p className="text-xs text-gray-500">new lead{leadsYesterday !== 1 ? 's' : ''} from partner engine</p>
+                  <p className="text-xs text-portal-sub">new lead{leadsYesterday !== 1 ? 's' : ''} from partner engine</p>
                 </div>
               </div>
             </div>
@@ -1071,10 +1071,10 @@ export default async function IntelligencePage({
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm">✨</span>
-                <h2 className="text-base font-bold text-gray-900">Strategic Opportunities</h2>
+                <h2 className="text-base font-bold text-portal-text">Strategic Opportunities</h2>
               </div>
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-[11px] text-gray-400">Data-derived · Not AI-generated yet</span>
+              <span className="text-[11px] text-portal-muted">Data-derived · Not AI-generated yet</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1090,7 +1090,7 @@ export default async function IntelligencePage({
                   <Link
                     key={i}
                     href={opp.href}
-                    className="block bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-sm transition-all group"
+                    className="block bg-white border border-gray-100 rounded-2xl p-5 hover:border-portal-border hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-2xl shrink-0">{opp.icon}</span>
@@ -1101,10 +1101,10 @@ export default async function IntelligencePage({
                         >
                           {opp.category}
                         </span>
-                        <p className="text-sm font-semibold text-gray-800 mt-0.5 leading-snug group-hover:text-gray-900">
+                        <p className="text-sm font-semibold text-portal-text mt-0.5 leading-snug group-hover:text-portal-text">
                           {opp.headline}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">{opp.detail}</p>
+                        <p className="text-xs text-portal-muted mt-1.5 leading-relaxed">{opp.detail}</p>
                       </div>
                     </div>
                   </Link>
@@ -1115,12 +1115,12 @@ export default async function IntelligencePage({
         )}
 
         {/* ── Future AI layer placeholder ──────────────────────────────── */}
-        <section className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+        <section className="bg-portal-bg border border-gray-100 rounded-2xl p-5">
           <div className="flex items-start gap-3">
             <span className="text-lg">🔮</span>
             <div className="flex-1">
-              <p className="text-xs font-bold text-gray-500 mb-1">AI Intelligence Layer — Coming Soon</p>
-              <p className="text-xs text-gray-400 leading-relaxed mb-3">
+              <p className="text-xs font-bold text-portal-sub mb-1">AI Intelligence Layer — Coming Soon</p>
+              <p className="text-xs text-portal-muted leading-relaxed mb-3">
                 These cards will be driven by Claude-powered pattern analysis once wired — not autonomous agents,
                 but intelligent surface of signals already in the platform.
               </p>
@@ -1133,9 +1133,9 @@ export default async function IntelligencePage({
                   'Recommend participation pushes',
                   'Surface advertiser outreach timing',
                 ].map(label => (
-                  <span key={label} className="text-[10px] px-2.5 py-1 border border-gray-200 rounded-lg text-gray-400 flex items-center gap-1">
+                  <span key={label} className="text-[10px] px-2.5 py-1 border border-portal-border rounded-lg text-portal-muted flex items-center gap-1">
                     {label}
-                    <span className="bg-gray-100 text-gray-400 text-[9px] px-1 rounded font-semibold">Soon</span>
+                    <span className="bg-gray-100 text-portal-muted text-[9px] px-1 rounded font-semibold">Soon</span>
                   </span>
                 ))}
               </div>

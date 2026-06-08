@@ -270,21 +270,21 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
         <div
           ref={popRef}
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width }}
-          className="z-50 bg-white rounded-xl border border-gray-200 shadow-lg p-3"
+          className="z-50 bg-white rounded-xl border border-portal-border shadow-lg p-3"
         >
           <div className="relative mb-2">
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted" />
             <input
               ref={searchRef}
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search emojis…"
-              className="w-full text-sm border border-gray-200 rounded-lg pl-7 pr-2 py-1.5 outline-none focus:border-gray-400"
+              className="w-full text-sm border border-portal-border rounded-lg pl-7 pr-2 py-1.5 outline-none focus:border-portal-blue"
             />
           </div>
           {filtered.length === 0 ? (
-            <p className="text-xs text-gray-400 py-4 text-center">No emoji matches &quot;{query}&quot;.</p>
+            <p className="text-xs text-portal-muted py-4 text-center">No emoji matches &quot;{query}&quot;.</p>
           ) : (
             <div
               className="grid gap-1 max-h-64 overflow-y-auto"
@@ -295,7 +295,7 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
                   key={e.char + i}
                   type="button"
                   onClick={() => pick(e.char)}
-                  className={`text-xl leading-none p-1 rounded hover:bg-gray-100 ${value === e.char ? 'bg-gray-100 ring-1 ring-gray-300' : ''}`}
+                  className={`text-xl leading-none p-1 rounded hover:bg-portal-row-hover ${value === e.char ? 'bg-gray-100 ring-1 ring-gray-300' : ''}`}
                   title={e.keywords.split(' ')[0]}
                   aria-label={e.keywords.split(' ')[0]}
                 >
@@ -321,18 +321,18 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors bg-white hover:bg-gray-50 text-left flex items-center justify-between gap-2"
+        className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors bg-white hover:bg-portal-bg text-left flex items-center justify-between gap-2"
         title="Pick an emoji"
       >
         {value
           ? <span className="text-base leading-none">{value}</span>
-          : <span className="text-gray-400">Pick…</span>}
+          : <span className="text-portal-muted">Pick…</span>}
         {value && (
           <span
             role="button"
             aria-label="Clear emoji"
             onClick={e => { e.stopPropagation(); clear() }}
-            className="text-gray-300 hover:text-gray-500 inline-flex items-center"
+            className="text-gray-300 hover:text-portal-sub inline-flex items-center"
           >
             <X size={12} />
           </span>

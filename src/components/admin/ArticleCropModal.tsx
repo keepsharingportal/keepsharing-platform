@@ -194,17 +194,17 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
     >
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
           <div className="flex items-center gap-2">
             <Crop size={16} className="text-portal-blue" />
-            <h3 className="text-sm font-bold text-gray-800">
+            <h3 className="text-sm font-bold text-portal-text">
               Zoom &amp; adjust — {type === 'profile' ? 'Profile (1:1)' : 'Hero (16:9)'}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 hover:bg-gray-100 transition-colors"
+            className="rounded-full p-1.5 hover:bg-portal-row-hover transition-colors"
             aria-label="Close cropper"
           >
             <X size={16} />
@@ -214,7 +214,7 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
         {/* Image stage */}
         <div
           ref={containerRef}
-          className="relative bg-gray-50 flex items-center justify-center p-4 select-none"
+          className="relative bg-portal-bg flex items-center justify-center p-4 select-none"
           style={{ minHeight: 320 }}
         >
           {imageError && (
@@ -277,11 +277,11 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50">
-          <p className="text-[11px] text-gray-500 leading-snug max-w-[60%]">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-portal-border bg-portal-bg">
+          <p className="text-[11px] text-portal-sub leading-snug max-w-[60%]">
             Drag the box to pan · drag the corner to resize · aspect locked to {type === 'profile' ? '1:1' : '16:9'}.
             {applyError && (
-              <span className="block text-red-600 mt-1">{applyError}</span>
+              <span className="block text-portal-red mt-1">{applyError}</span>
             )}
           </p>
           <div className="flex gap-2">
@@ -289,7 +289,7 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
               type="button"
               onClick={onClose}
               disabled={applying}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1.5 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-50"
             >
               Cancel
             </button>

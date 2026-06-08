@@ -50,22 +50,22 @@ export default async function RoutesPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Truck size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Routes</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Routes</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Region: <span className="font-semibold text-gray-700">{region.name}</span>
-            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
+          <p className="text-sm text-portal-sub mt-1">
+            Region: <span className="font-semibold text-portal-text">{region.name}</span>
+            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
           </p>
           <div className="mt-2 flex items-center gap-1.5">
             <a
               href={`/api/admin/circulation/export?market=${dbKey}&format=csv`}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
             >
               <Download size={11} /> Export CSV
             </a>
             <a
               href={`/api/admin/circulation/export?market=${dbKey}&format=json`}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
             >
               <Download size={11} /> Export JSON
             </a>
@@ -77,29 +77,29 @@ export default async function RoutesPage() {
         <section>
           <AdminSectionHeader title="All routes" count={routes.length} />
           {routes.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-              <p className="text-sm text-gray-500">No routes yet. Add one above or import from the PHP portal.</p>
+            <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+              <p className="text-sm text-portal-sub">No routes yet. Add one above or import from the PHP portal.</p>
             </div>
           ) : (
             <ul className="space-y-2">
               {routes.map(r => (
-                <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
+                <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
                   <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
+                    <p className="text-sm font-bold text-portal-text truncate flex items-center gap-2">
                       {r.name}
-                      {!r.active && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+                      {!r.active && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-portal-sub mt-0.5">
                       {counts.get(r.id) ?? 0} stops {r.city ? ` · ${r.city}` : ''}
                     </p>
                   </Link>
                   <Link
                     href={`/admin/circulation/routes/${r.id}/reorder`}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
                   >
                     <GripVertical size={11} /> Reorder
                   </Link>
-                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-gray-300 hover:text-gray-500">
+                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-gray-300 hover:text-portal-sub">
                     <ArrowRight size={14} />
                   </Link>
                 </li>

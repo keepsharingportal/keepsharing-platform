@@ -22,7 +22,7 @@ const SOURCE_BADGE: Record<string, string> = {
   public_form:     'bg-portal-green-lt text-portal-green ring-emerald-200',
   staff_email:     'bg-purple-50 text-purple-700 ring-purple-200',
   staff_facebook:  'bg-sky-50 text-sky-700 ring-sky-200',
-  staff_manual:    'bg-gray-50 text-gray-500 ring-gray-200',
+  staff_manual:    'bg-portal-bg text-portal-sub ring-gray-200',
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -234,9 +234,9 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-xl font-semibold text-gray-900">School Bits</h1>
+          <h1 className="text-xl font-semibold text-portal-text">School Bits</h1>
           {counts['Pending Review'] > 0 && (
             <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {counts['Pending Review']} pending
@@ -252,7 +252,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
           <PrintExportPanel approvedCount={counts['Approved']} />
           <Link
             href="/admin/school-news/schools"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Settings size={13} /> Manage schools ({schools.length})
           </Link>
@@ -277,18 +277,18 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
       )}
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0 flex items-center justify-between flex-wrap">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0 flex items-center justify-between flex-wrap">
         <div className="flex items-center gap-1">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => switchTab(tab)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >
               {tab}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-gray-50 text-gray-400 ring-gray-200'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'}`}>
                 {counts[tab]}
               </span>
             </button>
@@ -331,7 +331,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
             {paged.map(item => (
               <BitRow
                 key={item.id}
@@ -368,7 +368,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
+    <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
       <School size={32} className="mb-2 opacity-30" />
       <p className="text-sm">No bits match the current filter</p>
     </div>
@@ -392,53 +392,53 @@ function FilterBar({
 }) {
   const hasFilter = !!(search || schoolId || fromDate || toDate)
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
+    <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
       <div className="relative flex-1 min-w-[200px] max-w-xs">
-        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
         <input
           type="search"
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder="Search title or blurb…"
-          className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
+          className="w-full pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue"
         />
       </div>
       <select
         value={schoolId}
         onChange={e => onSchool(e.target.value)}
-        className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue max-w-[220px]"
+        className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue max-w-[220px]"
       >
         <option value="">All schools</option>
         {schools.map(s => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
       </select>
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+      <div className="flex items-center gap-1.5 text-xs text-portal-sub">
         <span className="font-semibold">{dateLabel}:</span>
         <input
           type="date"
           value={fromDate}
           onChange={e => onFromDate(e.target.value)}
-          className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
+          className="px-2 py-1 text-xs border border-portal-border rounded outline-none focus:border-portal-blue"
         />
         <span>→</span>
         <input
           type="date"
           value={toDate}
           onChange={e => onToDate(e.target.value)}
-          className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
+          className="px-2 py-1 text-xs border border-portal-border rounded outline-none focus:border-portal-blue"
         />
       </div>
       {hasFilter && (
         <button
           type="button"
           onClick={onReset}
-          className="text-xs text-gray-500 hover:text-gray-900 underline"
+          className="text-xs text-portal-sub hover:text-portal-text underline"
         >
           Reset
         </button>
       )}
-      <span className="ml-auto text-xs text-gray-500">
+      <span className="ml-auto text-xs text-portal-sub">
         {resultCount} {resultCount === 1 ? 'result' : 'results'}
       </span>
     </div>
@@ -453,16 +453,16 @@ function Pagination({
   page: number; totalPages: number; totalResults: number; onPage: (p: number) => void
 }) {
   return (
-    <div className="flex items-center justify-between mt-3 px-1 text-xs text-gray-500">
+    <div className="flex items-center justify-between mt-3 px-1 text-xs text-portal-sub">
       <span>
-        Page <strong className="text-gray-700">{page}</strong> of {totalPages} · {totalResults} total
+        Page <strong className="text-portal-text">{page}</strong> of {totalPages} · {totalResults} total
       </span>
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={() => onPage(Math.max(1, page - 1))}
           disabled={page <= 1}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-portal-border bg-white hover:bg-portal-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={13} /> Prev
         </button>
@@ -470,7 +470,7 @@ function Pagination({
           type="button"
           onClick={() => onPage(Math.min(totalPages, page + 1))}
           disabled={page >= totalPages}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-portal-border bg-white hover:bg-portal-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Next <ChevronRight size={13} />
         </button>
@@ -549,14 +549,14 @@ function BitRow({
   }
 
   return (
-    <div className={`transition-colors ${selected ? 'bg-portal-blue-lt' : 'bg-white hover:bg-gray-50/60'}`}>
+    <div className={`transition-colors ${selected ? 'bg-portal-blue-lt' : 'bg-white hover:bg-portal-bg/60'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         {selectable && (
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggleSelect}
-            className="h-4 w-4 mt-3 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer shrink-0"
+            className="h-4 w-4 mt-3 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue cursor-pointer shrink-0"
             aria-label="Select for drip schedule"
           />
         )}
@@ -582,7 +582,7 @@ function BitRow({
         {/* Title / blurb / meta */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-            <h3 className="text-sm font-bold text-gray-900 truncate">{item.title}</h3>
+            <h3 className="text-sm font-bold text-portal-text truncate">{item.title}</h3>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ring-1 ${SOURCE_BADGE[item.source_type] ?? SOURCE_BADGE.staff_manual}`}>
               {SOURCE_LABEL[item.source_type] ?? item.source_type}
             </span>
@@ -592,16 +592,16 @@ function BitRow({
               </a>
             )}
           </div>
-          <p className="text-xs text-gray-600 leading-snug line-clamp-2 mb-1.5">{item.blurb}</p>
+          <p className="text-xs text-portal-sub leading-snug line-clamp-2 mb-1.5">{item.blurb}</p>
           <div className="flex items-center gap-2 flex-wrap text-[11px]">
-            <span className="font-semibold text-gray-700">{item.school_name}</span>
+            <span className="font-semibold text-portal-text">{item.school_name}</span>
             {areaLabel && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${areaCls}`}>
                 {areaLabel}
               </span>
             )}
             {item.issue_month && (
-              <span className="text-gray-500">
+              <span className="text-portal-sub">
                 Issue: {new Date(item.issue_month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </span>
             )}
@@ -620,7 +620,7 @@ function BitRow({
         </div>
 
         {/* Date column */}
-        <div className="shrink-0 text-right text-[11px] text-gray-500 leading-tight w-24 pt-1">
+        <div className="shrink-0 text-right text-[11px] text-portal-sub leading-tight w-24 pt-1">
           {dateLabel}
         </div>
 
@@ -639,7 +639,7 @@ function BitRow({
               <button
                 onClick={() => call('reject')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
               >
                 {busy === 'reject' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                 Reject
@@ -651,7 +651,7 @@ function BitRow({
               onClick={() => call('reopen')}
               disabled={busy !== null}
               title="Move back to Pending Review"
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'reopen' ? <RefreshCw size={11} className="animate-spin" /> : <RotateCcw size={11} />}
               Reopen
@@ -659,7 +659,7 @@ function BitRow({
           )}
           <button
             onClick={editing ? onCancelEdit : onEdit}
-            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Pencil size={11} />
             {editing ? 'Close' : 'Edit'}
@@ -667,7 +667,7 @@ function BitRow({
           <div className="relative">
             <button
               onClick={() => setMenuOpen(v => !v)}
-              className="p-1 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              className="p-1 text-portal-muted hover:text-portal-text rounded-lg hover:bg-portal-row-hover"
               aria-label="More actions"
             >
               <MoreVertical size={14} />
@@ -680,7 +680,7 @@ function BitRow({
                   className="fixed inset-0 z-10 cursor-default"
                   aria-hidden
                 />
-                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-xs">
+                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow-lg py-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { setMenuOpen(false); remove() }}
@@ -851,7 +851,7 @@ function BitRowEditor({
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full text-sm font-semibold border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white"
+              className="w-full text-sm font-semibold border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white"
             />
           </div>
           <div>
@@ -859,7 +859,7 @@ function BitRowEditor({
             <textarea
               value={blurb}
               onChange={e => setBlurb(e.target.value)}
-              className="w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white resize-y min-h-[80px]"
+              className="w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white resize-y min-h-[80px]"
             />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -869,7 +869,7 @@ function BitRowEditor({
                 type="date"
                 value={publishedAt}
                 onChange={e => setPublishedAt(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-blue-500 bg-white"
+                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white"
               />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Backdate to sort old bits. Blank = unscheduled.</p>
             </div>
@@ -879,7 +879,7 @@ function BitRowEditor({
                 type="month"
                 value={issueMonth}
                 onChange={e => setIssueMonth(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-blue-500 bg-white"
+                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white"
               />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Filters the print export ZIP.</p>
             </div>
@@ -1173,7 +1173,7 @@ function QuickAddPanel({
               <LinkIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" />
               <input type="url" value={fbUrl} onChange={e => setFbUrl(e.target.value)}
                 placeholder="https://facebook.com/post/..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-blue-400" />
+                className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue" />
             </div>
           </div>
         </div>
@@ -1181,13 +1181,13 @@ function QuickAddPanel({
           <label className="block text-xs font-semibold text-portal-blue mb-1">Headline *</label>
           <input ref={titleRef} value={title} onChange={e => setTitle(e.target.value)}
             placeholder="e.g., Pine Level Elementary Named Purple Star School"
-            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-blue-400" />
+            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue" />
         </div>
         <div>
           <label className="block text-xs font-semibold text-portal-blue mb-1">News Blurb *</label>
           <textarea value={blurb} onChange={e => setBlurb(e.target.value)}
             placeholder="Paste the Facebook post text or type the school news blurb here…"
-            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-blue-400 resize-y min-h-[80px]" />
+            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue resize-y min-h-[80px]" />
         </div>
 
         <div>
@@ -1241,7 +1241,7 @@ function QuickAddPanel({
                 {imageUrls.map((url, i) => (
                   <input key={i} type="url" value={url} onChange={e => updateImageUrl(i, e.target.value)}
                     placeholder={i === 0 ? 'https://…/image.jpg' : `Optional photo ${i + 1}`}
-                    className="w-full px-2 py-1 text-xs border border-blue-200 rounded outline-none focus:border-blue-400" />
+                    className="w-full px-2 py-1 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue" />
                 ))}
                 {imageUrls.length < MAX_IMAGES_PER_BIT && imageUrls.some(u => u.trim()) && (
                   <button type="button" onClick={addImageUrlSlot}
@@ -1271,13 +1271,13 @@ function QuickAddPanel({
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">Print issue month</label>
               <input type="month" value={issueMonth} onChange={e => setIssueMonth(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-blue-400 bg-white" />
+                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white" />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Blank = next issue. Used by the print export ZIP filter.</p>
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">Publish date</label>
               <input type="date" value={publishedAt} onChange={e => setPublishedAt(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-blue-400 bg-white" />
+                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white" />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Blank = stamps at approval. Backdate to sort old bits in time order.</p>
             </div>
           </div>
@@ -1367,7 +1367,7 @@ function BulkActionBar({
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap text-sm">
+    <div className="bg-white border-b border-portal-border px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap text-sm">
       <div className="flex items-center gap-3 flex-wrap">
         <label className="inline-flex items-center gap-2 cursor-pointer select-none">
           <input
@@ -1375,17 +1375,17 @@ function BulkActionBar({
             type="checkbox"
             checked={allOnPageSelected}
             onChange={() => (allOnPageSelected ? onClear() : onSelectAll())}
-            className="h-4 w-4 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer"
+            className="h-4 w-4 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue cursor-pointer"
             aria-label="Select all on this page"
           />
-          <span className={selectedCount > 0 ? 'font-bold text-gray-900' : 'text-gray-500'}>
+          <span className={selectedCount > 0 ? 'font-bold text-portal-text' : 'text-portal-sub'}>
             {selectedCount === 0
               ? `Select all ${totalVisible} on this page`
               : `${selectedCount} selected`}
           </span>
         </label>
         {selectedCount > 0 && (
-          <button type="button" onClick={onClear} className="text-xs text-gray-500 hover:text-gray-900 underline">
+          <button type="button" onClick={onClear} className="text-xs text-portal-sub hover:text-portal-text underline">
             Clear
           </button>
         )}
@@ -1406,16 +1406,16 @@ function BulkActionBar({
 
           {/* Drip-schedule controls — staggers publish across a date window */}
           <div className="flex items-center gap-1.5 flex-wrap text-xs">
-            <span className="text-gray-500 inline-flex items-center gap-1">
+            <span className="text-portal-sub inline-flex items-center gap-1">
               <Calendar size={12} /> Drip over
             </span>
             <input type="number" value={overDays}
               onChange={e => setOverDays(Math.max(1, Math.min(60, Number(e.target.value) || 14)))}
-              min={1} max={60} className="w-14 text-xs px-2 py-1 border border-gray-200 rounded" />
-            <span className="text-gray-500">days starting</span>
+              min={1} max={60} className="w-14 text-xs px-2 py-1 border border-portal-border rounded" />
+            <span className="text-portal-sub">days starting</span>
             <input type="date" value={startAt} onChange={e => setStartAt(e.target.value)}
-              className="text-xs px-2 py-1 border border-gray-200 rounded" />
-            <span className="text-[10px] text-gray-400">(blank = today)</span>
+              className="text-xs px-2 py-1 border border-portal-border rounded" />
+            <span className="text-[10px] text-portal-muted">(blank = today)</span>
             <button type="button" onClick={drip} disabled={busy !== null}
               className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
               {busy === 'drip' ? <RefreshCw size={11} className="animate-spin" /> : <Clock size={11} />}

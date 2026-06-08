@@ -67,13 +67,13 @@ export default async function OrganizationsAdminPage() {
   if (tableMissing) {
     return (
       <div className="flex-1 overflow-y-auto">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/admin/events" className="text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 text-sm">
+            <Link href="/admin/events" className="text-portal-sub hover:text-portal-text inline-flex items-center gap-1 text-sm">
               <ChevronLeft size={14} /> Events
             </Link>
             <span className="text-gray-300">/</span>
-            <h1 className="text-xl font-semibold text-gray-900">Community Connections</h1>
+            <h1 className="text-xl font-semibold text-portal-text">Community Connections</h1>
           </div>
         </div>
         <div className="p-8">

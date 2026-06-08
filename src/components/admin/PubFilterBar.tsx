@@ -63,7 +63,7 @@ export function PubFilterBar({
         className={`text-[11px] px-2.5 py-1.5 rounded-lg font-semibold transition-colors ${
           !activePub
             ? 'bg-gray-900 text-white'
-            : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+            : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
         }`}
       >
         All
@@ -75,7 +75,7 @@ export function PubFilterBar({
           className={`text-[11px] px-2.5 py-1.5 rounded-lg font-semibold uppercase transition-colors ${
             activePub === p
               ? 'bg-gray-900 text-white'
-              : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+              : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
           }`}
         >
           {p}

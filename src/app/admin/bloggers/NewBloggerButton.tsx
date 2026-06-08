@@ -47,29 +47,29 @@ export function NewBloggerButton() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Add a Mom Knows Best blogger</h2>
-                <p className="text-xs text-gray-500 mt-0.5">You can fill in bio, photos, and Quick Takes on the next screen.</p>
+                <h2 className="text-lg font-bold text-portal-text">Add a Mom Knows Best blogger</h2>
+                <p className="text-xs text-portal-sub mt-0.5">You can fill in bio, photos, and Quick Takes on the next screen.</p>
               </div>
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-700 -mt-1">
+              <button onClick={() => setOpen(false)} className="text-portal-muted hover:text-portal-text -mt-1">
                 <X size={16} />
               </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Display name</label>
+                <label className="block text-xs font-bold text-portal-sub uppercase tracking-wider mb-1.5">Display name</label>
                 <input
                   autoFocus
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-pink-400 bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-pink-400 bg-white"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="e.g. Hayley Denny"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Tagline (optional)</label>
+                <label className="block text-xs font-bold text-portal-sub uppercase tracking-wider mb-1.5">Tagline (optional)</label>
                 <input
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-pink-400 bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-pink-400 bg-white"
                   value={tag}
                   onChange={e => setTag(e.target.value)}
                   placeholder="e.g. Working mom of 2, marathon walker"
@@ -77,7 +77,7 @@ export function NewBloggerButton() {
               </div>
 
               {error && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
+                <p className="text-xs text-portal-red bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
               )}
 
               <button

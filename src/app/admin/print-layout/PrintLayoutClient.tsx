@@ -415,10 +415,10 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
   return (
     <>
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
+      <div className="bg-white border-b border-portal-border px-6 py-4 print:hidden">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigateIssue(prevMonth)} className="p-1.5 rounded-lg hover:bg-gray-100" title={`Previous: ${fmtIssue(prevMonth)}`}>
+            <button onClick={() => navigateIssue(prevMonth)} className="p-1.5 rounded-lg hover:bg-portal-row-hover" title={`Previous: ${fmtIssue(prevMonth)}`}>
               <ChevronLeft size={16} />
             </button>
             <div>
@@ -426,9 +426,9 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   so the editor can jump straight to e.g. Jun 2025 to
                   audit who ran. The select sits on top transparently;
                   the visible text follows the selection. */}
-              <h1 className="text-xl font-bold text-gray-900 leading-tight inline-flex items-center gap-1 relative cursor-pointer hover:text-portal-blue">
+              <h1 className="text-xl font-bold text-portal-text leading-tight inline-flex items-center gap-1 relative cursor-pointer hover:text-portal-blue">
                 <span>Print Layout — {fmtIssue(issue)}</span>
-                <ChevronDown size={14} className="text-gray-400" aria-hidden />
+                <ChevronDown size={14} className="text-portal-muted" aria-hidden />
                 <select
                   value={issue}
                   onChange={e => navigateIssue(e.target.value)}
@@ -444,14 +444,14 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   ))}
                 </select>
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-portal-sub">
                 {rows.length} {rows.length === 1 ? 'placement' : 'placements'}
                 {' · '}{totalPages.toFixed(2)} pages
                 {' · '}${totalRevenue.toLocaleString()} revenue
                 {totalSocial > 0 && (<> · ${totalSocial.toLocaleString()} social</>)}
               </p>
             </div>
-            <button onClick={() => navigateIssue(nextMonth)} className="p-1.5 rounded-lg hover:bg-gray-100" title={`Next: ${fmtIssue(nextMonth)}`}>
+            <button onClick={() => navigateIssue(nextMonth)} className="p-1.5 rounded-lg hover:bg-portal-row-hover" title={`Next: ${fmtIssue(nextMonth)}`}>
               <ChevronRight size={16} />
             </button>
           </div>
@@ -467,7 +467,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
               type="button"
               onClick={onClone}
               disabled={busy || prevMonthCount === 0}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-portal-border-2 bg-white rounded-lg hover:bg-portal-bg disabled:opacity-40"
               title={prevMonthCount === 0
                 ? `Nothing to clone — ${fmtIssue(prevMonth)} is empty`
                 : `Clone ${prevMonthCount} placement(s) from ${fmtIssue(prevMonth)}`}
@@ -478,7 +478,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             <button
               type="button"
               onClick={() => setImporting(true)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-lg hover:bg-gray-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-portal-border-2 bg-white rounded-lg hover:bg-portal-bg"
               title="Upload a CSV to back-fill a past month"
             >
               <Upload size={14} /> Import CSV
@@ -486,17 +486,17 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             {/* Two single-view CSV downloads — the editor sends both
                 to the layout team: size view is the designer's source
                 of truth, name view is for billing reconciliation. */}
-            <div className="inline-flex rounded-lg overflow-hidden border border-gray-300">
+            <div className="inline-flex rounded-lg overflow-hidden border border-portal-border-2">
               <a
                 href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}&view=size`}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-gray-50"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-portal-bg"
                 title="Download CSV sorted by size (largest first)"
               >
                 <Download size={14} /> By Size
               </a>
               <a
                 href={`/api/admin/print-placements/export?issue_month=${encodeURIComponent(issue)}&view=name`}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-gray-50 border-l border-gray-300"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-white hover:bg-portal-bg border-l border-portal-border-2"
                 title="Download CSV sorted by business name (A→Z)"
               >
                 <Download size={14} /> By Name
@@ -505,7 +505,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-gray-300 bg-white rounded-lg hover:bg-gray-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold border border-portal-border-2 bg-white rounded-lg hover:bg-portal-bg"
               title="Print this view"
             >
               <Printer size={14} /> Print
@@ -621,16 +621,16 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
       {/* ── Table ──────────────────────────────────────────────────── */}
       <div className="px-4 py-4 print:px-0 print:py-0">
         {rows.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-sm text-gray-500 print:hidden">
+          <div className="bg-white border border-portal-border rounded-2xl p-10 text-center text-sm text-portal-sub print:hidden">
             No placements for {fmtIssue(issue)} yet.{' '}
             {prevMonthCount > 0
               ? <>Clone {prevMonthCount} from {fmtIssue(prevMonth)} or add the first one.</>
               : <>Add the first placement.</>}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden print:border-0 print:rounded-none">
+          <div className="bg-white rounded-2xl border border-portal-border overflow-hidden print:border-0 print:rounded-none">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200 text-[10px] uppercase tracking-wider text-gray-600">
+              <thead className="bg-portal-bg border-b border-portal-border text-[10px] uppercase tracking-wider text-portal-sub">
                 <tr className="text-left">
                   {/* Select-all checkbox; indeterminate visual when a
                       subset is selected. */}
@@ -672,18 +672,18 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
               {/* Totals footer — page count, revenue, social.
                   Surfaces at the bottom of the print page too so the
                   layout team sees the issue's totals at a glance. */}
-              <tfoot className="bg-gray-50 border-t-2 border-gray-300 text-xs font-bold">
+              <tfoot className="bg-portal-bg border-t-2 border-portal-border-2 text-xs font-bold">
                 <tr>
                   <td className="px-3 py-2 print:hidden"></td>
-                  <td className="px-4 py-2 text-gray-700">
+                  <td className="px-4 py-2 text-portal-text">
                     {rows.length} {rows.length === 1 ? 'placement' : 'placements'}
                   </td>
                   <td className="px-3 py-2"></td>
                   <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2 tabular-nums text-gray-900">{totalPages.toFixed(2)} pp</td>
+                  <td className="px-3 py-2 tabular-nums text-portal-text">{totalPages.toFixed(2)} pp</td>
                   <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2 tabular-nums text-right text-gray-900">${totalRevenue.toLocaleString()}</td>
-                  <td className="px-3 py-2 tabular-nums text-right text-gray-900">{totalSocial > 0 ? `$${totalSocial.toLocaleString()}` : '—'}</td>
+                  <td className="px-3 py-2 tabular-nums text-right text-portal-text">${totalRevenue.toLocaleString()}</td>
+                  <td className="px-3 py-2 tabular-nums text-right text-portal-text">{totalSocial > 0 ? `$${totalSocial.toLocaleString()}` : '—'}</td>
                   <td className="px-3 py-2"></td>
                   <td className="px-3 py-2"></td>
                   <td className="px-3 py-2"></td>
@@ -737,12 +737,12 @@ function SortHeader({
       <button
         type="button"
         onClick={() => onClick(sortKey)}
-        className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end w-full' : ''} ${isActive ? 'text-gray-900' : 'hover:text-gray-900'}`}
+        className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end w-full' : ''} ${isActive ? 'text-portal-text' : 'hover:text-portal-text'}`}
       >
         {label}
         {isActive && (dir === 'asc'
-          ? <ArrowUp   size={9} className="text-gray-700" />
-          : <ArrowDown size={9} className="text-gray-700" />)}
+          ? <ArrowUp   size={9} className="text-portal-text" />
+          : <ArrowDown size={9} className="text-portal-text" />)}
       </button>
     </th>
   )
@@ -761,7 +761,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
     ? 'bg-portal-red-lt hover:bg-portal-red-lt'
     : !row.is_ongoing
       ? (selected ? 'bg-portal-amber-lt/70' : 'bg-portal-amber-lt/60 hover:bg-portal-amber-lt')
-      : (selected ? 'bg-portal-amber-lt/40' : 'hover:bg-gray-50')
+      : (selected ? 'bg-portal-amber-lt/40' : 'hover:bg-portal-bg')
   // Show ad_label only when:
   //   - It exists and differs from the canonical business name AND
   //   - The advertiser has more than one placement on this issue
@@ -779,7 +779,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
-      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-gray-900'}`}>
+      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-portal-text'}`}>
         {/* Click anywhere on the business name to open the inline editor
             — matches the convention on /admin/advertisers and saves a
             hover-and-aim at the tiny pencil icon. */}
@@ -791,7 +791,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         >
           <span>{row.business_name}</span>
           {adVariant && (
-            <span className="text-[10px] font-normal text-gray-500 mt-0.5">↳ {adVariant}</span>
+            <span className="text-[10px] font-normal text-portal-sub mt-0.5">↳ {adVariant}</span>
           )}
         </button>
       </td>
@@ -813,10 +813,10 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         {row.social_budget == null
           ? ''
           : row.social_budget === 0
-            ? <span className="text-gray-400">N/A</span>
+            ? <span className="text-portal-muted">N/A</span>
             : `$${row.social_budget.toLocaleString()}`}
       </td>
-      <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-portal-red font-bold' : 'text-gray-600'}`}>
+      <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-portal-red font-bold' : 'text-portal-sub'}`}>
         <div className="flex flex-col gap-0.5">
           <span>{row.expires_month ? shortMonth(row.expires_month) : ''}</span>
           {isExpired && (
@@ -826,12 +826,12 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
           )}
         </div>
       </td>
-      <td className="px-3 py-2 text-[11px] text-gray-500 truncate max-w-[180px]" title={row.layout_notes ?? ''}>
+      <td className="px-3 py-2 text-[11px] text-portal-sub truncate max-w-[180px]" title={row.layout_notes ?? ''}>
         {row.layout_notes ?? ''}
       </td>
       <td className="px-3 py-2 print:hidden">
         <div className="flex items-center gap-1">
-          <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-900" aria-label="Edit">
+          <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-portal-muted hover:text-portal-text" aria-label="Edit">
             <Pencil size={11} />
           </button>
           <button onClick={onDelete} className="p-1 rounded hover:bg-portal-red-lt text-gray-300 hover:text-rose-600" aria-label="Delete">
@@ -861,7 +861,7 @@ function StatusPill({ label, count, tone, active, onClick }: {
     rose:    'bg-rose-600 text-white border-rose-600',
   }
   const toneIdle: Record<string, string> = {
-    neutral: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
+    neutral: 'bg-white text-portal-text border-portal-border-2 hover:bg-portal-bg',
     green:   'bg-white text-portal-green border-emerald-200 hover:bg-portal-green-lt',
     amber:   'bg-white text-portal-amber border-amber-200 hover:bg-portal-amber-lt',
     rose:    'bg-white text-portal-red border-portal-red/30 hover:bg-portal-red-lt',
@@ -898,7 +898,7 @@ function FieldRow({ enabled, onToggle, field, label, children }: {
         onChange={() => onToggle(field)}
         aria-label={`Update ${label}`}
       />
-      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">{label}</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-portal-sub">{label}</label>
       <div className={on ? '' : 'opacity-40 pointer-events-none'}>{children}</div>
     </div>
   )
@@ -954,18 +954,18 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
     finally { setSaving(false) }
   }
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 overflow-y-auto" onClick={onCancel}>
       <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-5 my-12 space-y-4">
         <header className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-1.5">
+          <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-1.5">
             <Edit3 size={14} /> Bulk edit {count} placement{count === 1 ? '' : 's'}
           </h3>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-700"><X size={14} /></button>
+          <button onClick={onCancel} className="text-portal-muted hover:text-portal-text"><X size={14} /></button>
         </header>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-portal-sub">
           Tick a field to update it across every selected row. Unticked fields are left alone.
         </p>
 
@@ -1035,7 +1035,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
             {saving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
             {saving ? 'Applying…' : `Apply to ${count}`}
           </button>
-          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900">
+          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text">
             Cancel
           </button>
         </div>
@@ -1106,16 +1106,16 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
     } finally { setSaving(false) }
   }
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1'
 
   return (
-    <div className="mx-4 mt-4 bg-white rounded-2xl border border-gray-200 p-5 print:hidden">
+    <div className="mx-4 mt-4 bg-white rounded-2xl border border-portal-border p-5 print:hidden">
       <header className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5">
+        <h3 className="text-sm font-bold text-portal-text inline-flex items-center gap-1.5">
           <Plus size={14} /> Add print placement
         </h3>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-700"><X size={14} /></button>
+        <button onClick={onCancel} className="text-portal-muted hover:text-portal-text"><X size={14} /></button>
       </header>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1127,7 +1127,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
           </select>
         </div>
         <div>
-          <label className={lbl}>Ad label <span className="text-gray-400 normal-case font-normal">(optional)</span></label>
+          <label className={lbl}>Ad label <span className="text-portal-muted normal-case font-normal">(optional)</span></label>
           <input
             type="text"
             value={adLabel}
@@ -1211,7 +1211,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
           {saving ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
           {saving ? 'Saving…' : 'Add to layout'}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text">
           Cancel
         </button>
       </div>

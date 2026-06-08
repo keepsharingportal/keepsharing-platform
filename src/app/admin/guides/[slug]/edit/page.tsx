@@ -82,15 +82,15 @@ export default async function GuideEditPage({ params }: Props) {
           <Link href="/admin/guides" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Guides
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Edit {guide.display_name}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-semibold text-portal-text">Edit {guide.display_name}</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             Identity, images, print cover, Issuu link, CTA. Connected articles + listings appear below for reference.
           </p>
         </div>
         <Link
           href={publicPath}
           target="_blank"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
         >
           View Public Page <ExternalLink size={11} />
         </Link>
@@ -119,31 +119,31 @@ export default async function GuideEditPage({ params }: Props) {
 
       {/* ── Read-only context ────────────────────────────────────────────── */}
       <section className="grid sm:grid-cols-3 gap-3">
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Listings</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{(featuredCount ?? 0) + (standardCount ?? 0)}</p>
-          <p className="text-xs text-gray-500">{featuredCount ?? 0} featured · {standardCount ?? 0} standard</p>
+        <div className="rounded-xl border border-portal-border bg-white p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Listings</p>
+          <p className="text-2xl font-bold text-portal-text mt-1">{(featuredCount ?? 0) + (standardCount ?? 0)}</p>
+          <p className="text-xs text-portal-sub">{featuredCount ?? 0} featured · {standardCount ?? 0} standard</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Articles</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{articles?.length ?? 0}</p>
-          <p className="text-xs text-gray-500">tagged to this guide</p>
+        <div className="rounded-xl border border-portal-border bg-white p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Articles</p>
+          <p className="text-2xl font-bold text-portal-text mt-1">{articles?.length ?? 0}</p>
+          <p className="text-xs text-portal-sub">tagged to this guide</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Section Sponsor</p>
-          <p className="text-sm font-bold text-gray-900 mt-1 leading-tight">
+        <div className="rounded-xl border border-portal-border bg-white p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Section Sponsor</p>
+          <p className="text-sm font-bold text-portal-text mt-1 leading-tight">
             {sponsor
               ? ((sponsor.advertiser as { business_name?: string } | null)?.business_name ?? sponsor.ad_headline ?? 'Sponsor set')
-              : <span className="text-gray-400 font-normal">No active sponsor</span>}
+              : <span className="text-portal-muted font-normal">No active sponsor</span>}
           </p>
           <Link href="/admin/advertisers/sponsor-inventory" className="text-xs text-portal-blue hover:underline mt-1 inline-block">Manage sponsors →</Link>
         </div>
       </section>
 
       {/* ── Connected articles list ──────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-900">Connected Articles ({articles?.length ?? 0})</h2>
+          <h2 className="text-sm font-bold text-portal-text">Connected Articles ({articles?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`}
             className="text-xs font-semibold text-portal-blue hover:underline"
@@ -152,19 +152,19 @@ export default async function GuideEditPage({ params }: Props) {
           </Link>
         </div>
         {(!articles || articles.length === 0) ? (
-          <div className="px-4 py-8 text-center text-sm text-gray-500">
+          <div className="px-4 py-8 text-center text-sm text-portal-sub">
             No articles tagged to this guide yet.{' '}
             <Link href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`} className="text-portal-blue hover:underline font-semibold">Write one →</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {articles.map(a => (
-              <div key={a.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
+              <div key={a.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-portal-bg">
                 <div className="min-w-0 flex-1">
-                  <Link href={`/admin/articles/${a.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-portal-blue line-clamp-1">
+                  <Link href={`/admin/articles/${a.id}/edit`} className="text-sm font-semibold text-portal-text hover:text-portal-blue line-clamp-1">
                     {a.title}
                   </Link>
-                  <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-gray-500">
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-portal-sub">
                     {!a.published && <span className="font-semibold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded">Draft</span>}
                     {a.column_slug && <span>{a.column_slug}</span>}
                     {a.published_at && <span>{new Date(a.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
@@ -178,10 +178,10 @@ export default async function GuideEditPage({ params }: Props) {
       </section>
 
       {/* ── Listings shortcut ────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
+      <section className="rounded-xl border border-portal-border bg-white p-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-gray-900">Listings for this guide</p>
-          <p className="text-xs text-gray-500 mt-0.5">Edit listings under the advertisers area — they map to guide_listings here.</p>
+          <p className="text-sm font-bold text-portal-text">Listings for this guide</p>
+          <p className="text-xs text-portal-sub mt-0.5">Edit listings under the advertisers area — they map to guide_listings here.</p>
         </div>
         <Link
           href={`/admin/content/guide-listings-import`}

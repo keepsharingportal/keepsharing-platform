@@ -58,7 +58,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
     }
   }
 
-  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
+  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
 
   return (
     <div className="space-y-6">
@@ -71,7 +71,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </SectionHelp>
 
       {/* Sticky save bar */}
-      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
@@ -91,8 +91,8 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Identity</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
           <FieldLabel hint="The main headline shown in the hero on the public page. Keep it short and recognizable — this is what visitors will associate with the section.">
@@ -123,14 +123,14 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
           Unchecking this hides the vertical from public navigation but keeps existing articles reachable by direct link.
         </FieldHint>
 
-        <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+        <p className="text-[11px] text-portal-muted pt-2 border-t border-gray-100">
           Public landing: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
         </p>
       </section>
 
       {/* ── Images ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
-        <h2 className="text-sm font-bold text-gray-900">Images</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+        <h2 className="text-sm font-bold text-portal-text">Images</h2>
 
         <div>
           <FieldLabel hint="Wide photo (16:9 or wider works best). Sits behind the title with a dark overlay, so detail-heavy images can get lost — choose something with a clear focal point or strong texture.">
@@ -159,7 +159,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
 
       {/* ── Sponsor ───────────────────────────────────────────────────────── */}
       <section className="rounded-xl border border-amber-200 bg-portal-amber-lt/40 p-5 space-y-3">
-        <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
           <Crown size={14} className="text-amber-600" />
           Section Sponsor
         </h2>
@@ -167,15 +167,15 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         {sponsorBusinessName ? (
           <div className="rounded-lg bg-white border border-amber-200 p-3">
             <p className="text-[11px] font-bold uppercase tracking-widest text-portal-amber mb-1">Currently Sponsored</p>
-            <p className="text-sm font-bold text-gray-900">{sponsorBusinessName}</p>
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-sm font-bold text-portal-text">{sponsorBusinessName}</p>
+            <p className="text-[11px] text-portal-sub mt-1">
               Manage placement details at <a href="/admin/advertisers/sponsor-inventory" className="text-portal-blue hover:underline">Sponsor Inventory</a>.
             </p>
           </div>
         ) : (
           <div className="rounded-lg bg-white border border-amber-200 p-3">
             <p className="text-[11px] font-bold uppercase tracking-widest text-portal-amber mb-1">Available</p>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-portal-text">
               No sponsor on this vertical right now. The public page shows the &quot;Sponsor This Section Available&quot; CTA.
             </p>
             <Link
@@ -202,8 +202,8 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Primary CTA ───────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Primary CTA</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Primary CTA</h2>
         <FieldHint className="-mt-2">Optional button in the hero area. Skip if not needed — the existing in-page CTAs (Submit School News, etc.) still appear regardless.</FieldHint>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -234,8 +234,8 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Theming (optional) ────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
-        <h2 className="text-sm font-bold text-gray-900">Brand Accent (optional)</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-3">
+        <h2 className="text-sm font-bold text-portal-text">Brand Accent (optional)</h2>
         <FieldHint className="-mt-1">
           Hex color used for accent borders + badges. Example: <code className="px-1 bg-gray-100 rounded">#d4a843</code> for gold.
         </FieldHint>

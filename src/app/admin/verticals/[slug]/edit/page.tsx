@@ -55,17 +55,17 @@ export default async function VerticalEditPage({ params }: Props) {
             <ArrowLeft size={11} /> All Verticals
           </Link>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-semibold text-gray-900">Edit {vertical.display_name}</h1>
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+            <h1 className="text-xl font-semibold text-portal-text">Edit {vertical.display_name}</h1>
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">
               {KIND_LABEL[vertical.kind] ?? vertical.kind}
             </span>
           </div>
-          <p className="text-sm text-gray-500">Identity shown on the public landing page and the homepage tile.</p>
+          <p className="text-sm text-portal-sub">Identity shown on the public landing page and the homepage tile.</p>
         </div>
         <Link
           href={publicPath}
           target="_blank"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
         >
           View Public Page <ExternalLink size={11} />
         </Link>

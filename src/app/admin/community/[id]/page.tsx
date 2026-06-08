@@ -348,14 +348,14 @@ export default async function SubmissionDetailPage({
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>
-        <Link href="/admin/community" className="text-sm text-gray-400 hover:text-gray-700 font-medium transition-colors">
+        <Link href="/admin/community" className="text-sm text-portal-muted hover:text-portal-text font-medium transition-colors">
           ← Community Submissions
         </Link>
         <div className="mt-4 flex items-start gap-4 flex-wrap">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{config.emoji}</span>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{config.label}</span>
+              <span className="text-xs font-bold text-portal-muted uppercase tracking-wide">{config.label}</span>
               <span
                 className="px-2.5 py-0.5 rounded-full text-xs font-semibold"
                 style={{ backgroundColor: sc?.bg ?? '#f9fafb', color: sc?.color ?? '#374151' }}
@@ -370,15 +370,15 @@ export default async function SubmissionDetailPage({
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{subjectName(sub)}</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-portal-text tracking-tight">{subjectName(sub)}</h1>
+            <p className="text-sm text-portal-sub mt-1">
               {config.group} · Submitted {fmtDate(sub.created_at)} by{' '}
-              <span className="font-medium text-gray-700">{sub.submitter_name}</span>
+              <span className="font-medium text-portal-text">{sub.submitter_name}</span>
             </p>
           </div>
           <Link
             href={`/admin/community/${id}/edit`}
-            className="shrink-0 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            className="shrink-0 px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-xl hover:bg-portal-bg transition-colors"
           >
             Edit Submission →
           </Link>
@@ -393,7 +393,7 @@ export default async function SubmissionDetailPage({
 
           {/* Routing / meta */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Routing & Targeting</h2>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Routing & Targeting</h2>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Publication', val: sub.target_publication?.toUpperCase() ?? '—' },
@@ -404,8 +404,8 @@ export default async function SubmissionDetailPage({
                 { label: 'Assigned',    val: sub.assigned_to   ?? 'Unassigned'      },
               ].map(({ label, val }) => (
                 <div key={label}>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                  <p className="text-sm font-medium text-gray-700 mt-0.5 truncate">{val}</p>
+                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">{label}</p>
+                  <p className="text-sm font-medium text-portal-text mt-0.5 truncate">{val}</p>
                 </div>
               ))}
             </div>
@@ -413,18 +413,18 @@ export default async function SubmissionDetailPage({
 
           {/* Submitter */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Submitter</h2>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Submitter</h2>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-gray-500 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-portal-sub shrink-0">
                 {sub.submitter_name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{sub.submitter_name}</p>
+                <p className="text-sm font-semibold text-portal-text">{sub.submitter_name}</p>
                 <a href={`mailto:${sub.submitter_email}`} className="text-xs text-portal-blue hover:underline">
                   {sub.submitter_email}
                 </a>
                 {sub.submitter_phone && (
-                  <p className="text-xs text-gray-400 mt-0.5">{sub.submitter_phone}</p>
+                  <p className="text-xs text-portal-muted mt-0.5">{sub.submitter_phone}</p>
                 )}
               </div>
             </div>
@@ -436,18 +436,18 @@ export default async function SubmissionDetailPage({
             style={{ borderTop: `4px solid ${accentColor}` }}
           >
             <div className="p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Submission Answers</h2>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-4">Submission Answers</h2>
               <div className="space-y-5">
                 {config.fields.map((field: SubmissionField) => {
                   const answer = sub.payload[field.id]
                   return (
                     <div key={field.id}>
-                      <p className="text-xs font-semibold text-gray-500 mb-1">
+                      <p className="text-xs font-semibold text-portal-sub mb-1">
                         {field.label}
                         {field.required && <span className="text-red-400 ml-0.5">*</span>}
                       </p>
                       {answer ? (
-                        <p className={`text-sm text-gray-800 leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
+                        <p className={`text-sm text-portal-text leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
                           {answer}
                         </p>
                       ) : (
@@ -464,31 +464,31 @@ export default async function SubmissionDetailPage({
 
           {/* Photos */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">
               {config.photoLabel ?? 'Photos'}
               {config.photoRequired
                 ? <span className="text-red-400 font-normal ml-1">(Required)</span>
                 : config.photoHint
-                ? <span className="text-gray-400 font-normal ml-1">(Optional)</span>
+                ? <span className="text-portal-muted font-normal ml-1">(Optional)</span>
                 : null}
             </h2>
 
             {sub.photo_urls.length > 0 ? (
               <div className="space-y-2 mt-3">
                 {sub.photo_urls.map((p, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-portal-bg rounded-lg">
                     <span className="text-xl">🖼️</span>
                     <div className="flex-1 min-w-0">
                       <a href={p.url} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-portal-blue hover:underline truncate block">{p.url}</a>
-                      {p.caption && <p className="text-xs text-gray-400 mt-0.5">{p.caption}</p>}
+                      {p.caption && <p className="text-xs text-portal-muted mt-0.5">{p.caption}</p>}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="mt-3 space-y-2">
-                <p className="text-sm text-gray-400 italic">No photos received yet.</p>
+                <p className="text-sm text-portal-muted italic">No photos received yet.</p>
                 {config.photoHint && (
                   <div className="bg-portal-amber-lt border border-amber-100 rounded-lg p-3">
                     <p className="text-xs font-semibold text-portal-amber mb-1">Instructions for submitter:</p>
@@ -512,20 +512,20 @@ export default async function SubmissionDetailPage({
               {/* Header */}
               <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">AI Draft</h2>
+                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     sub.ai_draft_status === 'ready'      ? 'bg-indigo-100 text-indigo-700'
                     : sub.ai_draft_status === 'edited'   ? 'bg-green-100 text-green-700'
                     : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                     : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                     : sub.ai_draft_status === 'failed'   ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-gray-500'
+                    : 'bg-gray-100 text-portal-sub'
                   }`}>
                     {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
                   </span>
                 </div>
                 {sub.ai_prompt_used && (
-                  <span className="text-[10px] text-gray-400 font-mono">{sub.ai_prompt_used}</span>
+                  <span className="text-[10px] text-portal-muted font-mono">{sub.ai_prompt_used}</span>
                 )}
               </div>
 
@@ -542,18 +542,18 @@ export default async function SubmissionDetailPage({
               {isDraftEditable ? (
                 <form action={saveDraftEdits}>
                   <div className="px-5 pt-4 pb-3">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    <label className="block text-xs font-semibold text-portal-sub mb-1">
                       Edit Draft
-                      <span className="ml-2 font-normal text-gray-400">— not published</span>
+                      <span className="ml-2 font-normal text-portal-muted">— not published</span>
                     </label>
-                    <p className="text-[11px] text-gray-400 mb-2.5 leading-relaxed">
+                    <p className="text-[11px] text-portal-muted mb-2.5 leading-relaxed">
                       Edit for accuracy, tone, and local voice before approval. Changes are saved as a draft only.
                     </p>
                     <textarea
                       name="draft_content"
                       defaultValue={sub.ai_draft_content}
                       rows={14}
-                      className="w-full text-sm border border-gray-200 rounded-lg px-3.5 py-3 resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed text-gray-800"
+                      className="w-full text-sm border border-portal-border rounded-lg px-3.5 py-3 resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed text-portal-text"
                     />
                   </div>
                   <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
@@ -563,14 +563,14 @@ export default async function SubmissionDetailPage({
                     >
                       Save Edited Draft
                     </button>
-                    <p className="text-[10px] text-gray-400">Last updated {fmtDate(sub.updated_at)}</p>
+                    <p className="text-[10px] text-portal-muted">Last updated {fmtDate(sub.updated_at)}</p>
                   </div>
                 </form>
               ) : (
                 /* Read-only for needs_info / failed / generating */
                 <div className="px-5 py-5">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{sub.ai_draft_content}</p>
-                  <p className="text-[10px] text-gray-400 mt-4">AI assist only — human approval required</p>
+                  <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{sub.ai_draft_content}</p>
+                  <p className="text-[10px] text-portal-muted mt-4">AI assist only — human approval required</p>
                 </div>
               )}
 
@@ -592,33 +592,33 @@ export default async function SubmissionDetailPage({
 
           {/* Raw data — collapsed by default */}
           <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <summary className="px-5 py-4 text-xs font-semibold text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors select-none uppercase tracking-wide">
+            <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide">
               Advanced: Raw Submission Data
             </summary>
             <div className="px-5 pb-5 pt-2 border-t border-gray-50">
               <div className="space-y-1.5">
                 {Object.entries(sub.payload).map(([k, v]) => (
                   <div key={k} className="flex gap-3 text-xs">
-                    <span className="font-mono text-gray-400 shrink-0 w-40">{k}</span>
-                    <span className="text-gray-700 break-all">{String(v)}</span>
+                    <span className="font-mono text-portal-muted shrink-0 w-40">{k}</span>
+                    <span className="text-portal-text break-all">{String(v)}</span>
                   </div>
                 ))}
                 <div className="border-t border-gray-100 pt-2 mt-2 space-y-1.5">
                   <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-gray-400 w-40">id</span>
-                    <span className="text-gray-600 font-mono break-all">{sub.id}</span>
+                    <span className="font-mono text-portal-muted w-40">id</span>
+                    <span className="text-portal-sub font-mono break-all">{sub.id}</span>
                   </div>
                   <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-gray-400 w-40">submission_type</span>
-                    <span className="text-gray-600">{sub.submission_type}</span>
+                    <span className="font-mono text-portal-muted w-40">submission_type</span>
+                    <span className="text-portal-sub">{sub.submission_type}</span>
                   </div>
                   <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-gray-400 w-40">created_at</span>
-                    <span className="text-gray-600">{sub.created_at}</span>
+                    <span className="font-mono text-portal-muted w-40">created_at</span>
+                    <span className="text-portal-sub">{sub.created_at}</span>
                   </div>
                   <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-gray-400 w-40">updated_at</span>
-                    <span className="text-gray-600">{sub.updated_at}</span>
+                    <span className="font-mono text-portal-muted w-40">updated_at</span>
+                    <span className="text-portal-sub">{sub.updated_at}</span>
                   </div>
                 </div>
               </div>
@@ -632,9 +632,9 @@ export default async function SubmissionDetailPage({
 
           {/* Operator guidance */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Operator Guidance</h2>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Operator Guidance</h2>
             {guidance.length === 0 ? (
-              <p className="text-sm text-gray-400">No specific guidance available.</p>
+              <p className="text-sm text-portal-muted">No specific guidance available.</p>
             ) : (
               <div className="space-y-2">
                 {guidance.map((g, i) => (
@@ -649,7 +649,7 @@ export default async function SubmissionDetailPage({
 
           {/* Status workflow */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Status Workflow</h2>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Status Workflow</h2>
 
             {/* Recommended next — prominent */}
             {nextStatus && (
@@ -686,7 +686,7 @@ export default async function SubmissionDetailPage({
                     <input type="hidden" name="status" value={s} />
                     <button
                       type="submit"
-                      className="w-full py-1.5 px-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-left"
+                      className="w-full py-1.5 px-2 rounded-lg text-xs font-semibold border border-portal-border text-portal-sub hover:bg-portal-bg transition-colors text-left"
                     >
                       {cfg.label}
                     </button>
@@ -699,7 +699,7 @@ export default async function SubmissionDetailPage({
           {/* Missing info checklist */}
           {checklist.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Info Checklist</h2>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Info Checklist</h2>
               <div className="space-y-2.5">
                 {checklist.map(item => (
                   <div key={item.key} className="flex items-start gap-2.5">
@@ -710,12 +710,12 @@ export default async function SubmissionDetailPage({
                     </span>
                     <div className="flex-1 min-w-0">
                       <span className={`text-xs ${
-                        item.present ? 'text-gray-600' : item.required ? 'text-red-700 font-semibold' : 'text-portal-amber'
+                        item.present ? 'text-portal-sub' : item.required ? 'text-red-700 font-semibold' : 'text-portal-amber'
                       }`}>
                         {item.label}
                       </span>
                       {!item.present && !item.required && (
-                        <span className="text-xs text-gray-400 ml-1">(optional)</span>
+                        <span className="text-xs text-portal-muted ml-1">(optional)</span>
                       )}
                     </div>
                   </div>
@@ -731,15 +731,15 @@ export default async function SubmissionDetailPage({
 
           {/* Editor notes */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Editor Notes</h2>
-            <p className="text-[11px] text-gray-400 mb-2">Internal only — never shown to submitters.</p>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">Editor Notes</h2>
+            <p className="text-[11px] text-portal-muted mb-2">Internal only — never shown to submitters.</p>
             <form action={saveEditorNotes} className="space-y-2">
               <textarea
                 name="editor_notes"
                 defaultValue={sub.editor_notes ?? ''}
                 placeholder="Add notes for the editorial team…"
                 rows={4}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none outline-none focus:border-gray-400 transition-colors"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 resize-none outline-none focus:border-portal-blue transition-colors"
               />
               <button
                 type="submit"
@@ -752,23 +752,23 @@ export default async function SubmissionDetailPage({
 
           {/* Assignment */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Assignment</h2>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Assignment</h2>
             <form action={saveAssignment} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Assigned To</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Assigned To</label>
                 <input
                   name="assigned_to"
                   defaultValue={sub.assigned_to ?? ''}
                   placeholder="Operator name or email"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">Priority</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Priority</label>
                 <select
                   name="internal_priority"
                   defaultValue={sub.internal_priority}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                 >
                   <option value="low">Low</option>
                   <option value="normal">Normal</option>
@@ -778,24 +778,24 @@ export default async function SubmissionDetailPage({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Issue Month</label>
+                  <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Month</label>
                   <select
                     name="issue_month"
                     defaultValue={sub.issue_month ?? ''}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+                    className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                   >
                     <option value="">—</option>
                     {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Issue Year</label>
+                  <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Year</label>
                   <input
                     name="issue_year"
                     type="number"
                     defaultValue={sub.issue_year ?? ''}
                     placeholder="2026"
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors"
+                    className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                   />
                 </div>
               </div>
@@ -811,29 +811,29 @@ export default async function SubmissionDetailPage({
           {/* Publishing destination */}
           {publishDest && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Publishing Destination</h2>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Publishing Destination</h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Destination</p>
-                  <p className="text-sm font-semibold text-gray-800 mt-0.5">{publishDest.destination}</p>
+                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Destination</p>
+                  <p className="text-sm font-semibold text-portal-text mt-0.5">{publishDest.destination}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Section</p>
-                  <p className="text-sm text-gray-700 mt-0.5">{publishDest.section}</p>
+                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Section</p>
+                  <p className="text-sm text-portal-text mt-0.5">{publishDest.section}</p>
                 </div>
                 <div className="flex gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-gray-400'
+                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-portal-muted'
                   }`}>
                     {publishDest.print ? '✓ Print' : '— Print'}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.digital ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400'
+                    publishDest.digital ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-portal-muted'
                   }`}>
                     {publishDest.digital ? '✓ Digital' : '— Digital'}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 leading-relaxed">{publishDest.notes}</p>
+                <p className="text-xs text-portal-sub leading-relaxed">{publishDest.notes}</p>
                 {sub.published_url && (
                   <a href={sub.published_url} target="_blank" rel="noopener noreferrer"
                     className="text-xs text-portal-blue hover:underline font-medium">
@@ -847,15 +847,15 @@ export default async function SubmissionDetailPage({
           {/* AI Assist */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">AI Assist</h2>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                sub.ai_draft_status === 'none'        ? 'bg-gray-100 text-gray-400'
+                sub.ai_draft_status === 'none'        ? 'bg-gray-100 text-portal-muted'
                 : sub.ai_draft_status === 'ready'     ? 'bg-indigo-100 text-indigo-700'
                 : sub.ai_draft_status === 'edited'    ? 'bg-green-100 text-green-700'
                 : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                 : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                 : sub.ai_draft_status === 'failed'    ? 'bg-red-100 text-red-700'
-                : 'bg-gray-100 text-gray-500'
+                : 'bg-gray-100 text-portal-sub'
               }`}>
                 {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
               </span>
@@ -878,7 +878,7 @@ export default async function SubmissionDetailPage({
                   <form action={markForEditing} className="flex-1">
                     <button
                       type="submit"
-                      className="w-full py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full py-1.5 text-xs font-semibold border border-portal-border rounded-lg text-portal-text hover:bg-portal-bg transition-colors"
                     >
                       → Move to Editing
                     </button>
@@ -887,7 +887,7 @@ export default async function SubmissionDetailPage({
                 <form action={clearDraft}>
                   <button
                     type="submit"
-                    className="py-1.5 px-3 text-xs font-semibold border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                    className="py-1.5 px-3 text-xs font-semibold border border-red-200 rounded-lg text-portal-red hover:bg-portal-red-lt transition-colors"
                   >
                     Clear
                   </button>
@@ -910,11 +910,11 @@ export default async function SubmissionDetailPage({
                 <button
                   key={item.label}
                   disabled
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-gray-400 cursor-not-allowed"
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed"
                 >
                   <span>{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -922,8 +922,8 @@ export default async function SubmissionDetailPage({
 
           {/* GHL future */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">GHL Workflow</h2>
-            <p className="text-[11px] text-gray-400 mb-3">Future automation — not yet wired.</p>
+            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">GHL Workflow</h2>
+            <p className="text-[11px] text-portal-muted mb-3">Future automation — not yet wired.</p>
             <div className="space-y-1.5">
               {[
                 { icon: '💌', label: 'Send Thank-You',         sent: sub.thank_you_sent_at },
@@ -933,16 +933,16 @@ export default async function SubmissionDetailPage({
               ].map(item => (
                 <div key={item.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100">
                   <span className="text-base">{item.icon}</span>
-                  <span className="text-xs text-gray-500 flex-1">{item.label}</span>
+                  <span className="text-xs text-portal-sub flex-1">{item.label}</span>
                   {item.sent ? (
                     <span className="text-[10px] text-green-600 font-semibold">Sent</span>
                   ) : (
-                    <span className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                    <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                   )}
                 </div>
               ))}
               {sub.ghl_contact_id && (
-                <p className="text-[10px] text-gray-400 mt-1 px-1">GHL: {sub.ghl_contact_id}</p>
+                <p className="text-[10px] text-portal-muted mt-1 px-1">GHL: {sub.ghl_contact_id}</p>
               )}
             </div>
           </div>

@@ -186,15 +186,15 @@ export default async function AdminCommunityPage({
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Community Submissions</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Community Submissions</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             Nominations, celebrations, school news, events, and feature applications from the community.
           </p>
         </div>
         <Link
           href="/submit"
           target="_blank"
-          className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors shrink-0 font-medium"
+          className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg transition-colors shrink-0 font-medium"
         >
           Public Gateway ↗
         </Link>
@@ -231,7 +231,7 @@ export default async function AdminCommunityPage({
         ].map(m => (
           <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{m.label}</div>
+            <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
         ))}
       </div>
@@ -241,11 +241,11 @@ export default async function AdminCommunityPage({
 
         {/* Status chips */}
         <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mr-1">Status:</span>
+          <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide mr-1">Status:</span>
           <Link
             href={statusHref()}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-              !filterStatus ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              !filterStatus ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
             }`}
           >
             All
@@ -274,11 +274,11 @@ export default async function AdminCommunityPage({
         {/* Type chips */}
         {typeCounts.length > 0 && (
           <div className="flex gap-1.5 flex-wrap items-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mr-1">Type:</span>
+            <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide mr-1">Type:</span>
             <Link
               href={typeHref()}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                !filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                !filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
               }`}
             >
               All
@@ -307,7 +307,7 @@ export default async function AdminCommunityPage({
       {subs.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
           <div className="text-5xl mb-4">📭</div>
-          <p className="text-gray-500 font-medium">
+          <p className="text-portal-sub font-medium">
             {total === 0 ? 'No community submissions yet.' : 'No submissions match the current filters.'}
           </p>
           {total > 0 && (
@@ -338,7 +338,7 @@ export default async function AdminCommunityPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className="text-xl">{tc?.emoji ?? '📝'}</span>
-                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                        <span className="text-[11px] font-bold text-portal-muted uppercase tracking-wide">
                           {tc?.shortLabel ?? sub.submission_type}
                         </span>
                         <span
@@ -353,7 +353,7 @@ export default async function AdminCommunityPage({
                               ? 'bg-red-100 text-red-700'
                               : sub.internal_priority === 'high'
                               ? 'bg-orange-100 text-orange-700'
-                              : 'bg-gray-100 text-gray-500'
+                              : 'bg-gray-100 text-portal-sub'
                           }`}>
                             ↑ {sub.internal_priority}
                           </span>
@@ -361,21 +361,21 @@ export default async function AdminCommunityPage({
                       </div>
 
                       {subject && (
-                        <p className="text-[15px] font-semibold text-gray-900 leading-snug">{subject}</p>
+                        <p className="text-[15px] font-semibold text-portal-text leading-snug">{subject}</p>
                       )}
                       {sub.related_sport && (
-                        <p className="text-xs text-gray-400 mt-0.5">Sport: {sub.related_sport}</p>
+                        <p className="text-xs text-portal-muted mt-0.5">Sport: {sub.related_sport}</p>
                       )}
 
-                      <p className="text-sm text-gray-500 mt-1.5">
+                      <p className="text-sm text-portal-sub mt-1.5">
                         From{' '}
-                        <span className="font-semibold text-gray-700">{sub.submitter_name}</span>
+                        <span className="font-semibold text-portal-text">{sub.submitter_name}</span>
                         {' · '}
                         <a href={`mailto:${sub.submitter_email}`} className="text-portal-blue hover:underline">
                           {sub.submitter_email}
                         </a>
                         {sub.submitter_phone && (
-                          <span className="text-gray-400 ml-2">· {sub.submitter_phone}</span>
+                          <span className="text-portal-muted ml-2">· {sub.submitter_phone}</span>
                         )}
                       </p>
 
@@ -386,15 +386,15 @@ export default async function AdminCommunityPage({
                       )}
 
                       {sub.assigned_to && (
-                        <p className="text-xs text-gray-400 mt-1.5">
-                          Assigned to: <span className="font-medium text-gray-600">{sub.assigned_to}</span>
+                        <p className="text-xs text-portal-muted mt-1.5">
+                          Assigned to: <span className="font-medium text-portal-sub">{sub.assigned_to}</span>
                         </p>
                       )}
                     </div>
 
                     {/* Right: timestamp + view link */}
                     <div className="shrink-0 text-right space-y-1.5">
-                      <p className="text-xs text-gray-400 font-medium">{timeAgo(sub.created_at)}</p>
+                      <p className="text-xs text-portal-muted font-medium">{timeAgo(sub.created_at)}</p>
                       {sub.editorial_deadline && (
                         <p className="text-xs font-semibold text-orange-600">
                           Due {shortDate(sub.editorial_deadline)}
@@ -424,8 +424,8 @@ export default async function AdminCommunityPage({
                               type="submit"
                               className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                 isBad
-                                  ? 'border-red-200 text-red-600 hover:bg-red-50'
-                                  : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                                  ? 'border-red-200 text-portal-red hover:bg-portal-red-lt'
+                                  : 'border-portal-border text-portal-text hover:bg-portal-bg'
                               }`}
                             >
                               {action}
@@ -441,7 +441,7 @@ export default async function AdminCommunityPage({
           })}
 
           {subs.length >= 100 && (
-            <p className="text-center text-xs text-gray-400 py-2">
+            <p className="text-center text-xs text-portal-muted py-2">
               Showing first 100 results. Use filters to narrow results.
             </p>
           )}

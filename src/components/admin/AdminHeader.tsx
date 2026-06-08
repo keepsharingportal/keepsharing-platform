@@ -60,10 +60,10 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
 
   return (
-    <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl border border-gray-200 shadow-2xl z-50 overflow-hidden">
+    <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl border border-portal-border shadow-2xl z-50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-gray-900">Notifications</span>
+          <span className="text-sm font-bold text-portal-text">Notifications</span>
           {unread > 0 && (
             <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
               {unread}
@@ -76,7 +76,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
               Mark all read
             </button>
           )}
-          <button onClick={onClose}><X size={14} className="text-gray-400" /></button>
+          <button onClick={onClose}><X size={14} className="text-portal-muted" /></button>
         </div>
       </div>
 
@@ -86,21 +86,21 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
             key={n.id}
             onClick={() => markRead(n.id)}
             className={cn(
-              'flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer',
+              'flex items-start gap-3 px-4 py-3 hover:bg-portal-bg transition-colors cursor-pointer',
               !n.read && 'bg-portal-blue-lt/40'
             )}
           >
             <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', DOT_COLORS[n.dot])} />
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold text-gray-900 flex items-center justify-between gap-2">
+              <div className="text-xs font-semibold text-portal-text flex items-center justify-between gap-2">
                 <span className="truncate">{n.title}</span>
-                <span className="text-gray-400 text-[10px] shrink-0 font-normal">{n.time}</span>
+                <span className="text-portal-muted text-[10px] shrink-0 font-normal">{n.time}</span>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 leading-snug">{n.body}</p>
+              <p className="text-xs text-portal-sub mt-0.5 leading-snug">{n.body}</p>
             </div>
             {n.href && (
               <Link href={n.href} className="shrink-0 mt-0.5" onClick={onClose}>
-                <ChevronRight size={13} className="text-gray-300 hover:text-gray-500" />
+                <ChevronRight size={13} className="text-gray-300 hover:text-portal-sub" />
               </Link>
             )}
           </div>
@@ -144,15 +144,15 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
       <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-          <Search size={18} className="text-gray-400 shrink-0" />
+          <Search size={18} className="text-portal-muted shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search the knowledge base…"
-            className="flex-1 text-base outline-none text-gray-900 placeholder-gray-400"
+            className="flex-1 text-base outline-none text-portal-text placeholder-gray-400"
           />
-          <button onClick={onClose}><X size={17} className="text-gray-400 hover:text-gray-600" /></button>
+          <button onClick={onClose}><X size={17} className="text-portal-muted hover:text-portal-sub" /></button>
         </div>
 
         {/* Results */}
@@ -163,14 +163,14 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
                 <li key={article.id}>
                   <button
                     onClick={() => go(article.id)}
-                    className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-portal-bg transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-gray-900 mb-0.5">{article.title}</div>
-                      <p className="text-xs text-gray-500 line-clamp-1">{article.summary}</p>
+                      <div className="text-sm font-semibold text-portal-text mb-0.5">{article.title}</div>
+                      <p className="text-xs text-portal-sub line-clamp-1">{article.summary}</p>
                     </div>
                     <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 mt-0.5',
-                      CATEGORY_COLORS[article.category] ?? 'bg-gray-100 text-gray-600')}>
+                      CATEGORY_COLORS[article.category] ?? 'bg-gray-100 text-portal-sub')}>
                       {article.category}
                     </span>
                   </button>
@@ -178,17 +178,17 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
               ))}
             </ul>
           ) : (
-            <div className="px-4 py-8 text-center text-sm text-gray-400">
+            <div className="px-4 py-8 text-center text-sm text-portal-muted">
               No articles found for &ldquo;{query}&rdquo;
             </div>
           )
         ) : (
           <div className="px-4 py-4">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quick links</div>
+            <div className="text-xs font-semibold text-portal-muted uppercase tracking-wide mb-2">Quick links</div>
             <div className="flex flex-wrap gap-2">
               {['clone advertiser sheet', 'import zoho', 'editorial board', 'add advertiser', 'ad proof'].map(term => (
                 <button key={term} onClick={() => setQuery(term)}
-                  className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                  className="px-3 py-1.5 text-xs text-portal-sub bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
                   {term}
                 </button>
               ))}
@@ -259,7 +259,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
   const QUICK = ['How do I clone to next month?', 'How do I import from Zoho?', 'How does the editorial board work?']
 
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-2xl z-40 flex flex-col">
+    <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-portal-border shadow-2xl z-40 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0"
         style={{ backgroundColor: 'var(--color-sidebar)' }}>
@@ -285,7 +285,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
               'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
               msg.role === 'user'
                 ? 'bg-portal-navy text-white rounded-br-sm'
-                : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                : 'bg-gray-100 text-portal-text rounded-bl-sm'
             )}>
               {msg.content}
               {msg.articles && msg.articles.length > 0 && (
@@ -305,8 +305,8 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3.5 py-2.5 flex items-center gap-2">
-              <Loader2 size={13} className="text-gray-400 animate-spin" />
-              <span className="text-xs text-gray-400">Thinking…</span>
+              <Loader2 size={13} className="text-portal-muted animate-spin" />
+              <span className="text-xs text-portal-muted">Thinking…</span>
             </div>
           </div>
         )}
@@ -318,7 +318,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
         <div className="px-4 pb-3 flex flex-wrap gap-1.5 shrink-0">
           {QUICK.map(q => (
             <button key={q} onClick={() => { setInput(q); setTimeout(() => send(), 50) }}
-              className="px-2.5 py-1 text-[11px] text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+              className="px-2.5 py-1 text-[11px] text-portal-sub bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
               {q}
             </button>
           ))}
@@ -327,22 +327,22 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
 
       {/* Input */}
       <div className="px-3 pb-3 shrink-0 border-t border-gray-100 pt-3">
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-2">
           <input
             ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
             placeholder="Ask anything about the platform…"
-            className="flex-1 text-sm bg-transparent outline-none text-gray-900 placeholder-gray-400"
+            className="flex-1 text-sm bg-transparent outline-none text-portal-text placeholder-gray-400"
           />
           <button onClick={send} disabled={!input.trim() || loading}
             className="w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-40 transition-colors"
             style={{ backgroundColor: input.trim() ? '#2563EB' : '#E5E7EB' }}>
-            <Send size={13} className={input.trim() ? 'text-white' : 'text-gray-400'} />
+            <Send size={13} className={input.trim() ? 'text-white' : 'text-portal-muted'} />
           </button>
         </div>
-        <p className="text-[10px] text-gray-400 mt-1.5 text-center">
+        <p className="text-[10px] text-portal-muted mt-1.5 text-center">
           Powered by Claude · Answers based on KeepSharing knowledge base
         </p>
       </div>
@@ -378,27 +378,27 @@ function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }
   }
 
   return (
-    <div className="absolute right-0 top-10 w-56 bg-white rounded-2xl border border-gray-200 shadow-2xl z-50 overflow-hidden">
+    <div className="absolute right-0 top-10 w-56 bg-white rounded-2xl border border-portal-border shadow-2xl z-50 overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100">
-        <div className="text-sm font-semibold text-gray-900 truncate">
+        <div className="text-sm font-semibold text-portal-text truncate">
           {me?.fullName || me?.email?.split('@')[0] || '—'}
         </div>
-        <div className="text-xs text-gray-400 truncate">{me?.email ?? '—'}</div>
+        <div className="text-xs text-portal-muted truncate">{me?.email ?? '—'}</div>
         {me?.role && (
           <div className="text-[10px] text-portal-blue font-medium mt-0.5">{ROLE_LABEL[me.role]}</div>
         )}
       </div>
       <div className="py-1">
         <Link href="/admin/settings/account" onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          className="flex items-center gap-2 px-4 py-2 text-sm text-portal-text hover:bg-portal-bg">
           Account & Password
         </Link>
         <Link href="/admin/settings" onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          className="flex items-center gap-2 px-4 py-2 text-sm text-portal-text hover:bg-portal-bg">
           Platform Settings
         </Link>
         <Link href="/admin/help" onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          className="flex items-center gap-2 px-4 py-2 text-sm text-portal-text hover:bg-portal-bg">
           Help Center
         </Link>
       </div>
@@ -406,7 +406,7 @@ function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }
         <button
           onClick={signOut}
           disabled={signingOut}
-          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40"
+          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-portal-red hover:bg-portal-red-lt disabled:opacity-40"
         >
           {signingOut ? <RefreshCw size={13} className="animate-spin" /> : <LogOut size={13} />}
           {signingOut ? 'Signing out…' : 'Sign out'}
@@ -485,7 +485,7 @@ export function AdminHeader() {
               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors mr-auto disabled:opacity-50',
               maintenance
                 ? 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-300 hover:bg-amber-200'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                : 'text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover'
             )}
           >
             {maintBusy ? <RefreshCw size={12} className="animate-spin" /> : <Wrench size={12} />}
@@ -499,7 +499,7 @@ export function AdminHeader() {
             onClick={() => toggle('notifications')}
             className={cn(
               'w-8 h-8 rounded-lg flex items-center justify-center transition-colors relative',
-              openPanel === 'notifications' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              openPanel === 'notifications' ? 'bg-portal-blue-lt text-portal-blue' : 'text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover'
             )}
           >
             <Bell size={16} />
@@ -515,7 +515,7 @@ export function AdminHeader() {
           onClick={() => toggle('search')}
           className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-            openPanel === 'search' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            openPanel === 'search' ? 'bg-portal-blue-lt text-portal-blue' : 'text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover'
           )}
         >
           <HelpCircle size={16} />
@@ -526,7 +526,7 @@ export function AdminHeader() {
           onClick={() => toggle('chat')}
           className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-            openPanel === 'chat' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            openPanel === 'chat' ? 'bg-portal-blue-lt text-portal-blue' : 'text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover'
           )}
         >
           <MessageSquare size={16} />

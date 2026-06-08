@@ -39,7 +39,7 @@ const ROLE_META: Record<ContactRole, { label: string; cls: string }> = {
   billing:        { label: 'Billing',        cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
   listing_owner:  { label: 'Listing owner',  cls: 'bg-sky-100 text-sky-800 ring-sky-200' },
   decision_maker: { label: 'Decision maker', cls: 'bg-violet-100 text-violet-800 ring-violet-200' },
-  other:          { label: 'Other',          cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
+  other:          { label: 'Other',          cls: 'bg-gray-100 text-portal-text ring-gray-200' },
 }
 
 const ROLE_OPTIONS: Array<{ value: ContactRole; label: string }> = [
@@ -107,8 +107,8 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
   return (
     <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
       <header className="flex items-center justify-between">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
-          Contacts {contacts.length > 0 && <span className="text-gray-400">({contacts.length})</span>}
+        <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
+          Contacts {contacts.length > 0 && <span className="text-portal-muted">({contacts.length})</span>}
         </h2>
         {!adding && (
           <button
@@ -125,8 +125,8 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
           of showing a void. Picks up automatically when the first one
           is saved. */}
       {contacts.length === 0 && !adding && (
-        <div className="text-center py-4 border border-dashed border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-500 mb-2">No contacts yet.</p>
+        <div className="text-center py-4 border border-dashed border-portal-border rounded-lg">
+          <p className="text-xs text-portal-sub mb-2">No contacts yet.</p>
           <button
             type="button"
             onClick={() => setAdding(true)}
@@ -151,11 +151,11 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
               />
             </li>
           ) : (
-            <li key={c.id} className="flex items-start gap-2 p-2.5 rounded-lg hover:bg-gray-50 transition-colors group">
+            <li key={c.id} className="flex items-start gap-2 p-2.5 rounded-lg hover:bg-portal-bg transition-colors group">
               <Briefcase size={13} className="text-gray-300 mt-1 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <p className="font-bold text-gray-900 leading-tight">{c.name}</p>
+                  <p className="font-bold text-portal-text leading-tight">{c.name}</p>
                   {c.is_primary && (
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-portal-amber">
                       <Star size={9} className="fill-amber-500 text-amber-500" /> Primary
@@ -171,17 +171,17 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                   </a>
                 )}
                 {c.phone && (
-                  <p className="flex items-center gap-1 text-gray-600 text-xs mt-0.5">
+                  <p className="flex items-center gap-1 text-portal-sub text-xs mt-0.5">
                     <Phone size={11} /> {c.phone}
                   </p>
                 )}
-                {c.notes && <p className="text-[11px] text-gray-500 italic mt-0.5">{c.notes}</p>}
+                {c.notes && <p className="text-[11px] text-portal-sub italic mt-0.5">{c.notes}</p>}
               </div>
               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => { setEditing(c.id); setAdding(false) }}
-                  className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-900"
+                  className="p-1 rounded hover:bg-gray-200 text-portal-sub hover:text-portal-text"
                   aria-label={`Edit ${c.name}`}
                 >
                   <Pencil size={11} />
@@ -190,7 +190,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                   type="button"
                   onClick={() => startTransition(() => { void onDelete(c.id, c.name) })}
                   disabled={busy}
-                  className="p-1 rounded hover:bg-portal-red-lt text-gray-400 hover:text-rose-600 disabled:opacity-40"
+                  className="p-1 rounded hover:bg-portal-red-lt text-portal-muted hover:text-rose-600 disabled:opacity-40"
                   aria-label={`Delete ${c.name}`}
                 >
                   <Trash2 size={11} />
@@ -241,8 +241,8 @@ function ContactForm({
   const [notes,  setNotes]  = useState(initial?.notes  ?? '')
   const [saving, setSaving] = useState(false)
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1'
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -261,7 +261,7 @@ function ContactForm({
   }
 
   return (
-    <form onSubmit={submit} className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2">
+    <form onSubmit={submit} className="bg-portal-bg border border-portal-border rounded-lg p-3 space-y-2">
       <div className="grid sm:grid-cols-2 gap-2">
         <div>
           <label className={lbl}>Name *</label>
@@ -289,12 +289,12 @@ function ContactForm({
         <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Best to reach after 3pm" className={inp} />
       </div>
       <div className="flex items-center justify-between pt-1">
-        <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+        <label className="inline-flex items-center gap-2 cursor-pointer text-xs text-portal-text">
           <input type="checkbox" checked={isPrimary} onChange={e => setIsPrimary(e.target.checked)} />
           Mark as primary contact
         </label>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-900">
+          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-sub hover:text-portal-text">
             <X size={11} className="inline mr-0.5" /> Cancel
           </button>
           <button

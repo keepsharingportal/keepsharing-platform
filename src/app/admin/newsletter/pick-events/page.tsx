@@ -293,47 +293,47 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       {/* HEADER */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-gray-700 mb-2">
+          <Link href="/admin" className="inline-flex items-center gap-1 text-xs font-semibold text-portal-muted hover:text-portal-text mb-2">
             <ArrowLeft size={12} /> Back to admin
           </Link>
           <div className="flex items-center gap-2 mb-1">
             <Mail size={20} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Weekly Newsletter Picks</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Weekly Newsletter Picks</h1>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-portal-sub">
             Build the "Weekly Scoop" event picks. Select 4–6 events, optionally override
             the headline/blurb per pick, then copy the rendered HTML into your email tool.
           </p>
         </div>
         <Link href="/calendar" target="_blank" rel="noreferrer"
-          className="text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50">
+          className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
           View public calendar →
         </Link>
       </div>
 
       {/* DATE + FILTERS */}
-      <section className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex flex-wrap items-end gap-4">
+      <section className="bg-white border border-portal-border rounded-2xl px-5 py-4 flex flex-wrap items-end gap-4">
         <form className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Issue date</label>
+            <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Issue date</label>
             <select name="issue" defaultValue={issueDate}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
+              className="text-sm border border-portal-border rounded-lg px-3 py-2 bg-white">
               {nextDates.map(d => (
                 <option key={d} value={d}>{fmtDate(d)}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Category</label>
+            <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Category</label>
             <select name="category" defaultValue={category}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white">
+              className="text-sm border border-portal-border rounded-lg px-3 py-2 bg-white">
               <option value="all">All categories</option>
               {EVENT_CATEGORIES.map(c => (
                 <option key={c.slug} value={c.slug}>{c.emoji} {c.label}</option>
               ))}
             </select>
           </div>
-          <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+          <label className="flex items-center gap-2 text-sm font-semibold text-portal-text mb-2">
             <input type="checkbox" name="free" value="true" defaultChecked={freeOnly} className="w-4 h-4 rounded text-portal-blue" />
             Free events only
           </label>
@@ -347,14 +347,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       <div className="grid lg:grid-cols-2 gap-6">
 
         {/* LEFT — eligible events */}
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-            <CalIcon size={14} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-700">Eligible events</h2>
-            <span className="ml-auto text-xs text-gray-400">{allEvents.length} found</span>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+            <CalIcon size={14} className="text-portal-muted" />
+            <h2 className="text-sm font-bold text-portal-text">Eligible events</h2>
+            <span className="ml-auto text-xs text-portal-muted">{allEvents.length} found</span>
           </div>
           {allEvents.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">
+            <p className="p-8 text-center text-sm text-portal-muted">
               No upcoming events for this window. Try widening the date range or adjusting filters.
             </p>
           ) : (
@@ -372,12 +372,12 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                       <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{ev.title}</p>
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-sm font-semibold text-portal-text truncate">{ev.title}</p>
+                      <p className="text-xs text-portal-muted truncate">
                         {fmtDate(ev.start_date)}{ev.start_time ? ` · ${ev.start_time}` : ''}
                         {ev.location_name && ` · ${ev.location_name}`}
                       </p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">
+                      <p className="text-[11px] text-portal-muted mt-0.5">
                         {ev.is_free && <span className="text-secondary font-semibold mr-1.5">Free</span>}
                         {ev.category && <span>{ev.category}</span>}
                         {wasFeatured && <span className="ml-1.5 text-amber-600">· Featured {fmtDate(lastIssue!)}</span>}
@@ -390,7 +390,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                         <input type="hidden" name="event_id"   value={ev.id} />
                         <input type="hidden" name="issue_date" value={issueDate} />
                         <button type="submit"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white text-gray-700 rounded-lg hover:bg-gray-50">
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white text-portal-text rounded-lg hover:bg-portal-bg">
                           <Plus size={11} /> Add
                         </button>
                       </form>
@@ -403,14 +403,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
         </section>
 
         {/* RIGHT — this week's picks */}
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
             <Mail size={14} className="text-portal-blue" />
-            <h2 className="text-sm font-bold text-gray-700">This issue's picks ({picks.length})</h2>
-            <span className="ml-auto text-xs text-gray-400">{fmtDate(issueDate)}</span>
+            <h2 className="text-sm font-bold text-portal-text">This issue's picks ({picks.length})</h2>
+            <span className="ml-auto text-xs text-portal-muted">{fmtDate(issueDate)}</span>
           </div>
           {picks.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">
+            <p className="p-8 text-center text-sm text-portal-muted">
               No picks yet for this issue. Add events from the left.
             </p>
           ) : (
@@ -424,7 +424,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                     <div className="flex items-start gap-3 mb-3">
                       <div className="flex flex-col items-center gap-1 pt-1">
                         <GripVertical size={14} className="text-gray-300" />
-                        <span className="text-[9px] font-bold text-gray-400">{idx + 1}</span>
+                        <span className="text-[9px] font-bold text-portal-muted">{idx + 1}</span>
                       </div>
                       {pk.hero_image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -433,8 +433,8 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                         <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{pk.title}</p>
-                        <p className="text-xs text-gray-400 truncate">
+                        <p className="text-sm font-semibold text-portal-text truncate">{pk.title}</p>
+                        <p className="text-xs text-portal-muted truncate">
                           {fmtDate(pk.start_date)}{pk.start_time ? ` · ${pk.start_time}` : ''}
                         </p>
                       </div>
@@ -443,14 +443,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                           <form action={reorderPick}>
                             <input type="hidden" name="id" value={pickRow.id} />
                             <input type="hidden" name="direction" value="up" />
-                            <button type="submit" className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded" title="Move up">↑</button>
+                            <button type="submit" className="px-1.5 py-1 text-xs text-portal-sub hover:text-portal-text hover:bg-portal-row-hover rounded" title="Move up">↑</button>
                           </form>
                         )}
                         {!isLast && (
                           <form action={reorderPick}>
                             <input type="hidden" name="id" value={pickRow.id} />
                             <input type="hidden" name="direction" value="down" />
-                            <button type="submit" className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded" title="Move down">↓</button>
+                            <button type="submit" className="px-1.5 py-1 text-xs text-portal-sub hover:text-portal-text hover:bg-portal-row-hover rounded" title="Move down">↓</button>
                           </form>
                         )}
                         <form action={removePick}>
@@ -463,22 +463,22 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                     </div>
 
                     <details className="ml-9">
-                      <summary className="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700 select-none">
+                      <summary className="text-xs font-semibold text-portal-sub cursor-pointer hover:text-portal-text select-none">
                         Override headline / blurb for this newsletter
                       </summary>
                       <form action={updatePick} className="mt-3 space-y-2">
                         <input type="hidden" name="id" value={pickRow.id} />
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Headline override</label>
+                          <label className="block text-[10px] font-bold text-portal-sub uppercase tracking-wider mb-1">Headline override</label>
                           <input name="custom_headline" type="text" defaultValue={pickRow.custom_headline ?? ''}
                             placeholder={pk.title}
-                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60" />
+                            className="w-full text-sm border border-portal-border rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60" />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Blurb override</label>
+                          <label className="block text-[10px] font-bold text-portal-sub uppercase tracking-wider mb-1">Blurb override</label>
                           <textarea name="custom_blurb" rows={3} defaultValue={pickRow.custom_blurb ?? ''}
                             placeholder={pk.description?.slice(0, 200) ?? 'Custom newsletter blurb…'}
-                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60 resize-y" />
+                            className="w-full text-sm border border-portal-border rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60 resize-y" />
                         </div>
                         <button type="submit" className="text-xs font-bold bg-gray-900 text-white rounded-lg px-3 py-1.5 hover:bg-gray-700">
                           Save overrides
@@ -495,14 +495,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
 
       {/* PREVIEW + COPY HTML */}
       {picks.length > 0 && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-bold text-gray-700">Preview &amp; Export</h2>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+            <h2 className="text-sm font-bold text-portal-text">Preview &amp; Export</h2>
           </div>
           <div className="grid lg:grid-cols-2 gap-0">
             <div className="p-5 border-r border-gray-100">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Rendered preview</p>
-              <div className="border border-gray-200 rounded-lg bg-gray-50 p-3 overflow-auto max-h-[600px]"
+              <p className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-2">Rendered preview</p>
+              <div className="border border-portal-border rounded-lg bg-portal-bg p-3 overflow-auto max-h-[600px]"
                    dangerouslySetInnerHTML={{ __html: html }} />
             </div>
             <div className="p-5">
@@ -538,14 +538,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
 
       {/* SEND HISTORY */}
       {newsletterIssuesAvailable && (thisIssueSends.length > 0 || recentSends.length > 0) && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-bold text-gray-700">Send history</h2>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+            <h2 className="text-sm font-bold text-portal-text">Send history</h2>
           </div>
           <div className="p-5 space-y-4">
             {thisIssueSends.length > 0 && (
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">This issue ({fmtDate(issueDate)})</p>
+                <p className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-2">This issue ({fmtDate(issueDate)})</p>
                 <ul className="space-y-1">
                   {thisIssueSends.map(is => <IssueLine key={is.id} issue={is} />)}
                 </ul>
@@ -553,7 +553,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
             )}
             {recentSends.length > 0 && (
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Recent issues</p>
+                <p className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-2">Recent issues</p>
                 <ul className="space-y-1">
                   {recentSends.map(is => <IssueLine key={is.id} issue={is} />)}
                 </ul>
@@ -577,7 +577,7 @@ function IssueLine({ issue }: { issue: {
     issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-green-100 text-green-800', label: 'Sent' } :
     issue.status === 'queued' ? { Icon: Clock,        cls: 'bg-portal-blue-lt text-portal-blue',   label: 'Scheduled' } :
     issue.status === 'failed' ? { Icon: AlertTriangle,cls: 'bg-portal-red-lt text-portal-red',   label: 'Failed' } :
-                                { Icon: Clock,        cls: 'bg-gray-100 text-gray-700',   label: 'Pending' }
+                                { Icon: Clock,        cls: 'bg-gray-100 text-portal-text',   label: 'Pending' }
   const Icon = statusBadge.Icon
   const when = issue.scheduled_for
     ? `for ${new Date(issue.scheduled_for).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`
@@ -588,9 +588,9 @@ function IssueLine({ issue }: { issue: {
         <Icon size={11} /> {statusBadge.label}
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{issue.subject}</p>
-        <p className="text-[11px] text-gray-500">
-          {issue.picks_count} pick(s) · to <strong className="text-gray-700">{issue.list_tag ?? '(no tag)'}</strong> · {when}
+        <p className="text-sm font-semibold text-portal-text truncate">{issue.subject}</p>
+        <p className="text-[11px] text-portal-sub">
+          {issue.picks_count} pick(s) · to <strong className="text-portal-text">{issue.list_tag ?? '(no tag)'}</strong> · {when}
           {issue.error_message && <span className="text-portal-red"> · {issue.error_message}</span>}
         </p>
       </div>

@@ -49,12 +49,12 @@ interface SaveResult {
   errors:   string[]
 }
 
-const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
-const labelCls = 'block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5'
+const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
+const labelCls = 'block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5'
 
 export default function ExtractPageWrapper() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading…</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-portal-muted">Loading…</div>}>
       <ExtractPage />
     </Suspense>
   )
@@ -146,24 +146,24 @@ function ExtractPage() {
 
       {/* HEADER */}
       <div>
-        <Link href="/admin/events/sources" className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-gray-700 mb-2">
+        <Link href="/admin/events/sources" className="inline-flex items-center gap-1 text-xs font-semibold text-portal-muted hover:text-portal-text mb-2">
           <ArrowLeft size={12} /> Back to Sources
         </Link>
         <div className="flex items-center gap-2 mb-1">
           <Sparkles size={20} className="text-purple-600" />
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">AI Extract</h1>
+          <h1 className="text-xl font-bold text-portal-text tracking-tight">AI Extract</h1>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-portal-sub">
           Paste an events URL or block of text. Claude reads it and returns structured events.
           Nothing is saved until you review the results and click Save Selected.
-          {sourceName && <> Attribution will be set to <strong className="text-gray-700">{sourceName}</strong>.</>}
+          {sourceName && <> Attribution will be set to <strong className="text-portal-text">{sourceName}</strong>.</>}
         </p>
       </div>
 
       {/* INPUT FORM */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-          <h2 className="text-sm font-bold text-gray-700">Source</h2>
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <h2 className="text-sm font-bold text-portal-text">Source</h2>
         </div>
 
         <div className="p-5 space-y-4">
@@ -171,13 +171,13 @@ function ExtractPage() {
           <div className="flex gap-1.5">
             <button onClick={() => setMode('url')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                mode === 'url' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                mode === 'url' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
               }`}>
               <LinkIcon size={11} /> Paste URL
             </button>
             <button onClick={() => setMode('text')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                mode === 'text' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                mode === 'text' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
               }`}>
               <FileText size={11} /> Paste text
             </button>
@@ -189,7 +189,7 @@ function ExtractPage() {
               <input type="url" value={url} onChange={e => setUrl(e.target.value)}
                 placeholder="https://www.mpaconline.org/events"
                 className={inputCls} />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-portal-muted mt-1">
                 Best for: org event pages, news community calendars, single event detail pages.
                 Won&apos;t work for Facebook events (gated) — for those use Paste text and paste the visible event body.
               </p>
@@ -211,7 +211,7 @@ function ExtractPage() {
               {running ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
               {running ? 'Extracting…' : 'Extract events'}
             </button>
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[11px] text-portal-muted">
               Powered by Claude. Extraction usually takes 5–20 seconds.
             </span>
           </div>
@@ -249,17 +249,17 @@ function ExtractPage() {
 
       {/* RESULTS */}
       {result && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
-            <h2 className="text-sm font-bold text-gray-700">
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-sm font-bold text-portal-text">
               {events.length === 0 ? 'No events found' : `${events.length} event(s) extracted — keeping ${keptCount}`}
             </h2>
             {events.length > 0 && (
               <div className="flex gap-2">
                 <button onClick={() => setKeep(Object.fromEntries(events.map((_, i) => [i, true])))}
-                  className="text-xs font-semibold text-gray-600 hover:text-gray-800 px-2 py-1">Select all</button>
+                  className="text-xs font-semibold text-portal-sub hover:text-portal-text px-2 py-1">Select all</button>
                 <button onClick={() => setKeep({})}
-                  className="text-xs font-semibold text-gray-600 hover:text-gray-800 px-2 py-1">Select none</button>
+                  className="text-xs font-semibold text-portal-sub hover:text-portal-text px-2 py-1">Select none</button>
                 <button onClick={saveKept} disabled={saving || keptCount === 0}
                   className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40">
                   {saving ? <RefreshCw size={11} className="animate-spin" /> : <Save size={11} />}
@@ -270,13 +270,13 @@ function ExtractPage() {
           </div>
 
           {result.model_notes && (
-            <p className="px-5 py-3 text-xs text-gray-500 italic bg-gray-50/50 border-b border-gray-100">
+            <p className="px-5 py-3 text-xs text-portal-sub italic bg-portal-bg/50 border-b border-gray-100">
               Model notes: {result.model_notes}
             </p>
           )}
 
           {events.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">
+            <p className="p-8 text-center text-sm text-portal-muted">
               No events extracted. Try Paste text mode with the visible event body, or check the source.
             </p>
           ) : (
@@ -288,8 +288,8 @@ function ExtractPage() {
                       className="mt-1 w-4 h-4 rounded text-purple-600" />
                     <div className="flex-1 min-w-0">
                       <input type="text" value={ev.title} onChange={e => updateField(idx, 'title', e.target.value)}
-                        className="w-full text-base font-semibold text-gray-900 bg-transparent outline-none focus:bg-gray-50 rounded px-1 -mx-1" />
-                      <p className="text-xs text-gray-400 mt-0.5">
+                        className="w-full text-base font-semibold text-portal-text bg-transparent outline-none focus:bg-portal-bg rounded px-1 -mx-1" />
+                      <p className="text-xs text-portal-muted mt-0.5">
                         {ev.start_date}{ev.start_time ? ` · ${ev.start_time}` : ''}
                         {ev.location_name && ` · ${ev.location_name}`}
                       </p>
@@ -348,7 +348,7 @@ function ExtractPage() {
 
                       <div className="grid md:grid-cols-4 gap-3">
                         <div className="flex items-center pt-5">
-                          <label className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                          <label className="flex items-center gap-2 text-xs font-semibold text-portal-text">
                             <input type="checkbox" checked={!!ev.is_free} onChange={e => updateField(idx, 'is_free', e.target.checked)} className="w-4 h-4 rounded text-portal-blue" />
                             Free event
                           </label>

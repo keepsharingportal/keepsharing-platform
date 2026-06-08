@@ -26,9 +26,9 @@ export default function NavigationAdminPage() {
         <header className="space-y-1">
           <div className="flex items-center gap-2">
             <NavIcon className="h-5 w-5 text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Site Navigation</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Site Navigation</h1>
           </div>
-          <p className="text-sm text-gray-500 max-w-2xl">
+          <p className="text-sm text-portal-sub max-w-2xl">
             Show or hide individual links in the public site&apos;s header and
             footer. Hidden items disappear from every public page within ~30
             seconds — handy for launch week when some destinations aren&apos;t

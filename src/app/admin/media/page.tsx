@@ -69,13 +69,13 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
   const assets = await fetchMediaAssets(q ?? null)
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+      <div className="bg-white border-b border-portal-border px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Media Library</h1>
-            <p className="text-xs text-gray-400 mt-0.5">{assets.length} asset{assets.length !== 1 ? 's' : ''}{q ? ` matching "${q}"` : ''}</p>
+            <h1 className="text-xl font-semibold text-portal-text">Media Library</h1>
+            <p className="text-xs text-portal-muted mt-0.5">{assets.length} asset{assets.length !== 1 ? 's' : ''}{q ? ` matching "${q}"` : ''}</p>
           </div>
           <Link
             href="/admin/articles/new"
@@ -88,13 +88,13 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
         {/* Search */}
         <form method="GET" action="/admin/media">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
             <input
               name="q"
               defaultValue={q ?? ''}
               type="search"
               placeholder="Search by title, alt text, or category…"
-              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-blue-400"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-portal-border rounded-lg bg-white outline-none focus:border-portal-blue"
             />
           </div>
         </form>
@@ -102,12 +102,12 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
 
       <div className="p-5">
         {assets.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+          <div className="bg-white rounded-xl border border-portal-border p-16 text-center">
             <ImageIcon size={32} className="text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm mb-2">
+            <p className="text-portal-sub text-sm mb-2">
               {q ? `No media found for "${q}"` : 'No media uploaded yet'}
             </p>
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-xs text-portal-muted mb-4">
               Images uploaded via the article editor are automatically tracked here.
             </p>
             <Link
@@ -128,7 +128,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
               return (
                 <div
                   key={asset.id}
-                  className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
+                  className="group bg-white rounded-xl border border-portal-border overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -146,7 +146,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Open full image"
-                        className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-gray-700 hover:bg-white transition-colors"
+                        className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-portal-text hover:bg-white transition-colors"
                       >
                         <ExternalLink size={12} />
                       </a>
@@ -156,7 +156,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                         title="Copy image URL"
                         onClick={() => {}}
                         data-copy-url={asset.storage_url}
-                        className="copy-url-btn w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-gray-700 hover:bg-white transition-colors"
+                        className="copy-url-btn w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-portal-text hover:bg-white transition-colors"
                       >
                         <Copy size={12} />
                       </button>
@@ -174,19 +174,19 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
 
                   {/* Metadata */}
                   <div className="p-2.5">
-                    <p className="text-[11px] font-semibold text-gray-800 truncate leading-tight">
+                    <p className="text-[11px] font-semibold text-portal-text truncate leading-tight">
                       {asset.title ?? asset.alt_text ?? 'Untitled'}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {asset.content_category && (
-                        <span className="text-[9px] font-bold uppercase text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-bold uppercase text-portal-muted bg-gray-100 px-1.5 py-0.5 rounded">
                           {asset.content_category}
                         </span>
                       )}
-                      <span className="text-[10px] text-gray-400 ml-auto">{fmtDate(asset.created_at)}</span>
+                      <span className="text-[10px] text-portal-muted ml-auto">{fmtDate(asset.created_at)}</span>
                     </div>
                     {(asset.width || asset.file_size_bytes) && (
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <p className="text-[10px] text-portal-muted mt-0.5">
                         {asset.width && asset.height ? `${asset.width}×${asset.height}` : ''}
                         {asset.width && asset.file_size_bytes ? ' · ' : ''}
                         {fmtBytes(asset.file_size_bytes)}
@@ -201,9 +201,9 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
 
         {/* Upload note */}
         {assets.length > 0 && (
-          <div className="mt-6 p-4 bg-white rounded-xl border border-gray-200 text-sm text-gray-500">
+          <div className="mt-6 p-4 bg-white rounded-xl border border-portal-border text-sm text-portal-sub">
             <p>
-              <strong className="text-gray-700">How to add images:</strong> Upload images directly inside the article editor
+              <strong className="text-portal-text">How to add images:</strong> Upload images directly inside the article editor
               using the image toolbar button → "Upload File". Images are automatically compressed and tracked here.
             </p>
           </div>

@@ -53,12 +53,12 @@ export default function FormsAdminPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Submission Forms</h1>
-          <p className="text-xs text-gray-500 mt-0.5">All public form submissions across RRP and Boom</p>
+          <h1 className="text-xl font-bold text-portal-text">Submission Forms</h1>
+          <p className="text-xs text-portal-sub mt-0.5">All public form submissions across RRP and Boom</p>
         </div>
-        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">
+        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 text-xs text-portal-sub border border-portal-border rounded-lg hover:bg-portal-bg">
           <RefreshCw size={12} /> Refresh
         </button>
       </div>
@@ -67,9 +67,9 @@ export default function FormsAdminPage() {
         {/* Form directory */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
           {Object.entries(FORM_META).map(([type, meta]) => (
-            <div key={type} className="bg-white rounded-xl border border-gray-200 p-3 text-center">
+            <div key={type} className="bg-white rounded-xl border border-portal-border p-3 text-center">
               <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 block mb-2', meta.color)}>{meta.pub}</span>
-              <div className="text-xs font-semibold text-gray-800 mb-2 leading-tight">{meta.label}</div>
+              <div className="text-xs font-semibold text-portal-text mb-2 leading-tight">{meta.label}</div>
               <a href={meta.path} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1 text-[10px] text-portal-blue hover:underline">
                 <ExternalLink size={9} /> View Form
@@ -80,22 +80,22 @@ export default function FormsAdminPage() {
 
         {/* Filter tabs */}
         <div className="flex gap-1 flex-wrap">
-          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
             All
           </button>
           {Object.entries(FORM_META).map(([type, meta]) => (
-            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
               {meta.label}
             </button>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-sm text-gray-400">Loading submissions…</div>
+            <div className="p-8 text-center text-sm text-portal-muted">Loading submissions…</div>
           ) : submissions.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-400">No submissions yet.</div>
+            <div className="p-8 text-center text-sm text-portal-muted">No submissions yet.</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {submissions.map(s => {
@@ -103,37 +103,37 @@ export default function FormsAdminPage() {
                 const isOpen = expanded === s.id
                 return (
                   <div key={s.id}>
-                    <button className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-gray-50 transition-colors"
+                    <button className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-portal-bg transition-colors"
                       onClick={() => setExpanded(isOpen ? null : s.id)}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           {meta && <span className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-semibold ring-1', meta.color)}>{meta.label}</span>}
-                          <span className="text-sm font-semibold text-gray-900">{s.name ?? 'Anonymous'}</span>
-                          <span className="text-xs text-gray-400">{s.email}</span>
+                          <span className="text-sm font-semibold text-portal-text">{s.name ?? 'Anonymous'}</span>
+                          <span className="text-xs text-portal-muted">{s.email}</span>
                           {s.ai_article && <span className="text-[10px] text-green-600 font-medium">✦ AI article</span>}
                         </div>
                       </div>
                       <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 shrink-0', STATUS_CONFIG[s.status] ?? STATUS_CONFIG.pending)}>
                         {s.status}
                       </span>
-                      <span className="text-xs text-gray-400 shrink-0">
+                      <span className="text-xs text-portal-muted shrink-0">
                         {new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-4 bg-gray-50/50 border-t border-gray-100 space-y-3">
+                      <div className="px-5 pb-4 bg-portal-bg/50 border-t border-gray-100 space-y-3">
                         <div className="pt-3 grid grid-cols-2 gap-2 text-xs">
                           {Object.entries(s.form_data).map(([k, v]) => (
                             <div key={k} className={cn(v && String(v).length > 60 ? 'col-span-2' : '')}>
-                              <div className="text-[10px] text-gray-400 uppercase tracking-wide">{k.replace(/_/g, ' ')}</div>
-                              <div className="text-gray-800 mt-0.5">{String(v)}</div>
+                              <div className="text-[10px] text-portal-muted uppercase tracking-wide">{k.replace(/_/g, ' ')}</div>
+                              <div className="text-portal-text mt-0.5">{String(v)}</div>
                             </div>
                           ))}
                         </div>
                         {s.ai_article && (
                           <div className="bg-green-50 border border-green-200 rounded-xl p-3">
                             <div className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1">AI-Generated Article Draft</div>
-                            <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{s.ai_article.slice(0, 400)}{s.ai_article.length > 400 ? '…' : ''}</p>
+                            <p className="text-xs text-portal-text leading-relaxed whitespace-pre-line">{s.ai_article.slice(0, 400)}{s.ai_article.length > 400 ? '…' : ''}</p>
                           </div>
                         )}
                         <div className="flex items-center gap-2">

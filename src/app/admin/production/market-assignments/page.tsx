@@ -55,8 +55,8 @@ export default async function MarketAssignmentsPage() {
         <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900">Market Assignments</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Where each article and submission is currently assigned.</p>
+        <h1 className="text-xl font-semibold text-portal-text">Market Assignments</h1>
+        <p className="text-sm text-portal-sub mt-0.5">Where each article and submission is currently assigned.</p>
       </div>
 
       <section>
@@ -66,28 +66,28 @@ export default async function MarketAssignmentsPage() {
             const c   = counts[p.abbrev]    ?? { total: 0, published: 0, thisMonth: 0 }
             const sub = subCounts[p.abbrev] ?? 0
             return (
-              <div key={p.abbrev} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-gray-300 transition-colors">
+              <div key={p.abbrev} className="rounded-xl border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: p.color }}>{p.abbrev}</p>
-                    <p className="text-sm font-semibold text-gray-900 leading-tight">{p.name}</p>
+                    <p className="text-sm font-semibold text-portal-text leading-tight">{p.name}</p>
                   </div>
                   <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: p.color + '20' }}>
                     <span className="text-xs font-bold" style={{ color: p.color }}>{p.abbrev.slice(0, 2)}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                  <div className="rounded-lg bg-gray-50 p-2">
-                    <p className="text-base font-bold text-gray-900">{c.total}</p>
-                    <p className="text-[10px] text-gray-500">Articles</p>
+                  <div className="rounded-lg bg-portal-bg p-2">
+                    <p className="text-base font-bold text-portal-text">{c.total}</p>
+                    <p className="text-[10px] text-portal-sub">Articles</p>
                   </div>
-                  <div className="rounded-lg bg-gray-50 p-2">
-                    <p className="text-base font-bold text-gray-900">{c.published}</p>
-                    <p className="text-[10px] text-gray-500">Published</p>
+                  <div className="rounded-lg bg-portal-bg p-2">
+                    <p className="text-base font-bold text-portal-text">{c.published}</p>
+                    <p className="text-[10px] text-portal-sub">Published</p>
                   </div>
-                  <div className="rounded-lg bg-gray-50 p-2">
-                    <p className="text-base font-bold text-gray-900">{sub}</p>
-                    <p className="text-[10px] text-gray-500">Submissions</p>
+                  <div className="rounded-lg bg-portal-bg p-2">
+                    <p className="text-base font-bold text-portal-text">{sub}</p>
+                    <p className="text-[10px] text-portal-sub">Submissions</p>
                   </div>
                 </div>
                 <Link

@@ -43,11 +43,11 @@ const SOURCE_BADGE: Record<string, string> = {
   'ical':              'bg-sky-50 text-sky-700 ring-sky-200',
   'ai-extraction':     'bg-purple-50 text-purple-700 ring-purple-200',
   'csv-import':        'bg-portal-amber-lt text-portal-amber ring-amber-200',
-  'staff':             'bg-gray-50 text-gray-600 ring-gray-200',
-  'manual':            'bg-gray-50 text-gray-600 ring-gray-200',
+  'staff':             'bg-portal-bg text-portal-sub ring-gray-200',
+  'manual':            'bg-portal-bg text-portal-sub ring-gray-200',
 }
 function sourceClass(s: string | null | undefined): string {
-  return SOURCE_BADGE[s ?? ''] ?? 'bg-gray-50 text-gray-500 ring-gray-200'
+  return SOURCE_BADGE[s ?? ''] ?? 'bg-portal-bg text-portal-sub ring-gray-200'
 }
 
 const CATEGORY_OPTIONS = [
@@ -226,9 +226,9 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-xl font-semibold text-gray-900">Events</h1>
+          <h1 className="text-xl font-semibold text-portal-text">Events</h1>
           {counts['Pending Review'] > 0 && (
             <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {counts['Pending Review']} pending
@@ -238,13 +238,13 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/admin/events/organizations"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Settings size={13} /> Community Connections
           </Link>
           <Link
             href="/admin/content/events-import"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Upload size={13} /> Import CSV
           </Link>
@@ -266,19 +266,19 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
       )}
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => switchTab(tab)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >
               {tab}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
+                activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'
               }`}>
                 {counts[tab]}
               </span>
@@ -288,21 +288,21 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
           <input
             type="search"
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search title, venue, organizer…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={category}
           onChange={e => { setCategory(e.target.value); setPage(1) }}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
+          className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="">All categories</option>
           {CATEGORY_OPTIONS.filter(Boolean).map(c => (
@@ -313,7 +313,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
           <select
             value={sourceId}
             onChange={e => { setSourceId(e.target.value); setPage(1) }}
-            className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue max-w-[200px]"
+            className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue max-w-[200px]"
           >
             <option value="">All sources</option>
             {sources.map(s => (
@@ -321,28 +321,28 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
             ))}
           </select>
         )}
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <div className="flex items-center gap-1.5 text-xs text-portal-sub">
           <span className="font-semibold">Date:</span>
           <input
             type="date"
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPage(1) }}
-            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
+            className="px-2 py-1 text-xs border border-portal-border rounded outline-none focus:border-portal-blue"
           />
           <span>→</span>
           <input
             type="date"
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPage(1) }}
-            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
+            className="px-2 py-1 text-xs border border-portal-border rounded outline-none focus:border-portal-blue"
           />
         </div>
         {(search || sourceId || category || fromDate || toDate) && (
-          <button type="button" onClick={resetFilters} className="text-xs text-gray-500 hover:text-gray-900 underline">
+          <button type="button" onClick={resetFilters} className="text-xs text-portal-sub hover:text-portal-text underline">
             Reset
           </button>
         )}
-        <span className="ml-auto text-xs text-gray-500">
+        <span className="ml-auto text-xs text-portal-sub">
           {filtered.length} {filtered.length === 1 ? 'event' : 'events'}
         </span>
       </div>
@@ -363,12 +363,12 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
             <Calendar size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No events match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
             {paged.map(ev => (
               <EventRowItem
                 key={ev.id}
@@ -450,7 +450,7 @@ const TONE_CLS: Record<BulkButton['tone'], string> = {
   green: 'bg-green-600 text-white hover:bg-green-700',
   red:   'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
   amber: 'bg-portal-amber-lt text-portal-amber border border-amber-200 hover:bg-portal-amber-lt',
-  gray:  'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50',
+  gray:  'bg-white text-portal-text border border-portal-border hover:bg-portal-bg',
   rose:  'bg-portal-red-lt text-portal-red border border-portal-red/30 hover:bg-portal-red-lt',
 }
 
@@ -474,22 +474,22 @@ function BulkBar({
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap text-sm">
+    <div className="bg-white border-b border-portal-border px-6 py-2.5 flex items-center justify-between gap-3 flex-wrap text-sm">
       <label className="inline-flex items-center gap-2 cursor-pointer select-none">
         <input
           type="checkbox"
           checked={allSelected}
           onChange={() => (allSelected ? onClear() : onSelectAll())}
-          className="h-4 w-4 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer"
+          className="h-4 w-4 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue cursor-pointer"
           aria-label="Select all on this page"
         />
-        <span className={selectedCount > 0 ? 'font-bold text-gray-900' : 'text-gray-500'}>
+        <span className={selectedCount > 0 ? 'font-bold text-portal-text' : 'text-portal-sub'}>
           {selectedCount === 0
             ? `Select all ${totalVisible} on this page`
             : `${selectedCount} selected`}
         </span>
         {selectedCount > 0 && (
-          <button type="button" onClick={onClear} className="text-xs text-gray-500 hover:text-gray-900 underline ml-2">
+          <button type="button" onClick={onClear} className="text-xs text-portal-sub hover:text-portal-text underline ml-2">
             Clear
           </button>
         )}
@@ -526,16 +526,16 @@ function Pagination({
   page: number; totalPages: number; totalResults: number; onPage: (p: number) => void
 }) {
   return (
-    <div className="flex items-center justify-between mt-3 px-1 text-xs text-gray-500">
+    <div className="flex items-center justify-between mt-3 px-1 text-xs text-portal-sub">
       <span>
-        Page <strong className="text-gray-700">{page}</strong> of {totalPages} · {totalResults} total
+        Page <strong className="text-portal-text">{page}</strong> of {totalPages} · {totalResults} total
       </span>
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={() => onPage(Math.max(1, page - 1))}
           disabled={page <= 1}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-portal-border bg-white hover:bg-portal-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={13} /> Prev
         </button>
@@ -543,7 +543,7 @@ function Pagination({
           type="button"
           onClick={() => onPage(Math.min(totalPages, page + 1))}
           disabled={page >= totalPages}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-portal-border bg-white hover:bg-portal-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Next <ChevronRight size={13} />
         </button>
@@ -628,14 +628,14 @@ function EventRowItem({
   }
 
   return (
-    <div className={`transition-colors ${selected ? 'bg-portal-blue-lt' : 'bg-white hover:bg-gray-50/60'}`}>
+    <div className={`transition-colors ${selected ? 'bg-portal-blue-lt' : 'bg-white hover:bg-portal-bg/60'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         {selectable && (
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggleSelect}
-            className="h-4 w-4 mt-3 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer shrink-0"
+            className="h-4 w-4 mt-3 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue cursor-pointer shrink-0"
             aria-label="Select"
           />
         )}
@@ -654,7 +654,7 @@ function EventRowItem({
         {/* Title / desc / meta */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-            <h3 className="text-sm font-bold text-gray-900 truncate">{ev.title}</h3>
+            <h3 className="text-sm font-bold text-portal-text truncate">{ev.title}</h3>
             {ev.is_featured && (
               <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
                 <Star size={9} className="fill-amber-500 text-amber-500" /> Featured
@@ -681,9 +681,9 @@ function EventRowItem({
             )}
           </div>
           {ev.description && (
-            <p className="text-xs text-gray-600 leading-snug line-clamp-2 mb-1.5">{ev.description}</p>
+            <p className="text-xs text-portal-sub leading-snug line-clamp-2 mb-1.5">{ev.description}</p>
           )}
-          <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-portal-sub">
             <span className="inline-flex items-center gap-1">
               <Calendar size={11} /> {dateLabel}
             </span>
@@ -696,7 +696,7 @@ function EventRowItem({
               </span>
             )}
             {ev.organizer_name && (
-              <span className="text-gray-600">By {ev.organizer_name}</span>
+              <span className="text-portal-sub">By {ev.organizer_name}</span>
             )}
             {ev.is_free && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 ring-1 ring-green-200">
@@ -731,7 +731,7 @@ function EventRowItem({
               <button
                 onClick={() => call('reject')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
               >
                 {busy === 'reject' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                 Reject
@@ -743,7 +743,7 @@ function EventRowItem({
               onClick={() => call('cancel')}
               disabled={busy !== null}
               title="Mark as cancelled — stays in DB, hidden from public"
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'cancel' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
               Cancel
@@ -754,7 +754,7 @@ function EventRowItem({
               onClick={() => call('reopen')}
               disabled={busy !== null}
               title="Move back to Pending Review"
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'reopen' ? <RefreshCw size={11} className="animate-spin" /> : <RotateCcw size={11} />}
               Reopen
@@ -762,7 +762,7 @@ function EventRowItem({
           )}
           <button
             onClick={editing ? onCancelEdit : onEdit}
-            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Pencil size={11} />
             {editing ? 'Close' : 'Edit'}
@@ -770,7 +770,7 @@ function EventRowItem({
           <div className="relative">
             <button
               onClick={() => setMenuOpen(v => !v)}
-              className="p-1 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              className="p-1 text-portal-muted hover:text-portal-text rounded-lg hover:bg-portal-row-hover"
               aria-label="More actions"
             >
               <MoreVertical size={14} />
@@ -783,14 +783,14 @@ function EventRowItem({
                   className="fixed inset-0 z-10 cursor-default"
                   aria-hidden
                 />
-                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-xs">
+                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow-lg py-1 text-xs">
                   {ev.slug && (
                     <a
                       href={`/calendar/events/${ev.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setMenuOpen(false)}
-                      className="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 inline-flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-portal-text hover:bg-portal-bg inline-flex items-center gap-2"
                     >
                       <ExternalLink size={11} /> View public page
                     </a>
@@ -799,7 +799,7 @@ function EventRowItem({
                     type="button"
                     disabled={busy === 'clone'}
                     onClick={() => { setMenuOpen(false); clone() }}
-                    className="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 inline-flex items-center gap-2 disabled:opacity-50"
+                    className="w-full text-left px-3 py-2 text-portal-text hover:bg-portal-bg inline-flex items-center gap-2 disabled:opacity-50"
                   >
                     {busy === 'clone' ? <RefreshCw size={11} className="animate-spin" /> : <Copy size={11} />}
                     Clone event
@@ -973,7 +973,7 @@ function EventEditor({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -1011,7 +1011,7 @@ function EventEditor({
               value={heroUrl}
               onChange={e => setHeroUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-blue-500 bg-white"
+              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
             />
           </div>
           {/* Gravity picker — re-crops the saved original around a different
@@ -1128,7 +1128,7 @@ function EventEditor({
                     type="date"
                     value={featuredUntil}
                     onChange={e => setFeaturedUntil(e.target.value)}
-                    className="text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-blue-500 bg-white normal-case font-normal"
+                    className="text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white normal-case font-normal"
                   />
                 </label>
               )}
@@ -1235,7 +1235,7 @@ function GravityPicker({
         </button>
       </div>
       {disabled && (
-        <p className="mt-1.5 text-[10px] text-gray-500 italic">
+        <p className="mt-1.5 text-[10px] text-portal-sub italic">
           Re-upload the image to enable re-crop.
         </p>
       )}

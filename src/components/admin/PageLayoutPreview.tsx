@@ -141,21 +141,21 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
     if (status === 'live')     return 'border-green-600 bg-green-100'
     if (status === 'paused')   return 'border-gray-400 bg-gray-100'
     if (status === 'sellable') return 'border-amber-400 bg-portal-amber-lt'
-    if (status === 'hidden')   return 'border-gray-300 bg-gray-50 opacity-50'
-    return 'border-gray-300 bg-white'
+    if (status === 'hidden')   return 'border-portal-border-2 bg-portal-bg opacity-50'
+    return 'border-portal-border-2 bg-white'
   }
   function multiLabelClass(status: SlotStatus): string {
     if (status === 'live')     return 'text-green-800 font-bold'
-    if (status === 'paused')   return 'text-gray-600'
+    if (status === 'paused')   return 'text-portal-sub'
     if (status === 'sellable') return 'text-portal-amber font-semibold'
-    if (status === 'hidden')   return 'text-gray-500 line-through'
-    return 'text-gray-400'
+    if (status === 'hidden')   return 'text-portal-sub line-through'
+    return 'text-portal-muted'
   }
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+    <div className="bg-portal-bg border border-portal-border rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">{surfaceLabel(surface)}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-portal-sub">{surfaceLabel(surface)}</p>
         {multiMode && (
           <div className="flex items-center gap-2 text-[10px] flex-wrap">
             <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-600" /> Live</span>
@@ -167,7 +167,7 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
       </div>
 
       {slots ? (
-        <div className="relative bg-white border border-gray-300 rounded" style={{ aspectRatio: '16 / 11' }}>
+        <div className="relative bg-white border border-portal-border-2 rounded" style={{ aspectRatio: '16 / 11' }}>
           {/* Header chrome — tiny dark bar so the mock reads as a webpage */}
           <div className="absolute top-0 left-0 right-0 h-3 bg-gray-900 rounded-t" />
           {slots.map(s => {
@@ -177,12 +177,12 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
               ? multiClasses(status)
               : isSingleActive
                 ? 'border-portal-blue bg-portal-navy/15 z-10 shadow-lg'
-                : 'border-gray-300 bg-white'
+                : 'border-portal-border-2 bg-white'
             const labelClass = multiMode
               ? multiLabelClass(status)
               : isSingleActive
                 ? 'text-portal-blue font-bold'
-                : 'text-gray-400'
+                : 'text-portal-muted'
             const clickable = onSlotClick && multiMode
             return (
               <div
@@ -205,14 +205,14 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
           })}
         </div>
       ) : (
-        <div className="bg-white border border-gray-300 rounded p-6 text-center">
-          <p className="text-xs text-gray-500">
+        <div className="bg-white border border-portal-border-2 rounded p-6 text-center">
+          <p className="text-xs text-portal-sub">
             This page&apos;s layout isn&apos;t mapped yet — see the slot list below for the {SURFACE_COUNT(surface)} placements registered for {surfaceLabel(surface).toLowerCase()}.
           </p>
         </div>
       )}
 
-      <p className="text-[10px] text-gray-400 mt-2 text-center">
+      <p className="text-[10px] text-portal-muted mt-2 text-center">
         {multiMode
           ? 'Click any slot to filter the booking list. Approximate layout — actual composition shifts with content.'
           : 'Approximate layout — actual page composition shifts with content. Highlighted = the slot you’re editing.'}

@@ -38,8 +38,8 @@ export default async function ListingsTab({ params }: Props) {
     return (
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-10 text-center">
         <BookOpen size={28} className="mx-auto text-gray-300 mb-3" />
-        <h2 className="text-base font-bold text-gray-900">No guide listings yet</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-base font-bold text-portal-text">No guide listings yet</h2>
+        <p className="text-sm text-portal-sub mt-1">
           When this business is added to a guide (newcomer guide, family fun guide, etc.) the listing appears here with a link back to the guide&apos;s editor.
         </p>
       </section>
@@ -70,9 +70,9 @@ export default async function ListingsTab({ params }: Props) {
         <section key={g.guideSlug} className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
           <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-2 min-w-0">
-              <BookOpen size={14} className="text-gray-400 shrink-0" />
-              <h2 className="text-sm font-bold text-gray-900 truncate">{g.guideName}</h2>
-              <span className="text-[10px] font-mono text-gray-400">{g.guideSlug}</span>
+              <BookOpen size={14} className="text-portal-muted shrink-0" />
+              <h2 className="text-sm font-bold text-portal-text truncate">{g.guideName}</h2>
+              <span className="text-[10px] font-mono text-portal-muted">{g.guideSlug}</span>
             </div>
             <Link
               href={`/admin/guides/${g.guideSlug}`}
@@ -89,26 +89,26 @@ export default async function ListingsTab({ params }: Props) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 flex-wrap">
                       {l.listing_year && (
-                        <span className="text-xs font-bold text-gray-900 tabular-nums">{l.listing_year}</span>
+                        <span className="text-xs font-bold text-portal-text tabular-nums">{l.listing_year}</span>
                       )}
                       {l.category && (
-                        <span className="text-xs text-gray-600">{l.category}</span>
+                        <span className="text-xs text-portal-sub">{l.category}</span>
                       )}
                       <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
                         tier === 'sponsor'    ? 'bg-portal-amber-lt text-portal-amber'   :
                         tier === 'premium'    ? 'bg-violet-100 text-violet-800' :
-                                                'bg-gray-100 text-gray-600'
+                                                'bg-gray-100 text-portal-sub'
                       }`}>
                         {tier}
                       </span>
                       {!l.is_published && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-gray-400">Draft</span>
+                        <span className="text-[9px] uppercase font-bold tracking-wider text-portal-muted">Draft</span>
                       )}
                     </div>
                   </div>
                   <Link
                     href={`/admin/guides/${g.guideSlug}/listings/${l.id}/edit`}
-                    className="text-[10px] font-bold text-gray-500 hover:text-gray-900 whitespace-nowrap"
+                    className="text-[10px] font-bold text-portal-sub hover:text-portal-text whitespace-nowrap"
                   >
                     Edit →
                   </Link>

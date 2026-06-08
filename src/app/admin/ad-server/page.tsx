@@ -90,30 +90,30 @@ export default function AdServerPage() {
       </div>
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Ad Server</h1>
+          <h1 className="text-xl font-semibold text-portal-text">Ad Server</h1>
           <span className="text-sm font-semibold text-portal-blue bg-portal-blue-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-blue/30">
             {ads.filter((a) => a.active).length} active
           </span>
           <span className="text-xs font-semibold text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded ring-1 ring-amber-200">Demo Data</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-gray-500">{totalImpressions.toLocaleString()} impressions</span>
+          <span className="text-portal-sub">{totalImpressions.toLocaleString()} impressions</span>
           <span className="text-gray-300">·</span>
-          <span className="font-semibold text-gray-900">{totalClicks.toLocaleString()} clicks</span>
+          <span className="font-semibold text-portal-text">{totalClicks.toLocaleString()} clicks</span>
           <span className="text-gray-300">·</span>
-          <span className="text-gray-500">{totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0.00'}% CTR</span>
+          <span className="text-portal-sub">{totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0.00'}% CTR</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >{tab}</button>
           ))}
@@ -124,14 +124,14 @@ export default function AdServerPage() {
       {activeTab === 'Active Ads' && (
         <>
           {/* Toolbar */}
-          <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 shrink-0">
+          <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 shrink-0">
             <select value={filterZone} onChange={(e) => setFilterZone(e.target.value)}
-              className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-blue-400">
+              className="text-sm text-portal-text border border-portal-border-2 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue">
               <option value="all">All Zones</option>
               {AD_ZONES.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
             </select>
             <select value={filterPub} onChange={(e) => setFilterPub(e.target.value)}
-              className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-blue-400">
+              className="text-sm text-portal-text border border-portal-border-2 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue">
               <option value="all">All Publications</option>
               {PUBLICATIONS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -146,10 +146,10 @@ export default function AdServerPage() {
           {/* Table */}
           <div className="flex-1 overflow-auto bg-white">
             <table className="w-full text-sm border-collapse">
-              <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+              <thead className="sticky top-0 bg-portal-bg border-b border-portal-border z-10">
                 <tr>
                   {['Ad', 'Zone', 'Publication', 'Active Dates', 'Clicks', 'Impr.', 'CTR', 'Status', ''].map((h) => (
-                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-portal-sub uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -160,41 +160,41 @@ export default function AdServerPage() {
                   const isExpired = ad.endDate && new Date(ad.endDate) < new Date()
 
                   return (
-                    <tr key={ad.id} className="hover:bg-gray-50 cursor-pointer transition-colors group" onClick={() => setSelectedAd(ad)}>
+                    <tr key={ad.id} className="hover:bg-portal-bg cursor-pointer transition-colors group" onClick={() => setSelectedAd(ad)}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {/* Ad thumbnail placeholder */}
                           <div
-                            className="rounded border border-gray-100 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0"
+                            className="rounded border border-gray-100 bg-portal-bg flex items-center justify-center text-gray-300 shrink-0"
                             style={{ width: zone ? Math.min(zone.width / 6, 72) : 48, height: zone ? Math.min(zone.height / 6, 36) : 24 }}
                           >
                             <Monitor size={12} />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900 group-hover:text-portal-blue transition-colors">{ad.businessName}</div>
-                            <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{ad.destinationUrl}</div>
+                            <div className="font-medium text-portal-text group-hover:text-portal-blue transition-colors">{ad.businessName}</div>
+                            <div className="text-xs text-portal-muted mt-0.5 truncate max-w-[160px]">{ad.destinationUrl}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-portal-bg text-portal-sub ring-gray-200'}`}>
                           {zone?.name ?? ad.zone}
                         </span>
-                        {zone && <div className="text-[10px] text-gray-400 mt-0.5">{zone.width}×{zone.height}</div>}
+                        {zone && <div className="text-[10px] text-portal-muted mt-0.5">{zone.width}×{zone.height}</div>}
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-700">{ad.publication}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                      <td className="px-4 py-3 text-sm font-semibold text-portal-text">{ad.publication}</td>
+                      <td className="px-4 py-3 text-xs text-portal-sub whitespace-nowrap">
                         <div>{ad.startDate}</div>
                         <div className="text-gray-300">→ {ad.endDate}</div>
                       </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">{ad.totalClicks.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{ad.totalImpressions.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{ctr}%</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-portal-text">{ad.totalClicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-portal-sub">{ad.totalImpressions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-portal-sub">{ctr}%</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${
-                          isExpired ? 'bg-red-50 text-red-600 ring-red-200' :
+                          isExpired ? 'bg-red-50 text-portal-red ring-red-200' :
                           ad.active ? 'bg-green-50 text-green-700 ring-green-200' :
-                          'bg-gray-50 text-gray-500 ring-gray-200'
+                          'bg-portal-bg text-portal-sub ring-gray-200'
                         }`}>
                           {isExpired ? 'Expired' : ad.active ? 'Active' : 'Paused'}
                         </span>
@@ -202,7 +202,7 @@ export default function AdServerPage() {
                       <td className="px-4 py-3">
                         <a href={`/api/ads/click/${ad.id}?dest=${encodeURIComponent(ad.destinationUrl)}`}
                           target="_blank" onClick={(e) => e.stopPropagation()}
-                          className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                          className="p-1.5 rounded text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover transition-colors">
                           <ExternalLink size={13} />
                         </a>
                       </td>
@@ -224,16 +224,16 @@ export default function AdServerPage() {
                 <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-4">
                   <Check size={24} className="text-green-500" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">Ad Uploaded!</h2>
-                <p className="text-sm text-gray-500 mt-1">Returning to Active Ads…</p>
+                <h2 className="text-lg font-semibold text-portal-text">Ad Uploaded!</h2>
+                <p className="text-sm text-portal-sub mt-1">Returning to Active Ads…</p>
               </div>
             ) : (
               <form onSubmit={handleUpload} className="space-y-5">
-                <h2 className="text-lg font-semibold text-gray-900">Upload New Ad</h2>
+                <h2 className="text-lg font-semibold text-portal-text">Upload New Ad</h2>
 
                 {/* Drop zone */}
                 <div onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-portal-border-2 hover:bg-portal-blue-lt transition-colors">
+                  className="border-2 border-dashed border-portal-border rounded-2xl p-8 text-center cursor-pointer hover:border-portal-border-2 hover:bg-portal-blue-lt transition-colors">
                   {uploadPreview ? (
                     <div className="flex flex-col items-center gap-2">
                       <img src={uploadPreview} alt="Preview" className="max-h-32 object-contain rounded" />
@@ -241,9 +241,9 @@ export default function AdServerPage() {
                     </div>
                   ) : (
                     <>
-                      <Upload size={28} className="text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-700">Click to upload ad graphic</p>
-                      <p className="text-xs text-gray-400 mt-1">WebP preferred · JPG/PNG accepted · Max 100KB</p>
+                      <Upload size={28} className="text-portal-muted mx-auto mb-2" />
+                      <p className="text-sm font-medium text-portal-text">Click to upload ad graphic</p>
+                      <p className="text-xs text-portal-muted mt-1">WebP preferred · JPG/PNG accepted · Max 100KB</p>
                     </>
                   )}
                   <input ref={fileRef} type="file" accept="image/webp,image/jpeg,image/png" className="hidden"
@@ -259,43 +259,43 @@ export default function AdServerPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advertiser / Business Name</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">Advertiser / Business Name</label>
                     <input type="text" required value={uploadForm.businessName}
                       onChange={(e) => setUploadForm((p) => ({ ...p, businessName: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-portal-blue/20" />
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue focus:ring-2 focus:ring-portal-blue/20" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ad Zone</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">Ad Zone</label>
                     <select value={uploadForm.zone} onChange={(e) => setUploadForm((p) => ({ ...p, zone: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400">
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue">
                       {AD_ZONES.map((z) => <option key={z.id} value={z.id}>{z.name} ({z.width}×{z.height})</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Publication</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">Publication</label>
                     <select value={uploadForm.publication} onChange={(e) => setUploadForm((p) => ({ ...p, publication: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400">
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue">
                       {PUBLICATIONS.map((p) => <option key={p} value={p}>{p}</option>)}
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Destination URL</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">Destination URL</label>
                     <input type="url" required value={uploadForm.destinationUrl}
                       onChange={(e) => setUploadForm((p) => ({ ...p, destinationUrl: e.target.value }))}
                       placeholder="https://advertiserwebsite.com"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-portal-blue/20" />
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue focus:ring-2 focus:ring-portal-blue/20" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Start Date</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">Start Date</label>
                     <input type="date" required value={uploadForm.startDate}
                       onChange={(e) => setUploadForm((p) => ({ ...p, startDate: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400" />
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">End Date</label>
+                    <label className="block text-sm font-semibold text-portal-text mb-1.5">End Date</label>
                     <input type="date" required value={uploadForm.endDate}
                       onChange={(e) => setUploadForm((p) => ({ ...p, endDate: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400" />
+                      className="w-full px-3 py-2 text-sm border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue" />
                   </div>
                 </div>
 
@@ -313,24 +313,24 @@ export default function AdServerPage() {
       {activeTab === 'Analytics' && (
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div>
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Clicks by Zone — RRP All Time</h2>
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <h2 className="text-sm font-semibold text-portal-text mb-3">Clicks by Zone — RRP All Time</h2>
+            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
                     {['Zone', '# Ads', 'Total Clicks', 'Impressions', 'Avg CTR'].map((h) => (
-                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-portal-sub uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {zoneStats.map((row) => (
-                    <tr key={row.zone} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{row.zone}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.ads}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-900">{row.clicks.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.impressions.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(2) : '0.00'}%</td>
+                    <tr key={row.zone} className="hover:bg-portal-bg">
+                      <td className="px-4 py-3 font-medium text-portal-text">{row.zone}</td>
+                      <td className="px-4 py-3 text-portal-sub">{row.ads}</td>
+                      <td className="px-4 py-3 font-semibold text-portal-text">{row.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-portal-sub">{row.impressions.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-portal-sub">{row.impressions > 0 ? ((row.clicks / row.impressions) * 100).toFixed(2) : '0.00'}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -339,13 +339,13 @@ export default function AdServerPage() {
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Per-Advertiser Performance</h2>
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <h2 className="text-sm font-semibold text-portal-text mb-3">Per-Advertiser Performance</h2>
+            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
                     {['Advertiser', 'Zone', 'Pub', 'Clicks', 'Impressions', 'CTR', 'Status'].map((h) => (
-                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-portal-sub uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -353,17 +353,17 @@ export default function AdServerPage() {
                   {ads.sort((a, b) => b.totalClicks - a.totalClicks).map((ad) => {
                     const ctr = ad.totalImpressions > 0 ? ((ad.totalClicks / ad.totalImpressions) * 100).toFixed(2) : '0.00'
                     return (
-                      <tr key={ad.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{ad.businessName}</td>
+                      <tr key={ad.id} className="hover:bg-portal-bg">
+                        <td className="px-4 py-3 font-medium text-portal-text">{ad.businessName}</td>
                         <td className="px-4 py-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-gray-50 text-gray-600 ring-gray-200'}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[ad.zone] ?? 'bg-portal-bg text-portal-sub ring-gray-200'}`}>
                             {AD_ZONES.find((z) => z.id === ad.zone)?.name ?? ad.zone}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs font-bold text-gray-600">{ad.publication}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-900">{ad.totalClicks.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-gray-600">{ad.totalImpressions.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-gray-600">{ctr}%</td>
+                        <td className="px-4 py-3 text-xs font-bold text-portal-sub">{ad.publication}</td>
+                        <td className="px-4 py-3 font-semibold text-portal-text">{ad.totalClicks.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-portal-sub">{ad.totalImpressions.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-portal-sub">{ctr}%</td>
                         <td className="px-4 py-3">
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-green-50 text-green-700 ring-green-200">Active</span>
                         </td>
@@ -384,25 +384,25 @@ export default function AdServerPage() {
             {AD_ZONES.map((zone) => {
               const zoneAds = ads.filter((a) => a.zone === zone.id)
               return (
-                <div key={zone.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                <div key={zone.id} className="bg-white rounded-xl border border-portal-border p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900">{zone.name}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{zone.position}</p>
+                      <h3 className="text-sm font-semibold text-portal-text">{zone.name}</h3>
+                      <p className="text-xs text-portal-sub mt-0.5">{zone.position}</p>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[zone.id] ?? 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${ZONE_COLORS[zone.id] ?? 'bg-portal-bg text-portal-sub ring-gray-200'}`}>
                       {zoneAds.length} ads
                     </span>
                   </div>
                   {zone.width > 0 && (
                     <div
-                      className="rounded border border-gray-100 bg-gray-50 flex items-center justify-center text-xs text-gray-400 font-mono mb-3"
+                      className="rounded border border-gray-100 bg-portal-bg flex items-center justify-center text-xs text-portal-muted font-mono mb-3"
                       style={{ width: '100%', height: Math.min(zone.height / 4, 60) }}
                     >
                       {zone.width} × {zone.height} · max {zone.maxKb}KB
                     </div>
                   )}
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-portal-sub">
                     {zoneAds.map((a) => (
                       <div key={a.id} className="py-1 border-b border-gray-50 last:border-0 truncate">{a.businessName}</div>
                     ))}

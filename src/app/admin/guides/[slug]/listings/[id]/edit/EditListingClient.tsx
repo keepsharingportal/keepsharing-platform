@@ -232,20 +232,20 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
     }
   }
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
 
       {/* Header */}
       <div>
-        <Link href={backHref} className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-2">
+        <Link href={backHref} className="inline-flex items-center gap-1 text-xs font-semibold text-portal-sub hover:text-portal-text mb-2">
           <ArrowLeft size={12} /> Back to {guideName} listings
         </Link>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{businessName || '(unnamed listing)'}</h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-portal-text leading-tight">{businessName || '(unnamed listing)'}</h1>
+            <p className="text-xs text-portal-sub mt-1">
               {guideName} listing
               {listing.advertiser_account_id && listing.linked_advertiser_name && (
                 <>
@@ -311,13 +311,13 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       {/* Guide placement */}
       <Section icon={<BookOpen size={14} />} title="Guide placement">
         <FieldRow label="Tier">
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="inline-flex rounded-lg border border-portal-border overflow-hidden">
             {(['community', 'enhanced', 'featured'] as const).map(t => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setTier(t)}
-                className={`px-4 py-2 text-sm font-semibold capitalize ${tier === t ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`px-4 py-2 text-sm font-semibold capitalize ${tier === t ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
               >
                 {t}
               </button>
@@ -416,7 +416,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       </Section>
 
       {/* Sticky action bar */}
-      <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between gap-3">
+      <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-white border-t border-portal-border flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onDelete}
@@ -429,7 +429,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
         <div className="flex items-center gap-2">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-text hover:text-portal-text"
           >
             Cancel
           </Link>
@@ -450,9 +450,9 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <header className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-        <span className="text-gray-400">{icon}</span>
+    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <header className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-portal-sub">
+        <span className="text-portal-muted">{icon}</span>
         {title}
       </header>
       <div className="p-5 space-y-4">
@@ -465,9 +465,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-gray-400 mt-1 leading-snug">{hint}</p>}
+      {hint && <p className="text-[11px] text-portal-muted mt-1 leading-snug">{hint}</p>}
     </div>
   )
 }

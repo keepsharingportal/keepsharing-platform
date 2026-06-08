@@ -70,7 +70,7 @@ export function ArticleFilterBar({
     startTransition(() => router.push('/admin/articles', { scroll: false }))
   }
 
-  const sel = 'h-9 px-3 pr-8 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg outline-none focus:border-blue-400 cursor-pointer appearance-none bg-no-repeat bg-right'
+  const sel = 'h-9 px-3 pr-8 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg outline-none focus:border-portal-blue cursor-pointer appearance-none bg-no-repeat bg-right'
   const selBg = { backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239ca3af'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E")`, backgroundPosition: 'right 6px center', backgroundSize: '16px' }
 
   return (
@@ -79,19 +79,19 @@ export function ArticleFilterBar({
 
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
           <input
             type="search"
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search by title, slug, or author..."
-            className="w-full h-9 pl-8 pr-8 text-xs text-gray-800 bg-white border border-gray-200 rounded-lg outline-none focus:border-blue-400 placeholder:text-gray-400"
+            className="w-full h-9 pl-8 pr-8 text-xs text-portal-text bg-white border border-portal-border rounded-lg outline-none focus:border-portal-blue placeholder:text-portal-muted"
           />
           {q && (
             <button
               onClick={() => setQ('')}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-700"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-portal-muted hover:text-portal-text"
             >
               <X size={12} />
             </button>
@@ -156,7 +156,7 @@ export function ArticleFilterBar({
         {hasAnyFilter && (
           <button
             onClick={clearAll}
-            className="inline-flex items-center gap-1 px-2.5 h-9 text-[11px] font-semibold text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 h-9 text-[11px] font-semibold text-portal-sub hover:text-portal-red hover:bg-portal-red-lt rounded-lg transition-colors"
           >
             <X size={11} /> Clear
           </button>
@@ -164,11 +164,11 @@ export function ArticleFilterBar({
 
         {/* Pending spinner */}
         {pending && (
-          <RefreshCw size={12} className="text-gray-400 animate-spin" aria-label="Updating" />
+          <RefreshCw size={12} className="text-portal-muted animate-spin" aria-label="Updating" />
         )}
       </div>
 
-      <p className="text-[11px] text-gray-400 px-1">
+      <p className="text-[11px] text-portal-muted px-1">
         {totalResults === 0 ? 'No articles match.' : `${totalResults.toLocaleString()} article${totalResults === 1 ? '' : 's'} match.`}
         {hasAnyFilter && totalResults === 0 && (
           <button onClick={clearAll} className="ml-1 text-portal-blue hover:underline font-semibold">

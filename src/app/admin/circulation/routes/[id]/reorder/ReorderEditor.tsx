@@ -93,11 +93,11 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
 
   return (
     <div className="space-y-6">
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
 
       {suggestions.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-900 mb-2">Driver suggestions</h2>
+          <h2 className="text-sm font-bold text-portal-text mb-2">Driver suggestions</h2>
           <ul className="space-y-2">
             {suggestions.map(s => (
               <li key={s.id} className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3">
@@ -126,8 +126,8 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
 
       <section>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-bold text-gray-900">Stops</h2>
-          <p className="text-[11px] text-gray-500">{stops.length} total · drag to reorder</p>
+          <h2 className="text-sm font-bold text-portal-text">Stops</h2>
+          <p className="text-[11px] text-portal-sub">{stops.length} total · drag to reorder</p>
         </div>
         <ul className="space-y-1">
           {stops.map((s, i) => (
@@ -137,20 +137,20 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
               onDragStart={() => onDragStart(i)}
               onDragOver={onDragOver}
               onDrop={() => onDrop(i)}
-              className={`rounded-lg border bg-white p-2 flex items-center gap-2 ${dragFrom === i ? 'opacity-50 border-blue-400' : 'border-gray-200'}`}
+              className={`rounded-lg border bg-white p-2 flex items-center gap-2 ${dragFrom === i ? 'opacity-50 border-blue-400' : 'border-portal-border'}`}
             >
               <GripVertical size={14} className="text-gray-300 shrink-0 cursor-grab" />
-              <span className="text-[11px] font-bold text-gray-400 tabular-nums w-6 shrink-0">{i + 1}</span>
+              <span className="text-[11px] font-bold text-portal-muted tabular-nums w-6 shrink-0">{i + 1}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">
+                <p className="text-sm font-bold text-portal-text truncate">
                   {s.name}
                   {s.is_pickup && <span className="ml-2 text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">PICKUP</span>}
                 </p>
-                {s.address && <p className="text-[11px] text-gray-500 truncate">{s.address}{s.city ? `, ${s.city}` : ''}</p>}
+                {s.address && <p className="text-[11px] text-portal-sub truncate">{s.address}{s.city ? `, ${s.city}` : ''}</p>}
               </div>
               <div className="flex flex-col gap-0.5 shrink-0">
-                <button onClick={() => move(i, i - 1)} disabled={i === 0} className="text-gray-400 hover:text-gray-900 disabled:opacity-30"><ArrowUp size={12} /></button>
-                <button onClick={() => move(i, i + 1)} disabled={i === stops.length - 1} className="text-gray-400 hover:text-gray-900 disabled:opacity-30"><ArrowDown size={12} /></button>
+                <button onClick={() => move(i, i - 1)} disabled={i === 0} className="text-portal-muted hover:text-portal-text disabled:opacity-30"><ArrowUp size={12} /></button>
+                <button onClick={() => move(i, i + 1)} disabled={i === stops.length - 1} className="text-portal-muted hover:text-portal-text disabled:opacity-30"><ArrowDown size={12} /></button>
               </div>
             </li>
           ))}
@@ -161,7 +161,7 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
             value={snapshotLabel}
             onChange={e => setSnapshotLabel(e.target.value)}
             placeholder="Snapshot label (optional)"
-            className="flex-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+            className="flex-1 rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
           />
           <button onClick={save} disabled={!dirty || busy !== null} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-portal-navy text-white hover:opacity-90 disabled:opacity-50">
             {busy === 'save' ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
@@ -172,15 +172,15 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
 
       {snapshots.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-900 mb-2">Snapshots</h2>
+          <h2 className="text-sm font-bold text-portal-text mb-2">Snapshots</h2>
           <ul className="space-y-1">
             {snapshots.map(s => (
-              <li key={s.id} className="rounded-md border border-gray-200 bg-white p-2 flex items-center justify-between gap-3">
+              <li key={s.id} className="rounded-md border border-portal-border bg-white p-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{s.label ?? 'Snapshot'}</p>
-                  <p className="text-[11px] text-gray-500">{new Date(s.created_at).toLocaleString()}</p>
+                  <p className="text-sm font-semibold text-portal-text">{s.label ?? 'Snapshot'}</p>
+                  <p className="text-[11px] text-portal-sub">{new Date(s.created_at).toLocaleString()}</p>
                 </div>
-                <button onClick={() => restore(s.id)} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                <button onClick={() => restore(s.id)} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg disabled:opacity-50">
                   {busy === `restore-${s.id}` ? <Loader2 size={11} className="animate-spin" /> : <RotateCcw size={11} />}
                   Restore
                 </button>

@@ -45,17 +45,17 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
   return (
     <>
       {/* Toolbar */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Filter size={14} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-700">Schools list</h2>
+            <Filter size={14} className="text-portal-muted" />
+            <h2 className="text-sm font-bold text-portal-text">Schools list</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => { setShowCsv(true); setShowAdd(false) }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-100 text-portal-text rounded-lg hover:bg-gray-200"
             >
               <Upload size={12} /> Bulk import CSV
             </button>
@@ -87,28 +87,28 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
         {/* Filters */}
         <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
             <input
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by name, city, or district…"
-              className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue"
             />
           </div>
           <select value={areaFilter} onChange={e => setAreaFilter(e.target.value as Area | 'all')}
-            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
+            className="text-sm px-3 py-1.5 border border-portal-border rounded-lg bg-white">
             <option value="all">All areas</option>
             {AREAS.map(a => <option key={a} value={a}>{AREA_LABELS[a]}</option>)}
           </select>
           <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as 'all' | 'public' | 'private')}
-            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
+            className="text-sm px-3 py-1.5 border border-portal-border rounded-lg bg-white">
             <option value="all">Public + private</option>
             <option value="public">Public only</option>
             <option value="private">Private only</option>
           </select>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as 'active' | 'archived' | 'all')}
-            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg bg-white">
+            className="text-sm px-3 py-1.5 border border-portal-border rounded-lg bg-white">
             <option value="active">Active</option>
             <option value="archived">Archived</option>
             <option value="all">All</option>
@@ -119,7 +119,7 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+              <tr className="bg-portal-bg text-[11px] font-bold uppercase tracking-wider text-portal-sub">
                 <th className="text-left px-4 py-2">School</th>
                 <th className="text-left px-4 py-2">Area</th>
                 <th className="text-left px-4 py-2">Type</th>
@@ -130,7 +130,7 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} className="text-center p-10 text-gray-400 text-sm">
+                <tr><td colSpan={6} className="text-center p-10 text-portal-muted text-sm">
                   {schools.length === 0
                     ? 'No schools yet. Use "Add school" to add them individually or "Bulk import CSV" to seed all River Region schools at once.'
                     : 'No schools match the current filters.'}
@@ -224,7 +224,7 @@ function AddSchoolForm({
           placeholder="Begin typing your school's name…"
           className={inputCls}
         />
-        <p className="text-[10px] text-gray-400 mt-0.5">Auto-titled on blur. Acronyms (LAMP, BTW, MPS) kept as typed in caps.</p>
+        <p className="text-[10px] text-portal-muted mt-0.5">Auto-titled on blur. Acronyms (LAMP, BTW, MPS) kept as typed in caps.</p>
       </FormField>
       <FormField label="Area *">
         <select value={form.area} onChange={e => set('area', e.target.value as Area)} className={inputCls}>
@@ -279,7 +279,7 @@ function AddSchoolForm({
 
       {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
       <div className="flex justify-end gap-2">
-        <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
         <button type="submit" disabled={busy || !form.name.trim()} className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
           {busy ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
           {busy ? 'Saving…' : 'Add school'}
@@ -337,7 +337,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
           Paste template
         </button>
         <div className="flex gap-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
           <button type="submit" disabled={busy || !csv.trim()} className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-40">
             {busy ? <RefreshCw size={13} className="animate-spin" /> : <Upload size={13} />}
             {busy ? 'Importing…' : 'Import'}
@@ -434,7 +434,7 @@ function SchoolTableRow({
             <button type="button" onClick={save} disabled={busy} className="inline-flex items-center gap-1 text-xs font-bold bg-green-600 text-white rounded-lg px-2.5 py-1 hover:bg-green-700 disabled:opacity-40">
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />} Save
             </button>
-            <button type="button" onClick={() => setEditing(false)} className="inline-flex items-center gap-1 text-xs border border-gray-200 text-gray-600 rounded-lg px-2.5 py-1 hover:bg-gray-50">
+            <button type="button" onClick={() => setEditing(false)} className="inline-flex items-center gap-1 text-xs border border-portal-border text-portal-sub rounded-lg px-2.5 py-1 hover:bg-portal-bg">
               <X size={12} /> Cancel
             </button>
           </div>
@@ -446,22 +446,22 @@ function SchoolTableRow({
   return (
     <tr className={`border-t border-gray-100 ${school.status === 'archived' ? 'opacity-50' : ''}`}>
       <td className="px-4 py-2.5">
-        <p className="font-semibold text-gray-900">{school.name}</p>
-        {school.city && <p className="text-xs text-gray-400">{school.city}</p>}
+        <p className="font-semibold text-portal-text">{school.name}</p>
+        {school.city && <p className="text-xs text-portal-muted">{school.city}</p>}
       </td>
-      <td className="px-4 py-2.5 text-xs text-gray-600">{AREA_LABELS[school.area]}</td>
+      <td className="px-4 py-2.5 text-xs text-portal-sub">{AREA_LABELS[school.area]}</td>
       <td className="px-4 py-2.5 text-xs">
         <span className={`px-2 py-0.5 rounded-full font-bold ${school.is_private ? 'bg-purple-50 text-purple-700' : 'bg-portal-blue-lt text-portal-blue'}`}>
           {school.is_private ? 'Private' : 'Public'}
         </span>
       </td>
-      <td className="px-4 py-2.5 text-xs text-gray-500">{school.district ?? '—'}</td>
-      <td className="px-4 py-2.5 text-xs text-gray-500 truncate max-w-[200px]">{school.contact_email ?? '—'}</td>
+      <td className="px-4 py-2.5 text-xs text-portal-sub">{school.district ?? '—'}</td>
+      <td className="px-4 py-2.5 text-xs text-portal-sub truncate max-w-[200px]">{school.contact_email ?? '—'}</td>
       <td className="px-4 py-2.5 text-right">
         <div className="inline-flex gap-1">
           {school.status === 'active' && (
             <>
-              <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-xs text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50">
+              <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-xs text-portal-sub border border-portal-border rounded-lg px-2.5 py-1 hover:bg-portal-bg">
                 <Edit2 size={11} /> Edit
               </button>
               <button type="button" onClick={archive} disabled={busy} className="inline-flex items-center gap-1 text-xs text-rose-600 border border-portal-red/30 rounded-lg px-2.5 py-1 hover:bg-portal-red-lt disabled:opacity-40">
@@ -470,7 +470,7 @@ function SchoolTableRow({
             </>
           )}
           {school.status === 'archived' && (
-            <span className="text-xs text-gray-400">archived</span>
+            <span className="text-xs text-portal-muted">archived</span>
           )}
         </div>
       </td>
@@ -480,12 +480,12 @@ function SchoolTableRow({
 
 // ── Small helpers ───────────────────────────────────────────────────────────
 
-const inputCls = 'w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue bg-white'
+const inputCls = 'w-full px-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white'
 
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">{label}</label>
       {children}
     </div>
   )

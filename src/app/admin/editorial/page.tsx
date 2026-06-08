@@ -172,12 +172,12 @@ export default async function EditorialPage({
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Editorial Pipeline</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Editorial Pipeline</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             Community submissions moving toward publication — assign, polish, and schedule.
           </p>
         </div>
-        <Link href="/admin/community" className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium shrink-0">
+        <Link href="/admin/community" className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-medium shrink-0">
           ← All Submissions
         </Link>
       </div>
@@ -195,7 +195,7 @@ export default async function EditorialPage({
         ].map(m => (
           <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-3 py-3">
             <div className="text-xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{m.label}</div>
+            <div className="text-[10px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
         ))}
       </div>
@@ -206,14 +206,14 @@ export default async function EditorialPage({
         {/* Publication filter */}
         {pubsInQueue.length > 1 && (
           <div className="flex gap-1.5 items-center flex-wrap">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pub:</span>
+            <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide">Pub:</span>
             <Link href={stableHref({ pub: null })}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterPub ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterPub ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
               All
             </Link>
             {pubsInQueue.map(p => (
               <Link key={p} href={stableHref({ pub: p })}
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterPub === p ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterPub === p ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
                 {p.toUpperCase()}
               </Link>
             ))}
@@ -223,14 +223,14 @@ export default async function EditorialPage({
         {/* Type filter */}
         {typesInQueue.length > 1 && (
           <div className="flex gap-1.5 items-center flex-wrap">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Type:</span>
+            <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide">Type:</span>
             <Link href={stableHref({ type: null })}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
               All
             </Link>
             {typesInQueue.map(tc => tc && (
               <Link key={tc.type} href={stableHref({ type: tc.type })}
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterType === tc.type ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterType === tc.type ? 'text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}
                 style={filterType === tc.type ? { backgroundColor: TYPE_COLORS[tc.type] ?? '#374151' } : {}}>
                 {tc.emoji} {tc.shortLabel}
               </Link>
@@ -243,7 +243,7 @@ export default async function EditorialPage({
       {total === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
           <div className="text-4xl mb-4">📋</div>
-          <p className="text-gray-500 font-medium">No editorial items match the current filters.</p>
+          <p className="text-portal-sub font-medium">No editorial items match the current filters.</p>
           <Link href="/admin/editorial" className="text-sm text-portal-blue mt-2 inline-block hover:underline">Clear filters</Link>
         </div>
       ) : (
@@ -257,12 +257,12 @@ export default async function EditorialPage({
                 {/* Stage header */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
-                  <h2 className="text-sm font-bold text-gray-700">
+                  <h2 className="text-sm font-bold text-portal-text">
                     {stage.label}
-                    <span className="ml-2 text-gray-400 font-normal">({stageItems.length})</span>
+                    <span className="ml-2 text-portal-muted font-normal">({stageItems.length})</span>
                   </h2>
                   <div className="flex-1 h-px bg-gray-100" />
-                  <p className="text-xs text-gray-400">{stage.description}</p>
+                  <p className="text-xs text-portal-muted">{stage.description}</p>
                 </div>
 
                 {/* Stage items */}
@@ -276,7 +276,7 @@ export default async function EditorialPage({
                     const issue   = fmtIssue(item)
 
                     return (
-                      <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-gray-200 transition-colors"
+                      <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-portal-border transition-colors"
                         style={{ borderLeft: `4px solid ${accent}` }}>
                         <div className="px-5 py-4 flex items-start gap-4">
 
@@ -285,8 +285,8 @@ export default async function EditorialPage({
                             {/* Badge row */}
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <span className="text-base">{tc?.emoji ?? '📝'}</span>
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                              <span className="text-[11px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
                                 {item.target_publication.toUpperCase()}
                               </span>
                               {item.ai_draft_status === 'ready' && (
@@ -305,21 +305,21 @@ export default async function EditorialPage({
                             </div>
 
                             {/* Title */}
-                            <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-gray-900' : 'text-gray-400 italic'}`}>
+                            <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-portal-text' : 'text-portal-muted italic'}`}>
                               {title}
                             </p>
 
                             {/* Excerpt snippet */}
                             {item.excerpt && (
-                              <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{item.excerpt}</p>
+                              <p className="text-xs text-portal-muted mt-0.5 line-clamp-1">{item.excerpt}</p>
                             )}
 
                             {/* Meta row */}
-                            <div className="flex items-center gap-3 mt-1.5 flex-wrap text-xs text-gray-400">
+                            <div className="flex items-center gap-3 mt-1.5 flex-wrap text-xs text-portal-muted">
                               {issue && <span>{issue}</span>}
                               {item.assigned_to && <span>· {item.assigned_to}</span>}
                               {item.destination_section && (
-                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold">
+                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub text-[10px] font-semibold">
                                   {DEST_LABELS[item.destination_section] ?? item.destination_section}
                                 </span>
                               )}
@@ -339,7 +339,7 @@ export default async function EditorialPage({
 
                           {/* Right: date + action */}
                           <div className="shrink-0 text-right space-y-1.5">
-                            <p className="text-xs text-gray-400">{timeAgo(item.created_at)}</p>
+                            <p className="text-xs text-portal-muted">{timeAgo(item.created_at)}</p>
                             <Link
                               href={`/admin/editorial/${item.id}`}
                               className="block text-xs font-bold text-indigo-600 hover:underline"
@@ -348,7 +348,7 @@ export default async function EditorialPage({
                             </Link>
                             <Link
                               href={`/admin/community/${item.id}`}
-                              className="block text-[10px] text-gray-400 hover:text-gray-600"
+                              className="block text-[10px] text-portal-muted hover:text-portal-sub"
                             >
                               Submission ↗
                             </Link>

@@ -78,53 +78,53 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-gray-500 mr-1">Status:</span>
+        <span className="text-xs text-portal-sub mr-1">Status:</span>
         {STATUSES.map(s => (
           <button
             key={s}
             onClick={() => gotoStatus(s)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {s}
           </button>
         ))}
       </div>
 
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-          <p className="text-sm text-gray-500">No {activeStatus} change requests.</p>
+        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <p className="text-sm text-portal-sub">No {activeStatus} change requests.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {rows.map(r => (
-            <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3">
+            <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3">
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${TYPE_BADGE[r.type] ?? 'bg-gray-100 text-gray-700'}`}>
+                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${TYPE_BADGE[r.type] ?? 'bg-gray-100 text-portal-text'}`}>
                       {TYPE_LABEL[r.type] ?? r.type}
                     </span>
-                    <p className="text-sm font-bold text-gray-900 truncate">{r.circulation_stops?.name ?? 'New / unknown stop'}</p>
+                    <p className="text-sm font-bold text-portal-text truncate">{r.circulation_stops?.name ?? 'New / unknown stop'}</p>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                  <p className="text-[11px] text-portal-sub mt-0.5 truncate">
                     <MapPin size={9} className="inline mb-0.5 mr-0.5" />
                     {r.circulation_routes?.name ?? '(route)'}
                     {r.circulation_stops?.address && <> · {r.circulation_stops.address}</>}
                   </p>
-                  <p className="text-[11px] text-gray-700 mt-1">
+                  <p className="text-[11px] text-portal-text mt-1">
                     From <span className="font-semibold">{r.circulation_drivers?.full_name ?? '(driver)'}</span>
                     {' '} · {new Date(r.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </p>
                   {r.field_name && (
-                    <p className="text-[11px] text-gray-700 mt-1">
-                      <span className="text-gray-500">Field:</span> <span className="font-semibold">{r.field_name}</span>
-                      {r.new_value && <> · <span className="text-gray-500">Wants:</span> <span className="font-semibold">{r.new_value}</span></>}
+                    <p className="text-[11px] text-portal-text mt-1">
+                      <span className="text-portal-sub">Field:</span> <span className="font-semibold">{r.field_name}</span>
+                      {r.new_value && <> · <span className="text-portal-sub">Wants:</span> <span className="font-semibold">{r.new_value}</span></>}
                     </p>
                   )}
                   {r.notes && (
-                    <p className="text-[11px] text-gray-700 mt-1 italic">📝 {r.notes}</p>
+                    <p className="text-[11px] text-portal-text mt-1 italic">📝 {r.notes}</p>
                   )}
                 </div>
 
@@ -151,7 +151,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
                     <button
                       onClick={() => patch(r.id, 'reject')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-reject` ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
                       Reject
@@ -161,7 +161,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
               </div>
 
               {r.status !== 'pending' && r.type === 'new' && (
-                <p className="mt-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500 inline-flex items-center gap-1">
+                <p className="mt-2 pt-2 border-t border-gray-100 text-[11px] text-portal-sub inline-flex items-center gap-1">
                   <AlertTriangle size={11} /> &ldquo;New stop&rdquo; requests need to be created manually in Routes.
                 </p>
               )}

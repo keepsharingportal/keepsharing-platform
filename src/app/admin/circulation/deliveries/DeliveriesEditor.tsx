@@ -46,7 +46,7 @@ function fmtMoney(n: number | null | undefined): string {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  draft:     'bg-gray-100 text-gray-700',
+  draft:     'bg-gray-100 text-portal-text',
   submitted: 'bg-portal-blue-lt text-portal-blue',
   reviewed:  'bg-indigo-100 text-indigo-800',
   paid:      'bg-portal-green-lt text-portal-green',
@@ -88,13 +88,13 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
 
       {/* Month filter */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-xs text-gray-500 mr-1">Month:</span>
-        {months.length === 0 && <span className="text-xs text-gray-400 italic">No deliveries yet</span>}
+        <span className="text-xs text-portal-sub mr-1">Month:</span>
+        {months.length === 0 && <span className="text-xs text-portal-muted italic">No deliveries yet</span>}
         {months.map(m => (
           <button
             key={m}
             onClick={() => gotoMonth(m)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {fmtShortMonth(m)}
           </button>
@@ -121,25 +121,25 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
       )}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-          <p className="text-sm text-gray-500">No deliveries on file for {fmtMonth(activeMonth)} yet.</p>
+        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <p className="text-sm text-portal-sub">No deliveries on file for {fmtMonth(activeMonth)} yet.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {rows.map(row => (
-            <li key={row.id} className={`rounded-xl border bg-white p-3 ${row.status === 'paid' ? 'border-emerald-200' : row.status === 'draft' ? 'border-gray-200' : 'border-blue-200'}`}>
+            <li key={row.id} className={`rounded-xl border bg-white p-3 ${row.status === 'paid' ? 'border-emerald-200' : row.status === 'draft' ? 'border-portal-border' : 'border-blue-200'}`}>
 
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-bold text-gray-900 truncate">{row.circulation_drivers?.full_name ?? '(unknown driver)'}</p>
-                    <span className="text-[10px] text-gray-400">·</span>
-                    <p className="text-sm text-gray-700 truncate">{row.circulation_routes?.name ?? '(route)'}</p>
-                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_BADGE[row.status] ?? 'bg-gray-100 text-gray-700'}`}>
+                    <p className="text-sm font-bold text-portal-text truncate">{row.circulation_drivers?.full_name ?? '(unknown driver)'}</p>
+                    <span className="text-[10px] text-portal-muted">·</span>
+                    <p className="text-sm text-portal-text truncate">{row.circulation_routes?.name ?? '(route)'}</p>
+                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_BADGE[row.status] ?? 'bg-gray-100 text-portal-text'}`}>
                       {row.status}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
+                  <p className="text-[11px] text-portal-sub mt-0.5">
                     {row.stops_completed} stop{row.stops_completed === 1 ? '' : 's'}
                     {' · '}
                     Calc {fmtMoney(row.pay_calculated)}
@@ -150,7 +150,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     {row.paid_at && <> {' · '} Paid {new Date(row.paid_at).toLocaleDateString()}</>}
                   </p>
                   {row.driver_notes && (
-                    <p className="text-[11px] text-gray-700 mt-1 italic">📝 {row.driver_notes}</p>
+                    <p className="text-[11px] text-portal-text mt-1 italic">📝 {row.driver_notes}</p>
                   )}
                   {row.adjustment_note && (
                     <p className="text-[11px] text-portal-amber mt-0.5">⚖ {row.adjustment_note}</p>
@@ -168,7 +168,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                       </button>
                       <button
                         onClick={() => action(row.id, { action: 'reopen' })}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
                       >
                         <RotateCcw size={11} /> Reopen
                       </button>
@@ -183,7 +183,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     </button>
                   )}
                   {row.status === 'draft' && (
-                    <span className="text-[11px] text-gray-400 italic px-2">In progress</span>
+                    <span className="text-[11px] text-portal-muted italic px-2">In progress</span>
                   )}
                 </div>
               </div>
@@ -246,26 +246,26 @@ function PayForm({ delivery, onCancel, onSaved }: {
   }
 
   return (
-    <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className="mt-3 pt-3 border-t border-portal-border grid grid-cols-1 sm:grid-cols-3 gap-3">
       <label className="block">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Final pay ($)</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">Final pay ($)</span>
         <input
           value={final}
           onChange={e => setFinal(e.target.value)}
           inputMode="decimal"
-          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+          className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
       </label>
       <label className="block sm:col-span-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Adjustment note (optional)</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">Adjustment note (optional)</span>
         <input
           value={note}
           onChange={e => setNote(e.target.value)}
           placeholder="Fuel bonus, partial pay, etc."
-          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+          className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
       </label>
-      {err && <p className="text-xs text-red-600 sm:col-span-3">{err}</p>}
+      {err && <p className="text-xs text-portal-red sm:col-span-3">{err}</p>}
       <div className="sm:col-span-3 flex items-center gap-2">
         <button
           onClick={save}
@@ -277,7 +277,7 @@ function PayForm({ delivery, onCancel, onSaved }: {
         </button>
         <button
           onClick={onCancel}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-md"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-sub hover:bg-portal-row-hover rounded-md"
         >
           <X size={12} /> Cancel
         </button>

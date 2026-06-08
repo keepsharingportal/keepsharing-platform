@@ -67,14 +67,14 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
     }
   }
 
-  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
-  const lbl = 'block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5'
+  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-xs font-bold text-portal-sub uppercase tracking-wider mb-1.5'
 
   return (
     <div className="space-y-6">
 
       {/* Sticky save bar */}
-      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
@@ -94,13 +94,13 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Identity</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
           <label className={lbl}>Guide title</label>
           <input className={inp} value={form.display_name} onChange={e => set('display_name', e.target.value)} placeholder="e.g. Summer Fun Guide" />
-          <p className="text-[11px] text-gray-400 mt-1">Shown as the hero heading on <code>{publicPath}</code>.</p>
+          <p className="text-[11px] text-portal-muted mt-1">Shown as the hero heading on <code>{publicPath}</code>.</p>
         </div>
 
         <div>
@@ -125,7 +125,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
 
         <div className="pt-3 border-t border-gray-100">
           <label className={lbl}>Featured in month</label>
-          <p className="text-[11px] text-gray-400 mb-2">
+          <p className="text-[11px] text-portal-muted mb-2">
             When today&apos;s month matches this, this guide takes the homepage&apos;s
             top-right Featured Guide tile. One guide per month — set the others to
             different months. Leave as &quot;None&quot; if this guide doesn&apos;t own a
@@ -145,8 +145,8 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Images ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
-        <h2 className="text-sm font-bold text-gray-900">Images</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+        <h2 className="text-sm font-bold text-portal-text">Images</h2>
 
         <div>
           <label className={lbl}>Hero image — top of public guide page</label>
@@ -159,7 +159,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
 
         <div className="pt-2 border-t border-gray-100">
           <label className={lbl}>Homepage feature image</label>
-          <p className="text-[11px] text-gray-400 mb-2">Used by the homepage Summer Fun block and the &quot;Featured Guide&quot; tile when this guide is featured. If empty, falls back to the hero image.</p>
+          <p className="text-[11px] text-portal-muted mb-2">Used by the homepage Summer Fun block and the &quot;Featured Guide&quot; tile when this guide is featured. If empty, falls back to the hero image.</p>
           <HeroImageUpload
             value={form.homepage_image_url}
             onChange={url => set('homepage_image_url', url)}
@@ -169,7 +169,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
 
         <div className="pt-2 border-t border-gray-100">
           <label className={lbl}>Print cover</label>
-          <p className="text-[11px] text-gray-400 mb-2">The print magazine cover for this issue. Optional — shown in the digital edition box alongside the Issuu link.</p>
+          <p className="text-[11px] text-portal-muted mb-2">The print magazine cover for this issue. Optional — shown in the digital edition box alongside the Issuu link.</p>
           <HeroImageUpload
             value={form.print_cover_url}
             onChange={url => set('print_cover_url', url)}
@@ -179,9 +179,9 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Print edition link ─────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Print Edition</h2>
-        <p className="text-[11px] text-gray-400 -mt-2">Connect the print issue. The web guide is the expanded digital edition of the same theme.</p>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Print Edition</h2>
+        <p className="text-[11px] text-portal-muted -mt-2">Connect the print issue. The web guide is the expanded digital edition of the same theme.</p>
 
         <div>
           <label className={lbl}>Issuu flip-version URL</label>
@@ -201,9 +201,9 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Primary CTA ────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Primary CTA</h2>
-        <p className="text-[11px] text-gray-400 -mt-2">Optional CTA used by the homepage Summer Fun block and other featured-guide modules.</p>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Primary CTA</h2>
+        <p className="text-[11px] text-portal-muted -mt-2">Optional CTA used by the homepage Summer Fun block and other featured-guide modules.</p>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>

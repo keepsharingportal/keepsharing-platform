@@ -54,7 +54,7 @@ const PUBLICATIONS = [
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
-const iCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors'
+const iCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
 const iClsTA = `${iCls} resize-vertical`
 
 // ── Sub-components (server-safe, no hooks) ────────────────────────────────────
@@ -65,7 +65,7 @@ function Section({ title, accentColor, children }: {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
       <div className="px-6 py-4 border-b border-gray-50">
-        <h2 className="text-sm font-bold text-gray-700">{title}</h2>
+        <h2 className="text-sm font-bold text-portal-text">{title}</h2>
       </div>
       <div className="px-6 py-5 space-y-4">{children}</div>
     </div>
@@ -77,12 +77,12 @@ function FormRow({ label, required, hint, children }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+      <label className="block text-xs font-semibold text-portal-sub mb-1.5">
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">{hint}</p>}
+      {hint && <p className="text-[11px] text-portal-muted mt-1 leading-relaxed">{hint}</p>}
     </div>
   )
 }
@@ -248,15 +248,15 @@ export default async function EditSubmissionPage({
       <div>
         <Link
           href={`/admin/community/${id}`}
-          className="text-sm text-gray-400 hover:text-gray-700 font-medium transition-colors"
+          className="text-sm text-portal-muted hover:text-portal-text font-medium transition-colors"
         >
           ← Back to Submission
         </Link>
         <div className="mt-3 flex items-center gap-3">
           <span className="text-2xl">{config.emoji}</span>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Edit Submission</h1>
-            <p className="text-sm text-gray-500">{config.label}</p>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Edit Submission</h1>
+            <p className="text-sm text-portal-sub">{config.label}</p>
           </div>
         </div>
       </div>
@@ -315,7 +315,7 @@ export default async function EditSubmissionPage({
               />
             </FormRow>
             {config.photoHint && (
-              <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
+              <p className="text-xs text-portal-sub bg-portal-bg rounded-lg px-3 py-2 leading-relaxed">
                 📷 {config.photoHint}
               </p>
             )}
@@ -384,7 +384,7 @@ export default async function EditSubmissionPage({
 
         {/* 6. Editor Notes */}
         <Section title="Editor Notes" accentColor={accentColor}>
-          <p className="text-xs text-gray-400 -mt-1 mb-1">
+          <p className="text-xs text-portal-muted -mt-1 mb-1">
             Internal only — never shown to submitters. A date stamp will be added automatically when you save.
           </p>
           <textarea
@@ -406,7 +406,7 @@ export default async function EditSubmissionPage({
           </button>
           <Link
             href={`/admin/community/${id}`}
-            className="px-7 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            className="px-7 py-2.5 bg-gray-100 text-portal-sub text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
           >
             Cancel
           </Link>

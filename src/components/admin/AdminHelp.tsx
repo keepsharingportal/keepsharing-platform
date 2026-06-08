@@ -16,7 +16,7 @@ import { ReactNode } from 'react'
 // that fit on a single line — "Used in meta description", "Max 60 characters".
 export function FieldHint({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <p className={`text-[11px] text-gray-500 leading-relaxed ${className}`}>
+    <p className={`text-[11px] text-portal-sub leading-relaxed ${className}`}>
       {children}
     </p>
   )
@@ -31,7 +31,7 @@ export function HelpTip({ text, className = '' }: { text: string; className?: st
     <span className={`group relative inline-flex items-center align-middle ${className}`}>
       <Info
         size={12}
-        className="text-gray-400 hover:text-gray-600 cursor-help"
+        className="text-portal-muted hover:text-portal-sub cursor-help"
         aria-label={text}
       />
       <span
@@ -82,7 +82,7 @@ export function SectionHelp({
         {title && (
           <p className={`text-xs font-bold ${styles.heading} mb-0.5`}>{title}</p>
         )}
-        <div className="text-[12px] text-gray-700 leading-relaxed space-y-1">
+        <div className="text-[12px] text-portal-text leading-relaxed space-y-1">
           {children}
         </div>
       </div>
@@ -107,7 +107,7 @@ export function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="flex items-center gap-1.5 text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5"
+      className="flex items-center gap-1.5 text-xs font-bold text-portal-sub uppercase tracking-wider mb-1.5"
     >
       <span>{children}</span>
       {required && <span className="text-red-500 font-bold" aria-label="required">*</span>}

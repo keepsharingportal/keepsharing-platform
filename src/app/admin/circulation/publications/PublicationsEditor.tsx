@@ -64,21 +64,21 @@ export function PublicationsEditor({ initial }: { initial: Publication[] }) {
 
   return (
     <div className="space-y-4">
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
       <ul className="space-y-2">
         {rows.length === 0 && (
-          <li className="text-xs text-gray-500 italic p-3 bg-white rounded-xl border border-dashed border-gray-200">
+          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-xl border border-dashed border-portal-border">
             No publications — apply migration 116 to seed defaults.
           </li>
         )}
         {rows.map(p => (
-          <li key={p.id} className="rounded-xl border border-gray-200 bg-white p-4">
+          <li key={p.id} className="rounded-xl border border-portal-border bg-white p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg shrink-0" style={{ background: p.color_hex }} />
                 <div>
-                  <p className="text-sm font-bold text-gray-900">{p.name}</p>
-                  <p className="text-[11px] text-gray-500">{p.short_name} · {p.abbrev}</p>
+                  <p className="text-sm font-bold text-portal-text">{p.name}</p>
+                  <p className="text-[11px] text-portal-sub">{p.short_name} · {p.abbrev}</p>
                 </div>
               </div>
               <button
@@ -99,7 +99,7 @@ export function PublicationsEditor({ initial }: { initial: Publication[] }) {
               <FieldNum label="Sort"       value={p.sort_order}  onChange={v => patchLocal(p.id, { sort_order: v })} />
               <Field label="Website"       value={p.website ?? ''}   onChange={v => patchLocal(p.id, { website:   v || null })} className="sm:col-span-2" />
               <Field label="Issuu URL"     value={p.issuu_url ?? ''} onChange={v => patchLocal(p.id, { issuu_url: v || null })} className="sm:col-span-3" />
-              <label className="flex items-center gap-1.5 text-xs text-gray-700 sm:col-span-3">
+              <label className="flex items-center gap-1.5 text-xs text-portal-text sm:col-span-3">
                 <input type="checkbox" checked={p.active} onChange={e => patchLocal(p.id, { active: e.target.checked })} />
                 Active
               </label>
@@ -109,7 +109,7 @@ export function PublicationsEditor({ initial }: { initial: Publication[] }) {
       </ul>
 
       {!adding ? (
-        <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-md hover:bg-gray-50">
+        <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-portal-border rounded-md hover:bg-portal-bg">
           <Plus size={12} /> Add publication
         </button>
       ) : (
@@ -152,13 +152,13 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
         <Field label="Name" value={name} onChange={setName} />
         <Field label="Abbrev" value={abbrev} onChange={setAbbrev} />
       </div>
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
       <div className="flex items-center gap-2">
         <button onClick={submit} disabled={busy || !short.trim() || !name.trim() || !abbrev.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
           {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
           Create
         </button>
-        <button onClick={onCancel} className="text-xs text-gray-500">Cancel</button>
+        <button onClick={onCancel} className="text-xs text-portal-sub">Cancel</button>
       </div>
     </div>
   )
@@ -167,16 +167,16 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
 function Field({ label, value, onChange, className }: { label: string; value: string; onChange: (s: string) => void; className?: string }) {
   return (
     <label className={`block ${className ?? ''}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
+      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
 function FieldNum({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input type="number" value={value} onChange={e => onChange(parseInt(e.target.value || '0', 10))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
+      <input type="number" value={value} onChange={e => onChange(parseInt(e.target.value || '0', 10))} className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }

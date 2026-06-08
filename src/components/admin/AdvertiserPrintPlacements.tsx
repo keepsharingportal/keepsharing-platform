@@ -49,7 +49,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
   if (tableMissing) {
     return (
       <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 inline-flex items-center gap-1.5">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-2 inline-flex items-center gap-1.5">
           <Printer size={11} /> Print Placements
         </h2>
         <p className="text-[10px] text-portal-amber">
@@ -69,8 +69,8 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
   return (
     <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm space-y-3">
       <header className="flex items-center justify-between gap-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 inline-flex items-center gap-1.5">
-          <Printer size={11} /> Print Placements {initial.length > 0 && <span className="text-gray-400">({initial.length})</span>}
+        <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
+          <Printer size={11} /> Print Placements {initial.length > 0 && <span className="text-portal-muted">({initial.length})</span>}
         </h2>
         <div className="flex items-center gap-2">
           <Link
@@ -82,7 +82,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
           </Link>
           <Link
             href={`/admin/print-layout?issue=${addIssue}`}
-            className="text-[11px] font-semibold text-gray-500 hover:text-gray-900"
+            className="text-[11px] font-semibold text-portal-sub hover:text-portal-text"
           >
             All
           </Link>
@@ -90,8 +90,8 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
       </header>
 
       {sorted.length === 0 ? (
-        <div className="text-center py-3 border border-dashed border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">No print bookings yet.</p>
+        <div className="text-center py-3 border border-dashed border-portal-border rounded-lg">
+          <p className="text-xs text-portal-sub mb-1">No print bookings yet.</p>
           <Link
             href={`/admin/print-layout?issue=${todayYM}&add=1&advertiser_id=${advertiserId}`}
             className="text-xs font-bold text-portal-blue hover:underline"
@@ -105,16 +105,16 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
             const future = r.issue_month >= todayYM
             return (
               <li key={r.id} className={`flex items-center gap-2 p-2 rounded-lg border border-gray-100 ${future ? 'bg-portal-green-lt/40' : ''}`}>
-                <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${future ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${future ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-portal-text'}`}>
                   {fmtIssue(r.issue_month)}
                 </span>
                 <div className="flex-1 min-w-0 text-xs">
-                  <span className="font-semibold text-gray-900 tabular-nums">{r.size}</span>
-                  <span className="text-gray-500"> · {r.design}</span>
-                  {r.layout && <span className="text-gray-500"> · {r.layout}</span>}
+                  <span className="font-semibold text-portal-text tabular-nums">{r.size}</span>
+                  <span className="text-portal-sub"> · {r.design}</span>
+                  {r.layout && <span className="text-portal-sub"> · {r.layout}</span>}
                 </div>
                 {r.price != null && (
-                  <span className="text-xs font-bold text-gray-900 tabular-nums">${r.price.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-portal-text tabular-nums">${r.price.toLocaleString()}</span>
                 )}
                 <Link
                   href={`/admin/print-layout?issue=${r.issue_month}`}

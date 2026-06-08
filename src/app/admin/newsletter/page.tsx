@@ -22,16 +22,16 @@ export default async function NewsletterAdminPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Newsletter Subscribers</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{count?.toLocaleString() ?? 0} active subscribers</p>
+          <h1 className="text-xl font-semibold text-portal-text">Newsletter Subscribers</h1>
+          <p className="text-sm text-portal-sub mt-0.5">{count?.toLocaleString() ?? 0} active subscribers</p>
         </div>
       </div>
       <div className="p-6">
         {(!subscribers || subscribers.length === 0) ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-400">No subscribers yet. Forms are live — they'll appear here as people sign up.</p>
+          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+            <p className="text-portal-muted">No subscribers yet. Forms are live — they'll appear here as people sign up.</p>
           </div>
         ) : (
           <NewsletterList subscribers={subscribers} />

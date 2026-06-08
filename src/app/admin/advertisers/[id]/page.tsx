@@ -107,15 +107,15 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
       <div className="space-y-4">
         {contactsTableMissing ? (
           <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact</h2>
-            {contactName && <p className="font-bold text-gray-900">{contactName}</p>}
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contact</h2>
+            {contactName && <p className="font-bold text-portal-text">{contactName}</p>}
             {contactEmail && (
               <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 text-portal-blue hover:underline">
                 <Mail size={13} /> {contactEmail}
               </a>
             )}
             {contactPhone && (
-              <p className="flex items-center gap-1.5 text-gray-700"><Phone size={13} /> {contactPhone}</p>
+              <p className="flex items-center gap-1.5 text-portal-text"><Phone size={13} /> {contactPhone}</p>
             )}
             <p className="text-[10px] text-portal-amber mt-2">
               Multi-contact support pending — apply migration 128 (advertiser_contacts) in Supabase.
@@ -127,7 +127,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
 
         {businessUrl && (
           <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Website</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-2">Website</h2>
             <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-portal-blue hover:underline break-all">
               <Globe size={13} /> {businessUrl.replace(/^https?:\/\//, '')}
             </a>
@@ -135,24 +135,24 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
         )}
 
         <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contract</h2>
-          <div className="flex items-center gap-1.5 text-gray-700">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contract</h2>
+          <div className="flex items-center gap-1.5 text-portal-text">
             <Calendar size={13} />
             <span>{fmtDate(contractStart)} → {fmtDate(contractEnd)}</span>
           </div>
           {sponsorGuide && (
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-portal-sub">
               <span className="font-bold">Guide sponsor:</span> {sponsorGuide.replace(/-/g, ' ')}
             </p>
           )}
           {opsNotes && (
-            <p className="text-xs text-gray-500 italic mt-2 leading-relaxed">{opsNotes}</p>
+            <p className="text-xs text-portal-sub italic mt-2 leading-relaxed">{opsNotes}</p>
           )}
         </section>
 
         <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-2 text-sm">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">GoHighLevel</h2>
-          <p className="text-[11px] text-gray-500 leading-snug">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">GoHighLevel</h2>
+          <p className="text-[11px] text-portal-sub leading-snug">
             Sync this business&apos;s contacts to GHL with role + tier tags.
           </p>
           <GhlSyncButton advertiserId={id} />
@@ -220,18 +220,18 @@ function TileLink({ href, icon, title, primary, primaryLabel, secondary }: {
       className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 hover:ring-portal-blue hover:shadow-sm transition-all flex flex-col gap-2"
     >
       <div className="flex items-center justify-between">
-        <div className="text-gray-400 group-hover:text-portal-blue transition-colors">{icon}</div>
+        <div className="text-portal-muted group-hover:text-portal-blue transition-colors">{icon}</div>
         <ArrowRight size={14} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
       </div>
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">{title}</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-portal-sub">{title}</h3>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-3xl font-bold text-gray-900 tabular-nums">{primary}</span>
-          <span className="text-xs text-gray-500">{primaryLabel}</span>
+          <span className="text-3xl font-bold text-portal-text tabular-nums">{primary}</span>
+          <span className="text-xs text-portal-sub">{primaryLabel}</span>
         </div>
       </div>
       {secondary.length > 0 && (
-        <p className="text-[11px] text-gray-500">{secondary.join(' · ')}</p>
+        <p className="text-[11px] text-portal-sub">{secondary.join(' · ')}</p>
       )}
     </Link>
   )

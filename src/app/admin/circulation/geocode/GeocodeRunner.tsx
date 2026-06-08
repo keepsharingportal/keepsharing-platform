@@ -39,14 +39,14 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+      <section className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-gray-900">Coverage</p>
-            <p className="text-2xl font-bold text-gray-900 mt-0.5">
-              {totalActive - missing.length}<span className="text-base text-gray-500 font-normal"> / {totalActive}</span>
+            <p className="text-sm font-bold text-portal-text">Coverage</p>
+            <p className="text-2xl font-bold text-portal-text mt-0.5">
+              {totalActive - missing.length}<span className="text-base text-portal-sub font-normal"> / {totalActive}</span>
             </p>
-            <p className="text-[11px] text-gray-500 mt-0.5">{missing.length} stops missing coordinates</p>
+            <p className="text-[11px] text-portal-sub mt-0.5">{missing.length} stops missing coordinates</p>
           </div>
           <p className={`text-3xl font-bold ${pctGeo === 100 ? 'text-emerald-600' : pctGeo > 50 ? 'text-portal-blue' : 'text-amber-600'}`}>
             {pctGeo}%
@@ -64,7 +64,7 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
           Geocode next 25 (≈30s)
         </button>
         {result && (
-          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-red-600'} flex items-center gap-1`}>
+          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-portal-red'} flex items-center gap-1`}>
             {result.ok ? <Check size={11} /> : <AlertTriangle size={11} />} {result.text}
           </p>
         )}
@@ -72,12 +72,12 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
 
       {missing.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-900 mb-2">Up next ({Math.min(25, missing.length)})</h2>
-          <ul className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+          <h2 className="text-sm font-bold text-portal-text mb-2">Up next ({Math.min(25, missing.length)})</h2>
+          <ul className="rounded-xl border border-portal-border bg-white divide-y divide-gray-100">
             {missing.slice(0, 25).map(s => (
               <li key={s.id} className="p-3">
-                <p className="text-sm font-bold text-gray-900">{s.name}</p>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-sm font-bold text-portal-text">{s.name}</p>
+                <p className="text-[11px] text-portal-sub">
                   {s.address}{s.city ? `, ${s.city}` : ''}{s.zip ? ` ${s.zip}` : ''}
                 </p>
               </li>
@@ -88,17 +88,17 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
 
       {history.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-900 mb-2">Recent runs</h2>
-          <ul className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+          <h2 className="text-sm font-bold text-portal-text mb-2">Recent runs</h2>
+          <ul className="rounded-xl border border-portal-border bg-white divide-y divide-gray-100">
             {history.map(h => (
               <li key={h.id} className="p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{new Date(h.started_at).toLocaleString()}</p>
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-sm font-semibold text-portal-text">{new Date(h.started_at).toLocaleString()}</p>
+                  <p className="text-[11px] text-portal-sub">
                     {h.stops_success} succeeded · {h.stops_failed} failed · {h.stops_total} total
                   </p>
                 </div>
-                <p className="text-[10px] text-gray-400">{h.finished_at ? 'Finished' : 'Running'}</p>
+                <p className="text-[10px] text-portal-muted">{h.finished_at ? 'Finished' : 'Running'}</p>
               </li>
             ))}
           </ul>

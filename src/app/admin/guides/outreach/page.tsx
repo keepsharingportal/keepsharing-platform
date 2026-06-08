@@ -8,7 +8,7 @@ const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
 function StatusBar({ not_sent, sent, responded, updated, total }: {
   not_sent: number; sent: number; responded: number; updated: number; total: number
 }) {
-  if (total === 0) return <div className="text-xs text-gray-400">No listings yet</div>
+  if (total === 0) return <div className="text-xs text-portal-muted">No listings yet</div>
   return (
     <div className="space-y-2">
       <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
@@ -18,7 +18,7 @@ function StatusBar({ not_sent, sent, responded, updated, total }: {
         {updated   > 0 && <div className="bg-green-500"    style={{ width: `${(updated   / total) * 100}%` }} />}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
-        {not_sent  > 0 && <span className="text-gray-500"  >{not_sent} not sent</span>}
+        {not_sent  > 0 && <span className="text-portal-sub"  >{not_sent} not sent</span>}
         {sent      > 0 && <span className="text-amber-600" >{sent} sent</span>}
         {responded > 0 && <span className="text-portal-blue"  >{responded} responded</span>}
         {updated   > 0 && <span className="text-green-600" >{updated} updated</span>}
@@ -43,10 +43,10 @@ export default function GuidesPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Guide Management</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-semibold text-portal-text">Guide Management</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             12 seasonal guides · {year} · {totalListings} total listings across all guides
           </p>
         </div>
@@ -54,12 +54,12 @@ export default function GuidesPage() {
           <div className="flex items-center gap-1.5 text-amber-600">
             <AlertCircle size={14} />
             <span className="font-semibold">{totalNotSent}</span>
-            <span className="text-gray-500">not sent</span>
+            <span className="text-portal-sub">not sent</span>
           </div>
           <div className="flex items-center gap-1.5 text-green-600">
             <CheckCircle2 size={14} />
             <span className="font-semibold">{totalUpdated}</span>
-            <span className="text-gray-500">updated</span>
+            <span className="text-portal-sub">updated</span>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function GuidesPage() {
               <div key={guide.month}
                 className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow ${
                   isCurrent ? 'border-portal-border-2 ring-1 ring-portal-blue/30' :
-                  urgentSoon ? 'border-amber-200' : 'border-gray-200'
+                  urgentSoon ? 'border-amber-200' : 'border-portal-border'
                 }`}
               >
                 {/* Color bar */}
@@ -86,7 +86,7 @@ export default function GuidesPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+                        <span className="text-xs font-bold text-portal-muted uppercase tracking-wide">
                           {MONTH_NAMES[guide.month]}
                         </span>
                         {isCurrent && (
@@ -100,9 +100,9 @@ export default function GuidesPage() {
                           </span>
                         )}
                       </div>
-                      <h3 className="text-sm font-semibold text-gray-900">{guide.name}</h3>
+                      <h3 className="text-sm font-semibold text-portal-text">{guide.name}</h3>
                     </div>
-                    <span className="text-lg font-bold text-gray-700 shrink-0">
+                    <span className="text-lg font-bold text-portal-text shrink-0">
                       {guide.stats.total > 0 ? guide.stats.total : '—'}
                     </span>
                   </div>
@@ -110,7 +110,7 @@ export default function GuidesPage() {
                   {/* Category tags */}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {guide.topCategories.slice(0, 3).map((cat) => (
-                      <span key={cat} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100">
+                      <span key={cat} className="text-[10px] px-1.5 py-0.5 rounded bg-portal-bg text-portal-sub border border-gray-100">
                         {cat}
                       </span>
                     ))}
@@ -123,7 +123,7 @@ export default function GuidesPage() {
                   <div className="flex gap-2 mt-4">
                     <Link
                       href={`/admin/guides/outreach/${guide.month}`}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-text bg-portal-bg border border-portal-border rounded-lg hover:bg-portal-row-hover transition-colors"
                     >
                       <BookOpen size={12} /> Manage
                     </Link>

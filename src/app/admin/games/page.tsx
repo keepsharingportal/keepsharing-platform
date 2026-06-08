@@ -153,15 +153,15 @@ export default async function GamesAdminPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Sparkles size={20} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Brain Games</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Brain Games</h1>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-portal-sub">
             Daily challenge content + leaderboard + weekly 3 × $10 drawing.
             {weekLabel} · {weekEntries.length} entries this week.
           </p>
         </div>
         <Link href="/games" target="_blank" rel="noreferrer"
-          className="text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50">
+          className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
           View public Games page →
         </Link>
       </div>
@@ -176,34 +176,34 @@ export default async function GamesAdminPage() {
       )}
 
       {/* HOW THIS WORKS */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-          <BookMarked size={14} className="text-gray-400" />
-          <h2 className="text-sm font-bold text-gray-700">How Brain Games works</h2>
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <BookMarked size={14} className="text-portal-muted" />
+          <h2 className="text-sm font-bold text-portal-text">How Brain Games works</h2>
         </div>
-        <div className="p-5 grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-700 leading-relaxed">
+        <div className="p-5 grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm text-portal-text leading-relaxed">
           <div>
-            <p className="font-bold text-gray-900 mb-1">1. Stock the content pool</p>
+            <p className="font-bold text-portal-text mb-1">1. Stock the content pool</p>
             <p>Every game needs items in <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>. Click <strong>Generate</strong> below to have Claude draft a batch — they land in the <Link href="/admin/games/queue" className="text-portal-blue hover:underline font-semibold">AI proposal queue</Link>. You approve each one before it ships. Hand-curated items go through the <Link href="/admin/games/content" className="text-portal-blue hover:underline font-semibold">content editor</Link>.</p>
           </div>
           <div>
-            <p className="font-bold text-gray-900 mb-1">2. Daily rotation, weekly draw</p>
+            <p className="font-bold text-portal-text mb-1">2. Daily rotation, weekly draw</p>
             <p>Players see fresh content every UTC midnight (same puzzles for everyone that day — bragging rights stay honest). On Mondays you draw <strong>3 × $10 winners</strong> from the week&apos;s entries at the bottom of this page. Re-draw overwrites all 3 slots.</p>
           </div>
           <div>
-            <p className="font-bold text-gray-900 mb-1">3. Each tier targets a different audience</p>
+            <p className="font-bold text-portal-text mb-1">3. Each tier targets a different audience</p>
             <p><strong>Perfect for Kids</strong> = ages 5-12 (whole-family play). <strong>Challenging</strong> = the magazine&apos;s core parent audience. <strong>Brain Squeezing</strong> = parents of teens / empty-nesters. Claude is prompted with this so generated content stays on-tone per tier.</p>
           </div>
           <div>
-            <p className="font-bold text-gray-900 mb-1">4. Days of supply</p>
+            <p className="font-bold text-portal-text mb-1">4. Days of supply</p>
             <p>The pool table below shows how many days of variety you have per (game, tier). Anything under {TARGET_DAYS_OF_SUPPLY} days will recycle within a week — generate more to keep it fresh.</p>
           </div>
           <div>
-            <p className="font-bold text-gray-900 mb-1">5. Announce + share</p>
+            <p className="font-bold text-portal-text mb-1">5. Announce + share</p>
             <p>Use the announcement panel to send the weekly &ldquo;new games are up&rdquo; email via your GHL webhook. Players share Wordle-style emoji grids from the win screen — the brand line is identical across all 6 games for recognizability.</p>
           </div>
           <div>
-            <p className="font-bold text-gray-900 mb-1">6. Where things live</p>
+            <p className="font-bold text-portal-text mb-1">6. Where things live</p>
             <p>Scores → <code className="bg-gray-100 px-1 rounded text-xs">game_scores</code>. Winners → <code className="bg-gray-100 px-1 rounded text-xs">game_winners</code> (one row per slot per week). Proposals → <code className="bg-gray-100 px-1 rounded text-xs">game_content_proposals</code>. Approved items → <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>.</p>
           </div>
         </div>
@@ -219,12 +219,12 @@ export default async function GamesAdminPage() {
               { label: 'Content pool items', value: (poolData?.length ?? 0), tone: '#a855f7' },
               { label: 'Top score this week',value: leaderboard[0]?.score ?? 0, tone: '#ef6442' },
             ].map(s => (
-              <div key={s.label} className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+              <div key={s.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.tone }} />
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{s.label}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-portal-muted">{s.label}</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                <p className="text-2xl font-bold text-portal-text">{s.value}</p>
               </div>
             ))}
           </div>
@@ -233,15 +233,15 @@ export default async function GamesAdminPage() {
           <GeneratePanel pendingCount={pendingProposalCount} />
 
           {/* CONTENT POOL */}
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <BookOpen size={14} className="text-gray-400" />
-              <h2 className="text-sm font-bold text-gray-700">Content pool · days of supply</h2>
+          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+              <BookOpen size={14} className="text-portal-muted" />
+              <h2 className="text-sm font-bold text-portal-text">Content pool · days of supply</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <tr className="bg-portal-bg text-[11px] font-bold uppercase tracking-wider text-portal-sub">
                     <th className="text-left px-4 py-2">Game</th>
                     {DIFFICULTIES.map(d => (
                       <th key={d} className="text-center px-4 py-2">{d}</th>
@@ -252,8 +252,8 @@ export default async function GamesAdminPage() {
                   {GAMES.map(g => (
                     <tr key={g.id} className="border-t border-gray-100">
                       <td className="px-4 py-2.5">
-                        <p className="font-semibold text-gray-900">{g.emoji} {g.title}</p>
-                        <p className="text-xs text-gray-400">{ROUNDS_PER_SESSION[g.id]}/day</p>
+                        <p className="font-semibold text-portal-text">{g.emoji} {g.title}</p>
+                        <p className="text-xs text-portal-muted">{ROUNDS_PER_SESSION[g.id]}/day</p>
                       </td>
                       {DIFFICULTIES.map(d => {
                         const n        = counts.get(`${g.id}|${d}`) ?? 0
@@ -262,10 +262,10 @@ export default async function GamesAdminPage() {
                         const empty    = n === 0
                         return (
                           <td key={d} className="text-center px-4 py-2.5">
-                            <span className={`inline-block text-sm font-bold ${empty ? 'text-portal-red' : lowPool ? 'text-portal-amber' : 'text-gray-800'}`}>
+                            <span className={`inline-block text-sm font-bold ${empty ? 'text-portal-red' : lowPool ? 'text-portal-amber' : 'text-portal-text'}`}>
                               {n}
                             </span>
-                            <p className={`text-[10px] font-semibold ${empty ? 'text-rose-600' : lowPool ? 'text-amber-600' : 'text-gray-400'}`}>
+                            <p className={`text-[10px] font-semibold ${empty ? 'text-rose-600' : lowPool ? 'text-amber-600' : 'text-portal-muted'}`}>
                               {empty
                                 ? 'Empty'
                                 : `${supply} day${supply === 1 ? '' : 's'}${lowPool ? ' · low' : ''}`}
@@ -278,8 +278,8 @@ export default async function GamesAdminPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-              <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
+            <div className="px-4 py-3 bg-portal-bg border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-[11px] text-portal-muted flex items-center gap-1.5">
                 <AlertTriangle size={11} className="text-amber-600" />
                 Target: at least {TARGET_DAYS_OF_SUPPLY} days of supply per cell. Anything lower will repeat within a week.
               </p>
@@ -291,16 +291,16 @@ export default async function GamesAdminPage() {
           </section>
 
           {/* TODAY'S ROTATION SNAPSHOT */}
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <Sparkles size={14} className="text-gray-400" />
-              <h2 className="text-sm font-bold text-gray-700">Today&apos;s rotation (Challenging preview)</h2>
+          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+              <Sparkles size={14} className="text-portal-muted" />
+              <h2 className="text-sm font-bold text-portal-text">Today&apos;s rotation (Challenging preview)</h2>
             </div>
             <ul className="divide-y divide-gray-100">
               {rotationPreview.map(({ game, sample }) => (
                 <li key={game.id} className="p-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-1">{game.emoji} {game.title}</p>
-                  <p className="text-xs text-gray-500 font-mono break-all">
+                  <p className="text-sm font-semibold text-portal-text mb-1">{game.emoji} {game.title}</p>
+                  <p className="text-xs text-portal-sub font-mono break-all">
                     {sample.length > 0 ? JSON.stringify(sample[0]).slice(0, 180) : 'No content in pool'}
                   </p>
                 </li>
@@ -309,18 +309,18 @@ export default async function GamesAdminPage() {
           </section>
 
           {/* LEADERBOARD */}
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <Users size={14} className="text-gray-400" />
-              <h2 className="text-sm font-bold text-gray-700">This week&apos;s top 20</h2>
+          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+              <Users size={14} className="text-portal-muted" />
+              <h2 className="text-sm font-bold text-portal-text">This week&apos;s top 20</h2>
             </div>
             {leaderboard.length === 0 ? (
-              <p className="p-8 text-center text-sm text-gray-400">No plays yet this week.</p>
+              <p className="p-8 text-center text-sm text-portal-muted">No plays yet this week.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    <tr className="bg-portal-bg text-[11px] font-bold uppercase tracking-wider text-portal-sub">
                       <th className="text-left px-4 py-2">#</th>
                       <th className="text-left px-4 py-2">Player</th>
                       <th className="text-left px-4 py-2">Email</th>
@@ -333,17 +333,17 @@ export default async function GamesAdminPage() {
                   <tbody>
                     {leaderboard.map((s, i) => (
                       <tr key={s.id} className="border-t border-gray-100">
-                        <td className="px-4 py-2 font-semibold text-gray-500">{i + 1}</td>
+                        <td className="px-4 py-2 font-semibold text-portal-sub">{i + 1}</td>
                         <td className="px-4 py-2">{s.first_name} {s.last_name}</td>
-                        <td className="px-4 py-2 text-xs text-gray-600">{s.email}</td>
-                        <td className="px-4 py-2 text-xs">{GAMES.find(g => g.id === s.game_type)?.title ?? s.game_type} · <span className="text-gray-400">{s.difficulty}</span></td>
+                        <td className="px-4 py-2 text-xs text-portal-sub">{s.email}</td>
+                        <td className="px-4 py-2 text-xs">{GAMES.find(g => g.id === s.game_type)?.title ?? s.game_type} · <span className="text-portal-muted">{s.difficulty}</span></td>
                         <td className="px-4 py-2 text-right font-bold text-portal-blue">{s.score}</td>
-                        <td className="px-4 py-2 text-xs text-gray-500">{fmtDateTime(s.created_at)}</td>
+                        <td className="px-4 py-2 text-xs text-portal-sub">{fmtDateTime(s.created_at)}</td>
                         <td className="px-4 py-2 text-xs">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             s.ghl_status === 'sent'   ? 'bg-green-100 text-green-700' :
                             s.ghl_status === 'failed' ? 'bg-portal-red-lt text-portal-red'   :
-                                                        'bg-gray-100 text-gray-600'
+                                                        'bg-gray-100 text-portal-sub'
                           }`}>{s.ghl_status}</span>
                         </td>
                       </tr>
@@ -362,14 +362,14 @@ export default async function GamesAdminPage() {
           />
 
           {/* WEEKLY 3 × $10 WINNER DRAW */}
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
               <Trophy size={14} className="text-portal-blue" />
-              <h2 className="text-sm font-bold text-gray-700">Weekly 3 × $10 winners — {weekLabel}</h2>
+              <h2 className="text-sm font-bold text-portal-text">Weekly 3 × $10 winners — {weekLabel}</h2>
             </div>
             <div className="p-5">
               {weekEntries.length === 0 ? (
-                <p className="text-sm text-gray-400">No entries yet for {weekLabel}.</p>
+                <p className="text-sm text-portal-muted">No entries yet for {weekLabel}.</p>
               ) : (
                 <DrawWinnerButton
                   scores={weekEntries}
@@ -378,7 +378,7 @@ export default async function GamesAdminPage() {
                   existingWinners={existingWinners}
                 />
               )}
-              <p className="text-[11px] text-gray-400 mt-3 leading-relaxed">
+              <p className="text-[11px] text-portal-muted mt-3 leading-relaxed">
                 Each play this week counts as one entry. Click the button to pick 3 random winners (each gets $10).
                 Re-drawing overwrites all 3 slots. Full audit trail in <code className="bg-gray-100 px-1 rounded">game_scores</code> + <code className="bg-gray-100 px-1 rounded">game_winners</code>.
               </p>

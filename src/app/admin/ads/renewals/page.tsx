@@ -93,11 +93,11 @@ export default async function AdRenewalsPage() {
       <AdsTabs />
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-black text-portal-text flex items-center gap-2">
             <Mail className="w-6 h-6 text-portal-blue" />
             Ad Renewal Reminders
           </h1>
-          <p className="text-sm text-gray-600 mt-1 max-w-xl">
+          <p className="text-sm text-portal-sub mt-1 max-w-xl">
             Email templates fire automatically when an ad lands in their window. Templates ship as <strong>drafts</strong> —
             review the copy, edit anything that doesn&apos;t sound like you, then flip <strong>Live</strong> to enable that window.
             The cron runs nightly; nothing sends until a template is live.
@@ -112,62 +112,62 @@ export default async function AdRenewalsPage() {
 
       {/* ── Templates ──────────────────────────────────────────────────────── */}
       <section className="space-y-4">
-        <h2 className="text-lg font-bold text-gray-900">Templates</h2>
+        <h2 className="text-lg font-bold text-portal-text">Templates</h2>
         {templates.length === 0 && (
-          <p className="text-sm text-gray-500 italic">No templates yet — apply migration 119 to seed the defaults.</p>
+          <p className="text-sm text-portal-sub italic">No templates yet — apply migration 119 to seed the defaults.</p>
         )}
         {templates.map(tpl => (
-          <details key={tpl.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <summary className="cursor-pointer px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-50">
+          <details key={tpl.id} className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+            <summary className="cursor-pointer px-5 py-4 flex items-center justify-between gap-4 hover:bg-portal-bg">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-gray-100 text-portal-sub'}`}>
                   {tpl.is_live ? <><Check size={12} /> Live</> : <><Clock size={12} /> Draft</>}
                 </span>
-                <span className="font-bold text-gray-900">{tpl.name}</span>
-                <span className="text-xs text-gray-500">· {windowLabel(tpl.days_before)}</span>
+                <span className="font-bold text-portal-text">{tpl.name}</span>
+                <span className="text-xs text-portal-sub">· {windowLabel(tpl.days_before)}</span>
                 {tpl.notify_sales && <span className="text-[10px] uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-2 py-0.5 rounded">CC sales rep</span>}
               </div>
-              <span className="text-xs text-gray-400">edit ↓</span>
+              <span className="text-xs text-portal-muted">edit ↓</span>
             </summary>
-            <form action={saveTemplate} className="p-5 space-y-4 border-t border-gray-100 bg-gray-50">
+            <form action={saveTemplate} className="p-5 space-y-4 border-t border-gray-100 bg-portal-bg">
               <input type="hidden" name="id" value={tpl.id} />
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Subject</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Subject</label>
                 <input
                   name="subject"
                   defaultValue={tpl.subject}
-                  className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white"
+                  className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Body (HTML)</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Body (HTML)</label>
                 <textarea
                   name="body_html"
                   defaultValue={tpl.body_html}
                   rows={10}
-                  className="w-full text-xs font-mono px-3 py-2 border border-gray-200 rounded-lg bg-white"
+                  className="w-full text-xs font-mono px-3 py-2 border border-portal-border rounded-lg bg-white"
                 />
-                <p className="text-[11px] text-gray-500 mt-1">
+                <p className="text-[11px] text-portal-sub mt-1">
                   Merge tags: <code>{`{{first_name}}`}</code> · <code>{`{{advertiser_name}}`}</code> ·
                   <code>{` {{placement_label}}`}</code> · <code>{` {{ends_at}}`}</code> · <code>{` {{renewal_url}}`}</code>
                 </p>
               </div>
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-600 mb-1">Body (plain text fallback)</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Body (plain text fallback)</label>
                 <textarea
                   name="body_text"
                   defaultValue={tpl.body_text ?? ''}
                   rows={4}
-                  className="w-full text-xs font-mono px-3 py-2 border border-gray-200 rounded-lg bg-white"
+                  className="w-full text-xs font-mono px-3 py-2 border border-portal-border rounded-lg bg-white"
                 />
               </div>
               <div className="flex items-center gap-6 flex-wrap">
                 <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
-                  <input type="checkbox" name="is_live" defaultChecked={tpl.is_live} className="h-4 w-4 rounded border-gray-300" />
+                  <input type="checkbox" name="is_live" defaultChecked={tpl.is_live} className="h-4 w-4 rounded border-portal-border-2" />
                   <span className="font-bold">Live — cron will send this</span>
                 </label>
                 <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
-                  <input type="checkbox" name="notify_sales" defaultChecked={tpl.notify_sales} className="h-4 w-4 rounded border-gray-300" />
+                  <input type="checkbox" name="notify_sales" defaultChecked={tpl.notify_sales} className="h-4 w-4 rounded border-portal-border-2" />
                   <span>CC the placement&apos;s <code>sales_rep_email</code></span>
                 </label>
                 <button type="submit" className="ml-auto px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
@@ -181,14 +181,14 @@ export default async function AdRenewalsPage() {
 
       {/* ── Recent activity ────────────────────────────────────────────────── */}
       <section className="space-y-3">
-        <h2 className="text-lg font-bold text-gray-900">Recent send activity</h2>
+        <h2 className="text-lg font-bold text-portal-text">Recent send activity</h2>
         {log.length === 0 ? (
-          <p className="text-sm text-gray-500 italic">No reminders have fired yet. Once a template is Live and an ad lands in its window, you&apos;ll see entries here.</p>
+          <p className="text-sm text-portal-sub italic">No reminders have fired yet. Once a template is Live and an ad lands in its window, you&apos;ll see entries here.</p>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-portal-border rounded-2xl overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr className="text-left text-xs uppercase tracking-wider text-gray-600">
+              <thead className="bg-portal-bg border-b border-portal-border">
+                <tr className="text-left text-xs uppercase tracking-wider text-portal-sub">
                   <th className="px-4 py-2">When</th>
                   <th className="px-4 py-2">Template</th>
                   <th className="px-4 py-2">To</th>
@@ -199,19 +199,19 @@ export default async function AdRenewalsPage() {
               <tbody>
                 {log.map(r => (
                   <tr key={r.id} className="border-b border-gray-100 last:border-0">
-                    <td className="px-4 py-2 text-xs text-gray-500">{new Date(r.sent_at).toLocaleString()}</td>
+                    <td className="px-4 py-2 text-xs text-portal-sub">{new Date(r.sent_at).toLocaleString()}</td>
                     <td className="px-4 py-2 text-xs font-medium">{r.template_name ?? '—'}</td>
                     <td className="px-4 py-2 text-xs">{r.recipient_email}</td>
-                    <td className="px-4 py-2 text-xs text-gray-500">{new Date(r.ends_at_snapshot).toLocaleDateString()}</td>
+                    <td className="px-4 py-2 text-xs text-portal-sub">{new Date(r.ends_at_snapshot).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-xs">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
                         r.status === 'sent'   ? 'bg-green-50 text-green-700' :
                         r.status === 'failed' ? 'bg-red-50 text-red-700' :
-                                                'bg-gray-100 text-gray-600'
+                                                'bg-gray-100 text-portal-sub'
                       }`}>
                         {r.status}
                       </span>
-                      {r.error_message && <span className="text-[11px] text-red-600 ml-2">{r.error_message}</span>}
+                      {r.error_message && <span className="text-[11px] text-portal-red ml-2">{r.error_message}</span>}
                     </td>
                   </tr>
                 ))}

@@ -41,9 +41,9 @@ export function ProposalRow({ id, gameType, payload, theme, model, createdAt }: 
     <li className="px-5 py-3 flex items-start gap-4">
       <div className="flex-1 min-w-0">
         <PreviewByGame gameType={gameType} payload={payload} />
-        <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400">
+        <div className="flex items-center gap-3 mt-2 text-[11px] text-portal-muted">
           {model && <span className="inline-flex items-center gap-1"><Bot size={11} />{model}</span>}
-          {theme && <span>theme: <em className="text-gray-600">{theme}</em></span>}
+          {theme && <span>theme: <em className="text-portal-sub">{theme}</em></span>}
           <span>{new Date(createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
         </div>
         {err && <p className="text-xs text-portal-red font-semibold mt-2">{err}</p>}
@@ -63,7 +63,7 @@ export function ProposalRow({ id, gameType, payload, theme, model, createdAt }: 
           type="button"
           onClick={() => review('reject')}
           disabled={busy !== null}
-          className="inline-flex items-center gap-1 text-xs font-bold border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-40"
+          className="inline-flex items-center gap-1 text-xs font-bold border border-portal-border text-portal-sub rounded-lg px-3 py-1.5 hover:bg-portal-bg disabled:opacity-40"
         >
           {busy === 'reject' ? <RefreshCw size={12} className="animate-spin" /> : <X size={12} />}
           Reject
@@ -85,7 +85,7 @@ function PreviewByGame({ gameType, payload }: { gameType: string; payload: Recor
     case 'trivia':         return <TriviaPreview p={payload as any} />
     case 'memory':         return <MemoryPreview p={payload as any} />
     case 'family-connect': return <FamilyConnectPreview p={payload as any} />
-    default:               return <pre className="text-xs font-mono text-gray-500 whitespace-pre-wrap">{JSON.stringify(payload).slice(0, 240)}</pre>
+    default:               return <pre className="text-xs font-mono text-portal-sub whitespace-pre-wrap">{JSON.stringify(payload).slice(0, 240)}</pre>
   }
 }
 
@@ -93,9 +93,9 @@ function PreviewByGame({ gameType, payload }: { gameType: string; payload: Recor
 function ScramblePreview({ p }: { p: any }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900">
+      <p className="text-sm font-semibold text-portal-text">
         <span className="font-mono tracking-widest">{p.scrambled}</span>
-        <span className="text-gray-400 mx-2">→</span>
+        <span className="text-portal-muted mx-2">→</span>
         <span className="text-portal-blue">{p.answer}</span>
       </p>
     </div>
@@ -105,9 +105,9 @@ function ScramblePreview({ p }: { p: any }) {
 function EmojiPreview({ p }: { p: any }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900">
+      <p className="text-sm font-semibold text-portal-text">
         <span className="text-xl">{p.emoji}</span>
-        <span className="text-gray-400 mx-2">→</span>
+        <span className="text-portal-muted mx-2">→</span>
         <span className="text-portal-blue">{p.answer}</span>
       </p>
     </div>
@@ -117,8 +117,8 @@ function EmojiPreview({ p }: { p: any }) {
 function MathPreview({ p }: { p: any }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900">{p.q}</p>
-      <p className="text-xs text-gray-500 mt-0.5">Answer: <strong className="text-portal-blue">{p.a}</strong></p>
+      <p className="text-sm font-semibold text-portal-text">{p.q}</p>
+      <p className="text-xs text-portal-sub mt-0.5">Answer: <strong className="text-portal-blue">{p.a}</strong></p>
     </div>
   )
 }
@@ -126,8 +126,8 @@ function MathPreview({ p }: { p: any }) {
 function TriviaPreview({ p }: { p: any }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900 mb-1">{p.q}</p>
-      <ul className="text-xs text-gray-600 space-y-0.5">
+      <p className="text-sm font-semibold text-portal-text mb-1">{p.q}</p>
+      <ul className="text-xs text-portal-sub space-y-0.5">
         {p.options.map((opt: string) => (
           <li key={opt} className={opt === p.a ? 'text-green-700 font-bold' : ''}>
             {opt === p.a ? '✓ ' : '· '}{opt}
@@ -141,7 +141,7 @@ function TriviaPreview({ p }: { p: any }) {
 function MemoryPreview({ p }: { p: any }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-900 mb-1">{p.pairs} pairs · {p.icons.join(' ')}</p>
+      <p className="text-sm font-semibold text-portal-text mb-1">{p.pairs} pairs · {p.icons.join(' ')}</p>
     </div>
   )
 }

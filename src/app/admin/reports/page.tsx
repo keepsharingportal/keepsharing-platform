@@ -74,11 +74,11 @@ export default async function ReportsLandingPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-6xl">
 
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-portal-blue" />
           Reports
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="text-sm text-portal-sub mt-0.5">
           Per-advertiser performance dashboards. Real metrics — impressions, clicks,
           leads, and traffic source — that you can share with clients.
         </p>
@@ -95,7 +95,7 @@ export default async function ReportsLandingPage() {
         {/* Top Articles */}
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top Articles — Most Viewed
             </h2>
             <Link href="/admin/articles" className="text-[11px] font-bold text-portal-blue hover:underline">
@@ -103,19 +103,19 @@ export default async function ReportsLandingPage() {
             </Link>
           </div>
           {(!topArticles || topArticles.length === 0) ? (
-            <div className="p-6 text-center text-xs text-gray-400 italic">
+            <div className="p-6 text-center text-xs text-portal-muted italic">
               No view data yet. Tracking activates on article page visits.
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {(topArticles as Array<{ id: string; title: string; slug: string; column_slug: string | null; view_count: number | null }>).slice(0, 8).map((a, i) => (
                 <div key={a.id} className="px-5 py-2.5 flex items-center gap-3">
-                  <span className="text-[10px] font-bold text-gray-400 w-5">{i + 1}.</span>
+                  <span className="text-[10px] font-bold text-portal-muted w-5">{i + 1}.</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{a.title}</p>
-                    {a.column_slug && <p className="text-[10px] text-gray-500">{a.column_slug}</p>}
+                    <p className="text-xs font-semibold text-portal-text truncate">{a.title}</p>
+                    {a.column_slug && <p className="text-[10px] text-portal-sub">{a.column_slug}</p>}
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-text shrink-0">
                     <Eye size={10} /> {(a.view_count ?? 0).toLocaleString()}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export default async function ReportsLandingPage() {
         {/* Top QR Codes */}
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top QR Codes — Most Scanned
             </h2>
             <Link href="/admin/content/short-links" className="text-[11px] font-bold text-portal-blue hover:underline">
@@ -135,7 +135,7 @@ export default async function ReportsLandingPage() {
             </Link>
           </div>
           {(!topQrs || topQrs.length === 0) ? (
-            <div className="p-6 text-center text-xs text-gray-400 italic">
+            <div className="p-6 text-center text-xs text-portal-muted italic">
               No QR codes yet. Create one in QR Codes.
             </div>
           ) : (
@@ -144,14 +144,14 @@ export default async function ReportsLandingPage() {
                 const adv = Array.isArray(q.advertiser) ? q.advertiser[0] : q.advertiser
                 return (
                 <div key={q.id} className="px-5 py-2.5 flex items-center gap-3">
-                  <span className="text-[10px] font-bold text-gray-400 w-5">{i + 1}.</span>
+                  <span className="text-[10px] font-bold text-portal-muted w-5">{i + 1}.</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate">/go/{q.shortcode}</p>
-                    <p className="text-[10px] text-gray-500 truncate">
+                    <p className="text-xs font-semibold text-portal-text truncate">/go/{q.shortcode}</p>
+                    <p className="text-[10px] text-portal-sub truncate">
                       {adv?.business_name ? `${adv.business_name} · ` : ''}{q.label ?? '—'}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-text shrink-0">
                     <MousePointerClick size={10} /> {q.click_count.toLocaleString()}
                   </span>
                 </div>
@@ -163,21 +163,21 @@ export default async function ReportsLandingPage() {
       </div>
 
       {summaries.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center bg-white">
-          <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm font-semibold text-gray-700">No advertiser accounts yet</p>
-          <p className="text-xs text-gray-500 mt-1">Add one at <Link href="/admin/advertisers/onboarding" className="text-portal-blue hover:underline">Onboarding</Link>.</p>
+        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+          <Activity className="h-8 w-8 text-portal-muted mx-auto mb-2" />
+          <p className="text-sm font-semibold text-portal-text">No advertiser accounts yet</p>
+          <p className="text-xs text-portal-sub mt-1">Add one at <Link href="/admin/advertisers/onboarding" className="text-portal-blue hover:underline">Onboarding</Link>.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Business</div>
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden md:block">Tier</div>
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hidden lg:block">Placements</div>
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-right inline-flex items-center gap-1">
+        <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-gray-100 bg-portal-bg">
+            <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Business</div>
+            <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden md:block">Tier</div>
+            <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden lg:block">Placements</div>
+            <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider text-right inline-flex items-center gap-1">
               <Eye size={10} /> Lifetime
             </div>
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-right hidden md:inline-flex items-center gap-1">
+            <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider text-right hidden md:inline-flex items-center gap-1">
               <MousePointerClick size={10} /> Clicks
             </div>
             <div />
@@ -188,25 +188,25 @@ export default async function ReportsLandingPage() {
               <Link
                 key={s.id}
                 href={`/admin/reports/${s.slug}`}
-                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-3 hover:bg-gray-50 transition-colors"
+                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-3 hover:bg-portal-bg transition-colors"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{s.business_name}</p>
-                  <p className="text-[11px] text-gray-400 truncate">/{s.slug}</p>
+                  <p className="text-sm font-semibold text-portal-text truncate">{s.business_name}</p>
+                  <p className="text-[11px] text-portal-muted truncate">/{s.slug}</p>
                 </div>
                 <div className="hidden md:block">
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-text px-1.5 py-0.5 rounded">
                     {s.account_tier ?? '—'}
                   </span>
                 </div>
-                <div className="hidden lg:block text-xs text-gray-500 tabular-nums">
-                  {s.active_count > 0 ? <strong className="text-green-700">{s.active_count} active</strong> : <span className="text-gray-400">0 active</span>}
-                  {' '}<span className="text-gray-400">/ {s.placement_count}</span>
+                <div className="hidden lg:block text-xs text-portal-sub tabular-nums">
+                  {s.active_count > 0 ? <strong className="text-green-700">{s.active_count} active</strong> : <span className="text-portal-muted">0 active</span>}
+                  {' '}<span className="text-portal-muted">/ {s.placement_count}</span>
                 </div>
-                <div className="text-sm tabular-nums text-right font-semibold text-gray-700">
+                <div className="text-sm tabular-nums text-right font-semibold text-portal-text">
                   {s.impressions.toLocaleString('en-US')}
                 </div>
-                <div className="text-sm tabular-nums text-right font-semibold text-gray-700 hidden md:block">
+                <div className="text-sm tabular-nums text-right font-semibold text-portal-text hidden md:block">
                   {s.clicks.toLocaleString('en-US')}
                 </div>
                 <ChevronRight size={14} className="text-gray-300" />

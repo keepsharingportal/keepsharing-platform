@@ -77,7 +77,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
 
   return (
     <div className="space-y-4">
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
 
       <div className="rounded-md border border-amber-200 bg-portal-amber-lt p-3 text-xs text-amber-900 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -91,21 +91,21 @@ export function SettingsEditor({ market, initial, meta }: Props) {
       </div>
 
       <section>
-        <h2 className="text-sm font-bold text-gray-900 mb-2">Configured</h2>
+        <h2 className="text-sm font-bold text-portal-text mb-2">Configured</h2>
         <ul className="space-y-2">
           {knownKeys.length === 0 && (
-            <li className="text-xs text-gray-500 italic p-3 bg-white rounded-xl border border-dashed border-gray-200">
+            <li className="text-xs text-portal-sub italic p-3 bg-white rounded-xl border border-dashed border-portal-border">
               No settings yet — apply migration 114 to seed defaults, then edit here.
             </li>
           )}
           {knownKeys.map(row => {
             const m = meta[row.key]
             return (
-              <li key={row.key} className="rounded-xl border border-gray-200 bg-white p-3">
+              <li key={row.key} className="rounded-xl border border-portal-border bg-white p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900">{m.label}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5">{m.help}</p>
+                    <p className="text-sm font-bold text-portal-text">{m.label}</p>
+                    <p className="text-[11px] text-portal-sub mt-0.5">{m.help}</p>
                   </div>
                   <button
                     onClick={() => save(row)}
@@ -121,7 +121,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                     <select
                       value={row.value ?? ''}
                       onChange={e => patchLocal(row.key, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+                      className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                     >
                       {m.options.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
@@ -130,7 +130,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                       type={m.type === 'number' ? 'number' : m.type === 'email' ? 'email' : 'text'}
                       value={row.value ?? ''}
                       onChange={e => patchLocal(row.key, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+                      className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                     />
                   )}
                 </div>
@@ -142,12 +142,12 @@ export function SettingsEditor({ market, initial, meta }: Props) {
 
       {unknownKeys.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-900 mb-2">Other</h2>
+          <h2 className="text-sm font-bold text-portal-text mb-2">Other</h2>
           <ul className="space-y-2">
             {unknownKeys.map(row => (
-              <li key={row.key} className="rounded-xl border border-gray-200 bg-white p-3">
+              <li key={row.key} className="rounded-xl border border-portal-border bg-white p-3">
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <code className="text-xs font-mono text-gray-700">{row.key}</code>
+                  <code className="text-xs font-mono text-portal-text">{row.key}</code>
                   <button
                     onClick={() => save(row)}
                     disabled={busy === row.key}
@@ -160,7 +160,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                 <input
                   value={row.value ?? ''}
                   onChange={e => patchLocal(row.key, e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+                  className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                 />
               </li>
             ))}
@@ -169,21 +169,21 @@ export function SettingsEditor({ market, initial, meta }: Props) {
       )}
 
       <section>
-        <h2 className="text-sm font-bold text-gray-900 mb-2">Add a setting</h2>
+        <h2 className="text-sm font-bold text-portal-text mb-2">Add a setting</h2>
         {!adding ? (
-          <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 rounded-md hover:bg-gray-50">
+          <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-portal-border rounded-md hover:bg-portal-bg">
             <Plus size={12} /> New setting
           </button>
         ) : (
           <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
-            <input placeholder="key (snake_case)" value={newKey} onChange={e => setNewKey(e.target.value)} className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm" />
-            <input placeholder="value" value={newVal} onChange={e => setNewVal(e.target.value)} className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <input placeholder="key (snake_case)" value={newKey} onChange={e => setNewKey(e.target.value)} className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm" />
+            <input placeholder="value" value={newVal} onChange={e => setNewVal(e.target.value)} className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm" />
             <div className="flex items-center gap-2">
               <button onClick={addNew} disabled={busy === '__new' || !newKey.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
                 {busy === '__new' ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
                 Add
               </button>
-              <button onClick={() => { setAdding(false); setNewKey(''); setNewVal('') }} className="text-xs text-gray-500">Cancel</button>
+              <button onClick={() => { setAdding(false); setNewKey(''); setNewVal('') }} className="text-xs text-portal-sub">Cancel</button>
             </div>
           </div>
         )}

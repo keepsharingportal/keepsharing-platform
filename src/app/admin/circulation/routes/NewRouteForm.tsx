@@ -33,20 +33,20 @@ export function NewRouteForm({ market }: { market: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4 space-y-2">
-      <p className="text-xs font-bold text-gray-700">Add a new route</p>
+    <div className="rounded-xl border border-dashed border-portal-border-2 bg-white p-4 space-y-2">
+      <p className="text-xs font-bold text-portal-text">Add a new route</p>
       <div className="flex flex-wrap items-center gap-2">
         <input
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Route name (e.g. Wetumpka / Millbrook)"
-          className="flex-1 min-w-[200px] rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+          className="flex-1 min-w-[200px] rounded-md border border-portal-border-2 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
         <input
           value={city}
           onChange={e => setCity(e.target.value)}
           placeholder="City (optional)"
-          className="w-40 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+          className="w-40 rounded-md border border-portal-border-2 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
         <button
           onClick={handleAdd}
@@ -57,7 +57,7 @@ export function NewRouteForm({ market }: { market: string }) {
           Add Route
         </button>
       </div>
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
     </div>
   )
 }

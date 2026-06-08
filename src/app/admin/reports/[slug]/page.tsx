@@ -70,7 +70,7 @@ function Badge({ kind }: { kind: 'measured' | 'estimated' | 'not_tracked' }) {
   const styles = {
     measured:    { wrap: 'bg-green-100 text-green-700',   label: 'Measured'        },
     estimated:   { wrap: 'bg-portal-amber-lt text-portal-amber',   label: 'Estimated'       },
-    not_tracked: { wrap: 'bg-gray-100  text-gray-500',    label: 'Not tracked yet' },
+    not_tracked: { wrap: 'bg-gray-100  text-portal-sub',    label: 'Not tracked yet' },
   }[kind]
   return (
     <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${styles.wrap}`}>
@@ -198,12 +198,12 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           <Link href="/admin/reports" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Reports
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-portal-text flex items-center gap-2">
             <Activity className="h-5 w-5 text-portal-blue" />
             {adv.business_name}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded mr-2">
+          <p className="text-sm text-portal-sub mt-0.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-text px-1.5 py-0.5 rounded mr-2">
               {tierLabel}
             </span>
             Performance for the last {days} days
@@ -214,7 +214,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             list now. Point at the list with the search pre-filled. */}
         <Link
           href={`/admin/advertisers?q=${encodeURIComponent(slug)}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
         >
           Manage Account <ExternalLink size={11} />
         </Link>
@@ -229,13 +229,13 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* Date range picker */}
       <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-xs font-semibold text-gray-500 mr-2">Range:</span>
+        <span className="text-xs font-semibold text-portal-sub mr-2">Range:</span>
         {VALID_DAYS.map(d => (
           <Link
             key={d}
             href={daysHref(d)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-              days === d ? 'bg-portal-navy text-white' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+              days === d ? 'bg-portal-navy text-white' : 'text-portal-sub hover:text-portal-text hover:bg-portal-row-hover'
             }`}
           >
             Last {d}d
@@ -245,58 +245,58 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-xl border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <Eye size={12} />
               Impressions
             </div>
             <Badge kind="measured" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(totalImpressions)}</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">in last {days} days</p>
-          <p className="text-[11px] text-gray-400 mt-2 border-t border-gray-100 pt-2">
-            Lifetime: <span className="font-semibold text-gray-600">{fmt(lifetimeImpressions)}</span>
+          <p className="text-2xl font-bold text-portal-text tabular-nums">{fmt(totalImpressions)}</p>
+          <p className="text-[11px] text-portal-sub mt-0.5">in last {days} days</p>
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+            Lifetime: <span className="font-semibold text-portal-sub">{fmt(lifetimeImpressions)}</span>
           </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-xl border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <MousePointerClick size={12} />
               Clicks
             </div>
             <Badge kind="measured" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(totalClicks)}</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">
+          <p className="text-2xl font-bold text-portal-text tabular-nums">{fmt(totalClicks)}</p>
+          <p className="text-[11px] text-portal-sub mt-0.5">
             CTR <span className="font-semibold">{fmtPct(totalClicks, totalImpressions)}</span>
           </p>
-          <p className="text-[11px] text-gray-400 mt-2 border-t border-gray-100 pt-2">
-            Lifetime: <span className="font-semibold text-gray-600">{fmt(lifetimeClicks)}</span>
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+            Lifetime: <span className="font-semibold text-portal-sub">{fmt(lifetimeClicks)}</span>
           </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-xl border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <MessageSquare size={12} />
               Leads
             </div>
             <Badge kind="measured" />
           </div>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(totalLeads)}</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">
+          <p className="text-2xl font-bold text-portal-text tabular-nums">{fmt(totalLeads)}</p>
+          <p className="text-[11px] text-portal-sub mt-0.5">
             {partnerLeadCount} offer · {submissionCount} inquiry
           </p>
-          <p className="text-[11px] text-gray-400 mt-2 border-t border-gray-100 pt-2">
-            CR: <span className="font-semibold text-gray-600">{fmtPct(totalLeads, totalClicks)}</span>
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+            CR: <span className="font-semibold text-portal-sub">{fmtPct(totalLeads, totalClicks)}</span>
           </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-xl border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <TrendingUp size={12} />
               Top Source
             </div>
@@ -304,35 +304,35 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </div>
           {topSources.length > 0 ? (
             <>
-              <p className="text-base font-bold text-gray-900 truncate">{topSources[0][0]}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">{fmt(topSources[0][1])} visits</p>
+              <p className="text-base font-bold text-portal-text truncate">{topSources[0][0]}</p>
+              <p className="text-[11px] text-portal-sub mt-0.5">{fmt(topSources[0][1])} visits</p>
             </>
           ) : (
             <>
-              <p className="text-base font-bold text-gray-400">No data yet</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">Start a UTM-tagged campaign</p>
+              <p className="text-base font-bold text-portal-muted">No data yet</p>
+              <p className="text-[11px] text-portal-muted mt-0.5">Start a UTM-tagged campaign</p>
             </>
           )}
-          <p className="text-[11px] text-gray-400 mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
             Site-wide, not per-placement
           </p>
         </div>
       </div>
 
       {/* Per-placement breakdown */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
               <MapPin size={14} className="text-portal-blue" />
               Ad Placements
             </h2>
-            <p className="text-[11px] text-gray-400 mt-0.5">Per-spot performance in the last {days} days</p>
+            <p className="text-[11px] text-portal-muted mt-0.5">Per-spot performance in the last {days} days</p>
           </div>
-          <span className="text-[11px] text-gray-400">{placementRows.length} placement{placementRows.length !== 1 ? 's' : ''}</span>
+          <span className="text-[11px] text-portal-muted">{placementRows.length} placement{placementRows.length !== 1 ? 's' : ''}</span>
         </div>
         {placementRows.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-gray-500">
+          <div className="px-4 py-8 text-center text-sm text-portal-sub">
             No ad placements yet for this advertiser.
           </div>
         ) : (
@@ -345,33 +345,33 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       {isSponsor && <Crown size={11} className="text-amber-600 shrink-0" />}
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-portal-text truncate">
                         {p.ad_headline || p.placement_type.replace(/_/g, ' ')}
                       </p>
                       {!p.is_active && (
-                        <span className="text-[9px] font-bold uppercase bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded shrink-0">Inactive</span>
+                        <span className="text-[9px] font-bold uppercase bg-gray-200 text-portal-sub px-1.5 py-0.5 rounded shrink-0">Inactive</span>
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-400 truncate">
+                    <p className="text-[11px] text-portal-muted truncate">
                       {p.placement_type}
                       {p.placement_context && <> · {p.placement_context}</>}
                     </p>
                   </div>
                   <div className="hidden md:block text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Impressions</p>
-                    <p className="text-sm font-bold text-gray-900 tabular-nums">{fmt(stats.impressions)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">Impressions</p>
+                    <p className="text-sm font-bold text-portal-text tabular-nums">{fmt(stats.impressions)}</p>
                   </div>
                   <div className="hidden md:block text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Clicks</p>
-                    <p className="text-sm font-bold text-gray-900 tabular-nums">{fmt(stats.clicks)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">Clicks</p>
+                    <p className="text-sm font-bold text-portal-text tabular-nums">{fmt(stats.clicks)}</p>
                   </div>
                   <div className="hidden md:block text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">CTR</p>
-                    <p className="text-sm font-semibold text-gray-600 tabular-nums">{fmtPct(stats.clicks, stats.impressions)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">CTR</p>
+                    <p className="text-sm font-semibold text-portal-sub tabular-nums">{fmtPct(stats.clicks, stats.impressions)}</p>
                   </div>
                   <div className="hidden md:block text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Lifetime</p>
-                    <p className="text-xs text-gray-500 tabular-nums">{fmt(p.impression_count)} / {fmt(p.click_count)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">Lifetime</p>
+                    <p className="text-xs text-portal-sub tabular-nums">{fmt(p.impression_count)} / {fmt(p.click_count)}</p>
                   </div>
                 </div>
               )
@@ -381,16 +381,16 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
       </section>
 
       {/* Lead list */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
             <MessageSquare size={14} className="text-green-600" />
             Recent Leads
           </h2>
-          <p className="text-[11px] text-gray-400 mt-0.5">Up to 50 most recent in the last {days} days. Includes UTM where captured.</p>
+          <p className="text-[11px] text-portal-muted mt-0.5">Up to 50 most recent in the last {days} days. Includes UTM where captured.</p>
         </div>
         {totalLeads === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-gray-500">
+          <div className="px-4 py-8 text-center text-sm text-portal-sub">
             No leads in this window. {topSources.length > 0 && 'Top traffic is arriving — sharing UTM-tagged links will tie those visits back here.'}
           </div>
         ) : (
@@ -403,13 +403,13 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             }>).map(l => (
               <div key={l.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-[1.5fr_2fr_1.5fr_auto] gap-3 items-start">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
+                  <p className="text-sm font-semibold text-portal-text truncate">
                     {[l.lead_first_name, l.lead_last_name].filter(Boolean).join(' ') || 'Anonymous'}
                   </p>
                   <p className="text-[11px] text-portal-blue truncate">{l.lead_email}</p>
                 </div>
-                <div className="min-w-0 text-xs text-gray-500">
-                  {l.lead_phone && <p className="font-semibold text-gray-700">{l.lead_phone}</p>}
+                <div className="min-w-0 text-xs text-portal-sub">
+                  {l.lead_phone && <p className="font-semibold text-portal-text">{l.lead_phone}</p>}
                   <p className="text-[11px] truncate">{l.source_page ?? '—'}</p>
                 </div>
                 <div className="min-w-0">
@@ -418,10 +418,10 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                       {l.utm_campaign ?? l.utm_source}
                     </span>
                   ) : (
-                    <span className="text-[10px] text-gray-400">No UTM</span>
+                    <span className="text-[10px] text-portal-muted">No UTM</span>
                   )}
                 </div>
-                <div className="text-[11px] text-gray-400 whitespace-nowrap text-right">
+                <div className="text-[11px] text-portal-muted whitespace-nowrap text-right">
                   {l.submitted_at ? new Date(l.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
                 </div>
               </div>
@@ -431,21 +431,21 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
               submitter_phone: string | null; source_page: string | null;
               target_tier_interest: string | null; created_at: string | null;
             }>).map(l => (
-              <div key={l.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-[1.5fr_2fr_1.5fr_auto] gap-3 items-start bg-gray-50/30">
+              <div key={l.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-[1.5fr_2fr_1.5fr_auto] gap-3 items-start bg-portal-bg/30">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{l.submitter_name || 'Anonymous'}</p>
+                  <p className="text-sm font-semibold text-portal-text truncate">{l.submitter_name || 'Anonymous'}</p>
                   <p className="text-[11px] text-portal-blue truncate">{l.submitter_email}</p>
                 </div>
-                <div className="min-w-0 text-xs text-gray-500">
-                  {l.submitter_phone && <p className="font-semibold text-gray-700">{l.submitter_phone}</p>}
+                <div className="min-w-0 text-xs text-portal-sub">
+                  {l.submitter_phone && <p className="font-semibold text-portal-text">{l.submitter_phone}</p>}
                   <p className="text-[11px] truncate">{l.source_page ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-semibold bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">
                     {l.target_tier_interest ?? 'Inquiry'}
                   </span>
                 </div>
-                <div className="text-[11px] text-gray-400 whitespace-nowrap text-right">
+                <div className="text-[11px] text-portal-muted whitespace-nowrap text-right">
                   {l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
                 </div>
               </div>
@@ -456,22 +456,22 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* Traffic sources */}
       {topSources.length > 0 && (
-        <section className="rounded-xl border border-gray-200 bg-white p-5">
+        <section className="rounded-xl border border-portal-border bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
                 <TrendingUp size={14} className="text-purple-600" />
                 Top Traffic Sources
               </h2>
-              <p className="text-[11px] text-gray-400 mt-0.5">First-touch attribution across the whole site in the last {days} days.</p>
+              <p className="text-[11px] text-portal-muted mt-0.5">First-touch attribution across the whole site in the last {days} days.</p>
             </div>
             <Badge kind="estimated" />
           </div>
           <div className="space-y-2">
             {topSources.map(([source, count]) => (
               <div key={source} className="flex items-center justify-between gap-3 py-1.5 border-b border-gray-100 last:border-0">
-                <span className="text-sm font-semibold text-gray-700 truncate">{source}</span>
-                <span className="text-sm text-gray-500 tabular-nums">{fmt(count)} visits</span>
+                <span className="text-sm font-semibold text-portal-text truncate">{source}</span>
+                <span className="text-sm text-portal-sub tabular-nums">{fmt(count)} visits</span>
               </div>
             ))}
           </div>

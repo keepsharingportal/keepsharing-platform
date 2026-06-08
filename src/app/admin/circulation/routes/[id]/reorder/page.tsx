@@ -61,9 +61,9 @@ export default async function ReorderPage({ params }: PageProps) {
           </Link>
           <div className="flex items-center gap-2">
             <GripVertical size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Reorder stops</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Reorder stops</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Drag stops to rearrange. Saving snapshots the previous order so you can restore.</p>
+          <p className="text-sm text-portal-sub mt-1">Drag stops to rearrange. Saving snapshots the previous order so you can restore.</p>
         </div>
 
         <ReorderEditor routeId={id} initialStops={stops} snapshots={snapshots} suggestions={suggestions} />

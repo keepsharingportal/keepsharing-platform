@@ -124,17 +124,17 @@ export default function AskDoctorAdminPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
             <Stethoscope size={16} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900">Ask the Doctor — Queue</h1>
+            <h1 className="text-xl font-bold text-portal-text">Ask the Doctor — Queue</h1>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-portal-sub mt-0.5">
             Manage reader health questions · Select monthly feature · Assign to doctor partner
           </p>
         </div>
-        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50">
+        <button onClick={load} className="flex items-center gap-1 px-3 py-1.5 text-xs text-portal-sub border border-portal-border rounded-lg hover:bg-portal-bg">
           <RefreshCw size={12} /> Refresh
         </button>
       </div>
@@ -144,7 +144,7 @@ export default function AskDoctorAdminPage() {
         {/* Stats row */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {[
-            { key: 'all',      label: 'Total',    count: total,            color: 'text-gray-700' },
+            { key: 'all',      label: 'Total',    count: total,            color: 'text-portal-text' },
             { key: 'pending',  label: 'New',      count: counts.pending,   color: 'text-portal-amber' },
             { key: 'reviewed', label: 'Reviewed', count: counts.reviewed,  color: 'text-portal-blue' },
             { key: 'selected', label: 'Selected', count: counts.selected,  color: 'text-purple-700' },
@@ -156,11 +156,11 @@ export default function AskDoctorAdminPage() {
               onClick={() => setFilter(s.key)}
               className={cn(
                 'bg-white rounded-xl border p-3 text-center transition-all',
-                filter === s.key ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-gray-200 hover:border-gray-300'
+                filter === s.key ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-portal-border hover:border-portal-border-2'
               )}
             >
               <div className={cn('text-2xl font-bold', s.color)}>{s.count ?? 0}</div>
-              <div className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wide">{s.label}</div>
+              <div className="text-[10px] text-portal-sub mt-0.5 uppercase tracking-wide">{s.label}</div>
             </button>
           ))}
         </div>
@@ -184,11 +184,11 @@ export default function AskDoctorAdminPage() {
         </div>
 
         {/* Questions list */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-sm text-gray-400">Loading questions…</div>
+            <div className="p-8 text-center text-sm text-portal-muted">Loading questions…</div>
           ) : visible.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-400">No questions in this queue.</div>
+            <div className="p-8 text-center text-sm text-portal-muted">No questions in this queue.</div>
           ) : (
             <div className="divide-y divide-gray-100">
               {visible.map(q => {
@@ -197,7 +197,7 @@ export default function AskDoctorAdminPage() {
                 return (
                   <div key={q.id}>
                     <button
-                      className="w-full flex items-start gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-start gap-3 px-5 py-4 text-left hover:bg-portal-bg transition-colors"
                       onClick={() => setExpanded(isOpen ? null : q.id)}
                     >
                       {/* Icon */}
@@ -208,12 +208,12 @@ export default function AskDoctorAdminPage() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-gray-900">{fd.first_name ?? 'Anonymous'}</span>
+                          <span className="text-sm font-semibold text-portal-text">{fd.first_name ?? 'Anonymous'}</span>
                           {fd.age_range && (
-                            <span className="text-xs text-gray-400">Age {fd.age_range}</span>
+                            <span className="text-xs text-portal-muted">Age {fd.age_range}</span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-snug">
+                        <p className="text-sm text-portal-sub mt-1 line-clamp-2 leading-snug">
                           {fd.question ?? '(no question text)'}
                         </p>
                       </div>
@@ -221,39 +221,39 @@ export default function AskDoctorAdminPage() {
                       {/* Right side */}
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <StatusBadge status={q.status} />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-portal-muted">
                           {new Date(q.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
 
-                      {isOpen ? <ChevronUp size={14} className="text-gray-400 shrink-0 mt-1" /> : <ChevronDown size={14} className="text-gray-400 shrink-0 mt-1" />}
+                      {isOpen ? <ChevronUp size={14} className="text-portal-muted shrink-0 mt-1" /> : <ChevronDown size={14} className="text-portal-muted shrink-0 mt-1" />}
                     </button>
 
                     {isOpen && (
-                      <div className="px-5 pb-5 bg-gray-50/50 border-t border-gray-100 space-y-4">
+                      <div className="px-5 pb-5 bg-portal-bg/50 border-t border-gray-100 space-y-4">
                         {/* Full question */}
                         <div className="pt-4">
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Full Question</div>
-                          <p className="text-sm text-gray-800 leading-relaxed bg-white border border-gray-200 rounded-xl p-3">
+                          <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1">Full Question</div>
+                          <p className="text-sm text-portal-text leading-relaxed bg-white border border-portal-border rounded-xl p-3">
                             {fd.question}
                           </p>
                         </div>
 
                         {/* Notes */}
                         <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Editorial Notes</div>
+                          <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1">Editorial Notes</div>
                           <textarea
                             value={notes[q.id] ?? ''}
                             onChange={e => setNotes(n => ({ ...n, [q.id]: e.target.value }))}
                             placeholder="Add internal notes (doctor to contact, topic relevance, etc.)"
                             rows={2}
-                            className="w-full px-3 py-2 text-xs text-gray-800 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-400 resize-none"
+                            className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-xl outline-none focus:border-portal-blue resize-none"
                           />
                         </div>
 
                         {/* Status actions */}
                         <div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Update Status</div>
+                          <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Update Status</div>
                           <div className="flex flex-wrap gap-2">
                             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
                               <button
@@ -263,7 +263,7 @@ export default function AskDoctorAdminPage() {
                                   'px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all',
                                   q.status === key
                                     ? 'bg-portal-navy text-white border-blue-600'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                    : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg'
                                 )}
                               >
                                 {cfg.label}
@@ -303,7 +303,7 @@ export default function AskDoctorAdminPage() {
                             <textarea
                               placeholder="Paste the doctor's emailed answer here…"
                               rows={4}
-                              className="w-full px-3 py-2 text-xs text-gray-800 bg-white border border-gray-200 rounded-xl outline-none focus:border-teal-400 resize-none"
+                              className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-xl outline-none focus:border-teal-400 resize-none"
                             />
                             <button className="px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
                               Generate Q&A Article with AI →

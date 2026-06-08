@@ -81,17 +81,17 @@ export default function NewProposalPage() {
     setSaving(false)
   }
 
-  const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
-  const lbl = 'block text-xs font-semibold text-gray-500 mb-1.5'
+  const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-xs font-semibold text-portal-sub mb-1.5'
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({...f, [k]: e.target.value}))
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">New Proposal</h1>
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-portal-text">New Proposal</h1>
         <div className="flex items-center gap-2">
-          <button onClick={() => save('draft')} disabled={saving || !form.business_name} className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+          <button onClick={() => save('draft')} disabled={saving || !form.business_name} className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg disabled:opacity-40 disabled:cursor-not-allowed">
             Save Draft
           </button>
           <button onClick={() => save('sent')} disabled={saving || !form.business_name} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">
@@ -102,8 +102,8 @@ export default function NewProposalPage() {
 
       <div className="p-6 max-w-3xl">
         {/* Section 1: Business Info */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Business Info</h2>
+        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+          <h2 className="text-base font-semibold text-portal-text mb-4">Business Info</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className={lbl}>Business name *</label>
@@ -146,16 +146,16 @@ export default function NewProposalPage() {
         </div>
 
         {/* Section 2: Recommendation */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Recommendation</h2>
+        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+          <h2 className="text-base font-semibold text-portal-text mb-4">Recommendation</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className={lbl}>Recommended tier</label>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(TIER_LABELS).map(([k, v]) => (
-                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-blue-500 bg-portal-blue-lt' : 'border-gray-200'}`}>
+                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-blue-500 bg-portal-blue-lt' : 'border-portal-border'}`}>
                     <input type="radio" name="tier" value={k} checked={form.recommended_tier === k} onChange={() => setForm(f => ({...f, recommended_tier: k}))} className="sr-only" />
-                    <span className="font-medium text-gray-800">{v.split(' — ')[0]}</span>
+                    <span className="font-medium text-portal-text">{v.split(' — ')[0]}</span>
                   </label>
                 ))}
               </div>
@@ -181,8 +181,8 @@ export default function NewProposalPage() {
         </div>
 
         {/* Section 3: Proposal Content */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Proposal Content</h2>
+        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+          <h2 className="text-base font-semibold text-portal-text mb-4">Proposal Content</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className={lbl}>Opening paragraph</label>

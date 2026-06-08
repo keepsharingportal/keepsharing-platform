@@ -43,9 +43,9 @@ export default async function RouteStopsPage({ params }: PageProps) {
           </Link>
           <div className="flex items-center gap-2">
             <MapPin size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">{route.name}</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">{route.name}</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-portal-sub mt-1">
             {route.city ? `${route.city} · ` : ''}{initialStops.length} stops
           </p>
         </div>

@@ -42,13 +42,13 @@ export default async function LocationRequestsPage({ searchParams }: PageProps) 
           </Link>
           <div className="flex items-center gap-2">
             <Mail size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Location Requests</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Location Requests</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Region: <span className="font-semibold text-gray-700">{region.name}</span>
-            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
+          <p className="text-sm text-portal-sub mt-1">
+            Region: <span className="font-semibold text-portal-text">{region.name}</span>
+            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-portal-muted mt-1">
             Submitted via <code className="bg-gray-100 px-1 rounded">/distribution/{dbKey}/request</code>
           </p>
         </div>

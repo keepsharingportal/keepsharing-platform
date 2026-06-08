@@ -226,7 +226,7 @@ export function HeroImageUpload({
 
       {/* Preview */}
       {value ? (
-        <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+        <div className="relative rounded-lg overflow-hidden border border-portal-border bg-portal-bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="Hero preview" className="w-full h-32 object-cover" />
           <button
@@ -244,20 +244,20 @@ export function HeroImageUpload({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
+          className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-portal-border bg-portal-bg hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <>
               <RefreshCw size={18} className="text-portal-blue animate-spin" />
-              <span className="text-xs font-semibold text-gray-600">
+              <span className="text-xs font-semibold text-portal-sub">
                 {compressing ? 'Resizing large image…' : 'Uploading…'}
               </span>
             </>
           ) : (
             <>
-              <ImageIcon size={18} className="text-gray-400" />
-              <span className="text-xs font-semibold text-gray-600">Click to upload image</span>
-              <span className="text-[10px] text-gray-400">JPEG, PNG, WebP, GIF · big files auto-resized</span>
+              <ImageIcon size={18} className="text-portal-muted" />
+              <span className="text-xs font-semibold text-portal-sub">Click to upload image</span>
+              <span className="text-[10px] text-portal-muted">JPEG, PNG, WebP, GIF · big files auto-resized</span>
             </>
           )}
         </button>
@@ -270,7 +270,7 @@ export function HeroImageUpload({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-portal-border-2 hover:bg-portal-blue-lt/40 disabled:opacity-50"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:border-portal-border-2 hover:bg-portal-blue-lt/40 disabled:opacity-50"
           >
             {uploading
               ? <><RefreshCw size={12} className="animate-spin" /> {compressing ? 'Resizing…' : 'Uploading…'}</>
@@ -310,7 +310,7 @@ export function HeroImageUpload({
 
       {/* Paste-URL fallback */}
       <div>
-        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Or paste a URL</label>
+        <label className="block text-[10px] font-bold text-portal-muted uppercase tracking-wider mb-1">Or paste a URL</label>
         <div className="relative">
           <input
             type="url"
@@ -319,7 +319,7 @@ export function HeroImageUpload({
             onBlur={handleUrlBlur}
             disabled={optimizing}
             placeholder="https://..."
-            className="w-full px-3 py-2 pr-9 text-xs rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white disabled:opacity-60"
+            className="w-full px-3 py-2 pr-9 text-xs rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white disabled:opacity-60"
           />
           {optimizing && (
             <RefreshCw size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-portal-blue animate-spin" />

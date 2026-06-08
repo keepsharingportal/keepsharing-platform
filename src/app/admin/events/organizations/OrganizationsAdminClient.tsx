@@ -82,16 +82,16 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <Link href="/admin/events" className="text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 text-sm">
+          <Link href="/admin/events" className="text-portal-sub hover:text-portal-text inline-flex items-center gap-1 text-sm">
             <ChevronLeft size={14} /> Events
           </Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
             <Building2 size={18} className="text-portal-blue" /> Community Connections
           </h1>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-portal-sub">
             The partners behind our event calendar
           </span>
         </div>
@@ -113,7 +113,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
       )}
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1">
           {([
             ['active',   'Active',   counts.active],
@@ -123,12 +123,12 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
               key={slug}
               onClick={() => setTab(slug)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                tab === slug ? 'text-portal-blue border-portal-blue' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                tab === slug ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >
               {label}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                tab === slug ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
+                tab === slug ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'
               }`}>{count}</span>
             </button>
           ))}
@@ -136,21 +136,21 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-3 flex-wrap text-sm">
         <div className="relative flex-1 min-w-[220px] max-w-xs">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
           <input
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name, city, contact…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={kind}
           onChange={e => setKind(e.target.value)}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
+          className="px-2.5 py-1.5 text-sm border border-portal-border rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="">All kinds</option>
           {KINDS.map(k => (
@@ -158,11 +158,11 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
           ))}
         </select>
         {(search || kind) && (
-          <button type="button" onClick={() => { setSearch(''); setKind('') }} className="text-xs text-gray-500 hover:text-gray-900 underline">
+          <button type="button" onClick={() => { setSearch(''); setKind('') }} className="text-xs text-portal-sub hover:text-portal-text underline">
             Reset
           </button>
         )}
-        <span className="ml-auto text-xs text-gray-500">
+        <span className="ml-auto text-xs text-portal-sub">
           {filtered.length} {filtered.length === 1 ? 'organization' : 'organizations'}
         </span>
       </div>
@@ -170,7 +170,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
             <Building2 size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No organizations match the current filter</p>
             {orgs.length === 0 && (
@@ -183,7 +183,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
             {filtered.map(org => (
               <OrgRow
                 key={org.id}
@@ -245,7 +245,7 @@ function OrgRow({
   }
 
   return (
-    <div className="bg-white hover:bg-gray-50/60 transition-colors">
+    <div className="bg-white hover:bg-portal-bg/60 transition-colors">
       <div className="px-4 py-3 flex items-start gap-3">
         {/* Logo */}
         <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200 flex items-center justify-center">
@@ -260,8 +260,8 @@ function OrgRow({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-            <h3 className="text-sm font-bold text-gray-900 truncate">{org.name}</h3>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-gray-50 text-gray-600 ring-1 ring-gray-200">
+            <h3 className="text-sm font-bold text-portal-text truncate">{org.name}</h3>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-bg text-portal-sub ring-1 ring-gray-200">
               {kindLabel(org.kind)}
             </span>
             {org.tags?.includes('preferred') && (
@@ -276,16 +276,16 @@ function OrgRow({
             )}
           </div>
           {org.description && (
-            <p className="text-xs text-gray-600 leading-snug line-clamp-2 mb-1.5">{org.description}</p>
+            <p className="text-xs text-portal-sub leading-snug line-clamp-2 mb-1.5">{org.description}</p>
           )}
-          <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-portal-sub">
             {org.city && (
               <span className="inline-flex items-center gap-1">
                 <MapPin size={11} /> {org.city}
               </span>
             )}
             {org.contact_email && (
-              <a href={`mailto:${org.contact_email}`} className="inline-flex items-center gap-1 hover:text-gray-900">
+              <a href={`mailto:${org.contact_email}`} className="inline-flex items-center gap-1 hover:text-portal-text">
                 <Mail size={11} /> {org.contact_email}
               </a>
             )}
@@ -309,7 +309,7 @@ function OrgRow({
             <button
               onClick={() => setStatus('archived')}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'archive' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
               Archive
@@ -318,7 +318,7 @@ function OrgRow({
             <button
               onClick={() => setStatus('active')}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'reopen' ? <RefreshCw size={11} className="animate-spin" /> : <RotateCcw size={11} />}
               Reactivate
@@ -326,7 +326,7 @@ function OrgRow({
           )}
           <button
             onClick={editing ? onCancelEdit : onEdit}
-            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Pencil size={11} />
             {editing ? 'Close' : 'Edit'}
@@ -334,7 +334,7 @@ function OrgRow({
           <button
             onClick={remove}
             disabled={busy !== null}
-            className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
+            className="p-1 text-portal-muted hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
             aria-label="Delete"
           >
             {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
@@ -429,7 +429,7 @@ function OrgForm({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (

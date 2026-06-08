@@ -28,7 +28,7 @@ const ROLE_BADGE: Record<string, string> = {
   billing:         'bg-portal-amber-lt text-portal-amber',
   listing_owner:   'bg-violet-100 text-violet-800',
   decision_maker:  'bg-portal-green-lt text-portal-green',
-  other:           'bg-gray-100 text-gray-600',
+  other:           'bg-gray-100 text-portal-sub',
 }
 
 interface Props {
@@ -104,13 +104,13 @@ export default async function ContactsPage({ searchParams }: Props) {
     <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
 
       {/* ── Header + search ─────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-              <Users size={20} className="text-gray-400" /> Contacts
+            <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
+              <Users size={20} className="text-portal-muted" /> Contacts
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-portal-sub mt-1">
               Flat view of every contact across all businesses. Click any row to open the business profile.
             </p>
           </div>
@@ -118,7 +118,7 @@ export default async function ContactsPage({ searchParams }: Props) {
       </div>
 
       {/* ── Filter + search bar ─────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-1 flex-wrap">
           {ROLE_OPTIONS.map(r => {
             const on    = role === r
@@ -130,11 +130,11 @@ export default async function ContactsPage({ searchParams }: Props) {
                 className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
                   on
                     ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                    : 'bg-white text-portal-text border border-portal-border hover:bg-portal-bg'
                 }`}
               >
                 {label}
-                <span className={`ml-1.5 ${on ? 'opacity-80' : 'text-gray-400'}`}>
+                <span className={`ml-1.5 ${on ? 'opacity-80' : 'text-portal-muted'}`}>
                   {counts[r] ?? 0}
                 </span>
               </a>
@@ -144,13 +144,13 @@ export default async function ContactsPage({ searchParams }: Props) {
         <form className="flex items-center gap-2" action="/admin/contacts" method="get">
           {role !== 'all' && <input type="hidden" name="role" value={role} />}
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted" />
             <input
               type="search"
               name="q"
               defaultValue={query}
               placeholder="Name, email, phone, business…"
-              className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400 bg-white min-w-[260px]"
+              className="pl-8 pr-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white min-w-[260px]"
             />
           </div>
         </form>
@@ -165,13 +165,13 @@ export default async function ContactsPage({ searchParams }: Props) {
       {/* ── List ────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="p-12 text-center text-sm text-gray-500">
+          <div className="p-12 text-center text-sm text-portal-sub">
             {query ? <>No contacts match &ldquo;{query}&rdquo;.</> : 'No contacts in this view.'}
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
-              <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
+            <thead className="bg-portal-bg sticky top-0 border-b border-portal-border">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-portal-sub">
                 <th className="px-6 py-3 font-semibold">Contact</th>
                 <th className="px-4 py-3 font-semibold">Business</th>
                 <th className="px-4 py-3 font-semibold">Role</th>
@@ -183,11 +183,11 @@ export default async function ContactsPage({ searchParams }: Props) {
               {filtered.map(c => {
                 const biz = bizMap.get(c.advertiser_account_id)
                 return (
-                  <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={c.id} className="border-b border-gray-100 hover:bg-portal-bg">
                     <td className="px-6 py-3">
                       <Link
                         href={`/admin/advertisers/${c.advertiser_account_id}`}
-                        className="font-bold text-gray-900 hover:text-portal-blue inline-flex items-center gap-1.5"
+                        className="font-bold text-portal-text hover:text-portal-blue inline-flex items-center gap-1.5"
                       >
                         {c.name}
                         {c.is_primary && (
@@ -200,7 +200,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/advertisers/${c.advertiser_account_id}`}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-700 hover:text-portal-blue"
+                        className="inline-flex items-center gap-1.5 text-xs text-portal-text hover:text-portal-blue"
                       >
                         <Building2 size={12} className="text-gray-300" />
                         {biz?.business_name ?? '(unknown business)'}
@@ -220,7 +220,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {c.phone ? (
-                        <a href={`tel:${c.phone}`} className="text-gray-700 hover:text-gray-900 inline-flex items-center gap-1">
+                        <a href={`tel:${c.phone}`} className="text-portal-text hover:text-portal-text inline-flex items-center gap-1">
                           <Phone size={10} /> {c.phone}
                         </a>
                       ) : <span className="text-gray-300">—</span>}
@@ -235,7 +235,7 @@ export default async function ContactsPage({ searchParams }: Props) {
 
       {/* ── Footer ─────────────────────────────────────── */}
       {filtered.length > 0 && (
-        <div className="bg-white border-t border-gray-200 px-6 py-2 text-xs text-gray-500">
+        <div className="bg-white border-t border-portal-border px-6 py-2 text-xs text-portal-sub">
           {filtered.length} contact{filtered.length === 1 ? '' : 's'} shown
           {filtered.length !== contacts.length && ` (of ${contacts.length} total)`}
         </div>

@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 const TYPES: NominationType[] = ['cover-profile', 'mom-to-mom', 'teacher-of-month', 'grands-are-great']
 
 const STATUS_BADGE: Record<NominationStatus, string> = {
-  pending:             'bg-gray-50 text-gray-500 ring-gray-200',
+  pending:             'bg-portal-bg text-portal-sub ring-gray-200',
   selected:            'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
   questions_generated: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
   interview_scheduled: 'bg-portal-amber-lt text-portal-amber ring-amber-200',
@@ -30,18 +30,18 @@ function NominationCard({ nom, onSelect }: { nom: NominationRecord; onSelect: (n
   const config = NOMINATION_TYPE_CONFIG[nom.type]
   const stepIdx = getStatusStep(nom.status)
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
+    <div className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
       onClick={() => onSelect(nom)}>
       <div className={`h-1 bg-${config.color}-400`}
         style={{ backgroundColor: nom.type === 'cover-profile' ? '#3b82f6' : nom.type === 'mom-to-mom' ? '#f43f5e' : nom.type === 'teacher-of-month' ? '#22c55e' : '#f59e0b' }} />
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
-          <div className="font-semibold text-gray-900 text-sm">{nom.subjectName}</div>
+          <div className="font-semibold text-portal-text text-sm">{nom.subjectName}</div>
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ring-1 whitespace-nowrap ml-2 ${STATUS_BADGE[nom.status]}`}>
             {STATUS_STEPS.find((s) => s.status === nom.status)?.label ?? nom.status}
           </span>
         </div>
-        <div className="text-xs text-gray-500 mb-3 line-clamp-2">{nom.reason}</div>
+        <div className="text-xs text-portal-sub mb-3 line-clamp-2">{nom.reason}</div>
 
         {/* Progress dots */}
         <div className="flex items-center gap-1">
@@ -50,7 +50,7 @@ function NominationCard({ nom, onSelect }: { nom: NominationRecord; onSelect: (n
               i <= stepIdx ? 'bg-portal-blue-lt0' : 'bg-gray-200')} />
           ))}
         </div>
-        <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400">
+        <div className="flex items-center justify-between mt-2 text-[10px] text-portal-muted">
           <span>{nom.publication}</span>
           <span>{nom.issueMonth ?? 'Issue TBD'}</span>
         </div>
@@ -98,9 +98,9 @@ export default function NominationsPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Nominations</h1>
+          <h1 className="text-xl font-semibold text-portal-text">Nominations</h1>
           {totalPending > 0 && (
             <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {totalPending} pending
@@ -108,13 +108,13 @@ export default function NominationsPage() {
           )}
         </div>
         <Link href={`/nominate/${activeType}`} target="_blank"
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg transition-colors">
           <ExternalLink size={13} /> Nomination Form
         </Link>
       </div>
 
       {/* Type tabs */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1 overflow-x-auto">
           {TYPES.map((type) => {
             const cfg = NOMINATION_TYPE_CONFIG[type]
@@ -123,10 +123,10 @@ export default function NominationsPage() {
             return (
               <button key={type} onClick={() => setActiveType(type)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeType === type ? 'text-portal-blue border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  activeType === type ? 'text-portal-blue border-blue-600' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
                 }`}>
                 {cfg.label}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeType === type ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' : 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeType === type ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' : 'bg-portal-bg text-portal-sub ring-gray-200'}`}>
                   {count}
                 </span>
                 {pending > 0 && (
@@ -151,15 +151,15 @@ export default function NominationsPage() {
               return (
                 <div key={status} className="w-52 shrink-0 flex flex-col">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{stageLabel}</span>
-                    <span className="text-xs text-gray-400">{stageNoms.length}</span>
+                    <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">{stageLabel}</span>
+                    <span className="text-xs text-portal-muted">{stageNoms.length}</span>
                   </div>
                   <div className="flex-1 space-y-2 overflow-y-auto pb-4">
                     {stageNoms.map((nom) => (
                       <NominationCard key={nom.id} nom={nom} onSelect={setSelected} />
                     ))}
                     {stageNoms.length === 0 && (
-                      <div className="h-16 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-gray-400">
+                      <div className="h-16 border-2 border-dashed border-portal-border rounded-xl flex items-center justify-center text-xs text-portal-muted">
                         Empty
                       </div>
                     )}
@@ -172,44 +172,44 @@ export default function NominationsPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-80 shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-900">{selected.subjectName}</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+          <div className="w-80 shrink-0 border-l border-portal-border bg-white flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-portal-text">{selected.subjectName}</h2>
+              <button onClick={() => setSelected(null)} className="text-portal-muted hover:text-portal-sub text-lg leading-none">×</button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 text-sm">
               <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Status</div>
+                <div className="text-xs font-semibold text-portal-sub uppercase mb-1.5">Status</div>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ring-1 ${STATUS_BADGE[selected.status]}`}>
                   {STATUS_STEPS.find((s) => s.status === selected.status)?.label}
                 </span>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Nomination Reason</div>
-                <p className="text-gray-700 text-xs leading-relaxed">{selected.reason}</p>
+                <div className="text-xs font-semibold text-portal-sub uppercase mb-1.5">Nomination Reason</div>
+                <p className="text-portal-text text-xs leading-relaxed">{selected.reason}</p>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Nominated By</div>
-                <p className="text-gray-700">{selected.nominatorName}</p>
+                <div className="text-xs font-semibold text-portal-sub uppercase mb-1.5">Nominated By</div>
+                <p className="text-portal-text">{selected.nominatorName}</p>
                 <p className="text-xs text-portal-blue">{selected.nominatorEmail}</p>
               </div>
               {selected.subjectPhone && (
                 <div>
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Subject Contact</div>
-                  <p className="text-gray-700">{selected.subjectEmail}</p>
-                  <p className="text-gray-600">{selected.subjectPhone}</p>
+                  <div className="text-xs font-semibold text-portal-sub uppercase mb-1.5">Subject Contact</div>
+                  <p className="text-portal-text">{selected.subjectEmail}</p>
+                  <p className="text-portal-sub">{selected.subjectPhone}</p>
                 </div>
               )}
               {selected.notes && (
                 <div>
-                  <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Notes</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">{selected.notes}</p>
+                  <div className="text-xs font-semibold text-portal-sub uppercase mb-1.5">Notes</div>
+                  <p className="text-xs text-portal-sub leading-relaxed">{selected.notes}</p>
                 </div>
               )}
 
               {/* Timeline */}
               <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Progress</div>
+                <div className="text-xs font-semibold text-portal-sub uppercase mb-2">Progress</div>
                 <div className="space-y-1.5">
                   {STATUS_STEPS.map((step, i) => {
                     const done = getStatusStep(selected.status) >= i
@@ -219,7 +219,7 @@ export default function NominationsPage() {
                         <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-portal-blue-lt0' : 'bg-gray-200'}`}>
                           {done && <Icon size={9} className="text-white" />}
                         </div>
-                        <span className={`text-xs ${done ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>{step.label}</span>
+                        <span className={`text-xs ${done ? 'text-portal-text font-medium' : 'text-portal-muted'}`}>{step.label}</span>
                       </div>
                     )
                   })}
@@ -229,7 +229,7 @@ export default function NominationsPage() {
 
             {/* Advance button */}
             {getStatusStep(selected.status) < STATUS_STEPS.length - 1 && (
-              <div className="p-4 border-t border-gray-200">
+              <div className="p-4 border-t border-portal-border">
                 <button onClick={() => advance(selected.id)}
                   className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                   Advance to: {STATUS_STEPS[getStatusStep(selected.status) + 1]?.label}

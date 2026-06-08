@@ -166,7 +166,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
     }
   }
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
@@ -175,17 +175,17 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       <div>
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-2"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-portal-sub hover:text-portal-text mb-2"
         >
           <ArrowLeft size={12} /> Back to {fmtIssue(placement.issue_month)} layout
         </Link>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{placement.business_name}</h1>
+            <h1 className="text-2xl font-bold text-portal-text leading-tight">{placement.business_name}</h1>
             {adLabel.trim() && adLabel.trim().toLowerCase() !== placement.business_name.toLowerCase() && (
-              <p className="text-sm text-gray-500 mt-0.5">↳ {adLabel.trim()}</p>
+              <p className="text-sm text-portal-sub mt-0.5">↳ {adLabel.trim()}</p>
             )}
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-portal-sub mt-1">
               {fmtIssue(placement.issue_month)} issue · Print Placement
             </p>
           </div>
@@ -193,9 +193,9 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             {placement.advertiser_slug && (
               <Link
                 href={`/admin/advertisers/${placement.advertiser_account_id}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg"
               >
-                <Building2 size={12} /> Advertiser profile <ExternalLink size={10} className="text-gray-400" />
+                <Building2 size={12} /> Advertiser profile <ExternalLink size={10} className="text-portal-muted" />
               </Link>
             )}
           </div>
@@ -217,7 +217,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       <Section icon={<Building2 size={14} />} title="Identity">
         <FieldRow label="Business" hint="The canonical business this ad runs for. Edit via the advertiser profile.">
           <div className="flex items-center gap-2">
-            <span className={`${inp} bg-gray-50 text-gray-700`}>{placement.business_name}</span>
+            <span className={`${inp} bg-portal-bg text-portal-text`}>{placement.business_name}</span>
           </div>
         </FieldRow>
         <FieldRow label="Ad label" hint="Optional. Only set when this business has multiple ads in the same issue (e.g. 'Senior Ad' variant).">
@@ -234,13 +234,13 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       {/* ── Ad details ────────────────────────────────────── */}
       <Section icon={<Megaphone size={14} />} title="Ad Details">
         <FieldRow label="Design">
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="inline-flex rounded-lg border border-portal-border overflow-hidden">
             {(['new', 'pickup'] as const).map(d => (
               <button
                 key={d}
                 type="button"
                 onClick={() => setDesign(d)}
-                className={`px-4 py-2 text-sm font-semibold capitalize ${design === d ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`px-4 py-2 text-sm font-semibold capitalize ${design === d ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
               >
                 {d}
               </button>
@@ -287,7 +287,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
                   if (e.target.checked) setSocial('')                  // visual cue: clear the input too
                 }}
               />
-              <span className={noSocial ? 'font-semibold text-gray-900' : 'text-gray-700'}>
+              <span className={noSocial ? 'font-semibold text-portal-text' : 'text-portal-text'}>
                 No social ad running
               </span>
             </label>
@@ -318,18 +318,18 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       {/* ── Schedule ──────────────────────────────────────── */}
       <Section icon={<CalendarClock size={14} />} title="Schedule">
         <FieldRow label="Run schedule" hint="Ongoing runs every month until cancelled. Check Status means sporadic — verify before each issue.">
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+          <div className="inline-flex rounded-lg border border-portal-border overflow-hidden">
             <button
               type="button"
               onClick={() => setOngoing(true)}
-              className={`px-4 py-2 text-sm font-semibold ${ongoing ? 'bg-emerald-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 py-2 text-sm font-semibold ${ongoing ? 'bg-emerald-600 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
             >
               Ongoing
             </button>
             <button
               type="button"
               onClick={() => setOngoing(false)}
-              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-portal-amber-lt0 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-portal-amber-lt0 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
             >
               Check Status
             </button>
@@ -339,13 +339,13 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
           label="Months running"
           hint="Tick the issues this placement covers. Useful for tracking partial-year buys and confirming Check Status sponsors month-by-month."
         >
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-y-1 gap-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-y-1 gap-x-2 p-3 bg-portal-bg rounded-lg border border-portal-border">
             {monthOptions.map(m => {
               const checked = months.includes(m)
               return (
                 <label
                   key={m}
-                  className={`inline-flex items-center gap-1.5 text-xs cursor-pointer rounded px-1.5 py-1 ${checked ? 'bg-white border border-gray-200 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
+                  className={`inline-flex items-center gap-1.5 text-xs cursor-pointer rounded px-1.5 py-1 ${checked ? 'bg-white border border-portal-border font-semibold text-portal-text' : 'text-portal-sub hover:text-portal-text'}`}
                 >
                   <input type="checkbox" checked={checked} onChange={() => toggleMonth(m)} />
                   {shortMonth(m)}
@@ -385,7 +385,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       </Section>
 
       {/* ── Action bar ────────────────────────────────────── */}
-      <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between gap-3">
+      <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-white border-t border-portal-border flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onDelete}
@@ -398,7 +398,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
         <div className="flex items-center gap-2">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-text hover:text-portal-text"
           >
             Cancel
           </Link>
@@ -426,9 +426,9 @@ function Section({ icon, title, children }: {
   children: React.ReactNode
 }) {
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <header className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-        <span className="text-gray-400">{icon}</span>
+    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <header className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-portal-sub">
+        <span className="text-portal-muted">{icon}</span>
         {title}
       </header>
       <div className="p-5 space-y-4">
@@ -447,11 +447,11 @@ function FieldRow({ label, hint, children }: {
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">
         {label}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-gray-400 mt-1 leading-snug">{hint}</p>}
+      {hint && <p className="text-[11px] text-portal-muted mt-1 leading-snug">{hint}</p>}
     </div>
   )
 }

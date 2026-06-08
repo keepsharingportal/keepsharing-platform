@@ -72,13 +72,13 @@ const STATUS_OPTIONS = [
 ]
 
 const STATUS_STYLE: Record<string, string> = {
-  uploaded:     'bg-gray-100 text-gray-600',
+  uploaded:     'bg-gray-100 text-portal-sub',
   needs_review: 'bg-portal-amber-lt text-portal-amber',
   approved:     'bg-green-100 text-green-700',
   needs_graphic:'bg-orange-100 text-orange-700',
   social_ready: 'bg-portal-blue-lt text-portal-blue',
   print_ready:  'bg-purple-100 text-purple-700',
-  archived:     'bg-gray-50 text-gray-400',
+  archived:     'bg-portal-bg text-portal-muted',
 }
 
 const CATEGORY_OPTIONS = [
@@ -209,11 +209,11 @@ function CheckField({
         value="true"
         form={formId}
         defaultChecked={checked}
-        className="w-4 h-4 rounded border-gray-300 text-indigo-600 outline-none cursor-pointer"
+        className="w-4 h-4 rounded border-portal-border-2 text-indigo-600 outline-none cursor-pointer"
       />
       {/* Hidden field for unchecked state — overridden by checkbox when checked */}
       <input type="hidden" name={name} value="false" form={formId} />
-      <span className={`text-xs ${checked ? 'text-gray-800 font-semibold' : 'text-gray-500'} group-hover:text-gray-800 transition-colors`}>
+      <span className={`text-xs ${checked ? 'text-portal-text font-semibold' : 'text-portal-sub'} group-hover:text-portal-text transition-colors`}>
         {label}
       </span>
     </label>
@@ -270,7 +270,7 @@ export default async function AssetDetailPage({
 
   const preview      = asset.thumbnail_url || asset.storage_url
   const isImageUrl   = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?|$)/i.test(preview ?? '')
-  const statusCls    = STATUS_STYLE[asset.status] ?? 'bg-gray-100 text-gray-500'
+  const statusCls    = STATUS_STYLE[asset.status] ?? 'bg-gray-100 text-portal-sub'
   const tagString    = (asset.tags ?? []).join(', ')
 
   return (
@@ -279,11 +279,11 @@ export default async function AssetDetailPage({
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
-          <Link href="/admin/assets" className="text-gray-400 hover:text-gray-700 text-sm font-medium shrink-0">
+          <Link href="/admin/assets" className="text-portal-muted hover:text-portal-text text-sm font-medium shrink-0">
             ← Assets
           </Link>
           <span className="text-gray-300">/</span>
-          <p className="text-sm font-semibold text-gray-800 truncate">{asset.title || asset.filename}</p>
+          <p className="text-sm font-semibold text-portal-text truncate">{asset.title || asset.filename}</p>
           <span className={`text-[11px] px-2 py-0.5 rounded font-bold shrink-0 ${statusCls}`}>
             {STATUS_OPTIONS.find(s => s.value === asset.status)?.label.split(' — ')[0] ?? asset.status}
           </span>
@@ -297,7 +297,7 @@ export default async function AssetDetailPage({
 
           {/* Preview */}
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="bg-gray-50 border-b border-gray-100 aspect-video flex items-center justify-center relative">
+            <div className="bg-portal-bg border-b border-gray-100 aspect-video flex items-center justify-center relative">
               {isImageUrl && preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -310,22 +310,22 @@ export default async function AssetDetailPage({
                   <p className="text-5xl mb-2">
                     {asset.asset_type === 'photo' ? '📷' : asset.asset_type === 'graphic' ? '🎨' : asset.asset_type === 'logo' ? '🏷️' : '🖼️'}
                   </p>
-                  <p className="text-sm text-gray-400">{asset.filename}</p>
+                  <p className="text-sm text-portal-muted">{asset.filename}</p>
                 </div>
               )}
             </div>
             <div className="px-5 py-3.5 flex items-center gap-3 flex-wrap">
               {asset.width_px && asset.height_px && (
-                <span className="text-xs text-gray-500">{asset.width_px}×{asset.height_px}px</span>
+                <span className="text-xs text-portal-sub">{asset.width_px}×{asset.height_px}px</span>
               )}
               {asset.file_size_bytes && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-portal-sub">
                   {asset.file_size_bytes < 1024 * 1024
                     ? `${(asset.file_size_bytes / 1024).toFixed(0)} KB`
                     : `${(asset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`}
                 </span>
               )}
-              <span className="text-[10px] text-gray-400 font-mono">{asset.upload_source}</span>
+              <span className="text-[10px] text-portal-muted font-mono">{asset.upload_source}</span>
               <div className="flex-1" />
               <a
                 href={asset.storage_url}
@@ -340,13 +340,13 @@ export default async function AssetDetailPage({
 
           {/* Quick status */}
           <div className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Status</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-3">Status</h2>
             <form action={updateStatus} className="flex gap-2 items-center flex-wrap">
               <input type="hidden" name="id" value={asset.id} />
               <select
                 name="status"
                 defaultValue={asset.status}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-indigo-300"
+                className="text-sm border border-portal-border rounded-lg px-3 py-1.5 outline-none focus:border-indigo-300"
               >
                 {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
@@ -358,68 +358,68 @@ export default async function AssetDetailPage({
 
           {/* Metadata form */}
           <form id="metadata-form" action={saveMetadata} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Asset Metadata</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Asset Metadata</h2>
             <input type="hidden" name="id" value={asset.id} />
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Title</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Title</label>
               <input
                 type="text"
                 name="title"
                 defaultValue={asset.title ?? ''}
                 placeholder={asset.filename}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">
+              <label className="block text-xs font-semibold text-portal-sub mb-1">
                 Alt Text
-                <span className="ml-1 text-gray-400 font-normal">(required for accessibility)</span>
+                <span className="ml-1 text-portal-muted font-normal">(required for accessibility)</span>
               </label>
               <input
                 type="text"
                 name="alt_text"
                 defaultValue={asset.alt_text ?? ''}
                 placeholder="Describe the image for screen readers"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Description</label>
               <textarea
                 name="description"
                 defaultValue={asset.description ?? ''}
                 rows={3}
                 placeholder="Internal notes about this asset"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300 resize-none"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300 resize-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Source Attribution</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Source Attribution</label>
               <input
                 type="text"
                 name="source_attribution"
                 defaultValue={asset.source_attribution ?? ''}
                 placeholder="Photo by Jane Smith / Provided by Sponsor"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Asset Type</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Asset Type</label>
                 <select name="asset_type" defaultValue={asset.asset_type}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
                   {ASSET_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Category</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Category</label>
                 <select name="content_category" defaultValue={asset.content_category ?? ''}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
                   {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
@@ -427,34 +427,34 @@ export default async function AssetDetailPage({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Publication</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Publication</label>
                 <select name="publication" defaultValue={asset.publication ?? ''}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300">
                   {PUBLICATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Tags (comma-separated)</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Tags (comma-separated)</label>
                 <input
                   type="text"
                   name="tags"
                   defaultValue={tagString}
                   placeholder="school, spotlight, summer"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Width (px)</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Width (px)</label>
                 <input type="number" name="width_px" defaultValue={asset.width_px ?? ''}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300" />
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Height (px)</label>
+                <label className="block text-xs font-semibold text-portal-sub mb-1">Height (px)</label>
                 <input type="number" name="height_px" defaultValue={asset.height_px ?? ''}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300" />
+                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300" />
               </div>
             </div>
 
@@ -471,7 +471,7 @@ export default async function AssetDetailPage({
 
           {/* Readiness checklist */}
           <form id="readiness-form" action={saveReadiness} className="bg-white border border-gray-100 rounded-2xl p-5">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Readiness</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-4">Readiness</h2>
             <input type="hidden" name="id" value={asset.id} form="readiness-form" />
             <div className="space-y-3">
               <CheckField name="permission_confirmed" label="✓ Photo permission confirmed" checked={asset.permission_confirmed} formId="readiness-form" />
@@ -490,7 +490,7 @@ export default async function AssetDetailPage({
                 if (asset.has_social_crop)       score += 10
                 return (
                   <div>
-                    <div className="flex justify-between text-[11px] text-gray-400 mb-1">
+                    <div className="flex justify-between text-[11px] text-portal-muted mb-1">
                       <span>Readiness score</span>
                       <span className="font-bold" style={{ color: score >= 80 ? '#16a34a' : score >= 50 ? '#d97706' : '#ef4444' }}>{score}%</span>
                     </div>
@@ -516,7 +516,7 @@ export default async function AssetDetailPage({
 
           {/* Canva / Creative coordination */}
           <form id="canva-form" action={saveCanvaInfo} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Canva / Design Work</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">Canva / Design Work</h2>
             <input type="hidden" name="id" value={asset.id} form="canva-form" />
 
             <div className="space-y-2.5">
@@ -528,37 +528,37 @@ export default async function AssetDetailPage({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Canva Link</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Canva Link</label>
               <input
                 type="url"
                 name="canva_link"
                 form="canva-form"
                 defaultValue={asset.canva_link ?? ''}
                 placeholder="https://www.canva.com/design/..."
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Assigned Designer</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Assigned Designer</label>
               <input
                 type="text"
                 name="assigned_designer"
                 form="canva-form"
                 defaultValue={asset.assigned_designer ?? ''}
                 placeholder="Designer name"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Graphic Requested Date</label>
+              <label className="block text-xs font-semibold text-portal-sub mb-1">Graphic Requested Date</label>
               <input
                 type="date"
                 name="graphic_requested_at"
                 form="canva-form"
                 defaultValue={asset.graphic_requested_at ? asset.graphic_requested_at.slice(0, 10) : ''}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
+                className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300"
               />
             </div>
 
@@ -569,7 +569,7 @@ export default async function AssetDetailPage({
             ) : (
               <label className="flex items-center gap-2 text-xs cursor-pointer">
                 <input type="checkbox" name="mark_graphic_done" value="true" form="canva-form" className="w-4 h-4 rounded" />
-                <span className="text-gray-600">Mark graphic as complete</span>
+                <span className="text-portal-sub">Mark graphic as complete</span>
               </label>
             )}
 
@@ -582,9 +582,9 @@ export default async function AssetDetailPage({
 
           {/* Usage tracking */}
           <form id="usage-form" action={saveUsage} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Usage Locations</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">Usage Locations</h2>
             <input type="hidden" name="id" value={asset.id} form="usage-form" />
-            <p className="text-[11px] text-gray-400 -mt-1 mb-2">Where is this asset currently used?</p>
+            <p className="text-[11px] text-portal-muted -mt-1 mb-2">Where is this asset currently used?</p>
             <div className="grid grid-cols-2 gap-2">
               <CheckField name="used_on_homepage"         label="Homepage"        checked={asset.used_on_homepage}         formId="usage-form" />
               <CheckField name="used_in_article"          label="Article"         checked={asset.used_in_article}          formId="usage-form" />
@@ -605,13 +605,13 @@ export default async function AssetDetailPage({
           {/* Linked content */}
           {(linkedSubTitle || linkedAdvName || asset.linked_guide_slug) && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Linked Content</h2>
+              <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Linked Content</h2>
               {linkedSubTitle && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📝</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Submission</p>
-                    <p className="text-xs font-semibold text-gray-700 truncate">{linkedSubTitle}</p>
+                    <p className="text-[11px] text-portal-muted font-semibold uppercase tracking-wide">Submission</p>
+                    <p className="text-xs font-semibold text-portal-text truncate">{linkedSubTitle}</p>
                   </div>
                   <Link href={`/admin/community/${asset.linked_submission_id}`} className="text-xs text-indigo-600 hover:underline font-semibold shrink-0">
                     View →
@@ -622,8 +622,8 @@ export default async function AssetDetailPage({
                 <div className="flex items-center gap-2">
                   <span className="text-sm">🤝</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Sponsor</p>
-                    <p className="text-xs font-semibold text-gray-700 truncate">{linkedAdvName}</p>
+                    <p className="text-[11px] text-portal-muted font-semibold uppercase tracking-wide">Sponsor</p>
+                    <p className="text-xs font-semibold text-portal-text truncate">{linkedAdvName}</p>
                   </div>
                 </div>
               )}
@@ -631,8 +631,8 @@ export default async function AssetDetailPage({
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📖</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide">Guide</p>
-                    <p className="text-xs font-semibold text-gray-700">{asset.linked_guide_slug}</p>
+                    <p className="text-[11px] text-portal-muted font-semibold uppercase tracking-wide">Guide</p>
+                    <p className="text-xs font-semibold text-portal-text">{asset.linked_guide_slug}</p>
                   </div>
                 </div>
               )}
@@ -640,16 +640,16 @@ export default async function AssetDetailPage({
           )}
 
           {/* Asset timestamps */}
-          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-1.5">
-            <p className="text-[10px] text-gray-400">
+          <div className="bg-portal-bg border border-gray-100 rounded-2xl p-4 space-y-1.5">
+            <p className="text-[10px] text-portal-muted">
               <span className="font-semibold">Added:</span>{' '}
               {new Date(asset.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-            <p className="text-[10px] text-gray-400">
+            <p className="text-[10px] text-portal-muted">
               <span className="font-semibold">Updated:</span>{' '}
               {new Date(asset.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-            <p className="text-[10px] text-gray-400 font-mono break-all">{asset.id}</p>
+            <p className="text-[10px] text-portal-muted font-mono break-all">{asset.id}</p>
           </div>
 
         </div>

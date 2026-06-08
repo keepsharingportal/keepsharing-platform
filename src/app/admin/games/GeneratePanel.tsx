@@ -163,11 +163,11 @@ export function GeneratePanel({ pendingCount }: Props) {
   function cancelBulk() { cancelRef.cancel = true }
 
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-2 flex-wrap">
+    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Wand2 size={14} className="text-portal-blue" />
-          <h2 className="text-sm font-bold text-gray-700">Generate content with Claude</h2>
+          <h2 className="text-sm font-bold text-portal-text">Generate content with Claude</h2>
         </div>
         <Link
           href="/admin/games/queue"
@@ -183,18 +183,18 @@ export function GeneratePanel({ pendingCount }: Props) {
       </div>
 
       {/* ── SKIP-REVIEW TOGGLE ─────────────────────────────────────────────── */}
-      <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+      <div className="px-5 py-3 bg-portal-bg border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
         <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
           <input
             type="checkbox"
             checked={skipReview}
             onChange={e => setSkipReview(e.target.checked)}
             disabled={busy || bulkBusy}
-            className="h-4 w-4 rounded border-gray-300 text-portal-blue focus:ring-portal-blue"
+            className="h-4 w-4 rounded border-portal-border-2 text-portal-blue focus:ring-portal-blue"
           />
-          <span className="font-bold text-gray-900">Skip review — insert straight into the live pool</span>
+          <span className="font-bold text-portal-text">Skip review — insert straight into the live pool</span>
         </label>
-        <p className="text-[11px] text-gray-500 max-w-md text-right">
+        <p className="text-[11px] text-portal-sub max-w-md text-right">
           {skipReview
             ? '⚡ Items go LIVE immediately. Server validators still catch malformed items. You can retire bad items later in the content editor.'
             : '🛡 Items land in the queue for one-click review. Recommended for the first batch of a new game.'}
@@ -205,17 +205,17 @@ export function GeneratePanel({ pendingCount }: Props) {
       <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-[240px]">
-            <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+            <p className="text-sm font-bold text-portal-text flex items-center gap-1.5">
               <Zap size={14} className="text-amber-600" />
               Bootstrap the whole pool
             </p>
-            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+            <p className="text-xs text-portal-sub mt-1 leading-relaxed">
               Fires {GENERATABLE.length * DIFFICULTIES.length} batches: every game × every tier. ~3-9 minutes total.
               {skipReview ? ' Items go live immediately.' : ' Items land in the queue for your review.'}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">
               Each batch:
             </label>
             <input
@@ -225,7 +225,7 @@ export function GeneratePanel({ pendingCount }: Props) {
               value={bulkCount}
               onChange={e => setBulkCount(Math.max(3, Math.min(15, Number(e.target.value) || 7)))}
               disabled={bulkBusy}
-              className="w-16 text-sm px-2 py-1.5 border border-gray-200 rounded-lg bg-white"
+              className="w-16 text-sm px-2 py-1.5 border border-portal-border rounded-lg bg-white"
             />
             <button
               type="button"
@@ -244,10 +244,10 @@ export function GeneratePanel({ pendingCount }: Props) {
         {bulkProgress && (
           <div className="mt-3 bg-white border border-amber-200 rounded-lg p-3">
             <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-xs font-bold text-gray-700">
+              <p className="text-xs font-bold text-portal-text">
                 {bulkProgress.label}
               </p>
-              <p className="text-xs text-gray-500 tabular-nums">
+              <p className="text-xs text-portal-sub tabular-nums">
                 {bulkProgress.current} / {bulkProgress.total}
               </p>
             </div>
@@ -257,7 +257,7 @@ export function GeneratePanel({ pendingCount }: Props) {
                 style={{ width: `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` }}
               />
             </div>
-            <div className="flex items-center justify-between gap-3 mt-2 text-[11px] text-gray-500">
+            <div className="flex items-center justify-between gap-3 mt-2 text-[11px] text-portal-sub">
               <span>
                 <strong className="text-green-700">{bulkProgress.saved}</strong> items queued
                 {bulkProgress.failed.length > 0 && (
@@ -268,7 +268,7 @@ export function GeneratePanel({ pendingCount }: Props) {
                 )}
               </span>
               {bulkBusy && (
-                <button type="button" onClick={cancelBulk} className="inline-flex items-center gap-1 text-gray-500 hover:text-portal-red">
+                <button type="button" onClick={cancelBulk} className="inline-flex items-center gap-1 text-portal-sub hover:text-portal-red">
                   <X size={11} /> Cancel
                 </button>
               )}
@@ -276,7 +276,7 @@ export function GeneratePanel({ pendingCount }: Props) {
             {bulkProgress.failed.length > 0 && !bulkBusy && (
               <details className="mt-2 text-[11px]">
                 <summary className="cursor-pointer text-portal-red font-semibold">View {bulkProgress.failed.length} failure{bulkProgress.failed.length === 1 ? '' : 's'}</summary>
-                <ul className="mt-1 space-y-1 text-gray-600">
+                <ul className="mt-1 space-y-1 text-portal-sub">
                   {bulkProgress.failed.map((f, i) => (
                     <li key={i}><strong>{f.combo}:</strong> {f.reason}</li>
                   ))}
@@ -295,11 +295,11 @@ export function GeneratePanel({ pendingCount }: Props) {
       <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-[260px]">
-            <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+            <p className="text-sm font-bold text-portal-text flex items-center gap-1.5">
               <ChevronsUp size={14} className="text-emerald-600" />
               Smart refill — top up every low cell to the target
             </p>
-            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+            <p className="text-xs text-portal-sub mt-1 leading-relaxed">
               Reads current supply per (game × tier), generates only what&apos;s missing to hit the target days
               of supply. Same engine runs nightly via Vercel cron (5am UTC) so the pool self-heals — use this
               button when you need an immediate top-up. Hard $20/day cost cap; items go to the review queue
@@ -318,7 +318,7 @@ export function GeneratePanel({ pendingCount }: Props) {
           </button>
         </div>
         {refillResult && (
-          <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-emerald-200 text-gray-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-emerald-200 text-portal-text' : 'bg-red-50 border-red-200 text-red-700'}`}>
             {refillResult.ok ? (
               <>
                 <strong className="text-portal-green">Done.</strong>{' '}
@@ -328,7 +328,7 @@ export function GeneratePanel({ pendingCount }: Props) {
                   <> · est. cost <strong>${refillResult.estimated_cost.toFixed(2)}</strong></>
                 )}
                 {refillResult.elapsed_ms !== undefined && (
-                  <span className="text-gray-500"> · {(refillResult.elapsed_ms / 1000).toFixed(1)}s</span>
+                  <span className="text-portal-sub"> · {(refillResult.elapsed_ms / 1000).toFixed(1)}s</span>
                 )}
                 {(refillResult.cells_run ?? 0) < (refillResult.cells_planned ?? 0) && (
                   <p className="mt-1 text-portal-amber">Time or budget budget cut us short — re-run to keep filling the rest.</p>
@@ -344,11 +344,11 @@ export function GeneratePanel({ pendingCount }: Props) {
       {/* ── SINGLE-BATCH FORM ──────────────────────────────────────────────── */}
       <div className="p-5 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
         <div className="lg:col-span-1">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Game</label>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Game</label>
           <select
             value={game}
             onChange={e => setGame(e.target.value as GameId)}
-            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white"
+            className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white"
           >
             {GENERATABLE.map(id => {
               const g = GAMES.find(x => x.id === id)
@@ -358,11 +358,11 @@ export function GeneratePanel({ pendingCount }: Props) {
         </div>
 
         <div className="lg:col-span-1">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Difficulty / audience</label>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Difficulty / audience</label>
           <select
             value={difficulty}
             onChange={e => setDifficulty(e.target.value as Difficulty)}
-            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white"
+            className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white"
           >
             {DIFFICULTIES.map(d => (
               <option key={d} value={d}>{DIFFICULTY_LABELS[d]}</option>
@@ -371,31 +371,31 @@ export function GeneratePanel({ pendingCount }: Props) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Count (1-15)</label>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Count (1-15)</label>
           <input
             type="number"
             min={1}
             max={15}
             value={count}
             onChange={e => setCount(Math.max(1, Math.min(15, Number(e.target.value) || 1)))}
-            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white"
+            className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white"
           />
         </div>
 
         <div className="sm:col-span-2 lg:col-span-2">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Theme (optional)</label>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Theme (optional)</label>
           <input
             type="text"
             value={theme}
             onChange={e => setTheme(e.target.value)}
             placeholder='e.g., "back to school", "summer break", "Mother’s Day"'
-            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white"
+            className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white"
           />
         </div>
       </div>
 
       <div className="px-5 pb-5 flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[11px] text-gray-400 leading-relaxed">
+        <p className="text-[11px] text-portal-muted leading-relaxed">
           Or run a targeted single batch — useful for filling a specific cell or trying a theme.
         </p>
         <button

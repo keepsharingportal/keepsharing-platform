@@ -130,12 +130,12 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
 
   return (
     <div className="flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
             <QrCode size={18} className="text-portal-blue" /> Tracked Links
           </h1>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-portal-sub mt-0.5">
             QR codes, on-site ad CTAs, and external campaign links. Every click is tracked, UTMs auto-append on redirect, and rows tie back to advertisers for measurement.
           </p>
         </div>
@@ -149,23 +149,23 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
 
       {/* ── Search + filter bar ─────────────────────────────────── */}
       {rows.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+        <div className="bg-white border-b border-portal-border px-6 py-3 grid sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
           {/* Search — lg:col-span-2 to give it visual priority. */}
           <div className="lg:col-span-2">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Search</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Search</label>
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Label, shortcode, destination, advertiser…"
-                className="w-full text-sm pl-9 pr-9 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+                className="w-full text-sm pl-9 pr-9 py-2 border border-portal-border rounded-lg outline-none focus:border-portal-blue"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-portal-muted hover:text-portal-sub p-0.5"
                   aria-label="Clear search"
                 >
                   <X size={14} />
@@ -217,10 +217,10 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
       {/* Clear-filters chip — only when something is filtered. No
           'Showing X of Y' line; that's just count clutter. */}
       {rows.length > 0 && anyFilterActive && (
-        <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-2 text-xs flex-wrap">
+        <div className="bg-white border-b border-portal-border px-6 py-2 flex items-center gap-2 text-xs flex-wrap">
           <button
             onClick={clearAllFilters}
-            className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900 font-semibold"
+            className="inline-flex items-center gap-1 text-portal-sub hover:text-portal-text font-semibold"
           >
             <X size={12} /> Clear all filters
           </button>
@@ -229,17 +229,17 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
 
       <div className="bg-portal-bg px-4 py-3">
         {rows.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+          <div className="bg-white rounded-xl border border-portal-border p-12 text-center text-portal-muted">
             <QrCode size={32} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">No tracked links yet. Create one for your first QR or campaign.</p>
           </div>
         ) : visibleRows.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
+          <div className="bg-white rounded-xl border border-portal-border p-12 text-center text-portal-muted">
             <p className="text-sm">No rows match these filters.</p>
             <button onClick={clearAllFilters} className="mt-2 text-xs font-semibold text-portal-blue hover:underline">Clear all filters</button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
             {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
           </div>
         )}
@@ -258,11 +258,11 @@ function FilterSelect({ label, value, onChange, options }: {
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400 cursor-pointer"
+        className="w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white outline-none focus:border-portal-blue cursor-pointer"
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -351,7 +351,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap mb-0.5">
-            <p className="text-sm font-bold text-gray-900">/go/{local.shortcode}</p>
+            <p className="text-sm font-bold text-portal-text">/go/{local.shortcode}</p>
             {/* Purpose badge — color-coded by qr/ad/campaign so the
                 editor can scan the list at a glance. */}
             {(() => {
@@ -375,35 +375,35 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
                 </span>
               )
             })()}
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 ring-1 ring-gray-200">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-portal-sub ring-1 ring-gray-200">
               {typeDef.label}
             </span>
-            {local.label && <span className="text-xs text-gray-500">{local.label}</span>}
+            {local.label && <span className="text-xs text-portal-sub">{local.label}</span>}
           </div>
-          <p className="text-xs text-gray-600 truncate mb-1">→ {local.destination}</p>
-          <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
-            <span className="font-mono bg-gray-50 px-1.5 py-0.5 rounded text-[10px]">{printUrl}</span>
+          <p className="text-xs text-portal-sub truncate mb-1">→ {local.destination}</p>
+          <div className="flex items-center gap-3 flex-wrap text-[11px] text-portal-sub">
+            <span className="font-mono bg-portal-bg px-1.5 py-0.5 rounded text-[10px]">{printUrl}</span>
             {local.utm_campaign && <span>campaign={local.utm_campaign}</span>}
           </div>
         </div>
 
         <div className="shrink-0 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-gray-700">
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-portal-text">
             <MousePointer size={11} /> {local.click_count.toLocaleString()} scans
           </span>
-          <button onClick={() => setEditing(v => !v)} title="Edit destination" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+          <button onClick={() => setEditing(v => !v)} title="Edit destination" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
             <Pencil size={14} />
           </button>
-          <button onClick={toggleQr} title="Show QR code" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+          <button onClick={toggleQr} title="Show QR code" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
             <QrCode size={14} />
           </button>
-          <button onClick={copy} title="Copy URL" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+          <button onClick={copy} title="Copy URL" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
             {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
           </button>
-          <a href={goUrl} target="_blank" rel="noreferrer" title="Test" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
+          <a href={goUrl} target="_blank" rel="noreferrer" title="Test" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
             <ExternalLink size={14} />
           </a>
-          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-portal-red-lt text-gray-400 hover:text-rose-600 disabled:opacity-40">
+          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-portal-red-lt text-portal-muted hover:text-rose-600 disabled:opacity-40">
             {deleting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </button>
         </div>
@@ -422,7 +422,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
             )}
           </div>
           <div className="space-y-2">
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-portal-sub">
               High-res PNG — ready for InDesign. Right-click to save or use the download button.
             </p>
             <button
@@ -435,7 +435,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
             <button
               onClick={genQr}
               disabled={qrLoading}
-              className="ml-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+              className="ml-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               <RefreshCw size={11} className={qrLoading ? 'animate-spin' : ''} /> Regenerate
             </button>
@@ -488,7 +488,7 @@ function EditRow({
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -776,27 +776,27 @@ export function AddPanel({
   // the orange brand color for attention. Inputs and labels now sit
   // on white with gray-200 hairlines; the only orange in the form is
   // the final Create button.
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5'
 
   return (
-    <form onSubmit={submit} className="bg-gray-50 border-b border-gray-200 px-6 py-6">
+    <form onSubmit={submit} className="bg-portal-bg border-b border-portal-border px-6 py-6">
       {/* Header — step-numbered sequence so editors know how the form
           flows top-to-bottom. */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 inline-flex items-center gap-2">
+          <h2 className="text-lg font-bold text-portal-text inline-flex items-center gap-2">
             {purpose
-              ? (() => { const Icon = purposeOf(purpose).icon; return <Icon size={18} className="text-gray-700" /> })()
-              : <Plus size={18} className="text-gray-700" />}
+              ? (() => { const Icon = purposeOf(purpose).icon; return <Icon size={18} className="text-portal-text" /> })()
+              : <Plus size={18} className="text-portal-text" />}
             New {purpose ? purposeOf(purpose).label : 'Tracked Link'}
           </h2>
-          <p className="text-xs text-gray-500 mt-1">Start by picking what kind of link you&apos;re building — the rest of the form opens up after that.</p>
+          <p className="text-xs text-portal-sub mt-1">Start by picking what kind of link you&apos;re building — the rest of the form opens up after that.</p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="text-gray-400 hover:text-gray-700 p-1"
+          className="text-portal-muted hover:text-portal-text p-1"
           aria-label="Close form"
           title="Cancel"
         >
@@ -821,16 +821,16 @@ export function AddPanel({
                 className={`text-left rounded-xl border p-3.5 transition-all ${
                   active
                     ? 'border-2 border-gray-900 bg-white shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-400'
+                    : 'border-portal-border bg-white hover:border-gray-400'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${p.badgeClass}`}>
                     <PIcon size={14} />
                   </span>
-                  <span className="text-sm font-bold text-gray-900">{p.label}</span>
+                  <span className="text-sm font-bold text-portal-text">{p.label}</span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-snug">{p.hint}</p>
+                <p className="text-[11px] text-portal-sub leading-snug">{p.hint}</p>
               </button>
             )
           })}
@@ -869,7 +869,7 @@ export function AddPanel({
               <button
                 type="button"
                 onClick={() => { setAdvertiserId(''); setStep2Done(false) }}
-                className="text-xs font-semibold text-gray-500 hover:text-gray-900 px-3 py-2"
+                className="text-xs font-semibold text-portal-sub hover:text-portal-text px-3 py-2"
               >
                 Clear
               </button>
@@ -895,8 +895,8 @@ export function AddPanel({
               so the editor adds the missing client before doing
               anything else. */}
           {showAddAdv && (
-            <div className="rounded-xl bg-gray-50 ring-1 ring-gray-200 p-4 space-y-3">
-              <p className="text-xs font-bold text-gray-900 inline-flex items-center gap-1.5">
+            <div className="rounded-xl bg-portal-bg ring-1 ring-gray-200 p-4 space-y-3">
+              <p className="text-xs font-bold text-portal-text inline-flex items-center gap-1.5">
                 <Plus size={12} /> Quick-Add Advertiser
               </p>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -927,7 +927,7 @@ export function AddPanel({
                   {advBusy ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
                   {advBusy ? 'Saving…' : 'Save & Associate'}
                 </button>
-                <button type="button" onClick={() => setShowAddAdv(false)} className="text-xs text-gray-500 hover:text-gray-900">
+                <button type="button" onClick={() => setShowAddAdv(false)} className="text-xs text-portal-sub hover:text-portal-text">
                   Cancel
                 </button>
               </div>
@@ -962,7 +962,7 @@ export function AddPanel({
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
                     active
                       ? 'bg-gray-900 text-white ring-gray-900'
-                      : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50 hover:ring-gray-300'
+                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg hover:ring-gray-300'
                   }`}
                 >
                   <I size={12} /> {ct.label}
@@ -996,7 +996,7 @@ export function AddPanel({
               <div>
                 <label className={lbl}>Shortcode <span className="text-rose-600">*</span></label>
                 <div className="flex items-center">
-                  <span className="text-xs text-gray-500 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg px-2.5 py-2">/go/</span>
+                  <span className="text-xs text-portal-sub bg-gray-100 border border-r-0 border-portal-border rounded-l-lg px-2.5 py-2">/go/</span>
                   <input value={shortcode} onChange={e => setShortcode(e.target.value)} required autoFocus placeholder="playball-jun26" className={`${inp} rounded-l-none`} />
                 </div>
               </div>
@@ -1009,7 +1009,7 @@ export function AddPanel({
             <div>
               <label className={lbl}>Label (internal — for your reference only)</label>
               <input value={label} onChange={e => setLabel(e.target.value)} placeholder="YMCA Summer Push — June Facebook ad" className={inp} />
-              <p className="mt-1 text-[10px] text-gray-500">
+              <p className="mt-1 text-[10px] text-portal-sub">
                 A shortcode will be generated automatically. Readers only see the destination URL after the redirect, not the /go/&lt;code&gt; link.
               </p>
             </div>
@@ -1091,7 +1091,7 @@ export function AddPanel({
                 ))}
               </select>
               {channel && (
-                <p className="mt-1 text-[10px] text-gray-500">
+                <p className="mt-1 text-[10px] text-portal-sub">
                   Auto-fills UTM source &amp; medium — override below if needed.
                 </p>
               )}
@@ -1099,7 +1099,7 @@ export function AddPanel({
             <div>
               <label className={lbl}>Campaign Tag</label>
               <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026 · summer-promo" className={inp} />
-              <p className="mt-1 text-[10px] text-gray-500 leading-snug">
+              <p className="mt-1 text-[10px] text-portal-sub leading-snug">
                 Groups related links in reports. Use a month code (jun2026) for ongoing efforts or a name (back-to-school) for one-offs.
               </p>
             </div>
@@ -1138,7 +1138,7 @@ export function AddPanel({
               {busy ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
               {busy ? 'Creating…' : `Create ${purposeOf(purpose).label}`}
             </button>
-            <button type="button" onClick={onCancel} className="px-4 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+            <button type="button" onClick={onCancel} className="px-4 py-2.5 text-sm font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
           </div>
         </div>
 
@@ -1167,7 +1167,7 @@ export function AddPanel({
               <Download size={10} /> Download PNG
             </a>
           )}
-          <p className="mt-2 text-[10px] text-gray-500 text-center">
+          <p className="mt-2 text-[10px] text-portal-sub text-center">
             riverregionparents.com<br />/go/{previewCode}
           </p>
         </div>
@@ -1194,14 +1194,14 @@ function StepSection({ step, title, hint, children }: {
   children: React.ReactNode
 }) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 mb-5 last:mb-0">
+    <section className="bg-white rounded-2xl border border-portal-border p-5 md:p-6 mb-5 last:mb-0">
       <header className="flex items-start gap-3 mb-4">
         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-900 text-white text-xs font-black shrink-0">
           {step}
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-gray-900 leading-tight">{title}</h3>
-          {hint && <p className="text-xs text-gray-500 mt-0.5 leading-snug">{hint}</p>}
+          <h3 className="text-sm font-bold text-portal-text leading-tight">{title}</h3>
+          {hint && <p className="text-xs text-portal-sub mt-0.5 leading-snug">{hint}</p>}
         </div>
       </header>
       <div className="pl-0 md:pl-10">{children}</div>

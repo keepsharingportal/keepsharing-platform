@@ -55,15 +55,15 @@ export default async function InquiriesPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
           <Inbox className="h-5 w-5 text-portal-blue" />
           Listing Inquiries
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="text-sm text-portal-sub mt-0.5">
           Messages from families asking about guide listings.
           {fresh > 0 && <span className="ml-2 font-semibold text-portal-blue">{fresh} new</span>}
         </p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-portal-muted mt-1">
           Admin notification email goes to {process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'} when GHL is configured.
           Forward to the business&apos;s <code className="px-1 bg-gray-100 rounded">contact_email</code> shown on each card.
         </p>
@@ -72,9 +72,9 @@ export default async function InquiriesPage() {
       <section>
         <AdminSectionHeader title="Inquiries" count={rows.length} />
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-500">No inquiries yet.</p>
-            <p className="text-xs text-gray-400 mt-1">
+          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <p className="text-sm text-portal-sub">No inquiries yet.</p>
+            <p className="text-xs text-portal-muted mt-1">
               When a family submits the &quot;Request Info&quot; form on any listing page, it appears here.
             </p>
             <Link href="/family-resource-guide" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-portal-blue hover:underline">

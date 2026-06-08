@@ -29,7 +29,7 @@ const ROLE_CONFIG: Record<KBRole, { label: string; color: string }> = {
   publisher: { label: 'Publisher',  color: 'bg-portal-blue-lt text-portal-blue' },
   va:        { label: 'VA',         color: 'bg-green-100 text-green-700' },
   editor:    { label: 'Editor',     color: 'bg-purple-100 text-purple-700' },
-  all:       { label: 'Everyone',   color: 'bg-gray-100 text-gray-600' },
+  all:       { label: 'Everyone',   color: 'bg-gray-100 text-portal-sub' },
 }
 
 // ── Article card ──────────────────────────────────────────────────────────────
@@ -39,15 +39,15 @@ function ArticleCard({ article, onClick }: { article: KBArticle; onClick: () => 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-white rounded-2xl border border-gray-200 p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
+      className="w-full text-left bg-white rounded-2xl border border-portal-border p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
     >
       <div className="flex items-start gap-3">
         <div className="text-xl shrink-0">{cfg.icon}</div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-portal-blue transition-colors leading-snug mb-1.5">
+          <h3 className="text-sm font-semibold text-portal-text group-hover:text-portal-blue transition-colors leading-snug mb-1.5">
             {article.title}
           </h3>
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-2.5">
+          <p className="text-xs text-portal-sub line-clamp-2 leading-relaxed mb-2.5">
             {article.summary}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
@@ -55,7 +55,7 @@ function ArticleCard({ article, onClick }: { article: KBArticle; onClick: () => 
               style={{ backgroundColor: cfg.bg, color: cfg.color }}>
               {article.category}
             </span>
-            <span className="flex items-center gap-1 text-[10px] text-gray-400">
+            <span className="flex items-center gap-1 text-[10px] text-portal-muted">
               <Clock size={9} /> {article.timeRequired}
             </span>
             {article.roles.map(r => (
@@ -85,13 +85,13 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </button>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-5">
+      <div className="bg-white rounded-2xl border border-portal-border p-6 mb-5">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
             style={{ backgroundColor: cfg.bg, color: cfg.color }}>
             {cfg.icon} {article.category}
           </span>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
+          <span className="flex items-center gap-1 text-xs text-portal-muted">
             <Clock size={11} /> {article.timeRequired}
           </span>
           {article.roles.map(r => (
@@ -100,13 +100,13 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
             </span>
           ))}
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">{article.title}</h1>
-        <p className="text-sm text-gray-600 leading-relaxed">{article.summary}</p>
+        <h1 className="text-xl font-bold text-portal-text mb-2">{article.title}</h1>
+        <p className="text-sm text-portal-sub leading-relaxed">{article.summary}</p>
       </div>
 
       {/* Steps */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-5">
-        <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-2xl border border-portal-border p-6 mb-5">
+        <h2 className="text-base font-bold text-portal-text mb-4 flex items-center gap-2">
           <BookOpen size={16} className="text-portal-blue" /> Step-by-step instructions
         </h2>
         <ol className="space-y-5">
@@ -116,10 +116,10 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
                 {i + 1}
               </div>
               <div className="flex-1 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
-                <div className="text-sm font-semibold text-gray-900 mb-1">{step.title}</div>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
+                <div className="text-sm font-semibold text-portal-text mb-1">{step.title}</div>
+                <p className="text-sm text-portal-sub leading-relaxed">{step.description}</p>
                 {/* Screenshot placeholder */}
-                <div className="mt-3 h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center">
+                <div className="mt-3 h-16 rounded-xl border-2 border-dashed border-portal-border flex items-center justify-center">
                   <span className="text-xs text-gray-300">Screenshot placeholder</span>
                 </div>
               </div>
@@ -146,7 +146,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
             {article.commonErrors.map((err, i) => (
               <div key={i} className="bg-white rounded-xl border border-red-100 p-3">
                 <div className="text-xs font-semibold text-red-700 mb-1">⚠ {err.error}</div>
-                <div className="text-xs text-gray-700 leading-relaxed">→ {err.fix}</div>
+                <div className="text-xs text-portal-text leading-relaxed">→ {err.fix}</div>
               </div>
             ))}
           </div>
@@ -155,8 +155,8 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
 
       {/* Related articles */}
       {article.relatedArticles.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-5">
-          <h2 className="text-sm font-bold text-gray-900 mb-3">Related articles</h2>
+        <div className="bg-white rounded-2xl border border-portal-border p-5 mb-5">
+          <h2 className="text-sm font-bold text-portal-text mb-3">Related articles</h2>
           <div className="space-y-2">
             {article.relatedArticles.map(id => {
               const rel = getArticle(id)
@@ -167,7 +167,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                   // Navigate handled by parent
                 }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-portal-bg transition-colors text-left">
                   <span className="text-base">{rcfg.icon}</span>
                   <span className="text-sm text-portal-blue hover:underline font-medium">{rel.title}</span>
                   <ChevronRight size={13} className="text-gray-300 ml-auto" />
@@ -222,7 +222,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-portal-border overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100"
         style={{ backgroundColor: 'var(--color-sidebar)' }}>
         <MessageSquare size={14} className="text-white/70" />
@@ -231,7 +231,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
 
       <div className="min-h-32 max-h-72 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-6">
+          <p className="text-sm text-portal-muted text-center py-6">
             Ask me anything about the KeepSharing platform.
           </p>
         )}
@@ -239,7 +239,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
           <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             <div className={cn(
               'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
-              msg.role === 'user' ? 'bg-portal-navy text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+              msg.role === 'user' ? 'bg-portal-navy text-white rounded-br-sm' : 'bg-gray-100 text-portal-text rounded-bl-sm'
             )}>
               {msg.content}
               {msg.articles && msg.articles.length > 0 && (
@@ -258,8 +258,8 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3 py-2 flex items-center gap-2">
-              <Loader2 size={12} className="text-gray-400 animate-spin" />
-              <span className="text-xs text-gray-400">Thinking…</span>
+              <Loader2 size={12} className="text-portal-muted animate-spin" />
+              <span className="text-xs text-portal-muted">Thinking…</span>
             </div>
           </div>
         )}
@@ -267,18 +267,18 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
       </div>
 
       <div className="border-t border-gray-100 px-3 py-2.5">
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-1.5">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); send() } }}
             placeholder="How do I clone to next month?"
-            className="flex-1 text-sm bg-transparent outline-none text-gray-900 placeholder-gray-400"
+            className="flex-1 text-sm bg-transparent outline-none text-portal-text placeholder-gray-400"
           />
           <button onClick={send} disabled={!input.trim() || loading}
             className={cn('w-6 h-6 rounded-lg flex items-center justify-center transition-colors',
               input.trim() ? 'bg-portal-navy' : 'bg-gray-200')}>
-            <Send size={11} className={input.trim() ? 'text-white' : 'text-gray-400'} />
+            <Send size={11} className={input.trim() ? 'text-white' : 'text-portal-muted'} />
           </button>
         </div>
       </div>
@@ -327,24 +327,24 @@ export function HelpPage() {
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-5 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-5 shrink-0">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Help Center</h1>
-          <p className="text-sm text-gray-500 mb-4">
+          <h1 className="text-2xl font-bold text-portal-text mb-1">Help Center</h1>
+          <p className="text-sm text-portal-sub mb-4">
             Step-by-step guides for every workflow in the KeepSharing platform.
           </p>
           {/* Search */}
           <div className="relative max-w-xl">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-portal-muted" />
             <input
               value={search}
               onChange={e => { setSearch(e.target.value); setActiveCategory(null); setActiveArticle(null) }}
               placeholder="Search articles — e.g. clone sheet, import zoho, editorial board"
-              className="w-full pl-10 pr-10 py-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-blue-400 focus:bg-white transition-all"
+              className="w-full pl-10 pr-10 py-3 text-sm text-portal-text bg-portal-bg border border-portal-border rounded-2xl outline-none focus:border-portal-blue focus:bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-portal-muted hover:text-portal-sub">
                 <X size={14} />
               </button>
             )}
@@ -355,7 +355,7 @@ export function HelpPage() {
       {/* Body */}
       <div className="flex-1 overflow-hidden flex">
         {/* Sidebar */}
-        <aside className="w-56 shrink-0 bg-white border-r border-gray-200 overflow-y-auto py-4 px-3">
+        <aside className="w-56 shrink-0 bg-white border-r border-portal-border overflow-y-auto py-4 px-3">
           {/* All articles */}
           <button
             onClick={() => { setActiveCategory(null); setSearch(''); setActiveArticle(null) }}
@@ -363,12 +363,12 @@ export function HelpPage() {
               'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1',
               !activeCategory && !search
                 ? 'bg-portal-blue-lt text-portal-blue'
-                : 'text-gray-600 hover:bg-gray-50'
+                : 'text-portal-sub hover:bg-portal-bg'
             )}
           >
             <span>All Articles</span>
             <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-semibold',
-              !activeCategory && !search ? 'bg-portal-navy text-white' : 'bg-gray-100 text-gray-500')}>
+              !activeCategory && !search ? 'bg-portal-navy text-white' : 'bg-gray-100 text-portal-sub')}>
               {KB_ARTICLES.length}
             </span>
           </button>
@@ -384,7 +384,7 @@ export function HelpPage() {
                 onClick={() => { setActiveCategory(cat); setSearch(''); setActiveArticle(null) }}
                 className={cn(
                   'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-0.5',
-                  isActive ? 'text-white' : 'text-gray-600 hover:bg-gray-50'
+                  isActive ? 'text-white' : 'text-portal-sub hover:bg-portal-bg'
                 )}
                 style={isActive ? { backgroundColor: cfg.color } : undefined}
               >
@@ -393,7 +393,7 @@ export function HelpPage() {
                   {cat}
                 </span>
                 <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-semibold',
-                  isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500')}>
+                  isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-portal-sub')}>
                   {CATEGORY_COUNTS[cat]}
                 </span>
               </button>
@@ -401,17 +401,17 @@ export function HelpPage() {
           })}
 
           <div className="h-px bg-gray-100 my-3" />
-          <div className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quick help</div>
+          <div className="px-3 text-xs font-semibold text-portal-muted uppercase tracking-wide mb-2">Quick help</div>
           <Link href="/admin/today"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>📅</span> Today screen
           </Link>
           <Link href="/admin/advertisers"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>📊</span> Advertisers
           </Link>
           <Link href="/admin/content/editorial-board"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>✏️</span> Editorial Board
           </Link>
         </aside>
@@ -426,7 +426,7 @@ export function HelpPage() {
             <div className="max-w-4xl mx-auto px-6 py-6">
               {/* Section heading */}
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-bold text-gray-900">
+                <h2 className="text-base font-bold text-portal-text">
                   {search
                     ? `${displayedArticles.length} result${displayedArticles.length !== 1 ? 's' : ''} for "${search}"`
                     : activeCategory
@@ -439,8 +439,8 @@ export function HelpPage() {
               {displayedArticles.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="text-4xl mb-3">🔍</div>
-                  <div className="text-base font-semibold text-gray-700 mb-2">No articles found</div>
-                  <p className="text-sm text-gray-500 mb-4">Try different keywords, or ask the AI assistant below.</p>
+                  <div className="text-base font-semibold text-portal-text mb-2">No articles found</div>
+                  <p className="text-sm text-portal-sub mb-4">Try different keywords, or ask the AI assistant below.</p>
                   <button onClick={() => setSearch('')} className="text-sm text-portal-blue hover:underline">
                     Clear search
                   </button>

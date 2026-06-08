@@ -257,8 +257,8 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
 
       {/* Taxonomy quick-links */}
       <div className="px-4 pb-6">
-        <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
-          <span className="font-semibold text-gray-500">Jump to:</span>
+        <div className="flex items-center gap-3 text-xs text-portal-muted flex-wrap">
+          <span className="font-semibold text-portal-sub">Jump to:</span>
           <Link href="/admin/articles/columns" className="hover:text-portal-blue transition-colors">Columns</Link>
           <Link href="/admin/articles/authors" className="hover:text-portal-blue transition-colors">Authors</Link>
           <Link href="/admin/content/imports"  className="hover:text-portal-blue transition-colors">Imports</Link>

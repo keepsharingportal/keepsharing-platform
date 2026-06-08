@@ -154,14 +154,14 @@ function fmtDate(iso: string): string {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-const iCls  = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors'
+const iCls  = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
 const iClsTA = `${iCls} resize-vertical`
 
 function Card({ title, children, accent }: { title: string; accent?: string; children: ReactNode }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
       <div className="px-5 py-3.5 border-b border-gray-50">
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">{title}</h2>
+        <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">{title}</h2>
       </div>
       <div className="px-5 py-4">{children}</div>
     </div>
@@ -171,11 +171,11 @@ function Card({ title, children, accent }: { title: string; accent?: string; chi
 function Row({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+      <label className="block text-xs font-semibold text-portal-sub mb-1.5">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">{hint}</p>}
+      {hint && <p className="text-[11px] text-portal-muted mt-1 leading-relaxed">{hint}</p>}
     </div>
   )
 }
@@ -293,18 +293,18 @@ export default async function EditorialDetailPage({
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>
-        <Link href="/admin/editorial" className="text-sm text-gray-400 hover:text-gray-700 font-medium transition-colors">
+        <Link href="/admin/editorial" className="text-sm text-portal-muted hover:text-portal-text font-medium transition-colors">
           ← Editorial Pipeline
         </Link>
         <div className="mt-3 flex items-start gap-4 flex-wrap">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="text-xl">{config.emoji}</span>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{config.label}</span>
+              <span className="text-xs font-bold text-portal-muted uppercase tracking-wide">{config.label}</span>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: sc?.bg ?? '#f9fafb', color: sc?.color ?? '#374151' }}>
                 {sc?.label ?? item.status}
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
                 {item.target_publication.toUpperCase()}
               </span>
               {/* Readiness score */}
@@ -312,13 +312,13 @@ export default async function EditorialDetailPage({
                 {score}% ready
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{displayTitle(item)}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h1 className="text-2xl font-bold text-portal-text tracking-tight">{displayTitle(item)}</h1>
+            <p className="text-sm text-portal-sub mt-0.5">
               {config.group} · {fmtDate(item.created_at)} · by {item.submitter_name}
             </p>
           </div>
           <Link href={`/admin/community/${id}`}
-            className="shrink-0 px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-xl hover:bg-portal-bg transition-colors">
             Submission View ↗
           </Link>
         </div>
@@ -332,18 +332,18 @@ export default async function EditorialDetailPage({
 
           {/* Source submission answers — collapsed */}
           <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <summary className="px-5 py-4 text-xs font-semibold text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors select-none uppercase tracking-wide flex items-center gap-2">
+            <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide flex items-center gap-2">
               <span>Source Submission Answers</span>
               <span className="text-gray-300">▸</span>
             </summary>
             <div className="px-5 pb-5 pt-1 border-t border-gray-50 space-y-4">
               {/* Submitter */}
               <div className="flex items-center gap-3 pt-2">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-portal-sub shrink-0">
                   {item.submitter_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{item.submitter_name}</p>
+                  <p className="text-sm font-semibold text-portal-text">{item.submitter_name}</p>
                   <a href={`mailto:${item.submitter_email}`} className="text-xs text-portal-blue hover:underline">{item.submitter_email}</a>
                 </div>
               </div>
@@ -353,9 +353,9 @@ export default async function EditorialDetailPage({
                   const v = item.payload[f.id]
                   return (
                     <div key={f.id}>
-                      <p className="text-[11px] font-semibold text-gray-400 mb-0.5">{f.label}</p>
+                      <p className="text-[11px] font-semibold text-portal-muted mb-0.5">{f.label}</p>
                       {v ? (
-                        <p className={`text-sm text-gray-700 leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
+                        <p className={`text-sm text-portal-text leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
                       ) : (
                         <p className="text-sm italic text-gray-300">{f.required ? 'Not provided' : 'Not provided (optional)'}</p>
                       )}
@@ -375,7 +375,7 @@ export default async function EditorialDetailPage({
             }`}>
               <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">AI Draft</h2>
+                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     item.ai_draft_status === 'ready'     ? 'bg-green-100 text-green-700'
                     : item.ai_draft_status === 'needs_info' ? 'bg-portal-amber-lt text-portal-amber'
@@ -385,7 +385,7 @@ export default async function EditorialDetailPage({
                   </span>
                 </div>
                 {item.ai_prompt_used && (
-                  <span className="text-[10px] text-gray-400 font-mono">{item.ai_prompt_used}</span>
+                  <span className="text-[10px] text-portal-muted font-mono">{item.ai_prompt_used}</span>
                 )}
               </div>
               {item.ai_draft_status === 'ready' && (
@@ -396,20 +396,20 @@ export default async function EditorialDetailPage({
                 </div>
               )}
               <div className="px-5 py-5">
-                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{item.ai_draft_content}</p>
+                <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{item.ai_draft_content}</p>
               </div>
               <div className="px-5 pb-4 flex items-center justify-between">
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px] text-portal-muted">
                   {fmtDate(item.updated_at)} · AI assist only — human approval required
                 </p>
                 <div className="flex gap-2">
                   <form action={generateDraft}>
-                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold">
+                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-semibold">
                       ↺ Regenerate
                     </button>
                   </form>
                   <form action={clearDraft}>
-                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 font-semibold">
+                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-portal-red hover:bg-portal-red-lt font-semibold">
                       Clear
                     </button>
                   </form>
@@ -418,8 +418,8 @@ export default async function EditorialDetailPage({
             </div>
           ) : (
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">AI Draft</h2>
-              <p className="text-sm text-gray-400 italic mb-3">No draft generated yet.</p>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">AI Draft</h2>
+              <p className="text-sm text-portal-muted italic mb-3">No draft generated yet.</p>
               <form action={generateDraft}>
                 <button type="submit" className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
                   ✍️ Generate Draft
@@ -431,7 +431,7 @@ export default async function EditorialDetailPage({
           {/* Editor Notes */}
           {item.editor_notes && (
             <Card title="Editor Notes">
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{item.editor_notes}</p>
+              <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{item.editor_notes}</p>
               <Link href={`/admin/community/${id}`} className="text-xs text-portal-blue hover:underline mt-2 inline-block">
                 Edit in submission view →
               </Link>
@@ -449,7 +449,7 @@ export default async function EditorialDetailPage({
             {/* Article Metadata */}
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
               <div className="px-5 py-3.5 border-b border-gray-50">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Article Metadata</h2>
+                <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Article Metadata</h2>
               </div>
               <div className="px-5 py-4 space-y-4">
                 <Row label="Working Title" required>
@@ -481,7 +481,7 @@ export default async function EditorialDetailPage({
             {/* Destination & Assignment */}
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Destination & Assignment</h2>
+                <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Destination & Assignment</h2>
               </div>
               <div className="px-5 py-4 space-y-4">
                 <Row label="Primary Destination" required>
@@ -535,7 +535,7 @@ export default async function EditorialDetailPage({
 
                 {/* Additional destination flags */}
                 <div className="space-y-2.5 pt-1 border-t border-gray-50">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Also include in:</p>
+                  <p className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide">Also include in:</p>
                   {[
                     { name: 'newsletter_include', label: 'Newsletter',       checked: item.newsletter_include },
                     { name: 'social_queue',       label: 'Social Queue',     checked: item.social_queue       },
@@ -546,9 +546,9 @@ export default async function EditorialDetailPage({
                         type="checkbox"
                         name={cb.name}
                         defaultChecked={cb.checked}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600"
+                        className="w-4 h-4 rounded border-portal-border-2 text-indigo-600"
                       />
-                      <span className="text-sm text-gray-700">{cb.label}</span>
+                      <span className="text-sm text-portal-text">{cb.label}</span>
                     </label>
                   ))}
                   {/* Permissions — for profile types */}
@@ -558,9 +558,9 @@ export default async function EditorialDetailPage({
                         type="checkbox"
                         name="permissions_confirmed"
                         defaultChecked={item.permissions_confirmed}
-                        className="w-4 h-4 rounded border-gray-300 text-green-600"
+                        className="w-4 h-4 rounded border-portal-border-2 text-green-600"
                       />
-                      <span className="text-sm text-gray-700 font-medium">Permissions confirmed</span>
+                      <span className="text-sm text-portal-text font-medium">Permissions confirmed</span>
                     </label>
                   )}
                 </div>
@@ -591,7 +591,7 @@ export default async function EditorialDetailPage({
                     {ci.present ? '✓' : ci.required ? '✗' : '○'}
                   </span>
                   <span className={`text-xs ${
-                    ci.present ? 'text-gray-600' : ci.required ? 'text-red-700 font-semibold' : 'text-gray-400'
+                    ci.present ? 'text-portal-sub' : ci.required ? 'text-red-700 font-semibold' : 'text-portal-muted'
                   }`}>
                     {ci.label}
                     {!ci.present && !ci.required && <span className="text-gray-300 ml-1">(optional)</span>}
@@ -624,7 +624,7 @@ export default async function EditorialDetailPage({
                   <form key={s} action={updateStatus}>
                     <input type="hidden" name="status" value={s} />
                     <button type="submit"
-                      className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-left">
+                      className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold border border-portal-border text-portal-sub hover:bg-portal-bg transition-colors text-left">
                       {scfg.label}
                     </button>
                   </form>
@@ -635,7 +635,7 @@ export default async function EditorialDetailPage({
 
           {/* AI Future Hooks */}
           <Card title="AI Tools">
-            <p className="text-[11px] text-gray-400 mb-3">Coming in a future update.</p>
+            <p className="text-[11px] text-portal-muted mb-3">Coming in a future update.</p>
             <div className="space-y-1.5">
               {[
                 '💡 Rewrite Headline',
@@ -645,9 +645,9 @@ export default async function EditorialDetailPage({
                 '🤝 Suggest Sponsor Pairing',
               ].map(label => (
                 <button key={label} disabled
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-gray-400 cursor-not-allowed">
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed">
                   <span className="flex-1">{label}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>

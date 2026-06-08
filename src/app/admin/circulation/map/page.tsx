@@ -44,11 +44,11 @@ export default async function CirculationMapPage() {
           </Link>
           <div className="flex items-center gap-2">
             <MapIcon size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Map</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Map</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            All active stops in <span className="font-semibold text-gray-700">{region.name}</span>
-            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}. Click a marker for details.
+          <p className="text-sm text-portal-sub mt-1">
+            All active stops in <span className="font-semibold text-portal-text">{region.name}</span>
+            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}. Click a marker for details.
           </p>
         </div>
 

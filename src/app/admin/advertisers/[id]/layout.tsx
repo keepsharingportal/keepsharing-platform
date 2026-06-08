@@ -26,7 +26,7 @@ const TIER_LABEL: Record<string, string> = {
   'tier-4-won':      'Tier 4 — Won',
 }
 const TIER_BADGE: Record<string, string> = {
-  'tier-1-found':    'bg-gray-100 text-gray-700 ring-gray-200',
+  'tier-1-found':    'bg-gray-100 text-portal-text ring-gray-200',
   'tier-2-featured': 'bg-sky-100 text-sky-800 ring-sky-200',
   'tier-3-chosen':   'bg-violet-100 text-violet-800 ring-violet-200',
   'tier-4-won':      'bg-portal-amber-lt text-portal-amber ring-amber-200',
@@ -34,7 +34,7 @@ const TIER_BADGE: Record<string, string> = {
 const LIFECYCLE_BADGE: Record<string, string> = {
   'active':      'bg-portal-green-lt text-portal-green ring-emerald-200',
   'onboarding':  'bg-sky-100 text-sky-800 ring-sky-200',
-  'lead':        'bg-gray-100 text-gray-700 ring-gray-200',
+  'lead':        'bg-gray-100 text-portal-text ring-gray-200',
   'renewal':     'bg-portal-amber-lt text-portal-amber ring-amber-200',
   'dormant':     'bg-portal-red-lt text-portal-red ring-rose-200',
 }
@@ -89,9 +89,9 @@ export default async function AdvertiserLayout({ children, params }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* ── Sticky header + tabs ─────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-portal-border sticky top-0 z-10">
         <div className="px-6 py-4">
-          <Link href="/admin/advertisers" className="text-xs text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 mb-2">
+          <Link href="/admin/advertisers" className="text-xs text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-2">
             <ArrowLeft size={12} /> All Businesses
           </Link>
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -105,14 +105,14 @@ export default async function AdvertiserLayout({ children, params }: Props) {
                 </div>
               )}
               <div className="min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 truncate">{name}</h1>
+                <h1 className="text-xl font-bold text-portal-text truncate">{name}</h1>
                 <div className="flex items-center gap-2 flex-wrap mt-1">
                   {tier && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${TIER_BADGE[tier] ?? 'bg-gray-100 text-gray-700 ring-gray-200'}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${TIER_BADGE[tier] ?? 'bg-gray-100 text-portal-text ring-gray-200'}`}>
                       {TIER_LABEL[tier] ?? tier}
                     </span>
                   )}
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${LIFECYCLE_BADGE[lifecycle] ?? 'bg-gray-100 text-gray-700 ring-gray-200'}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${LIFECYCLE_BADGE[lifecycle] ?? 'bg-gray-100 text-portal-text ring-gray-200'}`}>
                     {lifecycle}
                   </span>
                   {loyaltyTier && (
@@ -128,7 +128,7 @@ export default async function AdvertiserLayout({ children, params }: Props) {
                 <Link
                   href={`/partners/${slug}`}
                   target="_blank"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
                 >
                   <ExternalLink size={12} /> Public Page
                 </Link>

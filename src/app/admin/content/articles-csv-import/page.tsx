@@ -272,9 +272,9 @@ export default function ArticlesCsvImportPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900">Article CSV Import (Handoff Format)</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
+        <h1 className="text-xl font-semibold text-portal-text">Article CSV Import (Handoff Format)</h1>
+        <p className="text-sm text-portal-sub mt-0.5">
           Upload <strong>school_bits_cleaned_import.csv</strong> or <strong>wp_posts_cleaned_import.csv</strong>
           {' '}from the content activation package · All articles import as &ldquo;pending review&rdquo;
         </p>
@@ -286,7 +286,7 @@ export default function ArticlesCsvImportPage() {
         {rows.length === 0 && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -294,10 +294,10 @@ export default function ArticlesCsvImportPage() {
             onClick={() => fileRef.current?.click()}
           >
             <Upload size={32} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-portal-text">
               Drop <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">school_bits_cleaned_import.csv</code> or <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">wp_posts_cleaned_import.csv</code> here
             </p>
-            <p className="text-xs text-gray-400 mt-2">Or click to browse · Start with school_bits for fastest homepage impact</p>
+            <p className="text-xs text-portal-muted mt-2">Or click to browse · Start with school_bits for fastest homepage impact</p>
             <input ref={fileRef} type="file" accept=".csv" className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f) }} />
           </div>
@@ -314,8 +314,8 @@ export default function ArticlesCsvImportPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-sm text-gray-600">
-                  <span className="font-bold text-gray-900">{rows.length}</span> articles from{' '}
+                <span className="text-sm text-portal-sub">
+                  <span className="font-bold text-portal-text">{rows.length}</span> articles from{' '}
                   <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{fileName}</code>
                 </span>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -326,7 +326,7 @@ export default function ArticlesCsvImportPage() {
                   ))}
                 </div>
               </div>
-              <button onClick={reset} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600">
+              <button onClick={reset} className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
                 <X size={13} /> Reset
               </button>
             </div>
@@ -340,37 +340,37 @@ export default function ArticlesCsvImportPage() {
             )}
 
             {/* Preview table */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-xl overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Preview</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Preview</span>
+                <span className="text-xs text-portal-muted">
                   {rows.filter(r => r.hero_image_url).length} of {rows.length} have hero images
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">#</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Title</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Column</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Region</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Published</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Image</th>
+                    <tr className="border-b border-gray-100 bg-portal-bg">
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">#</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Title</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Column</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Region</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Published</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Image</th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayRows.map((row, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={i} className="border-b border-gray-50 hover:bg-portal-bg">
                         <td className="px-4 py-2 text-gray-300">{i + 1}</td>
-                        <td className="px-4 py-2 text-gray-800 font-medium truncate max-w-[240px]">{row.title}</td>
+                        <td className="px-4 py-2 text-portal-text font-medium truncate max-w-[240px]">{row.title}</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-semibold">
                             {row.column_slug ?? 'article'}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-gray-400">{row._schoolRegion ?? '—'}</td>
-                        <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                        <td className="px-4 py-2 text-portal-muted">{row._schoolRegion ?? '—'}</td>
+                        <td className="px-4 py-2 text-portal-sub whitespace-nowrap">
                           {row.published_at ? new Date(row.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—'}
                         </td>
                         <td className="px-4 py-2">
@@ -387,7 +387,7 @@ export default function ArticlesCsvImportPage() {
               {rows.length > 20 && (
                 <button
                   onClick={() => setShowAll(!showAll)}
-                  className="w-full py-3 text-xs text-gray-400 hover:text-gray-600 border-t border-gray-100"
+                  className="w-full py-3 text-xs text-portal-muted hover:text-portal-sub border-t border-gray-100"
                 >
                   {showAll ? 'Show less' : `Show all ${rows.length} rows`}
                 </button>
@@ -396,10 +396,10 @@ export default function ArticlesCsvImportPage() {
 
             {/* Import progress (during import) */}
             {importing && (
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="bg-white rounded-xl border border-portal-border p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <RefreshCw size={14} className="text-portal-blue animate-spin" />
-                  <span className="text-sm text-gray-600">{progress.done} / {progress.total} articles processed</span>
+                  <span className="text-sm text-portal-sub">{progress.done} / {progress.total} articles processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
@@ -425,34 +425,34 @@ export default function ArticlesCsvImportPage() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Inserted', value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
-                { label: 'Skipped',  value: totals.skipped,  color: 'text-gray-500',  bg: 'bg-gray-50 border-gray-200'  },
-                { label: 'Errors',   value: totals.errors,   color: 'text-red-600',   bg: 'bg-red-50 border-red-200'    },
+                { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
+                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-xl border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
-                  <div className="text-xs text-gray-500 mt-1">{label}</div>
+                  <div className="text-xs text-portal-sub mt-1">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
               <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'ok'      ? 'bg-green-100 text-green-700' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-gray-500'  :
+                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status === 'ok' ? 'imported' : r.status}</span>
-                    <span className="text-xs text-gray-700 flex-1 truncate">{r.title}</span>
-                    {r.message && <span className="text-[10px] text-gray-400 truncate max-w-xs">{r.message}</span>}
+                    <span className="text-xs text-portal-text flex-1 truncate">{r.title}</span>
+                    {r.message && <span className="text-[10px] text-portal-muted truncate max-w-xs">{r.message}</span>}
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={reset} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50">
+              <button onClick={reset} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-xl hover:bg-portal-bg">
                 Import another file
               </button>
               <a href="/admin/articles/review"

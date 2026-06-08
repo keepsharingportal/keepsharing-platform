@@ -216,7 +216,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
+  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -286,9 +286,9 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
                 }
               }}
               placeholder="https://..."
-              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-blue-500 bg-white"
+              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
             />
-            <p className="mt-1 text-[10px] text-gray-500 leading-relaxed">
+            <p className="mt-1 text-[10px] text-portal-sub leading-relaxed">
               Pasted URLs get auto-optimized into our storage (faster loads,
               survives if the source goes down).
             </p>
@@ -468,7 +468,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
           )}
 
           {dupeChecking && duplicates.length === 0 && (
-            <p className="text-[11px] text-gray-500 italic inline-flex items-center gap-1">
+            <p className="text-[11px] text-portal-sub italic inline-flex items-center gap-1">
               <RefreshCw size={9} className="animate-spin" /> Checking for duplicates…
             </p>
           )}

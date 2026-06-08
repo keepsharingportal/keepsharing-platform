@@ -104,9 +104,9 @@ export function DigitalIssuesEditor({ initial, market }: Props) {
       <AddIssueForm market={market} onCreated={handleCreated} />
 
       {issues.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-          <p className="text-sm text-gray-500">No issues yet.</p>
-          <p className="text-xs text-gray-400 mt-1">Add your first issue above.</p>
+        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <p className="text-sm text-portal-sub">No issues yet.</p>
+          <p className="text-xs text-portal-muted mt-1">Add your first issue above.</p>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -148,26 +148,26 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
   }
 
   return (
-    <li className={`rounded-xl border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 ring-1 ring-amber-200' : 'border-gray-200'}`}>
+    <li className={`rounded-xl border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 ring-1 ring-amber-200' : 'border-portal-border'}`}>
       <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
         {issue.cover_url ? (
           <Image src={issue.cover_url} alt={`${issue.label} cover`} fill style={{ objectFit: 'cover' }} unoptimized sizes="64px" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 text-center px-1">No cover</div>
+          <div className="w-full h-full flex items-center justify-center text-[10px] text-portal-muted text-center px-1">No cover</div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-bold text-gray-900 truncate">{issue.label}</p>
+          <p className="text-sm font-bold text-portal-text truncate">{issue.label}</p>
           {issue.is_current && (
             <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-portal-amber bg-portal-amber-lt rounded-full px-2 py-0.5">
               <Star size={9} fill="currentColor" /> Current
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{monthDisplay(issue.issue_month)}</p>
-        {issue.tagline && <p className="text-xs text-gray-700 mt-1 line-clamp-2">{issue.tagline}</p>}
+        <p className="text-xs text-portal-sub mt-0.5">{monthDisplay(issue.issue_month)}</p>
+        {issue.tagline && <p className="text-xs text-portal-text mt-1 line-clamp-2">{issue.tagline}</p>}
         <a
           href={issue.issuu_url}
           target="_blank"
@@ -190,13 +190,13 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         )}
         <button
           onClick={() => setEditing(true)}
-          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
         >
           <Pencil size={11} /> Edit
         </button>
         <button
           onClick={onDelete}
-          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-600 hover:bg-red-50"
+          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt"
         >
           <Trash2 size={11} /> Delete
         </button>
@@ -226,14 +226,14 @@ function AddIssueForm({ market, onCreated }: AddProps) {
 
   if (!open) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4">
+      <div className="rounded-xl border border-dashed border-portal-border-2 bg-white p-4">
         <button
           onClick={() => setOpen(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
         >
           <Plus size={12} /> Add Issue
         </button>
-        <p className="text-xs text-gray-500 mt-2">Adds a digital edition to this market.</p>
+        <p className="text-xs text-portal-sub mt-2">Adds a digital edition to this market.</p>
       </div>
     )
   }
@@ -287,8 +287,8 @@ function AddIssueForm({ market, onCreated }: AddProps) {
   return (
     <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-900">New Issue</p>
-        <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
+        <p className="text-sm font-bold text-portal-text">New Issue</p>
+        <button onClick={() => setOpen(false)} className="text-portal-muted hover:text-portal-sub">
           <X size={14} />
         </button>
       </div>
@@ -299,13 +299,13 @@ function AddIssueForm({ market, onCreated }: AddProps) {
         <FieldText label="Tagline" value={tagline} onChange={setTagline} placeholder="Summer Fun Issue: 100+ camps…" className="md:col-span-2" />
         <FieldEmbed value={issuu} onChange={setIssuu} />
         <CoverField cover={cover} coverFile={coverFile} setCover={setCover} setCoverFile={setCoverFile} />
-        <label className="flex items-center gap-2 text-xs text-gray-700 mt-2 md:mt-0 self-start">
+        <label className="flex items-center gap-2 text-xs text-portal-text mt-2 md:mt-0 self-start">
           <input type="checkbox" checked={makeCurrent} onChange={e => setMakeCurrent(e.target.checked)} />
           Make this the current issue
         </label>
       </div>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-portal-red">{error}</p>}
 
       <div className="flex items-center gap-2">
         <button
@@ -318,7 +318,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
         </button>
         <button
           onClick={() => setOpen(false)}
-          className="px-3 py-1.5 text-xs font-semibold text-gray-600 rounded-lg hover:bg-gray-100"
+          className="px-3 py-1.5 text-xs font-semibold text-portal-sub rounded-lg hover:bg-portal-row-hover"
         >
           Cancel
         </button>
@@ -398,8 +398,8 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
   return (
     <li className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-900">Edit Issue</p>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+        <p className="text-sm font-bold text-portal-text">Edit Issue</p>
+        <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub">
           <X size={14} />
         </button>
       </div>
@@ -412,7 +412,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
         <CoverField cover={cover} coverFile={coverFile} setCover={setCover} setCoverFile={setCoverFile} />
       </div>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-portal-red">{error}</p>}
 
       <div className="flex items-center gap-2">
         <button
@@ -423,7 +423,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save Changes'}
         </button>
-        <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-gray-600 rounded-lg hover:bg-gray-100">
+        <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-portal-sub rounded-lg hover:bg-portal-row-hover">
           Cancel
         </button>
       </div>
@@ -438,13 +438,13 @@ function FieldText({ label, value, onChange, placeholder, className }: {
 }) {
   return (
     <label className={`block ${className ?? ''}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-1 w-full rounded-md border border-portal-border-2 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -455,15 +455,15 @@ function FieldEmbed({ value, onChange }: {
 }) {
   return (
     <label className="block md:col-span-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Issuu Embed Code</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">Issuu Embed Code</span>
       <textarea
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={'Paste either the publication URL (https://issuu.com/…) or Issuu\'s full <iframe …> embed code'}
         rows={3}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-1 w-full rounded-md border border-portal-border-2 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
-      <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+      <p className="text-[11px] text-portal-sub mt-1 leading-snug">
         Paste whatever Issuu gives you — the publication URL, the embed <code className="px-1 bg-gray-100 rounded">src</code> URL,
         or the full <code className="px-1 bg-gray-100 rounded">&lt;iframe&gt;</code> snippet. We&apos;ll parse it and build the
         sidebar embed + the &ldquo;Open in New Tab&rdquo; link from the same value.
@@ -477,12 +477,12 @@ function FieldDate({ label, value, onChange }: {
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
       <input
         type="date"
         value={value.slice(0, 10)}
         onChange={e => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
+        className="mt-1 w-full rounded-md border border-portal-border-2 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -500,10 +500,10 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
   const hasCover = !!(cover || coverFile)
   return (
     <div>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-        Cover Image <span className="text-gray-400 normal-case font-normal">(optional)</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">
+        Cover Image <span className="text-portal-muted normal-case font-normal">(optional)</span>
       </span>
-      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+      <p className="text-[11px] text-portal-sub mt-0.5 leading-snug">
         Used as the thumbnail in the homepage &ldquo;Recent Issues&rdquo; carousel for past issues. The current issue&apos;s sidebar uses the embed instead, so this is optional for the current month.
       </p>
       <div className="mt-2 flex items-start gap-4">
@@ -513,7 +513,7 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
           className={`relative shrink-0 w-28 aspect-[3/4] rounded-lg overflow-hidden cursor-pointer transition-colors group ${
             hasCover
               ? 'ring-1 ring-gray-300 bg-white shadow-sm hover:ring-gray-400'
-              : 'border-2 border-dashed border-gray-300 bg-gray-50 hover:border-portal-blue hover:bg-portal-blue-lt'
+              : 'border-2 border-dashed border-portal-border-2 bg-portal-bg hover:border-portal-blue hover:bg-portal-blue-lt'
           }`}
         >
           {coverFile ? (
@@ -523,9 +523,9 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
             <Image src={cover} alt="cover" fill style={{ objectFit: 'cover' }} unoptimized sizes="112px" />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center">
-              <Upload size={18} className="text-gray-400 group-hover:text-portal-blue transition-colors" />
-              <span className="text-[10px] font-bold text-gray-500 group-hover:text-portal-blue uppercase tracking-wider transition-colors">Click to upload</span>
-              <span className="text-[9px] text-gray-400 leading-tight">3:4 ratio · PNG / JPG</span>
+              <Upload size={18} className="text-portal-muted group-hover:text-portal-blue transition-colors" />
+              <span className="text-[10px] font-bold text-portal-sub group-hover:text-portal-blue uppercase tracking-wider transition-colors">Click to upload</span>
+              <span className="text-[9px] text-portal-muted leading-tight">3:4 ratio · PNG / JPG</span>
             </div>
           )}
           {hasCover && (
@@ -554,12 +554,12 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
             <button
               onClick={() => { setCover(null); setCoverFile(null) }}
               type="button"
-              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 hover:text-red-600 text-left"
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-portal-sub hover:text-portal-red text-left"
             >
               <Trash2 size={11} /> Remove cover
             </button>
           )}
-          <p className="text-[10px] text-gray-400 leading-snug max-w-[180px]">
+          <p className="text-[10px] text-portal-muted leading-snug max-w-[180px]">
             Click the preview tile or this button — both open the file picker.
           </p>
         </div>

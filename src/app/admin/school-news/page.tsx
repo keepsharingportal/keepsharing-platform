@@ -64,7 +64,7 @@ export default async function SchoolNewsPage({ searchParams }: PageProps) {
     return (
       <div className="flex-1 overflow-y-auto">
         <main className="p-6 max-w-3xl mx-auto">
-          <h1 className="text-xl font-bold text-gray-900 mb-4">School Bits</h1>
+          <h1 className="text-xl font-bold text-portal-text mb-4">School Bits</h1>
           <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
             <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
             <p className="text-sm text-portal-amber leading-relaxed">

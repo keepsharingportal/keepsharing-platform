@@ -225,13 +225,13 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
   const showRaw      = state.freq === 'ADVANCED' || state.freq === 'CUSTOM_DAYS'
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-      <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+    <div className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
+      <label className="flex items-center gap-2 text-sm font-semibold text-portal-text">
         <input
           type="checkbox"
           checked={state.enabled}
           onChange={e => setState(s => ({ ...s, enabled: e.target.checked }))}
-          className="rounded border-gray-300"
+          className="rounded border-portal-border-2"
         />
         Event Repeating (recurring event)
       </label>
@@ -240,25 +240,25 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
         <div className="space-y-3 pl-6">
           {/* Repeats + interval */}
           <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide w-20">Repeats</label>
+            <label className="text-xs font-semibold text-portal-sub uppercase tracking-wide w-20">Repeats</label>
             <select
               value={state.freq}
               onChange={e => setState(s => ({ ...s, freq: e.target.value as Freq }))}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
+              className="px-3 py-1.5 text-sm rounded-lg border border-portal-border bg-white outline-none focus:border-portal-blue"
             >
               {FREQ_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-            <span className="text-xs text-gray-500">every</span>
+            <span className="text-xs text-portal-sub">every</span>
             <input
               type="number"
               min={1}
               value={state.interval}
               onChange={e => setState(s => ({ ...s, interval: Math.max(1, Number(e.target.value) || 1) }))}
-              className="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
+              className="w-16 px-2 py-1.5 text-sm rounded-lg border border-portal-border bg-white outline-none focus:border-portal-blue"
             />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-portal-sub">
               {state.freq === 'DAILY'   ? (state.interval > 1 ? 'days'   : 'day')
               : state.freq === 'WEEKLY' || state.freq === 'WEEKDAYS' || state.freq === 'WEEKENDS' || state.freq === 'CERTAIN_WEEKDAYS'
                                         ? (state.interval > 1 ? 'weeks'  : 'week')
@@ -280,7 +280,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                     className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition ${
                       on
                         ? 'bg-portal-navy text-white border-portal-blue'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                        : 'bg-white text-portal-sub border-portal-border hover:border-gray-400'
                     }`}
                   >
                     {d.label}
@@ -292,7 +292,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
 
           {showRaw && (
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide">
                 {state.freq === 'CUSTOM_DAYS' ? 'Custom dates (RDATE)' : 'Raw RRULE'}
               </label>
               <input
@@ -301,9 +301,9 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                 placeholder={state.freq === 'CUSTOM_DAYS'
                   ? 'RDATE:20260601T080000Z,20260615T080000Z,20260629T080000Z'
                   : 'FREQ=WEEKLY;BYDAY=TU,TH;UNTIL=20261231T235959Z'}
-                className="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
+                className="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-portal-border bg-white outline-none focus:border-portal-blue"
               />
-              <p className="text-[11px] text-gray-500">
+              <p className="text-[11px] text-portal-sub">
                 {state.freq === 'CUSTOM_DAYS'
                   ? 'Comma-separated list of UTC date-times. Use the friendly options above unless you need explicit dates.'
                   : 'RFC 5545 RRULE format. Falls back to this when the friendly options can’t express the schedule.'}
@@ -313,9 +313,9 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
 
           {/* Ends */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Ends Repeat</label>
+            <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide">Ends Repeat</label>
             <div className="flex items-center gap-3 flex-wrap">
-              <label className="inline-flex items-center gap-1.5 text-sm text-gray-700">
+              <label className="inline-flex items-center gap-1.5 text-sm text-portal-text">
                 <input
                   type="radio"
                   name="ends-mode"
@@ -324,7 +324,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                 />
                 Never
               </label>
-              <label className="inline-flex items-center gap-1.5 text-sm text-gray-700">
+              <label className="inline-flex items-center gap-1.5 text-sm text-portal-text">
                 <input
                   type="radio"
                   name="ends-mode"
@@ -336,11 +336,11 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                   type="date"
                   value={state.until}
                   onChange={e => setState(s => ({ ...s, endsMode: 'ON', until: e.target.value }))}
-                  className="px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue disabled:opacity-50"
+                  className="px-2 py-1 text-xs rounded-lg border border-portal-border bg-white outline-none focus:border-portal-blue disabled:opacity-50"
                   disabled={state.endsMode !== 'ON'}
                 />
               </label>
-              <label className="inline-flex items-center gap-1.5 text-sm text-gray-700">
+              <label className="inline-flex items-center gap-1.5 text-sm text-portal-text">
                 <input
                   type="radio"
                   name="ends-mode"
@@ -353,7 +353,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                   min={1}
                   value={state.count}
                   onChange={e => setState(s => ({ ...s, endsMode: 'AFTER', count: Math.max(1, Number(e.target.value) || 1) }))}
-                  className="w-16 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue disabled:opacity-50"
+                  className="w-16 px-2 py-1 text-xs rounded-lg border border-portal-border bg-white outline-none focus:border-portal-blue disabled:opacity-50"
                   disabled={state.endsMode !== 'AFTER'}
                 />
                 occurrences
@@ -363,9 +363,9 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
 
           {/* Preview */}
           {generated && (
-            <div className="rounded-md bg-gray-50 px-3 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-0.5">Saved as</p>
-              <code className="text-[11px] font-mono text-gray-800 break-all">{generated}</code>
+            <div className="rounded-md bg-portal-bg px-3 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-portal-sub mb-0.5">Saved as</p>
+              <code className="text-[11px] font-mono text-portal-text break-all">{generated}</code>
             </div>
           )}
         </div>

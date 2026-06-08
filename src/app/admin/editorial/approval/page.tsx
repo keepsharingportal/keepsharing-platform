@@ -249,14 +249,14 @@ async function genImageNote(formData: FormData) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-const iCls  = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-300 transition-colors'
+const iCls  = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-indigo-300 transition-colors'
 const iClsTA = `${iCls} resize-vertical`
 
 function Card({ title, children, accent }: { title: string; accent?: string; children: ReactNode }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
       <div className="px-5 py-3.5 border-b border-gray-50">
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">{title}</h2>
+        <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">{title}</h2>
       </div>
       <div className="px-5 py-4">{children}</div>
     </div>
@@ -372,14 +372,14 @@ export default async function ApprovalPage({
 
         {/* Header */}
         <div>
-          <Link href="/admin/editorial/approval" className="text-sm text-gray-400 hover:text-gray-700 font-medium transition-colors">
+          <Link href="/admin/editorial/approval" className="text-sm text-portal-muted hover:text-portal-text font-medium transition-colors">
             ← Review Desk
           </Link>
           <div className="mt-3 flex items-start gap-4 flex-wrap">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span className="text-xl">{tc?.emoji}</span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{tc?.label}</span>
+                <span className="text-xs font-bold text-portal-muted uppercase tracking-wide">{tc?.label}</span>
                 <ApprovalBadge label="Web"        approved={item.approved_web}        color="#16a34a" />
                 <ApprovalBadge label="Newsletter" approved={item.approved_newsletter} color="#0284c7" />
                 <ApprovalBadge label="Social"     approved={item.approved_social}     color="#7c3aed" />
@@ -390,14 +390,14 @@ export default async function ApprovalPage({
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">Planner Ready ✓</span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{title}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h1 className="text-2xl font-bold text-portal-text tracking-tight">{title}</h1>
+              <p className="text-sm text-portal-sub mt-0.5">
                 {tc?.label} · {item.target_publication.toUpperCase()}
                 {item.issue_month && ` · ${item.issue_month}${item.issue_year ? ` ${item.issue_year}` : ''}`}
               </p>
             </div>
             <Link href={`/admin/editorial/${item.id}`}
-              className="shrink-0 px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">
+              className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-xl hover:bg-portal-bg">
               Full Editorial View ↗
             </Link>
           </div>
@@ -424,13 +424,13 @@ export default async function ApprovalPage({
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accent}` }}>
               <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Final Draft</h2>
-                  <p className="text-[11px] text-gray-400 mt-0.5">This content is not published. Read carefully before approving.</p>
+                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Final Draft</h2>
+                  <p className="text-[11px] text-portal-muted mt-0.5">This content is not published. Read carefully before approving.</p>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   item.ai_draft_status === 'edited' ? 'bg-green-100 text-green-700'
                   : item.ai_draft_status === 'ready' ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-gray-100 text-gray-500'
+                  : 'bg-gray-100 text-portal-sub'
                 }`}>
                   {item.ai_draft_status === 'edited' ? 'Edited ✓' : item.ai_draft_status === 'ready' ? 'AI Draft' : item.ai_draft_status}
                 </span>
@@ -439,16 +439,16 @@ export default async function ApprovalPage({
               {item.ai_draft_content ? (
                 <div className="px-6 py-6">
                   {item.working_title && (
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight">{item.working_title}</h3>
+                    <h3 className="text-lg font-bold text-portal-text mb-2 leading-tight">{item.working_title}</h3>
                   )}
                   {item.excerpt && (
-                    <p className="text-sm text-gray-500 italic mb-4 leading-relaxed border-l-2 border-gray-200 pl-3">{item.excerpt}</p>
+                    <p className="text-sm text-portal-sub italic mb-4 leading-relaxed border-l-2 border-portal-border pl-3">{item.excerpt}</p>
                   )}
-                  <p className="text-sm text-gray-800 leading-[1.85] whitespace-pre-wrap">{item.ai_draft_content}</p>
+                  <p className="text-sm text-portal-text leading-[1.85] whitespace-pre-wrap">{item.ai_draft_content}</p>
                 </div>
               ) : (
                 <div className="px-5 py-8 text-center">
-                  <p className="text-sm text-gray-400 italic">No draft generated yet.</p>
+                  <p className="text-sm text-portal-muted italic">No draft generated yet.</p>
                   <Link href={`/admin/community/${item.id}`} className="text-xs text-indigo-600 hover:underline mt-2 inline-block">
                     Generate draft in submission view →
                   </Link>
@@ -458,15 +458,15 @@ export default async function ApprovalPage({
               {/* Editorial notes */}
               {item.editor_notes && (
                 <div className="px-5 pb-4 border-t border-gray-50 pt-3">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Editor Notes</p>
-                  <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{item.editor_notes}</p>
+                  <p className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide mb-1">Editor Notes</p>
+                  <p className="text-xs text-portal-sub leading-relaxed whitespace-pre-wrap">{item.editor_notes}</p>
                 </div>
               )}
             </div>
 
             {/* Source Answers — collapsed */}
             <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-              <summary className="px-5 py-4 text-xs font-semibold text-gray-400 cursor-pointer hover:bg-gray-50 select-none uppercase tracking-wide">
+              <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg select-none uppercase tracking-wide">
                 Source Submission Answers
               </summary>
               <div className="px-5 pb-5 pt-2 border-t border-gray-50 space-y-4">
@@ -474,9 +474,9 @@ export default async function ApprovalPage({
                   const v = item.payload?.[f.id]
                   return (
                     <div key={f.id}>
-                      <p className="text-[11px] font-semibold text-gray-400 mb-0.5">{f.label}</p>
+                      <p className="text-[11px] font-semibold text-portal-muted mb-0.5">{f.label}</p>
                       {v ? (
-                        <p className={`text-sm text-gray-700 leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
+                        <p className={`text-sm text-portal-text leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
                       ) : (
                         <p className="text-sm italic text-gray-300">Not provided</p>
                       )}
@@ -499,7 +499,7 @@ export default async function ApprovalPage({
                     <span className={`text-base shrink-0 ${c.present ? 'text-green-500' : c.required ? 'text-red-400' : 'text-gray-300'}`}>
                       {c.present ? '✓' : c.required ? '✗' : '○'}
                     </span>
-                    <span className={`text-xs ${c.present ? 'text-gray-600' : c.required ? 'text-red-700 font-semibold' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${c.present ? 'text-portal-sub' : c.required ? 'text-red-700 font-semibold' : 'text-portal-muted'}`}>
                       {c.label}
                       {!c.present && !c.required && <span className="text-gray-300 ml-1">(optional)</span>}
                     </span>
@@ -515,7 +515,7 @@ export default async function ApprovalPage({
 
             {/* Channel Approvals — the main editorial action */}
             <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Channel Approvals</h2>
+              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-4">Channel Approvals</h2>
 
               {/* Current status */}
               <div className="flex gap-2 flex-wrap mb-4">
@@ -543,9 +543,9 @@ export default async function ApprovalPage({
                   { label: 'Approve for Social',     action: approveSocial,     approved: item.approved_social,     color: 'bg-purple-600 hover:bg-purple-700'},
                 ].map(ch => (
                   ch.approved ? (
-                    <div key={ch.label} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                    <div key={ch.label} className="flex items-center gap-2 px-3 py-2 bg-portal-bg rounded-lg">
                       <span className="text-green-600 font-bold">✓</span>
-                      <span className="text-xs font-semibold text-gray-600">{ch.label.replace('Approve for ', '')} approved</span>
+                      <span className="text-xs font-semibold text-portal-sub">{ch.label.replace('Approve for ', '')} approved</span>
                     </div>
                   ) : (
                     <form key={ch.label} action={ch.action}>
@@ -564,7 +564,7 @@ export default async function ApprovalPage({
                 <form action={markPublished} className="mt-3 pt-3 border-t border-gray-50">
                   <input type="hidden" name="item_id" value={item.id} />
                   <button type="submit"
-                    className="w-full py-2 rounded-xl text-xs font-bold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                    className="w-full py-2 rounded-xl text-xs font-bold border border-portal-border text-portal-text hover:bg-portal-bg transition-colors">
                     Mark as Published
                   </button>
                 </form>
@@ -592,51 +592,51 @@ export default async function ApprovalPage({
             {/* Social Promotion Prep */}
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">Social Promotion Prep</h2>
-                <p className="text-[11px] text-gray-400 mt-0.5">Prepared copy — not sent automatically. Approve before any posting.</p>
+                <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Social Promotion Prep</h2>
+                <p className="text-[11px] text-portal-muted mt-0.5">Prepared copy — not sent automatically. Approve before any posting.</p>
               </div>
               <div className="px-5 py-4">
                 <form action={saveSocialPrep} className="space-y-4">
                   <input type="hidden" name="item_id" value={item.id} />
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Facebook Caption</label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Facebook Caption</label>
                     <textarea name="caption_facebook" rows={4} defaultValue={item.caption_facebook ?? ''} placeholder="Write a warm, local Facebook post…" className={iClsTA} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Instagram Caption</label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Instagram Caption</label>
                     <textarea name="caption_instagram" rows={4} defaultValue={item.caption_instagram ?? ''} placeholder="Short, visual, community-feeling…" className={iClsTA} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">SMS / Text Teaser <span className="text-gray-300 font-normal">(keep under 160 chars)</span></label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1">SMS / Text Teaser <span className="text-gray-300 font-normal">(keep under 160 chars)</span></label>
                     <input name="caption_sms" type="text" maxLength={160} defaultValue={item.caption_sms ?? ''} placeholder="Quick teaser for text subscribers…" className={iCls} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Newsletter Teaser <span className="text-gray-300 font-normal">(2–3 sentences)</span></label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Newsletter Teaser <span className="text-gray-300 font-normal">(2–3 sentences)</span></label>
                     <textarea name="newsletter_teaser" rows={3} defaultValue={item.newsletter_teaser ?? ''} placeholder="Brief intro for the newsletter…" className={iClsTA} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">Hashtags <span className="text-gray-300 font-normal">(comma-separated)</span></label>
+                      <label className="block text-xs font-semibold text-portal-sub mb-1.5">Hashtags <span className="text-gray-300 font-normal">(comma-separated)</span></label>
                       <input name="social_hashtags" type="text" defaultValue={hashtagStr} placeholder="rrp, montgomeryal" className={iCls} />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">Post Date</label>
+                      <label className="block text-xs font-semibold text-portal-sub mb-1.5">Post Date</label>
                       <input name="social_publish_date" type="date" defaultValue={item.social_publish_date ?? ''} className={iCls} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Image Note</label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Image Note</label>
                     <input name="social_image_note" type="text" defaultValue={item.social_image_note ?? ''} placeholder="Which photo to use…" className={iCls} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Link</label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Link</label>
                     <input name="social_link" type="url" defaultValue={item.social_link ?? ''} placeholder="https://…" className={iCls} />
                   </div>
 
@@ -663,18 +663,18 @@ export default async function ApprovalPage({
                         { label: 'Hashtags',    val: Array.isArray(item.social_hashtags) && item.social_hashtags.length > 0 ? item.social_hashtags.map(h => `#${h}`).join(' ') : '—' },
                       ].map(r => (
                         <div key={r.label} className="flex gap-2">
-                          <span className="text-gray-400 w-20 shrink-0">{r.label}:</span>
-                          <span className="text-gray-700 break-all">{r.val}</span>
+                          <span className="text-portal-muted w-20 shrink-0">{r.label}:</span>
+                          <span className="text-portal-text break-all">{r.val}</span>
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-gray-400 border-t border-gray-50 pt-2">
+                    <p className="text-[11px] text-portal-muted border-t border-gray-50 pt-2">
                       No automatic posting. Hand caption and link to GHL or your scheduling tool manually.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-xs text-gray-500 leading-relaxed">
+                    <p className="text-xs text-portal-sub leading-relaxed">
                       Social is approved. When the caption, link, and image are ready, mark this for the social planner.
                     </p>
                     <form action={markPlannerReady}>
@@ -692,8 +692,8 @@ export default async function ApprovalPage({
             {/* AI Assist — wired */}
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">AI Assist</h2>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
+                <p className="text-[11px] text-portal-muted mt-0.5">
                   AI drafts first-pass copy. Edit in the Social Prep form above, then approve.
                 </p>
               </div>
@@ -751,18 +751,18 @@ export default async function ApprovalPage({
 
                 {/* Transformation operations — coming soon */}
                 <div className="pt-2 mt-1 border-t border-gray-50 space-y-1.5">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Refine — Coming Soon</p>
+                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Refine — Coming Soon</p>
                   {['✂️ Shorten Caption', '🌡️ Make Warmer', '👔 Make More Professional'].map(label => (
                     <button key={label} disabled
-                      className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 text-xs text-gray-400 cursor-not-allowed">
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed">
                       <span className="flex-1">{label}</span>
-                      <span className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                      <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                     </button>
                   ))}
                 </div>
 
                 {/* Safety note */}
-                <p className="text-[10px] text-gray-400 pt-2 leading-relaxed border-t border-gray-50 mt-1">
+                <p className="text-[10px] text-portal-muted pt-2 leading-relaxed border-t border-gray-50 mt-1">
                   Generated copy is not approved or posted automatically. Edit in the Social Prep form above, then use channel approval and social planner handoff.
                 </p>
               </div>
@@ -784,12 +784,12 @@ export default async function ApprovalPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Editor Review Desk</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Editor Review Desk</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             Review drafts, approve content, and prepare social copy before anything goes out.
           </p>
         </div>
-        <Link href="/admin/editorial" className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium shrink-0">
+        <Link href="/admin/editorial" className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-medium shrink-0">
           ← Editorial Pipeline
         </Link>
       </div>
@@ -805,7 +805,7 @@ export default async function ApprovalPage({
         ].map(m => (
           <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{m.label}</div>
+            <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
         ))}
       </div>
@@ -814,7 +814,7 @@ export default async function ApprovalPage({
       {queueItems.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
           <div className="text-4xl mb-4">📬</div>
-          <p className="text-gray-500 font-medium">Nothing in the review queue right now.</p>
+          <p className="text-portal-sub font-medium">Nothing in the review queue right now.</p>
           <Link href="/admin/editorial" className="text-sm text-indigo-600 mt-2 inline-block hover:underline">
             Go to Editorial Pipeline →
           </Link>
@@ -822,11 +822,11 @@ export default async function ApprovalPage({
       ) : (
         <div className="space-y-8">
           {[
-            { label: 'Needs Editor Review',   items: groups.needsReview,  stageCls: 'text-gray-700',  desc: 'Approved drafts awaiting your review.' },
+            { label: 'Needs Editor Review',   items: groups.needsReview,  stageCls: 'text-portal-text',  desc: 'Approved drafts awaiting your review.' },
             { label: 'Changes Requested',     items: groups.needsChanges, stageCls: 'text-portal-amber', desc: 'Sent back for revisions.' },
             { label: 'Approved',              items: groups.approved,     stageCls: 'text-green-700', desc: 'Approved for at least one channel.' },
             { label: 'Ready for Planner',     items: groups.plannerReady, stageCls: 'text-purple-700',desc: 'Social copy complete and handed off.' },
-            { label: 'Published / Promoted',  items: groups.published,    stageCls: 'text-gray-400',  desc: 'Live or promoted.' },
+            { label: 'Published / Promoted',  items: groups.published,    stageCls: 'text-portal-muted',  desc: 'Live or promoted.' },
           ].map(grp => {
             if (grp.items.length === 0) return null
             return (
@@ -834,10 +834,10 @@ export default async function ApprovalPage({
                 <div className="flex items-center gap-3 mb-3">
                   <h2 className={`text-sm font-bold shrink-0 ${grp.stageCls}`}>
                     {grp.label}
-                    <span className="ml-2 text-gray-400 font-normal">({grp.items.length})</span>
+                    <span className="ml-2 text-portal-muted font-normal">({grp.items.length})</span>
                   </h2>
                   <div className="flex-1 h-px bg-gray-100" />
-                  <p className="text-xs text-gray-400 shrink-0 hidden sm:block">{grp.desc}</p>
+                  <p className="text-xs text-portal-muted shrink-0 hidden sm:block">{grp.desc}</p>
                 </div>
                 <div className="space-y-2">
                   {grp.items.map(item => {
@@ -848,21 +848,21 @@ export default async function ApprovalPage({
                       <Link
                         key={item.id}
                         href={`/admin/editorial/approval?id=${item.id}`}
-                        className="block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-gray-300 transition-colors"
+                        className="block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-portal-border-2 transition-colors"
                         style={{ borderLeft: `4px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}
                       >
                         <div className="px-5 py-4 flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1.5">
                               <span className="text-lg">{tc?.emoji}</span>
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel}</span>
-                              <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
+                              <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
+                              <span className="text-[10px] bg-gray-100 text-portal-sub px-2 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
                               {item.needs_changes_note && (
                                 <span className="text-[10px] font-bold bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded">Changes Needed</span>
                               )}
                               {!img && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded font-semibold">No image</span>}
                             </div>
-                            <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-gray-900' : 'text-gray-400 italic'} truncate`}>
+                            <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-portal-text' : 'text-portal-muted italic'} truncate`}>
                               {title}
                             </p>
                             <div className="flex gap-2 mt-1.5 flex-wrap">

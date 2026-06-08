@@ -176,13 +176,13 @@ export default function DropboxScanPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/admin/ad-server" className="text-sm text-portal-blue hover:text-portal-blue font-medium">
             ← Ad Server
           </Link>
           <span className="text-gray-300">/</span>
-          <h1 className="text-xl font-semibold text-gray-900">Dropbox Ad Scanner</h1>
+          <h1 className="text-xl font-semibold text-portal-text">Dropbox Ad Scanner</h1>
         </div>
         {results && (
           <div className="flex items-center gap-3 text-sm">
@@ -200,19 +200,19 @@ export default function DropboxScanPage() {
       </div>
 
       {/* Scan controls */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
         <div className="flex items-end gap-3">
           <div className="flex-1 max-w-md">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+            <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">
               Dropbox Folder Path
             </label>
-            <div className="flex items-center gap-2 border border-gray-300 rounded-lg overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-portal-blue/20">
-              <FolderOpen size={15} className="text-gray-400 ml-3 shrink-0" />
+            <div className="flex items-center gap-2 border border-portal-border-2 rounded-lg overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-portal-blue/20">
+              <FolderOpen size={15} className="text-portal-muted ml-3 shrink-0" />
               <input
                 type="text"
                 value={folderPath}
                 onChange={(e) => setFolderPath(e.target.value)}
-                className="flex-1 py-2 pr-3 text-sm text-gray-700 outline-none bg-transparent"
+                className="flex-1 py-2 pr-3 text-sm text-portal-text outline-none bg-transparent"
               />
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function DropboxScanPage() {
           {results && !scanning && (
             <button
               onClick={runScan}
-              className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg transition-colors"
             >
               <RefreshCw size={13} /> Re-scan
             </button>
@@ -240,8 +240,8 @@ export default function DropboxScanPage() {
         {scanning && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-gray-500">Analyzing <span className="font-mono text-portal-blue">{scanFile}</span></span>
-              <span className="text-xs font-semibold text-gray-600">{scanProgress}%</span>
+              <span className="text-xs text-portal-sub">Analyzing <span className="font-mono text-portal-blue">{scanFile}</span></span>
+              <span className="text-xs font-semibold text-portal-sub">{scanProgress}%</span>
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
@@ -249,7 +249,7 @@ export default function DropboxScanPage() {
                 style={{ width: `${scanProgress}%` }}
               />
             </div>
-            <p className="text-[11px] text-gray-400 mt-1.5">
+            <p className="text-[11px] text-portal-muted mt-1.5">
               Claude is checking each ad against contracts, phone numbers, dates, and print specs…
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function DropboxScanPage() {
       {/* Results */}
       <div className="flex-1 overflow-y-auto bg-portal-bg">
         {!results && !scanning && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+          <div className="flex flex-col items-center justify-center h-full text-portal-muted gap-3">
             <ScanLine size={40} className="opacity-20" />
             <p className="text-sm font-medium">Enter a Dropbox folder path and click Scan</p>
             <p className="text-xs">Claude Vision will classify each ad as Must Change, Verify, or Pickup Safe</p>
@@ -269,7 +269,7 @@ export default function DropboxScanPage() {
         {results && !scanning && (
           <>
             {/* Filter bar */}
-            <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center gap-2 shrink-0">
+            <div className="bg-white border-b border-portal-border px-6 py-2.5 flex items-center gap-2 shrink-0">
               {(['all', 'must_change', 'verify', 'safe'] as const).map((f) => {
                 const labels: Record<string, string> = { all: `All (${results.length})`, must_change: `Must Change (${mustChange})`, verify: `Verify (${verify})`, safe: `Pickup Safe (${safe})` }
                 return (
@@ -281,15 +281,15 @@ export default function DropboxScanPage() {
                           : f === 'verify' ? 'bg-portal-amber-lt0 text-white'
                           : f === 'safe' ? 'bg-green-600 text-white'
                           : 'bg-portal-navy text-white'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
                     )}>
                     {labels[f]}
                   </button>
                 )
               })}
-              <div className="ml-auto flex items-center gap-1.5 text-xs text-gray-400">
+              <div className="ml-auto flex items-center gap-1.5 text-xs text-portal-muted">
                 <Info size={12} />
-                Scanned {results.length} files from <span className="font-mono text-gray-600">{folderPath}</span>
+                Scanned {results.length} files from <span className="font-mono text-portal-sub">{folderPath}</span>
               </div>
             </div>
 
@@ -302,7 +302,7 @@ export default function DropboxScanPage() {
                 return (
                   <div key={ad.id}
                     className={cn(
-                      'bg-white rounded-xl border border-gray-200 border-l-4 overflow-hidden hover:shadow-sm transition-shadow',
+                      'bg-white rounded-xl border border-portal-border border-l-4 overflow-hidden hover:shadow-sm transition-shadow',
                       FLAG_CONFIG[ad.flag].borderCls
                     )}>
                     {/* Row */}
@@ -315,25 +315,25 @@ export default function DropboxScanPage() {
                         className="rounded-lg flex items-center justify-center shrink-0"
                         style={{ width: 64, height: 44, backgroundColor: ad.thumbnailColor }}
                       >
-                        <FileImage size={18} className="text-gray-400 opacity-60" />
+                        <FileImage size={18} className="text-portal-muted opacity-60" />
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-900">{ad.businessName}</span>
-                          <span className="text-xs font-bold text-gray-400">{ad.publication}</span>
-                          <span className="text-xs text-gray-400">{ad.size}</span>
+                          <span className="text-sm font-semibold text-portal-text">{ad.businessName}</span>
+                          <span className="text-xs font-bold text-portal-muted">{ad.publication}</span>
+                          <span className="text-xs text-portal-muted">{ad.size}</span>
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5 font-mono">{ad.filename}</div>
+                        <div className="text-xs text-portal-muted mt-0.5 font-mono">{ad.filename}</div>
                       </div>
 
                       {/* Confidence */}
                       <div className="text-right shrink-0">
-                        <div className="text-xs text-gray-400">Confidence</div>
+                        <div className="text-xs text-portal-muted">Confidence</div>
                         <div className={cn(
                           'text-sm font-bold',
-                          ad.confidence >= 90 ? 'text-green-600' : ad.confidence >= 70 ? 'text-amber-600' : 'text-red-600'
+                          ad.confidence >= 90 ? 'text-green-600' : ad.confidence >= 70 ? 'text-amber-600' : 'text-portal-red'
                         )}>
                           {ad.confidence}%
                         </div>
@@ -345,16 +345,16 @@ export default function DropboxScanPage() {
                         {FLAG_CONFIG[ad.flag].label}
                       </span>
 
-                      {isExpanded ? <ChevronUp size={14} className="text-gray-400 shrink-0" /> : <ChevronDown size={14} className="text-gray-400 shrink-0" />}
+                      {isExpanded ? <ChevronUp size={14} className="text-portal-muted shrink-0" /> : <ChevronDown size={14} className="text-portal-muted shrink-0" />}
                     </div>
 
                     {/* Expanded details */}
                     {isExpanded && (
-                      <div className="border-t border-gray-100 bg-gray-50 px-4 py-4">
+                      <div className="border-t border-gray-100 bg-portal-bg px-4 py-4">
                         {/* AI Reasoning */}
                         <div className="mb-3">
-                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Claude's Analysis</div>
-                          <p className="text-sm text-gray-700 leading-relaxed bg-white rounded-lg px-3 py-2.5 border border-gray-200">
+                          <div className="text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">Claude's Analysis</div>
+                          <p className="text-sm text-portal-text leading-relaxed bg-white rounded-lg px-3 py-2.5 border border-portal-border">
                             {ad.reasoning}
                           </p>
                         </div>
@@ -362,7 +362,7 @@ export default function DropboxScanPage() {
                         {/* Issues list */}
                         {ad.issues.length > 0 && (
                           <div className="mb-3">
-                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Issues Found</div>
+                            <div className="text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">Issues Found</div>
                             <ul className="space-y-1">
                               {ad.issues.map((issue, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-red-700">
@@ -395,7 +395,7 @@ export default function DropboxScanPage() {
                             href="https://app.gohighlevel.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-portal-sub bg-white border border-portal-border-2 hover:bg-portal-bg transition-colors"
                           >
                             <ExternalLink size={11} /> Open GHL
                           </a>

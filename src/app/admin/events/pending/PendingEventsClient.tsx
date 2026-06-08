@@ -41,8 +41,8 @@ type EditState = Partial<{
   tags:             string[]
 }>
 
-const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
-const labelCls = 'block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5'
+const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
+const labelCls = 'block text-[10px] font-bold text-portal-sub uppercase tracking-wider mb-1.5'
 
 export function PendingEventsClient({ events }: Props) {
   const router = useRouter()
@@ -139,14 +139,14 @@ export function PendingEventsClient({ events }: Props) {
         const dirty    = !!edits[ev.id] && Object.keys(edits[ev.id]).length > 0
 
         return (
-          <div key={ev.id} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div key={ev.id} className="rounded-xl border border-portal-border bg-white overflow-hidden">
             {/* Summary row */}
             <div className="flex flex-wrap items-start justify-between gap-3 p-4">
               <button onClick={() => setExpanded(isOpen ? null : ev.id)} className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <p className="text-sm font-bold text-gray-900 leading-tight">{ev.title}</p>
+                  <p className="text-sm font-bold text-portal-text leading-tight">{ev.title}</p>
                   {ev.source_type && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
                       {ev.source_name ?? ev.source_type}
                     </span>
                   )}
@@ -156,7 +156,7 @@ export function PendingEventsClient({ events }: Props) {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-portal-sub">
                   <span className="inline-flex items-center gap-1"><Calendar size={11} /> {fmtDate(ev.start_date)}</span>
                   {ev.start_time && <span className="inline-flex items-center gap-1"><Clock size={11} /> {ev.start_time}</span>}
                   {ev.location_name && <span className="inline-flex items-center gap-1"><MapPin size={11} /> {ev.location_name}</span>}
@@ -183,7 +183,7 @@ export function PendingEventsClient({ events }: Props) {
                 </button>
                 <button
                   onClick={() => setExpanded(isOpen ? null : ev.id)}
-                  className="text-gray-400 hover:text-gray-700 p-1"
+                  className="text-portal-muted hover:text-portal-text p-1"
                   title={isOpen ? 'Collapse' : 'Expand & edit'}
                 >
                   {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -199,7 +199,7 @@ export function PendingEventsClient({ events }: Props) {
 
             {/* Expanded inline edit form */}
             {isOpen && (
-              <div className="border-t border-gray-100 bg-gray-50/40 p-4 space-y-4">
+              <div className="border-t border-gray-100 bg-portal-bg/40 p-4 space-y-4">
 
                 {/* Title + description */}
                 <div className="grid md:grid-cols-3 gap-3">
@@ -243,7 +243,7 @@ export function PendingEventsClient({ events }: Props) {
                           className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
                             active
                               ? 'bg-portal-navy text-white border-blue-600'
-                              : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                              : 'bg-white text-portal-sub border-portal-border hover:border-gray-400'
                           }`}
                         >
                           {t.label}
@@ -308,7 +308,7 @@ export function PendingEventsClient({ events }: Props) {
                     <input className={inputCls} value={v(ev,'cost_text') as string ?? ''} onChange={e => patch(ev.id, 'cost_text', e.target.value)} placeholder="$10 / Free / Pay-what-you-can" disabled={Boolean(v(ev,'is_free'))} />
                   </div>
                   <div className="flex items-end">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 pb-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-portal-text pb-2">
                       <input
                         type="checkbox"
                         checked={Boolean(v(ev,'is_free') ?? ev.is_free)}
@@ -326,22 +326,22 @@ export function PendingEventsClient({ events }: Props) {
 
                 {/* Source provenance (read-only) */}
                 {(ev.source_url || ev.discovery_notes || ev.email || ev.phone) && (
-                  <div className="rounded-lg border border-gray-200 bg-white p-3 text-xs space-y-1">
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Submission context</p>
-                    {ev.source_url && <p><strong className="text-gray-600">Source URL:</strong> <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-portal-blue hover:underline break-all">{ev.source_url}</a></p>}
-                    {ev.email && <p><strong className="text-gray-600">Submitter email:</strong> {ev.email}</p>}
-                    {ev.phone && <p><strong className="text-gray-600">Submitter phone:</strong> {ev.phone}</p>}
-                    {ev.discovery_notes && <p className="whitespace-pre-wrap"><strong className="text-gray-600">Editor notes:</strong> {ev.discovery_notes}</p>}
+                  <div className="rounded-lg border border-portal-border bg-white p-3 text-xs space-y-1">
+                    <p className="text-[10px] font-bold text-portal-sub uppercase tracking-wider mb-1">Submission context</p>
+                    {ev.source_url && <p><strong className="text-portal-sub">Source URL:</strong> <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-portal-blue hover:underline break-all">{ev.source_url}</a></p>}
+                    {ev.email && <p><strong className="text-portal-sub">Submitter email:</strong> {ev.email}</p>}
+                    {ev.phone && <p><strong className="text-portal-sub">Submitter phone:</strong> {ev.phone}</p>}
+                    {ev.discovery_notes && <p className="whitespace-pre-wrap"><strong className="text-portal-sub">Editor notes:</strong> {ev.discovery_notes}</p>}
                   </div>
                 )}
 
                 {/* Action bar */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-portal-border">
                   <button
                     type="button"
                     onClick={() => saveEdits(ev.id)}
                     disabled={busyHere || !dirty}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-border-2 bg-white text-portal-text rounded-lg hover:bg-portal-bg disabled:opacity-40"
                   >
                     <Save size={11} /> Save edits (stay pending)
                   </button>

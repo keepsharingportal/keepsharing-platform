@@ -19,7 +19,7 @@ export function CopyHtmlIsland({ html }: { html: string }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Newsletter HTML</p>
+        <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Newsletter HTML</p>
         <button
           type="button"
           onClick={copy}
@@ -32,9 +32,9 @@ export function CopyHtmlIsland({ html }: { html: string }) {
         readOnly
         value={html}
         rows={10}
-        className="w-full font-mono text-[11px] text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 resize-y"
+        className="w-full font-mono text-[11px] text-portal-text bg-portal-bg border border-portal-border rounded-lg px-3 py-2 resize-y"
       />
-      <p className="text-[11px] text-gray-400 leading-relaxed">
+      <p className="text-[11px] text-portal-muted leading-relaxed">
         Paste into Mailchimp / Beehiiv / your newsletter tool as raw HTML.
         Inline styles only — works in every email client.
       </p>

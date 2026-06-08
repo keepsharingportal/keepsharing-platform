@@ -43,7 +43,7 @@ function ToolBtn({
       title={title}
       className={[
         'flex items-center justify-center w-8 h-8 rounded transition-colors text-sm',
-        active   ? 'bg-gray-800 text-white'                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+        active   ? 'bg-gray-800 text-white'                         : 'text-portal-sub hover:bg-portal-row-hover hover:text-portal-text',
         disabled ? 'opacity-25 cursor-not-allowed pointer-events-none' : '',
       ].join(' ')}
     >
@@ -74,7 +74,7 @@ function UrlInput({
   confirmLabel?: string
 }) {
   return (
-    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-portal-border">
       <input
         autoFocus
         type="url"
@@ -85,7 +85,7 @@ function UrlInput({
           if (e.key === 'Escape') onCancel()
         }}
         placeholder={placeholder}
-        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-400 bg-white min-w-0"
+        className="flex-1 px-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white min-w-0"
       />
       <button
         type="button"
@@ -97,7 +97,7 @@ function UrlInput({
       <button
         type="button"
         onClick={onCancel}
-        className="shrink-0 px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
+        className="shrink-0 px-3 py-1.5 text-xs font-semibold border border-portal-border rounded-lg text-portal-sub hover:bg-portal-bg"
       >
         Cancel
       </button>
@@ -258,7 +258,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
   }
 
   return (
-    <div className="border-b border-gray-200 bg-gray-50/95 backdrop-blur-sm px-3 py-2 rounded-t-lg sticky top-0 z-20 shadow-sm">
+    <div className="border-b border-portal-border bg-portal-bg/95 backdrop-blur-sm px-3 py-2 rounded-t-lg sticky top-0 z-20 shadow-sm">
       <div className="flex items-center flex-wrap gap-0.5">
         {/* Block type */}
         <ToolBtn onClick={() => editor.chain().focus().setParagraph().run()} active={editor.isActive('paragraph')} title="Paragraph">
@@ -283,7 +283,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
             if (v) editor.chain().focus().setFontFamily(v).run()
             else   editor.chain().focus().unsetFontFamily().run()
           }}
-          className="h-8 text-xs border border-gray-200 rounded px-1.5 bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:border-blue-400"
+          className="h-8 text-xs border border-portal-border rounded px-1.5 bg-white text-portal-text hover:border-portal-border-2 focus:outline-none focus:border-portal-blue"
         >
           {FONT_FAMILIES.map(f => (
             <option key={f.label} value={f.value}>{f.label}</option>
@@ -300,7 +300,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
             if (v) editor.chain().focus().setFontSize(v).run()
             else   editor.chain().focus().unsetFontSize().run()
           }}
-          className="h-8 text-xs border border-gray-200 rounded px-1.5 bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:border-blue-400"
+          className="h-8 text-xs border border-portal-border rounded px-1.5 bg-white text-portal-text hover:border-portal-border-2 focus:outline-none focus:border-portal-blue"
         >
           {FONT_SIZES.map(s => (
             <option key={s.label} value={s.value}>{s.label}</option>
@@ -327,7 +327,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           title="Text color"
           className={[
             'flex items-center justify-center w-8 h-8 rounded transition-colors relative',
-            showColor || currentColor ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+            showColor || currentColor ? 'bg-gray-800 text-white' : 'text-portal-sub hover:bg-portal-row-hover hover:text-portal-text',
           ].join(' ')}
         >
           <Palette size={14} />
@@ -427,8 +427,8 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
       )}
 
       {showColor && (
-        <div className="mt-2 pt-2 border-t border-gray-200 flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-semibold text-gray-500 mr-1">Text color:</span>
+        <div className="mt-2 pt-2 border-t border-portal-border flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold text-portal-sub mr-1">Text color:</span>
           {TEXT_COLORS.map(c => {
             const isActive = c.value
               ? currentColor?.toLowerCase() === c.value.toLowerCase()
@@ -445,12 +445,12 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
                 }}
                 title={c.label}
                 className={`w-7 h-7 rounded-full border transition-all flex items-center justify-center ${
-                  isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-gray-300' : 'border-gray-200 hover:border-gray-400'
+                  isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-portal-border-2' : 'border-portal-border hover:border-gray-400'
                 }`}
                 style={{ backgroundColor: c.swatch === 'transparent' ? '#fff' : c.swatch }}
               >
                 {c.swatch === 'transparent' && (
-                  <span className="text-[9px] font-bold text-gray-400">A</span>
+                  <span className="text-[9px] font-bold text-portal-muted">A</span>
                 )}
               </button>
             )
@@ -459,7 +459,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
       )}
 
       {showImage && (
-        <div className="mt-2 pt-3 border-t border-gray-200 space-y-3 bg-gray-50 rounded-b-lg p-3 -mx-3 -mb-2">
+        <div className="mt-2 pt-3 border-t border-portal-border space-y-3 bg-portal-bg rounded-b-lg p-3 -mx-3 -mb-2">
           {/* Hidden file input */}
           <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
             className="hidden" onChange={handleFileChange} />
@@ -467,11 +467,11 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           {/* Mode toggle */}
           <div className="flex gap-1.5">
             <button type="button" onClick={() => setImageMode('url')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'url' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'url' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-portal-sub hover:bg-white border border-portal-border'}`}>
               <Link2 size={11} /> Paste URL
             </button>
             <button type="button" onClick={() => setImageMode('upload')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'upload' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'upload' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-portal-sub hover:bg-white border border-portal-border'}`}>
               <Upload size={11} /> Upload File
             </button>
           </div>
@@ -481,7 +481,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
             <input autoFocus type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); insertImage() } if (e.key === 'Escape') resetImage() }}
               placeholder="Image URL: https://..."
-              className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-400 bg-white" />
+              className="w-full px-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white" />
           )}
 
           {/* Upload mode */}
@@ -491,10 +491,10 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
                 /* Uploaded — show preview */
                 <div className="flex items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={uploadedPreview} alt="preview" className="w-16 h-16 rounded-lg object-cover border border-gray-200" />
+                  <img src={uploadedPreview} alt="preview" className="w-16 h-16 rounded-lg object-cover border border-portal-border" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-green-700">✓ Uploaded</p>
-                    <p className="text-[11px] text-gray-500 truncate">{uploadedPreview.split('/').pop()}</p>
+                    <p className="text-[11px] text-portal-sub truncate">{uploadedPreview.split('/').pop()}</p>
                     <button type="button" onClick={() => fileInputRef.current?.click()}
                       className="text-[11px] text-portal-blue hover:underline mt-1">Replace image</button>
                   </div>
@@ -502,14 +502,14 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
               ) : (
                 /* Not yet uploaded */
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                  className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-portal-blue hover:bg-white transition-colors disabled:opacity-50">
+                  className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-portal-border-2 rounded-lg text-sm text-portal-sub hover:border-blue-400 hover:text-portal-blue hover:bg-white transition-colors disabled:opacity-50">
                   {uploading
                     ? <><RefreshCw size={14} className="animate-spin" /> Optimising &amp; uploading…</>
                     : <><Upload size={14} /> Click to choose an image (max 15 MB)</>}
                 </button>
               )}
               {uploadError && (
-                <p className="text-xs text-red-600 mt-1.5">{uploadError}</p>
+                <p className="text-xs text-portal-red mt-1.5">{uploadError}</p>
               )}
             </div>
           )}
@@ -518,20 +518,20 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           <div className="flex gap-2">
             <input type="text" value={imageAlt} onChange={e => setImageAlt(e.target.value)}
               placeholder="Alt text (describe image for accessibility)"
-              className="flex-1 px-3 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-blue-400 bg-white" />
+              className="flex-1 px-3 py-1.5 text-xs border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white" />
             <input type="text" value={imageCaption} onChange={e => setImageCaption(e.target.value)}
               placeholder="Caption (optional)"
-              className="flex-1 px-3 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-blue-400 bg-white" />
+              className="flex-1 px-3 py-1.5 text-xs border border-portal-border rounded-lg outline-none focus:border-portal-blue bg-white" />
           </div>
 
           {/* Alignment picker */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-gray-500 shrink-0">Alignment:</span>
+            <span className="text-[11px] font-semibold text-portal-sub shrink-0">Alignment:</span>
             <div className="flex gap-1">
               {ALIGN_OPTIONS.map(({ value, label, Icon }) => (
                 <button key={value} type="button" onClick={() => setImageAlign(value)}
                   title={label}
-                  className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${imageAlign === value ? 'bg-portal-navy text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
+                  className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${imageAlign === value ? 'bg-portal-navy text-white' : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-row-hover'}`}>
                   <Icon size={12} />
                 </button>
               ))}
@@ -551,7 +551,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
               </button>
             )}
             <button type="button" onClick={resetImage}
-              className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600 hover:bg-white transition-colors ml-auto">
+              className="px-3 py-1.5 text-xs font-semibold border border-portal-border rounded-lg text-portal-sub hover:bg-white transition-colors ml-auto">
               Cancel
             </button>
           </div>
@@ -607,7 +607,7 @@ export function RichArticleEditor({ initialContent, onChange, placeholder = 'Sta
           sticky positioning inside scroll containers. The toolbar handles
           its own rounded-top corners, and EditorContent stays within the
           rounded outer border without needing overflow clipping. */}
-      <div className="border border-gray-200 rounded-lg bg-white">
+      <div className="border border-portal-border rounded-lg bg-white">
         <Toolbar editor={editor} onSetHero={onSetHero} />
         <EditorContent editor={editor} />
       </div>

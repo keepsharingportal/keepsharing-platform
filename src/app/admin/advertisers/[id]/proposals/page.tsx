@@ -59,12 +59,12 @@ export default async function ProposalsTab({ params }: Props) {
   const proposals = [...fkRows, ...nameRows.filter(r => !seenIds.has(r.id))]
 
   const stageBadge: Record<string, string> = {
-    draft:    'bg-gray-100 text-gray-700',
+    draft:    'bg-gray-100 text-portal-text',
     sent:     'bg-sky-100 text-sky-800',
     viewed:   'bg-violet-100 text-violet-800',
     accepted: 'bg-portal-green-lt text-portal-green',
     declined: 'bg-portal-red-lt text-portal-red',
-    expired:  'bg-gray-100 text-gray-400',
+    expired:  'bg-gray-100 text-portal-muted',
   }
 
   return (
@@ -73,8 +73,8 @@ export default async function ProposalsTab({ params }: Props) {
       {/* ── Proposals ─────────────────────────────────── */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
         <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 inline-flex items-center gap-1.5">
-            <FileText size={12} /> Proposals {proposals.length > 0 && <span className="text-gray-400">({proposals.length})</span>}
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
+            <FileText size={12} /> Proposals {proposals.length > 0 && <span className="text-portal-muted">({proposals.length})</span>}
           </h2>
           <Link
             href={`/admin/advertisers/proposals/new?advertiser_id=${id}`}
@@ -84,7 +84,7 @@ export default async function ProposalsTab({ params }: Props) {
           </Link>
         </header>
         {proposals.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">
+          <div className="p-8 text-center text-sm text-portal-muted">
             No proposals yet. <Link href={`/admin/advertisers/proposals/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Draft one →</Link>
           </div>
         ) : (
@@ -95,17 +95,17 @@ export default async function ProposalsTab({ params }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/admin/advertisers/proposals/${p.id}`}
-                    className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                    className="px-5 py-3 flex items-center gap-3 hover:bg-portal-bg transition-colors"
                   >
-                    <FileText size={14} className="text-gray-400 shrink-0" />
+                    <FileText size={14} className="text-portal-muted shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-portal-text truncate">
                         {p.recommended_tier ?? 'Untitled proposal'}
                         {p.custom_monthly_price != null && (
-                          <span className="ml-2 text-xs font-normal text-gray-500">${p.custom_monthly_price.toLocaleString()}/mo</span>
+                          <span className="ml-2 text-xs font-normal text-portal-sub">${p.custom_monthly_price.toLocaleString()}/mo</span>
                         )}
                       </p>
-                      <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5 flex-wrap">
+                      <div className="flex items-center gap-3 text-[11px] text-portal-sub mt-0.5 flex-wrap">
                         <code className="font-mono">/{p.token_slug}</code>
                         <span>Created {fmtDate(p.created_at)}</span>
                         {p.sent_at     && <span>Sent {fmtDate(p.sent_at)}</span>}
@@ -128,19 +128,19 @@ export default async function ProposalsTab({ params }: Props) {
       {/* ── Agreements (stub) ─────────────────────────── */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
         <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 inline-flex items-center gap-1.5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <FileCheck2 size={12} /> Agreements
-            <span className="ml-2 text-[9px] font-normal text-gray-400 normal-case tracking-normal">
+            <span className="ml-2 text-[9px] font-normal text-portal-muted normal-case tracking-normal">
               currently tracked via contract dates + GHL flags
             </span>
           </h2>
         </header>
-        <div className="p-5 space-y-2 text-sm text-gray-700">
+        <div className="p-5 space-y-2 text-sm text-portal-text">
           <p>
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Contract window: </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contract window: </span>
             {fmtDate(contractStart)} → {fmtDate(contractEnd)}
           </p>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-portal-sub leading-relaxed">
             Dedicated agreement records (PDF uploads, signed-on dates, e-sign tracking) aren&apos;t modeled yet. Today, agreements are reflected by the contract dates above plus the <code className="px-1 bg-gray-100 rounded text-[10px]">ghl_agreement_uploaded</code> flag on the lifecycle pipeline.
           </p>
         </div>

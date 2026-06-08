@@ -84,13 +84,13 @@ export default function ColumnBrandingPage() {
     <div className="h-full overflow-y-auto">
     <div className="p-6 md:p-8 max-w-6xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin" className="text-gray-500 hover:text-gray-700">
+        <Link href="/admin" className="text-portal-sub hover:text-portal-text">
           <ArrowLeft size={18} />
         </Link>
-        <h1 className="text-2xl font-black text-gray-900">Column Branding</h1>
+        <h1 className="text-2xl font-black text-portal-text">Column Branding</h1>
       </div>
 
-      <p className="text-sm text-gray-600 leading-relaxed mb-8 max-w-2xl">
+      <p className="text-sm text-portal-sub leading-relaxed mb-8 max-w-2xl">
         Upload a logo + tagline for any column. Each one becomes the article eyebrow
         and the column-identity line under the title. Color palettes and structural
         layout still come from the code defaults — this just gives each column its
@@ -105,7 +105,7 @@ export default function ColumnBrandingPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-gray-500"><RefreshCw size={14} className="animate-spin" /> Loading…</div>
+        <div className="flex items-center gap-2 text-sm text-portal-sub"><RefreshCw size={14} className="animate-spin" /> Loading…</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {COLUMNS.filter(c => BRANDABLE_COLUMN_SLUGS.has(c.slug)).map(col => (
@@ -192,27 +192,27 @@ function ColumnCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{column.vertical}</p>
-        <h3 className="font-black text-gray-900 mt-0.5">{column.label}</h3>
+    <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 bg-portal-bg">
+        <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">{column.vertical}</p>
+        <h3 className="font-black text-portal-text mt-0.5">{column.label}</h3>
         {column.description && (
-          <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{column.description}</p>
+          <p className="text-[11px] text-portal-sub mt-0.5 line-clamp-2">{column.description}</p>
         )}
       </div>
 
       <div className="p-4 space-y-3">
         {/* Logo upload + preview */}
         <div>
-          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Column Logo</label>
+          <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Column Logo</label>
           {logoUrl ? (
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-2 flex items-center gap-3 mb-2">
+            <div className="rounded-md border border-portal-border bg-portal-bg p-2 flex items-center gap-3 mb-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={logoUrl} alt={column.label} className="h-12 w-auto max-w-[200px] object-contain" />
               <button
                 type="button"
                 onClick={() => setLogoUrl('')}
-                className="ml-auto text-xs font-semibold text-red-600 hover:text-red-700 flex items-center gap-1"
+                className="ml-auto text-xs font-semibold text-portal-red hover:text-red-700 flex items-center gap-1"
               >
                 <X size={11} /> Remove
               </button>
@@ -228,25 +228,25 @@ function ColumnCard({
             />
             <span
               role="button"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-gray-100 text-gray-400' : 'bg-portal-blue-lt text-portal-blue hover:bg-portal-blue-lt'}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-gray-100 text-portal-muted' : 'bg-portal-blue-lt text-portal-blue hover:bg-portal-blue-lt'}`}
             >
               {uploading
                 ? <><RefreshCw size={12} className="animate-spin" /> Uploading…</>
                 : <><Upload size={12} /> {logoUrl ? 'Replace logo' : 'Upload logo'}</>}
             </span>
           </label>
-          <p className="text-[10px] text-gray-400 mt-1">PNG or SVG. Transparent background recommended.</p>
+          <p className="text-[10px] text-portal-muted mt-1">PNG or SVG. Transparent background recommended.</p>
         </div>
 
         {/* Tagline */}
         <div>
-          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tagline</label>
+          <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Tagline</label>
           <textarea
             value={tagline}
             onChange={e => setTagline(e.target.value)}
             placeholder="One-line column identity (e.g. Celebrating the love, legacy…)"
             rows={2}
-            className="w-full px-3 py-2 text-sm rounded-md border border-gray-200 outline-none focus:border-blue-400 bg-white resize-y"
+            className="w-full px-3 py-2 text-sm rounded-md border border-portal-border outline-none focus:border-portal-blue bg-white resize-y"
           />
         </div>
 

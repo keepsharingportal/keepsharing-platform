@@ -72,8 +72,8 @@ export default async function ContentDashboard() {
       value: pending,
       icon: AlertCircle,
       href: '/admin/articles/review',
-      color: pending > 0 ? 'text-amber-600' : 'text-gray-400',
-      bg:    pending > 0 ? 'bg-portal-amber-lt border-amber-200' : 'bg-gray-50 border-gray-200',
+      color: pending > 0 ? 'text-amber-600' : 'text-portal-muted',
+      bg:    pending > 0 ? 'bg-portal-amber-lt border-amber-200' : 'bg-portal-bg border-portal-border',
       cta:   'Open Queue',
     },
     {
@@ -90,8 +90,8 @@ export default async function ContentDashboard() {
       value: missingImg,
       icon: ImageOff,
       href: '/admin/articles?filter=missing-image',
-      color: missingImg > 0 ? 'text-orange-600' : 'text-gray-400',
-      bg:    missingImg > 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200',
+      color: missingImg > 0 ? 'text-orange-600' : 'text-portal-muted',
+      bg:    missingImg > 0 ? 'bg-orange-50 border-orange-200' : 'bg-portal-bg border-portal-border',
       cta:   'Fix Now',
     },
     {
@@ -99,8 +99,8 @@ export default async function ContentDashboard() {
       value: sbPending,
       icon: GraduationCap,
       href: '/admin/articles?filter=school-bits',
-      color: sbPending > 0 ? 'text-portal-blue' : 'text-gray-400',
-      bg:    sbPending > 0 ? 'bg-portal-blue-lt border-blue-200' : 'bg-gray-50 border-gray-200',
+      color: sbPending > 0 ? 'text-portal-blue' : 'text-portal-muted',
+      bg:    sbPending > 0 ? 'bg-portal-blue-lt border-blue-200' : 'bg-portal-bg border-portal-border',
       cta:   'Review',
     },
     {
@@ -127,19 +127,19 @@ export default async function ContentDashboard() {
     { label: 'Write New Article',  href: '/admin/articles/new',         icon: Plus,          color: 'bg-portal-navy hover:opacity-90 text-white' },
     { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber-lt0 hover:bg-amber-600 text-white' },
     { label: 'Import Content',     href: '/admin/content/imports',      icon: Upload,        color: 'bg-gray-800 hover:bg-gray-900 text-white' },
-    { label: 'All Articles',       href: '/admin/articles',             icon: FileText,      color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200' },
-    { label: 'Add Event',          href: '/admin/content/events-import',icon: CalendarDays,  color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200' },
-    { label: 'Manage Guides',      href: '/admin/guides',               icon: BookOpen,      color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200' },
+    { label: 'All Articles',       href: '/admin/articles',             icon: FileText,      color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
+    { label: 'Add Event',          href: '/admin/content/events-import',icon: CalendarDays,  color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
+    { label: 'Manage Guides',      href: '/admin/guides',               icon: BookOpen,      color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Content Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-0.5">River Region Parents editorial hub</p>
+            <h1 className="text-xl font-semibold text-portal-text">Content Dashboard</h1>
+            <p className="text-sm text-portal-sub mt-0.5">River Region Parents editorial hub</p>
           </div>
           <Link
             href="/admin/articles/new"
@@ -165,15 +165,15 @@ export default async function ContentDashboard() {
                 <ArrowRight size={12} className="text-gray-300" />
               </div>
               <div className={`text-3xl font-black ${s.color}`}>{s.value}</div>
-              <div className="text-xs font-semibold text-gray-600 leading-tight">{s.label}</div>
-              <div className="text-[10px] text-gray-400 font-medium">{s.cta} →</div>
+              <div className="text-xs font-semibold text-portal-sub leading-tight">{s.label}</div>
+              <div className="text-[10px] text-portal-muted font-medium">{s.cta} →</div>
             </Link>
           ))}
         </div>
 
         {/* Quick actions */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Actions</h2>
+          <h2 className="text-sm font-semibold text-portal-sub uppercase tracking-wider mb-3">Quick Actions</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {QUICK_ACTIONS.map(a => (
               <Link
@@ -191,27 +191,27 @@ export default async function ContentDashboard() {
         {/* Recent articles */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Recent Articles</h2>
+            <h2 className="text-sm font-semibold text-portal-sub uppercase tracking-wider">Recent Articles</h2>
             <Link href="/admin/articles" className="text-xs font-semibold text-portal-blue hover:text-portal-blue">
               View All →
             </Link>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+          <div className="bg-white rounded-xl border border-portal-border overflow-hidden divide-y divide-gray-100">
             {recentArticles.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No articles yet. Write your first one!</div>
+              <div className="p-8 text-center text-portal-muted text-sm">No articles yet. Write your first one!</div>
             ) : (
               recentArticles.map(a => {
                 const st  = editorialStatusInfo(a.editorial_review_status)
                 const sec = columnLabel(a.column_slug) !== '—' ? columnLabel(a.column_slug) : (a.guide_slug ?? '')
                 return (
-                  <div key={a.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <div key={a.id} className="flex items-center gap-3 px-4 py-3 hover:bg-portal-bg transition-colors">
                     {/* Image indicator */}
                     <div className={`w-2 h-2 rounded-full shrink-0 ${a.hero_image_url ? 'bg-green-400' : 'bg-red-300'}`} title={a.hero_image_url ? 'Has image' : 'Missing image'} />
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{a.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {sec && <span className="text-gray-500">{sec} · </span>}
+                      <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
+                      <p className="text-xs text-portal-muted mt-0.5">
+                        {sec && <span className="text-portal-sub">{sec} · </span>}
                         {a.published_at ? new Date(a.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not published'}
                       </p>
                     </div>
@@ -231,7 +231,7 @@ export default async function ContentDashboard() {
                         <Link
                           href={articleHref(a)}
                           target="_blank"
-                          className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="p-1.5 text-portal-muted hover:text-portal-text rounded-lg hover:bg-portal-row-hover transition-colors"
                           title="Preview"
                         >
                           <Eye size={13} />
@@ -246,12 +246,12 @@ export default async function ContentDashboard() {
         </div>
 
         {/* Editorial workflow guide */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Clock size={14} className="text-gray-400" />
+        <div className="bg-white rounded-xl border border-portal-border p-5">
+          <h2 className="text-sm font-semibold text-portal-text mb-3 flex items-center gap-2">
+            <Clock size={14} className="text-portal-muted" />
             Editorial Workflow
           </h2>
-          <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+          <div className="flex items-center gap-2 text-xs text-portal-sub flex-wrap">
             {[
               { step: '1', label: 'Import or write', color: 'bg-gray-200' },
               { step: '→', label: '', color: '' },

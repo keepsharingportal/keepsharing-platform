@@ -67,7 +67,7 @@ export default function NewArticlePage() {
   const [spotlightType,   setSpotlightType]   = useState<string>('')
   const [spotlightData,   setSpotlightData]   = useState<Record<string, string>>({})
 
-  const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
+  const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
   const sel = `${inp} cursor-pointer`
 
   function setField<K extends keyof typeof form>(k: K, v: string) {
@@ -157,16 +157,16 @@ export default function NewArticlePage() {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Sticky header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Link href="/admin/articles" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1">
             <ArrowLeft size={13} /> Articles
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">New Article</h1>
+          <h1 className="text-xl font-semibold text-portal-text">New Article</h1>
         </div>
         <div className="flex items-center gap-2">
           {saveMsg && (
-            <span className={`text-sm font-medium ${saveMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`text-sm font-medium ${saveMsg.ok ? 'text-green-600' : 'text-portal-red'}`}>
               {saveMsg.text}
             </span>
           )}
@@ -174,7 +174,7 @@ export default function NewArticlePage() {
             <Link
               href={articleHref({ slug: form.slug, title: form.title, column_slug: form.column_slug })}
               target="_blank"
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg"
             >
               <Eye size={13} /> Preview
             </Link>
@@ -182,7 +182,7 @@ export default function NewArticlePage() {
           <button
             onClick={() => save('draft')}
             disabled={saving}
-            className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+            className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg disabled:opacity-40"
           >
             Save Draft
           </button>
@@ -208,17 +208,17 @@ export default function NewArticlePage() {
         {/* Main content column */}
         <div className="space-y-5">
           {/* Title */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white rounded-xl border border-portal-border p-5">
             <input
-              className="w-full text-2xl font-bold text-gray-900 outline-none placeholder:text-gray-300 border-none bg-transparent"
+              className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-none bg-transparent"
               value={form.title}
               onChange={e => handleTitle(e.target.value)}
               placeholder="Article title…"
             />
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs text-gray-400">URL slug:</span>
+              <span className="text-xs text-portal-muted">URL slug:</span>
               <input
-                className="flex-1 text-xs text-gray-500 outline-none bg-transparent border-b border-gray-200 focus:border-blue-400 py-0.5"
+                className="flex-1 text-xs text-portal-sub outline-none bg-transparent border-b border-portal-border focus:border-portal-blue py-0.5"
                 value={form.slug}
                 onChange={e => setField('slug', e.target.value)}
                 placeholder="auto-generated-from-title"
@@ -228,9 +228,9 @@ export default function NewArticlePage() {
 
           {/* Article Lead — magazine-style deck shown on the article page,
                under the title, before the body. NOT used in card listings. */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <label className="block text-xs font-semibold text-gray-500 mb-1">Article Lead</label>
-            <p className="text-[11px] text-gray-400 mb-2">
+          <div className="bg-white rounded-xl border border-portal-border p-5">
+            <label className="block text-xs font-semibold text-portal-sub mb-1">Article Lead</label>
+            <p className="text-[11px] text-portal-muted mb-2">
               Magazine-style deck shown on the article page, under the title. Two-to-three-sentence opener that pulls the reader in.
             </p>
             <textarea
@@ -244,7 +244,7 @@ export default function NewArticlePage() {
 
           {/* Body */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-2">Article Body</label>
+            <label className="block text-xs font-semibold text-portal-sub mb-2">Article Body</label>
             <RichArticleEditor
               key="new-article"
               initialContent=""
@@ -255,10 +255,10 @@ export default function NewArticlePage() {
 
           {/* Closing bio / author line — renders below the photo gallery on
               the public article as a thin divider + italic text. Skip when empty. */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Closing line — bio or author note</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
+              <p className="text-[11px] text-portal-muted mt-0.5">
                 Renders as a simple italic line under the photo gallery. Leave blank to hide.
               </p>
             </div>
@@ -276,11 +276,11 @@ export default function NewArticlePage() {
         <div className="space-y-4">
 
           {/* Publish status */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Save As</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Save As</h3>
             <div className="space-y-2">
               {[
-                { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-gray-200 text-gray-700 hover:bg-gray-50' },
+                { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-portal-border text-portal-text hover:bg-portal-bg' },
                 { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-portal-amber hover:bg-portal-amber-lt bg-portal-amber-lt' },
                 { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-green-50' },
               ].map(opt => (
@@ -298,8 +298,8 @@ export default function NewArticlePage() {
           </div>
 
           {/* Author */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Author</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Author</h3>
             <input
               className={inp}
               value={form.author_byline}
@@ -313,8 +313,8 @@ export default function NewArticlePage() {
               yet); they light up after the first save when the editor lands
               on /edit. The saved origPath travels with the first POST so
               re-cropping works immediately on /edit. */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Hero Image</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Hero Image</h3>
             <HeroImageUpload
               value={form.hero_image_url}
               onChange={url => setField('hero_image_url', url)}
@@ -322,14 +322,14 @@ export default function NewArticlePage() {
               origPath={heroOrigPath}
               onOrigPathChange={setHeroOrigPath}
             />
-            <p className="text-[11px] text-gray-400 mt-2">
+            <p className="text-[11px] text-portal-muted mt-2">
               Wide format (cropped to 16:9). Auto-attention crop on upload — re-crop tools become available after first save.
             </p>
           </div>
 
           {/* Profile image — same article-profile pipeline as /edit. */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Profile Image</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Profile Image</h3>
             <HeroImageUpload
               value={form.profile_image_url}
               onChange={url => setField('profile_image_url', url)}
@@ -337,7 +337,7 @@ export default function NewArticlePage() {
               origPath={profileOrigPath}
               onOrigPathChange={setProfileOrigPath}
             />
-            <p className="text-[11px] text-gray-400 mt-2">
+            <p className="text-[11px] text-portal-muted mt-2">
               Square (cropped to 1:1) for the homepage Community Spotlights sidebar. Falls back to hero when empty.
             </p>
           </div>
@@ -345,10 +345,10 @@ export default function NewArticlePage() {
           {/* Photo Gallery — mirrors /edit. Multi-upload supported even on
               first-create; images flow through the Sharp pipeline and persist
               with the initial POST. */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">
               Photo Gallery
-              <span className="ml-1.5 text-gray-400 font-normal normal-case text-[11px]">— supporting photos for the lightbox</span>
+              <span className="ml-1.5 text-portal-muted font-normal normal-case text-[11px]">— supporting photos for the lightbox</span>
             </h3>
             <GalleryEditor
               value={galleryImages}
@@ -366,8 +366,8 @@ export default function NewArticlePage() {
           </div>
 
           {/* Section / Column */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3 flex items-center gap-1.5">
               Section
               <HelpTip text="Pick the editorial column. Sections are grouped by vertical (School Zone, Mom Life, etc.) — choose the one that matches your article." />
             </h3>
@@ -401,11 +401,11 @@ export default function NewArticlePage() {
               return (
                 <div className="mt-2 px-3 py-2 rounded-lg bg-portal-blue-lt/60 border border-portal-blue/20 space-y-1">
                   {col.description && (
-                    <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
+                    <p className="text-[12px] text-portal-text leading-relaxed">{col.description}</p>
                   )}
                   {vLabel && (
-                    <p className="text-[11px] text-gray-500">
-                      Surfaces on the <strong className="text-gray-700">{vLabel}</strong> vertical page.
+                    <p className="text-[11px] text-portal-sub">
+                      Surfaces on the <strong className="text-portal-text">{vLabel}</strong> vertical page.
                     </p>
                   )}
                 </div>
@@ -427,8 +427,8 @@ export default function NewArticlePage() {
           )}
 
           {/* Guide */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3 flex items-center gap-1.5">
               Guide / Resource
               <HelpTip text="If this article should appear on a specific Guide's landing page (Family Resource, Summer Fun, etc.), pick it here. Leave as 'Not a guide article' for standalone pieces." />
             </h3>
@@ -450,12 +450,12 @@ export default function NewArticlePage() {
           {/* Topics — cross-cutting theme tags. Distinct from Guide above:
                Guide = primary home (one), Topics = themes (many) that drive
                the "Across the Site" rows on each guide page. */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-2 flex items-center gap-1.5">
               Topics
               <HelpTip text="Cross-cutting theme tags. Different from Guide — Guide is the article's primary home (write FOR that guide). Topics decide which guide pages ALSO surface this piece in their 'Across the Site' rows." />
             </h3>
-            <p className="text-[11px] text-gray-500 leading-snug mb-2">
+            <p className="text-[11px] text-portal-sub leading-snug mb-2">
               <strong>Guide</strong> = one primary home. <strong>Topics</strong> = themes that cross-promote it elsewhere.
             </p>
             <div className="space-y-2">
@@ -476,10 +476,10 @@ export default function NewArticlePage() {
                       }}
                     />
                     <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-gray-700 group-hover:text-gray-900">
+                      <span className="block text-sm font-semibold text-portal-text group-hover:text-portal-text">
                         {t.label}
                       </span>
-                      <span className="block text-[11px] text-gray-400 leading-snug">
+                      <span className="block text-[11px] text-portal-muted leading-snug">
                         {t.description}
                       </span>
                     </span>
@@ -490,20 +490,20 @@ export default function NewArticlePage() {
           </div>
 
           {/* Issue month */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Issue Month</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Issue Month</h3>
             <input
               type="month"
               className={inp}
               value={form.source_issue_month ? form.source_issue_month.slice(0, 7) : ''}
               onChange={e => setField('source_issue_month', e.target.value ? `${e.target.value}-01` : '')}
             />
-            <p className="text-[11px] text-gray-400 mt-1.5">The magazine issue this article is from (optional)</p>
+            <p className="text-[11px] text-portal-muted mt-1.5">The magazine issue this article is from (optional)</p>
           </div>
 
           {/* Editorial notes */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Editorial Notes</h3>
+          <div className="bg-white rounded-xl border border-portal-border p-4">
+            <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Editorial Notes</h3>
             <textarea
               className={`${inp} resize-none`}
               rows={3}
@@ -517,11 +517,11 @@ export default function NewArticlePage() {
       </div>
 
       {/* Bottom save bar */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-end gap-2">
-        <Link href="/admin/articles" className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors">
+      <div className="sticky bottom-0 bg-white border-t border-portal-border px-6 py-3 flex items-center justify-end gap-2">
+        <Link href="/admin/articles" className="px-4 py-2 text-sm font-semibold text-portal-sub hover:text-portal-text transition-colors">
           Cancel
         </Link>
-        <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40">
+        <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg disabled:opacity-40">
           Save Draft
         </button>
         <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">

@@ -32,15 +32,15 @@ export default async function NewAdvertiserPage() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
         <Link
           href="/admin/advertisers"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-portal-sub hover:text-portal-text mb-2"
         >
           <ArrowLeft size={12} /> Back to Advertisers
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900">New Advertiser</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <h1 className="text-xl font-semibold text-portal-text">New Advertiser</h1>
+        <p className="text-xs text-portal-sub mt-0.5">
           Create the business record first. Contacts and ad placements get added on the profile after.
         </p>
       </div>

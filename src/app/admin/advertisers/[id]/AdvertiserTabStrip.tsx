@@ -48,13 +48,13 @@ export function AdvertiserTabStrip({ id, counts }: {
               className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 active
                   ? 'text-portal-blue border-portal-blue'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >
-              <span className={active ? 'text-portal-blue' : 'text-gray-400'}>{t.icon}</span>
+              <span className={active ? 'text-portal-blue' : 'text-portal-muted'}>{t.icon}</span>
               {t.label}
               {!!t.count && t.count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-portal-sub'}`}>
                   {t.count}
                 </span>
               )}

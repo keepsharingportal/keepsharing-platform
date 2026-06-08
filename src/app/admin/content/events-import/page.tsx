@@ -242,9 +242,9 @@ export default function EventsImportPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900">Event Import</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
+        <h1 className="text-xl font-semibold text-portal-text">Event Import</h1>
+        <p className="text-sm text-portal-sub mt-0.5">
           Upload a CSV of events · Deduplication by title + date · Published immediately
         </p>
       </div>
@@ -255,7 +255,7 @@ export default function EventsImportPage() {
         {!parsed && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -263,8 +263,8 @@ export default function EventsImportPage() {
             onClick={() => fileRef.current?.click()}
           >
             <Upload size={32} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-semibold text-gray-600">Drop CSV file here or click to browse</p>
-            <p className="text-xs text-gray-400 mt-1">Exported from Excel or Google Sheets</p>
+            <p className="text-sm font-semibold text-portal-sub">Drop CSV file here or click to browse</p>
+            <p className="text-xs text-portal-muted mt-1">Exported from Excel or Google Sheets</p>
             <input
               ref={fileRef}
               type="file"
@@ -285,10 +285,10 @@ export default function EventsImportPage() {
         {parsed && !done && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                <span className="font-bold text-gray-900">{parsed.rows.length}</span> events ready to import
+              <span className="text-sm text-portal-sub">
+                <span className="font-bold text-portal-text">{parsed.rows.length}</span> events ready to import
               </span>
-              <button onClick={reset} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600">
+              <button onClick={reset} className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
                 <X size={13} /> Reset
               </button>
             </div>
@@ -299,31 +299,31 @@ export default function EventsImportPage() {
               </div>
             )}
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-xl overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Preview</span>
-                <span className="text-xs text-gray-400">Showing {displayRows.length} of {parsed.rows.length}</span>
+                <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Preview</span>
+                <span className="text-xs text-portal-muted">Showing {displayRows.length} of {parsed.rows.length}</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">#</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Title</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Date</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Location</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Category</th>
-                      <th className="text-left px-4 py-2 text-gray-400 font-semibold">Free?</th>
+                    <tr className="border-b border-gray-100 bg-portal-bg">
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">#</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Title</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Date</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Location</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Category</th>
+                      <th className="text-left px-4 py-2 text-portal-muted font-semibold">Free?</th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayRows.map((row, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={i} className="border-b border-gray-50 hover:bg-portal-bg">
                         <td className="px-4 py-2 text-gray-300">{i + 1}</td>
-                        <td className="px-4 py-2 text-gray-800 font-medium truncate max-w-[220px]">{row.title}</td>
-                        <td className="px-4 py-2 text-gray-600 whitespace-nowrap">{row.start_date ?? '—'}</td>
-                        <td className="px-4 py-2 text-gray-500 truncate max-w-[140px]">{row.location_name ?? '—'}</td>
-                        <td className="px-4 py-2 text-gray-500">{row.category ?? 'Family'}</td>
+                        <td className="px-4 py-2 text-portal-text font-medium truncate max-w-[220px]">{row.title}</td>
+                        <td className="px-4 py-2 text-portal-sub whitespace-nowrap">{row.start_date ?? '—'}</td>
+                        <td className="px-4 py-2 text-portal-sub truncate max-w-[140px]">{row.location_name ?? '—'}</td>
+                        <td className="px-4 py-2 text-portal-sub">{row.category ?? 'Family'}</td>
                         <td className="px-4 py-2">
                           {row.is_free
                             ? <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">Free</span>
@@ -338,7 +338,7 @@ export default function EventsImportPage() {
               {parsed.rows.length > 15 && (
                 <button
                   onClick={() => setShowAll(!showAll)}
-                  className="w-full py-3 text-xs text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1 border-t border-gray-100"
+                  className="w-full py-3 text-xs text-portal-muted hover:text-portal-sub flex items-center justify-center gap-1 border-t border-gray-100"
                 >
                   <ChevronDown size={13} className={showAll ? 'rotate-180' : ''} />
                   {showAll ? 'Show less' : `Show all ${parsed.rows.length} events`}
@@ -348,10 +348,10 @@ export default function EventsImportPage() {
 
             {/* Import progress bar (shown during import) */}
             {importing && (
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="bg-white rounded-xl border border-portal-border p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <RefreshCw size={14} className="text-portal-blue animate-spin" />
-                  <span className="text-sm text-gray-600">{progress.done} / {progress.total} events processed</span>
+                  <span className="text-sm text-portal-sub">{progress.done} / {progress.total} events processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
@@ -379,34 +379,34 @@ export default function EventsImportPage() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Inserted', value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
-                { label: 'Skipped',  value: totals.skipped,  color: 'text-gray-500',  bg: 'bg-gray-50 border-gray-200'  },
-                { label: 'Errors',   value: totals.errors,   color: 'text-red-600',   bg: 'bg-red-50 border-red-200'    },
+                { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
+                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-xl border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
-                  <div className="text-xs text-gray-500 mt-1">{label}</div>
+                  <div className="text-xs text-portal-sub mt-1">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
               <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'ok'      ? 'bg-green-100 text-green-700' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-gray-500'  :
+                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status === 'ok' ? 'added' : r.status}</span>
-                    <span className="text-xs text-gray-700 flex-1 truncate">{r.title}</span>
-                    {r.message && <span className="text-[10px] text-gray-400 truncate max-w-xs">{r.message}</span>}
+                    <span className="text-xs text-portal-text flex-1 truncate">{r.title}</span>
+                    {r.message && <span className="text-[10px] text-portal-muted truncate max-w-xs">{r.message}</span>}
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={reset} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50">
+              <button onClick={reset} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-xl hover:bg-portal-bg">
                 Import another file
               </button>
               <a href="/calendar" target="_blank" rel="noopener noreferrer"
@@ -428,19 +428,19 @@ export default function EventsImportPage() {
         {/* Column mapping reference */}
         {!parsed && (
           <details className="mt-4">
-            <summary className="cursor-pointer text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors select-none">
+            <summary className="cursor-pointer text-xs font-semibold text-portal-muted hover:text-portal-sub transition-colors select-none">
               Expected column headers
             </summary>
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               {Object.entries(COL_MAP).map(([header, field]) => field !== '_skip' && (
-                <div key={header} className="flex items-center gap-2 text-gray-400">
+                <div key={header} className="flex items-center gap-2 text-portal-muted">
                   <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{header}</span>
                   <span className="text-gray-300">→</span>
-                  <span className="text-gray-500">{field as string}</span>
+                  <span className="text-portal-sub">{field as string}</span>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-gray-400">
+            <p className="mt-3 text-xs text-portal-muted">
               Required: <code className="bg-gray-100 px-1 rounded">title</code> and <code className="bg-gray-100 px-1 rounded">start date</code>.
               Date format: YYYY-MM-DD or M/D/YYYY.
             </p>

@@ -43,28 +43,28 @@ export default async function ExportPackagesPage() {
         <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900">Export Packages</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Each row represents an issue you can hand to print. Click an issue to download its manifest.</p>
+        <h1 className="text-xl font-semibold text-portal-text">Export Packages</h1>
+        <p className="text-sm text-portal-sub mt-0.5">Each row represents an issue you can hand to print. Click an issue to download its manifest.</p>
       </div>
 
       <section>
         <AdminSectionHeader title="Recent Issues" count={months.length} />
 
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-500">No issues have been built yet.</p>
-            <p className="text-xs text-gray-400 mt-1">Tag articles with <code className="px-1 bg-gray-100 rounded">source_issue_month</code> to populate this view.</p>
+          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <p className="text-sm text-portal-sub">No issues have been built yet.</p>
+            <p className="text-xs text-portal-muted mt-1">Tag articles with <code className="px-1 bg-gray-100 rounded">source_issue_month</code> to populate this view.</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Issue</th>
-                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Articles</th>
-                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Markets</th>
-                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Status</th>
-                  <th className="text-right px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Action</th>
+                <tr className="bg-portal-bg border-b border-portal-border">
+                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Issue</th>
+                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Articles</th>
+                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Markets</th>
+                  <th className="text-left px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Status</th>
+                  <th className="text-right px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -73,15 +73,15 @@ export default async function ExportPackagesPage() {
                   const pubsList   = Object.entries(g.pubs).sort((a, b) => b[1] - a[1])
                   const allPub     = g.total > 0 && g.published === g.total
                   return (
-                    <tr key={m} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                    <tr key={m} className="border-b border-gray-100 last:border-0 hover:bg-portal-bg">
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <Package size={14} className="text-gray-400" />
-                          <span className="text-sm font-semibold text-gray-900">{fmtMonth(m)}</span>
+                          <Package size={14} className="text-portal-muted" />
+                          <span className="text-sm font-semibold text-portal-text">{fmtMonth(m)}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-700">{g.total}</td>
-                      <td className="px-3 py-3 text-xs text-gray-500">
+                      <td className="px-3 py-3 text-sm text-portal-text">{g.total}</td>
+                      <td className="px-3 py-3 text-xs text-portal-sub">
                         {pubsList.map(([p, n]) => `${p} (${n})`).join(' · ')}
                       </td>
                       <td className="px-3 py-3 text-xs">
@@ -105,7 +105,7 @@ export default async function ExportPackagesPage() {
           </div>
         )}
 
-        <p className="text-[11px] text-gray-400 mt-3">
+        <p className="text-[11px] text-portal-muted mt-3">
           Manifest CSV includes title, slug, author, hero image URL, and publication for every article in the issue.
           Use it as the source-of-truth when assembling InDesign or PDF.
         </p>

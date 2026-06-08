@@ -11,7 +11,7 @@ const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December']
 
 const STATUS_CONFIG: Record<UpdateStatus, { label: string; cls: string; icon: React.ElementType }> = {
-  not_sent:  { label: 'Not Sent',  cls: 'bg-gray-50 text-gray-500 ring-gray-200',   icon: Clock },
+  not_sent:  { label: 'Not Sent',  cls: 'bg-portal-bg text-portal-sub ring-gray-200',   icon: Clock },
   sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200', icon: Mail },
   responded: { label: 'Responded', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',    icon: RefreshCw },
   updated:   { label: 'Updated',   cls: 'bg-green-50 text-green-700 ring-green-200', icon: CheckCircle2 },
@@ -58,7 +58,7 @@ export default function GuidePage() {
   const [localListings, setLocalListings] = useState(listings)
   const [filterStatus, setFilterStatus] = useState<UpdateStatus | 'all'>('all')
 
-  if (!guide) return <div className="p-6 text-gray-500">Guide not found for month {month}</div>
+  if (!guide) return <div className="p-6 text-portal-sub">Guide not found for month {month}</div>
 
   const stats = {
     total:     localListings.length,
@@ -84,15 +84,15 @@ export default function GuidePage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/admin/guides" className="text-sm text-portal-blue hover:text-portal-blue">← Guides</Link>
           <span className="text-gray-300">/</span>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-portal-text">
               {guide.name}
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">{MONTH_NAMES[month]} {year} · {stats.total} listings</p>
+            <p className="text-sm text-portal-sub mt-0.5">{MONTH_NAMES[month]} {year} · {stats.total} listings</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -111,16 +111,16 @@ export default function GuidePage() {
       </div>
 
       {/* Stats row */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6 text-sm shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-6 text-sm shrink-0">
         {(['all', 'not_sent', 'sent', 'responded', 'updated'] as const).map((s) => {
           const count = s === 'all' ? stats.total : stats[s]
           const labels: Record<string, string> = { all: 'All', not_sent: 'Not Sent', sent: 'Sent', responded: 'Responded', updated: 'Updated' }
-          const colors: Record<string, string> = { all: 'text-gray-700', not_sent: 'text-gray-500', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-green-600' }
+          const colors: Record<string, string> = { all: 'text-portal-text', not_sent: 'text-portal-sub', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-green-600' }
           return (
             <button key={s} onClick={() => setFilterStatus(s)}
-              className={cn('flex items-center gap-1.5 transition-colors', filterStatus === s ? 'font-semibold' : 'hover:text-gray-900', colors[s])}>
+              className={cn('flex items-center gap-1.5 transition-colors', filterStatus === s ? 'font-semibold' : 'hover:text-portal-text', colors[s])}>
               <span className="font-bold">{count}</span>
-              <span className="text-gray-400">{labels[s]}</span>
+              <span className="text-portal-muted">{labels[s]}</span>
             </button>
           )
         })}
@@ -129,10 +129,10 @@ export default function GuidePage() {
       {/* Table */}
       <div className="flex-1 overflow-auto bg-white">
         <table className="w-full text-sm border-collapse">
-          <thead className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+          <thead className="sticky top-0 bg-portal-bg border-b border-portal-border z-10">
             <tr>
               {['Status', 'Business', 'Category', 'Phone', 'Email', 'Last Verified', 'Actions'].map((h) => (
-                <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-portal-sub uppercase tracking-wider whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
@@ -140,24 +140,24 @@ export default function GuidePage() {
             {filtered.map((listing) => {
               const { label, cls, icon: Icon } = STATUS_CONFIG[listing.updateStatus]
               return (
-                <tr key={listing.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={listing.id} className="hover:bg-portal-bg transition-colors">
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ring-1 ${cls}`}>
                       <Icon size={11} /> {label}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{listing.businessName}</div>
-                    <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{listing.address}</div>
+                    <div className="font-medium text-portal-text">{listing.businessName}</div>
+                    <div className="text-xs text-portal-muted mt-0.5 truncate max-w-[200px]">{listing.address}</div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{listing.category}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-xs text-portal-sub whitespace-nowrap">{listing.category}</td>
+                  <td className="px-4 py-3 text-sm text-portal-sub whitespace-nowrap">
                     <a href={`tel:${listing.phone}`} className="hover:text-portal-blue transition-colors">{listing.phone}</a>
                   </td>
                   <td className="px-4 py-3 text-sm text-portal-blue whitespace-nowrap">
                     <a href={`mailto:${listing.email}`} className="hover:underline">{listing.email}</a>
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+                  <td className="px-4 py-3 text-xs text-portal-sub whitespace-nowrap">
                     {listing.lastVerified
                       ? new Date(listing.lastVerified).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                       : <span className="text-red-400">Never</span>
@@ -179,7 +179,7 @@ export default function GuidePage() {
                       )}
                       {listing.updateToken && (
                         <a href={`/update/${listing.updateToken}`} target="_blank"
-                          className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                          className="p-1.5 rounded text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover transition-colors">
                           <ExternalLink size={13} />
                         </a>
                       )}
@@ -199,33 +199,33 @@ export default function GuidePage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEmailModal(null)} />
             <div className="relative z-10 w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-portal-border shrink-0">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Update Request Email</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{emailModal.businessName} · {emailModal.contactName}</p>
+                  <h2 className="text-base font-semibold text-portal-text">Update Request Email</h2>
+                  <p className="text-xs text-portal-sub mt-0.5">{emailModal.businessName} · {emailModal.contactName}</p>
                 </div>
-                <button onClick={() => setEmailModal(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">✕</button>
+                <button onClick={() => setEmailModal(null)} className="p-1.5 rounded-lg text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover">✕</button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-portal-bg rounded-xl p-4">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Subject</span>
+                    <span className="text-xs font-semibold text-portal-sub uppercase">Subject</span>
                     <button onClick={() => handleCopy(draft.subject, 'subject')}
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600">
+                      className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
                       {copied === 'subject' ? <><CheckCheck size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy</>}
                     </button>
                   </div>
-                  <p className="text-sm text-gray-800 font-medium">{draft.subject}</p>
+                  <p className="text-sm text-portal-text font-medium">{draft.subject}</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
+                <div className="bg-portal-bg rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Body</span>
+                    <span className="text-xs font-semibold text-portal-sub uppercase">Body</span>
                     <button onClick={() => handleCopy(draft.body, 'body')}
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600">
+                      className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
                       {copied === 'body' ? <><CheckCheck size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy</>}
                     </button>
                   </div>
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{draft.body}</pre>
+                  <pre className="text-xs text-portal-text whitespace-pre-wrap font-sans leading-relaxed">{draft.body}</pre>
                 </div>
                 <div className="bg-portal-blue-lt border border-blue-200 rounded-xl p-4">
                   <p className="text-xs font-semibold text-portal-blue mb-1">How to send</p>
@@ -237,8 +237,8 @@ export default function GuidePage() {
                   </ol>
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between shrink-0">
-                <button onClick={() => setEmailModal(null)} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+              <div className="px-6 py-4 border-t border-portal-border bg-portal-bg flex items-center justify-between shrink-0">
+                <button onClick={() => setEmailModal(null)} className="text-sm text-portal-sub hover:text-portal-text">Cancel</button>
                 <button onClick={() => handleMarkSent(emailModal.id)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                   <CheckCircle2 size={14} /> Mark as Sent
@@ -254,32 +254,32 @@ export default function GuidePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPendingModal(null)} />
           <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-base font-semibold text-gray-900">Review Requested Changes</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{pendingModal.businessName}</p>
+            <div className="px-6 py-4 border-b border-portal-border">
+              <h2 className="text-base font-semibold text-portal-text">Review Requested Changes</h2>
+              <p className="text-xs text-portal-sub mt-0.5">{pendingModal.businessName}</p>
             </div>
             <div className="px-6 py-5 space-y-3">
               {Object.entries(pendingModal.pendingChanges).map(([field, newValue]) => {
                 const oldValue = pendingModal[field as keyof GuideListing] as string
                 return (
-                  <div key={field} className="bg-gray-50 rounded-xl p-4">
-                    <div className="text-xs font-semibold text-gray-500 uppercase mb-2">{field.replace(/([A-Z])/g, ' $1')}</div>
+                  <div key={field} className="bg-portal-bg rounded-xl p-4">
+                    <div className="text-xs font-semibold text-portal-sub uppercase mb-2">{field.replace(/([A-Z])/g, ' $1')}</div>
                     <div className="flex gap-3 text-sm">
                       <div className="flex-1">
                         <div className="text-xs text-red-500 font-medium mb-0.5">Current</div>
-                        <div className="text-gray-700 line-through">{oldValue}</div>
+                        <div className="text-portal-text line-through">{oldValue}</div>
                       </div>
                       <div className="flex-1">
                         <div className="text-xs text-green-600 font-medium mb-0.5">Proposed</div>
-                        <div className="text-gray-900 font-medium">{newValue as string}</div>
+                        <div className="text-portal-text font-medium">{newValue as string}</div>
                       </div>
                     </div>
                   </div>
                 )
               })}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex gap-2 justify-end">
-              <button onClick={() => setPendingModal(null)} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100">Ignore</button>
+            <div className="px-6 py-4 border-t border-portal-border bg-portal-bg flex gap-2 justify-end">
+              <button onClick={() => setPendingModal(null)} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-row-hover">Ignore</button>
               <button onClick={() => {
                 setLocalListings((prev) => prev.map((l) => l.id === pendingModal.id ? { ...l, ...l.pendingChanges, pendingChanges: null, updateStatus: 'updated', lastVerified: new Date().toISOString().slice(0,10) } : l))
                 setPendingModal(null)

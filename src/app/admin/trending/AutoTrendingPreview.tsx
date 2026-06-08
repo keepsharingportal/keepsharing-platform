@@ -57,21 +57,21 @@ export function AutoTrendingPreview({ candidates, blocked, blockAction, unblockA
 
 function AutoSection({ candidates, blockAction }: { candidates: AutoCandidate[]; blockAction: Props['blockAction'] }) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <section className="bg-white rounded-2xl border border-portal-border overflow-hidden">
       <header className="px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2 mb-1">
           <Flame size={14} className="text-amber-600" />
-          <h2 className="text-sm font-bold text-gray-900">Auto-filling — top pages this week</h2>
+          <h2 className="text-sm font-bold text-portal-text">Auto-filling — top pages this week</h2>
           <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded uppercase tracking-wider">Live preview</span>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-portal-sub">
           These pages will fill any empty slots in the bar (after your pinned items). Top of the list rolls in first.
-          {' '}Click <strong className="text-gray-700">Block</strong> to keep a path out of the bar permanently.
+          {' '}Click <strong className="text-portal-text">Block</strong> to keep a path out of the bar permanently.
         </p>
       </header>
 
       {candidates.length === 0 ? (
-        <div className="p-6 text-center text-sm text-gray-400">
+        <div className="p-6 text-center text-sm text-portal-muted">
           No auto-trending candidates right now. The bar will rely on your pinned items.
         </div>
       ) : (
@@ -98,12 +98,12 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
 
   return (
     <li className="px-5 py-3 flex items-center gap-3">
-      <span className="w-6 text-[11px] font-bold text-gray-400 tabular-nums">#{rank}</span>
+      <span className="w-6 text-[11px] font-bold text-portal-muted tabular-nums">#{rank}</span>
       <span className="text-base shrink-0 w-5 text-center" aria-hidden="true">{candidate.emoji ?? '🔥'}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{candidate.label}</p>
-        <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-0.5">
-          <code className="text-[11px] text-gray-500 truncate">{candidate.path}</code>
+        <p className="text-sm font-semibold text-portal-text truncate">{candidate.label}</p>
+        <div className="flex items-center gap-3 text-[11px] text-portal-sub mt-0.5">
+          <code className="text-[11px] text-portal-sub truncate">{candidate.path}</code>
           <span className="tabular-nums whitespace-nowrap">{candidate.unique_views.toLocaleString()} views / 7d</span>
         </div>
       </div>
@@ -111,7 +111,7 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
         href={candidate.path}
         target="_blank"
         rel="noreferrer"
-        className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 inline-flex items-center gap-1"
+        className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1"
         title="Open this path in a new tab to verify it"
       >
         <ExternalLink size={11} /> Open
@@ -133,13 +133,13 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
 
 function BlockedSection({ blocked, unblockAction }: { blocked: BlockedPath[]; unblockAction: Props['unblockAction'] }) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <section className="bg-white rounded-2xl border border-portal-border overflow-hidden">
       <header className="px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2 mb-1">
-          <EyeOff size={14} className="text-gray-500" />
-          <h2 className="text-sm font-bold text-gray-900">Blocked from auto-fill ({blocked.length})</h2>
+          <EyeOff size={14} className="text-portal-sub" />
+          <h2 className="text-sm font-bold text-portal-text">Blocked from auto-fill ({blocked.length})</h2>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-portal-sub">
           These paths are excluded from the auto-trending pool. Unblock to let them flow back in based on traffic.
         </p>
       </header>
@@ -165,8 +165,8 @@ function BlockedRow({ item, unblockAction }: { item: BlockedPath; unblockAction:
     <li className="px-5 py-3 flex items-center gap-3">
       <span className="text-base shrink-0 w-5 text-center text-gray-300" aria-hidden="true">🚫</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-700 truncate">{item.label ?? item.path}</p>
-        <code className="text-[11px] text-gray-500 truncate block">{item.path}</code>
+        <p className="text-sm font-semibold text-portal-text truncate">{item.label ?? item.path}</p>
+        <code className="text-[11px] text-portal-sub truncate block">{item.path}</code>
       </div>
       <button
         type="button"

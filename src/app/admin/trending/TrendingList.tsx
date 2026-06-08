@@ -216,20 +216,20 @@ export function TrendingList(props: Props) {
   return (
     <div className="space-y-6">
       {/* ── Live preview ───────────────────────────────────────────────── */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <Eye size={14} className="text-gray-400" />
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+          <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
+            <Eye size={14} className="text-portal-muted" />
             Live preview — exactly what the homepage shows right now
           </h2>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-portal-muted">
             {previewItems.filter(p => p.source === 'pinned').length} pinned ·{' '}
             {previewItems.filter(p => p.source === 'auto').length} auto · 4 max
           </span>
         </div>
         <div className="px-5 py-4 bg-[#fef0eb]">
           {previewItems.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">Nothing to show. Add a pinned item below, or wait for readers to start visiting pages — auto-trending kicks in once we have view data.</p>
+            <p className="text-sm text-portal-sub italic">Nothing to show. Add a pinned item below, or wait for readers to start visiting pages — auto-trending kicks in once we have view data.</p>
           ) : (
             <div className="flex items-center gap-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-portal-blue whitespace-nowrap shrink-0">
@@ -283,21 +283,21 @@ export function TrendingList(props: Props) {
       </div>
 
       {/* ── List ──────────────────────────────────────────────────────── */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-700">{visible.length} items</h2>
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+          <h2 className="text-sm font-bold text-portal-text">{visible.length} items</h2>
           <div className="flex items-center gap-3">
             {visible.length > 0 && (
-              <button onClick={selected.size === visible.length ? clearSelection : selectAll} className="text-xs text-gray-600 hover:text-gray-900">
+              <button onClick={selected.size === visible.length ? clearSelection : selectAll} className="text-xs text-portal-sub hover:text-portal-text">
                 {selected.size === visible.length ? 'Clear' : 'Select all'}
               </button>
             )}
-            <span className="text-xs text-gray-400">{items.length} total</span>
+            <span className="text-xs text-portal-muted">{items.length} total</span>
           </div>
         </div>
 
         {visible.length === 0 ? (
-          <p className="p-8 text-center text-sm text-gray-400">No items match this filter.</p>
+          <p className="p-8 text-center text-sm text-portal-muted">No items match this filter.</p>
         ) : (
           <ul className="divide-y divide-gray-100">
             {visible.map((item, idx) => {
@@ -328,14 +328,14 @@ export function TrendingList(props: Props) {
                       <span className="text-xl shrink-0" aria-hidden="true">{item.emoji ?? '·'}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{item.label}</p>
+                          <p className="text-sm font-semibold text-portal-text truncate">{item.label}</p>
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: style.bg, color: style.text }}>
                             <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: style.dot }} />
                             {style.label}
                           </span>
                         </div>
-                        <p className="text-[11px] text-gray-500 mt-0.5 font-mono truncate">{item.link}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
+                        <p className="text-[11px] text-portal-sub mt-0.5 font-mono truncate">{item.link}</p>
+                        <p className="text-[11px] text-portal-muted mt-0.5">
                           Order {item.display_order} · Starts {fmtDateTime(item.start_at)} · Ends {fmtDateTime(item.end_at)}
                         </p>
                       </div>
@@ -352,7 +352,7 @@ export function TrendingList(props: Props) {
                             <form action={props.toggleActive}>
                               <input type="hidden" name="id"      value={item.id} />
                               <input type="hidden" name="current" value={String(item.is_active)} />
-                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}>
+                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}>
                                 {item.is_active ? 'Turn off' : 'Turn on'}
                               </button>
                             </form>
@@ -374,7 +374,7 @@ export function TrendingList(props: Props) {
                             )}
                           </>
                         )}
-                        <button type="button" onClick={() => startEdit(item.id)} className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50">
+                        <button type="button" onClick={() => startEdit(item.id)} className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-portal-border text-portal-text hover:bg-portal-bg">
                           <Pencil size={11} /> Edit
                         </button>
                         {/* Direct Remove — wipes the row entirely. Confirm
@@ -384,7 +384,7 @@ export function TrendingList(props: Props) {
                           onSubmit={(e) => { if (!confirm(`Permanently delete "${item.label}"? This can't be undone.`)) e.preventDefault() }}
                         >
                           <input type="hidden" name="id" value={item.id} />
-                          <button type="submit" title="Remove permanently" className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+                          <button type="submit" title="Remove permanently" className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
                             <Trash2 size={11} /> Remove
                           </button>
                         </form>
@@ -416,7 +416,7 @@ export function TrendingList(props: Props) {
             <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber-lt0 hover:bg-amber-400">End now</button>
             <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-violet-500">Archive</button>
             <button onClick={() => runBulk('restore')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Restore</button>
-            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-red-500">Delete</button>
+            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-portal-red-lt0">Delete</button>
             <button onClick={clearSelection} className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-md text-white/60 hover:text-white">
               Cancel
             </button>
@@ -437,12 +437,12 @@ function FilterChip({ label, count, active, onClick, tone }: { label: string; co
       className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border ${
         active
           ? 'bg-gray-900 text-white border-gray-900'
-          : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+          : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'
       }`}
     >
       <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: active ? '#fff' : dotColor }} />
       <span className="font-semibold">{label}</span>
-      <span className={`font-bold ${active ? 'text-white/80' : 'text-gray-400'}`}>{count}</span>
+      <span className={`font-bold ${active ? 'text-white/80' : 'text-portal-muted'}`}>{count}</span>
     </button>
   )
 }
@@ -450,36 +450,36 @@ function FilterChip({ label, count, active, onClick, tone }: { label: string; co
 // ── Add form ──────────────────────────────────────────────────────────────────
 
 function AddForm({ onCreate, nextOrder }: { onCreate: (fd: FormData) => Promise<void>; nextOrder: number }) {
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors'
+  const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-        <h2 className="text-sm font-bold text-gray-700">Add a new trending item</h2>
+    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+        <h2 className="text-sm font-bold text-portal-text">Add a new trending item</h2>
       </div>
       <form action={onCreate} className="p-5 grid md:grid-cols-12 gap-3 items-end">
         <div className="md:col-span-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Emoji</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Emoji</label>
           <EmojiPicker />
         </div>
         <div className="md:col-span-4">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Label *</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Label *</label>
           <input name="label" type="text" required placeholder="2026 Summer Camp Guide" className={inputCls} />
         </div>
         <div className="md:col-span-3">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Link *</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Link *</label>
           <input name="link" type="text" required placeholder="/summer-camp-guide" className={inputCls} />
         </div>
         <div className="md:col-span-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Order</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Order</label>
           <input name="display_order" type="number" defaultValue={nextOrder} className={inputCls} />
         </div>
         <div className="md:col-span-3 grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-500 mb-1">Start (optional)</label>
+            <label className="block text-[11px] font-semibold text-portal-sub mb-1">Start (optional)</label>
             <input name="start_at" type="datetime-local" className={inputCls} />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-500 mb-1">End (optional)</label>
+            <label className="block text-[11px] font-semibold text-portal-sub mb-1">End (optional)</label>
             <input name="end_at" type="datetime-local" className={inputCls} />
           </div>
         </div>
@@ -501,38 +501,38 @@ function EditForm({ item, onSave, onDelete, onCancel }: {
   onDelete: (fd: FormData) => Promise<void>
   onCancel: () => void
 }) {
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 transition-colors'
+  const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-900">Editing item</p>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+        <p className="text-sm font-bold text-portal-text">Editing item</p>
+        <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>
       </div>
       <form action={async (fd) => { await onSave(fd); onCancel() }} className="grid md:grid-cols-12 gap-3 items-end">
         <input type="hidden" name="id" value={item.id} />
         <div className="md:col-span-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Emoji</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Emoji</label>
           <EmojiPicker defaultValue={item.emoji} />
         </div>
         <div className="md:col-span-4">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Label</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Label</label>
           <input name="label" type="text" required defaultValue={item.label} className={inputCls} />
         </div>
         <div className="md:col-span-3">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Link</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Link</label>
           <input name="link" type="text" required defaultValue={item.link} className={inputCls} />
         </div>
         <div className="md:col-span-1">
-          <label className="block text-[11px] font-semibold text-gray-500 mb-1">Order</label>
+          <label className="block text-[11px] font-semibold text-portal-sub mb-1">Order</label>
           <input name="display_order" type="number" defaultValue={item.display_order} className={inputCls} />
         </div>
         <div className="md:col-span-3 grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-500 mb-1">Start</label>
+            <label className="block text-[11px] font-semibold text-portal-sub mb-1">Start</label>
             <input name="start_at" type="datetime-local" defaultValue={toLocalInput(item.start_at)} className={inputCls} />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-500 mb-1">End</label>
+            <label className="block text-[11px] font-semibold text-portal-sub mb-1">End</label>
             <input name="end_at" type="datetime-local" defaultValue={toLocalInput(item.end_at)} className={inputCls} />
           </div>
         </div>
@@ -540,10 +540,10 @@ function EditForm({ item, onSave, onDelete, onCancel }: {
           <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
             <Check size={12} /> Save
           </button>
-          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
           <form action={async (fd) => { if (confirm('Delete permanently?')) { await onDelete(fd); onCancel() } }} className="ml-auto">
             <input type="hidden" name="id" value={item.id} />
-            <button type="submit" className="text-xs text-red-600 hover:text-red-700 font-semibold">
+            <button type="submit" className="text-xs text-portal-red hover:text-red-700 font-semibold">
               Delete permanently
             </button>
           </form>

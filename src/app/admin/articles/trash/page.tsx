@@ -104,14 +104,14 @@ export default function TrashPage() {
       {/* HEADER */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <Link href="/admin/articles" className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-gray-700 mb-2">
+          <Link href="/admin/articles" className="inline-flex items-center gap-1 text-xs font-semibold text-portal-muted hover:text-portal-text mb-2">
             <ArrowLeft size={12} /> Back to All Articles
           </Link>
           <div className="flex items-center gap-2">
             <Trash2 size={20} className="text-rose-600" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Trash</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Trash</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-portal-sub mt-1">
             Articles you&apos;ve moved to trash. Restore them, or permanently delete to free the slug.
           </p>
         </div>
@@ -146,16 +146,16 @@ export default function TrashPage() {
       )}
 
       {/* LIST */}
-      <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-sm text-gray-400 flex items-center justify-center gap-2">
+          <div className="p-8 text-center text-sm text-portal-muted flex items-center justify-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" /> Loading…
           </div>
         ) : articles.length === 0 ? (
           <div className="p-12 text-center">
             <Trash2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-600 mb-1">Trash is empty</p>
-            <p className="text-xs text-gray-400">Articles you move to trash will appear here.</p>
+            <p className="text-sm font-semibold text-portal-sub mb-1">Trash is empty</p>
+            <p className="text-xs text-portal-muted">Articles you move to trash will appear here.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-100">
@@ -168,8 +168,8 @@ export default function TrashPage() {
                   <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{a.title}</p>
-                  <p className="text-xs text-gray-400 truncate">
+                  <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
+                  <p className="text-xs text-portal-muted truncate">
                     {a.column_slug ?? 'No column'} · {a.author_name ?? 'No author'} · trashed {fmtDate(a.deleted_at)}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export default function TrashPage() {
                     type="button"
                     disabled={busyId === a.id}
                     onClick={() => restore(a.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-portal-border text-xs font-semibold text-portal-text hover:bg-portal-bg disabled:opacity-40"
                   >
                     <RotateCcw size={12} /> Restore
                   </button>

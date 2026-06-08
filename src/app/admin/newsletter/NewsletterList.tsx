@@ -50,7 +50,7 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <select
           value={filterSource} onChange={e => setFilterSource(e.target.value)}
-          className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none bg-white"
+          className="px-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none bg-white"
         >
           <option value="all">All sources</option>
           {sources.map(s => <option key={s} value={s}>{s}</option>)}
@@ -58,13 +58,13 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
         <input
           type="search" placeholder="Search by email..."
           value={search} onChange={e => setSearch(e.target.value)}
-          className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none bg-white focus:border-blue-400"
+          className="px-3 py-1.5 text-sm border border-portal-border rounded-lg outline-none bg-white focus:border-portal-blue"
         />
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-sm text-gray-500">{filtered.length} showing</span>
+          <span className="text-sm text-portal-sub">{filtered.length} showing</span>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg transition-colors"
           >
             <Download size={12} /> Export CSV
           </button>
@@ -72,23 +72,23 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-portal-bg border-b border-portal-border">
             <tr>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tags</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subscribed</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">GHL</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Email</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Name</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Source</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Tags</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Subscribed</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">GHL</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtered.map(s => (
-              <tr key={s.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-2.5 text-gray-900 font-medium text-xs">{s.email}</td>
-                <td className="px-4 py-2.5 text-gray-600 text-xs">{s.first_name ?? '—'}</td>
+              <tr key={s.id} className="hover:bg-portal-bg transition-colors">
+                <td className="px-4 py-2.5 text-portal-text font-medium text-xs">{s.email}</td>
+                <td className="px-4 py-2.5 text-portal-sub text-xs">{s.first_name ?? '—'}</td>
                 <td className="px-4 py-2.5 text-xs">
                   <span className="px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium text-[11px]">
                     {s.source ?? '—'}
@@ -97,11 +97,11 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
                 <td className="px-4 py-2.5 text-xs">
                   <div className="flex flex-wrap gap-1">
                     {(s.tags ?? []).filter(t => t !== 'rrp-main-email').slice(0, 3).map(t => (
-                      <span key={t} className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px]">{t}</span>
+                      <span key={t} className="px-1.5 py-0.5 rounded bg-gray-100 text-portal-sub text-[10px]">{t}</span>
                     ))}
                   </div>
                 </td>
-                <td className="px-4 py-2.5 text-gray-400 text-xs">
+                <td className="px-4 py-2.5 text-portal-muted text-xs">
                   {new Date(s.subscribed_at).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-2.5 text-xs">

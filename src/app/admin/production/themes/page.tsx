@@ -46,19 +46,19 @@ export default function ThemesPage() {
         <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900">Monthly Themes</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Each market can run a different theme in a given month. Editorial planning starts here.</p>
+        <h1 className="text-xl font-semibold text-portal-text">Monthly Themes</h1>
+        <p className="text-sm text-portal-sub mt-0.5">Each market can run a different theme in a given month. Editorial planning starts here.</p>
       </div>
 
       <section>
         <AdminSectionHeader title="Theme Grid" description="Markets across · Months down" />
 
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">Month</th>
+                <tr className="bg-portal-bg border-b border-portal-border">
+                  <th className="text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">Month</th>
                   {PUBLICATIONS.map(p => (
                     <th key={p.abbrev} className="text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: p.color }}>
                       {p.abbrev}
@@ -69,7 +69,7 @@ export default function ThemesPage() {
               <tbody>
                 {months.map(m => (
                   <tr key={m} className="border-b border-gray-100 last:border-0">
-                    <td className="px-3 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">{fmtMonth(m)}</td>
+                    <td className="px-3 py-3 text-sm font-semibold text-portal-text whitespace-nowrap">{fmtMonth(m)}</td>
                     {PUBLICATIONS.map(p => {
                       const theme = THEMES[m]?.[p.abbrev]
                       return (
@@ -94,7 +94,7 @@ export default function ThemesPage() {
           </div>
         </div>
 
-        <p className="text-[11px] text-gray-400 mt-3">
+        <p className="text-[11px] text-portal-muted mt-3">
           This is a planning reference. To make themes editable, move this grid into a <code className="px-1 bg-gray-100 rounded">market_themes</code> table.
         </p>
       </section>

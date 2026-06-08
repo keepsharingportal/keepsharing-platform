@@ -111,7 +111,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
     }
   }
 
-  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-pink-400 bg-white'
+  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-pink-400 bg-white'
 
   return (
     <div className="space-y-6">
@@ -123,7 +123,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </SectionHelp>
 
       {/* Sticky save bar */}
-      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-gray-200 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
@@ -143,8 +143,8 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-900">Identity</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+        <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
           <FieldLabel hint="Her full name as it should appear on the byline and in the Meet the Moms grid.">
@@ -166,14 +166,14 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
           Active (shows on public Mom Knows Best pages)
         </label>
 
-        <p className="text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+        <p className="text-[11px] text-portal-muted pt-2 border-t border-gray-100">
           Public profile: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
         </p>
       </section>
 
       {/* ── Blogger Portal Access ─────────────────────────────────────────── */}
       <section className="rounded-xl border border-pink-200 bg-pink-50/40 p-5 space-y-3">
-        <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
           <Key size={14} className="text-pink-600" />
           Blogger Portal Access
         </h2>
@@ -187,7 +187,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
           </FieldLabel>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
               <input
                 type="email"
                 className={`${inp} pl-9`}
@@ -202,7 +202,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
                   ? 'bg-green-100 text-green-700'
                   : form.email
                     ? 'bg-portal-amber-lt text-portal-amber'
-                    : 'bg-gray-100 text-gray-500'
+                    : 'bg-gray-100 text-portal-sub'
               }`}
             >
               {form.has_login ? 'Active login' : form.email ? 'Not yet invited' : 'No login'}
@@ -233,8 +233,8 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Photos ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
-        <h2 className="text-sm font-bold text-gray-900">Photos</h2>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+        <h2 className="text-sm font-bold text-portal-text">Photos</h2>
 
         <div>
           <FieldLabel hint="Square crop works best. This is the small face shot that runs everywhere — bylines, post sidebars, the Meet the Moms grid.">
@@ -262,9 +262,9 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Bio ───────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-2">
-        <h2 className="text-sm font-bold text-gray-900">Bio</h2>
-        <p className="text-[11px] text-gray-400">Longer about-me paragraph(s). Line breaks preserved.</p>
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-2">
+        <h2 className="text-sm font-bold text-portal-text">Bio</h2>
+        <p className="text-[11px] text-portal-muted">Longer about-me paragraph(s). Line breaks preserved.</p>
         <textarea
           rows={8}
           className={`${inp} resize-y`}
@@ -275,11 +275,11 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Quick Takes ───────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Quick Takes</h2>
-            <p className="text-[11px] text-gray-400 mt-0.5">Short, fun Q&amp;A shown on her profile. Skip any she doesn&apos;t want to answer — empty rows are dropped on save.</p>
+            <h2 className="text-sm font-bold text-portal-text">Quick Takes</h2>
+            <p className="text-[11px] text-portal-muted mt-0.5">Short, fun Q&amp;A shown on her profile. Skip any she doesn&apos;t want to answer — empty rows are dropped on save.</p>
           </div>
           {form.quick_takes.length === 0 && (
             <button type="button" onClick={loadDefaults} className="text-xs font-semibold text-pink-600 hover:underline">
@@ -290,10 +290,10 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
 
         <div className="space-y-3">
           {form.quick_takes.map((qt, i) => (
-            <div key={i} className="rounded-lg border border-gray-200 bg-gray-50/40 p-3 space-y-2">
+            <div key={i} className="rounded-lg border border-portal-border bg-portal-bg/40 p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <input
-                  className="flex-1 px-3 py-1.5 text-xs font-bold text-gray-700 uppercase tracking-wider rounded border border-gray-200 bg-white outline-none focus:border-pink-400"
+                  className="flex-1 px-3 py-1.5 text-xs font-bold text-portal-text uppercase tracking-wider rounded border border-portal-border bg-white outline-none focus:border-pink-400"
                   value={qt.question}
                   onChange={e => updateQuickTake(i, 'question', e.target.value)}
                   placeholder="Question"
@@ -302,7 +302,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
                   type="button"
                   onClick={() => removeQuickTake(i)}
                   title="Remove this question"
-                  className="text-gray-400 hover:text-red-500 p-1"
+                  className="text-portal-muted hover:text-red-500 p-1"
                 >
                   <X size={14} />
                 </button>
@@ -321,7 +321,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         <button
           type="button"
           onClick={addQuickTake}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-text border border-portal-border rounded-lg hover:bg-portal-bg"
         >
           <Plus size={12} /> Add question
         </button>

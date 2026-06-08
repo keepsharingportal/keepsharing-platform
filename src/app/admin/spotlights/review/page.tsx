@@ -51,20 +51,20 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
     .eq('status', 'rejected')
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
+      <div className="bg-white border-b border-portal-border px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-portal-blue" />
               Student Spotlight Review
             </h1>
-            <p className="text-xs text-gray-500 mt-0.5">Bulk-approve incoming spotlights. Selected rows publish immediately.</p>
+            <p className="text-xs text-portal-sub mt-0.5">Bulk-approve incoming spotlights. Selected rows publish immediately.</p>
           </div>
           <Link
             href="/submit/student-spotlight"
             target="_blank"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
           >
             <Send size={11} /> Public Submit Form
           </Link>
@@ -84,7 +84,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
                 key={t.key}
                 href={href}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  active ? 'bg-portal-navy text-white' : 'text-gray-500 hover:bg-gray-100'
+                  active ? 'bg-portal-navy text-white' : 'text-portal-sub hover:bg-portal-row-hover'
                 }`}
               >
                 {t.label}{t.count != null ? ` (${t.count})` : ''}
@@ -96,10 +96,10 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
 
       <div className="p-6">
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-white p-12 text-center max-w-2xl mx-auto">
-            <Inbox className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-gray-700 mb-1">Nothing in the {status} queue.</p>
-            <p className="text-xs text-gray-500 mb-4">
+          <div className="rounded-xl border border-dashed border-portal-border bg-white p-12 text-center max-w-2xl mx-auto">
+            <Inbox className="h-8 w-8 text-portal-muted mx-auto mb-2" />
+            <p className="text-sm font-semibold text-portal-text mb-1">Nothing in the {status} queue.</p>
+            <p className="text-xs text-portal-sub mb-4">
               {status === 'new'
                 ? 'Submissions from /submit/student-spotlight appear here for approval.'
                 : 'Switch tabs above to see other queues.'}

@@ -29,8 +29,8 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   published: { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
   approved:  { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
   rejected:  { label: 'Rejected',       cls: 'bg-portal-red-lt text-portal-red ring-rose-200' },
-  cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
-  archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
+  cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-portal-text ring-gray-200' },
+  archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-portal-text ring-gray-200' },
 }
 
 interface Props {
@@ -126,17 +126,17 @@ export default async function EventPreviewPage({ params }: Props) {
             )}
           </div>
         ) : (
-          <div className="mb-6 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500 inline-flex items-center gap-2 w-full justify-center">
+          <div className="mb-6 rounded-2xl border-2 border-dashed border-portal-border bg-portal-bg p-8 text-center text-sm text-portal-sub inline-flex items-center gap-2 w-full justify-center">
             <AlertTriangle size={14} /> No hero image — public detail page will use a fallback.
           </div>
         )}
 
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-portal-text leading-tight mb-3">
           {String(ev.title)}
         </h1>
 
         {/* Meta strip */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600 mb-6">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-portal-sub mb-6">
           <span className="inline-flex items-center gap-1.5">
             <Calendar size={14} /> {fmtDate(String(ev.start_date))}
           </span>
@@ -154,14 +154,14 @@ export default async function EventPreviewPage({ params }: Props) {
             </span>
           )}
           {cost && !isFree && (
-            <span className="text-gray-700 font-semibold">{cost}</span>
+            <span className="text-portal-text font-semibold">{cost}</span>
           )}
         </div>
 
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-6">
             {tags.map(t => (
-              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 ring-1 ring-gray-200 text-xs">
+              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-portal-text ring-1 ring-gray-200 text-xs">
                 <Tag size={10} /> {t.replace(/-/g, ' ')}
               </span>
             ))}
@@ -169,7 +169,7 @@ export default async function EventPreviewPage({ params }: Props) {
         )}
 
         {description && (
-          <div className="prose prose-sm md:prose-base max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed mb-8">
+          <div className="prose prose-sm md:prose-base max-w-none text-portal-text whitespace-pre-wrap leading-relaxed mb-8">
             {description}
           </div>
         )}
@@ -178,22 +178,22 @@ export default async function EventPreviewPage({ params }: Props) {
         <div className="rounded-2xl bg-white ring-1 ring-gray-200 p-5 md:p-6 space-y-3 text-sm">
           {(address || city) && (
             <div className="flex items-start gap-2">
-              <MapPin size={14} className="text-gray-400 mt-0.5 shrink-0" />
+              <MapPin size={14} className="text-portal-muted mt-0.5 shrink-0" />
               <div>
-                {venue && <div className="font-bold text-gray-900">{venue}</div>}
-                {address && <div className="text-gray-700">{address}</div>}
-                {city && !address && <div className="text-gray-700">{city}</div>}
+                {venue && <div className="font-bold text-portal-text">{venue}</div>}
+                {address && <div className="text-portal-text">{address}</div>}
+                {city && !address && <div className="text-portal-text">{city}</div>}
               </div>
             </div>
           )}
           {organizer && (
             <div className="flex items-start gap-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mt-1 shrink-0">By</span>
-              <div className="font-semibold text-gray-900">{organizer}</div>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-portal-muted mt-1 shrink-0">By</span>
+              <div className="font-semibold text-portal-text">{organizer}</div>
             </div>
           )}
           {ageRange && (
-            <div className="text-gray-700"><span className="text-gray-400">Ages:</span> <span className="font-semibold">{ageRange}</span></div>
+            <div className="text-portal-text"><span className="text-portal-muted">Ages:</span> <span className="font-semibold">{ageRange}</span></div>
           )}
           {orgEmail && (
             <a href={`mailto:${orgEmail}`} className="inline-flex items-center gap-1.5 text-sky-700 hover:underline">
@@ -201,7 +201,7 @@ export default async function EventPreviewPage({ params }: Props) {
             </a>
           )}
           {phone && (
-            <span className="inline-flex items-center gap-1.5 text-gray-700">
+            <span className="inline-flex items-center gap-1.5 text-portal-text">
               <Phone size={13} /> {phone}
             </span>
           )}
@@ -214,7 +214,7 @@ export default async function EventPreviewPage({ params }: Props) {
 
         {/* Source attribution — admin-only, doesn't render on public page */}
         {(sourceUrl || sourceName) && (
-          <div className="mt-6 rounded-xl bg-gray-50 ring-1 ring-gray-200 px-4 py-3 text-xs text-gray-500">
+          <div className="mt-6 rounded-xl bg-portal-bg ring-1 ring-gray-200 px-4 py-3 text-xs text-portal-sub">
             <span className="font-bold uppercase tracking-wider mr-2">Source</span>
             {sourceName ?? 'Unknown'}
             {sourceUrl && (

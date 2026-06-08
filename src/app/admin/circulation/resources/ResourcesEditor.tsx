@@ -83,12 +83,12 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
 
       <ul className="space-y-2">
         {rows.length === 0 && !adding && (
-          <li className="text-xs text-gray-500 italic p-3 bg-white rounded-xl border border-dashed border-gray-200">
+          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-xl border border-dashed border-portal-border">
             No resources yet.
           </li>
         )}
         {rows.map(r => (
-          <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3">
+          <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3">
             {editing === r.id ? (
               <div className="space-y-2">
                 <Field label="Name" value={r.name} onChange={v => patchLocal(r.id, { name: v })} />
@@ -108,7 +108,7 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                   <Field label="Email"   value={r.email ?? ''}   onChange={v => patchLocal(r.id, { email:   v || null })} />
                   <Field label="Website" value={r.website ?? ''} onChange={v => patchLocal(r.id, { website: v || null })} />
                 </div>
-                <label className="flex items-center gap-1.5 text-xs text-gray-700">
+                <label className="flex items-center gap-1.5 text-xs text-portal-text">
                   <input type="checkbox" checked={r.active} onChange={e => patchLocal(r.id, { active: e.target.checked })} />
                   Active (visible on the public map)
                 </label>
@@ -117,31 +117,31 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                     {busy === r.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                     Save
                   </button>
-                  <button onClick={() => setEditing(null)} className="text-xs text-gray-500">Cancel</button>
+                  <button onClick={() => setEditing(null)} className="text-xs text-portal-sub">Cancel</button>
                 </div>
               </div>
             ) : (
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">
+                  <p className="text-sm font-bold text-portal-text truncate">
                     {r.name}
-                    {!r.active && <span className="ml-2 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Inactive</span>}
+                    {!r.active && <span className="ml-2 text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">Inactive</span>}
                     {r.category && <span className="ml-2 text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">{r.category}</span>}
                   </p>
-                  {r.description && <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">{r.description}</p>}
-                  {r.address && <p className="text-[11px] text-gray-500 mt-0.5">{r.address}{r.city ? `, ${r.city}` : ''}</p>}
+                  {r.description && <p className="text-[11px] text-portal-sub mt-0.5 line-clamp-2">{r.description}</p>}
+                  {r.address && <p className="text-[11px] text-portal-sub mt-0.5">{r.address}{r.city ? `, ${r.city}` : ''}</p>}
                   {(r.phone || r.email || r.website) && (
-                    <p className="text-[11px] text-gray-700 mt-1">
+                    <p className="text-[11px] text-portal-text mt-1">
                       {r.phone && <span className="mr-2">📞 {r.phone}</span>}
                       {r.website && <a href={r.website} target="_blank" rel="noopener" className="text-portal-blue hover:underline mr-2">{r.website}</a>}
                     </p>
                   )}
                 </div>
                 <div className="shrink-0 flex flex-col gap-1">
-                  <button onClick={() => setEditing(r.id)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50">
+                  <button onClick={() => setEditing(r.id)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg">
                     <Pencil size={11} /> Edit
                   </button>
-                  <button onClick={() => del(r)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-600 hover:bg-red-50">
+                  <button onClick={() => del(r)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
                     <Trash2 size={11} /> Delete
                   </button>
                 </div>
@@ -180,14 +180,14 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
   return (
     <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-900">New resource</p>
-        <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+        <p className="text-sm font-bold text-portal-text">New resource</p>
+        <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <Field label="Name" value={name} onChange={setName} />
         <FieldSelect label="Category" value={category} options={['', ...CATEGORIES]} onChange={setCategory} />
       </div>
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-portal-red">{err}</p>}
       <div className="flex items-center gap-2">
         <button onClick={submit} disabled={busy || !name.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
           {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
@@ -201,24 +201,24 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
 function Field({ label, value, onChange, className }: { label: string; value: string; onChange: (s: string) => void; className?: string }) {
   return (
     <label className={`block ${className ?? ''}`}>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
+      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
 function FieldNum({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input type="number" step="any" value={value} onChange={e => onChange(parseFloat(e.target.value || '0'))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
+      <input type="number" step="any" value={value} onChange={e => onChange(parseFloat(e.target.value || '0'))} className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
 function FieldSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (s: string) => void }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <select value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">{label}</span>
+      <select value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-portal-border-2 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30">
         {options.map(o => <option key={o} value={o}>{o || '— none —'}</option>)}
       </select>
     </label>

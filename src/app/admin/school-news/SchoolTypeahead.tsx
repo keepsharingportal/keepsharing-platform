@@ -105,20 +105,20 @@ export function SchoolTypeahead({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true); onChange(null) }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full pl-9 pr-9 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-portal-blue"
+          className="w-full pl-9 pr-9 py-2 text-sm border border-portal-border rounded-lg bg-white outline-none focus:border-portal-blue"
         />
         {selected && (
           <button
             type="button"
             onClick={clear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-xs font-bold"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-portal-muted hover:text-portal-text text-xs font-bold"
             aria-label="Clear selection"
           >
             ×
@@ -133,9 +133,9 @@ export function SchoolTypeahead({
       )}
 
       {open && !addingNew && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-portal-border rounded-lg shadow-lg max-h-80 overflow-y-auto">
           {matches.length === 0 ? (
-            <p className="px-3 py-3 text-xs text-gray-500">
+            <p className="px-3 py-3 text-xs text-portal-sub">
               No schools match &ldquo;{trimmed}&rdquo;.
             </p>
           ) : (
@@ -147,8 +147,8 @@ export function SchoolTypeahead({
                     onClick={() => pick(s)}
                     className="w-full text-left px-3 py-2 hover:bg-portal-blue-lt text-sm border-b border-gray-50 last:border-b-0"
                   >
-                    <span className="font-semibold text-gray-900">{s.name}</span>
-                    <span className="text-[10px] text-gray-500 ml-2">{AREA_LABELS[s.area]}</span>
+                    <span className="font-semibold text-portal-text">{s.name}</span>
+                    <span className="text-[10px] text-portal-sub ml-2">{AREA_LABELS[s.area]}</span>
                     {s.is_private && (
                       <span className="text-[10px] font-bold text-purple-700 bg-purple-50 ml-2 px-1.5 py-0.5 rounded">Private</span>
                     )}
@@ -162,13 +162,13 @@ export function SchoolTypeahead({
             <button
               type="button"
               onClick={() => setAddingNew(true)}
-              className="w-full text-left px-3 py-2 border-t border-gray-200 bg-portal-amber-lt hover:bg-portal-amber-lt text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5"
+              className="w-full text-left px-3 py-2 border-t border-portal-border bg-portal-amber-lt hover:bg-portal-amber-lt text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5"
             >
               <Plus size={13} /> Add &ldquo;{toTitleCase(trimmed)}&rdquo; as new school
             </button>
           )}
           {trimmed && !exactMatch && !allowAdd && notListedNote && (
-            <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
+            <div className="px-3 py-2 border-t border-portal-border bg-portal-bg text-xs text-portal-sub">
               {notListedNote}
             </div>
           )}
@@ -256,25 +256,25 @@ function AddSchoolInline({
 
       <form onSubmit={submit} className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">School name</label>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">School name</label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
             onBlur={e => setName(toTitleCase(e.target.value))}
-            className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded outline-none focus:border-portal-blue"
+            className="w-full px-2 py-1.5 text-sm border border-portal-border rounded outline-none focus:border-portal-blue"
             autoFocus
           />
-          <p className="text-[10px] text-gray-400 mt-0.5">Will be saved title-cased on blur. Acronyms like LAMP / BTW are preserved if typed in caps.</p>
+          <p className="text-[10px] text-portal-muted mt-0.5">Will be saved title-cased on blur. Acronyms like LAMP / BTW are preserved if typed in caps.</p>
         </div>
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Area</label>
-          <select value={area} onChange={e => setArea(e.target.value as Area)} className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded bg-white">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Area</label>
+          <select value={area} onChange={e => setArea(e.target.value as Area)} className="w-full px-2 py-1.5 text-sm border border-portal-border rounded bg-white">
             {AREAS.map(a => <option key={a} value={a}>{AREA_LABELS[a]}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Type</label>
-          <select value={isPrivate ? 'private' : 'public'} onChange={e => setIsPrivate(e.target.value === 'private')} className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded bg-white">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">Type</label>
+          <select value={isPrivate ? 'private' : 'public'} onChange={e => setIsPrivate(e.target.value === 'private')} className="w-full px-2 py-1.5 text-sm border border-portal-border rounded bg-white">
             <option value="public">Public</option>
             <option value="private">Private</option>
           </select>
@@ -283,14 +283,14 @@ function AddSchoolInline({
         {err && <p className="col-span-2 text-xs text-portal-red font-semibold">{err}</p>}
 
         <div className="col-span-2 flex justify-end gap-1.5 pt-1">
-          <button type="button" onClick={onCancel} className="px-3 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button type="button" onClick={onCancel} className="px-3 py-1 text-xs font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
           <button type="submit" disabled={busy} className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-40">
             {busy ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
             {busy ? 'Creating…' : 'Create + select'}
           </button>
         </div>
       </form>
-      <p className="text-[10px] text-gray-400">
+      <p className="text-[10px] text-portal-muted">
         Adding fills in just the name, area, and type. You can flesh out district / contact email later in the schools manager.
       </p>
     </div>

@@ -16,7 +16,7 @@ const TABS = ['Active Advertisers', 'Pipeline', 'Duplicates']
 // Pipeline stage order — left to right is the sales funnel.
 // Editors read top-down so the leftmost column is the entry point.
 const PIPELINE_STAGES: Array<{ stage: string; label: string; accent: string }> = [
-  { stage: 'lead',              label: 'Lead',              accent: 'bg-gray-100 text-gray-700'       },
+  { stage: 'lead',              label: 'Lead',              accent: 'bg-gray-100 text-portal-text'       },
   { stage: 'consultation',      label: 'Consultation',      accent: 'bg-sky-100 text-sky-800'         },
   { stage: 'proposal',          label: 'Proposal',          accent: 'bg-violet-100 text-violet-800'   },
   { stage: 'onboarding',        label: 'Onboarding',        accent: 'bg-portal-amber-lt text-portal-amber'     },
@@ -85,14 +85,14 @@ export default async function PipelinePage() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-        <h1 className="text-xl font-semibold text-gray-900">Pipeline</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <h1 className="text-xl font-semibold text-portal-text">Pipeline</h1>
+        <p className="text-xs text-portal-sub mt-0.5">
           Every advertiser, bucketed by lifecycle stage. Cards sorted by recurring monthly revenue.
         </p>
       </div>
 
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map(tab => (
             <a key={tab}
@@ -102,7 +102,7 @@ export default async function PipelinePage() {
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
                 tab === 'Pipeline'
                   ? 'text-portal-blue border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}>
               {tab}
             </a>
@@ -127,20 +127,20 @@ export default async function PipelinePage() {
                 </header>
                 <div className="flex-1 overflow-y-auto divide-y divide-gray-50 max-h-[calc(100vh-220px)]">
                   {members.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic p-3">No businesses here.</p>
+                    <p className="text-xs text-portal-muted italic p-3">No businesses here.</p>
                   ) : (
                     members.map(a => (
                       <Link key={a.id} href={`/admin/advertisers/${a.id}`}
-                        className="block px-3 py-2.5 hover:bg-gray-50 transition-colors">
-                        <p className="text-sm font-bold text-gray-900 leading-tight truncate">{a.business_name}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5 flex-wrap">
+                        className="block px-3 py-2.5 hover:bg-portal-bg transition-colors">
+                        <p className="text-sm font-bold text-portal-text leading-tight truncate">{a.business_name}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-portal-sub mt-0.5 flex-wrap">
                           {(revenueByAdv.get(a.id) ?? 0) > 0 && (
-                            <span className="font-bold text-gray-700 tabular-nums">${(revenueByAdv.get(a.id) ?? 0).toLocaleString()}/mo</span>
+                            <span className="font-bold text-portal-text tabular-nums">${(revenueByAdv.get(a.id) ?? 0).toLocaleString()}/mo</span>
                           )}
                           {a.package_tier && <span>{a.package_tier}</span>}
                         </div>
                         {a.contact_name && (
-                          <p className="text-[10px] text-gray-500 truncate mt-0.5">{a.contact_name}</p>
+                          <p className="text-[10px] text-portal-sub truncate mt-0.5">{a.contact_name}</p>
                         )}
                       </Link>
                     ))

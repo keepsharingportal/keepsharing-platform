@@ -65,7 +65,7 @@ const IMPORT_CARDS = [
     desc: 'Upload hero images, photos, and media files used in articles and guide listings.',
     href: '/admin/assets',
     badge: 'Media',
-    badgeColor: 'bg-gray-100 text-gray-600',
+    badgeColor: 'bg-gray-100 text-portal-sub',
     cta: 'Open Asset Library',
   },
 ]
@@ -80,16 +80,16 @@ const TIPS = [
 
 export default function ImportsPage() {
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
         <div className="flex items-center gap-3">
           <Link href="/admin/content" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1">
             <ArrowLeft size={13} /> Content
           </Link>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Imports & Uploads</h1>
-            <p className="text-sm text-gray-500 mt-0.5">All content import tools in one place</p>
+            <h1 className="text-xl font-semibold text-portal-text">Imports & Uploads</h1>
+            <p className="text-sm text-portal-sub mt-0.5">All content import tools in one place</p>
           </div>
         </div>
       </div>
@@ -99,10 +99,10 @@ export default function ImportsPage() {
         {/* Import cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {IMPORT_CARDS.map(card => (
-            <div key={card.label} className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all">
+            <div key={card.label} className="bg-white rounded-xl border border-portal-border p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                  <card.icon size={18} className="text-gray-600" />
+                  <card.icon size={18} className="text-portal-sub" />
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${card.badgeColor}`}>
                   {card.badge}
@@ -110,8 +110,8 @@ export default function ImportsPage() {
               </div>
 
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900 mb-1.5">{card.label}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{card.desc}</p>
+                <h3 className="font-bold text-portal-text mb-1.5">{card.label}</h3>
+                <p className="text-sm text-portal-sub leading-relaxed">{card.desc}</p>
               </div>
 
               <Link
@@ -125,9 +125,9 @@ export default function ImportsPage() {
         </div>
 
         {/* After importing */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h2 className="font-bold text-gray-900 mb-1">After Importing</h2>
-          <p className="text-sm text-gray-500 mb-4">
+        <div className="bg-white rounded-xl border border-portal-border p-5">
+          <h2 className="font-bold text-portal-text mb-1">After Importing</h2>
+          <p className="text-sm text-portal-sub mb-4">
             Imported articles always land in the Review Queue as &ldquo;Needs Review.&rdquo; Nobody sees them publicly until you approve them.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -139,7 +139,7 @@ export default function ImportsPage() {
             </Link>
             <Link
               href="/admin/articles"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-portal-border text-portal-sub text-sm font-semibold rounded-lg hover:bg-portal-bg transition-colors"
             >
               All Articles →
             </Link>

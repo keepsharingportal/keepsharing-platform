@@ -38,7 +38,7 @@ export function AdsTabs() {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-1 inline-flex items-center gap-0.5 flex-wrap">
+    <div className="bg-white border border-portal-border rounded-2xl p-1 inline-flex items-center gap-0.5 flex-wrap">
       {TABS.map(tab => {
         const active = isActive(tab.href)
         return (
@@ -48,7 +48,7 @@ export function AdsTabs() {
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
               active
                 ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                : 'text-portal-sub hover:text-portal-text hover:bg-portal-bg'
             }`}
           >
             <tab.icon size={14} />

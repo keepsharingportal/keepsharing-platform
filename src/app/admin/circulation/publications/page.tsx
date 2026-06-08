@@ -29,9 +29,9 @@ export default async function PublicationsPage() {
           </Link>
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Publications</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Publications</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">Print run + holdback drive the budget bars on the overview. Website + Issuu URL surface on public maps and in driver emails.</p>
+          <p className="text-sm text-portal-sub mt-1">Print run + holdback drive the budget bars on the overview. Website + Issuu URL surface on public maps and in driver emails.</p>
         </div>
 
         <PublicationsEditor initial={pubs} />

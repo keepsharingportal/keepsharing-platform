@@ -86,23 +86,23 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
     <div className="flex flex-col flex-1 overflow-hidden">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
-        <Link href="/admin/guides" className="text-xs text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 mb-2">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <Link href="/admin/guides" className="text-xs text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-2">
           <ArrowLeft size={12} /> All Guides
         </Link>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2">
-              <BookOpen size={20} className="text-gray-400" /> {guide.display_name}
+            <h1 className="text-xl font-bold text-portal-text inline-flex items-center gap-2">
+              <BookOpen size={20} className="text-portal-muted" /> {guide.display_name}
             </h1>
             {guide.short_description && (
-              <p className="text-xs text-gray-500 mt-1 max-w-2xl">{guide.short_description}</p>
+              <p className="text-xs text-portal-sub mt-1 max-w-2xl">{guide.short_description}</p>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Link
               href={`/admin/guides/${slug}/edit`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
             >
               Guide settings
             </Link>
@@ -144,12 +144,12 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
   const cls =
     tone === 'amber'   ? 'border-amber-200 bg-portal-amber-lt/60'   :
     tone === 'emerald' ? 'border-emerald-200 bg-portal-green-lt/60' :
-    tone === 'gray'    ? 'border-gray-200 bg-gray-50/60'     :
-                         'border-gray-200 bg-white'
+    tone === 'gray'    ? 'border-portal-border bg-portal-bg/60'     :
+                         'border-portal-border bg-white'
   return (
     <div className={`rounded-xl border p-3 ${cls}`}>
-      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 tabular-nums leading-tight mt-0.5">{value}</p>
+      <p className="text-[10px] uppercase tracking-wider font-bold text-portal-sub">{label}</p>
+      <p className="text-2xl font-bold text-portal-text tabular-nums leading-tight mt-0.5">{value}</p>
     </div>
   )
 }

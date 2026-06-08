@@ -71,11 +71,11 @@ export function NewAdvertiserForm({ existing }: Props) {
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5'
+  const inp = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5'
 
   return (
-    <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 space-y-5">
+    <form onSubmit={submit} className="bg-white rounded-2xl border border-portal-border p-5 md:p-6 space-y-5">
       <div>
         <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
         <input
@@ -150,7 +150,7 @@ export function NewAdvertiserForm({ existing }: Props) {
           placeholder="https://business.com"
           className={inp}
         />
-        <p className="mt-1 text-[10px] text-gray-500">
+        <p className="mt-1 text-[10px] text-portal-sub">
           Used as the default destination on tracked links you create later. Skip if unknown — you can add it on the profile.
         </p>
       </div>
@@ -172,7 +172,7 @@ export function NewAdvertiserForm({ existing }: Props) {
         </button>
         <Link
           href="/admin/advertisers"
-          className="px-4 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900"
+          className="px-4 py-2.5 text-sm font-semibold text-portal-sub hover:text-portal-text"
         >
           Cancel
         </Link>

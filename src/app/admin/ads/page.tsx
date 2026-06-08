@@ -253,19 +253,19 @@ export default function AdminAdsPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Star size={20} className="text-portal-blue" />
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">All Slots</h1>
+              <h1 className="text-xl font-bold text-portal-text tracking-tight">All Slots</h1>
             </div>
-            <p className="text-sm text-gray-500">
-              Every ad slot on the site. <strong className="text-gray-700">On</strong> = paid ad rendering ·{' '}
+            <p className="text-sm text-portal-sub">
+              Every ad slot on the site. <strong className="text-portal-text">On</strong> = paid ad rendering ·{' '}
               <strong className="text-portal-amber">Empty</strong> = sellable (showing sales placeholder) ·{' '}
-              <strong className="text-gray-600">Paused</strong> = booked but off ·{' '}
-              <strong className="text-gray-500">Hidden</strong> = slot disabled site-wide.
+              <strong className="text-portal-sub">Paused</strong> = booked but off ·{' '}
+              <strong className="text-portal-sub">Hidden</strong> = slot disabled site-wide.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={load}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg"
             >
               <RefreshCw size={14} /> Refresh
             </button>
@@ -298,7 +298,7 @@ export default function AdminAdsPage() {
         </div>
 
         {/* ── Filter bar — 4 dropdowns + search ────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="bg-white border border-portal-border rounded-2xl p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <Field label="Page">
             <select
               value={filterPage}
@@ -352,7 +352,7 @@ export default function AdminAdsPage() {
           </Field>
           <Field label="Search">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted pointer-events-none" />
               <input
                 type="text"
                 value={search}
@@ -366,7 +366,7 @@ export default function AdminAdsPage() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-2 text-sm text-red-800">
-            <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
+            <AlertTriangle size={16} className="text-portal-red shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Load failed</p>
               <p className="text-xs mt-0.5">{error}</p>
@@ -375,12 +375,12 @@ export default function AdminAdsPage() {
         )}
 
         {/* ── Slot table ───────────────────────────────────────── */}
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-700">
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+            <h2 className="text-sm font-bold text-portal-text">
               {visibleRows.length} of {slotRows.length} slots
               {visibleRows.length > PER_PAGE && (
-                <span className="text-gray-400 ml-2 font-normal">· page {page} of {totalPages}</span>
+                <span className="text-portal-muted ml-2 font-normal">· page {page} of {totalPages}</span>
               )}
             </h2>
             {(filterPage !== 'all' || filterCategory !== 'all' || filterStatus !== 'all' || filterAdvertiser !== 'all' || search) && (
@@ -388,7 +388,7 @@ export default function AdminAdsPage() {
                 onClick={() => {
                   setFilterPage('all'); setFilterCategory('all'); setFilterStatus('all'); setFilterAdvertiser('all'); setSearch('')
                 }}
-                className="text-xs text-gray-500 hover:text-gray-700"
+                className="text-xs text-portal-sub hover:text-portal-text"
               >
                 Clear all filters
               </button>
@@ -396,9 +396,9 @@ export default function AdminAdsPage() {
           </div>
 
           {loading ? (
-            <p className="p-8 text-center text-sm text-gray-400">Loading…</p>
+            <p className="p-8 text-center text-sm text-portal-muted">Loading…</p>
           ) : visibleRows.length === 0 ? (
-            <p className="p-8 text-center text-sm text-gray-400">No slots match those filters.</p>
+            <p className="p-8 text-center text-sm text-portal-muted">No slots match those filters.</p>
           ) : (
             <div className="overflow-x-auto">
               {/* Column order: Slot · Advertiser · Page · Type · Status ·
@@ -418,15 +418,15 @@ export default function AdminAdsPage() {
                   <col style={{ width: 80  }} />  {/* Impr. */}
                   <col style={{ width: 300 }} />  {/* Actions */}
                 </colgroup>
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
+                <thead className="bg-portal-bg border-b border-portal-border">
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-portal-sub">
                     <th className="px-4 py-2 font-semibold">Slot</th>
                     <th className="px-4 py-2 font-semibold">Advertiser</th>
                     <th className="px-4 py-2 font-semibold">Page</th>
                     <th className="px-4 py-2 font-semibold">Type</th>
                     <th className="px-4 py-2 font-semibold">Status</th>
                     <th className="px-4 py-2 font-semibold text-right">Impr.</th>
-                    <th className="px-4 py-2 font-semibold text-right sticky right-0 bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Actions</th>
+                    <th className="px-4 py-2 font-semibold text-right sticky right-0 bg-portal-bg shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -438,23 +438,23 @@ export default function AdminAdsPage() {
 
           {/* ── Pagination ────────────────────────────────────── */}
           {visibleRows.length > PER_PAGE && (
-            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between text-xs">
-              <span className="text-gray-500">
+            <div className="px-5 py-3 border-t border-gray-100 bg-portal-bg flex items-center justify-between text-xs">
+              <span className="text-portal-sub">
                 Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, visibleRows.length)} of {visibleRows.length}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-portal-border bg-white text-portal-text disabled:opacity-40 disabled:cursor-not-allowed hover:bg-portal-bg"
                 >
                   <ChevronLeft size={12} /> Prev
                 </button>
-                <span className="text-gray-400 px-2 tabular-nums">Page {page} of {totalPages}</span>
+                <span className="text-portal-muted px-2 tabular-nums">Page {page} of {totalPages}</span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-portal-border bg-white text-portal-text disabled:opacity-40 disabled:cursor-not-allowed hover:bg-portal-bg"
                 >
                   Next <ChevronRight size={12} />
                 </button>
@@ -486,13 +486,13 @@ function SlotRowItem({
 
   const rowClass = `group border-b border-gray-100 last:border-0 ${
     isEmpty  ? 'bg-portal-amber-lt/40 hover:bg-portal-amber-lt' :
-    isHidden ? 'bg-gray-50 hover:bg-gray-100 opacity-70' :
-               'hover:bg-gray-50'
+    isHidden ? 'bg-portal-bg hover:bg-portal-row-hover opacity-70' :
+               'hover:bg-portal-bg'
   }`
 
-  const stickyCellClass = `px-4 py-3 text-right whitespace-nowrap sticky right-0 group-hover:bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)] ${
+  const stickyCellClass = `px-4 py-3 text-right whitespace-nowrap sticky right-0 group-hover:bg-portal-bg shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)] ${
     isEmpty  ? 'bg-portal-amber-lt/40 group-hover:bg-portal-amber-lt' :
-    isHidden ? 'bg-gray-50 group-hover:bg-gray-100'    :
+    isHidden ? 'bg-portal-bg group-hover:bg-portal-row-hover'    :
                'bg-white'
   }`
 
@@ -500,26 +500,26 @@ function SlotRowItem({
     <tr className={rowClass}>
       {/* SLOT */}
       <td className="px-4 py-3">
-        <div className="text-sm font-semibold text-gray-900 leading-snug">{row.placement_label}</div>
-        <code className="text-[10px] text-gray-400">{row.placement_type}</code>
+        <div className="text-sm font-semibold text-portal-text leading-snug">{row.placement_label}</div>
+        <code className="text-[10px] text-portal-muted">{row.placement_type}</code>
       </td>
       {/* ADVERTISER — falls back to ad_headline when the booking row
           doesn't have a linked advertiser_account_id yet (common for
           legacy ads created before the Customer section existed). */}
-      <td className="px-4 py-3 text-sm text-gray-900">
+      <td className="px-4 py-3 text-sm text-portal-text">
         {row.bookings.length === 0 ? (
           <span className="text-portal-amber italic font-semibold text-xs">No advertiser</span>
         ) : row.bookings.length === 1 ? (
           <span className="font-semibold truncate block">
             {headBooking?.advertiser_accounts?.business_name
               ?? headBooking?.ad_headline
-              ?? <span className="text-gray-400 italic">(unlinked)</span>}
+              ?? <span className="text-portal-muted italic">(unlinked)</span>}
           </span>
         ) : (
           <div>
             <span className="text-violet-700 font-semibold text-xs block">{row.bookings.length} rotating</span>
             {/* Show first 2 advertiser names in rotation pool */}
-            <div className="text-[11px] text-gray-500 mt-0.5">
+            <div className="text-[11px] text-portal-sub mt-0.5">
               {row.bookings.slice(0, 2).map(b => b.advertiser_accounts?.business_name ?? b.ad_headline).filter(Boolean).join(' · ')}
               {row.bookings.length > 2 && ` +${row.bookings.length - 2} more`}
             </div>
@@ -527,11 +527,11 @@ function SlotRowItem({
         )}
       </td>
       {/* PAGE */}
-      <td className="px-4 py-3 text-xs text-gray-700">
+      <td className="px-4 py-3 text-xs text-portal-text">
         {row.page.label}
       </td>
       {/* TYPE */}
-      <td className="px-4 py-3 text-xs text-gray-600 capitalize">
+      <td className="px-4 py-3 text-xs text-portal-sub capitalize">
         {CATEGORY_LABELS[row.category]}
       </td>
       {/* STATUS — real On/Off toggle when the slot has a booking, static
@@ -552,12 +552,12 @@ function SlotRowItem({
           <div className="text-[11px] text-portal-amber mt-1">Showing sales placeholder on the public site.</div>
         )}
         {isHidden && (
-          <div className="text-[11px] text-gray-500 mt-1">Slot disabled. Nothing renders.</div>
+          <div className="text-[11px] text-portal-sub mt-1">Slot disabled. Nothing renders.</div>
         )}
       </td>
       {/* IMPR. — clicks + CTR roll into the tooltip to save column width */}
       <td
-        className="px-4 py-3 text-right text-xs text-gray-600 tabular-nums"
+        className="px-4 py-3 text-right text-xs text-portal-sub tabular-nums"
         title={(() => {
           const imp = row.bookings.reduce((s, b) => s + (b.impression_count ?? 0), 0)
           const clk = row.bookings.reduce((s, b) => s + (b.click_count ?? 0), 0)
@@ -582,7 +582,7 @@ function SlotRowItem({
             </Link>
             <button
               onClick={() => onToggleHidden(row.placement_type)}
-              className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 inline-flex items-center gap-0.5"
+              className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-0.5"
               title="Hide this slot site-wide"
             >
               <EyeOff size={11} /> Hide
@@ -618,7 +618,7 @@ function SlotRowItem({
             )}
             <button
               onClick={() => onToggleHidden(row.placement_type)}
-              className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 inline-flex items-center gap-0.5"
+              className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-0.5"
               title="Hide this slot site-wide"
             >
               <EyeOff size={11} /> Hide
@@ -668,7 +668,7 @@ function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) 
 
   const onActiveCls  = 'bg-green-600 text-white shadow-sm'
   const offActiveCls = 'bg-slate-600 text-white shadow-sm'
-  const inactiveCls  = 'text-gray-400 hover:text-gray-600'
+  const inactiveCls  = 'text-portal-muted hover:text-portal-sub'
 
   return (
     <div
@@ -702,12 +702,12 @@ function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) 
 
 // ── Form bits ───────────────────────────────────────────────────────────────
 
-const selectCls = 'w-full text-sm px-3 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:border-gray-400'
+const selectCls = 'w-full text-sm px-3 py-2 border border-portal-border rounded-lg bg-white outline-none focus:border-portal-blue'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">{label}</label>
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">{label}</label>
       {children}
     </div>
   )
@@ -725,16 +725,16 @@ function Stat({ label, value, tone, active, onClick }: {
   const className = `text-left bg-white border rounded-2xl p-4 transition-all ${
     active
       ? 'border-2 ring-2 ring-offset-1'
-      : 'border-gray-200 hover:border-gray-300'
+      : 'border-portal-border hover:border-portal-border-2'
   } ${onClick ? 'cursor-pointer hover:shadow-sm' : ''}`
   const style: React.CSSProperties = active ? { borderColor: tone, boxShadow: `0 0 0 1px ${tone}33` } : {}
   const content = (
     <>
       <div className="flex items-center gap-2 mb-1">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: tone }} />
-        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">{label}</p>
       </div>
-      <p className="text-2xl font-black text-gray-900 tabular-nums">{value}</p>
+      <p className="text-2xl font-black text-portal-text tabular-nums">{value}</p>
     </>
   )
   if (onClick) {

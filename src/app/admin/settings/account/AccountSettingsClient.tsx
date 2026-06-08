@@ -88,15 +88,15 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
     } finally { setSigningOut(false) }
   }
 
-  const inp = 'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-portal-blue bg-white'
-  const lbl = 'block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5'
+  const inp = 'w-full px-4 py-2.5 text-sm rounded-xl border border-portal-border outline-none focus:border-portal-blue bg-white'
+  const lbl = 'block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1.5'
 
   return (
     <>
       {/* Name edit */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-4 inline-flex items-center gap-2">
-          <User size={14} className="text-gray-400" /> Display name
+        <h2 className="text-sm font-bold text-portal-text mb-4 inline-flex items-center gap-2">
+          <User size={14} className="text-portal-muted" /> Display name
         </h2>
         <form onSubmit={saveName}>
           <label className={lbl} htmlFor="full-name">Full name</label>
@@ -128,10 +128,10 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
 
       {/* Password */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-1 inline-flex items-center gap-2">
-          <KeyRound size={14} className="text-gray-400" /> Password
+        <h2 className="text-sm font-bold text-portal-text mb-1 inline-flex items-center gap-2">
+          <KeyRound size={14} className="text-portal-muted" /> Password
         </h2>
-        <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+        <p className="text-xs text-portal-sub mb-5 leading-relaxed">
           Set or change your sign-in password. Minimum 8 characters. After saving, the next time you sign in you can use email + password instead of waiting on a magic link.
         </p>
         <form onSubmit={savePassword} className="space-y-3">
@@ -178,8 +178,8 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
 
       {/* Sign out */}
       <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-1">Sign out</h2>
-        <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+        <h2 className="text-sm font-bold text-portal-text mb-1">Sign out</h2>
+        <p className="text-xs text-portal-sub mb-4 leading-relaxed">
           Ends your session on this browser. You&apos;ll need to sign in again next visit.
         </p>
         <button

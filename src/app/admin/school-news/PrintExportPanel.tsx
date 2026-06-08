@@ -51,12 +51,12 @@ export function PrintExportPanel({ approvedCount }: Props) {
   }
 
   return (
-    <details className="border border-gray-200 rounded-lg bg-white text-sm">
-      <summary className="px-3 py-2 cursor-pointer font-semibold text-gray-700 inline-flex items-center gap-1.5 select-none">
-        <Download size={13} className="text-gray-400" /> Print export ({approvedCount} approved)
+    <details className="border border-portal-border rounded-lg bg-white text-sm">
+      <summary className="px-3 py-2 cursor-pointer font-semibold text-portal-text inline-flex items-center gap-1.5 select-none">
+        <Download size={13} className="text-portal-muted" /> Print export ({approvedCount} approved)
       </summary>
       <div className="px-3 pb-3 pt-1 space-y-2">
-        <p className="text-[11px] text-gray-500 leading-relaxed">
+        <p className="text-[11px] text-portal-sub leading-relaxed">
           Downloads a ZIP with high-res images + a bits.csv manifest InDesign Data Merge can ingest directly.
         </p>
 
@@ -65,7 +65,7 @@ export function PrintExportPanel({ approvedCount }: Props) {
             type="checkbox"
             checked={filterByMonth}
             onChange={e => setFilterByMonth(e.target.checked)}
-            className="h-3.5 w-3.5 rounded border-gray-300"
+            className="h-3.5 w-3.5 rounded border-portal-border-2"
           />
           <span className="font-semibold">Filter to a specific issue month:</span>
           <input
@@ -74,7 +74,7 @@ export function PrintExportPanel({ approvedCount }: Props) {
             onChange={e => setIssueMonth(e.target.value)}
             disabled={!filterByMonth}
             placeholder="YYYY-MM"
-            className="text-xs px-2 py-1 border border-gray-200 rounded w-24 disabled:bg-gray-50 disabled:text-gray-400"
+            className="text-xs px-2 py-1 border border-portal-border rounded w-24 disabled:bg-portal-bg disabled:text-portal-muted"
           />
         </label>
 

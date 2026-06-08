@@ -100,13 +100,13 @@ export default async function CirculationOverviewPage() {
         <header className="space-y-1">
           <div className="flex items-center gap-2">
             <Navigation size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Distribution Routes</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Distribution Routes</h1>
           </div>
-          <p className="text-sm text-gray-500 max-w-2xl">
+          <p className="text-sm text-portal-sub max-w-2xl">
             Manage physical magazine delivery — routes, stops, drivers, and the public pickup-location maps.
-            Region: <span className="font-semibold text-gray-700">{region.name}</span>
-            <span className="text-gray-400"> · </span>
-            <span className="font-semibold text-gray-700">{publicationLabelsForRegion(region)}</span>
+            Region: <span className="font-semibold text-portal-text">{region.name}</span>
+            <span className="text-portal-muted"> · </span>
+            <span className="font-semibold text-portal-text">{publicationLabelsForRegion(region)}</span>
           </p>
         </header>
 
@@ -131,10 +131,10 @@ export default async function CirculationOverviewPage() {
             <AdminSectionHeader title="Copies per publication" description="Sum of per-stop quantities for active stops" />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {pubKeys.map(p => (
-                <div key={p} className="rounded-xl border border-gray-200 bg-white p-4">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{p}</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-0.5">{totalsByPub[p].toLocaleString()}</div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">copies</div>
+                <div key={p} className="rounded-xl border border-portal-border bg-white p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">{p}</div>
+                  <div className="text-2xl font-bold text-portal-text mt-0.5">{totalsByPub[p].toLocaleString()}</div>
+                  <div className="text-[11px] text-portal-sub mt-0.5">copies</div>
                 </div>
               ))}
             </div>
@@ -184,17 +184,17 @@ export default async function CirculationOverviewPage() {
               title="Low performers"
               description="Stops with high leftover counts — candidates for reducing quantities or removing"
             />
-            <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+            <div className="rounded-xl border border-portal-border bg-white divide-y divide-gray-100">
               {lowPerformers.map(lp => (
                 <div key={`${lp.stop_id}-${lp.month}`} className="p-3 flex items-center gap-3">
                   <Package size={14} className="text-amber-500 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{lp.stop_name}</p>
-                    <p className="text-[11px] text-gray-500 truncate">{lp.route_name} · {lp.month}</p>
+                    <p className="text-sm font-bold text-portal-text truncate">{lp.stop_name}</p>
+                    <p className="text-[11px] text-portal-sub truncate">{lp.route_name} · {lp.month}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-lg font-bold text-portal-amber">{lp.leftovers}</p>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider">leftover</p>
+                    <p className="text-[10px] text-portal-muted uppercase tracking-wider">leftover</p>
                   </div>
                 </div>
               ))}
@@ -210,9 +210,9 @@ export default async function CirculationOverviewPage() {
             description="Stop count per route (active stops only)"
           />
           {routes.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
-              <p className="text-sm text-gray-500">No routes yet.</p>
-              <p className="text-xs text-gray-400 mt-1">Import existing stops below, or add routes manually.</p>
+            <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+              <p className="text-sm text-portal-sub">No routes yet.</p>
+              <p className="text-xs text-portal-muted mt-1">Import existing stops below, or add routes manually.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -220,11 +220,11 @@ export default async function CirculationOverviewPage() {
                 <Link
                   key={r.id}
                   href={`/admin/circulation/routes/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-portal-border-2 transition-colors"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{r.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{stopsByRoute.get(r.id) ?? 0} active stops</p>
+                    <p className="text-sm font-bold text-portal-text truncate">{r.name}</p>
+                    <p className="text-xs text-portal-sub mt-0.5">{stopsByRoute.get(r.id) ?? 0} active stops</p>
                   </div>
                   <ArrowRight size={14} className="text-gray-300 shrink-0" />
                 </Link>
@@ -243,11 +243,11 @@ export default async function CirculationOverviewPage() {
         </section>
 
         {/* ── Deferred features note ─────────────────────────────────────── */}
-        <section className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-          <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">
+        <section className="rounded-xl border border-portal-border bg-portal-bg p-4">
+          <p className="text-xs font-bold text-portal-sub mb-2 flex items-center gap-1.5">
             <Upload size={12} /> Coming next
           </p>
-          <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+          <ul className="text-xs text-portal-sub space-y-1 list-disc list-inside">
             <li>Email Center — 8 templates with editable subject/body, per-route schedules, queue + manual sends</li>
             <li>Live delivery progress monitor (real-time view of every active route)</li>
             <li>Full Run combined view for drivers with multiple routes</li>
@@ -266,12 +266,12 @@ function MetricCard({ label, value, href, color, icon: Icon }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }) {
   return (
-    <Link href={href} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-portal-border-2 transition-colors block">
+    <Link href={href} className="rounded-xl border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors block">
       <div className="flex items-center justify-between mb-1.5">
         <Icon size={14} className="text-gray-300" />
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
+      <div className="text-2xl font-bold text-portal-text">{value}</div>
     </Link>
   )
 }

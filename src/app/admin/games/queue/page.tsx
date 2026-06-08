@@ -92,9 +92,9 @@ export default async function ProposalQueuePage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Inbox size={20} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">AI Proposal Queue</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">AI Proposal Queue</h1>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-portal-sub">
             {pending.length === 0
               ? 'Nothing pending — generate a batch from the games admin.'
               : `${pending.length} pending item${pending.length === 1 ? '' : 's'} across ${groups.size} game/difficulty group${groups.size === 1 ? '' : 's'}.`}
@@ -110,17 +110,17 @@ export default async function ProposalQueuePage() {
             />
           )}
           <Link href="/admin/games"
-            className="text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50">
+            className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
             Generate more →
           </Link>
         </div>
       </header>
 
       {pending.length === 0 ? (
-        <div className="border border-dashed border-gray-300 rounded-2xl p-10 text-center bg-white">
+        <div className="border border-dashed border-portal-border-2 rounded-2xl p-10 text-center bg-white">
           <Inbox size={28} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-sm text-gray-500 mb-1">All caught up.</p>
-          <p className="text-xs text-gray-400">Run &ldquo;Generate content&rdquo; on the games admin to populate this queue.</p>
+          <p className="text-sm text-portal-sub mb-1">All caught up.</p>
+          <p className="text-xs text-portal-muted">Run &ldquo;Generate content&rdquo; on the games admin to populate this queue.</p>
         </div>
       ) : (
         <>
@@ -129,12 +129,12 @@ export default async function ProposalQueuePage() {
             const game = GAMES.find(g => g.id === gameType)
             const diffLabel = DIFFICULTY_LABELS[difficulty as Difficulty] ?? difficulty
             return (
-              <section key={key} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-                <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
+              <section key={key} className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-700">{game?.emoji} {game?.title ?? gameType}</span>
-                    <span className="text-xs font-semibold text-gray-500 px-2 py-0.5 rounded-full bg-gray-100">{diffLabel}</span>
-                    <span className="text-xs text-gray-400">· {items.length} pending</span>
+                    <span className="text-sm font-bold text-portal-text">{game?.emoji} {game?.title ?? gameType}</span>
+                    <span className="text-xs font-semibold text-portal-sub px-2 py-0.5 rounded-full bg-gray-100">{diffLabel}</span>
+                    <span className="text-xs text-portal-muted">· {items.length} pending</span>
                   </div>
                   <BulkActions
                     count={items.length}
@@ -162,22 +162,22 @@ export default async function ProposalQueuePage() {
       )}
 
       {recentlyReviewed.length > 0 && (
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-sm font-bold text-gray-700">Recent reviews</h2>
+        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+            <h2 className="text-sm font-bold text-portal-text">Recent reviews</h2>
           </div>
           <ul className="divide-y divide-gray-100 text-sm">
             {recentlyReviewed.map(r => (
-              <li key={r.id} className="px-5 py-2 flex items-center justify-between text-gray-600">
+              <li key={r.id} className="px-5 py-2 flex items-center justify-between text-portal-sub">
                 <span className="truncate">
-                  <span className="font-semibold text-gray-900">{r.game_type}</span>
-                  <span className="text-gray-400"> · {r.difficulty}</span>
+                  <span className="font-semibold text-portal-text">{r.game_type}</span>
+                  <span className="text-portal-muted"> · {r.difficulty}</span>
                 </span>
                 <span className="flex items-center gap-3 shrink-0">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                     r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-portal-red-lt text-portal-red'
                   }`}>{r.status}</span>
-                  <span className="text-xs text-gray-400">{new Date(r.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                  <span className="text-xs text-portal-muted">{new Date(r.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 </span>
               </li>
             ))}
@@ -191,7 +191,7 @@ export default async function ProposalQueuePage() {
 
 function BackLink() {
   return (
-    <Link href="/admin/games" className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900">
+    <Link href="/admin/games" className="inline-flex items-center gap-1 text-sm font-semibold text-portal-sub hover:text-portal-text">
       <ArrowLeft size={14} /> Back to Brain Games
     </Link>
   )

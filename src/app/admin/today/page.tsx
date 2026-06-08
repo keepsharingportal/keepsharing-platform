@@ -31,7 +31,7 @@ function SectionHeader({ icon: Icon, label, color }: { icon: React.ElementType; 
   return (
     <div className="flex items-center gap-1.5 mb-3">
       <Icon size={13} className={color} />
-      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
+      <span className="text-xs font-semibold text-portal-sub uppercase tracking-wider">{label}</span>
     </div>
   )
 }
@@ -173,9 +173,9 @@ export default async function TodayPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900">Good morning, Jason.</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{today}</p>
+      <div className="bg-white border-b border-portal-border px-6 py-4">
+        <h1 className="text-xl font-semibold text-portal-text">Good morning, Jason.</h1>
+        <p className="text-sm text-portal-sub mt-0.5">{today}</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -198,41 +198,41 @@ export default async function TodayPage() {
 
         {/* Market Pulse */}
         <section>
-          <SectionHeader icon={Activity} label="Market Pulse — This Month" color="text-gray-400" />
+          <SectionHeader icon={Activity} label="Market Pulse — This Month" color="text-portal-muted" />
           <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
             {PUBLICATIONS.map(pub => {
               const stats = marketStats[pub.abbrev]
               return (
-                <div key={pub.abbrev} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+                <div key={pub.abbrev} className="bg-white rounded-xl border border-portal-border p-4 hover:shadow-sm transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PUB_COLORS[pub.abbrev] }} />
-                      <span className="text-xs font-bold text-gray-400">{pub.abbrev}</span>
+                      <span className="text-xs font-bold text-portal-muted">{pub.abbrev}</span>
                     </div>
                     {stats && stats.count > 0 && (
                       <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded-full">Live</span>
                     )}
                   </div>
-                  <div className="text-sm font-semibold text-gray-800 mb-2 truncate">{pub.name}</div>
+                  <div className="text-sm font-semibold text-portal-text mb-2 truncate">{pub.name}</div>
                   {stats && stats.count > 0 ? (
                     <div className="grid grid-cols-3 gap-1 text-center">
                       <div>
-                        <div className="text-xl font-bold text-gray-900">{stats.count}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Ads</div>
+                        <div className="text-xl font-bold text-portal-text">{stats.count}</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide">Ads</div>
                       </div>
                       <div>
-                        <div className="text-xl font-bold text-gray-900">{stats.pages.toFixed(1)}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Pages</div>
+                        <div className="text-xl font-bold text-portal-text">{stats.pages.toFixed(1)}</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide">Pages</div>
                       </div>
                       <div>
                         <div className="text-base font-bold" style={{ color: 'var(--color-gold-600)' }}>
                           {formatCurrency(stats.revenue)}
                         </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide">Revenue</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide">Revenue</div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400">No placements this month</p>
+                    <p className="text-xs text-portal-muted">No placements this month</p>
                   )}
                 </div>
               )
@@ -243,7 +243,7 @@ export default async function TodayPage() {
         {/* Ops Command Grid */}
         {opsSnapshot && (
           <section>
-            <SectionHeader icon={LayoutGrid} label="Ops Command" color="text-gray-400" />
+            <SectionHeader icon={LayoutGrid} label="Ops Command" color="text-portal-muted" />
             <OpsCommandGrid snapshot={opsSnapshot} />
           </section>
         )}
@@ -253,7 +253,7 @@ export default async function TodayPage() {
             <SectionHeader icon={AlertCircle} label="Urgent — Click to Draft Email" color="text-red-500" />
             {actionItems.urgent.length > 0
               ? <UrgentItemsList items={actionItems.urgent} urgency="urgent" />
-              : <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">No urgent items — inbox clear ✓</div>
+              : <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">No urgent items — inbox clear ✓</div>
             }
           </section>
 
@@ -262,28 +262,28 @@ export default async function TodayPage() {
               <SectionHeader icon={Clock} label="Review This Week — Click to Draft" color="text-amber-500" />
               {actionItems.review.length > 0
                 ? <UrgentItemsList items={actionItems.review} urgency="review" />
-                : <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">Nothing due this week</div>
+                : <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">Nothing due this week</div>
               }
             </section>
 
             <section>
               <SectionHeader icon={Inbox} label="Incoming" color="text-portal-blue" />
               {incoming.length > 0 ? (
-                <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100">
                   {incoming.map(item => (
-                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors">
+                    <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-portal-bg transition-colors">
                       <div className="flex items-center gap-2.5">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium ring-1 ring-portal-blue/20">
                           {item.type}
                         </span>
-                        <span className="text-sm text-gray-700">{item.label}</span>
+                        <span className="text-sm text-portal-text">{item.label}</span>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0 ml-3">{item.time}</span>
+                      <span className="text-xs text-portal-muted shrink-0 ml-3">{item.time}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 px-4 py-6 text-center text-sm text-gray-400">
+                <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">
                   No new submissions yet — they&apos;ll appear here as they come in
                 </div>
               )}

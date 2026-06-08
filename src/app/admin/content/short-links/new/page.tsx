@@ -33,14 +33,14 @@ export default async function NewTrackedLinkPage({ searchParams }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-portal-border px-6 py-4">
         <Link
           href="/admin/content/short-links"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-portal-sub hover:text-portal-text mb-2"
         >
           <ArrowLeft size={12} /> Back to Tracked Links
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900">New Tracked Link</h1>
+        <h1 className="text-xl font-semibold text-portal-text">New Tracked Link</h1>
       </div>
       <div className="max-w-5xl mx-auto p-4 md:p-6">
         <NewTrackedLinkClient

@@ -141,18 +141,18 @@ function AdminLoginInner() {
           <h2 className="font-serif text-xl font-bold text-[#1a2744] mb-2">
             Check your email
           </h2>
-          <p className="text-sm text-gray-600 leading-relaxed mb-1">
+          <p className="text-sm text-portal-sub leading-relaxed mb-1">
             {sentReset
               ? <>We sent a password-reset link to <strong>{email}</strong>.</>
               : <>We sent a sign-in link to <strong>{email}</strong>.</>}
           </p>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-portal-sub leading-relaxed">
             The link expires in 1 hour.
           </p>
           <button
             type="button"
             onClick={() => { setSentMagic(false); setSentReset(false); setError(null); setMode('password') }}
-            className="mt-6 text-xs text-gray-500 hover:text-gray-900 underline"
+            className="mt-6 text-xs text-portal-sub hover:text-portal-text underline"
           >
             Use a different sign-in method
           </button>
@@ -166,7 +166,7 @@ function AdminLoginInner() {
       <h1 className="font-serif text-xl font-bold text-[#1a2744] mb-1.5 text-center">
         Sign in to the admin
       </h1>
-      <p className="text-sm text-gray-600 mb-6 leading-relaxed text-center">
+      <p className="text-sm text-portal-sub mb-6 leading-relaxed text-center">
         Three ways in — pick whichever you trust your hands to remember.
       </p>
 
@@ -175,7 +175,7 @@ function AdminLoginInner() {
         type="button"
         onClick={signInWithGoogle}
         disabled={busy !== null}
-        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-40"
+        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-portal-border bg-white text-sm font-bold text-portal-text hover:bg-portal-bg hover:border-portal-border-2 transition-colors disabled:opacity-40"
       >
         {busy === 'google' ? (
           <RefreshCw size={16} className="animate-spin" />
@@ -187,14 +187,14 @@ function AdminLoginInner() {
 
       <div className="my-5 flex items-center gap-3">
         <span className="flex-1 h-px bg-gray-200" />
-        <span className="text-[11px] uppercase tracking-wider font-bold text-gray-400">or</span>
+        <span className="text-[11px] uppercase tracking-wider font-bold text-portal-muted">or</span>
         <span className="flex-1 h-px bg-gray-200" />
       </div>
 
       {/* 2. Email + password, with a "send me a link" toggle on the right */}
       {mode === 'password' && (
         <form onSubmit={signInWithPassword}>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-portal-sub mb-1.5">
             Email
           </label>
           <input
@@ -204,17 +204,17 @@ function AdminLoginInner() {
             required
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-gray-200 outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
 
           <div className="mt-3 flex items-baseline justify-between">
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="block text-xs font-bold uppercase tracking-wider text-portal-sub">
               Password
             </label>
             <button
               type="button"
               onClick={() => { setMode('reset'); setError(null) }}
-              className="text-[11px] text-gray-500 hover:text-gray-900 underline"
+              className="text-[11px] text-portal-sub hover:text-portal-text underline"
             >
               Forgot password?
             </button>
@@ -226,7 +226,7 @@ function AdminLoginInner() {
             required
             autoComplete="current-password"
             placeholder="••••••••"
-            className="mt-1 w-full px-4 py-3 text-base rounded-xl border border-gray-200 outline-none focus:border-[#4a90d9] bg-white"
+            className="mt-1 w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
 
           {error && (
@@ -248,7 +248,7 @@ function AdminLoginInner() {
           <button
             type="button"
             onClick={() => { setMode('magic-link'); setError(null) }}
-            className="mt-3 w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900"
+            className="mt-3 w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-portal-sub hover:text-portal-text"
           >
             <Sparkles size={11} />
             Don&apos;t have a password yet? Email me a one-time sign-in link
@@ -259,7 +259,7 @@ function AdminLoginInner() {
       {/* 3. Magic-link fallback */}
       {mode === 'magic-link' && (
         <form onSubmit={sendMagicLink}>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-portal-sub mb-1.5">
             Email
           </label>
           <input
@@ -270,9 +270,9 @@ function AdminLoginInner() {
             autoFocus
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-gray-200 outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
-          <p className="mt-2 text-[11px] text-gray-500 leading-relaxed">
+          <p className="mt-2 text-[11px] text-portal-sub leading-relaxed">
             We&apos;ll email you a one-time sign-in link. Useful if you&apos;ve never set a password or you&apos;re a new admin getting in for the first time.
           </p>
 
@@ -295,7 +295,7 @@ function AdminLoginInner() {
           <button
             type="button"
             onClick={() => { setMode('password'); setError(null) }}
-            className="mt-3 w-full text-xs text-gray-500 hover:text-gray-900 underline"
+            className="mt-3 w-full text-xs text-portal-sub hover:text-portal-text underline"
           >
             Back to email + password
           </button>
@@ -305,7 +305,7 @@ function AdminLoginInner() {
       {/* Reset-password form */}
       {mode === 'reset' && (
         <form onSubmit={sendResetLink}>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-portal-sub mb-1.5">
             Email
           </label>
           <input
@@ -316,9 +316,9 @@ function AdminLoginInner() {
             autoFocus
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-gray-200 outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
-          <p className="mt-2 text-[11px] text-gray-500 leading-relaxed">
+          <p className="mt-2 text-[11px] text-portal-sub leading-relaxed">
             We&apos;ll email you a reset link. Click it and you&apos;ll be sent to a page where you can pick a new password.
           </p>
 
@@ -341,15 +341,15 @@ function AdminLoginInner() {
           <button
             type="button"
             onClick={() => { setMode('password'); setError(null) }}
-            className="mt-3 w-full text-xs text-gray-500 hover:text-gray-900 underline"
+            className="mt-3 w-full text-xs text-portal-sub hover:text-portal-text underline"
           >
             Back to sign in
           </button>
         </form>
       )}
 
-      <p className="mt-6 text-[11px] text-center text-gray-400">
-        Not an admin? <Link href="/" className="text-gray-500 hover:text-gray-900 underline">Back to the site</Link>
+      <p className="mt-6 text-[11px] text-center text-portal-muted">
+        Not an admin? <Link href="/" className="text-portal-sub hover:text-portal-text underline">Back to the site</Link>
       </p>
     </ShellCard>
   )

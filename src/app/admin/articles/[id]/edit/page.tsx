@@ -115,13 +115,13 @@ function ArticlePreview({
             {columnSlug.replace(/-/g, ' ')}
           </p>
         )}
-        <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2">
+        <h1 className="text-3xl md:text-4xl font-black text-portal-text leading-tight mb-2">
           {safeTitle}
         </h1>
         {subtitle && !isContributor && (
           // For contributor previews the subtitle renders inline as the
           // italic lede inside ContributorArticleLayout — don't echo it here.
-          <p className="text-lg text-gray-600 leading-relaxed">{subtitle}</p>
+          <p className="text-lg text-portal-sub leading-relaxed">{subtitle}</p>
         )}
       </div>
 
@@ -150,7 +150,7 @@ function ArticlePreview({
       ) : (
         <>
           {heroUrl && (
-            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-6 shadow-sm border border-gray-200">
+            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-6 shadow-sm border border-portal-border">
               <Image
                 src={heroUrl}
                 alt={safeTitle}
@@ -410,7 +410,7 @@ export default function ArticleEditPage({ params }: Props) {
 
   // ── Field helpers ────────────────────────────────────────────────────────────
 
-  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white'
+  const inp = 'w-full px-3 py-2 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
   const sel = `${inp} cursor-pointer`
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -419,25 +419,25 @@ export default function ArticleEditPage({ params }: Props) {
     <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* ── Sticky top bar ── */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 z-20">
+      <div className="bg-white border-b border-portal-border px-4 py-3 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-3">
           <Link href="/admin/articles/review" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1 whitespace-nowrap">
             <ArrowLeft size={13} /> Review Queue
           </Link>
           <span className="text-gray-300">/</span>
           <Link href="/admin/articles" className="text-sm text-portal-blue hover:text-portal-blue hidden sm:block">All Articles</Link>
-          <h1 className="text-sm font-semibold text-gray-700 truncate max-w-xs hidden md:block">
+          <h1 className="text-sm font-semibold text-portal-text truncate max-w-xs hidden md:block">
             {form.title || 'Edit Article'}
           </h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {saveMsg && (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-portal-red'}`}>
               {saveMsg.text}
             </span>
           )}
           <button onClick={() => save('draft')} disabled={saving || loading}
-            className="hidden sm:block px-3 py-1.5 text-xs font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-40">
+            className="hidden sm:block px-3 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg disabled:opacity-40">
             Save Draft
           </button>
           <button onClick={() => save('publish')} disabled={saving || loading}
@@ -454,22 +454,22 @@ export default function ArticleEditPage({ params }: Props) {
         {/* ── Left: main writing area ── */}
         <div className="overflow-y-auto">
           {loading ? (
-            <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Loading article…</div>
+            <div className="flex items-center justify-center h-64 text-portal-muted text-sm">Loading article…</div>
           ) : (
             <div className="p-6 space-y-5 max-w-3xl">
 
               {/* Title */}
               <div>
                 <input
-                  className="w-full text-2xl font-bold text-gray-900 outline-none placeholder:text-gray-300 border-0 border-b-2 border-gray-100 focus:border-blue-400 bg-transparent py-2 transition-colors"
+                  className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-0 border-b-2 border-gray-100 focus:border-portal-blue bg-transparent py-2 transition-colors"
                   value={form.title}
                   onChange={e => handleTitle(e.target.value)}
                   placeholder="Article title…"
                 />
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[11px] text-gray-400">URL:</span>
+                  <span className="text-[11px] text-portal-muted">URL:</span>
                   <input
-                    className="flex-1 text-[11px] text-gray-400 outline-none bg-transparent border-b border-transparent focus:border-portal-border-2 py-0.5"
+                    className="flex-1 text-[11px] text-portal-muted outline-none bg-transparent border-b border-transparent focus:border-portal-border-2 py-0.5"
                     value={form.slug}
                     onChange={e => setField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
                     placeholder="auto-generated"
@@ -482,7 +482,7 @@ export default function ArticleEditPage({ params }: Props) {
                    (that's the Card Hook field in the right sidebar). */}
               <div>
                 <textarea
-                  className="w-full text-base text-gray-600 outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
+                  className="w-full text-base text-portal-sub outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
                   rows={2}
                   value={form.subtitle}
                   onChange={e => setField('subtitle', e.target.value)}
@@ -492,7 +492,7 @@ export default function ArticleEditPage({ params }: Props) {
 
               {/* Body — Edit / Preview tabs */}
               <div>
-                <div className="flex items-center gap-0 mb-3 border-b border-gray-200">
+                <div className="flex items-center gap-0 mb-3 border-b border-portal-border">
                   {(['edit', 'preview'] as Tab[]).map(t => (
                     <button
                       key={t}
@@ -501,14 +501,14 @@ export default function ArticleEditPage({ params }: Props) {
                         'px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors capitalize',
                         tab === t
                           ? 'border-blue-600 text-portal-blue'
-                          : 'border-transparent text-gray-400 hover:text-gray-700',
+                          : 'border-transparent text-portal-muted hover:text-portal-text',
                       ].join(' ')}
                     >
                       {t === 'edit' ? 'Edit' : <span className="flex items-center gap-1.5"><Eye size={13} /> Preview</span>}
                     </button>
                   ))}
                   <div className="ml-auto pb-2">
-                    <span className="text-[10px] text-gray-400">Ctrl+B bold · Ctrl+I italic</span>
+                    <span className="text-[10px] text-portal-muted">Ctrl+B bold · Ctrl+I italic</span>
                   </div>
                 </div>
 
@@ -521,9 +521,9 @@ export default function ArticleEditPage({ params }: Props) {
                     onSetHero={url => setField('hero_image_url', url)}
                   />
                 ) : (
-                  <div className="border border-gray-200 rounded-lg bg-white min-h-[500px] overflow-auto">
+                  <div className="border border-portal-border rounded-lg bg-white min-h-[500px] overflow-auto">
                     {!form.title && !form.body ? (
-                      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+                      <div className="flex items-center justify-center h-64 text-portal-muted text-sm">
                         Nothing to preview yet. Start writing in the Edit tab.
                       </div>
                     ) : (
@@ -545,10 +545,10 @@ export default function ArticleEditPage({ params }: Props) {
               {/* Closing bio / author line — renders below the photo gallery
                   on the public article as a thin divider + italic text.
                   No title shown, only the text. Skip when empty. */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="border border-portal-border rounded-xl overflow-hidden bg-white">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Closing line — bio or author note</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
+                  <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
+                  <p className="text-[11px] text-portal-muted mt-0.5">
                     Renders as a simple italic line under the photo gallery. Example: &quot;Phyllis Palmer resides in Sturbridge with her husband Markus, Sr. They&apos;re raising two boys.&quot;
                   </p>
                 </div>
@@ -562,16 +562,16 @@ export default function ArticleEditPage({ params }: Props) {
               </div>
 
               {/* Formatting tips */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
+              <div className="border border-portal-border rounded-xl overflow-hidden">
                 <button
                   onClick={() => setTipsOpen(v => !v)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
                 >
                   <span>💡 Formatting Tips</span>
                   {tipsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
                 {tipsOpen && (
-                  <div className="px-4 pb-4 pt-1 space-y-2 text-xs text-gray-500 bg-gray-50 border-t border-gray-100">
+                  <div className="px-4 pb-4 pt-1 space-y-2 text-xs text-portal-sub bg-portal-bg border-t border-gray-100">
                     {[
                       ['H2', 'Use H2 (##) for section headings like "About the School" or "Why We\'re Proud"'],
                       ['Bold', 'Bold student and teacher names on first mention'],
@@ -580,7 +580,7 @@ export default function ArticleEditPage({ params }: Props) {
                       ['Caption', 'Captions appear below images in italic — use for photo credits'],
                     ].map(([label, tip]) => (
                       <div key={label} className="flex gap-2.5">
-                        <span className="shrink-0 font-bold text-gray-700 w-12">{label}</span>
+                        <span className="shrink-0 font-bold text-portal-text w-12">{label}</span>
                         <span className="leading-relaxed">{tip}</span>
                       </div>
                     ))}
@@ -593,19 +593,19 @@ export default function ArticleEditPage({ params }: Props) {
         </div>
 
         {/* ── Right: metadata sidebar ── */}
-        <div className="border-l border-gray-200 bg-white overflow-y-auto">
+        <div className="border-l border-portal-border bg-white overflow-y-auto">
           <div className="p-4 space-y-4">
 
             {/* ── Publish status card ── */}
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-50 px-3 py-2 border-b border-gray-100">
-                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Publish</p>
+            <div className="border border-portal-border rounded-xl overflow-hidden">
+              <div className="bg-portal-bg px-3 py-2 border-b border-gray-100">
+                <p className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Publish</p>
               </div>
               <div className="p-3 space-y-2">
                 <button onClick={() => save('draft')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-border text-sm font-semibold text-portal-text hover:bg-portal-bg disabled:opacity-40 transition-colors">
                   Save Draft
-                  <span className="block text-xs font-normal text-gray-400 mt-0.5">Not visible to the public</span>
+                  <span className="block text-xs font-normal text-portal-muted mt-0.5">Not visible to the public</span>
                 </button>
                 <button onClick={() => save('pending')} disabled={saving || loading}
                   className="w-full text-left px-3 py-2.5 rounded-lg border border-amber-200 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
@@ -623,7 +623,7 @@ export default function ArticleEditPage({ params }: Props) {
                   <Link
                     href={articleHref({ slug: form.slug, title: form.title, column_slug: form.column_slug })}
                     target="_blank"
-                    className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg border border-portal-border text-xs font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
                   >
                     <ExternalLink size={12} /> Preview Public Page
                   </Link>
@@ -657,10 +657,10 @@ export default function ArticleEditPage({ params }: Props) {
                       }
                     } finally { setSaving(false) }
                   }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-border text-sm font-semibold text-portal-text hover:bg-portal-bg disabled:opacity-40 transition-colors"
                 >
                   Unpublish
-                  <span className="block text-xs font-normal text-gray-400 mt-0.5">Removes from public site; stays in your draft list</span>
+                  <span className="block text-xs font-normal text-portal-muted mt-0.5">Removes from public site; stays in your draft list</span>
                 </button>
 
                 <button
@@ -700,8 +700,8 @@ export default function ArticleEditPage({ params }: Props) {
                   className="w-4 h-4 mt-0.5 rounded text-portal-blue cursor-pointer"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 leading-tight">Feature on Homepage</p>
-                  <p className="text-xs text-gray-400 mt-0.5 leading-snug">
+                  <p className="text-sm font-semibold text-portal-text leading-tight">Feature on Homepage</p>
+                  <p className="text-xs text-portal-muted mt-0.5 leading-snug">
                     Sets this as the homepage hero story. Only one article should be featured at a time.
                   </p>
                 </div>
@@ -710,19 +710,19 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Author ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Author</label>
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Author</label>
               <input className={inp} value={form.author_byline} onChange={e => setField('author_byline', e.target.value)} placeholder="Author name or byline" />
             </div>
 
             {/* ── Published date ── */}
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Published Date</label>
+                <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider">Published Date</label>
                 {form.published_at && (
                   <button
                     type="button"
                     onClick={() => setField('published_at', '')}
-                    className="text-[10px] text-gray-400 hover:text-gray-600 underline"
+                    className="text-[10px] text-portal-muted hover:text-portal-sub underline"
                   >
                     clear
                   </button>
@@ -734,7 +734,7 @@ export default function ArticleEditPage({ params }: Props) {
                 value={form.published_at}
                 onChange={e => setField('published_at', e.target.value)}
               />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-portal-muted mt-1">
                 Drives the date shown on the article and the order in "Latest Stories" listings.
                 Back-date a late-published piece to slot it where it belongs, or post-date to schedule
                 it ahead. Leave blank to auto-stamp the current time when you click Publish.
@@ -744,8 +744,8 @@ export default function ArticleEditPage({ params }: Props) {
             {/* ── Card Hook (DB column: excerpt) ── */}
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Card Hook</label>
-                <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-amber-600' : 'text-gray-400'}`}>
+                <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider">Card Hook</label>
+                <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-amber-600' : 'text-portal-muted'}`}>
                   {form.excerpt.length} / 160
                 </span>
               </div>
@@ -757,7 +757,7 @@ export default function ArticleEditPage({ params }: Props) {
                 placeholder="Why should someone click? 1–2 sentences. Different from the Article Lead."
                 maxLength={300}
               />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-portal-muted mt-1">
                 Sales copy for listing cards — homepage hero, FRG rows, search snippets.
                 Shorter and punchier than the Article Lead (which lives on the article page itself).
                 Leave blank to show no teaser.
@@ -766,7 +766,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Hero image ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Hero Image</label>
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Hero Image</label>
               <HeroImageUpload
                 value={form.hero_image_url}
                 onChange={url => setField('hero_image_url', url)}
@@ -775,7 +775,7 @@ export default function ArticleEditPage({ params }: Props) {
                 origPath={heroOrigPath}
                 onOrigPathChange={setHeroOrigPath}
               />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-portal-muted mt-1">
                 Wide format (cropped to 16:9). Sharp picks the focal point automatically — use the compass buttons to nudge it.
                 Big files (phone photos) are auto-resized in the browser before upload.
               </p>
@@ -783,7 +783,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Profile image (small) ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Profile Image</label>
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Profile Image</label>
               <HeroImageUpload
                 value={form.profile_image_url}
                 onChange={url => setField('profile_image_url', url)}
@@ -792,7 +792,7 @@ export default function ArticleEditPage({ params }: Props) {
                 origPath={profileOrigPath}
                 onOrigPathChange={setProfileOrigPath}
               />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-portal-muted mt-1">
                 Square (cropped to 1:1) for the homepage Community Spotlights sidebar.
                 Sharp picks the focal point automatically — use the compass to nudge it.
                 Falls back to the hero image when empty.
@@ -804,9 +804,9 @@ export default function ArticleEditPage({ params }: Props) {
                  the article body. Mirrors what the print magazine does with
                  the photo strip at the bottom of Play Ball and feature stories. */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">
                 Photo Gallery
-                <span className="ml-1.5 text-gray-400 font-normal normal-case">— supporting photos for the lightbox</span>
+                <span className="ml-1.5 text-portal-muted font-normal normal-case">— supporting photos for the lightbox</span>
               </label>
               <GalleryEditor
                 value={galleryImages}
@@ -824,7 +824,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Section (column_slug) ── */}
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">
                 Section
                 <HelpTip text="The editorial column this article belongs to. Pick the one that matches the kind of piece you're writing — the description below shows where it surfaces on the public site." />
               </label>
@@ -855,11 +855,11 @@ export default function ArticleEditPage({ params }: Props) {
                 return (
                   <div className="mt-1.5 px-3 py-2 rounded-lg bg-portal-blue-lt/50 border border-portal-blue/20 space-y-1">
                     {col.description && (
-                      <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
+                      <p className="text-[12px] text-portal-text leading-relaxed">{col.description}</p>
                     )}
                     {vLabel && (
-                      <p className="text-[11px] text-gray-500">
-                        Surfaces on the <strong className="text-gray-700">{vLabel}</strong> vertical page
+                      <p className="text-[11px] text-portal-sub">
+                        Surfaces on the <strong className="text-portal-text">{vLabel}</strong> vertical page
                         + any &quot;Related from {vLabel}&quot; blocks.
                       </p>
                     )}
@@ -871,12 +871,12 @@ export default function ArticleEditPage({ params }: Props) {
             {/* ── Blogger (only when column is Mom Knows Best) ── */}
             {form.column_slug === 'mom-knows-best' && (
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Blogger</label>
+                <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Blogger</label>
                 <select className={sel} value={form.author_blogger_id} onChange={e => setField('author_blogger_id', e.target.value)}>
                   <option value="">— Choose a blogger —</option>
                   {bloggers.map(b => <option key={b.id} value={b.id}>{b.display_name}</option>)}
                 </select>
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-[11px] text-portal-muted mt-1">
                   Required for Mom Knows Best posts so they link to her profile.
                   Manage bloggers at <a href="/admin/bloggers" className="text-portal-blue hover:underline">/admin/bloggers</a>.
                 </p>
@@ -900,7 +900,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Guide (guide_slug) ── */}
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">
                 Guide / Resource
                 <HelpTip text="If this article belongs to a specific guide (Family Resource, Summer Fun, Summer Camp, etc.), pick it here. The article appears on that guide's landing page in the Editorial Highlights section. Leave as 'Not a guide article' for standalone pieces." />
               </label>
@@ -920,11 +920,11 @@ export default function ArticleEditPage({ params }: Props) {
                  themes does this touch?" (many cross-cutting tags). Each
                  guide's "Across the Site" row reads from these. */}
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">
                 Topics
                 <HelpTip text="Cross-cutting theme tags. Different from Guide above — Guide is the article's PRIMARY home (write FOR a guide). Topics decide which guide pages ALSO surface this piece in their 'Across the Site' rows. Tag liberally for essays; leave blank for narrow service guides that only belong on one page." />
               </label>
-              <p className="text-[11px] text-gray-500 leading-snug mb-2">
+              <p className="text-[11px] text-portal-sub leading-snug mb-2">
                 Decision: <strong>Guide</strong> = one primary home (the magazine wrote it for that guide).
                 <strong> Topics</strong> = themes that let it cross-promote elsewhere.
               </p>
@@ -946,10 +946,10 @@ export default function ArticleEditPage({ params }: Props) {
                         }}
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-gray-700 group-hover:text-gray-900">
+                        <span className="block text-sm font-semibold text-portal-text group-hover:text-portal-text">
                           {t.label}
                         </span>
-                        <span className="block text-[11px] text-gray-400 leading-snug">
+                        <span className="block text-[11px] text-portal-muted leading-snug">
                           {t.description}
                         </span>
                       </span>
@@ -962,17 +962,17 @@ export default function ArticleEditPage({ params }: Props) {
             {/* ── School region (only shown for school-bits) ── */}
             {(form.column_slug === 'school-bits' || schoolRegion) && (
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">School Region</label>
+                <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">School Region</label>
                 <select className={sel} value={schoolRegion} onChange={e => setSchoolRegion(e.target.value)}>
                   {SCHOOL_REGIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
-                <p className="text-[11px] text-gray-400 mt-1">Stored in editorial notes. Powers the regional filter on /school-bits.</p>
+                <p className="text-[11px] text-portal-muted mt-1">Stored in editorial notes. Powers the regional filter on /school-bits.</p>
               </div>
             )}
 
             {/* ── Issue month ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Issue Month</label>
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Issue Month</label>
               <input
                 type="month"
                 className={inp}
@@ -983,7 +983,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Editorial notes ── */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Editorial Notes</label>
+              <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Editorial Notes</label>
               <textarea
                 className={`${inp} resize-none`}
                 rows={3}
@@ -992,7 +992,7 @@ export default function ArticleEditPage({ params }: Props) {
                 placeholder="Internal notes — not shown publicly"
               />
               {schoolRegion && (
-                <p className="text-[10px] text-gray-400 mt-1 italic">Region tag will be appended automatically on save.</p>
+                <p className="text-[10px] text-portal-muted mt-1 italic">Region tag will be appended automatically on save.</p>
               )}
             </div>
 

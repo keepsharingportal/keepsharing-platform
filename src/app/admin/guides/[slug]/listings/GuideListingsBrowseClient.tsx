@@ -46,7 +46,7 @@ interface Props {
 const TIER_BADGE: Record<string, string> = {
   featured:    'bg-portal-amber-lt text-portal-amber',
   enhanced:    'bg-violet-100 text-violet-800',
-  community:   'bg-gray-100 text-gray-600',
+  community:   'bg-gray-100 text-portal-sub',
 }
 
 export function GuideListingsBrowseClient(props: Props) {
@@ -130,15 +130,15 @@ export function GuideListingsBrowseClient(props: Props) {
   return (
     <>
       {/* Filters + search */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-2 flex-wrap shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-2 flex-wrap shrink-0">
         <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search by business, category, address…"
-            className="w-full text-sm pl-9 pr-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+            className="w-full text-sm pl-9 pr-3 py-2 border border-portal-border rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
 
@@ -179,14 +179,14 @@ export function GuideListingsBrowseClient(props: Props) {
         <select
           value={sort}
           onChange={e => setSort(e.target.value as typeof sort)}
-          className="text-xs font-semibold border border-gray-200 rounded-lg px-3 py-1.5 bg-white cursor-pointer"
+          className="text-xs font-semibold border border-portal-border rounded-lg px-3 py-1.5 bg-white cursor-pointer"
         >
           <option value="name">Sort: Name A→Z</option>
           <option value="year">Sort: Year (newest)</option>
           <option value="tier">Sort: Tier (featured first)</option>
         </select>
 
-        <span className="text-xs text-gray-500 ml-auto">
+        <span className="text-xs text-portal-sub ml-auto">
           {filtered.length} of {props.rows.length} showing
         </span>
       </div>
@@ -226,13 +226,13 @@ export function GuideListingsBrowseClient(props: Props) {
       {/* Table */}
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="p-12 text-center text-sm text-gray-500">
+          <div className="p-12 text-center text-sm text-portal-sub">
             {query ? <>No listings match &ldquo;{query}&rdquo;.</> : 'No listings yet in this guide.'}
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
-              <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
+            <thead className="bg-portal-bg sticky top-0 border-b border-portal-border">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-portal-sub">
                 <th className="px-4 py-3 font-semibold w-8">
                   <input
                     type="checkbox"
@@ -256,7 +256,7 @@ export function GuideListingsBrowseClient(props: Props) {
                 const isSelected = selected.has(r.id)
                 const tierKey = r.listing_tier ?? 'community'
                 return (
-                  <tr key={r.id} className={`border-b border-gray-100 ${isSelected ? 'bg-portal-amber-lt/60' : 'hover:bg-gray-50'}`}>
+                  <tr key={r.id} className={`border-b border-gray-100 ${isSelected ? 'bg-portal-amber-lt/60' : 'hover:bg-portal-bg'}`}>
                     <td className="px-4 py-3 w-8">
                       <input
                         type="checkbox"
@@ -269,7 +269,7 @@ export function GuideListingsBrowseClient(props: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/guides/${props.slug}/listings/${r.id}/edit`}
-                        className="font-bold text-gray-900 hover:text-portal-blue inline-flex items-center gap-1.5"
+                        className="font-bold text-portal-text hover:text-portal-blue inline-flex items-center gap-1.5"
                       >
                         {r.business_name}
                         {r.listing_tier === 'featured' && (
@@ -277,32 +277,32 @@ export function GuideListingsBrowseClient(props: Props) {
                         )}
                       </Link>
                       {(r.address || r.city_state_zip || r.neighborhood) && (
-                        <p className="text-[11px] text-gray-500 mt-0.5 truncate max-w-[300px]">
+                        <p className="text-[11px] text-portal-sub mt-0.5 truncate max-w-[300px]">
                           {[r.address, r.neighborhood, r.city_state_zip].filter(Boolean).join(' · ')}
                         </p>
                       )}
                       {!r.is_published && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-gray-400 mt-0.5">
+                        <span className="text-[9px] uppercase font-bold tracking-wider text-portal-muted mt-0.5">
                           Draft
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
+                    <td className="px-4 py-3 text-xs text-portal-sub">
                       {r.category ?? '—'}
-                      {r.subcategory && <span className="block text-[10px] text-gray-400">{r.subcategory}</span>}
+                      {r.subcategory && <span className="block text-[10px] text-portal-muted">{r.subcategory}</span>}
                     </td>
                     <td className="px-4 py-3 text-xs">
                       <span className={`uppercase tracking-wider font-bold text-[9px] px-1.5 py-0.5 rounded ${TIER_BADGE[tierKey] ?? TIER_BADGE.community}`}>
                         {tierKey}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-600 tabular-nums">{r.listing_year ?? '—'}</td>
-                    <td className="px-4 py-3 text-xs text-gray-700 space-y-0.5">
+                    <td className="px-4 py-3 text-xs text-portal-sub tabular-nums">{r.listing_year ?? '—'}</td>
+                    <td className="px-4 py-3 text-xs text-portal-text space-y-0.5">
                       {(r.office_phone || r.mobile_phone) && (
-                        <p className="inline-flex items-center gap-1"><Phone size={9} className="text-gray-400" /> {r.office_phone ?? r.mobile_phone}</p>
+                        <p className="inline-flex items-center gap-1"><Phone size={9} className="text-portal-muted" /> {r.office_phone ?? r.mobile_phone}</p>
                       )}
                       {r.website_url && (
-                        <p className="inline-flex items-center gap-1 truncate max-w-[200px]"><Globe size={9} className="text-gray-400" /> {r.website_url.replace(/^https?:\/\//, '')}</p>
+                        <p className="inline-flex items-center gap-1 truncate max-w-[200px]"><Globe size={9} className="text-portal-muted" /> {r.website_url.replace(/^https?:\/\//, '')}</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs">
@@ -314,7 +314,7 @@ export function GuideListingsBrowseClient(props: Props) {
                           <Link2 size={10} /> Linked
                         </Link>
                       ) : (
-                        <span className="text-gray-400">Unlinked</span>
+                        <span className="text-portal-muted">Unlinked</span>
                       )}
                     </td>
                   </tr>
@@ -329,11 +329,11 @@ export function GuideListingsBrowseClient(props: Props) {
       {confirmOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmOpen(false)}>
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-3">
-            <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-2">
+            <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
               <AlertTriangle size={16} className="text-rose-600" />
               Delete {selected.size} listing{selected.size === 1 ? '' : 's'}?
             </h3>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-portal-text">
               The listing rows go away. Linked advertiser_accounts (if any) are not touched — those live in CRM.
             </p>
             <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
@@ -349,7 +349,7 @@ export function GuideListingsBrowseClient(props: Props) {
               <button
                 type="button"
                 onClick={() => !deleting && setConfirmOpen(false)}
-                className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text"
               >
                 Cancel
               </button>
@@ -368,14 +368,14 @@ function FilterChips<V extends string>({ label, value, onChange, options }: {
   options: ReadonlyArray<{ v: V; label: string }>
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 overflow-hidden text-[11px]">
-      <span className="bg-gray-50 px-2 py-1 font-bold uppercase tracking-wider text-gray-500">{label}</span>
+    <div className="inline-flex items-center gap-1 rounded-lg border border-portal-border overflow-hidden text-[11px]">
+      <span className="bg-portal-bg px-2 py-1 font-bold uppercase tracking-wider text-portal-sub">{label}</span>
       {options.map(o => (
         <button
           key={o.v}
           type="button"
           onClick={() => onChange(o.v)}
-          className={`px-2 py-1 font-semibold ${value === o.v ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+          className={`px-2 py-1 font-semibold ${value === o.v ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
         >
           {o.label}
         </button>

@@ -99,17 +99,17 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !committing && setOpen(false)}>
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-2">
+              <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <Sparkles size={16} className="text-sky-600" />
                 Directory-only cleanup
               </h3>
-              <button onClick={() => !committing && setOpen(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => !committing && setOpen(false)} className="text-portal-muted hover:text-portal-text">
                 <X size={14} />
               </button>
             </header>
 
             {loading && (
-              <div className="text-sm text-gray-500 inline-flex items-center gap-2">
+              <div className="text-sm text-portal-sub inline-flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin" /> Counting…
               </div>
             )}
@@ -140,18 +140,18 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
 
             {preview && !success && (
               <>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-portal-text">
                   Found <b>{preview.totalDirectoryOnly}</b> directory-only advertiser row{preview.totalDirectoryOnly === 1 ? '' : 's'}.
                   Of those:
                 </p>
-                <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
+                <div className="bg-portal-bg rounded-xl p-3 text-sm space-y-1">
                   <Line label="Eligible to delete"        value={preview.eligible}        emphasis />
                   <Line label="Skipped (has activity)"    value={preview.skipped}        />
                   <Line label="Guide listings to unlink"  value={preview.listingsToUnlink} />
                 </div>
 
                 {preview.skipped > 0 && (
-                  <p className="text-[11px] text-gray-500 leading-snug">
+                  <p className="text-[11px] text-portal-sub leading-snug">
                     Skipped rows have at least one ad placement, print booking, or proposal attached.
                     Those keep their <code className="px-1 bg-gray-100 rounded">kind</code> as
                     directory-only but get left alone — usually a sign migration 133 should have
@@ -159,7 +159,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                   </p>
                 )}
 
-                <p className="text-[11px] text-gray-500 leading-snug">
+                <p className="text-[11px] text-portal-sub leading-snug">
                   What happens on commit: linked guide_listings get their{' '}
                   <code className="px-1 bg-gray-100 rounded">advertiser_account_id</code> set to NULL
                   (listing stays live with its inline data from migration 134), then the
@@ -180,11 +180,11 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                     type="button"
                     onClick={() => !committing && setOpen(false)}
                     disabled={committing}
-                    className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                    className="px-3 py-2 text-sm text-portal-sub hover:text-portal-text"
                   >
                     Cancel
                   </button>
-                  {busy && <span className="text-xs text-gray-400">Refreshing…</span>}
+                  {busy && <span className="text-xs text-portal-muted">Refreshing…</span>}
                 </div>
               </>
             )}
@@ -197,7 +197,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
 
 function Line({ label, value, emphasis }: { label: string; value: number; emphasis?: boolean }) {
   return (
-    <div className={`flex items-center justify-between ${emphasis ? 'text-gray-900 font-semibold' : value === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
+    <div className={`flex items-center justify-between ${emphasis ? 'text-portal-text font-semibold' : value === 0 ? 'text-portal-muted' : 'text-portal-text'}`}>
       <span>{label}</span>
       <span className="tabular-nums">{value}</span>
     </div>

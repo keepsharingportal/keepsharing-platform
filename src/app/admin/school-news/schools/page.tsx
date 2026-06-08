@@ -85,9 +85,9 @@ export default async function SchoolsManagerPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <SchoolIcon size={20} className="text-portal-blue" />
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Schools Manager</h1>
+              <h1 className="text-xl font-bold text-portal-text tracking-tight">Schools Manager</h1>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-portal-sub">
               {total} active school{total === 1 ? '' : 's'} across {AREAS.length} areas.
               Used by the School News submission form + admin queue + public filters.
             </p>
@@ -99,11 +99,11 @@ export default async function SchoolsManagerPage() {
           {AREAS.map(a => {
             const stat = byArea[a]
             return (
-              <div key={a} className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{AREA_LABELS[a]}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.total}</p>
+              <div key={a} className="bg-white border border-portal-border rounded-lg px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-portal-muted">{AREA_LABELS[a]}</p>
+                <p className="text-2xl font-bold text-portal-text mt-1">{stat.total}</p>
                 {stat.private > 0 && (
-                  <p className="text-[11px] text-gray-500 mt-0.5">{stat.private} private</p>
+                  <p className="text-[11px] text-portal-sub mt-0.5">{stat.private} private</p>
                 )}
               </div>
             )
@@ -118,7 +118,7 @@ export default async function SchoolsManagerPage() {
 
 function BackLink() {
   return (
-    <Link href="/admin/school-news" className="inline-flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900">
+    <Link href="/admin/school-news" className="inline-flex items-center gap-1 text-sm font-semibold text-portal-sub hover:text-portal-text">
       <ArrowLeft size={14} /> Back to School News queue
     </Link>
   )

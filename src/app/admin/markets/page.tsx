@@ -38,23 +38,23 @@ export default async function MarketsPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">My Markets</h1>
-            <p className="text-sm text-gray-500 mt-0.5">March 2026 · All 6 publications</p>
+            <h1 className="text-xl font-semibold text-portal-text">My Markets</h1>
+            <p className="text-sm text-portal-sub mt-0.5">March 2026 · All 6 publications</p>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <div className="text-right">
-              <div className="font-bold text-gray-900">{totalAds} ads</div>
-              <div className="text-xs text-gray-400">across all markets</div>
+              <div className="font-bold text-portal-text">{totalAds} ads</div>
+              <div className="text-xs text-portal-muted">across all markets</div>
             </div>
             <div className="w-px h-8 bg-gray-200" />
             <div className="text-right">
               <div className="font-bold" style={{ color: 'var(--color-gold-600)' }}>
                 {formatCurrency(totalRevenue)}
               </div>
-              <div className="text-xs text-gray-400">total revenue</div>
+              <div className="text-xs text-portal-muted">total revenue</div>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default async function MarketsPage() {
           {marketData.map((m) => (
             <div
               key={m.abbrev}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-md transition-shadow"
             >
               {/* Color bar */}
               <div className="h-1" style={{ backgroundColor: m.color }} />
@@ -84,11 +84,11 @@ export default async function MarketsPage() {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mt-1">{m.name}</h3>
-                  <p className="text-xs text-gray-400">{m.market}, {m.state}</p>
+                  <h3 className="text-base font-semibold text-portal-text mt-1">{m.name}</h3>
+                  <p className="text-xs text-portal-muted">{m.market}, {m.state}</p>
                   <MarketBundleCount publication={m.abbrev} />
                 </div>
-                <button className="text-gray-300 hover:text-gray-500 transition-colors">
+                <button className="text-gray-300 hover:text-portal-sub transition-colors">
                   <ExternalLink size={15} />
                 </button>
               </div>
@@ -99,18 +99,18 @@ export default async function MarketsPage() {
                   <>
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-gray-900">{m.count}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">Advertisers</div>
+                        <div className="text-2xl font-bold text-portal-text">{m.count}</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide mt-0.5">Advertisers</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-gray-900">{m.pages.toFixed(1)}</div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">Pages</div>
+                        <div className="text-2xl font-bold text-portal-text">{m.pages.toFixed(1)}</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide mt-0.5">Pages</div>
                       </div>
                       <div className="text-center">
                         <div className="text-base font-bold" style={{ color: 'var(--color-gold-600)' }}>
                           {formatCurrency(m.revenue)}
                         </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">Revenue</div>
+                        <div className="text-[10px] text-portal-muted uppercase tracking-wide mt-0.5">Revenue</div>
                       </div>
                     </div>
 
@@ -131,20 +131,20 @@ export default async function MarketsPage() {
                     )}
                   </>
                 ) : (
-                  <p className="text-sm text-gray-400 mb-4">No data for March 2026</p>
+                  <p className="text-sm text-portal-muted mb-4">No data for March 2026</p>
                 )}
 
                 {/* Quick actions */}
                 <div className="flex gap-2">
                   <Link
                     href={`/admin/advertisers/layout-sheet?pub=${m.abbrev}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-portal-sub bg-portal-bg border border-portal-border rounded-lg hover:bg-portal-row-hover transition-colors"
                   >
                     <Table2 size={12} /> Layout Sheet
                   </Link>
                   <Link
                     href={`/admin/advertisers?pub=${m.abbrev}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-portal-sub bg-portal-bg border border-portal-border rounded-lg hover:bg-portal-row-hover transition-colors"
                   >
                     <LayoutGrid size={12} /> Advertisers
                   </Link>
@@ -156,15 +156,15 @@ export default async function MarketsPage() {
 
         {/* Coming soon markets */}
         <div className="mt-6">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Planned Markets</p>
+          <p className="text-xs font-semibold text-portal-muted uppercase tracking-wider mb-3">Planned Markets</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {['Mobile Prime', 'Pensacola Prime', 'Wiregrass Parents'].map((name) => (
-              <div key={name} className="bg-white rounded-xl border border-dashed border-gray-200 p-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center">
+              <div key={name} className="bg-white rounded-xl border border-dashed border-portal-border p-4 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-portal-bg border border-portal-border flex items-center justify-center">
                   <TrendingUp size={14} className="text-gray-300" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-400">{name}</div>
+                  <div className="text-sm font-medium text-portal-muted">{name}</div>
                   <div className="text-xs text-gray-300">Launch pending</div>
                 </div>
               </div>

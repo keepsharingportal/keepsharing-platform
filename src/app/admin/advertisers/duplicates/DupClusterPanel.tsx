@@ -122,8 +122,8 @@ export function DupClusterPanel({ cluster }: Props) {
       {/* Rename input — pre-filled with the selected survivor's name.
           Editor can leave as-is or type a different canonical name
           that becomes the survivor's business_name post-merge. */}
-      <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+      <div className="px-5 py-3 bg-portal-bg border-b border-gray-100">
+        <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">
           Final business name
         </label>
         <input
@@ -131,9 +131,9 @@ export function DupClusterPanel({ cluster }: Props) {
           value={survivorName}
           onChange={e => setSurvivorName(e.target.value)}
           placeholder="Canonical business name (defaults to the picked survivor)"
-          className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-gray-400"
+          className="block w-full text-sm border border-portal-border rounded-lg px-3 py-2 bg-white outline-none focus:border-portal-blue"
         />
-        <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+        <p className="text-[11px] text-portal-sub mt-1 leading-snug">
           Default is the picked survivor&apos;s name. Edit if you want the kept row to use a cleaner spelling.
         </p>
       </div>
@@ -154,15 +154,15 @@ export function DupClusterPanel({ cluster }: Props) {
               </label>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 flex-wrap mb-1">
-                  <p className="text-sm font-bold text-gray-900">{m.business_name}</p>
+                  <p className="text-sm font-bold text-portal-text">{m.business_name}</p>
                   {isSurvivor && (
                     <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
                       Keep
                     </span>
                   )}
-                  <code className="text-[10px] text-gray-400">{m.slug}</code>
+                  <code className="text-[10px] text-portal-muted">{m.slug}</code>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap text-[11px] text-gray-500">
+                <div className="flex items-center gap-3 flex-wrap text-[11px] text-portal-sub">
                   <span className="inline-flex items-center gap-1"><Megaphone size={10} /> {m.adPlacements} ad{m.adPlacements === 1 ? '' : 's'}</span>
                   <span className="inline-flex items-center gap-1"><Users size={10} /> {m.contacts} contact{m.contacts === 1 ? '' : 's'}</span>
                   <span className="inline-flex items-center gap-1"><Link2 size={10} /> {m.shortLinks} link{m.shortLinks === 1 ? '' : 's'}</span>
@@ -174,7 +174,7 @@ export function DupClusterPanel({ cluster }: Props) {
                 href={`/admin/advertisers/${m.id}`}
                 target="_blank"
                 rel="noreferrer"
-                className="shrink-0 text-[11px] font-bold text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"
+                className="shrink-0 text-[11px] font-bold text-portal-sub hover:text-portal-text inline-flex items-center gap-1"
               >
                 Open <ExternalLink size={10} />
               </a>

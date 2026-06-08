@@ -100,10 +100,10 @@ export default async function AdMapPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-6 pt-6"><AdsTabs /></div>
-      <div className="bg-white border-b border-gray-200 px-6 py-4 mt-4 flex items-center justify-between flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 mt-4 flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Ad Map</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h1 className="text-xl font-semibold text-portal-text">Ad Map</h1>
+          <p className="text-xs text-portal-sub mt-0.5">
             Every ad slot on the site — pricing, status, and who owns it.{' '}
             <Link href="/admin/ads" className="text-portal-blue hover:underline">Raw placements →</Link>
           </p>
@@ -117,7 +117,7 @@ export default async function AdMapPage() {
       </div>
 
       {/* Summary strip */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6 flex-wrap text-sm">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center gap-6 flex-wrap text-sm">
         <Stat label="Total Slots" value={RATE_CARD.length} />
         <Stat
           label="Booked"
@@ -162,9 +162,9 @@ export default async function AdMapPage() {
 
           return (
             <section key={surface}>
-              <h2 className="text-base font-bold text-gray-900 mb-3 inline-flex items-center gap-2">
+              <h2 className="text-base font-bold text-portal-text mb-3 inline-flex items-center gap-2">
                 <span>{SURFACE_LABELS[surface] ?? surface}</span>
-                <span className="text-[11px] font-medium text-gray-400">
+                <span className="text-[11px] font-medium text-portal-muted">
                   {slots.length} {slots.length === 1 ? 'slot' : 'slots'}
                 </span>
               </h2>
@@ -228,8 +228,8 @@ function SlotCard({
     <div className={`rounded-xl ring-1 p-4 ${ringClass}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-gray-900 leading-snug">{slot.label}</h3>
-          <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{slot.description}</p>
+          <h3 className="text-sm font-bold text-portal-text leading-snug">{slot.label}</h3>
+          <p className="text-[11px] text-portal-sub leading-relaxed mt-0.5">{slot.description}</p>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {slot.locked ? (
@@ -256,13 +256,13 @@ function SlotCard({
       )}
 
       {/* Pricing */}
-      <div className="flex items-center gap-3 text-[11px] text-gray-600 mb-3">
+      <div className="flex items-center gap-3 text-[11px] text-portal-sub mb-3">
         <span className="inline-flex items-center gap-1 font-semibold">
           <DollarSign size={10} /> ${slot.monthly}/mo
         </span>
-        <span className="text-gray-400">·</span>
+        <span className="text-portal-muted">·</span>
         <span>${slot.quarterly}/qtr</span>
-        <span className="text-gray-400">·</span>
+        <span className="text-portal-muted">·</span>
         <span>${slot.annual}/yr</span>
       </div>
 
@@ -274,7 +274,7 @@ function SlotCard({
               <span className="inline-flex items-center gap-1 font-semibold text-portal-green">
                 <CheckCircle2 size={11} /> {l.business_name ?? 'Unknown'}
               </span>
-              <div className="flex items-center gap-2 text-gray-500">
+              <div className="flex items-center gap-2 text-portal-sub">
                 <span className="inline-flex items-center gap-0.5"><Eye size={9} /> {totalI.toLocaleString()}</span>
                 <span className="inline-flex items-center gap-0.5"><MousePointer size={9} /> {totalC.toLocaleString()}</span>
               </div>
@@ -301,10 +301,10 @@ function SlotCard({
 function Stat({ label, value, accent }: { label: string; value: number; accent?: 'emerald' | 'amber' }) {
   const valueClass = accent === 'emerald' ? 'text-portal-green'
     : accent === 'amber' ? 'text-portal-amber'
-    : 'text-gray-900'
+    : 'text-portal-text'
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">{label}</p>
+      <p className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">{label}</p>
       <p className={`text-lg font-bold ${valueClass}`}>{value.toLocaleString()}</p>
     </div>
   )

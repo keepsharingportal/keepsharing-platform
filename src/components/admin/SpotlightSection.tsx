@@ -27,8 +27,8 @@ export function SpotlightSection({
 }: Props) {
   const tpl     = getSpotlightTemplate(spotlightType || null)
   const options = getSpotlightOptionsForColumn(columnSlug)
-  const sel     = 'block w-full text-sm rounded-lg border border-gray-200 px-3 py-2 outline-none focus:border-blue-400 bg-white'
-  const inp     = 'block w-full text-sm rounded-lg border border-gray-200 px-3 py-2 outline-none focus:border-blue-400 bg-white'
+  const sel     = 'block w-full text-sm rounded-lg border border-portal-border px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp     = 'block w-full text-sm rounded-lg border border-portal-border px-3 py-2 outline-none focus:border-portal-blue bg-white'
 
   // Column-aware section label + emoji so each spotlight feels native.
   // NOTE: Teacher column slug is 'teacher-of-month' (no "the") to match
@@ -73,7 +73,7 @@ export function SpotlightSection({
             <div className="grid sm:grid-cols-2 gap-3">
               {tpl.topStrip.map(f => (
                 <div key={f.key}>
-                  <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">{f.label}</label>
+                  <label className="block text-[10px] font-semibold text-portal-sub mb-0.5">{f.label}</label>
                   <input
                     className={inp}
                     value={spotlightData[f.key] ?? ''}
@@ -92,7 +92,7 @@ export function SpotlightSection({
               <div className="grid sm:grid-cols-2 gap-3">
                 {tpl.quickHits.map(f => (
                   <div key={f.key}>
-                    <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">{f.label}</label>
+                    <label className="block text-[10px] font-semibold text-portal-sub mb-0.5">{f.label}</label>
                     <textarea
                       className={inp + ' min-h-[60px] resize-y'}
                       value={spotlightData[f.key] ?? ''}

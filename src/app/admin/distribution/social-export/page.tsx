@@ -65,7 +65,7 @@ const IMAGE_STATUS_OPTIONS = [
 const IMAGE_STATUS_STYLE: Record<string, string> = {
   image_ready:         'bg-green-100 text-green-700',
   use_existing_image:  'bg-portal-blue-lt text-portal-blue',
-  no_image_needed:     'bg-gray-100 text-gray-500',
+  no_image_needed:     'bg-gray-100 text-portal-sub',
   needs_photo:         'bg-portal-amber-lt text-portal-amber',
   needs_canva_graphic: 'bg-orange-100 text-orange-700',
 }
@@ -308,16 +308,16 @@ export default async function SocialExportPage({
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Social Planner Export</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Social Planner Export</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             Prepare approved social posts for manual upload into GHL or any scheduler.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap shrink-0">
-          <Link href="/admin/editorial/approval" className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium">
+          <Link href="/admin/editorial/approval" className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-medium">
             Approval Desk →
           </Link>
-          <Link href="/admin/distribution?view=social" className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium">
+          <Link href="/admin/distribution?view=social" className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-medium">
             ← Distribution
           </Link>
         </div>
@@ -346,7 +346,7 @@ export default async function SocialExportPage({
         ] as const).map(({ label, val, color }) => (
           <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-center">
             <p className="text-2xl font-bold" style={{ color }}>{val}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">{label}</p>
+            <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
           </div>
         ))}
       </div>
@@ -360,12 +360,12 @@ export default async function SocialExportPage({
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeFilter === tab.key
                 ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
             {tab.label}
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
-              activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+              activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-portal-sub'
             }`}>
               {counts[tab.key]}
             </span>
@@ -377,8 +377,8 @@ export default async function SocialExportPage({
       <div className="space-y-4">
         {filtered.length === 0 && (
           <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
-            <p className="text-gray-400 text-sm">No items in this filter.</p>
-            <p className="text-[11px] text-gray-400 mt-1">
+            <p className="text-portal-muted text-sm">No items in this filter.</p>
+            <p className="text-[11px] text-portal-muted mt-1">
               Approve posts for social in the <Link href="/admin/editorial/approval" className="text-indigo-500 hover:underline">Approval Desk</Link>.
             </p>
           </div>
@@ -390,7 +390,7 @@ export default async function SocialExportPage({
           const accent = TYPE_COLORS[item.submission_type] ?? '#374151'
           const flags  = assetFlags(item)
           const ready  = isReadyToSchedule(item)
-          const imgStyleCls = IMAGE_STATUS_STYLE[item.image_status ?? ''] ?? 'bg-gray-100 text-gray-400'
+          const imgStyleCls = IMAGE_STATUS_STYLE[item.image_status ?? ''] ?? 'bg-gray-100 text-portal-muted'
           const imgLabel = IMAGE_STATUS_OPTIONS.find(o => o.value === item.image_status)?.label ?? '— Not set —'
 
           return (
@@ -404,8 +404,8 @@ export default async function SocialExportPage({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className="text-sm">{tc?.emoji ?? '📝'}</span>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
+                    <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
+                    <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
                     {item.approved_social     && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">✓ Approved</span>}
                     {item.social_planner_ready && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">Planner Ready</span>}
                     {item.exported_to_social_planner && !item.social_promoted_at && (
@@ -419,9 +419,9 @@ export default async function SocialExportPage({
                       : <span className="text-[10px] bg-portal-amber-lt text-amber-600 px-1.5 py-0.5 rounded font-bold border border-amber-200">Needs work</span>
                     }
                   </div>
-                  <p className="text-sm font-bold text-gray-900 truncate">{title}</p>
+                  <p className="text-sm font-bold text-portal-text truncate">{title}</p>
                   {item.social_publish_date && (
-                    <p className="text-[11px] text-gray-400 mt-0.5">Publish: {item.social_publish_date}</p>
+                    <p className="text-[11px] text-portal-muted mt-0.5">Publish: {item.social_publish_date}</p>
                   )}
                 </div>
 
@@ -432,7 +432,7 @@ export default async function SocialExportPage({
                       <span
                         key={f.label}
                         className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                          f.level === 'error' ? 'bg-red-100 text-red-600' : 'bg-portal-amber-lt text-amber-600'
+                          f.level === 'error' ? 'bg-red-100 text-portal-red' : 'bg-portal-amber-lt text-amber-600'
                         }`}
                       >
                         {f.label}
@@ -447,55 +447,55 @@ export default async function SocialExportPage({
                 {item.caption_facebook && (
                   <div>
                     <p className="text-[10px] font-bold text-portal-blue uppercase tracking-wide mb-1">Facebook</p>
-                    <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{item.caption_facebook}</p>
+                    <p className="text-xs text-portal-text leading-relaxed whitespace-pre-line">{item.caption_facebook}</p>
                   </div>
                 )}
                 {item.caption_instagram && (
                   <div>
                     <p className="text-[10px] font-bold text-pink-600 uppercase tracking-wide mb-1">Instagram</p>
-                    <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{item.caption_instagram}</p>
+                    <p className="text-xs text-portal-text leading-relaxed whitespace-pre-line">{item.caption_instagram}</p>
                   </div>
                 )}
                 {item.caption_sms && (
                   <div>
                     <p className="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-1">SMS / Short</p>
-                    <p className="text-xs text-gray-700 leading-relaxed">{item.caption_sms}</p>
+                    <p className="text-xs text-portal-text leading-relaxed">{item.caption_sms}</p>
                   </div>
                 )}
                 {!item.caption_facebook && !item.caption_instagram && !item.caption_sms && (
-                  <p className="text-xs text-gray-400 italic">
+                  <p className="text-xs text-portal-muted italic">
                     No captions yet. Generate them in the{' '}
                     <Link href="/admin/editorial/approval" className="text-indigo-500 hover:underline">Approval Desk</Link>.
                   </p>
                 )}
                 {item.social_hashtags && (
-                  <p className="text-[11px] text-gray-500 font-mono">{hashtagStr(item.social_hashtags)}</p>
+                  <p className="text-[11px] text-portal-sub font-mono">{hashtagStr(item.social_hashtags)}</p>
                 )}
                 {item.social_link && (
-                  <p className="text-[11px] text-gray-500">🔗 {item.social_link}</p>
+                  <p className="text-[11px] text-portal-sub">🔗 {item.social_link}</p>
                 )}
                 {item.social_image_note && (
-                  <p className="text-[11px] text-gray-500 italic">🖼 {item.social_image_note}</p>
+                  <p className="text-[11px] text-portal-sub italic">🖼 {item.social_image_note}</p>
                 )}
               </div>
 
               {/* Actions row */}
-              <div className="px-5 py-3.5 flex items-center gap-3 flex-wrap bg-gray-50/50">
+              <div className="px-5 py-3.5 flex items-center gap-3 flex-wrap bg-portal-bg/50">
 
                 {/* Image status */}
                 <form action={updateImageStatus} className="flex items-center gap-1.5">
                   <input type="hidden" name="id" value={item.id} />
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wide shrink-0">Image</label>
+                  <label className="text-[10px] font-bold text-portal-muted uppercase tracking-wide shrink-0">Image</label>
                   <select
                     name="image_status"
                     defaultValue={item.image_status ?? ''}
-                    className={`text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none ${imgStyleCls}`}
+                    className={`text-xs border border-portal-border rounded-lg px-2 py-1 outline-none ${imgStyleCls}`}
                   >
                     {IMAGE_STATUS_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
-                  <button type="submit" className="text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-semibold">
+                  <button type="submit" className="text-xs px-2.5 py-1 bg-white border border-portal-border rounded-lg text-portal-sub hover:bg-portal-bg font-semibold">
                     Save
                   </button>
                 </form>
@@ -533,7 +533,7 @@ export default async function SocialExportPage({
                   </span>
                 )}
 
-                <Link href={`/admin/editorial/approval?id=${item.id}`} className="text-xs text-gray-400 hover:text-indigo-600 hover:underline font-semibold">
+                <Link href={`/admin/editorial/approval?id=${item.id}`} className="text-xs text-portal-muted hover:text-indigo-600 hover:underline font-semibold">
                   Edit →
                 </Link>
               </div>
@@ -546,17 +546,17 @@ export default async function SocialExportPage({
       {exportItems.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-bold text-gray-700 shrink-0">Export ({exportItems.length} posts)</h2>
+            <h2 className="text-sm font-bold text-portal-text shrink-0">Export ({exportItems.length} posts)</h2>
             <div className="flex-1 h-px bg-gray-100" />
-            <p className="text-[11px] text-gray-400 shrink-0">Promoted items excluded from export</p>
+            <p className="text-[11px] text-portal-muted shrink-0">Promoted items excluded from export</p>
           </div>
 
           {/* CSV */}
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold text-gray-600">CSV — Spreadsheet / Import Format</h3>
-                <p className="text-[11px] text-gray-400">publish_date, channel, caption, link, hashtags, image_note, asset_status, source_title, content_type</p>
+                <h3 className="text-xs font-bold text-portal-sub">CSV — Spreadsheet / Import Format</h3>
+                <p className="text-[11px] text-portal-muted">publish_date, channel, caption, link, hashtags, image_note, asset_status, source_title, content_type</p>
               </div>
               <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-semibold shrink-0">One row per channel</span>
             </div>
@@ -565,7 +565,7 @@ export default async function SocialExportPage({
                 defaultValue={csvText}
                 readOnly
                 rows={Math.min(exportItems.length * 2 + 2, 18)}
-                className="w-full text-xs font-mono border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed"
+                className="w-full text-xs font-mono border border-portal-border rounded-lg px-3 py-2.5 bg-portal-bg resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed"
               />
             </div>
           </div>
@@ -574,8 +574,8 @@ export default async function SocialExportPage({
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold text-gray-600">GHL Social Planner Format</h3>
-                <p className="text-[11px] text-gray-400">Copy each block into GHL Social Planner, one post at a time</p>
+                <h3 className="text-xs font-bold text-portal-sub">GHL Social Planner Format</h3>
+                <p className="text-[11px] text-portal-muted">Copy each block into GHL Social Planner, one post at a time</p>
               </div>
               <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-2 py-0.5 rounded font-semibold shrink-0">Manual paste</span>
             </div>
@@ -584,7 +584,7 @@ export default async function SocialExportPage({
                 defaultValue={ghlText}
                 readOnly
                 rows={Math.min(exportItems.length * 12 + 4, 30)}
-                className="w-full text-xs font-mono border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed"
+                className="w-full text-xs font-mono border border-portal-border rounded-lg px-3 py-2.5 bg-portal-bg resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed"
               />
             </div>
           </div>
@@ -605,8 +605,8 @@ export default async function SocialExportPage({
       {allItems.length === 0 && (
         <div className="bg-white border border-gray-100 rounded-2xl px-6 py-16 text-center">
           <p className="text-2xl mb-3">📱</p>
-          <p className="text-gray-600 font-semibold text-sm mb-1">No approved social posts yet</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-portal-sub font-semibold text-sm mb-1">No approved social posts yet</p>
+          <p className="text-xs text-portal-muted">
             Approve posts for social in the{' '}
             <Link href="/admin/editorial/approval" className="text-indigo-500 hover:underline">Approval Desk</Link>{' '}
             or flag content as social_queue in the{' '}

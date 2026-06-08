@@ -86,17 +86,17 @@ export default async function GuidesAdminPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-portal-blue" />
             Guides
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-portal-sub mt-0.5">
             Each guide is a digital magazine. Click a card to manage the guide&apos;s listings; guide metadata (hero, print cover, Issuu) lives on the listings page header.
           </p>
         </div>
         <Link
           href="/admin/guides/outreach"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
         >
           <Mail size={12} /> Listing Outreach Tracker
         </Link>
@@ -118,7 +118,7 @@ export default async function GuidesAdminPage() {
             <Link
               key={g.slug}
               href={`/admin/guides/${g.slug}/listings`}
-              className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${isActive ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
+              className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${isActive ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
             >
               {/* Hero image strip */}
               <div className="relative aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
@@ -133,7 +133,7 @@ export default async function GuidesAdminPage() {
                     className="group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  <div className="absolute inset-0 flex items-center justify-center text-portal-muted">
                     <ImageIcon className="h-8 w-8" />
                   </div>
                 )}
@@ -151,13 +151,13 @@ export default async function GuidesAdminPage() {
 
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-portal-blue transition-colors">
+                  <h3 className="text-sm font-bold text-portal-text leading-tight group-hover:text-portal-blue transition-colors">
                     {g.display_name}
                   </h3>
                   <ChevronRight size={14} className="text-gray-300 group-hover:text-portal-blue shrink-0 mt-0.5" />
                 </div>
                 {g.pitch && (
-                  <p className="text-xs text-gray-500 mt-1 leading-snug line-clamp-2">{g.pitch}</p>
+                  <p className="text-xs text-portal-sub mt-1 leading-snug line-clamp-2">{g.pitch}</p>
                 )}
 
                 {/* Status pills */}
@@ -191,8 +191,8 @@ export default async function GuidesAdminPage() {
       </div>
 
       {rows.length === 0 && (
-        <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center bg-white">
-          <p className="text-sm text-gray-500">No guides in <code className="px-1 bg-gray-100 rounded">guide_types</code>.</p>
+        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+          <p className="text-sm text-portal-sub">No guides in <code className="px-1 bg-gray-100 rounded">guide_types</code>.</p>
         </div>
       )}
     </div>

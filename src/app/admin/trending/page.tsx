@@ -298,9 +298,9 @@ export default async function TrendingAdminPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp size={20} className="text-portal-blue" />
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Trending Bar</h1>
+              <h1 className="text-xl font-bold text-portal-text tracking-tight">Trending Bar</h1>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-portal-sub">
               Smart scheduling — start/end dates auto-show/hide items. Up to 4 live items appear in the bar at any time.
             </p>
             {(autoArchivedCount ?? 0) > 0 && (
@@ -310,7 +310,7 @@ export default async function TrendingAdminPage() {
             )}
           </div>
           <a href="/" target="_blank" rel="noreferrer"
-             className="text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50">
+             className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
             View homepage →
           </a>
         </header>

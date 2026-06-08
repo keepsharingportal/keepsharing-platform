@@ -34,13 +34,13 @@ export default async function ResourcesPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Library size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Community Resources</h1>
+            <h1 className="text-xl font-bold text-portal-text tracking-tight">Community Resources</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Region: <span className="font-semibold text-gray-700">{region.name}</span>
-            <span className="text-gray-400"> · </span>{publicationLabelsForRegion(region)}
+          <p className="text-sm text-portal-sub mt-1">
+            Region: <span className="font-semibold text-portal-text">{region.name}</span>
+            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-portal-muted mt-1">
             Surfaced on the public map as a secondary layer (libraries, parks, family services).
           </p>
         </div>

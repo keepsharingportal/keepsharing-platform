@@ -29,10 +29,10 @@ export default async function ArticleReviewPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Article Review Queue</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-semibold text-portal-text">Article Review Queue</h1>
+          <p className="text-sm text-portal-sub mt-0.5">
             {pending.length} pending · {needsEdit.length} needs edit · {approved.length} approved
           </p>
         </div>
@@ -45,9 +45,9 @@ export default async function ArticleReviewPage() {
 
       <div className="p-6">
         {(articles ?? []).length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-500 text-base mb-4">No imported articles yet.</p>
-            <p className="text-sm text-gray-400">Run <code className="bg-gray-100 px-2 py-0.5 rounded">npm run import-articles</code> after dropping PDFs in <code className="bg-gray-100 px-2 py-0.5 rounded">/imports/magazines/</code></p>
+          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+            <p className="text-portal-sub text-base mb-4">No imported articles yet.</p>
+            <p className="text-sm text-portal-muted">Run <code className="bg-gray-100 px-2 py-0.5 rounded">npm run import-articles</code> after dropping PDFs in <code className="bg-gray-100 px-2 py-0.5 rounded">/imports/magazines/</code></p>
           </div>
         ) : (
           <ArticleReviewQueue articles={articles ?? []} />

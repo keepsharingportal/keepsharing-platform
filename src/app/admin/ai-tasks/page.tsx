@@ -64,7 +64,7 @@ const PRIORITY_STYLE: Record<string, string> = {
   urgent: 'bg-red-100 text-red-700 font-bold',
   high:   'bg-orange-100 text-orange-700 font-semibold',
   normal: '',   // hidden for normal priority
-  low:    'bg-gray-100 text-gray-500',
+  low:    'bg-gray-100 text-portal-sub',
 }
 
 type FilterKey = 'review' | 'queued' | 'approved' | 'rejected' | 'failed' | 'all'
@@ -224,8 +224,8 @@ export default async function AITasksPage({
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">AI Task Queue</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-2xl font-bold text-portal-text tracking-tight">AI Task Queue</h1>
+        <p className="text-sm text-portal-sub mt-0.5">
           What AI has prepared for your review. Nothing here is published, sent, or posted automatically.
         </p>
       </div>
@@ -250,7 +250,7 @@ export default async function AITasksPage({
         ].map(m => (
           <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[11px] text-gray-400 mt-0.5 leading-tight">{m.label}</div>
+            <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
         ))}
       </div>
@@ -264,12 +264,12 @@ export default async function AITasksPage({
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === tab.key
                 ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
             {tab.label}
             {tab.count !== null && (
-              <span className={`ml-1.5 ${activeFilter === tab.key ? 'text-white/60' : 'text-gray-400'}`}>
+              <span className={`ml-1.5 ${activeFilter === tab.key ? 'text-white/60' : 'text-portal-muted'}`}>
                 ({tab.count})
               </span>
             )}
@@ -281,10 +281,10 @@ export default async function AITasksPage({
       {tasks.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl px-8 py-20 text-center">
           <div className="text-5xl mb-4">🤖</div>
-          <h2 className="text-lg font-bold text-gray-700 mb-2">
+          <h2 className="text-lg font-bold text-portal-text mb-2">
             {activeFilter === 'review' ? 'Nothing needs review right now' : 'No tasks here'}
           </h2>
-          <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+          <p className="text-sm text-portal-sub max-w-sm mx-auto leading-relaxed">
             {activeFilter === 'all'
               ? 'The AI task queue is empty. Tasks will appear here as background AI workflows are enabled.'
               : activeFilter === 'review'
@@ -292,7 +292,7 @@ export default async function AITasksPage({
               : `No tasks with "${FILTER_TABS.find(t => t.key === activeFilter)?.label}" status.`
             }
           </p>
-          <p className="text-[11px] text-gray-400 mt-3">
+          <p className="text-[11px] text-portal-muted mt-3">
             Human review required before any AI output is used.
           </p>
         </div>
@@ -316,7 +316,7 @@ export default async function AITasksPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-2">
                         <span className="text-lg">{info.emoji}</span>
-                        <span className="text-xs font-bold text-gray-700">{info.label}</span>
+                        <span className="text-xs font-bold text-portal-text">{info.label}</span>
                         <span
                           className="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
                           style={{ backgroundColor: ss.bg, color: ss.color }}
@@ -333,12 +333,12 @@ export default async function AITasksPage({
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-gray-400">{info.desc}</p>
+                      <p className="text-[11px] text-portal-muted">{info.desc}</p>
 
                       {/* Source link */}
                       {srcLink && (
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          Source: <span className="text-gray-500">{task.source_table}</span>
+                        <p className="text-[11px] text-portal-muted mt-0.5">
+                          Source: <span className="text-portal-sub">{task.source_table}</span>
                           {' · '}
                           <Link href={srcLink.href} className="text-indigo-500 hover:underline">
                             {srcLink.label} ↗
@@ -348,33 +348,33 @@ export default async function AITasksPage({
                     </div>
 
                     {/* Timestamps */}
-                    <div className="shrink-0 text-right text-[11px] text-gray-400 space-y-0.5">
+                    <div className="shrink-0 text-right text-[11px] text-portal-muted space-y-0.5">
                       <p>Created: {timeAgo(task.created_at)}</p>
                       {task.completed_at && <p>Completed: {timeAgo(task.completed_at)}</p>}
                       {task.approved_at && (
                         <p className="text-green-600 font-medium">Approved: {fmtDatetime(task.approved_at)}</p>
                       )}
                       {task.rejected_at && (
-                        <p className="text-red-600 font-medium">Rejected: {fmtDatetime(task.rejected_at)}</p>
+                        <p className="text-portal-red font-medium">Rejected: {fmtDatetime(task.rejected_at)}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Output preview */}
                   {task.output_preview && (
-                    <div className="mt-3 px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
+                    <div className="mt-3 px-4 py-3 bg-portal-bg rounded-xl border border-gray-100">
+                      <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide mb-1.5">
                         AI Output Preview
                       </p>
-                      <p className="text-sm text-gray-700 leading-relaxed line-clamp-4 whitespace-pre-wrap">
+                      <p className="text-sm text-portal-text leading-relaxed line-clamp-4 whitespace-pre-wrap">
                         {task.output_preview}
                       </p>
                       {task.output_payload && (
                         <details className="mt-2">
-                          <summary className="text-[11px] text-gray-400 cursor-pointer hover:text-gray-600 select-none">
+                          <summary className="text-[11px] text-portal-muted cursor-pointer hover:text-portal-sub select-none">
                             Show full output →
                           </summary>
-                          <pre className="text-[10px] text-gray-600 bg-white border border-gray-100 rounded-lg p-3 mt-2 overflow-auto max-h-48 leading-relaxed">
+                          <pre className="text-[10px] text-portal-sub bg-white border border-gray-100 rounded-lg p-3 mt-2 overflow-auto max-h-48 leading-relaxed">
                             {JSON.stringify(task.output_payload, null, 2)}
                           </pre>
                         </details>
@@ -385,15 +385,15 @@ export default async function AITasksPage({
                   {/* Error message */}
                   {task.error_message && (
                     <div className="mt-3 px-4 py-3 bg-red-50 rounded-xl border border-red-100">
-                      <p className="text-[10px] font-semibold text-red-600 uppercase tracking-wide mb-1">Error</p>
+                      <p className="text-[10px] font-semibold text-portal-red uppercase tracking-wide mb-1">Error</p>
                       <p className="text-xs text-red-700 leading-relaxed">{task.error_message}</p>
                     </div>
                   )}
 
                   {/* Rejection note */}
                   {task.rejection_note && (
-                    <div className="mt-3 px-4 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-[11px] text-gray-500">
+                    <div className="mt-3 px-4 py-2 bg-portal-bg rounded-lg">
+                      <p className="text-[11px] text-portal-sub">
                         <span className="font-semibold">Rejection note:</span> {task.rejection_note}
                       </p>
                     </div>
@@ -432,7 +432,7 @@ export default async function AITasksPage({
                             name="reject_note"
                             type="text"
                             placeholder="Reason (optional)"
-                            className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-gray-400 w-40 transition-colors"
+                            className="text-xs border border-portal-border rounded-lg px-2.5 py-1.5 outline-none focus:border-portal-blue w-40 transition-colors"
                           />
                           <button type="submit"
                             className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">
@@ -455,7 +455,7 @@ export default async function AITasksPage({
                         <form action={cancelTask}>
                           <input type="hidden" name="task_id" value={task.id} />
                           <button type="submit"
-                            className="px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">
+                            className="px-4 py-1.5 rounded-lg text-xs font-semibold text-portal-sub border border-portal-border hover:bg-portal-bg transition-colors">
                             Cancel
                           </button>
                         </form>
@@ -471,27 +471,27 @@ export default async function AITasksPage({
 
       {/* ── FUTURE ARCHITECTURE NOTES ────────────────────────────────────── */}
       <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-        <summary className="px-5 py-4 text-xs font-semibold text-gray-400 cursor-pointer hover:bg-gray-50 select-none uppercase tracking-wide">
+        <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg select-none uppercase tracking-wide">
           Future: How background AI processing will work
         </summary>
-        <div className="px-5 pb-5 pt-1 border-t border-gray-50 space-y-3 text-xs text-gray-500 leading-relaxed">
+        <div className="px-5 pb-5 pt-1 border-t border-gray-50 space-y-3 text-xs text-portal-sub leading-relaxed">
           <p>
-            <span className="font-semibold text-gray-700">Phase 1 (now):</span> Operators trigger AI generation manually on the Approval Desk.
+            <span className="font-semibold text-portal-text">Phase 1 (now):</span> Operators trigger AI generation manually on the Approval Desk.
             Output is written directly to the source record fields. No queue records created.
           </p>
           <p>
-            <span className="font-semibold text-gray-700">Phase 2 (next):</span> Approval Desk buttons will INSERT ai_task rows
+            <span className="font-semibold text-portal-text">Phase 2 (next):</span> Approval Desk buttons will INSERT ai_task rows
             instead of calling AI directly. A background worker (Supabase Edge Function or external service)
             will poll for queued tasks and process them. Completed tasks appear here for review.
           </p>
           <p>
-            <span className="font-semibold text-gray-700">Phase 3 (overnight AI):</span> A nightly scheduled job
+            <span className="font-semibold text-portal-text">Phase 3 (overnight AI):</span> A nightly scheduled job
             (pg_cron + Edge Function, or external cron) will queue AI tasks for all approved-but-not-yet-distributed content —
             drafting captions, refreshing stale articles, suggesting newsletter lineups, flagging missing info.
             Operators review the batch each morning.
           </p>
           <p>
-            <span className="font-semibold text-gray-700">Safety invariant (permanent):</span> human_review_required = TRUE always.
+            <span className="font-semibold text-portal-text">Safety invariant (permanent):</span> human_review_required = TRUE always.
             Approval here never triggers publishing, sending, or posting.
             A separate human action applies approved output to the destination.
           </p>

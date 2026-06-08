@@ -16,15 +16,15 @@ export function AdminSectionHeader({
 }: AdminSectionHeaderProps) {
   return (
     <div className={`flex items-center gap-3 mb-3 ${className}`}>
-      <h2 className="text-sm font-bold text-gray-700 shrink-0">
+      <h2 className="text-sm font-bold text-portal-text shrink-0">
         {title}
         {count !== undefined && (
-          <span className="ml-2 text-gray-400 font-normal">({count})</span>
+          <span className="ml-2 text-portal-muted font-normal">({count})</span>
         )}
       </h2>
       <div className="flex-1 h-px bg-gray-100" />
       {description && (
-        <p className="text-xs text-gray-400 shrink-0 hidden sm:block">{description}</p>
+        <p className="text-xs text-portal-muted shrink-0 hidden sm:block">{description}</p>
       )}
     </div>
   )

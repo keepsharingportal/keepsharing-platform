@@ -43,13 +43,13 @@ export default async function BloggerEditPage({ params }: Props) {
           <Link href="/admin/bloggers" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Bloggers
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900">Edit {blogger.display_name}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Identity, photos, bio, and Quick Takes shown on the public profile.</p>
+          <h1 className="text-xl font-semibold text-portal-text">Edit {blogger.display_name}</h1>
+          <p className="text-sm text-portal-sub mt-0.5">Identity, photos, bio, and Quick Takes shown on the public profile.</p>
         </div>
         <Link
           href={publicPath}
           target="_blank"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 bg-white rounded-lg hover:bg-gray-50 text-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
         >
           View Public Page <ExternalLink size={11} />
         </Link>
@@ -74,9 +74,9 @@ export default async function BloggerEditPage({ params }: Props) {
       />
 
       {/* ── Posts ─────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-900">Posts by {blogger.display_name.split(' ')[0]} ({posts?.length ?? 0})</h2>
+          <h2 className="text-sm font-bold text-portal-text">Posts by {blogger.display_name.split(' ')[0]} ({posts?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`}
             className="text-xs font-semibold text-portal-blue hover:underline"
@@ -85,7 +85,7 @@ export default async function BloggerEditPage({ params }: Props) {
           </Link>
         </div>
         {(!posts || posts.length === 0) ? (
-          <div className="px-4 py-8 text-center text-sm text-gray-500">
+          <div className="px-4 py-8 text-center text-sm text-portal-sub">
             No posts yet.{' '}
             <Link href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`} className="text-portal-blue hover:underline font-semibold">
               Write the first one →
@@ -94,13 +94,13 @@ export default async function BloggerEditPage({ params }: Props) {
         ) : (
           <div className="divide-y divide-gray-100">
             {posts.map(p => (
-              <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                <Link href={`/admin/articles/${p.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-portal-blue line-clamp-1 flex-1 min-w-0">
+              <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-portal-bg">
+                <Link href={`/admin/articles/${p.id}/edit`} className="text-sm font-semibold text-portal-text hover:text-portal-blue line-clamp-1 flex-1 min-w-0">
                   {p.title}
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
                   {!p.published && <span className="text-[10px] font-bold uppercase bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded">Draft</span>}
-                  {p.published_at && <span className="text-[11px] text-gray-500">{new Date(p.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                  {p.published_at && <span className="text-[11px] text-portal-sub">{new Date(p.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                 </div>
               </div>
             ))}
