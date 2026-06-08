@@ -16,8 +16,18 @@ import { DupClusterPanel } from './DupClusterPanel'
 export const metadata: Metadata = { title: 'Duplicate Advertisers — Admin' }
 export const dynamic  = 'force-dynamic'
 
-export default async function DuplicatesPage() {
+interface Props {
+  searchParams: Promise<{ kind?: string }>
+}
+
+export default async function DuplicatesPage({ searchParams }: Props) {
   await requireAdmin()
+  const sp = await searchParams
+  // Same filter mental model as /admin/advertisers — default to
+  // advertiser (paid customers), but let the editor flip to directory
+  // or all when she wants to clean those buckets up too.
+  const kindFilter = (sp.kind ?? 'advertiser') as 'advertiser' | 'directory_only' | 'all'
+
   const supabase = createAdminClient()
 
   // Pull every advertiser. The dedup pass is in-memory + O(n²); plenty
@@ -25,24 +35,38 @@ export default async function DuplicatesPage() {
   // years. If this ever balloons, bucket by first token before pairing.
   const { data: rows } = await supabase
     .from('advertiser_accounts')
-    .select('id, business_name, slug, contact_email, contact_phone, created_at')
+    .select('id, business_name, slug, contact_email, contact_phone, created_at, kind')
     .order('business_name', { ascending: true })
 
   type Row = {
     id: string; business_name: string; slug: string;
     contact_email: string | null; contact_phone: string | null;
-    created_at:    string
+    created_at:    string;
+    kind:          'advertiser' | 'directory_only' | null;
   }
   const all = (rows ?? []) as Row[]
 
-  // Build the candidate list with normalized tokens once.
-  const candidates: DupCandidate[] = all.map(r => ({
-    id:            r.id,
-    business_name: r.business_name,
-    slug:          r.slug,
-    tokens:        normalize(r.business_name),
-  }))
-  const clusters = findClusters(candidates)
+  // Bucket candidates by kind first, run findClusters per bucket.
+  // Cross-kind merges (paying customer ↔ directory entry) are almost
+  // never what the editor wants — keeps the lists separate.
+  function candidatesFor(kind: 'advertiser' | 'directory_only'): DupCandidate[] {
+    return all
+      .filter(r => (r.kind ?? 'directory_only') === kind)
+      .map(r => ({
+        id:            r.id,
+        business_name: r.business_name,
+        slug:          r.slug,
+        tokens:        normalize(r.business_name),
+      }))
+  }
+  const advertiserClusters = findClusters(candidatesFor('advertiser'))
+  const directoryClusters  = findClusters(candidatesFor('directory_only'))
+
+  // Apply the kind URL filter to pick which clusters surface.
+  const clusters =
+    kindFilter === 'advertiser'     ? advertiserClusters :
+    kindFilter === 'directory_only' ? directoryClusters  :
+                                      [...advertiserClusters, ...directoryClusters]
 
   // Per-cluster: load related counts so the editor can see what's at
   // stake before merging. One round-trip per related table for all
@@ -90,6 +114,31 @@ export default async function DuplicatesPage() {
             </p>
           </div>
         </header>
+
+        {/* Kind filter — mirrors the chip on /admin/advertisers. Default
+            is 'Advertisers' so the editor sees paid-customer dups first;
+            she can switch to Directory-only when she's ready to clean
+            that bigger pile. Cross-kind merges aren't offered. */}
+        <div className="bg-white rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">View:</span>
+          {([
+            { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-primary'  },
+            { k: 'directory_only', label: 'Directory only', count: directoryClusters.length,  tone: 'bg-gray-500' },
+            { k: 'all',            label: 'All',            count: advertiserClusters.length + directoryClusters.length, tone: 'bg-gray-900' },
+          ] as const).map(c => {
+            const on = kindFilter === c.k
+            const href = c.k === 'advertiser' ? '/admin/advertisers/duplicates' : `/admin/advertisers/duplicates?kind=${c.k}`
+            return (
+              <a key={c.k} href={href}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  on ? `${c.tone} text-white` : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
+                }`}>
+                {c.label}
+                <span className={`text-[10px] ${on ? 'opacity-80' : 'text-gray-400'}`}>{c.count}</span>
+              </a>
+            )
+          })}
+        </div>
 
         {/* Summary tiles — quick read on the scope. */}
         <div className="grid grid-cols-3 gap-3">

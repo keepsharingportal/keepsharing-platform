@@ -262,7 +262,10 @@ async function handleCommit(
         const slug = uniqueSlug(name)
         const insAdv = await supabase
           .from('advertiser_accounts')
-          .insert({ business_name: name, slug })
+          // kind='advertiser' — creating because they're booking a paid
+          // print ad; migration 133 column default ('directory_only')
+          // would otherwise hide them from the CRM Businesses view.
+          .insert({ business_name: name, slug, kind: 'advertiser' })
           .select('id, business_name')
           .single()
         if (insAdv.error || !insAdv.data) {

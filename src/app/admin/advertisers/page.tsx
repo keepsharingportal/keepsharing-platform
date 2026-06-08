@@ -29,7 +29,7 @@ const ACTIVE_STAGES   = new Set(['active', 'renewal', 'upgrade-ready', 'sponsor-
 const INACTIVE_STAGES = new Set(['dormant', 'reactivation', 'churned', 'lost'])
 
 interface Props {
-  searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string }>
+  searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string; kind?: string }>
 }
 
 export const metadata: Metadata = { title: 'Advertisers — Admin' }
@@ -42,6 +42,10 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   const query        = params.q?.trim() ?? ''
   const statusFilter = (params.status ?? 'active') as 'active' | 'inactive' | 'all'
   const sort         = (params.sort   ?? 'active') as 'active' | 'name'
+  // Default to 'advertiser' so the CRM view is paying customers + leads,
+  // not the hundreds of directory-only guide entries. Migration 133
+  // marks guide-imported rows as kind='directory_only'.
+  const kindFilter   = (params.kind   ?? 'advertiser') as 'advertiser' | 'directory_only' | 'all'
 
   const supabase = createAdminClient()
 
@@ -52,7 +56,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   const [accountsRes, placementsRes] = await Promise.all([
     supabase
       .from('advertiser_accounts')
-      .select('id, business_name, slug, package_tier, lifecycle_stage, loyalty_tier, contract_start_date, contract_end_date, contact_name, contact_email, contact_phone, business_url')
+      .select('id, business_name, slug, package_tier, lifecycle_stage, loyalty_tier, contract_start_date, contract_end_date, contact_name, contact_email, contact_phone, business_url, kind')
       .order('business_name', { ascending: true }),
     supabase
       .from('ad_placements')
@@ -66,6 +70,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     contract_start_date: string | null; contract_end_date: string | null;
     contact_name: string | null; contact_email: string | null; contact_phone: string | null;
     business_url: string | null;
+    kind: 'advertiser' | 'directory_only' | null;
   }
   const accounts = (accountsRes.data ?? []) as Account[]
 
@@ -98,25 +103,37 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   })
 
   // Duplicate cluster count — surfaces a banner at the top of the page
-  // pushing the editor to clean these up. The CSV import workflow gets
-  // dramatically smoother once advertiser_accounts has one row per
-  // business; each merge collapses N→1 'fuzzy match' prompts the
-  // import would otherwise ask about every month. Computed once
-  // per page load (O(n²) on tokens, fine at ~hundreds of accounts).
-  const candidates: DupCandidate[] = accounts.map(a => ({
-    id:            a.id,
-    business_name: a.business_name,
-    slug:          a.slug ?? '',
-    tokens:        normalize(a.business_name),
-  }))
-  const dupClusterCount = findClusters(candidates).length
+  // pushing the editor to clean these up. Bucketed by kind so the
+  // banner shows the count relevant to the CURRENT filter — counting
+  // directory-only dups here when she's viewing 'Advertisers' would
+  // be misleading noise.
+  function candidatesForKind(kind: 'advertiser' | 'directory_only'): DupCandidate[] {
+    return accounts
+      .filter(a => (a.kind ?? 'directory_only') === kind)
+      .map(a => ({
+        id:            a.id,
+        business_name: a.business_name,
+        slug:          a.slug ?? '',
+        tokens:        normalize(a.business_name),
+      }))
+  }
+  const dupClustersAdvertiser = findClusters(candidatesForKind('advertiser')).length
+  const dupClustersDirectory  = findClusters(candidatesForKind('directory_only')).length
+  const dupClusterCount =
+    kindFilter === 'advertiser'     ? dupClustersAdvertiser  :
+    kindFilter === 'directory_only' ? dupClustersDirectory   :
+                                      dupClustersAdvertiser + dupClustersDirectory
 
-  // Search + status filter applied in memory.
+  // Search + status + kind filter applied in memory.
   const filtered = decorated.filter(a => {
     if (query && !a.business_name.toLowerCase().includes(query.toLowerCase())) return false
     const stage = a.lifecycle_stage ?? ''
     if (statusFilter === 'active'   && !ACTIVE_STAGES.has(stage))   return false
     if (statusFilter === 'inactive' && !INACTIVE_STAGES.has(stage)) return false
+    if (kindFilter !== 'all') {
+      const rowKind = a.kind ?? 'directory_only'
+      if (rowKind !== kindFilter) return false
+    }
     return true
   }).sort((a, b) => {
     if (sort === 'name') return a.business_name.localeCompare(b.business_name)
@@ -132,28 +149,43 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     inactive: decorated.filter(a => INACTIVE_STAGES.has(a.lifecycle_stage ?? '')).length,
     all:      decorated.length,
   }
+  // Per-kind counts (use the same query but bypass the kind filter so the
+  // chips always show absolute totals regardless of which is active).
+  const kindCounts = {
+    advertiser:     decorated.filter(a => (a.kind ?? 'directory_only') === 'advertiser').length,
+    directory_only: decorated.filter(a => (a.kind ?? 'directory_only') === 'directory_only').length,
+    all:            decorated.length,
+  }
 
   const totalPages    = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated     = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const totalRevenue  = filtered.reduce((s, a) => s + a.monthlyRevenue, 0)
   const totalAdvertisers = filtered.length
 
-  function makeHref(overrides: Partial<{ page: number; q: string; status: 'active' | 'inactive' | 'all'; sort: 'active' | 'name' }>): string {
+  function makeHref(overrides: Partial<{
+    page: number; q: string;
+    status: 'active' | 'inactive' | 'all';
+    sort:   'active' | 'name';
+    kind:   'advertiser' | 'directory_only' | 'all';
+  }>): string {
     const sp = new URLSearchParams()
     const p = overrides.page    ?? page
     const q = overrides.q       ?? query
     const s = overrides.status  ?? statusFilter
     const o = overrides.sort    ?? sort
-    if (p !== 1)        sp.set('page',   String(p))
-    if (q)              sp.set('q',      q)
-    if (s !== 'active') sp.set('status', s)
-    if (o !== 'active') sp.set('sort',   o)
+    const k = overrides.kind    ?? kindFilter
+    if (p !== 1)             sp.set('page',   String(p))
+    if (q)                   sp.set('q',      q)
+    if (s !== 'active')      sp.set('status', s)
+    if (o !== 'active')      sp.set('sort',   o)
+    if (k !== 'advertiser')  sp.set('kind',   k)
     const qs = sp.toString()
     return `/admin/advertisers${qs ? '?' + qs : ''}`
   }
   const buildHref  = (p: number) => makeHref({ page: p })
   const statusHref = (s: 'active' | 'inactive' | 'all') => makeHref({ status: s, page: 1 })
   const sortHref   = (o: 'active' | 'name') => makeHref({ sort: o, page: 1 })
+  const kindHref   = (k: 'advertiser' | 'directory_only' | 'all') => makeHref({ kind: k, page: 1 })
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -222,7 +254,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
       {dupClusterCount > 0 && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 shrink-0">
           <Link
-            href="/admin/advertisers/duplicates"
+            href={kindFilter === 'advertiser' ? '/admin/advertisers/duplicates' : `/admin/advertisers/duplicates?kind=${kindFilter}`}
             className="flex items-center justify-between gap-3 group"
           >
             <div className="flex items-center gap-2 text-sm text-amber-900">
@@ -238,6 +270,38 @@ export default async function AdvertisersPage({ searchParams }: Props) {
           </Link>
         </div>
       )}
+
+      {/* ── Kind chips (Advertiser vs Directory-only vs All) ─────
+          Sits above the status row because it controls the bigger
+          'which slice of the database am I looking at' decision.
+          Default = Advertiser so the CRM view is paying customers,
+          not the hundreds of guide-only entries. */}
+      <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center gap-2 flex-wrap shrink-0">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mr-1">View:</span>
+        {(['advertiser', 'directory_only', 'all'] as const).map(k => {
+          const on = kindFilter === k
+          const label =
+            k === 'advertiser'     ? 'Advertisers' :
+            k === 'directory_only' ? 'Directory only' :
+                                     'All'
+          const tone =
+            k === 'advertiser'     ? 'bg-primary'   :
+            k === 'directory_only' ? 'bg-gray-500'  :
+                                     'bg-gray-900'
+          return (
+            <a key={k} href={kindHref(k)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                on ? `${tone} text-white` : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
+              }`}>
+              {label}
+              <span className={`text-[10px] ${on ? 'opacity-80' : 'text-gray-400'}`}>{kindCounts[k]}</span>
+            </a>
+          )
+        })}
+        <span className="text-[10px] text-gray-400 ml-2 leading-tight">
+          Directory-only = listed in a guide but never a paid customer. Guide imports land here by default.
+        </span>
+      </div>
 
       {/* ── Search + status chips + sort + totals ──────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
@@ -268,6 +332,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
           />
           {statusFilter !== 'active' && <input type="hidden" name="status" value={statusFilter} />}
           {sort !== 'active' && <input type="hidden" name="sort" value={sort} />}
+          {kindFilter !== 'advertiser' && <input type="hidden" name="kind" value={kindFilter} />}
         </form>
 
         {/* Sort toggle — 'Active' for daily use (most engaged up top),

@@ -65,6 +65,10 @@ export async function POST(req: NextRequest) {
       contact_phone:  body.contact_phone ?? null,
       business_url:   body.business_url ?? null,
       lifecycle_stage: 'active',
+      // Manual create = real CRM customer (migration 133 default is
+      // 'directory_only' so guide imports don't pollute the list;
+      // explicit creates need to opt in to 'advertiser').
+      kind: 'advertiser',
     })
     .select('id, business_name, slug')
     .single()
