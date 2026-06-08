@@ -1,12 +1,21 @@
 // src/app/api/admin/guide-listings-import/route.ts
 // Bulk-inserts guide listing rows from CSV import.
-// Each row creates/updates:
-//   1. advertiser_accounts — the business record
-//   2. guide_listings — the guide-specific listing entry
 //
-// Deduplication: advertiser_accounts matched by normalized business_name.
-// If an account exists, guide_listings is upserted by (advertiser_account_id, guide_type_slug).
-// Max 25 rows per request — send in chunks from the client.
+// Behavior change (migration 134): the importer no longer creates
+// advertiser_accounts rows. Each guide CSV row becomes a self-contained
+// guide_listings entry with the business identity stored inline
+// (business_name, phone, address, etc.). Listings stand on their own
+// as directory content — they only get an advertiser_account link when
+// a business CLAIMS the listing and upgrades to a featured/paid tier.
+//
+// If a row's business_name exactly matches an existing
+// advertiser_account.business_name (case-insensitive), the import
+// auto-associates by setting advertiser_account_id. That handles the
+// case where an editor re-imports a guide CSV for a business that
+// already advertises elsewhere. Anything else: advertiser_account_id
+// stays NULL.
+//
+// Each request takes ≤30 rows; client sends in chunks.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -23,19 +32,22 @@ export type GuideListingImportRow = {
   city_state_zip?:   string | null
   neighborhood?:     string | null
   hours?:            string | null
+  hero_photo_url?:   string | null
+  card_hook?:        string | null
   listing_tier?:     string          // 'community' | 'enhanced' | 'featured'
+  listing_year?:     number | string | null
   // Extra fields stored in guide_data JSONB
   [key: string]:     unknown
 }
 
 export type GuideListingImportResult = {
   inserted:   number
-  updated:    number
+  matched:    number              // landed inline + auto-linked to existing advertiser
   skipped:    number
   errors:     string[]
   rowResults: {
     name: string
-    status: 'inserted' | 'updated' | 'skipped' | 'error'
+    status: 'inserted' | 'matched' | 'skipped' | 'error'
     message?: string
   }[]
 }
@@ -47,29 +59,14 @@ function supabaseAdmin() {
   )
 }
 
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 80)
-}
-
-function makeSlugUnique(base: string, existing: Set<string>): string {
-  if (!existing.has(base)) { existing.add(base); return base }
-  for (let i = 2; i < 200; i++) {
-    const c = `${base}-${i}`
-    if (!existing.has(c)) { existing.add(c); return c }
-  }
-  return `${base}-${Date.now()}`
-}
-
+// Fields that live as first-class columns on guide_listings. Anything
+// else passes through into the guide_data JSONB so guide-specific
+// extras (e.g. age ranges, certifications) survive the round trip.
 const CORE_FIELDS = new Set([
   'guide_type_slug', 'business_name', 'category', 'description',
   'phone', 'email', 'website_url', 'address', 'city_state_zip',
-  'neighborhood', 'hours', 'listing_tier',
+  'neighborhood', 'hours', 'listing_tier', 'listing_year',
+  'hero_photo_url', 'card_hook',
 ])
 
 export async function POST(req: NextRequest) {
@@ -84,19 +81,20 @@ export async function POST(req: NextRequest) {
 
     const supabase = supabaseAdmin()
     const result: GuideListingImportResult = {
-      inserted: 0, updated: 0, skipped: 0, errors: [], rowResults: [],
+      inserted: 0, matched: 0, skipped: 0, errors: [], rowResults: [],
     }
 
-    // Pre-load existing accounts by slug for dedup
-    const nameKeys = rows.map(r => toSlug(r.business_name))
+    // Pre-load every existing advertiser_account name for the optional
+    // 'this business already advertises with us' auto-link. Lowercase
+    // exact match only — keeps it conservative, no fuzzy guessing.
     const { data: existingAccts } = await supabase
       .from('advertiser_accounts')
-      .select('id, slug, business_name')
-      .in('slug', nameKeys)
-    const acctBySlug = new Map(
-      (existingAccts ?? []).map((a: { id: string; slug: string; business_name: string }) => [a.slug, a])
-    )
-    const existingSlugs = new Set(acctBySlug.keys())
+      .select('id, business_name')
+      .limit(10000)
+    const acctByName = new Map<string, string>()
+    for (const a of (existingAccts ?? []) as Array<{ id: string; business_name: string }>) {
+      acctByName.set(a.business_name.trim().toLowerCase(), a.id)
+    }
 
     for (const row of rows) {
       const name = row.business_name?.trim()
@@ -107,77 +105,63 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const baseSlug   = toSlug(name)
-        let acctId: string
-        let isNew = false
+        // Optional auto-link: if a CRM advertiser already exists with
+        // this exact business name, link the listing to it. Otherwise
+        // leave advertiser_account_id NULL — it's just directory content.
+        const linkedAcctId = acctByName.get(name.toLowerCase()) ?? null
 
-        const existing = acctBySlug.get(baseSlug)
-
-        if (existing) {
-          acctId = existing.id
-        } else {
-          // Create advertiser_accounts record
-          const slug = makeSlugUnique(baseSlug, existingSlugs)
-          const { data: newAcct, error: acctErr } = await supabase
-            .from('advertiser_accounts')
-            .insert({
-              slug,
-              business_name:   name,
-              office_phone:    row.phone ?? null,
-              website_url:     row.website_url ?? null,
-              address:         row.address ?? null,
-              city_state_zip:  row.city_state_zip ?? null,
-              neighborhood:    row.neighborhood ?? null,
-              package_tier:    row.listing_tier === 'enhanced' ? 'enhanced' : 'community',
-              onboarding_status: 'imported',
-            })
-            .select('id, slug')
-            .single()
-
-          if (acctErr || !newAcct) {
-            const msg = acctErr?.message ?? 'Failed to create account'
-            result.errors.push(`${name}: ${msg}`)
-            result.rowResults.push({ name, status: 'error', message: msg })
-            continue
-          }
-
-          acctId = newAcct.id
-          acctBySlug.set(baseSlug, { id: acctId, slug, business_name: name })
-          isNew = true
-        }
-
-        // Build guide_data from non-core fields
+        // Build guide_data from non-core fields so guide-specific
+        // payload (age ranges, certifications, custom JSON…) survives.
         const guideData: Record<string, unknown> = {}
         for (const [k, v] of Object.entries(row)) {
           if (!CORE_FIELDS.has(k) && v !== null && v !== undefined && v !== '') {
             guideData[k] = v
           }
         }
-        if (row.description) guideData.description = row.description
-        if (row.hours)       guideData.hours       = row.hours
+        if (row.description) guideData.description    = row.description
+        if (row.hours)       guideData.hours          = row.hours
 
-        // Upsert guide_listings
+        const listingYear = typeof row.listing_year === 'string'
+          ? parseInt(row.listing_year, 10)
+          : (row.listing_year ?? null)
+
         const { error: listingErr } = await supabase
           .from('guide_listings')
-          .upsert({
-            advertiser_account_id: acctId,
+          .insert({
+            advertiser_account_id: linkedAcctId,     // NULL unless an exact-match advertiser exists
             guide_type_slug:       row.guide_type_slug,
             category:              row.category?.trim() || null,
             listing_tier:          row.listing_tier || 'community',
+            listing_year:          Number.isFinite(listingYear) ? listingYear : null,
             is_published:          true,
-            guide_data:            guideData,
             display_order:         9999,
-          }, {
-            onConflict: 'advertiser_account_id,guide_type_slug',
+            // Inline business identity (migration 134) — listing is now
+            // self-sufficient; public render reads these directly.
+            business_name:    name,
+            office_phone:     row.phone          ?? null,
+            mobile_phone:     null,                       // CSV doesn't differentiate; leave null
+            website_url:      row.website_url    ?? null,
+            contact_email:    row.email          ?? null,
+            address:          row.address        ?? null,
+            city_state_zip:   row.city_state_zip ?? null,
+            neighborhood:     row.neighborhood   ?? null,
+            hero_photo_url:   row.hero_photo_url ?? null,
+            card_hook:        row.card_hook      ?? null,
+            guide_data:       guideData,
           })
 
         if (listingErr) {
           const msg = listingErr.message
           result.errors.push(`${name}: ${msg}`)
           result.rowResults.push({ name, status: 'error', message: msg })
+          continue
+        }
+        if (linkedAcctId) {
+          result.matched++
+          result.rowResults.push({ name, status: 'matched', message: 'Linked to existing advertiser' })
         } else {
-          if (isNew) { result.inserted++; result.rowResults.push({ name, status: 'inserted' }) }
-          else       { result.updated++;  result.rowResults.push({ name, status: 'updated' }) }
+          result.inserted++
+          result.rowResults.push({ name, status: 'inserted' })
         }
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e)

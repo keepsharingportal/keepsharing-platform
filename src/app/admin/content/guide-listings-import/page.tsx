@@ -95,7 +95,7 @@ type ParsedState = {
   unmapped:      string[]
 }
 
-type RowResult = { name: string; status: 'inserted' | 'updated' | 'skipped' | 'error'; message?: string }
+type RowResult = { name: string; status: 'inserted' | 'matched' | 'skipped' | 'error'; message?: string }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -108,7 +108,7 @@ export default function GuideListingsImportPage() {
   const [importing,  setImporting]  = useState(false)
   const [progress,   setProgress]   = useState({ done: 0, total: 0 })
   const [results,    setResults]    = useState<RowResult[]>([])
-  const [totals,     setTotals]     = useState({ inserted: 0, updated: 0, skipped: 0, errors: 0 })
+  const [totals,     setTotals]     = useState({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
   const [done,       setDone]       = useState(false)
   const [showAll,    setShowAll]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
@@ -175,7 +175,7 @@ export default function GuideListingsImportPage() {
     const chunks = chunk(rowsWithType, 25)
 
     setImporting(true); setDone(false)
-    setResults([]); setTotals({ inserted: 0, updated: 0, skipped: 0, errors: 0 })
+    setResults([]); setTotals({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
     setProgress({ done: 0, total: rowsWithType.length })
 
     let ins = 0, upd = 0, skip = 0, errs = 0
@@ -197,7 +197,7 @@ export default function GuideListingsImportPage() {
         } else {
           const data: GuideListingImportResult = await res.json()
           ins  += data.inserted
-          upd  += data.updated
+          upd  += data.matched
           skip += data.skipped
           errs += data.errors.length
           all.push(...data.rowResults)
@@ -210,7 +210,7 @@ export default function GuideListingsImportPage() {
       }
       setProgress({ done: all.length, total: rowsWithType.length })
       setResults([...all])
-      setTotals({ inserted: ins, updated: upd, skipped: skip, errors: errs })
+      setTotals({ inserted: ins, matched: upd, skipped: skip, errors: errs })
     }
 
     setImporting(false); setDone(true)
@@ -218,7 +218,7 @@ export default function GuideListingsImportPage() {
 
   function reset() {
     setParsed(null); setDone(false); setError(null)
-    setResults([]); setTotals({ inserted: 0, updated: 0, skipped: 0, errors: 0 })
+    setResults([]); setTotals({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
     setFileName(''); setShowAll(false)
     if (fileRef.current) fileRef.current.value = ''
   }
@@ -403,9 +403,9 @@ export default function GuideListingsImportPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-4 gap-3">
               {[
-                { label: 'Inserted', value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
-                { label: 'Updated',  value: totals.updated,  color: 'text-blue-600',  bg: 'bg-blue-50 border-blue-200'   },
-                { label: 'Skipped',  value: totals.skipped,  color: 'text-gray-500',  bg: 'bg-gray-50 border-gray-200'   },
+                { label: 'New',           value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
+                { label: 'Auto-linked',   value: totals.matched,  color: 'text-blue-600',  bg: 'bg-blue-50 border-blue-200'   },
+                { label: 'Skipped',       value: totals.skipped,  color: 'text-gray-500',  bg: 'bg-gray-50 border-gray-200'   },
                 { label: 'Errors',   value: totals.errors,   color: 'text-red-600',   bg: 'bg-red-50 border-red-200'     },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-xl border p-4 text-center ${bg}`}>
@@ -421,7 +421,7 @@ export default function GuideListingsImportPage() {
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'inserted' ? 'bg-green-100 text-green-700' :
-                      r.status === 'updated'  ? 'bg-blue-100 text-blue-700'  :
+                      r.status === 'matched'  ? 'bg-blue-100 text-blue-700'  :
                       r.status === 'skipped'  ? 'bg-gray-100 text-gray-500'  :
                                                 'bg-red-100 text-red-700'
                     }`}>{r.status}</span>
@@ -443,9 +443,9 @@ export default function GuideListingsImportPage() {
               </a>
             </div>
 
-            {(totals.inserted + totals.updated) > 0 && (
+            {(totals.inserted + totals.matched) > 0 && (
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
-                <strong>{totals.inserted + totals.updated} listings</strong> are now live in the{' '}
+                <strong>{totals.inserted + totals.matched} listings</strong> are now live in the{' '}
                 <strong>{guideLabel}</strong>. Import the next guide CSV or go populate FRG categories.
               </div>
             )}
