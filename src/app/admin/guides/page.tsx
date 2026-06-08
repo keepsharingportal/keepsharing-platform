@@ -91,7 +91,7 @@ export default async function GuidesAdminPage() {
             Guides
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Each guide is a digital magazine. Click a card to edit the hero, print cover, Issuu link, description, and CTA.
+            Each guide is a digital magazine. Click a card to manage the guide&apos;s listings; guide metadata (hero, print cover, Issuu) lives on the listings page header.
           </p>
         </div>
         <Link
@@ -117,7 +117,7 @@ export default async function GuidesAdminPage() {
           return (
             <Link
               key={g.slug}
-              href={`/admin/guides/${g.slug}/edit`}
+              href={`/admin/guides/${g.slug}/listings`}
               className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-blue-300 transition-all ${isActive ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
             >
               {/* Hero image strip */}

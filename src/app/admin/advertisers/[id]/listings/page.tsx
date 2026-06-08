@@ -107,7 +107,7 @@ export default async function ListingsTab({ params }: Props) {
                     </div>
                   </div>
                   <Link
-                    href={`/admin/guides/${g.guideSlug}/listings/${l.id}`}
+                    href={`/admin/guides/${g.guideSlug}/listings/${l.id}/edit`}
                     className="text-[10px] font-bold text-gray-500 hover:text-gray-900 whitespace-nowrap"
                   >
                     Edit →
