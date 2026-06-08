@@ -88,7 +88,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
     } finally { setSigningOut(false) }
   }
 
-  const inp = 'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-primary bg-white'
+  const inp = 'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5'
 
   return (
@@ -117,7 +117,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
             <button
               type="submit"
               disabled={nameBusy || fullName === initialFullName}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
             >
               {nameBusy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
               {nameBusy ? 'Saving…' : 'Save name'}
@@ -168,7 +168,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
           <button
             type="submit"
             disabled={pwBusy || !pw1 || !pw2}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
           >
             {pwBusy ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
             {pwBusy ? 'Saving…' : 'Save password'}

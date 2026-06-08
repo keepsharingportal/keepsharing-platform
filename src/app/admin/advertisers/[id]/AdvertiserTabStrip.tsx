@@ -47,14 +47,14 @@ export function AdvertiserTabStrip({ id, counts }: {
               href={t.href(id)}
               className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 active
-                  ? 'text-primary border-primary'
+                  ? 'text-portal-blue border-portal-blue'
                   : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}
             >
-              <span className={active ? 'text-primary' : 'text-gray-400'}>{t.icon}</span>
+              <span className={active ? 'text-portal-blue' : 'text-gray-400'}>{t.icon}</span>
               {t.label}
               {!!t.count && t.count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-gray-600'}`}>
                   {t.count}
                 </span>
               )}

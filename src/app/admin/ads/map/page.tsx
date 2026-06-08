@@ -105,12 +105,12 @@ export default async function AdMapPage() {
           <h1 className="text-xl font-semibold text-gray-900">Ad Map</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             Every ad slot on the site — pricing, status, and who owns it.{' '}
-            <Link href="/admin/ads" className="text-primary hover:underline">Raw placements →</Link>
+            <Link href="/admin/ads" className="text-portal-blue hover:underline">Raw placements →</Link>
           </p>
         </div>
         <Link
           href="/admin/ads/new"
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
         >
           <Plus size={14} /> New Placement
         </Link>
@@ -288,7 +288,7 @@ function SlotCard({
           </span>
           <Link
             href={`/admin/ads/new?placement_type=${slot.placementType}&context_slug=${slot.surface}`}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-blue hover:underline"
           >
             Assign <ArrowRight size={10} />
           </Link>

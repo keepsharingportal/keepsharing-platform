@@ -244,7 +244,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
             <select
               value={state.freq}
               onChange={e => setState(s => ({ ...s, freq: e.target.value as Freq }))}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-primary"
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
             >
               {FREQ_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -256,7 +256,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
               min={1}
               value={state.interval}
               onChange={e => setState(s => ({ ...s, interval: Math.max(1, Number(e.target.value) || 1) }))}
-              className="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-primary"
+              className="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
             />
             <span className="text-xs text-gray-500">
               {state.freq === 'DAILY'   ? (state.interval > 1 ? 'days'   : 'day')
@@ -279,7 +279,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                     onClick={() => toggleDay(d.value)}
                     className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition ${
                       on
-                        ? 'bg-primary text-white border-primary'
+                        ? 'bg-portal-navy text-white border-portal-blue'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                     }`}
                   >
@@ -301,7 +301,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                 placeholder={state.freq === 'CUSTOM_DAYS'
                   ? 'RDATE:20260601T080000Z,20260615T080000Z,20260629T080000Z'
                   : 'FREQ=WEEKLY;BYDAY=TU,TH;UNTIL=20261231T235959Z'}
-                className="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-gray-200 bg-white outline-none focus:border-primary"
+                className="w-full px-3 py-1.5 text-xs font-mono rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue"
               />
               <p className="text-[11px] text-gray-500">
                 {state.freq === 'CUSTOM_DAYS'
@@ -336,7 +336,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                   type="date"
                   value={state.until}
                   onChange={e => setState(s => ({ ...s, endsMode: 'ON', until: e.target.value }))}
-                  className="px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-primary disabled:opacity-50"
+                  className="px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue disabled:opacity-50"
                   disabled={state.endsMode !== 'ON'}
                 />
               </label>
@@ -353,7 +353,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                   min={1}
                   value={state.count}
                   onChange={e => setState(s => ({ ...s, endsMode: 'AFTER', count: Math.max(1, Number(e.target.value) || 1) }))}
-                  className="w-16 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-primary disabled:opacity-50"
+                  className="w-16 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-portal-blue disabled:opacity-50"
                   disabled={state.endsMode !== 'AFTER'}
                 />
                 occurrences

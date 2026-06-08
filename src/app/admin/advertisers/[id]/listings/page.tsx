@@ -76,7 +76,7 @@ export default async function ListingsTab({ params }: Props) {
             </div>
             <Link
               href={`/admin/guides/${g.guideSlug}`}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline whitespace-nowrap"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-blue hover:underline whitespace-nowrap"
             >
               Open guide <ExternalLink size={10} />
             </Link>

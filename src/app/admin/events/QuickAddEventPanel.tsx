@@ -479,7 +479,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
             <button
               type="submit"
               disabled={busy || (duplicates.length > 0 && !overrideDupe)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <Plus size={12} />}
               {busy ? 'Saving…' : (autoPublish ? 'Publish event' : 'Add to queue')}

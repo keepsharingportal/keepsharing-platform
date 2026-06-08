@@ -111,7 +111,7 @@ function ArticlePreview({
           matches the front-end's vertical rhythm, not just the body block. */}
       <div className="mb-6 pb-4 border-b border-gray-100">
         {columnSlug && (
-          <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-2">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-portal-blue mb-2">
             {columnSlug.replace(/-/g, ' ')}
           </p>
         )}

@@ -250,7 +250,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
           </Link>
           <button
             onClick={() => setQuickAdd(v => !v)}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
           >
             <Plus size={14} /> Quick Add Event
           </button>
@@ -273,12 +273,12 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
               key={tab}
               onClick={() => switchTab(tab)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-primary border-primary' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}
             >
               {tab}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                activeTab === tab ? 'bg-primary/5 text-primary ring-primary/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
+                activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
               }`}>
                 {counts[tab]}
               </span>
@@ -296,13 +296,13 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search title, venue, organizer…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-primary"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={category}
           onChange={e => { setCategory(e.target.value); setPage(1) }}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-primary"
+          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="">All categories</option>
           {CATEGORY_OPTIONS.filter(Boolean).map(c => (
@@ -313,7 +313,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
           <select
             value={sourceId}
             onChange={e => { setSourceId(e.target.value); setPage(1) }}
-            className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-primary max-w-[200px]"
+            className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue max-w-[200px]"
           >
             <option value="">All sources</option>
             {sources.map(s => (
@@ -327,14 +327,14 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
             type="date"
             value={fromDate}
             onChange={e => { setFromDate(e.target.value); setPage(1) }}
-            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-primary"
+            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
           />
           <span>→</span>
           <input
             type="date"
             value={toDate}
             onChange={e => { setToDate(e.target.value); setPage(1) }}
-            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-primary"
+            className="px-2 py-1 text-xs border border-gray-200 rounded outline-none focus:border-portal-blue"
           />
         </div>
         {(search || sourceId || category || fromDate || toDate) && (
@@ -480,7 +480,7 @@ function BulkBar({
           type="checkbox"
           checked={allSelected}
           onChange={() => (allSelected ? onClear() : onSelectAll())}
-          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+          className="h-4 w-4 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer"
           aria-label="Select all on this page"
         />
         <span className={selectedCount > 0 ? 'font-bold text-gray-900' : 'text-gray-500'}>
@@ -628,14 +628,14 @@ function EventRowItem({
   }
 
   return (
-    <div className={`transition-colors ${selected ? 'bg-primary/5' : 'bg-white hover:bg-gray-50/60'}`}>
+    <div className={`transition-colors ${selected ? 'bg-portal-blue-lt' : 'bg-white hover:bg-gray-50/60'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         {selectable && (
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggleSelect}
-            className="h-4 w-4 mt-3 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer shrink-0"
+            className="h-4 w-4 mt-3 rounded border-gray-300 text-portal-blue focus:ring-portal-blue cursor-pointer shrink-0"
             aria-label="Select"
           />
         )}
@@ -1139,7 +1139,7 @@ function EventEditor({
             <button
               onClick={save}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
             >
               {busy ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
               Save changes

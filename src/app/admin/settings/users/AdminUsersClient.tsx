@@ -104,7 +104,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-            <Shield size={18} className="text-primary" /> Admin Users
+            <Shield size={18} className="text-portal-blue" /> Admin Users
           </h1>
           <span className="text-xs text-gray-500">
             Staff who can sign into the admin
@@ -112,7 +112,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
         </div>
         <button
           onClick={() => setInviteOpen(v => !v)}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
         >
           <Plus size={14} /> Invite Admin
         </button>
@@ -149,13 +149,13 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name, email…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-primary"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value as 'all' | AdminRole)}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-primary"
+          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="all">All roles</option>
           <option value="super">Super Admin</option>
@@ -166,7 +166,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as 'active' | 'suspended' | 'all')}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-primary"
+          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="active">Active</option>
           <option value="suspended">Suspended</option>
@@ -365,7 +365,7 @@ function InvitePanel({
         <button
           type="submit"
           disabled={busy || !roleDecision.allowed}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
         >
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
           {busy ? 'Inviting…' : 'Create + invite'}
@@ -708,7 +708,7 @@ function EditRowPanel({
         <button
           onClick={save}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
         >
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : 'Save changes'}
@@ -806,7 +806,7 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
             <button
               type="submit"
               disabled={busy || !pw1 || !pw2}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
               {busy ? 'Saving…' : 'Set password'}

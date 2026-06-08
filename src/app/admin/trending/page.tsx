@@ -297,7 +297,7 @@ export default async function TrendingAdminPage() {
         <header className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={20} className="text-primary" />
+              <TrendingUp size={20} className="text-portal-blue" />
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">Trending Bar</h1>
             </div>
             <p className="text-sm text-gray-500">

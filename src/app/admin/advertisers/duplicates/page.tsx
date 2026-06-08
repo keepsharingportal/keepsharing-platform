@@ -122,7 +122,7 @@ export default async function DuplicatesPage({ searchParams }: Props) {
         <div className="bg-white rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">View:</span>
           {([
-            { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-primary'  },
+            { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-portal-navy'  },
             { k: 'directory_only', label: 'Directory only', count: directoryClusters.length,  tone: 'bg-gray-500' },
             { k: 'all',            label: 'All',            count: advertiserClusters.length + directoryClusters.length, tone: 'bg-gray-900' },
           ] as const).map(c => {

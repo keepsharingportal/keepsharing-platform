@@ -206,7 +206,7 @@ export default async function EventPreviewPage({ params }: Props) {
             </span>
           )}
           {regUrl && (
-            <a href={regUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 px-4 py-2 text-sm font-bold rounded-full bg-primary text-white hover:bg-primary/90 transition-colors">
+            <a href={regUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 mt-2 px-4 py-2 text-sm font-bold rounded-full bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors">
               Register <ExternalLink size={13} />
             </a>
           )}

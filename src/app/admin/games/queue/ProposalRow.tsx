@@ -96,7 +96,7 @@ function ScramblePreview({ p }: { p: any }) {
       <p className="text-sm font-semibold text-gray-900">
         <span className="font-mono tracking-widest">{p.scrambled}</span>
         <span className="text-gray-400 mx-2">→</span>
-        <span className="text-primary">{p.answer}</span>
+        <span className="text-portal-blue">{p.answer}</span>
       </p>
     </div>
   )
@@ -108,7 +108,7 @@ function EmojiPreview({ p }: { p: any }) {
       <p className="text-sm font-semibold text-gray-900">
         <span className="text-xl">{p.emoji}</span>
         <span className="text-gray-400 mx-2">→</span>
-        <span className="text-primary">{p.answer}</span>
+        <span className="text-portal-blue">{p.answer}</span>
       </p>
     </div>
   )
@@ -118,7 +118,7 @@ function MathPreview({ p }: { p: any }) {
   return (
     <div>
       <p className="text-sm font-semibold text-gray-900">{p.q}</p>
-      <p className="text-xs text-gray-500 mt-0.5">Answer: <strong className="text-primary">{p.a}</strong></p>
+      <p className="text-xs text-gray-500 mt-0.5">Answer: <strong className="text-portal-blue">{p.a}</strong></p>
     </div>
   )
 }

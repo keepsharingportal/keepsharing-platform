@@ -75,7 +75,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
         <div className="flex items-center gap-2">
           <Link
             href={`/admin/print-layout?issue=${addIssue}&add=1&advertiser_id=${advertiserId}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-portal-navy hover:bg-portal-navy/90 px-2.5 py-1 rounded-full"
             title={`Book a print ad for the ${fmtIssue(addIssue)} issue`}
           >
             <Plus size={11} /> New Print Ad
@@ -94,7 +94,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
           <p className="text-xs text-gray-500 mb-1">No print bookings yet.</p>
           <Link
             href={`/admin/print-layout?issue=${todayYM}&add=1&advertiser_id=${advertiserId}`}
-            className="text-xs font-bold text-primary hover:underline"
+            className="text-xs font-bold text-portal-blue hover:underline"
           >
             Book the first one →
           </Link>
@@ -118,7 +118,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
                 )}
                 <Link
                   href={`/admin/print-layout?issue=${r.issue_month}`}
-                  className="text-[10px] font-bold text-primary hover:underline inline-flex items-center gap-0.5"
+                  className="text-[10px] font-bold text-portal-blue hover:underline inline-flex items-center gap-0.5"
                   title="Open in Print Layout"
                 >
                   Open <ArrowRight size={9} />

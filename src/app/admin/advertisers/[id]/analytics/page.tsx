@@ -72,16 +72,16 @@ export default async function AnalyticsTab({ params }: Props) {
       {/* ── Monthly report CTA ──────────────────────────── */}
       <Link
         href={`/admin/advertisers/${id}/report`}
-        className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-primary hover:shadow-sm transition-all"
+        className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
       >
         <div className="flex items-center gap-3">
-          <FileText size={20} className="text-gray-400 group-hover:text-primary transition-colors" />
+          <FileText size={20} className="text-gray-400 group-hover:text-portal-blue transition-colors" />
           <div>
             <p className="text-sm font-bold text-gray-900">Generate Monthly Report</p>
             <p className="text-xs text-gray-500">Printable performance snapshot for this business&apos;s contacts.</p>
           </div>
         </div>
-        <ArrowRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
+        <ArrowRight size={16} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
       </Link>
 
       {/* ── Best performer callout ──────────────────────── */}

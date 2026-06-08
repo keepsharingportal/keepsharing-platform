@@ -345,7 +345,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 type="button"
                 onClick={onPlan}
                 disabled={planning}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
               >
                 {planning ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {planning ? 'Analyzing…' : 'Preview import'}
@@ -415,7 +415,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 title={unresolvedNewCount > 0
                   ? `${unresolvedNewCount} no-match row${unresolvedNewCount === 1 ? '' : 's'} still need a business name or Skip`
                   : ''}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
               >
                 {committing ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {committing ? 'Importing…' : `Import to ${fmtIssue(targetMonth)}`}

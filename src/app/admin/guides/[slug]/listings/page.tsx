@@ -108,7 +108,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
             </Link>
             <Link
               href={`/admin/guides/${slug}/listings/new`}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
             >
               <Plus size={14} /> New Listing
             </Link>

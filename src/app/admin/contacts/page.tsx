@@ -187,7 +187,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                     <td className="px-6 py-3">
                       <Link
                         href={`/admin/advertisers/${c.advertiser_account_id}`}
-                        className="font-bold text-gray-900 hover:text-primary inline-flex items-center gap-1.5"
+                        className="font-bold text-gray-900 hover:text-portal-blue inline-flex items-center gap-1.5"
                       >
                         {c.name}
                         {c.is_primary && (
@@ -200,7 +200,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/advertisers/${c.advertiser_account_id}`}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-700 hover:text-primary"
+                        className="inline-flex items-center gap-1.5 text-xs text-gray-700 hover:text-portal-blue"
                       >
                         <Building2 size={12} className="text-gray-300" />
                         {biz?.business_name ?? '(unknown business)'}
@@ -213,7 +213,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {c.email ? (
-                        <a href={`mailto:${c.email}`} className="text-primary hover:underline inline-flex items-center gap-1">
+                        <a href={`mailto:${c.email}`} className="text-portal-blue hover:underline inline-flex items-center gap-1">
                           <Mail size={10} /> {c.email}
                         </a>
                       ) : <span className="text-gray-300">—</span>}

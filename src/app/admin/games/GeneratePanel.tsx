@@ -166,7 +166,7 @@ export function GeneratePanel({ pendingCount }: Props) {
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <Wand2 size={14} className="text-primary" />
+          <Wand2 size={14} className="text-portal-blue" />
           <h2 className="text-sm font-bold text-gray-700">Generate content with Claude</h2>
         </div>
         <Link
@@ -190,7 +190,7 @@ export function GeneratePanel({ pendingCount }: Props) {
             checked={skipReview}
             onChange={e => setSkipReview(e.target.checked)}
             disabled={busy || bulkBusy}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            className="h-4 w-4 rounded border-gray-300 text-portal-blue focus:ring-portal-blue"
           />
           <span className="font-bold text-gray-900">Skip review — insert straight into the live pool</span>
         </label>
@@ -402,7 +402,7 @@ export function GeneratePanel({ pendingCount }: Props) {
           type="button"
           onClick={run}
           disabled={busy || bulkBusy}
-          className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
         >
           {busy ? <RefreshCw size={14} className="animate-spin" /> : <Wand2 size={14} />}
           {busy ? 'Generating…' : `Generate ${count}`}

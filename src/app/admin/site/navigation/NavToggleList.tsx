@@ -313,7 +313,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
                 <button
                   type="button"
                   onClick={() => setAddingParent(parent.key)}
-                  className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-primary hover:bg-primary/5"
+                  className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-portal-blue hover:bg-portal-blue-lt"
                 >
                   <Plus size={11} /> Add link to {rows[parent.key]?.label_override ?? parent.label}
                 </button>
@@ -380,7 +380,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
             <button
               type="button"
               onClick={() => setAddingParent(inferredParent)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-primary hover:bg-primary/5"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-portal-blue hover:bg-portal-blue-lt"
             >
               <Plus size={11} /> Add link to {group.groupLabel.replace(/^Footer\s*—\s*/i, '')}
             </button>
@@ -448,14 +448,14 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
               value={draftLabel}
               onChange={e => setDraftLabel(e.target.value)}
               placeholder="Label"
-              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue"
               autoFocus
             />
             <input
               value={draftHref}
               onChange={e => setDraftHref(e.target.value)}
               placeholder="URL"
-              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue"
             />
             <div className="flex items-center gap-2 mt-1">
               <button
@@ -573,13 +573,13 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
             <input
               value={draftLabel}
               onChange={e => setDraftLabel(e.target.value)}
-              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              className="w-full px-2 py-1 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue"
               autoFocus
             />
             <input
               value={draftHref}
               onChange={e => setDraftHref(e.target.value)}
-              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary"
+              className="w-full px-2 py-1 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue"
             />
             <div className="flex items-center gap-2 mt-1">
               <button type="button" onClick={saveRename} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700">
@@ -676,13 +676,13 @@ function AddCustomItemForm({ parentKey, onClose, onAdded }: AddFormProps) {
           value={label}
           onChange={e => setLabel(e.target.value)}
           placeholder="Label (e.g. Print Edition)"
-          className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-primary bg-white"
+          className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue bg-white"
         />
         <input
           value={href}
           onChange={e => setHref(e.target.value)}
           placeholder="URL (e.g. https://issuu.com/... or /custom-page)"
-          className="w-full px-2.5 py-1.5 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-primary bg-white"
+          className="w-full px-2.5 py-1.5 text-xs font-mono rounded-md border border-gray-200 focus:outline-none focus:border-portal-blue bg-white"
         />
         <label className="flex items-center gap-2 text-xs text-gray-700">
           <input
@@ -699,7 +699,7 @@ function AddCustomItemForm({ parentKey, onClose, onAdded }: AddFormProps) {
           type="button"
           onClick={submit}
           disabled={submitting}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold bg-portal-navy text-white hover:bg-portal-navy/90 disabled:opacity-50"
         >
           {submitting ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
           Add link

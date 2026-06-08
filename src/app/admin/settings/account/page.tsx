@@ -40,7 +40,7 @@ export default async function AccountSettingsPage() {
     <div className="flex-1 overflow-y-auto bg-portal-bg">
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-          <Shield size={18} className="text-primary" /> Account Settings
+          <Shield size={18} className="text-portal-blue" /> Account Settings
         </h1>
         <p className="text-xs text-gray-500 mt-0.5">
           Your sign-in details. Role and market assignments are managed by Super Admin in <code className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">/admin/settings/users</code>.

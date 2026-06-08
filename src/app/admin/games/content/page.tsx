@@ -146,7 +146,7 @@ export default async function GamesContentPage({
   const rows = (rowsData ?? []) as ContentRow[]
   const active = rows.filter(r => r.weight > 0).length
 
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary/60 bg-white'
+  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
 
   return (
     <main className="p-6 max-w-[1200px] mx-auto space-y-6 pb-16">
@@ -156,7 +156,7 @@ export default async function GamesContentPage({
           <ArrowLeft size={12} /> Back to Games dashboard
         </Link>
         <div className="flex items-center gap-2 mb-1">
-          <BookOpen size={20} className="text-primary" />
+          <BookOpen size={20} className="text-portal-blue" />
           <h1 className="text-xl font-bold text-gray-900 tracking-tight">Content Pool Editor</h1>
         </div>
         <p className="text-sm text-gray-500">

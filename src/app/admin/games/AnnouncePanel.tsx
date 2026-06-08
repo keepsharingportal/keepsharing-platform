@@ -55,12 +55,12 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
     } finally { setBusy(false) }
   }
 
-  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary/60 bg-white'
+  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
 
   return (
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-        <Megaphone size={14} className="text-primary" />
+        <Megaphone size={14} className="text-portal-blue" />
         <h2 className="text-sm font-bold text-gray-700">Announce new games</h2>
         {!webhookConfigured && (
           <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
@@ -103,11 +103,11 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
           <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">When to send</label>
           <div className="flex gap-2 mb-2">
             <button type="button" onClick={() => setScheduleMode('now')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               <Send size={11} /> Send now
             </button>
             <button type="button" onClick={() => setScheduleMode('later')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               <Clock size={11} /> Schedule (next Sunday 8 AM)
             </button>
           </div>
@@ -118,7 +118,7 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
 
         <div className="pt-2">
           <button type="button" onClick={send} disabled={busy || !webhookConfigured || !subject.trim()}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-40">
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold bg-portal-navy text-portal-blue-foreground rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
             {busy ? <RefreshCw size={13} className="animate-spin" /> : <Megaphone size={13} />}
             {scheduleMode === 'now' ? 'Send announcement now' : 'Schedule announcement'}
           </button>

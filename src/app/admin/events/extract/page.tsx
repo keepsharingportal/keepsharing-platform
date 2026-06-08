@@ -49,7 +49,7 @@ interface SaveResult {
   errors:   string[]
 }
 
-const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary/60 bg-white'
+const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
 const labelCls = 'block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5'
 
 export default function ExtractPageWrapper() {
@@ -349,7 +349,7 @@ function ExtractPage() {
                       <div className="grid md:grid-cols-4 gap-3">
                         <div className="flex items-center pt-5">
                           <label className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                            <input type="checkbox" checked={!!ev.is_free} onChange={e => updateField(idx, 'is_free', e.target.checked)} className="w-4 h-4 rounded text-primary" />
+                            <input type="checkbox" checked={!!ev.is_free} onChange={e => updateField(idx, 'is_free', e.target.checked)} className="w-4 h-4 rounded text-portal-blue" />
                             Free event
                           </label>
                         </div>

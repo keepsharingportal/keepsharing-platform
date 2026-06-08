@@ -25,7 +25,7 @@ export default function NavigationAdminPage() {
       <div className="max-w-[1000px] mx-auto space-y-6">
         <header className="space-y-1">
           <div className="flex items-center gap-2">
-            <NavIcon className="h-5 w-5 text-primary" />
+            <NavIcon className="h-5 w-5 text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Site Navigation</h1>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl">

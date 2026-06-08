@@ -139,12 +139,12 @@ export default async function SourcesAdminPage() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Globe size={20} className="text-primary" />
+            <Globe size={20} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Trusted Event Sources</h1>
           </div>
           <p className="text-sm text-gray-500">
             Organizations whose events we ingest. iCal feeds run automatically; AI extraction and manual entries
-            need an operator. New events from any source always land in <Link href="/admin/events/pending" className="text-primary hover:underline">Pending Events</Link>.
+            need an operator. New events from any source always land in <Link href="/admin/events/pending" className="text-portal-blue hover:underline">Pending Events</Link>.
           </p>
         </div>
         <div className="flex items-start gap-2 flex-wrap">

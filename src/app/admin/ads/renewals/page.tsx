@@ -94,7 +94,7 @@ export default async function AdRenewalsPage() {
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <Mail className="w-6 h-6 text-primary" />
+            <Mail className="w-6 h-6 text-portal-blue" />
             Ad Renewal Reminders
           </h1>
           <p className="text-sm text-gray-600 mt-1 max-w-xl">

@@ -112,7 +112,7 @@ export function SchoolTypeahead({
           onChange={e => { setQuery(e.target.value); setOpen(true); onChange(null) }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full pl-9 pr-9 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-primary"
+          className="w-full pl-9 pr-9 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-portal-blue"
         />
         {selected && (
           <button
@@ -261,7 +261,7 @@ function AddSchoolInline({
             value={name}
             onChange={e => setName(e.target.value)}
             onBlur={e => setName(toTitleCase(e.target.value))}
-            className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded outline-none focus:border-primary"
+            className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded outline-none focus:border-portal-blue"
             autoFocus
           />
           <p className="text-[10px] text-gray-400 mt-0.5">Will be saved title-cased on blur. Acronyms like LAMP / BTW are preserved if typed in caps.</p>

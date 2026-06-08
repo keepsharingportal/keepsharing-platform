@@ -179,7 +179,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               <ArrowLeft size={12} /> Back to all bookings
             </Link>
             <div className="flex items-center gap-2 mb-1">
-              <Pencil size={18} className="text-primary shrink-0" />
+              <Pencil size={18} className="text-portal-blue shrink-0" />
               <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Edit placement</span>
             </div>
             {/* Slot name as the actual H1 — it's the most useful thing to
@@ -193,7 +193,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               const adv = advertisers.find(a => a.id === ad.advertiser_account_id)
               if (adv) {
                 return (
-                  <p className="text-base font-semibold text-primary mt-1">
+                  <p className="text-base font-semibold text-portal-blue mt-1">
                     {adv.business_name}
                   </p>
                 )
@@ -227,7 +227,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
             <button
               onClick={save}
               disabled={saving}
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-primary rounded-lg px-4 py-2 hover:bg-primary/90 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-portal-navy rounded-lg px-4 py-2 hover:bg-portal-navy/90 disabled:opacity-40"
             >
               <Save size={14} />
               {saving ? 'Saving…' : 'Save changes'}
@@ -295,7 +295,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
               <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
-                <MapPin size={14} className="text-primary" />
+                <MapPin size={14} className="text-portal-blue" />
                 Where this appears on the site
               </h2>
             </div>
@@ -747,7 +747,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
         <button
           type="button"
           onClick={onCloneAndRun}
-          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
+          className="px-4 py-2 rounded-lg bg-portal-navy text-portal-blue-foreground text-sm font-bold hover:bg-portal-navy/90"
           title="Create a new ad copying this one's creative — fresh stats, new dates"
         >
           Clone & Run
@@ -828,7 +828,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
         <h2 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
-          <Users size={16} className="text-primary" />
+          <Users size={16} className="text-portal-blue" />
           Customer (advertiser)
         </h2>
         <p className="text-xs text-gray-500 mt-1">
@@ -860,7 +860,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
               {selected.slug && (
                 <Link
                   href={`/admin/advertisers/${selected.id}`}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline mt-1"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-blue hover:underline mt-1"
                 >
                   Open in Advertisers <ExternalLink size={10} />
                 </Link>
@@ -1020,7 +1020,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
                       Clone & Run
                     </button>
                   )}
-                  <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-primary hover:underline">
+                  <Link href={`/admin/ads/${other.id}/edit`} className="text-[10px] font-bold text-portal-blue hover:underline">
                     Open →
                   </Link>
                 </div>
@@ -1098,7 +1098,7 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
     <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
         <h2 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
-          <Link2 size={16} className="text-primary" />
+          <Link2 size={16} className="text-portal-blue" />
           Tracked CTA link
         </h2>
         <p className="text-xs text-gray-500 mt-1">
@@ -1308,12 +1308,12 @@ function SquareCardPreview({ ad }: { ad: AdRow }) {
 function DarkCardPreview({ ad }: { ad: AdRow }) {
   return (
     <div className="rounded-2xl bg-gray-900 text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-24 h-24 bg-portal-navy/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       {ad.ad_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ad.ad_image_url} alt="" className="w-full h-24 object-cover rounded-lg mb-3" />
       )}
-      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-portal-blue mb-1">
         {ad.ad_eyebrow || 'Business Spotlight'}
       </p>
       <p className="text-lg font-bold leading-tight">
@@ -1323,7 +1323,7 @@ function DarkCardPreview({ ad }: { ad: AdRow }) {
         <p className="text-sm text-white/75 mt-2 line-clamp-2">{ad.ad_description}</p>
       )}
       {ad.ad_cta_label && (
-        <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-primary">
+        <span className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-portal-blue">
           {ad.ad_cta_label} <ExternalLink size={10} />
         </span>
       )}
@@ -1345,7 +1345,7 @@ function BannerPreview({ ad, wide }: { ad: AdRow; wide?: boolean }) {
           )}
         </div>
         {ad.ad_cta_label && (
-          <span className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-bold whitespace-nowrap">
+          <span className="shrink-0 inline-flex items-center gap-1 px-4 py-2 bg-portal-navy text-portal-blue-foreground rounded-full text-sm font-bold whitespace-nowrap">
             {ad.ad_cta_label}
           </span>
         )}
@@ -1357,8 +1357,8 @@ function BannerPreview({ ad, wide }: { ad: AdRow; wide?: boolean }) {
 // In-article body break — appears mid-paragraph, wider.
 function InArticlePreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 max-w-xl">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+    <div className="rounded-xl border-2 border-dashed border-portal-blue/30 bg-portal-blue-lt p-4 max-w-xl">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-portal-blue mb-2">
         {ad.ad_eyebrow || 'Sponsored'}
       </p>
       <div className="flex items-center gap-3">
@@ -1370,7 +1370,7 @@ function InArticlePreview({ ad }: { ad: AdRow }) {
           )}
         </div>
         {ad.ad_cta_label && (
-          <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-bold">
+          <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-portal-navy text-portal-blue-foreground rounded-full text-xs font-bold">
             {ad.ad_cta_label}
           </span>
         )}
@@ -1423,7 +1423,7 @@ function NewsletterPreview({ ad }: { ad: AdRow }) {
         <p className="text-sm text-gray-600 mt-1 leading-snug">{ad.ad_description}</p>
       )}
       {ad.ad_cta_label && (
-        <a className="inline-flex items-center gap-1 mt-3 px-4 py-2 bg-primary text-white rounded-md text-sm font-bold no-underline">
+        <a className="inline-flex items-center gap-1 mt-3 px-4 py-2 bg-portal-navy text-white rounded-md text-sm font-bold no-underline">
           {ad.ad_cta_label}
         </a>
       )}
@@ -1518,7 +1518,7 @@ function PreviewHeadline({ text, size }: { text: string | null; size: 'md' | 'lg
 function PreviewCta({ label, hasLink }: { label: string | null; hasLink: boolean }) {
   if (!label || !hasLink) return null
   return (
-    <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-primary">
+    <span className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-portal-blue">
       {label} <ExternalLink size={10} />
     </span>
   )

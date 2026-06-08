@@ -78,14 +78,14 @@ export default async function ProposalsTab({ params }: Props) {
           </h2>
           <Link
             href={`/admin/advertisers/proposals/new?advertiser_id=${id}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-portal-navy hover:bg-portal-navy/90 px-2.5 py-1 rounded-full"
           >
             <Plus size={11} /> New Proposal
           </Link>
         </header>
         {proposals.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-400">
-            No proposals yet. <Link href={`/admin/advertisers/proposals/new?advertiser_id=${id}`} className="text-primary font-bold hover:underline">Draft one →</Link>
+            No proposals yet. <Link href={`/admin/advertisers/proposals/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Draft one →</Link>
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">

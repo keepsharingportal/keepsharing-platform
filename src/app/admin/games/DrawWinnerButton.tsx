@@ -118,7 +118,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
         type="button"
         onClick={draw}
         disabled={drawing || eligibleCount === 0}
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold bg-portal-navy text-portal-blue-foreground rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
       >
         {drawing ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
         {hasExisting
@@ -134,19 +134,19 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
       )}
 
       {picks && picks.length > 0 && (
-        <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-4 space-y-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary text-center">
+        <div className="rounded-2xl border-2 border-portal-blue/30 bg-portal-blue-lt p-4 space-y-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-portal-blue text-center">
             {drawing ? 'Drawing…' : `${picks.length} Winner${picks.length === 1 ? '' : 's'}!`}
           </p>
 
           <div className="grid sm:grid-cols-3 gap-3">
             {picks.map((w, i) => (
-              <div key={`${w.id}-${i}`} className="bg-card border border-primary/20 rounded-xl p-3">
+              <div key={`${w.id}-${i}`} className="bg-card border border-portal-blue/20 rounded-xl p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   Slot #{i + 1} · ${PRIZE_AMOUNT}
                 </p>
                 <div className="flex items-start gap-2">
-                  <Trophy className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <Trophy className="h-4 w-4 text-portal-blue shrink-0 mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-foreground truncate">
                       {w.first_name} {w.last_name}

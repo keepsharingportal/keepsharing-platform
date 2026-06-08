@@ -176,12 +176,12 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
             const baseClasses    = multiMode
               ? multiClasses(status)
               : isSingleActive
-                ? 'border-primary bg-primary/15 z-10 shadow-lg'
+                ? 'border-portal-blue bg-portal-navy/15 z-10 shadow-lg'
                 : 'border-gray-300 bg-white'
             const labelClass = multiMode
               ? multiLabelClass(status)
               : isSingleActive
-                ? 'text-primary font-bold'
+                ? 'text-portal-blue font-bold'
                 : 'text-gray-400'
             const clickable = onSlotClick && multiMode
             return (

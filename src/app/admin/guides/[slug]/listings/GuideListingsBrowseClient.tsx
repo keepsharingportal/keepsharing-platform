@@ -269,7 +269,7 @@ export function GuideListingsBrowseClient(props: Props) {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/guides/${props.slug}/listings/${r.id}/edit`}
-                        className="font-bold text-gray-900 hover:text-primary inline-flex items-center gap-1.5"
+                        className="font-bold text-gray-900 hover:text-portal-blue inline-flex items-center gap-1.5"
                       >
                         {r.business_name}
                         {r.listing_tier === 'featured' && (
@@ -309,7 +309,7 @@ export function GuideListingsBrowseClient(props: Props) {
                       {r.advertiser_account_id ? (
                         <Link
                           href={`/admin/advertisers/${r.advertiser_account_id}`}
-                          className="inline-flex items-center gap-1 text-primary hover:underline font-semibold"
+                          className="inline-flex items-center gap-1 text-portal-blue hover:underline font-semibold"
                         >
                           <Link2 size={10} /> Linked
                         </Link>

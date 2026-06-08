@@ -297,7 +297,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
             <ArrowLeft size={12} /> Back to admin
           </Link>
           <div className="flex items-center gap-2 mb-1">
-            <Mail size={20} className="text-primary" />
+            <Mail size={20} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Weekly Newsletter Picks</h1>
           </div>
           <p className="text-sm text-gray-500">
@@ -334,7 +334,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
             </select>
           </div>
           <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-            <input type="checkbox" name="free" value="true" defaultChecked={freeOnly} className="w-4 h-4 rounded text-primary" />
+            <input type="checkbox" name="free" value="true" defaultChecked={freeOnly} className="w-4 h-4 rounded text-portal-blue" />
             Free events only
           </label>
           <button type="submit"
@@ -384,7 +384,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                       </p>
                     </div>
                     {isPicked ? (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">In picks</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-2 py-0.5 rounded">In picks</span>
                     ) : (
                       <form action={addPick}>
                         <input type="hidden" name="event_id"   value={ev.id} />
@@ -405,7 +405,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
         {/* RIGHT — this week's picks */}
         <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-            <Mail size={14} className="text-primary" />
+            <Mail size={14} className="text-portal-blue" />
             <h2 className="text-sm font-bold text-gray-700">This issue's picks ({picks.length})</h2>
             <span className="ml-auto text-xs text-gray-400">{fmtDate(issueDate)}</span>
           </div>
@@ -472,13 +472,13 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                           <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Headline override</label>
                           <input name="custom_headline" type="text" defaultValue={pickRow.custom_headline ?? ''}
                             placeholder={pk.title}
-                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-primary/60" />
+                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Blurb override</label>
                           <textarea name="custom_blurb" rows={3} defaultValue={pickRow.custom_blurb ?? ''}
                             placeholder={pk.description?.slice(0, 200) ?? 'Custom newsletter blurb…'}
-                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-primary/60 resize-y" />
+                            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60 resize-y" />
                         </div>
                         <button type="submit" className="text-xs font-bold bg-gray-900 text-white rounded-lg px-3 py-1.5 hover:bg-gray-700">
                           Save overrides

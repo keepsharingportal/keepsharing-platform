@@ -426,7 +426,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
                   so the editor can jump straight to e.g. Jun 2025 to
                   audit who ran. The select sits on top transparently;
                   the visible text follows the selection. */}
-              <h1 className="text-xl font-bold text-gray-900 leading-tight inline-flex items-center gap-1 relative cursor-pointer hover:text-primary">
+              <h1 className="text-xl font-bold text-gray-900 leading-tight inline-flex items-center gap-1 relative cursor-pointer hover:text-portal-blue">
                 <span>Print Layout — {fmtIssue(issue)}</span>
                 <ChevronDown size={14} className="text-gray-400" aria-hidden />
                 <select
@@ -786,7 +786,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         <button
           type="button"
           onClick={onEdit}
-          className={`text-left hover:text-primary inline-flex flex-col items-start ${isExpired ? 'hover:text-rose-700' : ''}`}
+          className={`text-left hover:text-portal-blue inline-flex flex-col items-start ${isExpired ? 'hover:text-rose-700' : ''}`}
           title="Click to edit this placement"
         >
           <span>{row.business_name}</span>
@@ -1030,7 +1030,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
             type="button"
             onClick={apply}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
           >
             {saving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
             {saving ? 'Applying…' : `Apply to ${count}`}
@@ -1206,7 +1206,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
           type="button"
           onClick={save}
           disabled={!advId || saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
         >
           {saving ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
           {saving ? 'Saving…' : 'Add to layout'}

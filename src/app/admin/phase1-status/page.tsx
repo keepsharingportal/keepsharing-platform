@@ -212,7 +212,7 @@ export default async function Phase1StatusPage() {
                 <Link
                   href={step.url}
                   target="_blank"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-portal-blue transition-colors"
                 >
                   Preview <ExternalLink className="h-3 w-3" />
                 </Link>
@@ -286,7 +286,7 @@ export default async function Phase1StatusPage() {
             { step: 7, action: 'Click "Get Listed Today"', url: '/advertise', note: 'Show lead capture form — close the loop on the advertiser journey' },
           ].map(({ step, action, url, note }) => (
             <li key={step} className="flex gap-4 items-start rounded-xl border border-border px-5 py-4 bg-card">
-              <span className="h-6 w-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+              <span className="h-6 w-6 rounded-full bg-portal-navy text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {step}
               </span>
               <div className="flex-1 min-w-0">
@@ -296,7 +296,7 @@ export default async function Phase1StatusPage() {
               <Link
                 href={url}
                 target="_blank"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
+                className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline shrink-0"
               >
                 Open <ExternalLink className="h-3 w-3" />
               </Link>

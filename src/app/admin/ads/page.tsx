@@ -252,7 +252,7 @@ export default function AdminAdsPage() {
         <header className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Star size={20} className="text-primary" />
+              <Star size={20} className="text-portal-blue" />
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">All Slots</h1>
             </div>
             <p className="text-sm text-gray-500">
@@ -271,7 +271,7 @@ export default function AdminAdsPage() {
             </button>
             <Link
               href="/admin/ads/new"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-primary rounded-lg px-4 py-2 hover:bg-primary/90"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-portal-navy rounded-lg px-4 py-2 hover:bg-portal-navy/90"
             >
               <Plus size={14} /> New booking
             </Link>

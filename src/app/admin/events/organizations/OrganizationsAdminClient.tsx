@@ -89,7 +89,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
           </Link>
           <span className="text-gray-300">/</span>
           <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-            <Building2 size={18} className="text-primary" /> Community Connections
+            <Building2 size={18} className="text-portal-blue" /> Community Connections
           </h1>
           <span className="text-xs text-gray-500">
             The partners behind our event calendar
@@ -97,7 +97,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
         </div>
         <button
           onClick={() => setAddOpen(v => !v)}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90"
+          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
         >
           <Plus size={14} /> Add Organization
         </button>
@@ -123,12 +123,12 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
               key={slug}
               onClick={() => setTab(slug)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                tab === slug ? 'text-primary border-primary' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                tab === slug ? 'text-portal-blue border-portal-blue' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}
             >
               {label}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                tab === slug ? 'bg-primary/5 text-primary ring-primary/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
+                tab === slug ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-gray-50 text-gray-400 ring-gray-200'
               }`}>{count}</span>
             </button>
           ))}
@@ -144,13 +144,13 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name, city, contact…"
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-primary"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
           />
         </div>
         <select
           value={kind}
           onChange={e => setKind(e.target.value)}
-          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-primary"
+          className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg bg-white cursor-pointer outline-none focus:border-portal-blue"
         >
           <option value="">All kinds</option>
           {KINDS.map(k => (
@@ -176,7 +176,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             {orgs.length === 0 && (
               <button
                 onClick={() => setAddOpen(true)}
-                className="mt-3 text-xs font-semibold text-primary hover:underline"
+                className="mt-3 text-xs font-semibold text-portal-blue hover:underline"
               >
                 Add the first one →
               </button>
@@ -531,7 +531,7 @@ function OrgForm({
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
         >
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : (mode === 'create' ? 'Add organization' : 'Save changes')}

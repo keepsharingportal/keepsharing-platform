@@ -117,8 +117,8 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
       {/* Report body — clean, print-friendly */}
       <div className="max-w-4xl mx-auto p-10 md:p-14">
         {/* Header */}
-        <div className="border-b-2 border-primary pb-6 mb-8">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary mb-2">
+        <div className="border-b-2 border-portal-blue pb-6 mb-8">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-portal-blue mb-2">
             River Region Parents — Monthly Performance Report
           </p>
           <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -135,7 +135,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
             <div className="text-right">
               <p className="text-xs uppercase tracking-wider font-bold text-gray-400">Reporting Period</p>
               <p className="text-lg font-bold text-gray-900 inline-flex items-center gap-1.5 mt-0.5">
-                <Calendar size={16} className="text-primary" /> {fmtMonth(ym)}
+                <Calendar size={16} className="text-portal-blue" /> {fmtMonth(ym)}
               </p>
             </div>
           </div>
@@ -147,10 +147,10 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
             This Month at a Glance
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Stat label="Ad Impressions"      value={monthImpressions.toLocaleString()} icon={<Eye size={18} className="text-primary" />} />
-            <Stat label="Ad Clicks"           value={monthClicks.toLocaleString()}      icon={<MousePointer size={18} className="text-primary" />} />
-            <Stat label="Click-Through Rate"  value={monthCtr === '—' ? '—' : `${monthCtr}%`} icon={<span className="text-primary font-bold text-sm">%</span>} />
-            <Stat label="QR Scans (lifetime)" value={totalQrScans.toLocaleString()}    icon={<Smartphone size={18} className="text-primary" />} />
+            <Stat label="Ad Impressions"      value={monthImpressions.toLocaleString()} icon={<Eye size={18} className="text-portal-blue" />} />
+            <Stat label="Ad Clicks"           value={monthClicks.toLocaleString()}      icon={<MousePointer size={18} className="text-portal-blue" />} />
+            <Stat label="Click-Through Rate"  value={monthCtr === '—' ? '—' : `${monthCtr}%`} icon={<span className="text-portal-blue font-bold text-sm">%</span>} />
+            <Stat label="QR Scans (lifetime)" value={totalQrScans.toLocaleString()}    icon={<Smartphone size={18} className="text-portal-blue" />} />
           </div>
         </section>
 
@@ -186,7 +186,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
                         </td>
                         <td className="px-4 py-3 text-right font-medium text-gray-900">{stats.impressions.toLocaleString()}</td>
                         <td className="px-4 py-3 text-right font-medium text-gray-900">{stats.clicks.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-right font-bold text-primary">{ctrCell}</td>
+                        <td className="px-4 py-3 text-right font-bold text-portal-blue">{ctrCell}</td>
                       </tr>
                     )
                   })}
@@ -222,7 +222,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
                         {q.label ?? '—'}
                         {q.utm_campaign && <span className="text-[11px] text-gray-500 ml-1">· {q.utm_campaign}</span>}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-primary">{q.click_count.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-bold text-portal-blue">{q.click_count.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -245,9 +245,9 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
 
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-[#fdf0eb] ring-1 ring-primary/15 p-4">
+    <div className="rounded-xl bg-[#fdf0eb] ring-1 ring-portal-blue/15 p-4">
       <div className="mb-2">{icon}</div>
-      <p className="text-[10px] uppercase tracking-wider font-bold text-primary/80 mb-0.5">{label}</p>
+      <p className="text-[10px] uppercase tracking-wider font-bold text-portal-blue/80 mb-0.5">{label}</p>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
     </div>
   )

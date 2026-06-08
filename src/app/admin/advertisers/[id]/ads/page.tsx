@@ -91,14 +91,14 @@ export default async function AdsTab({ params }: Props) {
           </h2>
           <Link
             href={`/admin/ads/new?advertiser_id=${id}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+            className="inline-flex items-center gap-1 text-xs font-bold text-white bg-portal-navy hover:bg-portal-navy/90 px-2.5 py-1 rounded-full"
           >
             <Plus size={11} /> New Digital Ad
           </Link>
         </div>
         {plRows.length === 0 ? (
           <div className="p-8 text-center text-sm text-gray-400">
-            No digital placements yet. <Link href={`/admin/ads/new?advertiser_id=${id}`} className="text-primary font-bold hover:underline">Assign one →</Link>
+            No digital placements yet. <Link href={`/admin/ads/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Assign one →</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
@@ -155,7 +155,7 @@ export default async function AdsTab({ params }: Props) {
             <div className="flex items-center gap-2">
               <Link
                 href={`/admin/content/short-links/new?advertiser_id=${id}`}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-primary hover:bg-primary/90 px-2.5 py-1 rounded-full"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-portal-navy hover:bg-portal-navy/90 px-2.5 py-1 rounded-full"
               >
                 <Plus size={11} /> New QR Code
               </Link>

@@ -114,7 +114,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
           <button
             type="button"
             onClick={() => { setAdding(true); setEditing(null) }}
-            className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-bold text-portal-blue hover:underline"
           >
             <Plus size={11} /> Add
           </button>
@@ -130,7 +130,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="text-xs font-bold text-primary hover:underline"
+            className="text-xs font-bold text-portal-blue hover:underline"
           >
             Add the first one →
           </button>
@@ -166,7 +166,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                   </span>
                 </div>
                 {c.email && (
-                  <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-primary hover:underline text-xs mt-0.5">
+                  <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-portal-blue hover:underline text-xs mt-0.5">
                     <Mail size={11} /> {c.email}
                   </a>
                 )}

@@ -165,7 +165,7 @@ export function NewAdvertiserForm({ existing }: Props) {
         <button
           type="submit"
           disabled={busy || !businessName.trim()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
         >
           {busy ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
           {busy ? 'Creating…' : 'Create Advertiser'}

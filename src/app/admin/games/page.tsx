@@ -152,7 +152,7 @@ export default async function GamesAdminPage() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={20} className="text-primary" />
+            <Sparkles size={20} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Brain Games</h1>
           </div>
           <p className="text-sm text-gray-500">
@@ -184,7 +184,7 @@ export default async function GamesAdminPage() {
         <div className="p-5 grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-700 leading-relaxed">
           <div>
             <p className="font-bold text-gray-900 mb-1">1. Stock the content pool</p>
-            <p>Every game needs items in <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>. Click <strong>Generate</strong> below to have Claude draft a batch — they land in the <Link href="/admin/games/queue" className="text-primary hover:underline font-semibold">AI proposal queue</Link>. You approve each one before it ships. Hand-curated items go through the <Link href="/admin/games/content" className="text-primary hover:underline font-semibold">content editor</Link>.</p>
+            <p>Every game needs items in <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>. Click <strong>Generate</strong> below to have Claude draft a batch — they land in the <Link href="/admin/games/queue" className="text-portal-blue hover:underline font-semibold">AI proposal queue</Link>. You approve each one before it ships. Hand-curated items go through the <Link href="/admin/games/content" className="text-portal-blue hover:underline font-semibold">content editor</Link>.</p>
           </div>
           <div>
             <p className="font-bold text-gray-900 mb-1">2. Daily rotation, weekly draw</p>
@@ -337,7 +337,7 @@ export default async function GamesAdminPage() {
                         <td className="px-4 py-2">{s.first_name} {s.last_name}</td>
                         <td className="px-4 py-2 text-xs text-gray-600">{s.email}</td>
                         <td className="px-4 py-2 text-xs">{GAMES.find(g => g.id === s.game_type)?.title ?? s.game_type} · <span className="text-gray-400">{s.difficulty}</span></td>
-                        <td className="px-4 py-2 text-right font-bold text-primary">{s.score}</td>
+                        <td className="px-4 py-2 text-right font-bold text-portal-blue">{s.score}</td>
                         <td className="px-4 py-2 text-xs text-gray-500">{fmtDateTime(s.created_at)}</td>
                         <td className="px-4 py-2 text-xs">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
@@ -364,7 +364,7 @@ export default async function GamesAdminPage() {
           {/* WEEKLY 3 × $10 WINNER DRAW */}
           <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <Trophy size={14} className="text-primary" />
+              <Trophy size={14} className="text-portal-blue" />
               <h2 className="text-sm font-bold text-gray-700">Weekly 3 × $10 winners — {weekLabel}</h2>
             </div>
             <div className="p-5">

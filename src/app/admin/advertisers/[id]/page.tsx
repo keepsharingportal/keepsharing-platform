@@ -110,7 +110,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact</h2>
             {contactName && <p className="font-bold text-gray-900">{contactName}</p>}
             {contactEmail && (
-              <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 text-primary hover:underline">
+              <a href={`mailto:${contactEmail}`} className="flex items-center gap-1.5 text-portal-blue hover:underline">
                 <Mail size={13} /> {contactEmail}
               </a>
             )}
@@ -128,7 +128,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
         {businessUrl && (
           <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Website</h2>
-            <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline break-all">
+            <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-portal-blue hover:underline break-all">
               <Globe size={13} /> {businessUrl.replace(/^https?:\/\//, '')}
             </a>
           </section>
@@ -217,11 +217,11 @@ function TileLink({ href, icon, title, primary, primaryLabel, secondary }: {
   return (
     <Link
       href={href}
-      className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 hover:ring-primary hover:shadow-sm transition-all flex flex-col gap-2"
+      className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 hover:ring-portal-blue hover:shadow-sm transition-all flex flex-col gap-2"
     >
       <div className="flex items-center justify-between">
-        <div className="text-gray-400 group-hover:text-primary transition-colors">{icon}</div>
-        <ArrowRight size={14} className="text-gray-300 group-hover:text-primary transition-colors" />
+        <div className="text-gray-400 group-hover:text-portal-blue transition-colors">{icon}</div>
+        <ArrowRight size={14} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
       </div>
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">{title}</h3>

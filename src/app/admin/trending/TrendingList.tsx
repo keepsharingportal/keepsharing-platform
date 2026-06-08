@@ -232,11 +232,11 @@ export function TrendingList(props: Props) {
             <p className="text-sm text-gray-500 italic">Nothing to show. Add a pinned item below, or wait for readers to start visiting pages — auto-trending kicks in once we have view data.</p>
           ) : (
             <div className="flex items-center gap-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary whitespace-nowrap shrink-0">
+              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-portal-blue whitespace-nowrap shrink-0">
                 <TrendingUp className="h-3.5 w-3.5" />
                 Trending:
               </span>
-              <div className="w-px h-3.5 bg-primary/30 shrink-0" />
+              <div className="w-px h-3.5 bg-portal-navy/30 shrink-0" />
               {previewItems.map((t, i) => (
                 <span
                   key={t.id}
@@ -248,7 +248,7 @@ export function TrendingList(props: Props) {
                   {t.source === 'auto' && (
                     <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 ml-0.5">auto</span>
                   )}
-                  {i < previewItems.length - 1 && <span className="text-primary/30 ml-2">·</span>}
+                  {i < previewItems.length - 1 && <span className="text-portal-blue/30 ml-2">·</span>}
                 </span>
               ))}
             </div>

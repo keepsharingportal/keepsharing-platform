@@ -406,7 +406,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             type="button"
             onClick={onSave}
             disabled={saving || busy}
-            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-primary text-white rounded-full hover:bg-primary/90 disabled:opacity-40 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Saving…' : 'Save changes'}

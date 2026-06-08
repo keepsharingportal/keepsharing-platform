@@ -513,7 +513,7 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
           className={`relative shrink-0 w-28 aspect-[3/4] rounded-lg overflow-hidden cursor-pointer transition-colors group ${
             hasCover
               ? 'ring-1 ring-gray-300 bg-white shadow-sm hover:ring-gray-400'
-              : 'border-2 border-dashed border-gray-300 bg-gray-50 hover:border-primary hover:bg-primary/5'
+              : 'border-2 border-dashed border-gray-300 bg-gray-50 hover:border-portal-blue hover:bg-portal-blue-lt'
           }`}
         >
           {coverFile ? (
@@ -523,8 +523,8 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
             <Image src={cover} alt="cover" fill style={{ objectFit: 'cover' }} unoptimized sizes="112px" />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center">
-              <Upload size={18} className="text-gray-400 group-hover:text-primary transition-colors" />
-              <span className="text-[10px] font-bold text-gray-500 group-hover:text-primary uppercase tracking-wider transition-colors">Click to upload</span>
+              <Upload size={18} className="text-gray-400 group-hover:text-portal-blue transition-colors" />
+              <span className="text-[10px] font-bold text-gray-500 group-hover:text-portal-blue uppercase tracking-wider transition-colors">Click to upload</span>
               <span className="text-[9px] text-gray-400 leading-tight">3:4 ratio · PNG / JPG</span>
             </div>
           )}

@@ -62,7 +62,7 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
             <button
               type="button"
               onClick={() => { setShowAdd(true); setShowCsv(false) }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-primary text-white rounded-lg hover:bg-primary/90"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90"
             >
               <Plus size={12} /> Add school
             </button>
@@ -93,7 +93,7 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by name, city, or district…"
-              className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-primary"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue"
             />
           </div>
           <select value={areaFilter} onChange={e => setAreaFilter(e.target.value as Area | 'all')}
@@ -280,7 +280,7 @@ function AddSchoolForm({
       {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
-        <button type="submit" disabled={busy || !form.name.trim()} className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-40">
+        <button type="submit" disabled={busy || !form.name.trim()} className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
           {busy ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
           {busy ? 'Saving…' : 'Add school'}
         </button>
@@ -480,7 +480,7 @@ function SchoolTableRow({
 
 // ── Small helpers ───────────────────────────────────────────────────────────
 
-const inputCls = 'w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-primary bg-white'
+const inputCls = 'w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-portal-blue bg-white'
 
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
