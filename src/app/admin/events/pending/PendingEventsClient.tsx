@@ -146,7 +146,7 @@ export function PendingEventsClient({ events }: Props) {
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <p className="text-sm font-bold text-portal-text leading-tight">{ev.title}</p>
                   {ev.source_type && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-portal-row-hover text-portal-sub">
                       {ev.source_name ?? ev.source_type}
                     </span>
                   )}
@@ -168,7 +168,7 @@ export function PendingEventsClient({ events }: Props) {
                 <button
                   onClick={() => reject(ev.id)}
                   disabled={busyHere}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-red-200 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-red/30 bg-portal-red-lt text-portal-red rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
                 >
                   {busyHere ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                   Reject
@@ -176,7 +176,7 @@ export function PendingEventsClient({ events }: Props) {
                 <button
                   onClick={() => approveAndPublish(ev.id)}
                   disabled={busyHere}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40"
                 >
                   {busyHere ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
                   {dirty ? 'Save & Publish' : 'Approve & Publish'}
@@ -192,7 +192,7 @@ export function PendingEventsClient({ events }: Props) {
             </div>
 
             {msg?.id === ev.id && (
-              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-50 text-red-700'}`}>
+              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-red-lt text-portal-red'}`}>
                 {msg.text}
               </div>
             )}
@@ -242,8 +242,8 @@ export function PendingEventsClient({ events }: Props) {
                           onClick={() => toggleTag(ev.id, current, t.slug)}
                           className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
                             active
-                              ? 'bg-portal-navy text-white border-blue-600'
-                              : 'bg-white text-portal-sub border-portal-border hover:border-gray-400'
+                              ? 'bg-portal-navy text-white border-portal-blue'
+                              : 'bg-white text-portal-sub border-portal-border hover:border-portal-border-2'
                           }`}
                         >
                           {t.label}

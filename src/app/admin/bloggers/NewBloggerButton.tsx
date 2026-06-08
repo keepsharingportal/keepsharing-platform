@@ -37,7 +37,7 @@ export function NewBloggerButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-pink-600 text-white rounded-lg hover:bg-pink-700"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-red text-white rounded-lg hover:bg-portal-red"
       >
         <Plus size={12} /> New Mom
       </button>
@@ -77,13 +77,13 @@ export function NewBloggerButton() {
               </div>
 
               {error && (
-                <p className="text-xs text-portal-red bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>
+                <p className="text-xs text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg p-2">{error}</p>
               )}
 
               <button
                 onClick={create}
                 disabled={saving}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold bg-portal-red text-white rounded-lg hover:bg-portal-red disabled:opacity-50"
               >
                 {saving ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
                 {saving ? 'Creating…' : 'Create & Continue'}

@@ -216,7 +216,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -225,10 +225,10 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
       className="bg-portal-bg border-b border-portal-border px-6 py-5"
     >
       <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
-        <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2">
+        <h2 className="text-sm font-bold text-portal-navy inline-flex items-center gap-2">
           <Calendar size={14} /> Quick Add Event
         </h2>
-        <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+        <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
           <input
             type="checkbox"
             checked={autoPublish}
@@ -248,12 +248,12 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={heroUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-blue-200">
+              <div className="w-full h-full flex items-center justify-center text-portal-blue/70">
                 <ImageIcon size={36} />
               </div>
             )}
           </div>
-          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-portal-blue">
+          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-portal-blue text-portal-blue">
             {imageBusy ? <RefreshCw size={11} className="animate-spin" /> : <Camera size={11} />}
             {imageBusy ? 'Uploading…' : (heroUrl ? 'Replace image' : 'Upload image')}
             <input
@@ -286,7 +286,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
                 }
               }}
               placeholder="https://..."
-              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
+              className="w-full text-xs border border-portal-blue/30 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
             />
             <p className="mt-1 text-[10px] text-portal-sub leading-relaxed">
               Pasted URLs get auto-optimized into our storage (faster loads,
@@ -298,7 +298,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
         {/* Fields column */}
         <div className="space-y-3">
           <div>
-            <label className={lbl}>Title <span className="text-rose-600">*</span></label>
+            <label className={lbl}>Title <span className="text-portal-red">*</span></label>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -321,7 +321,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
 
           <div className="grid sm:grid-cols-4 gap-3">
             <div>
-              <label className={lbl}>Start date <span className="text-rose-600">*</span></label>
+              <label className={lbl}>Start date <span className="text-portal-red">*</span></label>
               <input type="date" required value={startDate} onChange={e => setStartDate(e.target.value)} className={inp} />
             </div>
             <div>
@@ -404,11 +404,11 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               </div>
             )}
             <div className="flex flex-col gap-2 justify-end pb-1">
-              <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+              <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
                 <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="rounded" />
                 Free event
               </label>
-              <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+              <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
                 <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="rounded" />
                 Featured
               </label>
@@ -430,10 +430,10 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               <div className="flex items-start gap-2">
                 <AlertTriangle size={14} className="text-portal-amber shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-amber-900 mb-1">
+                  <p className="text-xs font-bold text-portal-amber mb-1">
                     Possible duplicate{duplicates.length > 1 ? 's' : ''} — {duplicates.length} match{duplicates.length > 1 ? 'es' : ''} in the next few days
                   </p>
-                  <ul className="space-y-1 text-xs text-amber-900">
+                  <ul className="space-y-1 text-xs text-portal-amber">
                     {duplicates.map(d => (
                       <li key={d.id} className="flex items-baseline gap-2">
                         <Link
@@ -453,7 +453,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
                       </li>
                     ))}
                   </ul>
-                  <label className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber-900 cursor-pointer font-semibold">
+                  <label className="mt-2 inline-flex items-center gap-1.5 text-xs text-portal-amber cursor-pointer font-semibold">
                     <input
                       type="checkbox"
                       checked={overrideDupe}
@@ -487,7 +487,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950"
+              className="px-3 py-2 text-xs text-portal-blue hover:text-portal-navy"
             >
               Cancel
             </button>

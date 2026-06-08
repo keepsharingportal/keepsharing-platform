@@ -167,8 +167,8 @@ export default async function GamesAdminPage() {
       </div>
 
       {!poolAvailable && (
-        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1">Brain Games need a database migration</p>
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1">Brain Games need a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply migrations <code className="bg-portal-amber-lt px-1 rounded">080_brain_games.sql</code> through <code className="bg-portal-amber-lt px-1 rounded">084_game_content_proposals.sql</code> in the Supabase SQL editor. The full admin (winners + AI queue) activates once all are in.
           </p>
@@ -184,7 +184,7 @@ export default async function GamesAdminPage() {
         <div className="p-5 grid md:grid-cols-2 gap-x-6 gap-y-4 text-sm text-portal-text leading-relaxed">
           <div>
             <p className="font-bold text-portal-text mb-1">1. Stock the content pool</p>
-            <p>Every game needs items in <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>. Click <strong>Generate</strong> below to have Claude draft a batch — they land in the <Link href="/admin/games/queue" className="text-portal-blue hover:underline font-semibold">AI proposal queue</Link>. You approve each one before it ships. Hand-curated items go through the <Link href="/admin/games/content" className="text-portal-blue hover:underline font-semibold">content editor</Link>.</p>
+            <p>Every game needs items in <code className="bg-portal-row-hover px-1 rounded text-xs">game_content</code>. Click <strong>Generate</strong> below to have Claude draft a batch — they land in the <Link href="/admin/games/queue" className="text-portal-blue hover:underline font-semibold">AI proposal queue</Link>. You approve each one before it ships. Hand-curated items go through the <Link href="/admin/games/content" className="text-portal-blue hover:underline font-semibold">content editor</Link>.</p>
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">2. Daily rotation, weekly draw</p>
@@ -204,7 +204,7 @@ export default async function GamesAdminPage() {
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">6. Where things live</p>
-            <p>Scores → <code className="bg-gray-100 px-1 rounded text-xs">game_scores</code>. Winners → <code className="bg-gray-100 px-1 rounded text-xs">game_winners</code> (one row per slot per week). Proposals → <code className="bg-gray-100 px-1 rounded text-xs">game_content_proposals</code>. Approved items → <code className="bg-gray-100 px-1 rounded text-xs">game_content</code>.</p>
+            <p>Scores → <code className="bg-portal-row-hover px-1 rounded text-xs">game_scores</code>. Winners → <code className="bg-portal-row-hover px-1 rounded text-xs">game_winners</code> (one row per slot per week). Proposals → <code className="bg-portal-row-hover px-1 rounded text-xs">game_content_proposals</code>. Approved items → <code className="bg-portal-row-hover px-1 rounded text-xs">game_content</code>.</p>
           </div>
         </div>
       </section>
@@ -265,7 +265,7 @@ export default async function GamesAdminPage() {
                             <span className={`inline-block text-sm font-bold ${empty ? 'text-portal-red' : lowPool ? 'text-portal-amber' : 'text-portal-text'}`}>
                               {n}
                             </span>
-                            <p className={`text-[10px] font-semibold ${empty ? 'text-rose-600' : lowPool ? 'text-amber-600' : 'text-portal-muted'}`}>
+                            <p className={`text-[10px] font-semibold ${empty ? 'text-portal-red' : lowPool ? 'text-portal-amber' : 'text-portal-muted'}`}>
                               {empty
                                 ? 'Empty'
                                 : `${supply} day${supply === 1 ? '' : 's'}${lowPool ? ' · low' : ''}`}
@@ -280,11 +280,11 @@ export default async function GamesAdminPage() {
             </div>
             <div className="px-4 py-3 bg-portal-bg border-t border-portal-border flex items-center justify-between gap-3 flex-wrap">
               <p className="text-[11px] text-portal-muted flex items-center gap-1.5">
-                <AlertTriangle size={11} className="text-amber-600" />
+                <AlertTriangle size={11} className="text-portal-amber" />
                 Target: at least {TARGET_DAYS_OF_SUPPLY} days of supply per cell. Anything lower will repeat within a week.
               </p>
               <Link href="/admin/games/content"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy">
                 Open content editor →
               </Link>
             </div>
@@ -343,7 +343,7 @@ export default async function GamesAdminPage() {
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             s.ghl_status === 'sent'   ? 'bg-portal-green-lt text-portal-green' :
                             s.ghl_status === 'failed' ? 'bg-portal-red-lt text-portal-red'   :
-                                                        'bg-gray-100 text-portal-sub'
+                                                        'bg-portal-row-hover text-portal-sub'
                           }`}>{s.ghl_status}</span>
                         </td>
                       </tr>
@@ -380,7 +380,7 @@ export default async function GamesAdminPage() {
               )}
               <p className="text-[11px] text-portal-muted mt-3 leading-relaxed">
                 Each play this week counts as one entry. Click the button to pick 3 random winners (each gets $10).
-                Re-drawing overwrites all 3 slots. Full audit trail in <code className="bg-gray-100 px-1 rounded">game_scores</code> + <code className="bg-gray-100 px-1 rounded">game_winners</code>.
+                Re-drawing overwrites all 3 slots. Full audit trail in <code className="bg-portal-row-hover px-1 rounded">game_scores</code> + <code className="bg-portal-row-hover px-1 rounded">game_winners</code>.
               </p>
             </div>
           </section>

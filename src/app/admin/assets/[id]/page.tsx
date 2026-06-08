@@ -72,12 +72,12 @@ const STATUS_OPTIONS = [
 ]
 
 const STATUS_STYLE: Record<string, string> = {
-  uploaded:     'bg-gray-100 text-portal-sub',
+  uploaded:     'bg-portal-row-hover text-portal-sub',
   needs_review: 'bg-portal-amber-lt text-portal-amber',
   approved:     'bg-portal-green-lt text-portal-green',
-  needs_graphic:'bg-orange-100 text-orange-700',
+  needs_graphic:'bg-portal-amber-lt text-portal-amber',
   social_ready: 'bg-portal-blue-lt text-portal-blue',
-  print_ready:  'bg-purple-100 text-purple-700',
+  print_ready:  'bg-portal-blue-lt text-portal-blue',
   archived:     'bg-portal-bg text-portal-muted',
 }
 
@@ -209,7 +209,7 @@ function CheckField({
         value="true"
         form={formId}
         defaultChecked={checked}
-        className="w-4 h-4 rounded border-portal-border-2 text-indigo-600 outline-none cursor-pointer"
+        className="w-4 h-4 rounded border-portal-border-2 text-portal-blue outline-none cursor-pointer"
       />
       {/* Hidden field for unchecked state — overridden by checkbox when checked */}
       <input type="hidden" name={name} value="false" form={formId} />
@@ -270,7 +270,7 @@ export default async function AssetDetailPage({
 
   const preview      = asset.thumbnail_url || asset.storage_url
   const isImageUrl   = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?|$)/i.test(preview ?? '')
-  const statusCls    = STATUS_STYLE[asset.status] ?? 'bg-gray-100 text-portal-sub'
+  const statusCls    = STATUS_STYLE[asset.status] ?? 'bg-portal-row-hover text-portal-sub'
   const tagString    = (asset.tags ?? []).join(', ')
 
   return (
@@ -282,7 +282,7 @@ export default async function AssetDetailPage({
           <Link href="/admin/assets" className="text-portal-muted hover:text-portal-text text-sm font-medium shrink-0">
             ← Assets
           </Link>
-          <span className="text-gray-300">/</span>
+          <span className="text-portal-border-2">/</span>
           <p className="text-sm font-semibold text-portal-text truncate">{asset.title || asset.filename}</p>
           <span className={`text-[11px] px-2 py-0.5 rounded font-bold shrink-0 ${statusCls}`}>
             {STATUS_OPTIONS.find(s => s.value === asset.status)?.label.split(' — ')[0] ?? asset.status}
@@ -331,7 +331,7 @@ export default async function AssetDetailPage({
                 href={asset.storage_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-indigo-600 hover:underline font-semibold"
+                className="text-xs text-portal-blue hover:underline font-semibold"
               >
                 Open original →
               </a>
@@ -350,7 +350,7 @@ export default async function AssetDetailPage({
               >
                 {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <button type="submit" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
+              <button type="submit" className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">
                 Update Status
               </button>
             </form>
@@ -459,7 +459,7 @@ export default async function AssetDetailPage({
             </div>
 
             <div className="flex justify-end pt-1">
-              <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+              <button type="submit" className="text-sm px-5 py-2 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy">
                 Save Metadata
               </button>
             </div>
@@ -494,7 +494,7 @@ export default async function AssetDetailPage({
                       <span>Readiness score</span>
                       <span className="font-bold" style={{ color: score >= 80 ? '#16a34a' : score >= 50 ? '#d97706' : '#ef4444' }}>{score}%</span>
                     </div>
-                    <div className="bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-portal-row-hover rounded-full h-1.5">
                       <div className="h-1.5 rounded-full" style={{
                         width: `${score}%`,
                         backgroundColor: score >= 80 ? '#16a34a' : score >= 50 ? '#d97706' : '#ef4444',
@@ -505,10 +505,10 @@ export default async function AssetDetailPage({
               })()}
             </div>
             {!asset.alt_text && (
-              <p className="text-[11px] text-amber-600 mt-2">⚠ Add alt text to reach 80% readiness.</p>
+              <p className="text-[11px] text-portal-amber mt-2">⚠ Add alt text to reach 80% readiness.</p>
             )}
             <div className="flex justify-end mt-4">
-              <button type="submit" form="readiness-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
+              <button type="submit" form="readiness-form" className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">
                 Save Readiness
               </button>
             </div>
@@ -574,7 +574,7 @@ export default async function AssetDetailPage({
             )}
 
             <div className="flex justify-end pt-1">
-              <button type="submit" form="canva-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
+              <button type="submit" form="canva-form" className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">
                 Save Design Info
               </button>
             </div>
@@ -596,7 +596,7 @@ export default async function AssetDetailPage({
               <CheckField name="used_in_sponsor_section"  label="Sponsor section" checked={asset.used_in_sponsor_section}  formId="usage-form" />
             </div>
             <div className="flex justify-end pt-2">
-              <button type="submit" form="usage-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
+              <button type="submit" form="usage-form" className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">
                 Save Usage
               </button>
             </div>
@@ -613,7 +613,7 @@ export default async function AssetDetailPage({
                     <p className="text-[11px] text-portal-muted font-semibold uppercase tracking-wide">Submission</p>
                     <p className="text-xs font-semibold text-portal-text truncate">{linkedSubTitle}</p>
                   </div>
-                  <Link href={`/admin/community/${asset.linked_submission_id}`} className="text-xs text-indigo-600 hover:underline font-semibold shrink-0">
+                  <Link href={`/admin/community/${asset.linked_submission_id}`} className="text-xs text-portal-blue hover:underline font-semibold shrink-0">
                     View →
                   </Link>
                 </div>

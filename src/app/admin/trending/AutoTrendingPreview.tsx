@@ -60,7 +60,7 @@ function AutoSection({ candidates, blockAction }: { candidates: AutoCandidate[];
     <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
       <header className="px-5 py-4 border-b border-portal-border">
         <div className="flex items-center gap-2 mb-1">
-          <Flame size={14} className="text-amber-600" />
+          <Flame size={14} className="text-portal-amber" />
           <h2 className="text-sm font-bold text-portal-text">Auto-filling — top pages this week</h2>
           <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded uppercase tracking-wider">Live preview</span>
         </div>
@@ -120,7 +120,7 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
         type="button"
         onClick={onBlock}
         disabled={isPending}
-        className="text-[11px] font-bold text-portal-red hover:text-rose-900 inline-flex items-center gap-1 disabled:opacity-50"
+        className="text-[11px] font-bold text-portal-red hover:text-portal-red inline-flex items-center gap-1 disabled:opacity-50"
         title="Add this path to the blocklist so it stops auto-filling"
       >
         <EyeOff size={11} /> {isPending ? 'Blocking…' : 'Block'}
@@ -163,7 +163,7 @@ function BlockedRow({ item, unblockAction }: { item: BlockedPath; unblockAction:
 
   return (
     <li className="px-5 py-3 flex items-center gap-3">
-      <span className="text-base shrink-0 w-5 text-center text-gray-300" aria-hidden="true">🚫</span>
+      <span className="text-base shrink-0 w-5 text-center text-portal-border-2" aria-hidden="true">🚫</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-portal-text truncate">{item.label ?? item.path}</p>
         <code className="text-[11px] text-portal-sub truncate block">{item.path}</code>
@@ -172,7 +172,7 @@ function BlockedRow({ item, unblockAction }: { item: BlockedPath; unblockAction:
         type="button"
         onClick={onUnblock}
         disabled={isPending}
-        className="text-[11px] font-bold text-portal-green hover:text-emerald-900 inline-flex items-center gap-1 disabled:opacity-50"
+        className="text-[11px] font-bold text-portal-green hover:text-portal-green inline-flex items-center gap-1 disabled:opacity-50"
         title="Remove from the blocklist — this path can fill the bar again"
       >
         <Eye size={11} /> {isPending ? 'Unblocking…' : 'Unblock'}

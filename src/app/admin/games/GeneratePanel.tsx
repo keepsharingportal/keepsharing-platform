@@ -171,11 +171,11 @@ export function GeneratePanel({ pendingCount }: Props) {
         </div>
         <Link
           href="/admin/games/queue"
-          className="text-xs font-bold inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white hover:bg-gray-700"
+          className="text-xs font-bold inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-portal-navy text-white hover:bg-portal-navy"
         >
           Review queue
           {pendingCount > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-black">
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-portal-amber text-portal-amber text-[10px] font-black">
               {pendingCount}
             </span>
           )}
@@ -202,11 +202,11 @@ export function GeneratePanel({ pendingCount }: Props) {
       </div>
 
       {/* ── BOOTSTRAP-ALL BAND ─────────────────────────────────────────────── */}
-      <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
+      <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-portal-amber/20">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-[240px]">
             <p className="text-sm font-bold text-portal-text flex items-center gap-1.5">
-              <Zap size={14} className="text-amber-600" />
+              <Zap size={14} className="text-portal-amber" />
               Bootstrap the whole pool
             </p>
             <p className="text-xs text-portal-sub mt-1 leading-relaxed">
@@ -231,7 +231,7 @@ export function GeneratePanel({ pendingCount }: Props) {
               type="button"
               onClick={runBulk}
               disabled={bulkBusy || busy}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber text-white rounded-lg hover:bg-portal-amber disabled:opacity-40"
             >
               {bulkBusy ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
               {bulkBusy
@@ -251,9 +251,9 @@ export function GeneratePanel({ pendingCount }: Props) {
                 {bulkProgress.current} / {bulkProgress.total}
               </p>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-portal-row-hover rounded-full overflow-hidden">
               <div
-                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber' : 'bg-portal-green'}`}
+                className={`h-full ${bulkProgress.cancelled ? 'bg-portal-border-2' : bulkBusy ? 'bg-portal-amber' : 'bg-portal-green'}`}
                 style={{ width: `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` }}
               />
             </div>
@@ -292,11 +292,11 @@ export function GeneratePanel({ pendingCount }: Props) {
           target days of supply (env: GAMES_TARGET_DAYS_OF_SUPPLY, default 10).
           Cost-capped via GAMES_REFILL_DAILY_BUDGET (default $20) so an error
           loop can't burn the API credit overnight. */}
-      <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
+      <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-portal-green/20">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-[260px]">
             <p className="text-sm font-bold text-portal-text flex items-center gap-1.5">
-              <ChevronsUp size={14} className="text-emerald-600" />
+              <ChevronsUp size={14} className="text-portal-green" />
               Smart refill — top up every low cell to the target
             </p>
             <p className="text-xs text-portal-sub mt-1 leading-relaxed">
@@ -310,7 +310,7 @@ export function GeneratePanel({ pendingCount }: Props) {
             type="button"
             onClick={runRefill}
             disabled={refillBusy || busy || bulkBusy}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40"
           >
             {refillBusy
               ? (<><RefreshCw size={14} className="animate-spin" /> Refilling…</>)
@@ -318,7 +318,7 @@ export function GeneratePanel({ pendingCount }: Props) {
           </button>
         </div>
         {refillResult && (
-          <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-emerald-200 text-portal-text' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-portal-green/30 text-portal-text' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'}`}>
             {refillResult.ok ? (
               <>
                 <strong className="text-portal-green">Done.</strong>{' '}
@@ -412,7 +412,7 @@ export function GeneratePanel({ pendingCount }: Props) {
       {result && (
         <div className={`mx-5 mb-5 rounded-lg px-3 py-2 text-xs font-semibold flex items-start gap-2 ${
           result.ok
-            ? 'bg-portal-green-lt border border-portal-green/30 text-green-800'
+            ? 'bg-portal-green-lt border border-portal-green/30 text-portal-green'
             : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {result.ok && <Check size={13} className="shrink-0 mt-0.5" />}

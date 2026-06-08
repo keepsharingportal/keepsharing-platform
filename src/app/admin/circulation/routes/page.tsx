@@ -87,7 +87,7 @@ export default async function RoutesPage() {
                   <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-portal-text truncate flex items-center gap-2">
                       {r.name}
-                      {!r.active && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+                      {!r.active && <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
                     </p>
                     <p className="text-xs text-portal-sub mt-0.5">
                       {counts.get(r.id) ?? 0} stops {r.city ? ` · ${r.city}` : ''}
@@ -99,7 +99,7 @@ export default async function RoutesPage() {
                   >
                     <GripVertical size={11} /> Reorder
                   </Link>
-                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-gray-300 hover:text-portal-sub">
+                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-portal-border-2 hover:text-portal-sub">
                     <ArrowRight size={14} />
                   </Link>
                 </li>

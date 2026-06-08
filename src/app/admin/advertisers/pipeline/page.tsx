@@ -16,8 +16,8 @@ const TABS = ['Active Advertisers', 'Pipeline', 'Duplicates']
 // Pipeline stage order — left to right is the sales funnel.
 // Editors read top-down so the leftmost column is the entry point.
 const PIPELINE_STAGES: Array<{ stage: string; label: string; accent: string }> = [
-  { stage: 'lead',              label: 'Lead',              accent: 'bg-gray-100 text-portal-text'       },
-  { stage: 'consultation',      label: 'Consultation',      accent: 'bg-sky-100 text-sky-800'         },
+  { stage: 'lead',              label: 'Lead',              accent: 'bg-portal-row-hover text-portal-text'       },
+  { stage: 'consultation',      label: 'Consultation',      accent: 'bg-portal-blue-lt text-portal-blue'         },
   { stage: 'proposal',          label: 'Proposal',          accent: 'bg-portal-blue-lt text-portal-blue'   },
   { stage: 'onboarding',        label: 'Onboarding',        accent: 'bg-portal-amber-lt text-portal-amber'     },
   { stage: 'active',            label: 'Active',            accent: 'bg-portal-green-lt text-portal-green' },
@@ -101,7 +101,7 @@ export default async function PipelinePage() {
                                                    '/admin/advertisers/duplicates'}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
                 tab === 'Pipeline'
-                  ? 'text-portal-blue border-blue-600'
+                  ? 'text-portal-blue border-portal-blue'
                   : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}>
               {tab}

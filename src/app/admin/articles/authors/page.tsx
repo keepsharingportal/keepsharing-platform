@@ -63,7 +63,7 @@ export default async function AuthorsAdminPage() {
       <div className="p-6 max-w-3xl">
         {authors.length === 0 ? (
           <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
-            <p className="text-portal-muted text-sm">No authors found. Authors are pulled from the <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">author_name</code> field on articles.</p>
+            <p className="text-portal-muted text-sm">No authors found. Authors are pulled from the <code className="text-xs bg-portal-row-hover px-1 py-0.5 rounded">author_name</code> field on articles.</p>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
@@ -92,7 +92,7 @@ export default async function AuthorsAdminPage() {
 
                   {/* Article counts */}
                   <div className="text-sm font-bold text-portal-text text-right">{a.total}</div>
-                  <div className="text-sm text-emerald-600 font-semibold text-right hidden sm:block">{a.published}</div>
+                  <div className="text-sm text-portal-green font-semibold text-right hidden sm:block">{a.published}</div>
                   <div className="text-sm text-portal-muted text-right hidden sm:block">{a.draft}</div>
 
                   {/* View articles link */}
@@ -113,7 +113,7 @@ export default async function AuthorsAdminPage() {
         )}
 
         <p className="mt-4 text-xs text-portal-muted leading-relaxed">
-          Authors are derived from the <code className="bg-gray-100 px-1 py-0.5 rounded">author_name</code> field on each article.
+          Authors are derived from the <code className="bg-portal-row-hover px-1 py-0.5 rounded">author_name</code> field on each article.
           Contributor roles and profiles are planned for Phase 2.
         </p>
       </div>

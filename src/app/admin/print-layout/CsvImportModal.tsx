@@ -275,7 +275,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                   type="file"
                   accept=".csv,text/csv"
                   onChange={onFile}
-                  className="block w-full text-sm border border-portal-border rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-gray-100 file:text-xs file:font-semibold hover:file:bg-gray-200"
+                  className="block w-full text-sm border border-portal-border rounded-lg px-3 py-2 bg-white file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:bg-portal-row-hover file:text-xs file:font-semibold hover:file:bg-portal-border-2"
                 />
               </div>
               <div>
@@ -289,7 +289,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 </select>
               </div>
             </div>
-            {error && <p className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</p>}
+            {error && <p className="text-xs text-portal-red inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</p>}
           </>
         )}
 
@@ -350,7 +350,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 {planning ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {planning ? 'Analyzing…' : 'Preview import'}
               </button>
-              {error && <span className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
+              {error && <span className="text-xs text-portal-red inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
             </div>
           </>
         )}
@@ -368,12 +368,12 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 </span>
               )}
               {counts.new > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-portal-blue-lt text-portal-blue border border-sky-200 font-semibold">
                   {counts.new} no match
                 </span>
               )}
               {counts.duplicate > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 text-portal-sub border border-portal-border font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-portal-row-hover text-portal-sub border border-portal-border font-semibold">
                   {counts.duplicate} already on issue (skipped)
                 </span>
               )}
@@ -434,7 +434,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
               >
                 <RefreshCw size={12} /> Re-analyze
               </button>
-              {error && <span className="text-xs text-rose-600 inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
+              {error && <span className="text-xs text-portal-red inline-flex items-center gap-1"><AlertCircle size={12}/> {error}</span>}
             </div>
           </>
         )}
@@ -503,7 +503,7 @@ function previewFor(field: string, raw: string): [string, boolean] | null {
 function StepPill({ step }: { step: Step }) {
   const labels: Record<Step, string> = { upload: '1 of 3', map: '2 of 3', plan: '3 of 3' }
   return (
-    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-portal-sub">
+    <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-portal-row-hover text-portal-sub">
       {labels[step]}
     </span>
   )
@@ -570,7 +570,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
     <div className="rounded-lg border border-portal-amber/30 bg-white p-2.5 text-xs">
       <div className="flex items-center justify-between gap-2">
         <p className="font-bold text-portal-text">{planned.input.business}</p>
-        <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-portal-amber-lt text-portal-amber'}`}>
+        <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-amber-lt text-portal-amber'}`}>
           {planned.status === 'new' ? 'No match' : 'Fuzzy'}
         </span>
       </div>

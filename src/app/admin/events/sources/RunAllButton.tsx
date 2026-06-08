@@ -48,7 +48,7 @@ export function RunAllButton({ activeIcalCount }: { activeIcalCount: number }) {
       </button>
 
       {out && (
-        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-3 py-2 text-xs text-green-800">
+        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-3 py-2 text-xs text-portal-green">
           <p className="font-semibold flex items-center gap-1 mb-1">
             <CheckCircle2 size={12} /> Pulled from {out.results.length} source(s) · {out.total_inserted} new pending event(s)
           </p>

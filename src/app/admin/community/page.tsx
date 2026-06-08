@@ -208,7 +208,7 @@ export default async function AdminCommunityPage({
               key={i}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
                 g.critical
-                  ? 'bg-red-50 border border-red-200 text-red-800'
+                  ? 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
                   : 'bg-portal-blue-lt border border-portal-blue/20 text-portal-blue'
               }`}
             >
@@ -245,7 +245,7 @@ export default async function AdminCommunityPage({
           <Link
             href={statusHref()}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-              !filterStatus ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
+              !filterStatus ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
             }`}
           >
             All
@@ -278,7 +278,7 @@ export default async function AdminCommunityPage({
             <Link
               href={typeHref()}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                !filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
+                !filterType ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
               }`}
             >
               All
@@ -350,10 +350,10 @@ export default async function AdminCommunityPage({
                         {sub.internal_priority !== 'normal' && (
                           <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                             sub.internal_priority === 'urgent'
-                              ? 'bg-red-100 text-red-700'
+                              ? 'bg-portal-red-lt text-portal-red'
                               : sub.internal_priority === 'high'
-                              ? 'bg-orange-100 text-orange-700'
-                              : 'bg-gray-100 text-portal-sub'
+                              ? 'bg-portal-amber-lt text-portal-amber'
+                              : 'bg-portal-row-hover text-portal-sub'
                           }`}>
                             ↑ {sub.internal_priority}
                           </span>
@@ -380,7 +380,7 @@ export default async function AdminCommunityPage({
                       </p>
 
                       {sub.editor_notes && (
-                        <p className="text-xs text-portal-amber bg-portal-amber-lt rounded-lg px-3 py-1.5 mt-2 border border-amber-100 line-clamp-2">
+                        <p className="text-xs text-portal-amber bg-portal-amber-lt rounded-lg px-3 py-1.5 mt-2 border border-portal-amber/20 line-clamp-2">
                           📝 {sub.editor_notes}
                         </p>
                       )}
@@ -396,7 +396,7 @@ export default async function AdminCommunityPage({
                     <div className="shrink-0 text-right space-y-1.5">
                       <p className="text-xs text-portal-muted font-medium">{timeAgo(sub.created_at)}</p>
                       {sub.editorial_deadline && (
-                        <p className="text-xs font-semibold text-orange-600">
+                        <p className="text-xs font-semibold text-portal-amber">
                           Due {shortDate(sub.editorial_deadline)}
                         </p>
                       )}
@@ -424,7 +424,7 @@ export default async function AdminCommunityPage({
                               type="submit"
                               className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                                 isBad
-                                  ? 'border-red-200 text-portal-red hover:bg-portal-red-lt'
+                                  ? 'border-portal-red/30 text-portal-red hover:bg-portal-red-lt'
                                   : 'border-portal-border text-portal-text hover:bg-portal-bg'
                               }`}
                             >

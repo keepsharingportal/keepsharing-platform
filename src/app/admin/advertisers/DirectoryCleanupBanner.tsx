@@ -78,18 +78,18 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
 
   return (
     <>
-      <div className="bg-sky-50 border-b border-sky-200 px-6 py-3 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2 text-sm text-sky-900">
-          <Sparkles size={14} className="text-sky-600 shrink-0" />
+      <div className="bg-portal-blue-lt border-b border-sky-200 px-6 py-3 flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2 text-sm text-portal-blue">
+          <Sparkles size={14} className="text-portal-blue shrink-0" />
           <span>
             <span className="font-bold">{directoryCount}</span> directory-only rows in the CRM.
-            <span className="text-sky-700"> Clean them up — guide listings keep their data and stay live, only the orphan advertiser_accounts go away.</span>
+            <span className="text-portal-blue"> Clean them up — guide listings keep their data and stay live, only the orphan advertiser_accounts go away.</span>
           </span>
         </div>
         <button
           type="button"
           onClick={fetchPreview}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-sky-700 text-white rounded-full hover:bg-sky-800 whitespace-nowrap"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-blue text-white rounded-full hover:bg-portal-blue whitespace-nowrap"
         >
           <Sparkles size={12} /> Preview cleanup
         </button>
@@ -100,7 +100,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
-                <Sparkles size={16} className="text-sky-600" />
+                <Sparkles size={16} className="text-portal-blue" />
                 Directory-only cleanup
               </h3>
               <button onClick={() => !committing && setOpen(false)} className="text-portal-muted hover:text-portal-text">
@@ -121,7 +121,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
             )}
 
             {success && (
-              <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green space-y-1">
+              <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-portal-green space-y-1">
                 <p className="font-bold">Cleanup complete.</p>
                 <p>
                   Deleted <b>{success.deleted}</b> directory-only advertiser{success.deleted === 1 ? '' : 's'};
@@ -131,7 +131,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                 <button
                   type="button"
                   onClick={() => { setOpen(false); setSuccess(null) }}
-                  className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-emerald-700 text-white rounded-full hover:bg-emerald-800"
+                  className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-portal-green text-white rounded-full hover:bg-portal-green"
                 >
                   Done
                 </button>
@@ -153,7 +153,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                 {preview.skipped > 0 && (
                   <p className="text-[11px] text-portal-sub leading-snug">
                     Skipped rows have at least one ad placement, print booking, or proposal attached.
-                    Those keep their <code className="px-1 bg-gray-100 rounded">kind</code> as
+                    Those keep their <code className="px-1 bg-portal-row-hover rounded">kind</code> as
                     directory-only but get left alone — usually a sign migration 133 should have
                     promoted them. You can re-classify them manually if you want.
                   </p>
@@ -161,7 +161,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
 
                 <p className="text-[11px] text-portal-sub leading-snug">
                   What happens on commit: linked guide_listings get their{' '}
-                  <code className="px-1 bg-gray-100 rounded">advertiser_account_id</code> set to NULL
+                  <code className="px-1 bg-portal-row-hover rounded">advertiser_account_id</code> set to NULL
                   (listing stays live with its inline data from migration 134), then the
                   directory-only advertiser_accounts rows are deleted.
                 </p>
@@ -171,7 +171,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                     type="button"
                     onClick={commit}
                     disabled={committing || preview.eligible === 0}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-red text-white rounded-full hover:bg-portal-red disabled:opacity-40"
                   >
                     {committing ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                     {committing ? 'Deleting…' : `Delete ${preview.eligible}`}

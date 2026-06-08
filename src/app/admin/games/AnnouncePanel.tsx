@@ -70,7 +70,7 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
       </div>
 
       {!webhookConfigured && (
-        <div className="px-5 py-3 bg-portal-amber-lt border-b border-portal-amber/30 text-xs text-amber-900 leading-relaxed">
+        <div className="px-5 py-3 bg-portal-amber-lt border-b border-portal-amber/30 text-xs text-portal-amber leading-relaxed">
           Set <code className="bg-portal-amber-lt px-1 rounded">GHL_GAMES_ANNOUNCEMENT_WEBHOOK_URL</code> in <code className="bg-portal-amber-lt px-1 rounded">.env.local</code>{' '}
           (or fall back to <code className="bg-portal-amber-lt px-1 rounded">GHL_NEWSLETTER_WEBHOOK_URL</code> if you want to reuse the same workflow), then restart the dev server.
         </div>
@@ -103,11 +103,11 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
           <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">When to send</label>
           <div className="flex gap-2 mb-2">
             <button type="button" onClick={() => setScheduleMode('now')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'now' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}>
               <Send size={11} /> Send now
             </button>
             <button type="button" onClick={() => setScheduleMode('later')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${scheduleMode === 'later' ? 'bg-portal-navy text-portal-blue-foreground' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}>
               <Clock size={11} /> Schedule (next Sunday 8 AM)
             </button>
           </div>
@@ -126,7 +126,7 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
 
         {result && (
           <div className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-2 ${
-            result.ok ? 'border-portal-green/30 bg-portal-green-lt text-green-800' : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
+            result.ok ? 'border-portal-green/30 bg-portal-green-lt text-portal-green' : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
           }`}>
             {result.ok ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}
             <span>{result.msg}</span>

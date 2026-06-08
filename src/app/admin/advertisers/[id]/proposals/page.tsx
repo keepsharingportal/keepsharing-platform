@@ -59,12 +59,12 @@ export default async function ProposalsTab({ params }: Props) {
   const proposals = [...fkRows, ...nameRows.filter(r => !seenIds.has(r.id))]
 
   const stageBadge: Record<string, string> = {
-    draft:    'bg-gray-100 text-portal-text',
-    sent:     'bg-sky-100 text-sky-800',
+    draft:    'bg-portal-row-hover text-portal-text',
+    sent:     'bg-portal-blue-lt text-portal-blue',
     viewed:   'bg-portal-blue-lt text-portal-blue',
     accepted: 'bg-portal-green-lt text-portal-green',
     declined: 'bg-portal-red-lt text-portal-red',
-    expired:  'bg-gray-100 text-portal-muted',
+    expired:  'bg-portal-row-hover text-portal-muted',
   }
 
   return (
@@ -116,7 +116,7 @@ export default async function ProposalsTab({ params }: Props) {
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${stageBadge[stage] ?? stageBadge.draft}`}>
                       {stage}
                     </span>
-                    <ArrowRight size={12} className="text-gray-300 shrink-0" />
+                    <ArrowRight size={12} className="text-portal-border-2 shrink-0" />
                   </Link>
                 </li>
               )
@@ -141,7 +141,7 @@ export default async function ProposalsTab({ params }: Props) {
             {fmtDate(contractStart)} → {fmtDate(contractEnd)}
           </p>
           <p className="text-xs text-portal-sub leading-relaxed">
-            Dedicated agreement records (PDF uploads, signed-on dates, e-sign tracking) aren&apos;t modeled yet. Today, agreements are reflected by the contract dates above plus the <code className="px-1 bg-gray-100 rounded text-[10px]">ghl_agreement_uploaded</code> flag on the lifecycle pipeline.
+            Dedicated agreement records (PDF uploads, signed-on dates, e-sign tracking) aren&apos;t modeled yet. Today, agreements are reflected by the contract dates above plus the <code className="px-1 bg-portal-row-hover rounded text-[10px]">ghl_agreement_uploaded</code> flag on the lifecycle pipeline.
           </p>
         </div>
       </section>

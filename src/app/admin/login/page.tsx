@@ -136,7 +136,7 @@ function AdminLoginInner() {
       <ShellCard>
         <div className="text-center">
           <div className="w-14 h-14 rounded-full bg-portal-green-lt flex items-center justify-center mx-auto mb-4">
-            <Check size={24} className="text-emerald-600" strokeWidth={2.5} />
+            <Check size={24} className="text-portal-green" strokeWidth={2.5} />
           </div>
           <h2 className="font-serif text-xl font-bold text-[#1a2744] mb-2">
             Check your email
@@ -186,9 +186,9 @@ function AdminLoginInner() {
       </button>
 
       <div className="my-5 flex items-center gap-3">
-        <span className="flex-1 h-px bg-gray-200" />
+        <span className="flex-1 h-px bg-portal-border-2" />
         <span className="text-[11px] uppercase tracking-wider font-bold text-portal-muted">or</span>
-        <span className="flex-1 h-px bg-gray-200" />
+        <span className="flex-1 h-px bg-portal-border-2" />
       </div>
 
       {/* 2. Email + password, with a "send me a link" toggle on the right */}

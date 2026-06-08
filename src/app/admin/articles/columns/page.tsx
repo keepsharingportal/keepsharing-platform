@@ -30,11 +30,11 @@ async function fetchColumnCounts(): Promise<Record<string, number>> {
 }
 
 const VERTICAL_COLORS: Record<string, string> = {
-  'school-zone': 'bg-portal-blue-lt text-portal-blue border-blue-200',
-  'mom-life':    'bg-pink-50 text-pink-700 border-pink-200',
+  'school-zone': 'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
+  'mom-life':    'bg-portal-red-lt text-portal-red border-portal-red/30',
   'family-fun':  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   'health':      'bg-portal-green-lt text-portal-green border-portal-green/30',
-  'summer':      'bg-orange-50 text-orange-700 border-orange-200',
+  'summer':      'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   'general':     'bg-portal-bg text-portal-sub border-portal-border',
 }
 
@@ -96,7 +96,7 @@ export default async function ColumnsAdminPage() {
                           </p>
                           <p className="text-[11px] text-portal-muted mt-0.5 font-mono">{col.slug}</p>
                         </div>
-                        <span className="text-xs font-bold text-portal-sub bg-gray-100 px-2 py-1 rounded-lg shrink-0">
+                        <span className="text-xs font-bold text-portal-sub bg-portal-row-hover px-2 py-1 rounded-lg shrink-0">
                           {count}
                         </span>
                       </div>
@@ -113,12 +113,12 @@ export default async function ColumnsAdminPage() {
           <h3 className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-3">About Columns</h3>
           <p className="text-sm text-portal-sub leading-relaxed mb-3">
             Columns are recurring content slots grouped by vertical. Each article can be assigned one column slug,
-            which controls its public URL pattern (<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">/columns/[column]/[slug]</code>),
+            which controls its public URL pattern (<code className="text-xs bg-portal-row-hover px-1 py-0.5 rounded">/columns/[column]/[slug]</code>),
             sidebar display, and related content recommendations.
           </p>
           <p className="text-sm text-portal-sub leading-relaxed">
-            To add a new column, edit <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">src/lib/content-taxonomy.ts</code> and
-            add an entry to the <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">COLUMNS</code> array.
+            To add a new column, edit <code className="text-xs bg-portal-row-hover px-1 py-0.5 rounded">src/lib/content-taxonomy.ts</code> and
+            add an entry to the <code className="text-xs bg-portal-row-hover px-1 py-0.5 rounded">COLUMNS</code> array.
             No database migration is required — columns are code-defined.
           </p>
         </div>

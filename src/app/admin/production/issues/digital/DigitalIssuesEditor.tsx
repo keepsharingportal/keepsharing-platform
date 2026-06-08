@@ -148,8 +148,8 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
   }
 
   return (
-    <li className={`rounded-lg border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 border border-portal-amber/30' : 'border-portal-border'}`}>
-      <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
+    <li className={`rounded-lg border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-portal-amber/40 border border-portal-amber/30' : 'border-portal-border'}`}>
+      <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-portal-row-hover relative">
         {issue.cover_url ? (
           <Image src={issue.cover_url} alt={`${issue.label} cover`} fill style={{ objectFit: 'cover' }} unoptimized sizes="64px" />
         ) : (
@@ -182,7 +182,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         {!issue.is_current && (
           <button
             onClick={onSetCurrent}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-amber text-white hover:bg-amber-600"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-amber text-white hover:bg-portal-amber"
             title="Make this the current issue"
           >
             <Star size={11} /> Make Current
@@ -196,7 +196,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         </button>
         <button
           onClick={onDelete}
-          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt"
+          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt"
         >
           <Trash2 size={11} /> Delete
         </button>
@@ -285,7 +285,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
   }
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New Issue</p>
         <button onClick={() => setOpen(false)} className="text-portal-muted hover:text-portal-sub">
@@ -396,7 +396,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
   }
 
   return (
-    <li className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <li className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">Edit Issue</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub">
@@ -464,8 +464,8 @@ function FieldEmbed({ value, onChange }: {
         className="mt-1 w-full rounded-md border border-portal-border-2 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
       <p className="text-[11px] text-portal-sub mt-1 leading-snug">
-        Paste whatever Issuu gives you — the publication URL, the embed <code className="px-1 bg-gray-100 rounded">src</code> URL,
-        or the full <code className="px-1 bg-gray-100 rounded">&lt;iframe&gt;</code> snippet. We&apos;ll parse it and build the
+        Paste whatever Issuu gives you — the publication URL, the embed <code className="px-1 bg-portal-row-hover rounded">src</code> URL,
+        or the full <code className="px-1 bg-portal-row-hover rounded">&lt;iframe&gt;</code> snippet. We&apos;ll parse it and build the
         sidebar embed + the &ldquo;Open in New Tab&rdquo; link from the same value.
       </p>
     </label>
@@ -541,7 +541,7 @@ function CoverField({ cover, coverFile, setCover, setCoverFile }: {
           />
         </label>
         <div className="flex flex-col gap-2 pt-1">
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-700 cursor-pointer">
+          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-portal-navy text-white text-xs font-bold rounded-lg hover:bg-portal-navy cursor-pointer">
             <Upload size={12} /> {hasCover ? 'Replace cover' : 'Choose cover image'}
             <input
               type="file"

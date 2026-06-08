@@ -6,11 +6,11 @@ import { TIER_LABELS } from '@/lib/proposal-templates'
 export const metadata: Metadata = { title: 'Proposals — Admin' }
 
 const STATUS_COLORS: Record<string, string> = {
-  draft:    'bg-gray-100 text-portal-sub',
+  draft:    'bg-portal-row-hover text-portal-sub',
   sent:     'bg-portal-blue-lt text-portal-blue',
-  viewed:   'bg-portal-amber-lt text-amber-600',
+  viewed:   'bg-portal-amber-lt text-portal-amber',
   accepted: 'bg-portal-green-lt text-portal-green',
-  declined: 'bg-red-50 text-portal-red',
+  declined: 'bg-portal-red-lt text-portal-red',
   expired:  'bg-portal-bg text-portal-muted',
 }
 
@@ -71,7 +71,7 @@ export default async function ProposalsPage() {
                         {p.custom_monthly_price && <div className="text-xs text-portal-muted">${Number(p.custom_monthly_price).toLocaleString()}/mo</div>}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[displayStatus] ?? 'bg-gray-100 text-portal-sub'}`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[displayStatus] ?? 'bg-portal-row-hover text-portal-sub'}`}>
                           {displayStatus}
                         </span>
                       </td>

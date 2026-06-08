@@ -150,7 +150,7 @@ export function SchoolTypeahead({
                     <span className="font-semibold text-portal-text">{s.name}</span>
                     <span className="text-[10px] text-portal-sub ml-2">{AREA_LABELS[s.area]}</span>
                     {s.is_private && (
-                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 ml-2 px-1.5 py-0.5 rounded">Private</span>
+                      <span className="text-[10px] font-bold text-portal-blue bg-portal-blue-lt ml-2 px-1.5 py-0.5 rounded">Private</span>
                     )}
                   </button>
                 </li>
@@ -162,7 +162,7 @@ export function SchoolTypeahead({
             <button
               type="button"
               onClick={() => setAddingNew(true)}
-              className="w-full text-left px-3 py-2 border-t border-portal-border bg-portal-amber-lt hover:bg-portal-amber-lt text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5"
+              className="w-full text-left px-3 py-2 border-t border-portal-border bg-portal-amber-lt hover:bg-portal-amber-lt text-sm font-semibold text-portal-amber inline-flex items-center gap-1.5"
             >
               <Plus size={13} /> Add &ldquo;{toTitleCase(trimmed)}&rdquo; as new school
             </button>
@@ -228,13 +228,13 @@ function AddSchoolInline({
   }
 
   return (
-    <div className="absolute z-30 left-0 right-0 mt-1 bg-white border-2 border-amber-300 rounded-lg shadow p-3 space-y-2">
-      <p className="text-xs font-bold text-amber-900 inline-flex items-center gap-1.5">
+    <div className="absolute z-30 left-0 right-0 mt-1 bg-white border-2 border-portal-amber/40 rounded-lg shadow p-3 space-y-2">
+      <p className="text-xs font-bold text-portal-amber inline-flex items-center gap-1.5">
         <Plus size={12} /> Add new school
       </p>
 
       {dupeMatches.length > 0 && (
-        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded px-2 py-1.5 text-[11px] text-amber-900">
+        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded px-2 py-1.5 text-[11px] text-portal-amber">
           <p className="font-bold flex items-center gap-1 mb-0.5">
             <AlertTriangle size={11} /> Similar school{dupeMatches.length === 1 ? '' : 's'} already in the list — did you mean one of these?
           </p>
@@ -244,7 +244,7 @@ function AddSchoolInline({
                 <button
                   type="button"
                   onClick={() => onCreated(m.item)}
-                  className="text-portal-amber hover:text-amber-900 hover:underline font-semibold"
+                  className="text-portal-amber hover:text-portal-amber hover:underline font-semibold"
                 >
                   Use existing: {m.item.name}
                 </button>
@@ -284,7 +284,7 @@ function AddSchoolInline({
 
         <div className="col-span-2 flex justify-end gap-1.5 pt-1">
           <button type="button" onClick={onCancel} className="px-3 py-1 text-xs font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
-          <button type="submit" disabled={busy} className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-40">
+          <button type="submit" disabled={busy} className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold bg-portal-amber text-white rounded hover:bg-portal-amber disabled:opacity-40">
             {busy ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
             {busy ? 'Creating…' : 'Create + select'}
           </button>

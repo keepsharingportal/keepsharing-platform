@@ -43,7 +43,7 @@ export default async function AccountSettingsPage() {
           <Shield size={18} className="text-portal-blue" /> Account Settings
         </h1>
         <p className="text-xs text-portal-sub mt-0.5">
-          Your sign-in details. Role and market assignments are managed by Super Admin in <code className="px-1 py-0.5 bg-gray-100 rounded text-[10px]">/admin/settings/users</code>.
+          Your sign-in details. Role and market assignments are managed by Super Admin in <code className="px-1 py-0.5 bg-portal-row-hover rounded text-[10px]">/admin/settings/users</code>.
         </p>
       </div>
 
@@ -78,10 +78,10 @@ export default async function AccountSettingsPage() {
 
         {/* Tip card — explains the magic-link → password upgrade path */}
         <div className="rounded-lg bg-portal-amber-lt border border-portal-amber/30 p-5 text-sm">
-          <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-1.5">
+          <p className="font-bold text-portal-amber inline-flex items-center gap-1.5 mb-1.5">
             <KeyRound size={14} /> Daily admin? Set a password.
           </p>
-          <p className="text-amber-900 leading-relaxed text-xs">
+          <p className="text-portal-amber leading-relaxed text-xs">
             Magic links are great for occasional sign-ins but slow when you&apos;re in the admin every day. Set a password above and you can skip the email step entirely — or use Sign in with Google for one-click access.
           </p>
         </div>

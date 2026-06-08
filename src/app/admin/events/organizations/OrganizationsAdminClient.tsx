@@ -87,7 +87,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
           <Link href="/admin/events" className="text-portal-sub hover:text-portal-text inline-flex items-center gap-1 text-sm">
             <ChevronLeft size={14} /> Events
           </Link>
-          <span className="text-gray-300">/</span>
+          <span className="text-portal-border-2">/</span>
           <h1 className="text-xl font-semibold text-portal-text inline-flex items-center gap-2">
             <Building2 size={18} className="text-portal-blue" /> Community Connections
           </h1>
@@ -248,12 +248,12 @@ function OrgRow({
     <div className="bg-white hover:bg-portal-bg/60 transition-colors">
       <div className="px-4 py-3 flex items-start gap-3">
         {/* Logo */}
-        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-portal-border flex items-center justify-center">
+        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-portal-row-hover border border-portal-border flex items-center justify-center">
           {org.logo_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <Building2 size={20} className="text-gray-300" />
+            <Building2 size={20} className="text-portal-border-2" />
           )}
         </div>
 
@@ -270,7 +270,7 @@ function OrgRow({
               </span>
             )}
             {org.source_id && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sky-50 text-sky-700 border border-portal-blue/30">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-blue-lt text-portal-blue border border-portal-blue/30">
                 Linked to feed
               </span>
             )}
@@ -295,7 +295,7 @@ function OrgRow({
               </span>
             )}
             {org.website && (
-              <a href={org.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sky-600 hover:underline">
+              <a href={org.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-portal-blue hover:underline">
                 <ExternalLink size={11} /> Website
               </a>
             )}
@@ -334,7 +334,7 @@ function OrgRow({
           <button
             onClick={remove}
             disabled={busy !== null}
-            className="p-1 text-portal-muted hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
+            className="p-1 text-portal-muted hover:text-portal-red rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
             aria-label="Delete"
           >
             {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
@@ -429,14 +429,14 @@ function OrgForm({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
     <form onSubmit={submit} className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
-          <label className={lbl}>Name <span className="text-rose-600">*</span></label>
+          <label className={lbl}>Name <span className="text-portal-red">*</span></label>
           <input value={name} onChange={e => setName(e.target.value)} required autoFocus className={`${inp} font-semibold`} />
         </div>
         <div>
@@ -519,7 +519,7 @@ function OrgForm({
           />
         </div>
 
-        <label className="sm:col-span-2 md:col-span-3 inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+        <label className="sm:col-span-2 md:col-span-3 inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
           <input type="checkbox" checked={preferred} onChange={e => setPreferred(e.target.checked)} className="rounded" />
           Mark as a <strong>Preferred Partner</strong> (highlighted across the calendar)
         </label>
@@ -536,7 +536,7 @@ function OrgForm({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : (mode === 'create' ? 'Add organization' : 'Save changes')}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-portal-navy">
           Cancel
         </button>
       </div>

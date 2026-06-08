@@ -51,7 +51,7 @@ export default async function BloggersAdminPage() {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-portal-text flex items-center gap-2">
-            <Users className="h-5 w-5 text-pink-600" />
+            <Users className="h-5 w-5 text-portal-red" />
             Mom Knows Best
           </h1>
           <p className="text-sm text-portal-sub mt-0.5">
@@ -91,9 +91,9 @@ export default async function BloggersAdminPage() {
               <Link
                 key={b.id}
                 href={`/admin/bloggers/${b.slug}/edit`}
-                className={`rounded-lg border bg-white overflow-hidden hover:shadow-md hover:border-pink-300 transition-all flex gap-4 p-4 ${b.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
+                className={`rounded-lg border bg-white overflow-hidden hover:shadow-md hover:border-portal-red/40 transition-all flex gap-4 p-4 ${b.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
               >
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-portal-row-hover shrink-0">
                   {b.profile_image_url ? (
                     <Image
                       src={b.profile_image_url}
@@ -113,7 +113,7 @@ export default async function BloggersAdminPage() {
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold text-portal-text leading-tight">{b.display_name}</p>
                     {!b.is_active && (
-                      <span className="text-[10px] font-bold uppercase bg-gray-200 text-portal-sub px-1.5 py-0.5 rounded shrink-0">Inactive</span>
+                      <span className="text-[10px] font-bold uppercase bg-portal-border-2 text-portal-sub px-1.5 py-0.5 rounded shrink-0">Inactive</span>
                     )}
                   </div>
                   {b.tagline && (

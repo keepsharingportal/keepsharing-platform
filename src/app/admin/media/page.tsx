@@ -103,7 +103,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
       <div className="p-5">
         {assets.length === 0 ? (
           <div className="bg-white rounded-lg border border-portal-border p-16 text-center">
-            <ImageIcon size={32} className="text-gray-300 mx-auto mb-4" />
+            <ImageIcon size={32} className="text-portal-border-2 mx-auto mb-4" />
             <p className="text-portal-sub text-sm mb-2">
               {q ? `No media found for "${q}"` : 'No media uploaded yet'}
             </p>
@@ -131,7 +131,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                   className="group bg-white rounded-lg border border-portal-border overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
                 >
                   {/* Thumbnail */}
-                  <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-portal-row-hover overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={thumbSrc}
@@ -179,7 +179,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {asset.content_category && (
-                        <span className="text-[9px] font-bold uppercase text-portal-muted bg-gray-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-bold uppercase text-portal-muted bg-portal-row-hover px-1.5 py-0.5 rounded">
                           {asset.content_category}
                         </span>
                       )}

@@ -56,7 +56,7 @@ export default async function VerticalEditPage({ params }: Props) {
           </Link>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-xl font-semibold text-portal-text">Edit {vertical.display_name}</h1>
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded">
               {KIND_LABEL[vertical.kind] ?? vertical.kind}
             </span>
           </div>

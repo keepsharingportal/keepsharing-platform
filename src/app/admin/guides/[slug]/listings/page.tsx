@@ -143,7 +143,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 function StatTile({ label, value, tone }: { label: string; value: number; tone: 'neutral' | 'amber' | 'emerald' | 'gray' }) {
   const cls =
     tone === 'amber'   ? 'border-portal-amber/30 bg-portal-amber-lt/60'   :
-    tone === 'emerald' ? 'border-emerald-200 bg-portal-green-lt/60' :
+    tone === 'emerald' ? 'border-portal-green/30 bg-portal-green-lt/60' :
     tone === 'gray'    ? 'border-portal-border bg-portal-bg/60'     :
                          'border-portal-border bg-white'
   return (

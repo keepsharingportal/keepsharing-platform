@@ -107,12 +107,12 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  uploaded:     'bg-gray-100 text-portal-sub',
+  uploaded:     'bg-portal-row-hover text-portal-sub',
   needs_review: 'bg-portal-amber-lt text-portal-amber',
   approved:     'bg-portal-green-lt text-portal-green',
-  needs_graphic:'bg-orange-100 text-orange-700',
+  needs_graphic:'bg-portal-amber-lt text-portal-amber',
   social_ready: 'bg-portal-blue-lt text-portal-blue',
-  print_ready:  'bg-purple-100 text-purple-700',
+  print_ready:  'bg-portal-blue-lt text-portal-blue',
   archived:     'bg-portal-bg text-portal-muted',
 }
 
@@ -242,7 +242,7 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
       className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border-2 hover:shadow-sm transition-all group block"
     >
       {/* Thumbnail */}
-      <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+      <div className="aspect-[4/3] bg-portal-row-hover relative overflow-hidden">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -258,18 +258,18 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
         )}
         {/* Overlays */}
         <div className="absolute top-2 left-2">
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${STATUS_STYLE[asset.status] ?? 'bg-gray-100 text-portal-sub'}`}>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${STATUS_STYLE[asset.status] ?? 'bg-portal-row-hover text-portal-sub'}`}>
             {STATUS_LABELS[asset.status] ?? asset.status}
           </span>
         </div>
         {needsDesign(asset) && (
           <div className="absolute top-2 right-2">
-            <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded font-bold">🎨 Design</span>
+            <span className="text-[10px] bg-portal-amber text-white px-1.5 py-0.5 rounded font-bold">🎨 Design</span>
           </div>
         )}
         {!asset.permission_confirmed && asset.asset_type === 'photo' && (
           <div className="absolute bottom-2 right-2">
-            <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold">No permission</span>
+            <span className="text-[10px] bg-portal-red text-white px-1.5 py-0.5 rounded font-bold">No permission</span>
           </div>
         )}
       </div>
@@ -289,7 +289,7 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
             </span>
           )}
           {asset.publication && (
-            <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">
+            <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">
               {asset.publication.toUpperCase()}
             </span>
           )}
@@ -301,7 +301,7 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
           <p className="text-[10px] text-portal-muted mt-1 truncate">Used: {usage.join(', ')}</p>
         )}
         <div className="flex items-center justify-between mt-2">
-          <div className="flex-1 bg-gray-100 rounded-full h-1 mr-2">
+          <div className="flex-1 bg-portal-row-hover rounded-full h-1 mr-2">
             <div
               className="h-1 rounded-full transition-all"
               style={{ width: `${score}%`, backgroundColor: score >= 80 ? '#16a34a' : score >= 50 ? '#d97706' : '#ef4444' }}
@@ -443,7 +443,7 @@ export default async function AssetsPage({
             href={viewHref(v.key)}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
-                ? 'bg-gray-900 text-white'
+                ? 'bg-portal-navy text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
@@ -470,7 +470,7 @@ export default async function AssetsPage({
                     href={filterHref(c.value)}
                     className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-colors ${
                       filterCat === c.value
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-portal-navy text-white'
                         : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
                     }`}
                   >
@@ -489,7 +489,7 @@ export default async function AssetsPage({
                     href={filterHref(undefined, s.value)}
                     className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-colors ${
                       filterStatus === s.value
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-portal-navy text-white'
                         : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
                     }`}
                   >
@@ -522,7 +522,7 @@ export default async function AssetsPage({
                   <p className="text-xs text-portal-muted max-w-sm mx-auto mb-4">
                     Register assets by importing submission photos (Submissions tab) or manually entering asset URLs after uploading to Supabase Storage.
                   </p>
-                  <Link href={viewHref('submissions')} className="text-xs px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+                  <Link href={viewHref('submissions')} className="text-xs px-4 py-2 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy">
                     Import Submission Photos →
                   </Link>
                 </>
@@ -539,8 +539,8 @@ export default async function AssetsPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'design' && (
         <div className="space-y-4">
-          <div className="bg-orange-50 border border-orange-100 rounded-lg px-5 py-3">
-            <p className="text-xs text-orange-800 font-medium">
+          <div className="bg-portal-amber-lt border border-portal-amber/20 rounded-lg px-5 py-3">
+            <p className="text-xs text-portal-amber font-medium">
               🎨 These assets need creative work before they are ready to publish. Assign a designer, add the Canva link, and mark complete when done.
             </p>
           </div>
@@ -559,7 +559,7 @@ export default async function AssetsPage({
                   <div key={asset.id} className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border transition-colors">
                     <div className="flex items-start gap-4 p-4">
                       {/* Thumbnail */}
-                      <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0">
+                      <div className="w-16 h-16 rounded-lg bg-portal-row-hover overflow-hidden shrink-0">
                         {preview ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={preview} alt="" className="w-full h-full object-cover" />
@@ -574,13 +574,13 @@ export default async function AssetsPage({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <p className="text-sm font-semibold text-portal-text truncate">{asset.title || asset.filename}</p>
-                          <Link href={`/admin/assets/${asset.id}`} className="text-xs text-indigo-600 hover:underline font-semibold shrink-0">
+                          <Link href={`/admin/assets/${asset.id}`} className="text-xs text-portal-blue hover:underline font-semibold shrink-0">
                             Manage →
                           </Link>
                         </div>
                         <div className="flex gap-1.5 mt-1 flex-wrap">
                           {needs.map(n => (
-                            <span key={n} className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">{n}</span>
+                            <span key={n} className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold">{n}</span>
                           ))}
                         </div>
                         <div className="flex items-center gap-3 mt-2 text-[11px] text-portal-muted flex-wrap">
@@ -608,7 +608,7 @@ export default async function AssetsPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -621,8 +621,8 @@ export default async function AssetsPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'sponsor' && (
         <div className="space-y-4">
-          <div className="bg-purple-50 border border-purple-100 rounded-lg px-5 py-3">
-            <p className="text-xs text-purple-800 font-medium">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-lg px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               🤝 Sponsor logos and brand assets. Check that logos are current, approved, and usable at correct resolution before placing in guides or print.
             </p>
           </div>
@@ -631,7 +631,7 @@ export default async function AssetsPage({
           <div>
             <div className="flex items-center gap-3 mb-3">
               <h2 className="text-sm font-bold text-portal-text shrink-0">Sponsor Assets ({sponsorAssets.length})</h2>
-              <div className="flex-1 h-px bg-gray-100" />
+              <div className="flex-1 h-px bg-portal-row-hover" />
             </div>
 
             {sponsorAssets.length === 0 ? (
@@ -669,13 +669,13 @@ export default async function AssetsPage({
       {activeView === 'submissions' && (
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-lg px-5 py-3">
-              <p className="text-xs text-indigo-800 font-medium">
+            <div className="flex-1 bg-portal-blue-lt border border-indigo-100 rounded-lg px-5 py-3">
+              <p className="text-xs text-portal-blue font-medium">
                 📤 Photos submitted with community submissions. Import to the Asset Library to track readiness, add alt text, confirm permissions, and coordinate design.
               </p>
             </div>
             <div className="shrink-0 text-center">
-              <p className="text-xl font-bold text-orange-600">{untrackedSubs.length}</p>
+              <p className="text-xl font-bold text-portal-amber">{untrackedSubs.length}</p>
               <p className="text-[10px] text-portal-muted">Untracked</p>
             </div>
           </div>
@@ -685,7 +685,7 @@ export default async function AssetsPage({
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <h2 className="text-sm font-bold text-portal-text shrink-0">Not Yet in Library ({untrackedSubs.length})</h2>
-                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex-1 h-px bg-portal-row-hover" />
               </div>
               <div className="space-y-3">
                 {untrackedSubs.map(sub => {
@@ -699,13 +699,13 @@ export default async function AssetsPage({
                           <p className="text-sm font-semibold text-portal-text truncate">{title}</p>
                           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                             <span className="text-[10px] text-portal-muted">{tc?.shortLabel ?? sub.submission_type}</span>
-                            <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">{sub.target_publication.toUpperCase()}</span>
+                            <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">{sub.target_publication.toUpperCase()}</span>
                             {sub.image_status && (
                               <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">{sub.image_status.replace(/_/g, ' ')}</span>
                             )}
                           </div>
                         </div>
-                        <Link href={`/admin/community/${sub.id}`} className="text-xs text-portal-muted hover:text-indigo-600 hover:underline font-semibold shrink-0">
+                        <Link href={`/admin/community/${sub.id}`} className="text-xs text-portal-muted hover:text-portal-blue hover:underline font-semibold shrink-0">
                           Submission →
                         </Link>
                       </div>
@@ -723,7 +723,7 @@ export default async function AssetsPage({
                               <input type="hidden" name="photo_url"      value={photo.url} />
                               <input type="hidden" name="submission_id"  value={sub.id} />
                               <input type="hidden" name="title_hint"     value={`${title} — Photo ${pi + 1}`} />
-                              <button type="submit" className="text-[10px] bg-white text-portal-text px-2 py-1 rounded font-bold hover:bg-indigo-50">
+                              <button type="submit" className="text-[10px] bg-white text-portal-text px-2 py-1 rounded font-bold hover:bg-portal-blue-lt">
                                 + Library
                               </button>
                             </form>
@@ -742,7 +742,7 @@ export default async function AssetsPage({
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <h2 className="text-sm font-bold text-portal-muted shrink-0">In Library ({trackedSubs.length})</h2>
-                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex-1 h-px bg-portal-row-hover" />
               </div>
               <div className="space-y-2">
                 {trackedSubs.map(sub => {
@@ -805,7 +805,7 @@ export default async function AssetsPage({
                   <p className="text-sm font-semibold text-portal-text">Overall Readiness</p>
                   <p className="text-sm font-bold" style={{ color: pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#ef4444' }}>{pct}%</p>
                 </div>
-                <div className="bg-gray-100 rounded-full h-2">
+                <div className="bg-portal-row-hover rounded-full h-2">
                   <div
                     className="h-2 rounded-full transition-all"
                     style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#ef4444' }}
@@ -825,13 +825,13 @@ export default async function AssetsPage({
             <div key={title}>
               <div className="flex items-center gap-3 mb-3">
                 <h2 className="text-sm font-bold text-portal-text shrink-0">{title} ({items.length})</h2>
-                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex-1 h-px bg-portal-row-hover" />
                 <p className="text-[11px] text-portal-muted hidden sm:block">{cta}</p>
               </div>
               <div className="space-y-2">
                 {items.slice(0, 10).map(asset => (
                   <div key={asset.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-2.5">
-                    <div className="w-8 h-8 rounded bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded bg-portal-row-hover overflow-hidden shrink-0 flex items-center justify-center">
                       {previewSrc(asset)
                         ? <img src={previewSrc(asset)!} alt="" className="w-full h-full object-cover" />  // eslint-disable-line @next/next/no-img-element
                         : <span className="text-sm">{TYPE_ICONS[asset.asset_type] ?? '🖼️'}</span>
@@ -841,7 +841,7 @@ export default async function AssetsPage({
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${STATUS_STYLE[asset.status] ?? ''}`}>
                       {STATUS_LABELS[asset.status] ?? asset.status}
                     </span>
-                    <Link href={`/admin/assets/${asset.id}`} className="text-xs text-indigo-600 hover:underline font-semibold shrink-0">
+                    <Link href={`/admin/assets/${asset.id}`} className="text-xs text-portal-blue hover:underline font-semibold shrink-0">
                       Fix →
                     </Link>
                   </div>
@@ -867,7 +867,7 @@ export default async function AssetsPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>

@@ -235,7 +235,7 @@ export default function SummerGuideImportPage() {
       {!parsed && (
         <div
           className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-            dragging ? 'border-blue-400 bg-blue-400/10' : 'border-white/15 hover:border-white/30 hover:bg-white/3'
+            dragging ? 'border-portal-blue/50 bg-portal-blue/10' : 'border-white/15 hover:border-white/30 hover:bg-white/3'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
@@ -256,7 +256,7 @@ export default function SummerGuideImportPage() {
       )}
 
       {error && (
-        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2 text-sm text-red-400">
+        <div className="mt-4 p-4 bg-portal-red/10 border border-portal-red/30 rounded-lg flex items-start gap-2 text-sm text-portal-red">
           <AlertCircle size={16} className="shrink-0 mt-0.5" />
           {error}
         </div>
@@ -276,7 +276,7 @@ export default function SummerGuideImportPage() {
 
           {/* Unmapped columns warning */}
           {unmapped.length > 0 && (
-            <div className="p-3 bg-portal-amber/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
+            <div className="p-3 bg-portal-amber/10 border border-amber-500/30 rounded-lg text-xs text-portal-amber">
               <span className="font-semibold">Columns not recognised (will be skipped):</span>{' '}
               {unmapped.join(', ')}
             </div>
@@ -310,7 +310,7 @@ export default function SummerGuideImportPage() {
                       <td className="px-4 py-2 text-white/60">{row.city ?? '—'}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          row.listing_tier === 'advertiser' ? 'bg-portal-amber/20 text-amber-400' :
+                          row.listing_tier === 'advertiser' ? 'bg-portal-amber/20 text-portal-amber' :
                           row.listing_tier === 'enhanced'  ? 'bg-portal-blue/20 text-portal-blue' :
                                                               'bg-white/8 text-white/40'
                         }`}>
@@ -351,7 +351,7 @@ export default function SummerGuideImportPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Inserted', value: result.inserted, color: 'text-green-400' },
+              { label: 'Inserted', value: result.inserted, color: 'text-portal-green' },
               { label: 'Updated',  value: result.updated,  color: 'text-portal-blue'  },
               { label: 'Skipped',  value: result.skipped,  color: 'text-white/40'  },
             ].map(({ label, value, color }) => (
@@ -363,11 +363,11 @@ export default function SummerGuideImportPage() {
           </div>
 
           {result.errors.length > 0 && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-              <p className="text-xs font-semibold text-red-400 mb-2">{result.errors.length} error(s)</p>
+            <div className="bg-portal-red/10 border border-portal-red/20 rounded-lg p-4">
+              <p className="text-xs font-semibold text-portal-red mb-2">{result.errors.length} error(s)</p>
               <ul className="space-y-1">
                 {result.errors.map((e, i) => (
-                  <li key={i} className="text-xs text-red-400/80">{e}</li>
+                  <li key={i} className="text-xs text-portal-red/80">{e}</li>
                 ))}
               </ul>
             </div>
@@ -383,10 +383,10 @@ export default function SummerGuideImportPage() {
                   <span className="text-xs text-white/25 w-8 shrink-0">{r.row}</span>
                   <span className="text-xs text-white flex-1">{r.name}</span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    r.status === 'ok'      ? 'bg-portal-green/20 text-green-400' :
+                    r.status === 'ok'      ? 'bg-portal-green/20 text-portal-green' :
                     r.status === 'updated' ? 'bg-portal-blue/20 text-portal-blue'  :
                     r.status === 'skipped' ? 'bg-white/8 text-white/40'      :
-                                             'bg-red-500/20 text-red-400'
+                                             'bg-portal-red/20 text-portal-red'
                   }`}>
                     {r.status === 'ok' ? 'inserted' : r.status}
                   </span>
@@ -404,7 +404,7 @@ export default function SummerGuideImportPage() {
               Import another file
             </button>
             <a href="/summer-fun-guide" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-blue-500/30 rounded-lg hover:bg-portal-blue/10 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-blue/30 rounded-lg hover:bg-portal-blue/10 transition-colors">
               <FileText size={14} />
               View Summer Fun Guide
             </a>

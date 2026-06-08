@@ -102,7 +102,7 @@ function DisplayRow({ driver, routes, onEdit }: { driver: Driver; routes: Array<
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-bold text-portal-text">{driver.full_name}</p>
-          {!driver.active && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+          {!driver.active && <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
           {driver.can_view_all && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">View all</span>}
         </div>
         <p className="text-xs text-portal-sub mt-0.5 flex items-center gap-1"><Mail size={10} /> {driver.email}</p>
@@ -167,7 +167,7 @@ function AddForm({ market, routes, onCancel, onCreated }: {
   }
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New driver</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>
@@ -299,7 +299,7 @@ function EditRow({ driver, routes, onCancel, onSaved, onDeleted }: {
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Save
         </button>
         <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-portal-sub rounded-lg hover:bg-portal-row-hover">Cancel</button>
-        <button onClick={deleteDriver} disabled={busy} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt ml-auto">
+        <button onClick={deleteDriver} disabled={busy} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt ml-auto">
           <Trash2 size={11} /> Delete
         </button>
       </div>
@@ -327,7 +327,7 @@ function RouteAssign({ routes, selected, setSelected }: {
               key={r.id}
               type="button"
               onClick={() => toggle(r.id)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${on ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${on ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
             >
               {r.name}
             </button>

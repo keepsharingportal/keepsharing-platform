@@ -58,7 +58,7 @@ export function SlotToggleButton({ placementType, contextSlug, isDisabled }: Pro
         className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold ring-1 transition disabled:opacity-50 ${
           isDisabled
             ? 'bg-portal-red-lt text-portal-red border-portal-red/30 hover:bg-portal-red-lt'
-            : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
+            : 'bg-white text-portal-sub ring-slate-200 hover:bg-portal-bg'
         }`}
         title={isDisabled
           ? 'Slot is OFF — click to turn back on'
@@ -67,7 +67,7 @@ export function SlotToggleButton({ placementType, contextSlug, isDisabled }: Pro
         {busy ? <RefreshCw size={11} className="animate-spin" /> : isDisabled ? <PowerOff size={11} /> : <Power size={11} />}
         {isDisabled ? 'OFF' : 'On'}
       </button>
-      {err && <span className="text-[10px] text-rose-600">{err}</span>}
+      {err && <span className="text-[10px] text-portal-red">{err}</span>}
     </div>
   )
 }

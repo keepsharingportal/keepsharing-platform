@@ -263,7 +263,7 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
           <Link href="/admin/articles/authors" className="hover:text-portal-blue transition-colors">Authors</Link>
           <Link href="/admin/content/imports"  className="hover:text-portal-blue transition-colors">Imports</Link>
           <Link href="/admin/articles/review"  className="hover:text-portal-blue transition-colors">Review Queue</Link>
-          <Link href="/admin/articles/trash"   className="hover:text-rose-600 transition-colors">Trash</Link>
+          <Link href="/admin/articles/trash"   className="hover:text-portal-red transition-colors">Trash</Link>
         </div>
       </div>
     </div>

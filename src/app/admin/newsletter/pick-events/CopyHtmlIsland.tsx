@@ -23,7 +23,7 @@ export function CopyHtmlIsland({ html }: { html: string }) {
         <button
           type="button"
           onClick={copy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy"
         >
           {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy HTML</>}
         </button>

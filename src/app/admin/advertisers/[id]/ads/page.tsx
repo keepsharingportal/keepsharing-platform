@@ -108,7 +108,7 @@ export default async function AdsTab({ params }: Props) {
               return (
                 <div key={p.id} className={`px-5 py-3 flex items-center gap-3 ${isExpired ? 'opacity-60 bg-portal-bg/60' : p.is_active ? '' : 'opacity-70'}`}>
                   {p.rotation_group ? (
-                    <RotateCw size={12} className="text-sky-500 shrink-0" />
+                    <RotateCw size={12} className="text-portal-blue shrink-0" />
                   ) : (
                     <Lock size={12} className="text-portal-amber shrink-0" />
                   )}
@@ -134,7 +134,7 @@ export default async function AdsTab({ params }: Props) {
                       <CloneAdButton id={p.id} variant="pill" />
                     </>
                   ) : !p.is_active ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-portal-sub border border-portal-border font-bold shrink-0">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-portal-row-hover text-portal-sub border border-portal-border font-bold shrink-0">
                       Inactive
                     </span>
                   ) : null}
@@ -206,7 +206,7 @@ export default async function AdsTab({ params }: Props) {
                   {slot.locked ? (
                     <Lock size={10} className="text-portal-amber shrink-0" />
                   ) : (
-                    <RotateCw size={10} className="text-sky-500 shrink-0" />
+                    <RotateCw size={10} className="text-portal-blue shrink-0" />
                   )}
                   <span className="text-xs font-semibold text-portal-text truncate">{slot.label}</span>
                 </div>

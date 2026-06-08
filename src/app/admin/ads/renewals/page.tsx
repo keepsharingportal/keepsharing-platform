@@ -103,7 +103,7 @@ export default async function AdRenewalsPage() {
             The cron runs nightly; nothing sends until a template is live.
           </p>
         </div>
-        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-2 text-xs text-amber-900 max-w-sm">
+        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-2 text-xs text-portal-amber max-w-sm">
           <p className="font-bold flex items-center gap-1"><AlertTriangle size={12} /> Note</p>
           <p className="mt-0.5">Make sure your ad bookings have either <code>advertiser_email</code> on the placement
           or a linked advertiser_account with an email. Without one, the cron logs &quot;skipped: no-email&quot; and moves on.</p>
@@ -120,7 +120,7 @@ export default async function AdRenewalsPage() {
           <details key={tpl.id} className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary className="cursor-pointer px-5 py-4 flex items-center justify-between gap-4 hover:bg-portal-bg">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200' : 'bg-gray-100 text-portal-sub'}`}>
+                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30' : 'bg-portal-row-hover text-portal-sub'}`}>
                   {tpl.is_live ? <><Check size={12} /> Live</> : <><Clock size={12} /> Draft</>}
                 </span>
                 <span className="font-bold text-portal-text">{tpl.name}</span>
@@ -170,7 +170,7 @@ export default async function AdRenewalsPage() {
                   <input type="checkbox" name="notify_sales" defaultChecked={tpl.notify_sales} className="h-4 w-4 rounded border-portal-border-2" />
                   <span>CC the placement&apos;s <code>sales_rep_email</code></span>
                 </label>
-                <button type="submit" className="ml-auto px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+                <button type="submit" className="ml-auto px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
                   Save changes
                 </button>
               </div>
@@ -206,8 +206,8 @@ export default async function AdRenewalsPage() {
                     <td className="px-4 py-2 text-xs">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
                         r.status === 'sent'   ? 'bg-portal-green-lt text-portal-green' :
-                        r.status === 'failed' ? 'bg-red-50 text-red-700' :
-                                                'bg-gray-100 text-portal-sub'
+                        r.status === 'failed' ? 'bg-portal-red-lt text-portal-red' :
+                                                'bg-portal-row-hover text-portal-sub'
                       }`}>
                         {r.status}
                       </span>

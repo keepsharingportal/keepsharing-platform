@@ -66,7 +66,7 @@ function CategoryFilter({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Filter by WP Category</span>
-        <button onClick={toggleAll} className="text-xs text-portal-blue hover:text-blue-300 transition-colors">
+        <button onClick={toggleAll} className="text-xs text-portal-blue hover:text-portal-blue transition-colors">
           {selected.size === categories.length ? 'Deselect all' : 'Select all'}
         </button>
       </div>
@@ -103,11 +103,11 @@ function PreviewRow({ post, index }: { post: WpPost; index: number }) {
         <div className="text-[10px] text-white/30 truncate">{post.slug}</div>
       </td>
       <td className="px-4 py-2">
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-blue/20 text-blue-300 font-semibold whitespace-nowrap">
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-blue/20 text-portal-blue font-semibold whitespace-nowrap">
           {label}
         </span>
         {row.guide_slug && (
-          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+          <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-portal-blue/20 text-portal-blue">
             {row.guide_slug}
           </span>
         )}
@@ -116,7 +116,7 @@ function PreviewRow({ post, index }: { post: WpPost; index: number }) {
       <td className="px-4 py-2 text-white/40 text-xs truncate max-w-[100px]">{post.author || '—'}</td>
       <td className="px-4 py-2">
         {post.featuredImage ? (
-          <span className="text-[10px] text-green-400">✓ image</span>
+          <span className="text-[10px] text-portal-green">✓ image</span>
         ) : (
           <span className="text-[10px] text-white/20">—</span>
         )}
@@ -264,7 +264,7 @@ export default function WpImportPage() {
         {phase === 'upload' && (
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
+              dragging ? 'border-portal-blue/50 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-portal-border-2 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -274,7 +274,7 @@ export default function WpImportPage() {
             {parsing ? (
               <RefreshCw size={32} className="mx-auto mb-3 text-portal-blue animate-spin" />
             ) : (
-              <Upload size={32} className="mx-auto mb-3 text-gray-300" />
+              <Upload size={32} className="mx-auto mb-3 text-portal-border-2" />
             )}
             <p className="text-sm font-semibold text-portal-sub">
               {parsing ? 'Parsing XML…' : 'Drop WordPress XML file here or click to browse'}
@@ -294,7 +294,7 @@ export default function WpImportPage() {
 
         {/* Error */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm text-red-700">
+          <div className="p-4 bg-portal-red-lt border border-portal-red/30 rounded-lg flex items-start gap-2 text-sm text-portal-red">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             {error}
           </div>
@@ -345,7 +345,7 @@ export default function WpImportPage() {
                   <span className="font-bold text-portal-text">{filteredPosts.length}</span> posts will be imported
                 </span>
                 {selectedCats.size < parsed.categories.length && (
-                  <span className="text-xs text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-portal-amber bg-portal-amber-lt px-2 py-0.5 rounded-full">
                     {parsed.posts.length - filteredPosts.length} filtered out
                   </span>
                 )}
@@ -427,7 +427,7 @@ export default function WpImportPage() {
                 Importing… {progress.done} / {progress.total}
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-5">
+            <div className="w-full bg-portal-row-hover rounded-full h-2 mb-5">
               <div
                 className="bg-portal-blue h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
@@ -439,8 +439,8 @@ export default function WpImportPage() {
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className={`w-16 shrink-0 text-center px-1.5 py-0.5 rounded-full font-semibold ${
                       r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
-                                               'bg-red-100 text-red-700'
+                      r.status === 'skipped' ? 'bg-portal-row-hover text-portal-sub'  :
+                                               'bg-portal-red-lt text-portal-red'
                     }`}>{r.status}</span>
                     <span className="text-portal-sub truncate">{r.title}</span>
                   </div>
@@ -458,7 +458,7 @@ export default function WpImportPage() {
               {[
                 { label: 'Inserted',  value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',   value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
-                { label: 'Errors',    value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
+                { label: 'Errors',    value: totals.errors,   color: 'text-portal-red',   bg: 'bg-portal-red-lt border-portal-red/30'    },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-lg border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
@@ -477,8 +477,8 @@ export default function WpImportPage() {
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
-                                               'bg-red-100 text-red-700'
+                      r.status === 'skipped' ? 'bg-portal-row-hover text-portal-sub'  :
+                                               'bg-portal-red-lt text-portal-red'
                     }`}>{r.status === 'ok' ? 'imported' : r.status}</span>
                     <span className="text-xs text-portal-text flex-1 truncate">{r.title}</span>
                     {r.message && <span className="text-[10px] text-portal-muted ml-1 truncate max-w-xs">{r.message}</span>}
@@ -534,7 +534,7 @@ export default function WpImportPage() {
                 ].map(([wp, our]) => (
                   <div key={wp} className="flex gap-2">
                     <span className="text-portal-muted">{wp}</span>
-                    <span className="text-gray-300">→</span>
+                    <span className="text-portal-border-2">→</span>
                     <span className="text-portal-blue">{our}</span>
                   </div>
                 ))}

@@ -79,7 +79,7 @@ export function LocationRequestsEditor({ initial, activeStatus }: { initial: Loc
           <button
             key={s}
             onClick={() => gotoStatus(s)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {s}
           </button>
@@ -118,7 +118,7 @@ export function LocationRequestsEditor({ initial, activeStatus }: { initial: Loc
                     <button
                       onClick={() => patch(r.id, 'added')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-green text-white hover:bg-portal-green disabled:opacity-50"
                     >
                       {busy === `${r.id}-added` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                       Added to route
@@ -126,7 +126,7 @@ export function LocationRequestsEditor({ initial, activeStatus }: { initial: Loc
                     <button
                       onClick={() => patch(r.id, 'approve')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-blue-200 text-portal-blue hover:bg-portal-blue-lt disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-blue/30 text-portal-blue hover:bg-portal-blue-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-approve` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                       Approve (later)
@@ -134,7 +134,7 @@ export function LocationRequestsEditor({ initial, activeStatus }: { initial: Loc
                     <button
                       onClick={() => patch(r.id, 'reject')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-reject` ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
                       Reject

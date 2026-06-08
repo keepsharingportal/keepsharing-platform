@@ -46,7 +46,7 @@ interface Props {
 const TIER_BADGE: Record<string, string> = {
   featured:    'bg-portal-amber-lt text-portal-amber',
   enhanced:    'bg-portal-blue-lt text-portal-blue',
-  community:   'bg-gray-100 text-portal-sub',
+  community:   'bg-portal-row-hover text-portal-sub',
 }
 
 export function GuideListingsBrowseClient(props: Props) {
@@ -193,7 +193,7 @@ export function GuideListingsBrowseClient(props: Props) {
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="bg-gray-900 text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10 shrink-0">
+        <div className="bg-portal-navy text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10 shrink-0">
           <span className="text-sm font-bold">
             {selected.size} {selected.size === 1 ? 'listing' : 'listings'} selected
           </span>
@@ -202,7 +202,7 @@ export function GuideListingsBrowseClient(props: Props) {
               type="button"
               onClick={() => setConfirmOpen(true)}
               disabled={busy || deleting}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 rounded-lg disabled:opacity-40"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-portal-red hover:bg-portal-red rounded-lg disabled:opacity-40"
             >
               <Trash2 size={12} /> Delete selected
             </button>
@@ -330,7 +330,7 @@ export function GuideListingsBrowseClient(props: Props) {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmOpen(false)}>
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-3">
             <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
-              <AlertTriangle size={16} className="text-rose-600" />
+              <AlertTriangle size={16} className="text-portal-red" />
               Delete {selected.size} listing{selected.size === 1 ? '' : 's'}?
             </h3>
             <p className="text-sm text-portal-text">
@@ -341,7 +341,7 @@ export function GuideListingsBrowseClient(props: Props) {
                 type="button"
                 onClick={onConfirmDelete}
                 disabled={deleting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-red text-white rounded-full hover:bg-portal-red disabled:opacity-40"
               >
                 {deleting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
                 {deleting ? 'Deleting…' : `Delete ${selected.size}`}
@@ -375,7 +375,7 @@ function FilterChips<V extends string>({ label, value, onChange, options }: {
           key={o.v}
           type="button"
           onClick={() => onChange(o.v)}
-          className={`px-2 py-1 font-semibold ${value === o.v ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
+          className={`px-2 py-1 font-semibold ${value === o.v ? 'bg-portal-navy text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
         >
           {o.label}
         </button>

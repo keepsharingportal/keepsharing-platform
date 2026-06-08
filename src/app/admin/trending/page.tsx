@@ -317,7 +317,7 @@ export default async function TrendingAdminPage() {
 
         {/* Migration banner — only shows until 117 is applied. */}
         {!archiveMigrationApplied && (
-          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-portal-amber">
             <p className="font-bold">Migration 117 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/117_trending_archived.sql</code> in Supabase Studio to enable auto-archive, the Archived filter, and the Archive bulk action. The page works without it — those features just sit dormant.
@@ -331,12 +331,12 @@ export default async function TrendingAdminPage() {
             can either add their own items (which take over) or live with
             the defaults. */}
         {items.length === 0 && (
-          <div className="rounded-lg border border-blue-200 bg-portal-blue-lt p-4 text-sm">
-            <p className="font-bold text-blue-900 mb-1">No items in the database yet</p>
+          <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt p-4 text-sm">
+            <p className="font-bold text-portal-navy mb-1">No items in the database yet</p>
             <p className="text-xs text-portal-blue mb-3">
               While the table is empty, the homepage shows these hardcoded fallback items so the trending strip isn&apos;t blank. Add your first real item below — once you do, the fallback stops rendering.
             </p>
-            <ul className="space-y-1 text-xs text-blue-900">
+            <ul className="space-y-1 text-xs text-portal-navy">
               <li>⛺ Summer Camp Guide 2026 → <code className="bg-portal-blue-lt px-1 rounded">/summer-camp-guide</code></li>
               <li>🏠 Family Resource Guide → <code className="bg-portal-blue-lt px-1 rounded">/family-resource-guide</code></li>
               <li>🏆 Nominate a Teacher of the Month → <code className="bg-portal-blue-lt px-1 rounded">/nominate</code></li>
@@ -370,7 +370,7 @@ export default async function TrendingAdminPage() {
             unblockAction={unblockAutoPath}
           />
         ) : (
-          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-portal-amber">
             <p className="font-bold">Migration 126 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/126_trending_blocked_paths.sql</code> in Supabase Studio to enable the auto-trending preview and the manual blocklist.

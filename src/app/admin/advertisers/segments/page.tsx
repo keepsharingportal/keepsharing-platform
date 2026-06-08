@@ -83,9 +83,9 @@ export default async function SegmentsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {[
           { label: 'Total Confirmed', value: all.length,              icon: Users,        color: 'text-portal-blue' },
-          { label: 'Newcomer Issue',  value: newcomerIssue.length,    icon: TrendingUp,   color: 'text-amber-400' },
-          { label: 'Expiring 30d',    value: exp30,                   icon: Clock,        color: 'text-red-400' },
-          { label: 'Expiring 60-90d', value: exp60 + exp90,           icon: Clock,        color: 'text-yellow-400' },
+          { label: 'Newcomer Issue',  value: newcomerIssue.length,    icon: TrendingUp,   color: 'text-portal-amber' },
+          { label: 'Expiring 30d',    value: exp30,                   icon: Clock,        color: 'text-portal-red' },
+          { label: 'Expiring 60-90d', value: exp60 + exp90,           icon: Clock,        color: 'text-portal-amber' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white/3 border border-white/10 rounded-lg p-4 text-center">
             <Icon size={16} className={`mx-auto mb-2 ${color}`} />
@@ -113,10 +113,10 @@ export default async function SegmentsPage() {
       {/* Expiring */}
       <div className="bg-white/3 border border-white/10 rounded-lg p-5 mb-6">
         <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <Clock size={14} className="text-yellow-400" /> Expiring Bookings (by campaign end)
+          <Clock size={14} className="text-portal-amber" /> Expiring Bookings (by campaign end)
         </h2>
         <div className="grid grid-cols-3 gap-3 text-center">
-          {[['Within 30 days', exp30, 'text-red-400'], ['31-60 days', exp60, 'text-yellow-400'], ['61-90 days', exp90, 'text-white/60']].map(([label, count, cls]) => (
+          {[['Within 30 days', exp30, 'text-portal-red'], ['31-60 days', exp60, 'text-portal-amber'], ['61-90 days', exp90, 'text-white/60']].map(([label, count, cls]) => (
             <div key={label as string} className="bg-white/5 rounded-lg p-4">
               <div className={`text-2xl font-bold ${cls as string}`}>{count as number}</div>
               <div className="text-xs text-white/40 mt-0.5">{label as string}</div>
@@ -133,7 +133,7 @@ export default async function SegmentsPage() {
         <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+              <span className="w-2 h-2 rounded-full bg-portal-amber inline-block" />
               Newcomer Issue 2026 — June 2026 Advertisers
             </h2>
             <p className="text-xs text-white/40 mt-0.5">
@@ -159,7 +159,7 @@ export default async function SegmentsPage() {
                 <div className="text-xs text-white/50 shrink-0 capitalize">{SIZE_LABEL[b.ad_size] ?? b.ad_size}</div>
                 <div className="text-xs text-white/50 shrink-0">{b.months.length} month{b.months.length !== 1 ? 's' : ''}</div>
                 {b.ghl_contact_id ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-green/20 text-green-400 font-semibold shrink-0">GHL synced</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-green/20 text-portal-green font-semibold shrink-0">GHL synced</span>
                 ) : (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/8 text-white/30 font-semibold shrink-0">No GHL ID</span>
                 )}

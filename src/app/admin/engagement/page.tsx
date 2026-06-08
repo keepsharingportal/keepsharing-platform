@@ -84,10 +84,10 @@ const CAMPAIGN_TYPE_LABELS: Record<string, { label: string; color: string }> = {
 }
 
 const CAMPAIGN_STATUS_STYLE: Record<string, string> = {
-  idea:     'bg-gray-100 text-portal-sub',
+  idea:     'bg-portal-row-hover text-portal-sub',
   planned:  'bg-portal-blue-lt text-portal-blue',
   active:   'bg-portal-green-lt text-portal-green',
-  complete: 'bg-purple-100 text-purple-700',
+  complete: 'bg-portal-blue-lt text-portal-blue',
   paused:   'bg-portal-amber-lt text-portal-amber',
 }
 
@@ -390,7 +390,7 @@ export default async function EngagementPage({
             href={viewHref(v.key)}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
-                ? 'bg-gray-900 text-white'
+                ? 'bg-portal-navy text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
@@ -426,7 +426,7 @@ export default async function EngagementPage({
           <div className="bg-white border border-portal-border rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-portal-text">Submission Velocity — Last 6 Months</h2>
-              <Link href={viewHref('participation')} className="text-xs text-indigo-600 hover:underline font-semibold">Full breakdown →</Link>
+              <Link href={viewHref('participation')} className="text-xs text-portal-blue hover:underline font-semibold">Full breakdown →</Link>
             </div>
             <div className="flex items-end gap-2 h-24">
               {monthData.map(([key, val]) => {
@@ -453,7 +453,7 @@ export default async function EngagementPage({
 
               {sponsorGaps.length > 0 && (
                 <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-4">
-                  <p className="text-xs font-bold text-green-800 mb-1">💰 Sponsor Revenue Gap</p>
+                  <p className="text-xs font-bold text-portal-green mb-1">💰 Sponsor Revenue Gap</p>
                   <p className="text-xs text-portal-green leading-relaxed">
                     <strong>{sponsorGaps[0]?.tc?.label ?? sponsorGaps[0]?.type}</strong> is your top participation category with no sponsor.
                     {sponsorGaps[0]?.count} submissions total — strong audience signal.
@@ -471,19 +471,19 @@ export default async function EngagementPage({
                     {dormantGuides} guide{dormantGuides !== 1 ? 's are' : ' is'} dormant or empty.
                     Active guides drive recurring readers — these need content attention.
                   </p>
-                  <Link href={viewHref('content')} className="text-[11px] text-amber-600 font-semibold mt-2 block hover:underline">
+                  <Link href={viewHref('content')} className="text-[11px] text-portal-amber font-semibold mt-2 block hover:underline">
                     Guide health →
                   </Link>
                 </div>
               )}
 
-              <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-4">
-                <p className="text-xs font-bold text-purple-800 mb-1">📧 Email Growth Moment</p>
-                <p className="text-xs text-purple-700 leading-relaxed">
+              <div className="bg-portal-blue-lt border border-portal-blue/30 rounded-lg px-4 py-4">
+                <p className="text-xs font-bold text-portal-blue mb-1">📧 Email Growth Moment</p>
+                <p className="text-xs text-portal-blue leading-relaxed">
                   Community submission thank-you page is an untapped newsletter capture moment.
                   Submitters are already high-trust — ideal signup context.
                 </p>
-                <Link href={viewHref('email')} className="text-[11px] text-purple-600 font-semibold mt-2 block hover:underline">
+                <Link href={viewHref('email')} className="text-[11px] text-portal-blue font-semibold mt-2 block hover:underline">
                   Email growth map →
                 </Link>
               </div>
@@ -508,11 +508,11 @@ export default async function EngagementPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <p className="text-xs font-semibold text-portal-text truncate">{tc?.label ?? type}</p>
-                        {isHS && <span className="text-[10px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded font-bold">High share</span>}
+                        {isHS && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1.5 py-0.5 rounded font-bold">High share</span>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                          <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: `${pct}%` }} />
+                        <div className="flex-1 bg-portal-row-hover rounded-full h-1.5">
+                          <div className="h-1.5 rounded-full bg-portal-blue" style={{ width: `${pct}%` }} />
                         </div>
                         <span className="text-[11px] text-portal-sub font-semibold shrink-0 w-6 text-right">{count}</span>
                       </div>
@@ -530,7 +530,7 @@ export default async function EngagementPage({
               <div>
                 <p className="text-xs font-bold text-portal-sub mb-1">Engagement Signals — Foundation Ready</p>
                 <p className="text-xs text-portal-muted leading-relaxed">
-                  The <code className="font-mono bg-gray-100 px-1 rounded">engagement_signals</code> table is live and waiting.
+                  The <code className="font-mono bg-portal-row-hover px-1 rounded">engagement_signals</code> table is live and waiting.
                   Signals wire in as public pages grow: guide follows, event saves, newsletter signups, return visits, social shares.
                   {signals30.length > 0
                     ? ` ${signals30.length} signals captured in the last 30 days.`
@@ -546,7 +546,7 @@ export default async function EngagementPage({
             <div className="bg-white border border-portal-border rounded-lg p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-portal-text">Active Campaigns</h2>
-                <Link href={viewHref('campaigns')} className="text-xs text-indigo-600 hover:underline font-semibold">All campaigns →</Link>
+                <Link href={viewHref('campaigns')} className="text-xs text-portal-blue hover:underline font-semibold">All campaigns →</Link>
               </div>
               <div className="space-y-2">
                 {campaigns.filter(c => c.status === 'active' || c.status === 'planned').slice(0, 4).map(c => {
@@ -614,20 +614,20 @@ export default async function EngagementPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap mb-1">
                         <p className="text-xs font-semibold text-portal-text">{tc?.label ?? type}</p>
-                        {isHS      && <span className="text-[10px] bg-pink-100 text-pink-600 px-1 rounded font-bold">High share</span>}
+                        {isHS      && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1 rounded font-bold">High share</span>}
                         {isPartic  && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1 rounded font-bold">Participation</span>}
-                        {sponsorCat && !isSponsored && <span className="text-[10px] bg-red-100 text-portal-red px-1 rounded font-bold">No sponsor</span>}
+                        {sponsorCat && !isSponsored && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1 rounded font-bold">No sponsor</span>}
                         {sponsorCat && isSponsored  && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1 rounded font-bold">Sponsored</span>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-100 rounded-full h-2">
+                        <div className="flex-1 bg-portal-row-hover rounded-full h-2">
                           <div className="h-2 rounded-full transition-all" style={{
                             width: `${pct}%`,
                             backgroundColor: isHS ? '#ec4899' : isPartic ? '#2563eb' : '#6b7280',
                           }} />
                         </div>
                         <span className="text-xs font-bold text-portal-sub shrink-0 w-8 text-right">{count}</span>
-                        {count30 > 0 && <span className="text-[10px] text-indigo-500 shrink-0">+{count30} (30d)</span>}
+                        {count30 > 0 && <span className="text-[10px] text-portal-blue shrink-0">+{count30} (30d)</span>}
                       </div>
                     </div>
                   </div>
@@ -651,7 +651,7 @@ export default async function EngagementPage({
               </p>
               <div className="space-y-3">
                 {sponsorGaps.map(({ type, count, category, tc }) => (
-                  <div key={type} className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                  <div key={type} className="flex items-center gap-3 bg-portal-red-lt border border-portal-red/20 rounded-lg px-4 py-3">
                     <span className="text-xl shrink-0">{tc?.emoji ?? '📝'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-portal-text">{tc?.label ?? type}</p>
@@ -676,8 +676,8 @@ export default async function EngagementPage({
                   return (
                     <div key={pub} className="flex items-center gap-3">
                       <span className="text-xs font-bold text-portal-sub w-12 shrink-0 uppercase">{pub}</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-2">
-                        <div className="h-2 rounded-full bg-indigo-400" style={{ width: `${pct}%` }} />
+                      <div className="flex-1 bg-portal-row-hover rounded-full h-2">
+                        <div className="h-2 rounded-full bg-portal-blue" style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-xs font-semibold text-portal-sub w-8 text-right shrink-0">{count}</span>
                     </div>
@@ -695,7 +695,7 @@ export default async function EngagementPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -708,8 +708,8 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'content' && (
         <div className="space-y-6">
-          <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-5 py-3">
-            <p className="text-xs text-indigo-800 font-medium">
+          <div className="bg-portal-blue-lt border border-indigo-100 rounded-lg px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               📖 Guide health drives recurring readership. Families who find value in a guide return repeatedly — each guide is a retention loop, not a one-time visit.
             </p>
           </div>
@@ -752,7 +752,7 @@ export default async function EngagementPage({
                   >
                     {g.status.label}
                   </span>
-                  <Link href={`/admin/guides?guide=${g.slug}`} className="text-xs text-portal-muted hover:text-indigo-600 hover:underline shrink-0">
+                  <Link href={`/admin/guides?guide=${g.slug}`} className="text-xs text-portal-muted hover:text-portal-blue hover:underline shrink-0">
                     →
                   </Link>
                 </div>
@@ -771,7 +771,7 @@ export default async function EngagementPage({
                 const tc    = SUBMISSION_TYPES.find(t => t.type === type)
                 const count = typeCounts.get(type) ?? 0
                 return (
-                  <div key={type} className="bg-pink-50 border border-pink-100 rounded-lg px-4 py-3">
+                  <div key={type} className="bg-portal-red-lt border border-portal-red/20 rounded-lg px-4 py-3">
                     <p className="text-xl mb-1">{tc?.emoji}</p>
                     <p className="text-xs font-semibold text-portal-text leading-tight">{tc?.label ?? type}</p>
                     <p className="text-[11px] text-portal-muted mt-0.5">{count} total submissions</p>
@@ -790,7 +790,7 @@ export default async function EngagementPage({
                   <div key={g.slug} className="flex items-center gap-2">
                     <span>{g.emoji}</span>
                     <p className="text-xs text-portal-amber flex-1">{g.name}</p>
-                    <span className="text-[10px] font-semibold text-amber-600">
+                    <span className="text-[10px] font-semibold text-portal-amber">
                       {g.count === 0 ? 'No articles' : `Last: ${g.days}d ago`}
                     </span>
                   </div>
@@ -807,7 +807,7 @@ export default async function EngagementPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -820,8 +820,8 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'email' && (
         <div className="space-y-6">
-          <div className="bg-purple-50 border border-purple-100 rounded-lg px-5 py-3">
-            <p className="text-xs text-purple-800 font-medium">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-lg px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               📧 Email is the retention backbone. Every newsletter subscriber is a recurring relationship. These are the highest-leverage moments to add subscribers — mapped by intent and trust level.
             </p>
           </div>
@@ -836,7 +836,7 @@ export default async function EngagementPage({
                     <span className={`text-[10px] px-2 py-1 rounded font-bold ${
                       opp.urgency === 'high'   ? 'bg-portal-green-lt text-portal-green' :
                       opp.urgency === 'medium' ? 'bg-portal-blue-lt text-portal-blue'  :
-                                                  'bg-gray-100 text-portal-sub'
+                                                  'bg-portal-row-hover text-portal-sub'
                     }`}>
                       {opp.urgency === 'high' ? '⚡ High value' : opp.urgency === 'medium' ? '📍 Medium' : '📌 Low'}
                     </span>
@@ -845,8 +845,8 @@ export default async function EngagementPage({
                     <p className="text-sm font-semibold text-portal-text mb-0.5">{opp.trigger}</p>
                     <p className="text-xs text-portal-sub leading-relaxed mb-1.5">{opp.why}</p>
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-[10px] bg-gray-100 text-portal-sub px-2 py-0.5 rounded font-mono">{opp.page}</span>
-                      <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-semibold">{opp.signup_type}</span>
+                      <span className="text-[10px] bg-portal-row-hover text-portal-sub px-2 py-0.5 rounded font-mono">{opp.page}</span>
+                      <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-2 py-0.5 rounded font-semibold">{opp.signup_type}</span>
                     </div>
                   </div>
                 </div>
@@ -872,7 +872,7 @@ export default async function EngagementPage({
                 <div key={guide} className="bg-portal-bg border border-portal-border rounded-lg px-4 py-3">
                   <p className="text-[10px] text-portal-muted font-semibold uppercase tracking-wide mb-0.5">{guide}</p>
                   <p className="text-xs font-semibold text-portal-text">{magnet}</p>
-                  <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-semibold mt-1 inline-block">{type}</span>
+                  <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold mt-1 inline-block">{type}</span>
                 </div>
               ))}
             </div>
@@ -907,7 +907,7 @@ export default async function EngagementPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -920,8 +920,8 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'campaigns' && (
         <div className="space-y-6">
-          <div className="bg-portal-green-lt border border-green-100 rounded-lg px-5 py-3">
-            <p className="text-xs text-green-800 font-medium">
+          <div className="bg-portal-green-lt border border-portal-green/20 rounded-lg px-5 py-3">
+            <p className="text-xs text-portal-green font-medium">
               🎯 Campaigns are operator-planned engagement pushes. Track ideas from concept through execution. Each campaign should have a clear goal and a named owner.
             </p>
           </div>
@@ -932,7 +932,7 @@ export default async function EngagementPage({
               const count = campaigns.filter(c => c.status === s).length
               return (
                 <div key={s} className={`text-center px-3 py-3 rounded-lg border ${count > 0 ? 'bg-white border-portal-border' : 'bg-portal-bg border-gray-50'}`}>
-                  <p className={`text-xl font-bold ${count > 0 ? 'text-portal-text' : 'text-gray-300'}`}>{count}</p>
+                  <p className={`text-xl font-bold ${count > 0 ? 'text-portal-text' : 'text-portal-border-2'}`}>{count}</p>
                   <p className="text-[10px] text-portal-muted capitalize mt-0.5">{s}</p>
                 </div>
               )
@@ -982,7 +982,7 @@ export default async function EngagementPage({
                             <form action={advanceCampaignStatus} className="shrink-0">
                               <input type="hidden" name="id"          value={c.id} />
                               <input type="hidden" name="next_status" value={nextStep.next} />
-                              <button type="submit" className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700 whitespace-nowrap">
+                              <button type="submit" className="text-xs px-3 py-1.5 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy whitespace-nowrap">
                                 {nextStep.label}
                               </button>
                             </form>
@@ -1077,7 +1077,7 @@ export default async function EngagementPage({
               </div>
 
               <div className="flex justify-end">
-                <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
+                <button type="submit" className="text-sm px-5 py-2 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy">
                   Add Campaign Idea
                 </button>
               </div>

@@ -105,7 +105,7 @@ function freshnessChip(days: number): { label: string; cls: string } {
   if (days <= 7)  return { label: 'Fresh',    cls: 'bg-portal-green-lt text-portal-green'  }
   if (days <= 21) return { label: 'Recent',   cls: 'bg-portal-blue-lt text-portal-blue'   }
   if (days <= 60) return { label: 'Aging',    cls: 'bg-portal-amber-lt text-portal-amber' }
-  return                 { label: 'Stale',    cls: 'bg-red-50 text-red-700'     }
+  return                 { label: 'Stale',    cls: 'bg-portal-red-lt text-portal-red'     }
 }
 
 function hasImage(item: DistItem): boolean {
@@ -352,7 +352,7 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
             <span className="text-sm">{tc?.emoji ?? '📝'}</span>
             <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
-            <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
+            <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
             {!img && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold">No image</span>}
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${fc.cls}`}>{fc.label}</span>
           </div>
@@ -367,7 +367,7 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
               <span className="text-[11px] text-portal-muted">{item.issue_month}{item.issue_year ? ` ${item.issue_year}` : ''}</span>
             )}
             {item.destination_section && (
-              <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-semibold">{item.destination_section}</span>
+              <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">{item.destination_section}</span>
             )}
           </div>
         </div>
@@ -379,7 +379,7 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
           </div>
           <Link
             href={`/admin/editorial/${item.id}`}
-            className="text-[11px] font-bold text-indigo-600 hover:underline"
+            className="text-[11px] font-bold text-portal-blue hover:underline"
           >
             Review →
           </Link>
@@ -535,7 +535,7 @@ export default async function DistributionPage({
             href={viewHref(v.key)}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
-                ? 'bg-gray-900 text-white'
+                ? 'bg-portal-navy text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
@@ -599,7 +599,7 @@ export default async function DistributionPage({
             <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
               <div className="text-4xl mb-4">📭</div>
               <p className="text-portal-sub font-medium">No approved content in the distribution queue.</p>
-              <Link href="/admin/editorial" className="text-sm text-indigo-600 mt-2 inline-block hover:underline">
+              <Link href="/admin/editorial" className="text-sm text-portal-blue mt-2 inline-block hover:underline">
                 Go to Editorial Pipeline →
               </Link>
             </div>
@@ -621,12 +621,12 @@ export default async function DistributionPage({
 
           {/* Stale alert */}
           {staleHomepage.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-5 py-4">
-              <p className="text-sm font-bold text-red-800 mb-2">⚠️ Stale Homepage Items ({staleHomepage.length})</p>
+            <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg px-5 py-4">
+              <p className="text-sm font-bold text-portal-red mb-2">⚠️ Stale Homepage Items ({staleHomepage.length})</p>
               <div className="space-y-1.5">
                 {staleHomepage.map(item => (
                   <div key={item.id} className="flex items-center justify-between gap-4">
-                    <p className="text-xs text-red-700">{displayTitle(item)} — {freshnessDays(item.updated_at)}d old</p>
+                    <p className="text-xs text-portal-red">{displayTitle(item)} — {freshnessDays(item.updated_at)}d old</p>
                     <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-red hover:underline font-semibold shrink-0">Review →</Link>
                   </div>
                 ))}
@@ -642,7 +642,7 @@ export default async function DistributionPage({
                 <div className="flex items-center gap-3 mb-2">
                   <h2 className="text-sm font-bold text-portal-text">{sec.label}</h2>
                   <span className="text-xs text-portal-muted">({secItems.length} assigned)</span>
-                  <div className="flex-1 h-px bg-gray-100" />
+                  <div className="flex-1 h-px bg-portal-row-hover" />
                   {secItems.length === 0 && (
                     <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold">Empty</span>
                   )}
@@ -669,18 +669,18 @@ export default async function DistributionPage({
                           className="w-14 text-xs border border-portal-border rounded-lg px-2 py-1.5 outline-none" />
                         <input name="homepage_remove_on" type="date" defaultValue={item.homepage_remove_on ?? ''}
                           className="text-xs border border-portal-border rounded-lg px-2 py-1.5 outline-none" />
-                        <button type="submit" className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700">Save</button>
+                        <button type="submit" className="text-xs px-3 py-1.5 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">Save</button>
                       </form>
                       <form action={toggleHomepage}>
                         <input type="hidden" name="id"      value={item.id} />
                         <input type="hidden" name="current" value="true" />
                         <input type="hidden" name="v"       value="homepage" />
-                        <button type="submit" className="text-[11px] px-2 py-1.5 border border-red-200 text-portal-red rounded-lg hover:bg-portal-red-lt">Remove</button>
+                        <button type="submit" className="text-[11px] px-2 py-1.5 border border-portal-red/30 text-portal-red rounded-lg hover:bg-portal-red-lt">Remove</button>
                       </form>
                     </div>
                   ))}
                   {secItems.length === 0 && (
-                    <p className="text-xs text-gray-300 italic px-4 py-2">No content assigned to this section.</p>
+                    <p className="text-xs text-portal-border-2 italic px-4 py-2">No content assigned to this section.</p>
                   )}
                 </div>
               </div>
@@ -727,7 +727,7 @@ export default async function DistributionPage({
                           + Feature
                         </button>
                       </form>
-                      <Link href={`/admin/editorial/${item.id}`} className="text-xs text-indigo-600 hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
+                      <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-blue hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
                     </div>
                   </div>
                 ))}
@@ -766,22 +766,22 @@ export default async function DistributionPage({
                       <div className="space-y-1.5">
                         {secItems.map((item, idx) => (
                           <div key={item.id} className="flex items-center gap-2 px-3 py-2 bg-portal-bg rounded-lg">
-                            <span className="text-[11px] font-bold text-gray-300 w-4 shrink-0">{idx + 1}</span>
+                            <span className="text-[11px] font-bold text-portal-border-2 w-4 shrink-0">{idx + 1}</span>
                             <p className="text-xs font-semibold text-portal-text flex-1 truncate">{displayTitle(item)}</p>
                             <span className="text-[10px] text-portal-muted">{SUBMISSION_TYPES.find(t => t.type === item.submission_type)?.emoji}</span>
-                            <Link href={`/admin/editorial/${item.id}`} className="text-[10px] text-indigo-500 hover:underline shrink-0">Edit</Link>
+                            <Link href={`/admin/editorial/${item.id}`} className="text-[10px] text-portal-blue hover:underline shrink-0">Edit</Link>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-300 italic px-3">Empty — assign content below</p>
+                      <p className="text-xs text-portal-border-2 italic px-3">Empty — assign content below</p>
                     )}
                   </div>
                 )
               })}
               {groups.newsletter.filter(i => !i.newsletter_section).length > 0 && (
                 <div>
-                  <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wide mb-1.5">No Section Assigned</p>
+                  <p className="text-[11px] font-bold text-portal-amber uppercase tracking-wide mb-1.5">No Section Assigned</p>
                   {groups.newsletter.filter(i => !i.newsletter_section).map(item => (
                     <div key={item.id} className="flex items-center gap-2 px-3 py-2 bg-portal-amber-lt rounded-lg mb-1">
                       <p className="text-xs font-semibold text-portal-text flex-1 truncate">{displayTitle(item)}</p>
@@ -817,7 +817,7 @@ export default async function DistributionPage({
                     <input name="newsletter_order" type="number" min="1" max="99" defaultValue={item.newsletter_order ?? ''}
                       placeholder="#"
                       className="w-14 text-xs border border-portal-border rounded-lg px-2 py-1.5 outline-none" />
-                    <button type="submit" className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700">Save</button>
+                    <button type="submit" className="text-xs px-3 py-1.5 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy">Save</button>
                   </form>
                 </div>
               ))}
@@ -830,7 +830,7 @@ export default async function DistributionPage({
               <h2 className="text-sm font-bold text-portal-text">Quality Check</h2>
               {nlWarnings.map((w, i) => (
                 <div key={i} className={`flex items-start gap-3 px-4 py-3 rounded-lg border text-xs font-medium ${
-                  w.level === 'error'   ? 'bg-red-50 border-red-200 text-red-800'
+                  w.level === 'error'   ? 'bg-portal-red-lt border-portal-red/30 text-portal-red'
                   : w.level === 'warning' ? 'bg-portal-amber-lt border-portal-amber/30 text-portal-amber'
                   : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
                 }`}>
@@ -849,7 +849,7 @@ export default async function DistributionPage({
               <div className="space-y-1.5">
                 {nlSubjects.map((s, i) => (
                   <div key={i} className="flex items-center gap-3 px-3 py-2 bg-portal-bg rounded-lg">
-                    <span className="text-[11px] font-bold text-gray-300 w-4 shrink-0">{i + 1}</span>
+                    <span className="text-[11px] font-bold text-portal-border-2 w-4 shrink-0">{i + 1}</span>
                     <p className="text-xs text-portal-text flex-1 font-medium">{s}</p>
                   </div>
                 ))}
@@ -916,7 +916,7 @@ export default async function DistributionPage({
                       <h3 className="text-xs font-bold text-portal-sub">Mobile Short Version</h3>
                       <p className="text-[11px] text-portal-muted">For SMS teaser, push notification, or social preview</p>
                     </div>
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-semibold">Compact</span>
+                    <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-2 py-0.5 rounded font-semibold">Compact</span>
                   </div>
                   <div className="p-4">
                     <textarea
@@ -948,7 +948,7 @@ export default async function DistributionPage({
                 <button key={label} disabled
                   className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -962,14 +962,14 @@ export default async function DistributionPage({
       {activeView === 'social' && (
         <div className="space-y-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex-1 bg-purple-50 border border-purple-100 rounded-lg px-5 py-3">
-              <p className="text-xs text-purple-800 font-medium">
+            <div className="flex-1 bg-portal-blue-lt border border-portal-blue/20 rounded-lg px-5 py-3">
+              <p className="text-xs text-portal-blue font-medium">
                 📱 Social amplification is editorial judgment, not automation. Surface high-share potential content, set priority, and hand off to your social workflow.
               </p>
             </div>
             <Link
               href="/admin/distribution/social-export"
-              className="shrink-0 text-xs px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-1.5"
+              className="shrink-0 text-xs px-4 py-2.5 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy transition-colors flex items-center gap-1.5"
             >
               📤 Social Planner Export →
             </Link>
@@ -991,7 +991,7 @@ export default async function DistributionPage({
                       <div className="flex items-center gap-2 mb-0.5">
                         <span>{tc?.emoji}</span>
                         <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
-                        <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">High Share</span>
+                        <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">High Share</span>
                         {item.social_queue && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold">In Queue</span>}
                       </div>
                       <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
@@ -1006,9 +1006,9 @@ export default async function DistributionPage({
                           <option value="normal">Normal</option>
                           <option value="high">High Priority</option>
                         </select>
-                        <button type="submit" className="text-xs px-3 py-1.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 ml-1.5">Set</button>
+                        <button type="submit" className="text-xs px-3 py-1.5 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy ml-1.5">Set</button>
                       </form>
-                      <Link href={`/admin/editorial/${item.id}`} className="text-xs text-indigo-600 hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
+                      <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-blue hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
                     </div>
                   </div>
                 )
@@ -1033,7 +1033,7 @@ export default async function DistributionPage({
               {['Generate Social Captions', 'Identify Viral Potential', 'Suggest Posting Schedule'].map(label => (
                 <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -1067,7 +1067,7 @@ export default async function DistributionPage({
                         )}
                       </div>
                     </div>
-                    <Link href={`/admin/editorial/${item.id}`} className="text-xs text-indigo-600 hover:underline font-semibold shrink-0">Assign Guide →</Link>
+                    <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-blue hover:underline font-semibold shrink-0">Assign Guide →</Link>
                   </div>
                 ))}
               </div>
@@ -1091,13 +1091,13 @@ export default async function DistributionPage({
                         <p className="text-sm font-semibold text-portal-text leading-tight">{guideName(g.slug)}</p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-[11px] text-portal-sub">{count} articles</span>
-                          {count < 5 && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">Needs content</span>}
-                          {count === 0 && <span className="text-[10px] bg-red-200 text-red-800 px-1.5 py-0.5 rounded font-bold">Empty</span>}
+                          {count < 5 && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1.5 py-0.5 rounded font-semibold">Needs content</span>}
+                          {count === 0 && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1.5 py-0.5 rounded font-bold">Empty</span>}
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${fc.cls}`}>{fc.label}</span>
-                          {inQueue > 0 && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-semibold">{inQueue} queued</span>}
+                          {inQueue > 0 && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">{inQueue} queued</span>}
                         </div>
                       </div>
-                      <div className="w-16 bg-gray-100 rounded-full h-2 mt-1.5 shrink-0">
+                      <div className="w-16 bg-portal-row-hover rounded-full h-2 mt-1.5 shrink-0">
                         <div className="h-2 rounded-full bg-portal-green" style={{ width: `${Math.min(count * 10, 100)}%` }} />
                       </div>
                     </div>
@@ -1138,7 +1138,7 @@ export default async function DistributionPage({
                           <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold">{sponsor.package_tier}</span>
                         )}
                         {sponsor.sponsor_category_slug && (
-                          <span className="text-[10px] bg-gray-100 text-portal-sub px-2 py-0.5 rounded-full font-semibold">{sponsor.sponsor_category_slug}</span>
+                          <span className="text-[10px] bg-portal-row-hover text-portal-sub px-2 py-0.5 rounded-full font-semibold">{sponsor.sponsor_category_slug}</span>
                         )}
                       </div>
                       <p className="text-xs text-portal-muted mt-0.5">
@@ -1165,7 +1165,7 @@ export default async function DistributionPage({
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {sponsorGaps.slice(0, 12).map(({ sponsor }) => (
-                  <div key={sponsor.id} className="flex items-center gap-3 bg-white border border-amber-100 rounded-lg px-4 py-3">
+                  <div key={sponsor.id} className="flex items-center gap-3 bg-white border border-portal-amber/20 rounded-lg px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{sponsor.business_name}</p>
                       <p className="text-[11px] text-portal-muted">
@@ -1187,7 +1187,7 @@ export default async function DistributionPage({
               {['Suggest Sponsor Pairings', 'Identify Coverage Gaps', 'Flag Conflict Risk'].map(label => (
                 <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -1208,7 +1208,7 @@ export default async function DistributionPage({
                 {healthPct}%
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-3 mb-4">
+            <div className="w-full bg-portal-row-hover rounded-full h-3 mb-4">
               <div className="h-3 rounded-full transition-all" style={{ width: `${healthPct}%`, backgroundColor: healthPct >= 80 ? '#16a34a' : healthPct >= 50 ? '#b8860b' : '#dc2626' }} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1237,7 +1237,7 @@ export default async function DistributionPage({
               groups.newsletter.length < 3 && { severity: 'info',   icon: '📧', msg: `Only ${groups.newsletter.length} item${groups.newsletter.length !== 1 ? 's' : ''} in the newsletter queue. Consider adding more.`, href: viewHref('newsletter') },
             ].filter(Boolean).map((alert, i) => {
               if (!alert) return null
-              const cls = alert.severity === 'critical' ? 'bg-red-50 border-red-200 text-red-800'
+              const cls = alert.severity === 'critical' ? 'bg-portal-red-lt border-portal-red/30 text-portal-red'
                         : alert.severity === 'warning'  ? 'bg-portal-amber-lt border-portal-amber/30 text-portal-amber'
                         : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
               return (
@@ -1266,7 +1266,7 @@ export default async function DistributionPage({
                   <p className="text-xs font-semibold text-portal-sub">{m.label}</p>
                   <span className="text-sm font-bold" style={{ color: m.color }}>{m.val}</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="w-full bg-portal-row-hover rounded-full h-1.5">
                   <div className="h-1.5 rounded-full" style={{ width: `${Math.min((m.val / m.max) * 100, 100)}%`, backgroundColor: m.color }} />
                 </div>
               </div>
@@ -1280,7 +1280,7 @@ export default async function DistributionPage({
               {['Suggest Homepage Lineup', 'Flag Under-Amplified Content', 'Identify Seasonal Gaps'].map(label => (
                 <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
-                  <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>

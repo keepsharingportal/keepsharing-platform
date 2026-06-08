@@ -108,7 +108,7 @@ export default function TrashPage() {
             <ArrowLeft size={12} /> Back to All Articles
           </Link>
           <div className="flex items-center gap-2">
-            <Trash2 size={20} className="text-rose-600" />
+            <Trash2 size={20} className="text-portal-red" />
             <h1 className="text-xl font-bold text-portal-text tracking-tight">Trash</h1>
           </div>
           <p className="text-sm text-portal-sub mt-1">
@@ -119,7 +119,7 @@ export default function TrashPage() {
           <button
             type="button"
             onClick={emptyTrash}
-            className="text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 px-4 py-2 rounded-lg"
+            className="text-sm font-bold text-white bg-portal-red hover:bg-portal-red px-4 py-2 rounded-lg"
           >
             Empty Trash ({articles.length})
           </button>
@@ -128,15 +128,15 @@ export default function TrashPage() {
 
       {msg && (
         <div className={`rounded-lg px-4 py-3 text-sm font-semibold border ${
-          msg.ok ? 'bg-portal-green-lt border-portal-green/30 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
+          msg.ok ? 'bg-portal-green-lt border-portal-green/30 text-portal-green' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
         }`}>
           {msg.text}
         </div>
       )}
 
       {migrationMissing && (
-        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1">Trash needs a database migration</p>
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1">Trash needs a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/076_article_soft_delete.sql</code> in the Supabase SQL editor.
             Once the <code className="bg-portal-amber-lt px-1 rounded">deleted_at</code> column exists, the
@@ -153,7 +153,7 @@ export default function TrashPage() {
           </div>
         ) : articles.length === 0 ? (
           <div className="p-12 text-center">
-            <Trash2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <Trash2 className="h-10 w-10 text-portal-border-2 mx-auto mb-3" />
             <p className="text-sm font-semibold text-portal-sub mb-1">Trash is empty</p>
             <p className="text-xs text-portal-muted">Articles you move to trash will appear here.</p>
           </div>
@@ -163,9 +163,9 @@ export default function TrashPage() {
               <li key={a.id} className="p-4 flex items-center gap-4">
                 {a.hero_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.hero_image_url} alt={a.title} className="w-16 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+                  <img src={a.hero_image_url} alt={a.title} className="w-16 h-12 rounded-lg object-cover bg-portal-row-hover shrink-0" />
                 ) : (
-                  <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
+                  <div className="w-16 h-12 rounded-lg bg-portal-row-hover shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>

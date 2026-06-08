@@ -79,7 +79,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
     <div className="space-y-4">
       {err && <p className="text-xs text-portal-red">{err}</p>}
 
-      <div className="rounded-md border border-portal-amber/30 bg-portal-amber-lt p-3 text-xs text-amber-900 flex items-start gap-2">
+      <div className="rounded-md border border-portal-amber/30 bg-portal-amber-lt p-3 text-xs text-portal-amber flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
         <div>
           <p className="font-bold">Set these before drivers + readers see anything</p>
@@ -175,7 +175,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
             <Plus size={12} /> New setting
           </button>
         ) : (
-          <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
+          <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-3 space-y-2">
             <input placeholder="key (snake_case)" value={newKey} onChange={e => setNewKey(e.target.value)} className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm" />
             <input placeholder="value" value={newVal} onChange={e => setNewVal(e.target.value)} className="w-full rounded-md border border-portal-border-2 px-2.5 py-1.5 text-sm" />
             <div className="flex items-center gap-2">

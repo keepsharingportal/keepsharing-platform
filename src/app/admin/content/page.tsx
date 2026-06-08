@@ -72,7 +72,7 @@ export default async function ContentDashboard() {
       value: pending,
       icon: AlertCircle,
       href: '/admin/articles/review',
-      color: pending > 0 ? 'text-amber-600' : 'text-portal-muted',
+      color: pending > 0 ? 'text-portal-amber' : 'text-portal-muted',
       bg:    pending > 0 ? 'bg-portal-amber-lt border-portal-amber/30' : 'bg-portal-bg border-portal-border',
       cta:   'Open Queue',
     },
@@ -90,8 +90,8 @@ export default async function ContentDashboard() {
       value: missingImg,
       icon: ImageOff,
       href: '/admin/articles?filter=missing-image',
-      color: missingImg > 0 ? 'text-orange-600' : 'text-portal-muted',
-      bg:    missingImg > 0 ? 'bg-orange-50 border-orange-200' : 'bg-portal-bg border-portal-border',
+      color: missingImg > 0 ? 'text-portal-amber' : 'text-portal-muted',
+      bg:    missingImg > 0 ? 'bg-portal-amber-lt border-portal-amber/30' : 'bg-portal-bg border-portal-border',
       cta:   'Fix Now',
     },
     {
@@ -100,7 +100,7 @@ export default async function ContentDashboard() {
       icon: GraduationCap,
       href: '/admin/articles?filter=school-bits',
       color: sbPending > 0 ? 'text-portal-blue' : 'text-portal-muted',
-      bg:    sbPending > 0 ? 'bg-portal-blue-lt border-blue-200' : 'bg-portal-bg border-portal-border',
+      bg:    sbPending > 0 ? 'bg-portal-blue-lt border-portal-blue/30' : 'bg-portal-bg border-portal-border',
       cta:   'Review',
     },
     {
@@ -108,8 +108,8 @@ export default async function ContentDashboard() {
       value: events,
       icon: CalendarDays,
       href: '/admin/content/events-import',
-      color: 'text-purple-600',
-      bg:    'bg-purple-50 border-purple-200',
+      color: 'text-portal-blue',
+      bg:    'bg-portal-blue-lt border-portal-blue/30',
       cta:   'View Events',
     },
     {
@@ -117,16 +117,16 @@ export default async function ContentDashboard() {
       value: guideListings,
       icon: BookOpen,
       href: '/admin/guides',
-      color: 'text-indigo-600',
-      bg:    'bg-indigo-50 border-indigo-200',
+      color: 'text-portal-blue',
+      bg:    'bg-portal-blue-lt border-indigo-200',
       cta:   'Manage',
     },
   ]
 
   const QUICK_ACTIONS = [
     { label: 'Write New Article',  href: '/admin/articles/new',         icon: Plus,          color: 'bg-portal-navy hover:opacity-90 text-white' },
-    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber hover:bg-amber-600 text-white' },
-    { label: 'Import Content',     href: '/admin/content/imports',      icon: Upload,        color: 'bg-gray-800 hover:bg-gray-900 text-white' },
+    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber hover:bg-portal-amber text-white' },
+    { label: 'Import Content',     href: '/admin/content/imports',      icon: Upload,        color: 'bg-portal-navy hover:bg-portal-navy text-white' },
     { label: 'All Articles',       href: '/admin/articles',             icon: FileText,      color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
     { label: 'Add Event',          href: '/admin/content/events-import',icon: CalendarDays,  color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
     { label: 'Manage Guides',      href: '/admin/guides',               icon: BookOpen,      color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
@@ -162,7 +162,7 @@ export default async function ContentDashboard() {
             >
               <div className="flex items-center justify-between">
                 <s.icon size={16} className={s.color} />
-                <ArrowRight size={12} className="text-gray-300" />
+                <ArrowRight size={12} className="text-portal-border-2" />
               </div>
               <div className={`text-3xl font-black ${s.color}`}>{s.value}</div>
               <div className="text-xs font-semibold text-portal-sub leading-tight">{s.label}</div>
@@ -206,7 +206,7 @@ export default async function ContentDashboard() {
                 return (
                   <div key={a.id} className="flex items-center gap-3 px-4 py-3 hover:bg-portal-bg transition-colors">
                     {/* Image indicator */}
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${a.hero_image_url ? 'bg-green-400' : 'bg-red-300'}`} title={a.hero_image_url ? 'Has image' : 'Missing image'} />
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${a.hero_image_url ? 'bg-portal-green' : 'bg-portal-red'}`} title={a.hero_image_url ? 'Has image' : 'Missing image'} />
 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
@@ -253,7 +253,7 @@ export default async function ContentDashboard() {
           </h2>
           <div className="flex items-center gap-2 text-xs text-portal-sub flex-wrap">
             {[
-              { step: '1', label: 'Import or write', color: 'bg-gray-200' },
+              { step: '1', label: 'Import or write', color: 'bg-portal-border-2' },
               { step: '→', label: '', color: '' },
               { step: '2', label: 'Needs Review', color: 'bg-portal-amber-lt' },
               { step: '→', label: '', color: '' },
@@ -261,7 +261,7 @@ export default async function ContentDashboard() {
               { step: '→', label: '', color: '' },
               { step: '4', label: 'Approve → Published', color: 'bg-portal-green-lt' },
             ].map((s, i) => s.step === '→' ? (
-              <span key={i} className="text-gray-300">→</span>
+              <span key={i} className="text-portal-border-2">→</span>
             ) : (
               <span key={i} className={`px-2.5 py-1 rounded-full font-semibold ${s.color}`}>
                 {s.step}. {s.label}

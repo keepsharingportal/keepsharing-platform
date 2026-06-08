@@ -46,9 +46,9 @@ function fmtMoney(n: number | null | undefined): string {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  draft:     'bg-gray-100 text-portal-text',
+  draft:     'bg-portal-row-hover text-portal-text',
   submitted: 'bg-portal-blue-lt text-portal-blue',
-  reviewed:  'bg-indigo-100 text-indigo-800',
+  reviewed:  'bg-portal-blue-lt text-portal-blue',
   paid:      'bg-portal-green-lt text-portal-green',
 }
 
@@ -94,7 +94,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
           <button
             key={m}
             onClick={() => gotoMonth(m)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {fmtShortMonth(m)}
           </button>
@@ -102,7 +102,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
         {!months.includes(activeMonth) && (
           <button
             onClick={() => gotoMonth(activeMonth)}
-            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-blue-600"
+            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-portal-blue"
           >
             {fmtShortMonth(activeMonth)}
           </button>
@@ -111,7 +111,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
 
       {/* Stragglers */}
       {stragglers.length > 0 && (
-        <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
+        <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 text-sm text-portal-amber flex items-start gap-2">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Not yet submitted for {fmtMonth(activeMonth)}</p>
@@ -127,7 +127,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
       ) : (
         <ul className="space-y-2">
           {rows.map(row => (
-            <li key={row.id} className={`rounded-lg border bg-white p-3 ${row.status === 'paid' ? 'border-emerald-200' : row.status === 'draft' ? 'border-portal-border' : 'border-blue-200'}`}>
+            <li key={row.id} className={`rounded-lg border bg-white p-3 ${row.status === 'paid' ? 'border-portal-green/30' : row.status === 'draft' ? 'border-portal-border' : 'border-portal-blue/30'}`}>
 
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     <p className="text-sm font-bold text-portal-text truncate">{row.circulation_drivers?.full_name ?? '(unknown driver)'}</p>
                     <span className="text-[10px] text-portal-muted">·</span>
                     <p className="text-sm text-portal-text truncate">{row.circulation_routes?.name ?? '(route)'}</p>
-                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_BADGE[row.status] ?? 'bg-gray-100 text-portal-text'}`}>
+                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_BADGE[row.status] ?? 'bg-portal-row-hover text-portal-text'}`}>
                       {row.status}
                     </span>
                   </div>
@@ -162,7 +162,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     <>
                       <button
                         onClick={() => setEditing(editing === row.id ? null : row.id)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-green text-white hover:bg-portal-green"
                       >
                         <DollarSign size={11} /> Mark Paid
                       </button>
@@ -270,7 +270,7 @@ function PayForm({ delivery, onCancel, onSaved }: {
         <button
           onClick={save}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-green text-white rounded-md hover:bg-portal-green disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Confirm Paid'}

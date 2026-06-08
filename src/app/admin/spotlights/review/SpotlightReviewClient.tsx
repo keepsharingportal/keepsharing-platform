@@ -96,7 +96,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
       {msg && (
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
           msg.ok ? 'bg-portal-green-lt border border-portal-green/30 text-portal-green'
-                 : 'bg-red-50 border border-red-200 text-portal-red'
+                 : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {msg.ok ? <CheckCircle2 size={14} className="inline mr-1 -mt-0.5" /> : <AlertCircle size={14} className="inline mr-1 -mt-0.5" />}
           {msg.text}
@@ -122,7 +122,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <button
               onClick={() => runBulkAction([...selected], 'publish')}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-50 transition-colors"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
               Approve &amp; Publish
@@ -137,7 +137,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <button
               onClick={() => runBulkAction([...selected], 'reject')}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white text-portal-red border border-red-200 rounded-lg hover:bg-portal-red-lt disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white text-portal-red border border-portal-red/30 rounded-lg hover:bg-portal-red-lt disabled:opacity-50 transition-colors"
             >
               <XCircle size={12} />
               Reject
@@ -163,7 +163,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <article
               key={r.id}
               className={`flex flex-col bg-white rounded-lg border overflow-hidden transition-colors ${
-                isSelected ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-portal-border'
+                isSelected ? 'border-portal-blue/50 ring-1 ring-portal-blue/30' : 'border-portal-border'
               }`}
             >
               <div className="flex gap-3 p-3.5">
@@ -176,7 +176,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                 />
 
                 {r.web_image_url ? (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-portal-row-hover shrink-0">
                     <Image
                       src={r.web_image_url}
                       alt={student}
@@ -187,7 +187,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                     />
                   </div>
                 ) : (
-                  <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center text-portal-muted shrink-0">
+                  <div className="w-24 h-24 rounded-lg bg-portal-row-hover flex items-center justify-center text-portal-muted shrink-0">
                     <ImageOff size={20} />
                   </div>
                 )}
@@ -270,7 +270,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                       <button
                         onClick={() => runBulkAction([r.id], 'publish')}
                         disabled={busy}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-portal-green text-white rounded hover:bg-portal-green disabled:opacity-50 transition-colors"
                       >
                         <CheckCircle2 size={11} /> Publish
                       </button>

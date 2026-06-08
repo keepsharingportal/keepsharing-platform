@@ -45,8 +45,8 @@ export default async function ProposalQueuePage() {
       <div className="flex-1 overflow-y-auto">
       <main className="p-6 max-w-3xl mx-auto">
         <BackLink />
-        <div className="mt-4 rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
+        <div className="mt-4 rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1">Migration needed</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/084_game_content_proposals.sql</code> in the Supabase SQL editor to enable the AI proposal queue.
           </p>
@@ -118,7 +118,7 @@ export default async function ProposalQueuePage() {
 
       {pending.length === 0 ? (
         <div className="border border-dashed border-portal-border-2 rounded-lg p-10 text-center bg-white">
-          <Inbox size={28} className="mx-auto text-gray-300 mb-3" />
+          <Inbox size={28} className="mx-auto text-portal-border-2 mb-3" />
           <p className="text-sm text-portal-sub mb-1">All caught up.</p>
           <p className="text-xs text-portal-muted">Run &ldquo;Generate content&rdquo; on the games admin to populate this queue.</p>
         </div>
@@ -133,7 +133,7 @@ export default async function ProposalQueuePage() {
                 <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-portal-text">{game?.emoji} {game?.title ?? gameType}</span>
-                    <span className="text-xs font-semibold text-portal-sub px-2 py-0.5 rounded-full bg-gray-100">{diffLabel}</span>
+                    <span className="text-xs font-semibold text-portal-sub px-2 py-0.5 rounded-full bg-portal-row-hover">{diffLabel}</span>
                     <span className="text-xs text-portal-muted">· {items.length} pending</span>
                   </div>
                   <BulkActions

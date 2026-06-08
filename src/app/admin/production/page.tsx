@@ -64,7 +64,7 @@ export default async function ProductionHubPage() {
                 <p className="text-sm font-semibold text-portal-text leading-tight">{t.label}</p>
                 <p className="text-xs text-portal-sub mt-0.5 leading-snug">{t.blurb}</p>
               </div>
-              <ArrowRight size={14} className="text-gray-300 shrink-0 mt-1" />
+              <ArrowRight size={14} className="text-portal-border-2 shrink-0 mt-1" />
             </Link>
           ))}
         </div>

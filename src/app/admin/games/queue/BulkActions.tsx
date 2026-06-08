@@ -37,8 +37,8 @@ export function BulkActions({ filter, count, label, variant = 'inline', showReje
   if (count === 0) return null
 
   const approveBtn = variant === 'primary'
-    ? 'inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40'
-    : 'inline-flex items-center gap-1 text-xs font-bold bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700 disabled:opacity-40'
+    ? 'inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40'
+    : 'inline-flex items-center gap-1 text-xs font-bold bg-portal-green text-white rounded-lg px-3 py-1.5 hover:bg-portal-green disabled:opacity-40'
 
   const rejectBtn = 'inline-flex items-center gap-1 text-xs font-semibold border border-portal-border text-portal-sub rounded-lg px-3 py-1.5 hover:bg-portal-bg disabled:opacity-40'
 

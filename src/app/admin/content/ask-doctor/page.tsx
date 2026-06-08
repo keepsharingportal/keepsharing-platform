@@ -22,10 +22,10 @@ type Question = {
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   pending:  { label: 'New',        color: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
   reviewed: { label: 'Reviewed',   color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  selected: { label: 'Selected',   color: 'bg-purple-50 text-purple-700 ring-purple-200' },
-  assigned: { label: 'Assigned',   color: 'bg-teal-50 text-teal-700 ring-teal-200' },
-  answered: { label: 'Answered',   color: 'bg-portal-green-lt text-portal-green ring-green-200' },
-  rejected: { label: 'Not Used',   color: 'bg-red-50 text-red-700 ring-red-200' },
+  selected: { label: 'Selected',   color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
+  assigned: { label: 'Assigned',   color: 'bg-portal-green-lt text-portal-green ring-portal-green/30' },
+  answered: { label: 'Answered',   color: 'bg-portal-green-lt text-portal-green ring-portal-green/30' },
+  rejected: { label: 'Not Used',   color: 'bg-portal-red-lt text-portal-red ring-portal-red/30' },
 }
 
 const MOCK_QUESTIONS: Question[] = [
@@ -147,8 +147,8 @@ export default function AskDoctorAdminPage() {
             { key: 'all',      label: 'Total',    count: total,            color: 'text-portal-text' },
             { key: 'pending',  label: 'New',      count: counts.pending,   color: 'text-portal-amber' },
             { key: 'reviewed', label: 'Reviewed', count: counts.reviewed,  color: 'text-portal-blue' },
-            { key: 'selected', label: 'Selected', count: counts.selected,  color: 'text-purple-700' },
-            { key: 'assigned', label: 'Assigned', count: counts.assigned,  color: 'text-teal-700' },
+            { key: 'selected', label: 'Selected', count: counts.selected,  color: 'text-portal-blue' },
+            { key: 'assigned', label: 'Assigned', count: counts.assigned,  color: 'text-portal-green' },
             { key: 'answered', label: 'Answered', count: counts.answered,  color: 'text-portal-green' },
           ].map(s => (
             <button
@@ -156,7 +156,7 @@ export default function AskDoctorAdminPage() {
               onClick={() => setFilter(s.key)}
               className={cn(
                 'bg-white rounded-lg border p-3 text-center transition-all',
-                filter === s.key ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-portal-border hover:border-portal-border-2'
+                filter === s.key ? 'border-portal-blue/50 ring-1 ring-portal-blue/30' : 'border-portal-border hover:border-portal-border-2'
               )}
             >
               <div className={cn('text-2xl font-bold', s.color)}>{s.count ?? 0}</div>
@@ -166,7 +166,7 @@ export default function AskDoctorAdminPage() {
         </div>
 
         {/* Workflow guide */}
-        <div className="bg-portal-blue-lt border border-blue-200 rounded-lg p-4">
+        <div className="bg-portal-blue-lt border border-portal-blue/30 rounded-lg p-4">
           <div className="text-xs font-bold text-portal-blue uppercase tracking-wide mb-2">Monthly Workflow</div>
           <div className="flex flex-wrap gap-2 items-center text-xs text-portal-blue">
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">1. Review new questions</span>
@@ -262,7 +262,7 @@ export default function AskDoctorAdminPage() {
                                 className={cn(
                                   'px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all',
                                   q.status === key
-                                    ? 'bg-portal-navy text-white border-blue-600'
+                                    ? 'bg-portal-navy text-white border-portal-blue'
                                     : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg'
                                 )}
                               >
@@ -276,21 +276,21 @@ export default function AskDoctorAdminPage() {
                         {q.status !== 'selected' && q.status !== 'assigned' && q.status !== 'answered' && (
                           <button
                             onClick={() => updateStatus(q.id, 'selected')}
-                            className="w-full py-2 px-4 text-sm font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                            className="w-full py-2 px-4 text-sm font-bold text-white bg-portal-blue rounded-lg hover:bg-portal-navy transition-colors"
                           >
                             Select as This Month's Feature →
                           </button>
                         )}
 
                         {q.status === 'selected' && (
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                            <div className="text-xs font-bold text-purple-800 mb-1">Selected for This Month</div>
-                            <p className="text-xs text-purple-700">
+                          <div className="bg-portal-blue-lt border border-portal-blue/30 rounded-lg p-3">
+                            <div className="text-xs font-bold text-portal-blue mb-1">Selected for This Month</div>
+                            <p className="text-xs text-portal-blue">
                               Forward this question to your doctor partner. Once they reply, paste their answer below and generate the Q&A article.
                             </p>
                             <button
                               onClick={() => updateStatus(q.id, 'assigned')}
-                              className="mt-3 px-4 py-1.5 text-xs font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
+                              className="mt-3 px-4 py-1.5 text-xs font-bold text-white bg-portal-green rounded-lg hover:bg-portal-green transition-colors"
                             >
                               Mark as Assigned to Doctor
                             </button>
@@ -298,14 +298,14 @@ export default function AskDoctorAdminPage() {
                         )}
 
                         {q.status === 'assigned' && (
-                          <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 space-y-3">
-                            <div className="text-xs font-bold text-teal-800">Doctor's Answer</div>
+                          <div className="bg-portal-green-lt border border-teal-200 rounded-lg p-3 space-y-3">
+                            <div className="text-xs font-bold text-portal-green">Doctor's Answer</div>
                             <textarea
                               placeholder="Paste the doctor's emailed answer here…"
                               rows={4}
                               className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-lg outline-none focus:border-teal-400 resize-none"
                             />
-                            <button className="px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                            <button className="px-4 py-1.5 text-xs font-bold text-white bg-portal-green rounded-lg hover:bg-portal-green transition-colors">
                               Generate Q&A Article with AI →
                             </button>
                           </div>

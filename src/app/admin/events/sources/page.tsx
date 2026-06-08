@@ -149,7 +149,7 @@ export default async function SourcesAdminPage() {
         </div>
         <div className="flex items-start gap-2 flex-wrap">
           {!tableMissing && icalCount > 0 && <RunAllButton activeIcalCount={icalCount} />}
-          <Link href="/admin/events/extract" className="text-sm font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 hover:bg-purple-100">
+          <Link href="/admin/events/extract" className="text-sm font-semibold text-portal-blue bg-portal-blue-lt border border-portal-blue/30 rounded-lg px-3 py-2 hover:bg-portal-blue-lt">
             AI extract →
           </Link>
           <Link href="/admin/events/pending" className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
@@ -159,8 +159,8 @@ export default async function SourcesAdminPage() {
       </div>
 
       {tableMissing && (
-        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1">Trusted sources need a database migration</p>
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1">Trusted sources need a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/077_calendar_sources_and_workflow.sql</code> in the Supabase SQL editor.
             Once that runs, the seeded source list will appear here and you can add more.
@@ -233,7 +233,7 @@ export default async function SourcesAdminPage() {
               <input name="notes" type="text" placeholder="Internal notes (auth needed, feed flaky, etc.)" className={inputCls} />
             </div>
             <div className="md:col-span-12">
-              <button type="submit" className="px-5 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+              <button type="submit" className="px-5 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
                 Add source
               </button>
             </div>
@@ -261,12 +261,12 @@ export default async function SourcesAdminPage() {
                         <p className="text-sm font-semibold text-portal-text">{s.name}</p>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                           s.ingestion_method === 'ical'       ? 'bg-portal-blue-lt text-portal-blue'    :
-                          s.ingestion_method === 'ai-extract' ? 'bg-purple-100 text-purple-800' :
-                          s.ingestion_method === 'manual'     ? 'bg-gray-100 text-portal-text'    :
+                          s.ingestion_method === 'ai-extract' ? 'bg-portal-blue-lt text-portal-blue' :
+                          s.ingestion_method === 'manual'     ? 'bg-portal-row-hover text-portal-text'    :
                                                                 'bg-portal-amber-lt text-portal-amber'
                         }`}>{s.ingestion_method}</span>
                         {!s.is_active && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-portal-sub">Off</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-portal-row-hover text-portal-sub">Off</span>
                         )}
                       </div>
                       <a href={s.events_url} target="_blank" rel="noreferrer" className="text-xs text-portal-blue hover:underline font-mono break-all inline-flex items-center gap-1 mt-0.5">
@@ -350,14 +350,14 @@ export default async function SourcesAdminPage() {
                         <input name="notes" type="text" defaultValue={s.notes ?? ''} className={inputCls} />
                       </div>
                       <div className="md:col-span-12 flex gap-2">
-                        <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+                        <button type="submit" className="px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
                           Save
                         </button>
                       </div>
                     </form>
                     <form action={deleteSource} className="mt-2">
                       <input type="hidden" name="id" value={s.id} />
-                      <button type="submit" className="text-xs text-portal-red hover:text-red-700 font-semibold">
+                      <button type="submit" className="text-xs text-portal-red hover:text-portal-red font-semibold">
                         Delete permanently
                       </button>
                     </form>

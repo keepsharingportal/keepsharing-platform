@@ -125,7 +125,7 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-portal-text truncate">
                     {r.name}
-                    {!r.active && <span className="ml-2 text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">Inactive</span>}
+                    {!r.active && <span className="ml-2 text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded">Inactive</span>}
                     {r.category && <span className="ml-2 text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">{r.category}</span>}
                   </p>
                   {r.description && <p className="text-[11px] text-portal-sub mt-0.5 line-clamp-2">{r.description}</p>}
@@ -141,7 +141,7 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                   <button onClick={() => setEditing(r.id)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg">
                     <Pencil size={11} /> Edit
                   </button>
-                  <button onClick={() => del(r)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
+                  <button onClick={() => del(r)} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt">
                     <Trash2 size={11} /> Delete
                   </button>
                 </div>
@@ -178,7 +178,7 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
   }
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
+    <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New resource</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>

@@ -221,7 +221,7 @@ function TileLink({ href, icon, title, primary, primaryLabel, secondary }: {
     >
       <div className="flex items-center justify-between">
         <div className="text-portal-muted group-hover:text-portal-blue transition-colors">{icon}</div>
-        <ArrowRight size={14} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
+        <ArrowRight size={14} className="text-portal-border-2 group-hover:text-portal-blue transition-colors" />
       </div>
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-portal-sub">{title}</h3>

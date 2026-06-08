@@ -130,7 +130,7 @@ export default function GeocodePage() {
             <div className="text-2xl font-bold text-portal-green">{ok}</div>
             <div className="text-xs text-portal-green mt-0.5">Geocoded This Session</div>
           </div>
-          <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
+          <div className="bg-portal-red-lt rounded-lg border border-portal-red/30 p-4 text-center">
             <div className="text-2xl font-bold text-portal-red">{errors}</div>
             <div className="text-xs text-portal-red mt-0.5">Failed</div>
           </div>
@@ -143,7 +143,7 @@ export default function GeocodePage() {
               <span>Processing listings…</span>
               <span>{progress}%</span>
             </div>
-            <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div className="bg-portal-row-hover rounded-full h-2 overflow-hidden">
               <div className="h-full bg-portal-navy rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
             <p className="text-xs text-portal-muted mt-2">
@@ -172,7 +172,7 @@ export default function GeocodePage() {
             </div>
           ) : listings.length === 0 ? (
             <div className="p-8 text-center">
-              <CheckCircle2 size={32} className="mx-auto text-green-400 mb-3" />
+              <CheckCircle2 size={32} className="mx-auto text-portal-green mb-3" />
               <div className="text-sm font-semibold text-portal-text">All listings are geocoded!</div>
               <p className="text-xs text-portal-muted mt-1">Every listing in the Summer Fun Guide has latitude/longitude data.</p>
             </div>
@@ -221,7 +221,7 @@ export default function GeocodePage() {
                             className={cn(
                               'px-2.5 py-1 text-xs rounded-lg border transition-colors disabled:opacity-40',
                               r?.status === 'error'
-                                ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                ? 'bg-portal-red-lt text-portal-red border-portal-red/30 hover:bg-portal-red-lt'
                                 : 'bg-white text-portal-sub border-portal-border hover:bg-portal-bg'
                             )}
                           >

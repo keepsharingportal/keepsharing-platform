@@ -82,7 +82,7 @@ export default async function RouteOrderPage() {
                     href={`/admin/circulation/routes/${r.id}/reorder`}
                     className="flex items-center gap-3 rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
                   >
-                    <GripVertical size={14} className="text-gray-300 shrink-0" />
+                    <GripVertical size={14} className="text-portal-border-2 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-portal-text truncate">{r.name}</p>
                       <p className="text-[11px] text-portal-sub mt-0.5">
@@ -94,7 +94,7 @@ export default async function RouteOrderPage() {
                         <Clock size={10} /> {pending} driver suggestion{pending === 1 ? '' : 's'}
                       </span>
                     )}
-                    <ChevronRight size={14} className="text-gray-300 shrink-0" />
+                    <ChevronRight size={14} className="text-portal-border-2 shrink-0" />
                   </Link>
                 </li>
               )

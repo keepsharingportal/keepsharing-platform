@@ -48,11 +48,11 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
             </p>
             <p className="text-[11px] text-portal-sub mt-0.5">{missing.length} stops missing coordinates</p>
           </div>
-          <p className={`text-3xl font-bold ${pctGeo === 100 ? 'text-emerald-600' : pctGeo > 50 ? 'text-portal-blue' : 'text-amber-600'}`}>
+          <p className={`text-3xl font-bold ${pctGeo === 100 ? 'text-portal-green' : pctGeo > 50 ? 'text-portal-blue' : 'text-portal-amber'}`}>
             {pctGeo}%
           </p>
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-portal-row-hover rounded-full overflow-hidden">
           <div className={`h-full ${pctGeo === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`} style={{ width: `${pctGeo}%` }} />
         </div>
         <button

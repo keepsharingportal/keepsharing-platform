@@ -387,7 +387,7 @@ export default async function ApprovalPage({
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-amber-lt text-portal-amber">Changes Requested</span>
                 )}
                 {item.social_planner_ready && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-green-lt text-green-800">Planner Ready ✓</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-green-lt text-portal-green">Planner Ready ✓</span>
                 )}
               </div>
               <h1 className="text-2xl font-bold text-portal-text tracking-tight">{title}</h1>
@@ -406,7 +406,7 @@ export default async function ApprovalPage({
         {/* Changes requested banner */}
         {item.needs_changes_note && (
           <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">✎ Changes Requested</p>
+            <p className="text-sm font-bold text-portal-amber mb-1">✎ Changes Requested</p>
             <p className="text-sm text-portal-amber leading-relaxed whitespace-pre-wrap">{item.needs_changes_note}</p>
             <Link href={`/admin/community/${item.id}/edit`} className="text-xs text-portal-amber hover:underline font-semibold mt-2 inline-block">
               Edit Submission →
@@ -429,8 +429,8 @@ export default async function ApprovalPage({
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   item.ai_draft_status === 'edited' ? 'bg-portal-green-lt text-portal-green'
-                  : item.ai_draft_status === 'ready' ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-gray-100 text-portal-sub'
+                  : item.ai_draft_status === 'ready' ? 'bg-portal-blue-lt text-portal-blue'
+                  : 'bg-portal-row-hover text-portal-sub'
                 }`}>
                   {item.ai_draft_status === 'edited' ? 'Edited ✓' : item.ai_draft_status === 'ready' ? 'AI Draft' : item.ai_draft_status}
                 </span>
@@ -449,7 +449,7 @@ export default async function ApprovalPage({
               ) : (
                 <div className="px-5 py-8 text-center">
                   <p className="text-sm text-portal-muted italic">No draft generated yet.</p>
-                  <Link href={`/admin/community/${item.id}`} className="text-xs text-indigo-600 hover:underline mt-2 inline-block">
+                  <Link href={`/admin/community/${item.id}`} className="text-xs text-portal-blue hover:underline mt-2 inline-block">
                     Generate draft in submission view →
                   </Link>
                 </div>
@@ -478,7 +478,7 @@ export default async function ApprovalPage({
                       {v ? (
                         <p className={`text-sm text-portal-text leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
                       ) : (
-                        <p className="text-sm italic text-gray-300">Not provided</p>
+                        <p className="text-sm italic text-portal-border-2">Not provided</p>
                       )}
                     </div>
                   )
@@ -496,12 +496,12 @@ export default async function ApprovalPage({
               <div className="space-y-2.5">
                 {checks.map((c, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <span className={`text-base shrink-0 ${c.present ? 'text-green-500' : c.required ? 'text-red-400' : 'text-gray-300'}`}>
+                    <span className={`text-base shrink-0 ${c.present ? 'text-portal-green' : c.required ? 'text-portal-red' : 'text-portal-border-2'}`}>
                       {c.present ? '✓' : c.required ? '✗' : '○'}
                     </span>
-                    <span className={`text-xs ${c.present ? 'text-portal-sub' : c.required ? 'text-red-700 font-semibold' : 'text-portal-muted'}`}>
+                    <span className={`text-xs ${c.present ? 'text-portal-sub' : c.required ? 'text-portal-red font-semibold' : 'text-portal-muted'}`}>
                       {c.label}
-                      {!c.present && !c.required && <span className="text-gray-300 ml-1">(optional)</span>}
+                      {!c.present && !c.required && <span className="text-portal-border-2 ml-1">(optional)</span>}
                     </span>
                   </div>
                 ))}
@@ -529,7 +529,7 @@ export default async function ApprovalPage({
                 <form action={approveAll} className="mb-3">
                   <input type="hidden" name="item_id" value={item.id} />
                   <button type="submit"
-                    className="w-full py-3 rounded-lg text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
+                    className="w-full py-3 rounded-lg text-sm font-bold text-white bg-portal-navy hover:bg-portal-navy transition-colors">
                     ✓ Approve All Channels
                   </button>
                 </form>
@@ -538,9 +538,9 @@ export default async function ApprovalPage({
               {/* Individual channel buttons */}
               <div className="space-y-2">
                 {[
-                  { label: 'Approve for Website',    action: approveWeb,        approved: item.approved_web,        color: 'bg-green-600 hover:bg-green-700'  },
+                  { label: 'Approve for Website',    action: approveWeb,        approved: item.approved_web,        color: 'bg-portal-green hover:bg-portal-green'  },
                   { label: 'Approve for Newsletter', action: approveNewsletter, approved: item.approved_newsletter, color: 'bg-portal-navy hover:opacity-90'    },
-                  { label: 'Approve for Social',     action: approveSocial,     approved: item.approved_social,     color: 'bg-purple-600 hover:bg-purple-700'},
+                  { label: 'Approve for Social',     action: approveSocial,     approved: item.approved_social,     color: 'bg-portal-blue hover:bg-portal-navy'},
                 ].map(ch => (
                   ch.approved ? (
                     <div key={ch.label} className="flex items-center gap-2 px-3 py-2 bg-portal-bg rounded-lg">
@@ -610,18 +610,18 @@ export default async function ApprovalPage({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-portal-sub mb-1">SMS / Text Teaser <span className="text-gray-300 font-normal">(keep under 160 chars)</span></label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1">SMS / Text Teaser <span className="text-portal-border-2 font-normal">(keep under 160 chars)</span></label>
                     <input name="caption_sms" type="text" maxLength={160} defaultValue={item.caption_sms ?? ''} placeholder="Quick teaser for text subscribers…" className={iCls} />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Newsletter Teaser <span className="text-gray-300 font-normal">(2–3 sentences)</span></label>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1.5">Newsletter Teaser <span className="text-portal-border-2 font-normal">(2–3 sentences)</span></label>
                     <textarea name="newsletter_teaser" rows={3} defaultValue={item.newsletter_teaser ?? ''} placeholder="Brief intro for the newsletter…" className={iClsTA} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-portal-sub mb-1.5">Hashtags <span className="text-gray-300 font-normal">(comma-separated)</span></label>
+                      <label className="block text-xs font-semibold text-portal-sub mb-1.5">Hashtags <span className="text-portal-border-2 font-normal">(comma-separated)</span></label>
                       <input name="social_hashtags" type="text" defaultValue={hashtagStr} placeholder="rrp, montgomeryal" className={iCls} />
                     </div>
                     <div>
@@ -640,7 +640,7 @@ export default async function ApprovalPage({
                     <input name="social_link" type="url" defaultValue={item.social_link ?? ''} placeholder="https://…" className={iCls} />
                   </div>
 
-                  <button type="submit" className="w-full py-2.5 rounded-lg text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 transition-colors">
+                  <button type="submit" className="w-full py-2.5 rounded-lg text-xs font-bold text-white bg-portal-navy hover:bg-portal-navy transition-colors">
                     Save Social Prep
                   </button>
                 </form>
@@ -680,7 +680,7 @@ export default async function ApprovalPage({
                     <form action={markPlannerReady}>
                       <input type="hidden" name="item_id" value={item.id} />
                       <button type="submit"
-                        className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 transition-colors">
+                        className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-blue hover:bg-portal-navy transition-colors">
                         ✓ Mark Ready for Social Planner
                       </button>
                     </form>
@@ -736,7 +736,7 @@ export default async function ApprovalPage({
                     <input type="hidden" name="item_id" value={item.id} />
                     <button
                       type="submit"
-                      className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-indigo-100 bg-indigo-50 text-xs text-indigo-700 hover:bg-indigo-100 transition-colors font-medium"
+                      className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-indigo-100 bg-portal-blue-lt text-xs text-portal-blue hover:bg-portal-blue-lt transition-colors font-medium"
                     >
                       <span className="text-sm shrink-0">{btn.icon}</span>
                       <span className="flex-1">
@@ -756,7 +756,7 @@ export default async function ApprovalPage({
                     <button key={label} disabled
                       className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed">
                       <span className="flex-1">{label}</span>
-                      <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
+                      <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                     </button>
                   ))}
                 </div>
@@ -815,7 +815,7 @@ export default async function ApprovalPage({
         <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
           <div className="text-4xl mb-4">📬</div>
           <p className="text-portal-sub font-medium">Nothing in the review queue right now.</p>
-          <Link href="/admin/editorial" className="text-sm text-indigo-600 mt-2 inline-block hover:underline">
+          <Link href="/admin/editorial" className="text-sm text-portal-blue mt-2 inline-block hover:underline">
             Go to Editorial Pipeline →
           </Link>
         </div>
@@ -825,7 +825,7 @@ export default async function ApprovalPage({
             { label: 'Needs Editor Review',   items: groups.needsReview,  stageCls: 'text-portal-text',  desc: 'Approved drafts awaiting your review.' },
             { label: 'Changes Requested',     items: groups.needsChanges, stageCls: 'text-portal-amber', desc: 'Sent back for revisions.' },
             { label: 'Approved',              items: groups.approved,     stageCls: 'text-portal-green', desc: 'Approved for at least one channel.' },
-            { label: 'Ready for Planner',     items: groups.plannerReady, stageCls: 'text-purple-700',desc: 'Social copy complete and handed off.' },
+            { label: 'Ready for Planner',     items: groups.plannerReady, stageCls: 'text-portal-blue',desc: 'Social copy complete and handed off.' },
             { label: 'Published / Promoted',  items: groups.published,    stageCls: 'text-portal-muted',  desc: 'Live or promoted.' },
           ].map(grp => {
             if (grp.items.length === 0) return null
@@ -836,7 +836,7 @@ export default async function ApprovalPage({
                     {grp.label}
                     <span className="ml-2 text-portal-muted font-normal">({grp.items.length})</span>
                   </h2>
-                  <div className="flex-1 h-px bg-gray-100" />
+                  <div className="flex-1 h-px bg-portal-row-hover" />
                   <p className="text-xs text-portal-muted shrink-0 hidden sm:block">{grp.desc}</p>
                 </div>
                 <div className="space-y-2">
@@ -856,7 +856,7 @@ export default async function ApprovalPage({
                             <div className="flex items-center gap-2 flex-wrap mb-1.5">
                               <span className="text-lg">{tc?.emoji}</span>
                               <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
-                              <span className="text-[10px] bg-gray-100 text-portal-sub px-2 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
+                              <span className="text-[10px] bg-portal-row-hover text-portal-sub px-2 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
                               {item.needs_changes_note && (
                                 <span className="text-[10px] font-bold bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded">Changes Needed</span>
                               )}
@@ -871,7 +871,7 @@ export default async function ApprovalPage({
                               <ApprovalBadge label="Social"     approved={item.approved_social}     color="#7c3aed" />
                             </div>
                           </div>
-                          <span className="text-xs font-bold text-indigo-600 shrink-0 mt-1">Review →</span>
+                          <span className="text-xs font-bold text-portal-blue shrink-0 mt-1">Review →</span>
                         </div>
                       </Link>
                     )

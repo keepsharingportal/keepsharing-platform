@@ -74,7 +74,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-red-lt text-portal-red'} inline-flex items-center gap-1`}>
               {msg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {msg.text}
             </span>
@@ -124,7 +124,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
         </FieldHint>
 
         <p className="text-[11px] text-portal-muted pt-2 border-t border-portal-border">
-          Public landing: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
+          Public landing: <code className="px-1 bg-portal-row-hover rounded">{publicPath}</code>
         </p>
       </section>
 
@@ -160,7 +160,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       {/* ── Sponsor ───────────────────────────────────────────────────────── */}
       <section className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt/40 p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
-          <Crown size={14} className="text-amber-600" />
+          <Crown size={14} className="text-portal-amber" />
           Section Sponsor
         </h2>
 
@@ -237,7 +237,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       <section className="rounded-lg border border-portal-border bg-white p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text">Brand Accent (optional)</h2>
         <FieldHint className="-mt-1">
-          Hex color used for accent borders + badges. Example: <code className="px-1 bg-gray-100 rounded">#d4a843</code> for gold.
+          Hex color used for accent borders + badges. Example: <code className="px-1 bg-portal-row-hover rounded">#d4a843</code> for gold.
         </FieldHint>
         <input
           className={`${inp} max-w-[200px]`}

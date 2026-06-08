@@ -111,7 +111,7 @@ export default async function CirculationOverviewPage() {
         </header>
 
         {tableMissing && (
-          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-portal-amber">
             <p className="font-bold mb-1">Migration not applied yet</p>
             <p>Run <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/113_circulation.sql</code> in Supabase Studio before using this section.</p>
           </div>
@@ -147,29 +147,29 @@ export default async function CirculationOverviewPage() {
             <AdminSectionHeader title="Needs your attention" description="Pending items across distribution" />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {pendingInvoices > 0 && (
-                <Link href="/admin/circulation/deliveries" className="rounded-lg border border-blue-200 bg-portal-blue-lt p-3 hover:border-portal-border-2 transition-colors flex items-center gap-3">
+                <Link href="/admin/circulation/deliveries" className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt p-3 hover:border-portal-border-2 transition-colors flex items-center gap-3">
                   <Receipt size={18} className="text-portal-blue shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-blue-900">{pendingInvoices} invoice{pendingInvoices === 1 ? '' : 's'} to review</p>
+                    <p className="text-sm font-bold text-portal-navy">{pendingInvoices} invoice{pendingInvoices === 1 ? '' : 's'} to review</p>
                     <p className="text-[11px] text-portal-blue">Drivers submitted, awaiting payment</p>
                   </div>
                 </Link>
               )}
               {pendingChanges > 0 && (
-                <Link href="/admin/circulation/changes" className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
-                  <GitPullRequest size={18} className="text-amber-600 shrink-0" />
+                <Link href="/admin/circulation/changes" className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 hover:border-portal-amber/40 transition-colors flex items-center gap-3">
+                  <GitPullRequest size={18} className="text-portal-amber shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-amber-900">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>
+                    <p className="text-sm font-bold text-portal-amber">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>
                     <p className="text-[11px] text-portal-amber">Driver-submitted stop edits</p>
                   </div>
                 </Link>
               )}
               {pendingRequests > 0 && (
-                <Link href="/admin/circulation/requests" className="rounded-lg border border-purple-200 bg-purple-50 p-3 hover:border-purple-300 transition-colors flex items-center gap-3">
-                  <Mail size={18} className="text-purple-600 shrink-0" />
+                <Link href="/admin/circulation/requests" className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt p-3 hover:border-purple-300 transition-colors flex items-center gap-3">
+                  <Mail size={18} className="text-portal-blue shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-purple-900">{pendingRequests} location request{pendingRequests === 1 ? '' : 's'}</p>
-                    <p className="text-[11px] text-purple-700">Businesses asking to be added</p>
+                    <p className="text-sm font-bold text-portal-navy">{pendingRequests} location request{pendingRequests === 1 ? '' : 's'}</p>
+                    <p className="text-[11px] text-portal-blue">Businesses asking to be added</p>
                   </div>
                 </Link>
               )}
@@ -226,7 +226,7 @@ export default async function CirculationOverviewPage() {
                     <p className="text-sm font-bold text-portal-text truncate">{r.name}</p>
                     <p className="text-xs text-portal-sub mt-0.5">{stopsByRoute.get(r.id) ?? 0} active stops</p>
                   </div>
-                  <ArrowRight size={14} className="text-gray-300 shrink-0" />
+                  <ArrowRight size={14} className="text-portal-border-2 shrink-0" />
                 </Link>
               ))}
             </div>
@@ -268,7 +268,7 @@ function MetricCard({ label, value, href, color, icon: Icon }: {
   return (
     <Link href={href} className="rounded-lg border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors block">
       <div className="flex items-center justify-between mb-1.5">
-        <Icon size={14} className="text-gray-300" />
+        <Icon size={14} className="text-portal-border-2" />
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
       </div>
       <div className="text-2xl font-bold text-portal-text">{value}</div>

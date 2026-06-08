@@ -208,12 +208,12 @@ export default async function EditorialPage({
           <div className="flex gap-1.5 items-center flex-wrap">
             <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide">Pub:</span>
             <Link href={stableHref({ pub: null })}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterPub ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterPub ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}>
               All
             </Link>
             {pubsInQueue.map(p => (
               <Link key={p} href={stableHref({ pub: p })}
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterPub === p ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterPub === p ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}>
                 {p.toUpperCase()}
               </Link>
             ))}
@@ -225,12 +225,12 @@ export default async function EditorialPage({
           <div className="flex gap-1.5 items-center flex-wrap">
             <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide">Type:</span>
             <Link href={stableHref({ type: null })}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterType ? 'bg-gray-800 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}>
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${!filterType ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}>
               All
             </Link>
             {typesInQueue.map(tc => tc && (
               <Link key={tc.type} href={stableHref({ type: tc.type })}
-                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterType === tc.type ? 'text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'}`}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterType === tc.type ? 'text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'}`}
                 style={filterType === tc.type ? { backgroundColor: TYPE_COLORS[tc.type] ?? '#374151' } : {}}>
                 {tc.emoji} {tc.shortLabel}
               </Link>
@@ -261,7 +261,7 @@ export default async function EditorialPage({
                     {stage.label}
                     <span className="ml-2 text-portal-muted font-normal">({stageItems.length})</span>
                   </h2>
-                  <div className="flex-1 h-px bg-gray-100" />
+                  <div className="flex-1 h-px bg-portal-row-hover" />
                   <p className="text-xs text-portal-muted">{stage.description}</p>
                 </div>
 
@@ -286,11 +286,11 @@ export default async function EditorialPage({
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <span className="text-base">{tc?.emoji ?? '📝'}</span>
                               <span className="text-[11px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-row-hover text-portal-sub">
                                 {item.target_publication.toUpperCase()}
                               </span>
                               {item.ai_draft_status === 'ready' && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue">
                                   AI Draft ✓
                                 </span>
                               )}
@@ -300,7 +300,7 @@ export default async function EditorialPage({
                                 </span>
                               )}
                               {item.internal_priority === 'urgent' && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">URGENT</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-portal-red-lt text-portal-red">URGENT</span>
                               )}
                             </div>
 
@@ -319,7 +319,7 @@ export default async function EditorialPage({
                               {issue && <span>{issue}</span>}
                               {item.assigned_to && <span>· {item.assigned_to}</span>}
                               {item.destination_section && (
-                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub text-[10px] font-semibold">
+                                <span className="px-2 py-0.5 rounded-full bg-portal-row-hover text-portal-sub text-[10px] font-semibold">
                                   {DEST_LABELS[item.destination_section] ?? item.destination_section}
                                 </span>
                               )}
@@ -342,7 +342,7 @@ export default async function EditorialPage({
                             <p className="text-xs text-portal-muted">{timeAgo(item.created_at)}</p>
                             <Link
                               href={`/admin/editorial/${item.id}`}
-                              className="block text-xs font-bold text-indigo-600 hover:underline"
+                              className="block text-xs font-bold text-portal-blue hover:underline"
                             >
                               Review →
                             </Link>

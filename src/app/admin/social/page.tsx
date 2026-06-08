@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 const STATUS_CONFIG: Record<SocialStatus, { label: string; cls: string }> = {
   draft:    { label: 'Draft',    cls: 'bg-portal-bg text-portal-sub border-portal-border' },
   pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
-  approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-portal-green ring-green-200' },
+  approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue border-portal-blue/30' },
+  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
 }
 
 const PLATFORM_ICON = {
@@ -19,9 +19,9 @@ const PLATFORM_ICON = {
 }
 
 const PLATFORM_COLOR = {
-  instagram: 'text-rose-500',
+  instagram: 'text-portal-red',
   facebook:  'text-portal-blue',
-  both:      'text-purple-500',
+  both:      'text-portal-blue',
 }
 
 const PUBS = ['All', 'RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
@@ -73,11 +73,11 @@ export default function SocialQueuePage() {
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-bg border border-portal-border rounded-lg text-portal-sub">
             <span className="font-semibold text-portal-green">{statusCount('posted')}</span>
             <span>posted</span>
-            <span className="text-gray-300">·</span>
+            <span className="text-portal-border-2">·</span>
             <span className="font-semibold text-portal-blue">{statusCount('approved')}</span>
             <span>approved</span>
-            <span className="text-gray-300">·</span>
-            <span className="font-semibold text-amber-600">{statusCount('pending')}</span>
+            <span className="text-portal-border-2">·</span>
+            <span className="font-semibold text-portal-amber">{statusCount('pending')}</span>
             <span>pending</span>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function SocialQueuePage() {
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
+                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >
               {tab}
@@ -117,11 +117,11 @@ export default function SocialQueuePage() {
                   <div className="flex items-center gap-2">
                     <PlatIcon size={16} className={platColor} />
                     <span className="text-xs font-bold text-portal-sub">{post.publication}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ring-1 ${STATUS_CONFIG[post.status].cls}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium border ${STATUS_CONFIG[post.status].cls}`}>
                       {STATUS_CONFIG[post.status].label}
                     </span>
                     {post.generatedBy === 'claude' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 font-semibold">AI</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue font-semibold">AI</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-portal-muted">
@@ -169,7 +169,7 @@ export default function SocialQueuePage() {
                       <CheckCircle2 size={11} /> Approve → GHL
                     </button>
                     <button onClick={() => reject(post.id)}
-                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 text-portal-red hover:text-red-700 transition-colors">
+                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 text-portal-red hover:opacity-80 transition-opacity">
                       <X size={11} /> Reject
                     </button>
                   </div>

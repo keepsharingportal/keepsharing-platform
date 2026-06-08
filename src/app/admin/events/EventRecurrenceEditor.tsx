@@ -280,7 +280,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
                     className={`px-2.5 py-1 text-xs font-semibold rounded-md border transition ${
                       on
                         ? 'bg-portal-navy text-white border-portal-blue'
-                        : 'bg-white text-portal-sub border-portal-border hover:border-gray-400'
+                        : 'bg-white text-portal-sub border-portal-border hover:border-portal-border-2'
                     }`}
                   >
                     {d.label}

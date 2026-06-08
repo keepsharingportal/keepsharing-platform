@@ -78,7 +78,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         )}
 
         {/* Public link */}
-        <div className="bg-portal-blue-lt rounded-lg border border-blue-200 p-4">
+        <div className="bg-portal-blue-lt rounded-lg border border-portal-blue/30 p-4">
           <p className="text-xs font-semibold text-portal-blue mb-1">Proposal URL</p>
           <code className="text-sm text-portal-blue break-all">/proposal/{p.token_slug}</code>
           <p className="text-xs text-portal-blue mt-1">Send this URL to {p.business_name} to let them view and accept.</p>

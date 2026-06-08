@@ -258,7 +258,7 @@ export function TrendingList(props: Props) {
 
       {/* ── Help ───────────────────────────────────────────────────────── */}
       <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4 text-sm leading-relaxed">
-        <p className="font-bold text-amber-900 mb-1">How the trending bar works</p>
+        <p className="font-bold text-portal-amber mb-1">How the trending bar works</p>
         <ul className="list-disc list-inside text-portal-amber space-y-0.5 text-xs">
           <li><strong>Pinned items below show first</strong> — these are your editorial picks (Best Of, guides, nominations, etc.).</li>
           <li><strong>Empty slots auto-fill with the top-visited pages from the last 7 days</strong>. So if you pin 2 items, the bar adds 2 hot pages from real reader traffic.</li>
@@ -323,7 +323,7 @@ export function TrendingList(props: Props) {
                         className="shrink-0"
                       />
                       {canReorder && (
-                        <GripVertical size={14} className="text-gray-300 shrink-0 cursor-grab" />
+                        <GripVertical size={14} className="text-portal-border-2 shrink-0 cursor-grab" />
                       )}
                       <span className="text-xl shrink-0" aria-hidden="true">{item.emoji ?? '·'}</span>
                       <div className="flex-1 min-w-0">
@@ -384,7 +384,7 @@ export function TrendingList(props: Props) {
                           onSubmit={(e) => { if (!confirm(`Permanently delete "${item.label}"? This can't be undone.`)) e.preventDefault() }}
                         >
                           <input type="hidden" name="id" value={item.id} />
-                          <button type="submit" title="Remove permanently" className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
+                          <button type="submit" title="Remove permanently" className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt">
                             <Trash2 size={11} /> Remove
                           </button>
                         </form>
@@ -408,15 +408,15 @@ export function TrendingList(props: Props) {
       {/* ── Bulk action bar ────────────────────────────────────────────── */}
       {selected.size > 0 && (
         <div className="sticky bottom-4 z-40 mx-auto max-w-[1100px]">
-          <div className="rounded-lg bg-gray-900 text-white shadow-md px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div className="rounded-lg bg-portal-navy text-white shadow-md px-4 py-3 flex items-center gap-3 flex-wrap">
             <p className="text-sm font-bold">{selected.size} selected</p>
             <span className="text-white/30">·</span>
             <button onClick={() => runBulk('turn-off')} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn off</button>
             <button onClick={() => runBulk('turn-on')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn on</button>
-            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber hover:bg-amber-400">End now</button>
-            <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-portal-blue-lt0">Archive</button>
+            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber hover:bg-portal-amber">End now</button>
+            <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-portal-blue-lt">Archive</button>
             <button onClick={() => runBulk('restore')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Restore</button>
-            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-portal-red">Delete</button>
+            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-red hover:bg-portal-red">Delete</button>
             <button onClick={clearSelection} className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-md text-white/60 hover:text-white">
               Cancel
             </button>
@@ -436,7 +436,7 @@ function FilterChip({ label, count, active, onClick, tone }: { label: string; co
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border ${
         active
-          ? 'bg-gray-900 text-white border-gray-900'
+          ? 'bg-portal-navy text-white border-gray-900'
           : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'
       }`}
     >
@@ -484,7 +484,7 @@ function AddForm({ onCreate, nextOrder }: { onCreate: (fd: FormData) => Promise<
           </div>
         </div>
         <div className="md:col-span-12">
-          <button type="submit" className="px-5 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+          <button type="submit" className="px-5 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
             Add item
           </button>
         </div>
@@ -537,13 +537,13 @@ function EditForm({ item, onSave, onDelete, onCancel }: {
           </div>
         </div>
         <div className="md:col-span-12 flex items-center gap-2">
-          <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+          <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
             <Check size={12} /> Save
           </button>
           <button type="button" onClick={onCancel} className="px-3 py-2 text-sm font-semibold text-portal-sub hover:text-portal-text">Cancel</button>
           <form action={async (fd) => { if (confirm('Delete permanently?')) { await onDelete(fd); onCancel() } }} className="ml-auto">
             <input type="hidden" name="id" value={item.id} />
-            <button type="submit" className="text-xs text-portal-red hover:text-red-700 font-semibold">
+            <button type="submit" className="text-xs text-portal-red hover:text-portal-red font-semibold">
               Delete permanently
             </button>
           </form>

@@ -295,7 +295,7 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
                   key={e.char + i}
                   type="button"
                   onClick={() => pick(e.char)}
-                  className={`text-xl leading-none p-1 rounded hover:bg-portal-row-hover ${value === e.char ? 'bg-gray-100 ring-1 ring-gray-300' : ''}`}
+                  className={`text-xl leading-none p-1 rounded hover:bg-portal-row-hover ${value === e.char ? 'bg-portal-row-hover ring-1 ring-gray-300' : ''}`}
                   title={e.keywords.split(' ')[0]}
                   aria-label={e.keywords.split(' ')[0]}
                 >
@@ -332,7 +332,7 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
             role="button"
             aria-label="Clear emoji"
             onClick={e => { e.stopPropagation(); clear() }}
-            className="text-gray-300 hover:text-portal-sub inline-flex items-center"
+            className="text-portal-border-2 hover:text-portal-sub inline-flex items-center"
           >
             <X size={12} />
           </span>

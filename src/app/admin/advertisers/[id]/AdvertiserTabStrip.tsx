@@ -54,7 +54,7 @@ export function AdvertiserTabStrip({ id, counts }: {
               <span className={active ? 'text-portal-blue' : 'text-portal-muted'}>{t.icon}</span>
               {t.label}
               {!!t.count && t.count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-portal-sub'}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-row-hover text-portal-sub'}`}>
                   {t.count}
                 </span>
               )}

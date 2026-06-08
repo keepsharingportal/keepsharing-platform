@@ -1120,7 +1120,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
-          <label className={lbl}>Business <span className="text-rose-600">*</span></label>
+          <label className={lbl}>Business <span className="text-portal-red">*</span></label>
           <select value={advId} onChange={e => setAdvId(e.target.value)} className={`${inp} cursor-pointer`}>
             <option value="">— Pick a business —</option>
             {advertisers.map(a => <option key={a.id} value={a.id}>{a.business_name}</option>)}

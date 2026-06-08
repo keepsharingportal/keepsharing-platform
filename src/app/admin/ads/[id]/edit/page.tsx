@@ -153,10 +153,10 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
   if (!ad) {
     return (
       <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-        <div className="max-w-[800px] mx-auto bg-red-50 border border-red-200 rounded-lg p-5 text-sm text-red-800">
+        <div className="max-w-[800px] mx-auto bg-portal-red-lt border border-portal-red/30 rounded-lg p-5 text-sm text-portal-red">
           <p className="font-bold flex items-center gap-2"><AlertTriangle size={16} /> Could not load</p>
           <p className="text-xs mt-1">{error ?? 'Unknown error'}</p>
-          <Link href="/admin/ads" className="inline-flex items-center gap-1 mt-3 text-xs text-red-900 font-semibold underline">
+          <Link href="/admin/ads" className="inline-flex items-center gap-1 mt-3 text-xs text-portal-red font-semibold underline">
             <ArrowLeft size={12} /> Back to bookings
           </Link>
         </div>
@@ -280,12 +280,12 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           />
         )}
         {success && (
-          <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-green-800">
+          <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-portal-green">
             ✓ Saved. Public homepage may take up to ~10 min to refresh (revalidate cache).
           </div>
         )}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+          <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-sm text-portal-red">
             {error}
           </div>
         )}
@@ -337,8 +337,8 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               onClick={() => set('is_active', !ad.is_active)}
               className={`inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors min-w-[68px] justify-center ${
                 ad.is_active
-                  ? 'bg-green-600 text-white hover:bg-green-700 ring-1 ring-green-700'
-                  : 'bg-red-600 text-white hover:bg-red-700 ring-1 ring-red-700'
+                  ? 'bg-portal-green text-white hover:bg-portal-green ring-1 ring-green-700'
+                  : 'bg-portal-red text-white hover:bg-portal-red ring-1 ring-red-700'
               }`}
             >
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-white" />
@@ -736,7 +736,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
   return (
     <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
-        <p className="text-sm font-bold text-amber-900">
+        <p className="text-sm font-bold text-portal-amber">
           This ad is expired (since {new Date(expiredAt).toLocaleDateString()}).
         </p>
         <p className="text-xs text-portal-amber mt-0.5">
@@ -755,7 +755,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
         <button
           type="button"
           onClick={onRenew}
-          className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+          className="px-4 py-2 rounded-lg bg-portal-green text-white text-sm font-bold hover:bg-portal-green"
           title="Reactivate this exact row — impression/click history continues"
         >
           Renew (reactivate)
@@ -763,7 +763,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
         <button
           type="button"
           onClick={onDeleteForever}
-          className="px-4 py-2 rounded-lg border border-red-200 text-red-700 text-sm font-bold hover:bg-portal-red-lt"
+          className="px-4 py-2 rounded-lg border border-portal-red/30 text-portal-red text-sm font-bold hover:bg-portal-red-lt"
           title="Permanent delete — for genuine cleanup only"
         >
           Delete permanently
@@ -945,9 +945,9 @@ function CustomerSection({ ad, advertisers, onChange }: {
 
 function CustomerAdPill({ active }: { active: boolean }) {
   return active ? (
-    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-green-600 text-white">ON</span>
+    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-portal-green text-white">ON</span>
   ) : (
-    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-300 text-portal-text">OFF</span>
+    <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-portal-border-2 text-portal-text">OFF</span>
   )
 }
 
@@ -980,7 +980,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
           {ads.slice(0, 10).map(other => (
             <li key={other.id} className={`px-4 py-2 flex items-center gap-3 hover:bg-portal-bg ${isExpired ? 'opacity-70' : ''}`}>
               {isExpired ? (
-                <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-600 text-white">
+                <span className="shrink-0 inline-flex items-center text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-portal-amber text-white">
                   Expired
                 </span>
               ) : (
@@ -1102,7 +1102,7 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
           Tracked CTA link
         </h2>
         <p className="text-xs text-portal-sub mt-1">
-          Optional. Generate a <code className="text-[11px] bg-gray-100 px-1 rounded">/go/&lt;shortcode&gt;</code> redirect
+          Optional. Generate a <code className="text-[11px] bg-portal-row-hover px-1 rounded">/go/&lt;shortcode&gt;</code> redirect
           for this ad — every click is counted and tagged with UTM parameters, same as a magazine QR. Reports roll up
           alongside print scans.
         </p>
@@ -1116,7 +1116,7 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
               type="button"
               onClick={create}
               disabled={busy || !adLink}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-gray-700 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-portal-navy text-white text-sm font-bold hover:bg-portal-navy disabled:opacity-40"
             >
               <Link2 size={14} />
               {busy ? 'Generating…' : 'Generate tracked link'}
@@ -1126,12 +1126,12 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
                 Set a CTA link in the Creative section first — the tracked URL needs a destination to redirect to.
               </p>
             )}
-            {error && <p className="text-xs text-red-700">{error}</p>}
+            {error && <p className="text-xs text-portal-red">{error}</p>}
           </div>
         ) : (
           <div className="space-y-3">
             <div className="grid sm:grid-cols-[1fr_auto] gap-2 items-center">
-              <code className="block bg-gray-100 px-3 py-2 rounded-lg text-sm font-mono text-portal-text truncate">
+              <code className="block bg-portal-row-hover px-3 py-2 rounded-lg text-sm font-mono text-portal-text truncate">
                 {trackedUrl}
               </code>
               <div className="flex items-center gap-1.5">
@@ -1277,7 +1277,7 @@ function InlinePreview({ ad }: { ad: AdRow }) {
 // Square sidebar card with overlay text — homepage_sidebar_ad style.
 function SquareCardPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="relative w-56 aspect-square rounded-lg overflow-hidden shadow-sm bg-gray-200">
+    <div className="relative w-56 aspect-square rounded-lg overflow-hidden shadow-sm bg-portal-border-2">
       {ad.ad_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ad.ad_image_url} alt={ad.ad_headline ?? ''} className="absolute inset-0 w-full h-full object-cover" />
@@ -1307,7 +1307,7 @@ function SquareCardPreview({ ad }: { ad: AdRow }) {
 // Dark Business Spotlight card — homepage_business_spotlight style.
 function DarkCardPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="rounded-lg bg-gray-900 text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
+    <div className="rounded-lg bg-portal-navy text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
       <div className="absolute top-0 right-0 w-24 h-24 bg-portal-navy/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       {ad.ad_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -1382,7 +1382,7 @@ function InArticlePreview({ ad }: { ad: AdRow }) {
 // Big hero rotator — used at the very top of homepage.
 function HeroPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="relative aspect-[3/1] w-full max-w-2xl rounded-lg overflow-hidden bg-gray-200 shadow-sm">
+    <div className="relative aspect-[3/1] w-full max-w-2xl rounded-lg overflow-hidden bg-portal-border-2 shadow-sm">
       {ad.ad_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ad.ad_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -1417,7 +1417,7 @@ function NewsletterPreview({ ad }: { ad: AdRow }) {
         <img src={ad.ad_image_url} alt="" className="w-full h-32 object-cover rounded-md mb-3" />
       )}
       <p className="text-lg font-bold text-portal-text leading-tight">
-        {ad.ad_headline || <span className="text-gray-300">(headline)</span>}
+        {ad.ad_headline || <span className="text-portal-border-2">(headline)</span>}
       </p>
       {ad.ad_description && (
         <p className="text-sm text-portal-sub mt-1 leading-snug">{ad.ad_description}</p>
@@ -1441,7 +1441,7 @@ function FooterPreview({ ad }: { ad: AdRow }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={ad.ad_image_url} alt={ad.ad_headline ?? ''} className="h-10 w-auto object-contain" />
         ) : (
-          <div className="h-10 w-24 bg-gray-100 rounded flex items-center justify-center text-[9px] text-portal-muted">
+          <div className="h-10 w-24 bg-portal-row-hover rounded flex items-center justify-center text-[9px] text-portal-muted">
             (logo)
           </div>
         )}
@@ -1491,11 +1491,11 @@ function PreviewImage({ src, alt, size, rounded }: { src: string | null; alt: st
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} style={{ width: size, height: size }} className={`shrink-0 ${r} object-cover bg-gray-100`} />
+      <img src={src} alt={alt ?? ''} style={{ width: size, height: size }} className={`shrink-0 ${r} object-cover bg-portal-row-hover`} />
     )
   }
   return (
-    <div style={{ width: size, height: size }} className={`shrink-0 ${r} bg-gray-100 flex items-center justify-center text-[10px] text-portal-muted text-center px-2`}>
+    <div style={{ width: size, height: size }} className={`shrink-0 ${r} bg-portal-row-hover flex items-center justify-center text-[10px] text-portal-muted text-center px-2`}>
       (image)
     </div>
   )
@@ -1512,7 +1512,7 @@ function PreviewHeadline({ text, size }: { text: string | null; size: 'md' | 'lg
   const cls = size === 'lg'
     ? 'text-lg font-bold text-portal-text leading-snug'
     : 'text-base font-bold text-portal-text leading-snug'
-  return <p className={cls}>{text || <span className="text-gray-300">(headline)</span>}</p>
+  return <p className={cls}>{text || <span className="text-portal-border-2">(headline)</span>}</p>
 }
 
 function PreviewCta({ label, hasLink }: { label: string | null; hasLink: boolean }) {

@@ -26,15 +26,15 @@ const TIER_LABEL: Record<string, string> = {
   'tier-4-won':      'Tier 4 — Won',
 }
 const TIER_BADGE: Record<string, string> = {
-  'tier-1-found':    'bg-gray-100 text-portal-text border-portal-border',
-  'tier-2-featured': 'bg-sky-100 text-sky-800 border-portal-blue/30',
+  'tier-1-found':    'bg-portal-row-hover text-portal-text border-portal-border',
+  'tier-2-featured': 'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
   'tier-3-chosen':   'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
   'tier-4-won':      'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
 }
 const LIFECYCLE_BADGE: Record<string, string> = {
   'active':      'bg-portal-green-lt text-portal-green border-portal-green/30',
-  'onboarding':  'bg-sky-100 text-sky-800 border-portal-blue/30',
-  'lead':        'bg-gray-100 text-portal-text border-portal-border',
+  'onboarding':  'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
+  'lead':        'bg-portal-row-hover text-portal-text border-portal-border',
   'renewal':     'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   'dormant':     'bg-portal-red-lt text-portal-red border-portal-red/30',
 }
@@ -100,19 +100,19 @@ export default async function AdvertiserLayout({ children, params }: Props) {
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={logoUrl} alt="" className="w-12 h-12 rounded-lg object-cover border border-portal-border shrink-0" />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-gray-100 border border-portal-border flex items-center justify-center shrink-0">
-                  <Building2 size={20} className="text-gray-300" />
+                <div className="w-12 h-12 rounded-lg bg-portal-row-hover border border-portal-border flex items-center justify-center shrink-0">
+                  <Building2 size={20} className="text-portal-border-2" />
                 </div>
               )}
               <div className="min-w-0">
                 <h1 className="text-xl font-bold text-portal-text truncate">{name}</h1>
                 <div className="flex items-center gap-2 flex-wrap mt-1">
                   {tier && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${TIER_BADGE[tier] ?? 'bg-gray-100 text-portal-text border-portal-border'}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${TIER_BADGE[tier] ?? 'bg-portal-row-hover text-portal-text border-portal-border'}`}>
                       {TIER_LABEL[tier] ?? tier}
                     </span>
                   )}
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${LIFECYCLE_BADGE[lifecycle] ?? 'bg-gray-100 text-portal-text border-portal-border'}`}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ring-1 ${LIFECYCLE_BADGE[lifecycle] ?? 'bg-portal-row-hover text-portal-text border-portal-border'}`}>
                     {lifecycle}
                   </span>
                   {loyaltyTier && (

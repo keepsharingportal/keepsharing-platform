@@ -60,7 +60,7 @@ export function DupClusterPanel({ cluster }: Props) {
     // Render a tiny success placeholder where the cluster used to be —
     // hides the now-stale rows until the editor refreshes.
     return (
-      <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-4 text-sm text-emerald-900 inline-flex items-center gap-2">
+      <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-4 text-sm text-portal-green inline-flex items-center gap-2">
         <RefreshCw size={14} /> Merged. Refresh to recompute the duplicate clusters.
       </div>
     )
@@ -101,10 +101,10 @@ export function DupClusterPanel({ cluster }: Props) {
 
   return (
     <section className="bg-white rounded-lg border border-portal-amber/30 ring-1 ring-amber-100/40 overflow-hidden">
-      <header className="px-5 py-3 bg-portal-amber-lt border-b border-amber-100 flex items-center justify-between flex-wrap gap-2">
+      <header className="px-5 py-3 bg-portal-amber-lt border-b border-portal-amber/20 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <AlertTriangle size={14} className="text-portal-amber" />
-          <p className="text-sm font-bold text-amber-900">
+          <p className="text-sm font-bold text-portal-amber">
             {cluster.members.length} likely duplicates
           </p>
         </div>
@@ -112,7 +112,7 @@ export function DupClusterPanel({ cluster }: Props) {
           type="button"
           onClick={onMerge}
           disabled={busy || cluster.members.length < 2}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-amber-700 text-white rounded-full hover:bg-amber-800 disabled:opacity-40 shadow-sm"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-portal-amber text-white rounded-full hover:bg-portal-amber disabled:opacity-40 shadow-sm"
         >
           {busy ? <RefreshCw size={12} className="animate-spin" /> : null}
           {busy ? 'Merging…' : `Merge ${cluster.members.length - 1} into selected →`}
@@ -156,7 +156,7 @@ export function DupClusterPanel({ cluster }: Props) {
                 <div className="flex items-baseline gap-2 flex-wrap mb-1">
                   <p className="text-sm font-bold text-portal-text">{m.business_name}</p>
                   {isSurvivor && (
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-portal-green text-white">
                       Keep
                     </span>
                   )}

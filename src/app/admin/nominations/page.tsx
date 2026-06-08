@@ -15,12 +15,12 @@ const TYPES: NominationType[] = ['cover-profile', 'mom-to-mom', 'teacher-of-mont
 const STATUS_BADGE: Record<NominationStatus, string> = {
   pending:             'bg-portal-bg text-portal-sub border-portal-border',
   selected:            'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  questions_generated: 'bg-indigo-50 text-indigo-700 border-portal-blue/30',
+  questions_generated: 'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
   interview_scheduled: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
-  interviewed:         'bg-purple-50 text-purple-700 ring-purple-200',
-  article_drafted:     'bg-teal-50 text-teal-700 ring-teal-200',
-  photos_received:     'bg-orange-50 text-orange-700 ring-orange-200',
-  approved:            'bg-portal-green-lt text-portal-green ring-green-200',
+  interviewed:         'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
+  article_drafted:     'bg-portal-green-lt text-portal-green ring-portal-green/30',
+  photos_received:     'bg-portal-amber-lt text-portal-amber ring-portal-amber/30',
+  approved:            'bg-portal-green-lt text-portal-green ring-portal-green/30',
   published:           'bg-portal-green-lt text-portal-green border-portal-green/30',
 }
 
@@ -47,7 +47,7 @@ function NominationCard({ nom, onSelect }: { nom: NominationRecord; onSelect: (n
         <div className="flex items-center gap-1">
           {STATUS_STEPS.slice(0, 5).map((step, i) => (
             <div key={i} className={cn('flex-1 h-1 rounded-full transition-colors',
-              i <= stepIdx ? 'bg-portal-blue' : 'bg-gray-200')} />
+              i <= stepIdx ? 'bg-portal-blue' : 'bg-portal-border-2')} />
           ))}
         </div>
         <div className="flex items-center justify-between mt-2 text-[10px] text-portal-muted">
@@ -123,7 +123,7 @@ export default function NominationsPage() {
             return (
               <button key={type} onClick={() => setActiveType(type)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeType === type ? 'text-portal-blue border-blue-600' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
+                  activeType === type ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
                 }`}>
                 {cfg.label}
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeType === type ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' : 'bg-portal-bg text-portal-sub border-portal-border'}`}>
@@ -216,7 +216,7 @@ export default function NominationsPage() {
                     const Icon = STEP_ICONS[i]
                     return (
                       <div key={step.status} className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-portal-blue' : 'bg-gray-200'}`}>
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-portal-blue' : 'bg-portal-border-2'}`}>
                           {done && <Icon size={9} className="text-white" />}
                         </div>
                         <span className={`text-xs ${done ? 'text-portal-text font-medium' : 'text-portal-muted'}`}>{step.label}</span>

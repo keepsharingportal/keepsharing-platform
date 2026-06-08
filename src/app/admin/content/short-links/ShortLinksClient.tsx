@@ -375,7 +375,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
                 </span>
               )
             })()}
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-portal-sub border border-portal-border">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-row-hover text-portal-sub border border-portal-border">
               {typeDef.label}
             </span>
             {local.label && <span className="text-xs text-portal-sub">{local.label}</span>}
@@ -398,12 +398,12 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
             <QrCode size={14} />
           </button>
           <button onClick={copy} title="Copy URL" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
-            {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+            {copied ? <Check size={14} className="text-portal-green" /> : <Copy size={14} />}
           </button>
           <a href={goUrl} target="_blank" rel="noreferrer" title="Test" className="p-1.5 rounded-lg hover:bg-portal-row-hover text-portal-muted hover:text-portal-text">
             <ExternalLink size={14} />
           </a>
-          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-portal-red-lt text-portal-muted hover:text-rose-600 disabled:opacity-40">
+          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-portal-red-lt text-portal-muted hover:text-portal-red disabled:opacity-40">
             {deleting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </button>
         </div>
@@ -413,12 +413,12 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
         <div className="px-4 pb-4 pl-[calc(2.5rem+0.75rem+1rem)] flex items-start gap-4">
           <div className="w-40 h-40 rounded-lg bg-white border border-portal-border flex items-center justify-center overflow-hidden">
             {qrLoading ? (
-              <RefreshCw size={20} className="text-gray-300 animate-spin" />
+              <RefreshCw size={20} className="text-portal-border-2 animate-spin" />
             ) : qrDataUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={qrDataUrl} alt="QR code" className="w-full h-full" />
             ) : (
-              <QrCode size={24} className="text-gray-200" />
+              <QrCode size={24} className="text-portal-border-2" />
             )}
           </div>
           <div className="space-y-2">
@@ -488,18 +488,18 @@ function EditRow({
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
     <div className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
-      <p className="text-xs font-bold text-blue-900 mb-3 inline-flex items-center gap-1.5">
+      <p className="text-xs font-bold text-portal-navy mb-3 inline-flex items-center gap-1.5">
         <Pencil size={12} /> Editing /go/{row.shortcode}
         <span className="font-normal text-portal-blue">— shortcode &amp; printed QR stay the same; just change where it points</span>
       </p>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
-          <label className={lbl}>Destination <span className="text-rose-600">*</span></label>
+          <label className={lbl}>Destination <span className="text-portal-red">*</span></label>
           <input value={destination} onChange={e => setDestination(e.target.value)} className={inp} />
         </div>
         <div>
@@ -511,7 +511,7 @@ function EditRow({
           <input value={utmCampaign} onChange={e => setUtmCampaign(e.target.value)} placeholder="jun2026 · summer-promo" className={inp} />
         </div>
         <div className="flex items-end">
-          <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer pb-2">
+          <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer pb-2">
             <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} className="rounded" />
             Active (QR works)
           </label>
@@ -523,7 +523,7 @@ function EditRow({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save changes'}
         </button>
-        <button onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-portal-navy">Cancel</button>
       </div>
     </div>
   )
@@ -821,7 +821,7 @@ export function AddPanel({
                 className={`text-left rounded-lg border p-3.5 transition-all ${
                   active
                     ? 'border-2 border-gray-900 bg-white shadow-sm'
-                    : 'border-portal-border bg-white hover:border-gray-400'
+                    : 'border-portal-border bg-white hover:border-portal-border-2'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1.5">
@@ -885,7 +885,7 @@ export function AddPanel({
             <button
               type="button"
               onClick={() => setStep2Done(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy"
             >
               <Check size={14} /> Continue as Internal Link
             </button>
@@ -901,7 +901,7 @@ export function AddPanel({
               </p>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
+                  <label className={lbl}>Business Name <span className="text-portal-red">*</span></label>
                   <input value={newAdvName} onChange={e => setNewAdvName(e.target.value)} placeholder="Dentistry for Children" className={inp} />
                 </div>
                 <div>
@@ -922,7 +922,7 @@ export function AddPanel({
                   type="button"
                   onClick={createAdvertiser}
                   disabled={advBusy || !newAdvName.trim()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy disabled:opacity-40"
                 >
                   {advBusy ? <RefreshCw size={11} className="animate-spin" /> : <Check size={11} />}
                   {advBusy ? 'Saving…' : 'Save & Associate'}
@@ -961,7 +961,7 @@ export function AddPanel({
                   onClick={() => setContentType(ct.value)}
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
                     active
-                      ? 'bg-gray-900 text-white ring-gray-900'
+                      ? 'bg-portal-navy text-white ring-gray-900'
                       : 'bg-white text-portal-text border-portal-border hover:bg-portal-bg hover:ring-gray-300'
                   }`}
                 >
@@ -994,9 +994,9 @@ export function AddPanel({
           {purpose === 'qr' ? (
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className={lbl}>Shortcode <span className="text-rose-600">*</span></label>
+                <label className={lbl}>Shortcode <span className="text-portal-red">*</span></label>
                 <div className="flex items-center">
-                  <span className="text-xs text-portal-sub bg-gray-100 border border-r-0 border-portal-border rounded-l-lg px-2.5 py-2">/go/</span>
+                  <span className="text-xs text-portal-sub bg-portal-row-hover border border-r-0 border-portal-border rounded-l-lg px-2.5 py-2">/go/</span>
                   <input value={shortcode} onChange={e => setShortcode(e.target.value)} required autoFocus placeholder="playball-jun26" className={`${inp} rounded-l-none`} />
                 </div>
               </div>
@@ -1018,20 +1018,20 @@ export function AddPanel({
           {/* Content fields — change by type */}
           {contentType === 'url' && (
             <div>
-              <label className={lbl}>Destination URL <span className="text-rose-600">*</span></label>
+              <label className={lbl}>Destination URL <span className="text-portal-red">*</span></label>
               <input value={destination} onChange={e => setDestination(e.target.value)} required placeholder="/calendar/events/play-ball-jun26 or https://..." className={inp} />
             </div>
           )}
           {contentType === 'phone' && (
             <div>
-              <label className={lbl}>Phone Number <span className="text-rose-600">*</span></label>
+              <label className={lbl}>Phone Number <span className="text-portal-red">*</span></label>
               <input type="tel" value={destination} onChange={e => setDestination(e.target.value)} required placeholder="334-555-1234" className={inp} />
             </div>
           )}
           {contentType === 'email' && (
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className={lbl}>Email Address <span className="text-rose-600">*</span></label>
+                <label className={lbl}>Email Address <span className="text-portal-red">*</span></label>
                 <input type="email" value={destination} onChange={e => setDestination(e.target.value)} required placeholder="info@business.com" className={inp} />
               </div>
               <div>
@@ -1042,19 +1042,19 @@ export function AddPanel({
           )}
           {contentType === 'sms' && (
             <div>
-              <label className={lbl}>Phone Number <span className="text-rose-600">*</span></label>
+              <label className={lbl}>Phone Number <span className="text-portal-red">*</span></label>
               <input type="tel" value={destination} onChange={e => setDestination(e.target.value)} required placeholder="334-555-1234" className={inp} />
             </div>
           )}
           {contentType === 'text' && (
             <div>
-              <label className={lbl}>Text Content <span className="text-rose-600">*</span></label>
+              <label className={lbl}>Text Content <span className="text-portal-red">*</span></label>
               <textarea value={destination} onChange={e => setDestination(e.target.value)} required rows={4} placeholder="The message shown when they scan..." className={`${inp} resize-y`} />
             </div>
           )}
           {contentType === 'vcard' && (
             <div className="grid sm:grid-cols-2 gap-3">
-              <div><label className={lbl}>Full Name <span className="text-rose-600">*</span></label><input value={vcName} onChange={e => setVcName(e.target.value)} required className={inp} /></div>
+              <div><label className={lbl}>Full Name <span className="text-portal-red">*</span></label><input value={vcName} onChange={e => setVcName(e.target.value)} required className={inp} /></div>
               <div><label className={lbl}>Organization</label><input value={vcOrg} onChange={e => setVcOrg(e.target.value)} className={inp} /></div>
               <div><label className={lbl}>Job Title</label><input value={vcTitle} onChange={e => setVcTitle(e.target.value)} className={inp} /></div>
               <div><label className={lbl}>Phone</label><input value={vcPhone} onChange={e => setVcPhone(e.target.value)} className={inp} /></div>
@@ -1065,7 +1065,7 @@ export function AddPanel({
           )}
           {contentType === 'event' && (
             <div className="grid sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2"><label className={lbl}>Event Title <span className="text-rose-600">*</span></label><input value={evTitle} onChange={e => setEvTitle(e.target.value)} required className={inp} /></div>
+              <div className="sm:col-span-2"><label className={lbl}>Event Title <span className="text-portal-red">*</span></label><input value={evTitle} onChange={e => setEvTitle(e.target.value)} required className={inp} /></div>
               <div><label className={lbl}>Start (YYYYMMDDTHHMMSS)</label><input value={evStart} onChange={e => setEvStart(e.target.value)} placeholder="20260601T100000" className={inp} /></div>
               <div><label className={lbl}>End</label><input value={evEnd} onChange={e => setEvEnd(e.target.value)} placeholder="20260601T160000" className={inp} /></div>
               <div><label className={lbl}>Location</label><input value={evLocation} onChange={e => setEvLocation(e.target.value)} className={inp} /></div>
@@ -1150,12 +1150,12 @@ export function AddPanel({
           <p className={lbl}>QR Preview</p>
           <div className="w-[180px] h-[180px] rounded-lg bg-white border border-portal-border flex items-center justify-center overflow-hidden mb-2">
             {qrLoading ? (
-              <RefreshCw size={20} className="text-gray-300 animate-spin" />
+              <RefreshCw size={20} className="text-portal-border-2 animate-spin" />
             ) : qrDataUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={qrDataUrl} alt="QR preview" className="w-full h-full" />
             ) : (
-              <QrCode size={32} className="text-gray-200" />
+              <QrCode size={32} className="text-portal-border-2" />
             )}
           </div>
           {qrDataUrl && (
@@ -1196,7 +1196,7 @@ function StepSection({ step, title, hint, children }: {
   return (
     <section className="bg-white rounded-lg border border-portal-border p-5 md:p-6 mb-5 last:mb-0">
       <header className="flex items-start gap-3 mb-4">
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-900 text-white text-xs font-black shrink-0">
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-portal-navy text-white text-xs font-black shrink-0">
           {step}
         </span>
         <div className="flex-1 min-w-0">

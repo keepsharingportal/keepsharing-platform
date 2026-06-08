@@ -12,14 +12,14 @@ function StatusBar({ not_sent, sent, responded, updated, total }: {
   return (
     <div className="space-y-2">
       <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-        {not_sent  > 0 && <div className="bg-gray-300"     style={{ width: `${(not_sent  / total) * 100}%` }} />}
-        {sent      > 0 && <div className="bg-amber-400"    style={{ width: `${(sent      / total) * 100}%` }} />}
-        {responded > 0 && <div className="bg-blue-400"     style={{ width: `${(responded / total) * 100}%` }} />}
+        {not_sent  > 0 && <div className="bg-portal-border-2"     style={{ width: `${(not_sent  / total) * 100}%` }} />}
+        {sent      > 0 && <div className="bg-portal-amber"    style={{ width: `${(sent      / total) * 100}%` }} />}
+        {responded > 0 && <div className="bg-portal-blue"     style={{ width: `${(responded / total) * 100}%` }} />}
         {updated   > 0 && <div className="bg-portal-green"    style={{ width: `${(updated   / total) * 100}%` }} />}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
         {not_sent  > 0 && <span className="text-portal-sub"  >{not_sent} not sent</span>}
-        {sent      > 0 && <span className="text-amber-600" >{sent} sent</span>}
+        {sent      > 0 && <span className="text-portal-amber" >{sent} sent</span>}
         {responded > 0 && <span className="text-portal-blue"  >{responded} responded</span>}
         {updated   > 0 && <span className="text-portal-green" >{updated} updated</span>}
       </div>
@@ -51,7 +51,7 @@ export default function GuidesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-1.5 text-amber-600">
+          <div className="flex items-center gap-1.5 text-portal-amber">
             <AlertCircle size={14} />
             <span className="font-semibold">{totalNotSent}</span>
             <span className="text-portal-sub">not sent</span>
@@ -80,7 +80,7 @@ export default function GuidesPage() {
                 }`}
               >
                 {/* Color bar */}
-                <div className={`h-1 ${isCurrent ? 'bg-portal-blue' : isPast ? 'bg-gray-200' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
+                <div className={`h-1 ${isCurrent ? 'bg-portal-blue' : isPast ? 'bg-portal-border-2' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -133,7 +133,7 @@ export default function GuidesPage() {
                       </button>
                     )}
                     {guide.stats.not_sent === 0 && guide.stats.responded > 0 && (
-                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-blue bg-portal-blue-lt border border-blue-200 rounded-lg hover:bg-portal-blue-lt transition-colors">
+                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-blue bg-portal-blue-lt border border-portal-blue/30 rounded-lg hover:bg-portal-blue-lt transition-colors">
                         <CheckCircle2 size={12} /> Review {guide.stats.responded}
                       </button>
                     )}

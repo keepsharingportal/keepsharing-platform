@@ -99,7 +99,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
   return (
     <div className="space-y-3">
       {hasExisting && !picks && (
-        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-3 py-2 text-xs text-green-800">
+        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-3 py-2 text-xs text-portal-green">
           <div className="flex items-center gap-2 mb-1">
             <Check size={13} />
             <strong>{existingWinners!.length} winner{existingWinners!.length === 1 ? '' : 's'} already recorded for {weekLabel}.</strong>
@@ -168,7 +168,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
               type="button"
               onClick={save}
               disabled={saving}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy disabled:opacity-40"
             >
               {saving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
               Save all {picks.length} winner{picks.length === 1 ? '' : 's'}

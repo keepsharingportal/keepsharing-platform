@@ -82,7 +82,7 @@ export default function ThemesPage() {
                               {theme}
                             </span>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-portal-border-2">—</span>
                           )}
                         </td>
                       )
@@ -95,7 +95,7 @@ export default function ThemesPage() {
         </div>
 
         <p className="text-[11px] text-portal-muted mt-3">
-          This is a planning reference. To make themes editable, move this grid into a <code className="px-1 bg-gray-100 rounded">market_themes</code> table.
+          This is a planning reference. To make themes editable, move this grid into a <code className="px-1 bg-portal-row-hover rounded">market_themes</code> table.
         </p>
       </section>
     </div>

@@ -583,8 +583,8 @@ export default async function IntelligencePage({
   // ── Render ────────────────────────────────────────────────────────────────
 
   const PRIORITY_STYLE = {
-    urgent: { bar: '#dc2626', bg: 'bg-red-50',   border: 'border-red-100',   label: 'bg-red-100 text-red-700'   },
-    high:   { bar: '#d97706', bg: 'bg-portal-amber-lt', border: 'border-amber-100', label: 'bg-portal-amber-lt text-portal-amber'},
+    urgent: { bar: '#dc2626', bg: 'bg-portal-red-lt',   border: 'border-portal-red/20',   label: 'bg-portal-red-lt text-portal-red'   },
+    high:   { bar: '#d97706', bg: 'bg-portal-amber-lt', border: 'border-portal-amber/20', label: 'bg-portal-amber-lt text-portal-amber'},
     medium: { bar: '#2563eb', bg: 'bg-portal-blue-lt',  border: 'border-portal-blue/20',  label: 'bg-portal-blue-lt text-portal-blue' },
   }
 
@@ -637,14 +637,14 @@ export default async function IntelligencePage({
         <section>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-base font-bold text-portal-text">Recommended Actions</h2>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-portal-row-hover" />
             <span className="text-[11px] text-portal-muted">{recommendedActions.length} items</span>
           </div>
 
           {recommendedActions.length === 0 ? (
-            <div className="bg-portal-green-lt border border-green-100 rounded-lg px-6 py-8 text-center">
+            <div className="bg-portal-green-lt border border-portal-green/20 rounded-lg px-6 py-8 text-center">
               <p className="text-2xl mb-2">✅</p>
-              <p className="text-sm font-semibold text-green-800">No urgent actions — ecosystem is in good shape.</p>
+              <p className="text-sm font-semibold text-portal-green">No urgent actions — ecosystem is in good shape.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -691,7 +691,7 @@ export default async function IntelligencePage({
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Revenue Intelligence</h2>
-              <Link href="/admin/advertisers" className="text-xs text-indigo-600 hover:underline font-semibold">Advertisers →</Link>
+              <Link href="/admin/advertisers" className="text-xs text-portal-blue hover:underline font-semibold">Advertisers →</Link>
             </div>
             <div className="p-5 space-y-4">
 
@@ -722,7 +722,7 @@ export default async function IntelligencePage({
                   {proposalsViewed.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-portal-sub">Viewed (intent signal)</span>
-                      <span className="font-semibold text-amber-600">{proposalsViewed.length}</span>
+                      <span className="font-semibold text-portal-amber">{proposalsViewed.length}</span>
                     </div>
                   )}
                   {proposalsExpiring.length > 0 && (
@@ -750,7 +750,7 @@ export default async function IntelligencePage({
                   <div className="space-y-1">
                     {sponsorGaps.map(cat => (
                       <div key={cat} className="flex items-center gap-2 text-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-portal-red shrink-0" />
                         <span className="text-portal-sub truncate font-mono text-[11px]">{cat}</span>
                         <span className="text-portal-red font-semibold shrink-0">No sponsor</span>
                       </div>
@@ -761,7 +761,7 @@ export default async function IntelligencePage({
 
               {/* Renewal window */}
               {renewalSoon.length > 0 && (
-                <div className="bg-portal-amber-lt border border-amber-100 rounded-lg px-3 py-2.5">
+                <div className="bg-portal-amber-lt border border-portal-amber/20 rounded-lg px-3 py-2.5">
                   <p className="text-xs text-portal-amber font-semibold">{renewalSoon.length} partner{renewalSoon.length !== 1 ? 's' : ''} renewing within 60 days</p>
                   <div className="mt-1 space-y-0.5">
                     {renewalSoon.slice(0, 3).map(a => (
@@ -784,7 +784,7 @@ export default async function IntelligencePage({
                     {totalImpressions > 0 && (
                       <>
                         <span className="text-portal-muted">·</span>
-                        <span className="font-semibold text-indigo-600">{((totalClicks / totalImpressions) * 100).toFixed(1)}% CTR</span>
+                        <span className="font-semibold text-portal-blue">{((totalClicks / totalImpressions) * 100).toFixed(1)}% CTR</span>
                       </>
                     )}
                   </div>
@@ -797,7 +797,7 @@ export default async function IntelligencePage({
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Editorial Intelligence</h2>
-              <Link href="/admin/community" className="text-xs text-indigo-600 hover:underline font-semibold">Community →</Link>
+              <Link href="/admin/community" className="text-xs text-portal-blue hover:underline font-semibold">Community →</Link>
             </div>
             <div className="p-5 space-y-4">
 
@@ -860,7 +860,7 @@ export default async function IntelligencePage({
                     )
                   })}
                   {dormantGuides > 0 && (
-                    <Link href="/admin/engagement?view=content" className="text-[11px] text-indigo-500 hover:underline">
+                    <Link href="/admin/engagement?view=content" className="text-[11px] text-portal-blue hover:underline">
                       {dormantGuides} guide{dormantGuides !== 1 ? 's' : ''} dormant or empty →
                     </Link>
                   )}
@@ -869,13 +869,13 @@ export default async function IntelligencePage({
 
               {/* AI task summary */}
               {(aiPending.length > 0 || aiFailed.length > 0) && (
-                <div className="bg-orange-50 border border-orange-100 rounded-lg px-3 py-2.5">
-                  <p className="text-xs font-semibold text-orange-800 mb-1">AI Task Queue</p>
-                  <div className="flex gap-4 text-[11px] text-orange-700">
+                <div className="bg-portal-amber-lt border border-portal-amber/20 rounded-lg px-3 py-2.5">
+                  <p className="text-xs font-semibold text-portal-amber mb-1">AI Task Queue</p>
+                  <div className="flex gap-4 text-[11px] text-portal-amber">
                     {aiPending.length > 0 && <span>{aiPending.length} awaiting human review</span>}
                     {aiFailed.length > 0  && <span>{aiFailed.length} failed</span>}
                   </div>
-                  <Link href="/admin/ai-tasks" className="text-[11px] text-orange-600 font-semibold hover:underline mt-0.5 block">
+                  <Link href="/admin/ai-tasks" className="text-[11px] text-portal-amber font-semibold hover:underline mt-0.5 block">
                     Review AI queue →
                   </Link>
                 </div>
@@ -891,7 +891,7 @@ export default async function IntelligencePage({
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Operational Intelligence</h2>
-              <Link href="/admin/assets" className="text-xs text-indigo-600 hover:underline font-semibold">Assets →</Link>
+              <Link href="/admin/assets" className="text-xs text-portal-blue hover:underline font-semibold">Assets →</Link>
             </div>
             <div className="p-5 space-y-4">
 
@@ -905,14 +905,14 @@ export default async function IntelligencePage({
                     { label: 'Missing alt text',       val: assetsNeedAlt,        color: '#d97706', href: '/admin/assets?view=readiness'  },
                   ].map(({ label, val, color, href }) => (
                     <div key={label} className="flex items-center gap-2">
-                      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                      <div className="flex-1 bg-portal-row-hover rounded-full h-1.5">
                         <div
                           className="h-1.5 rounded-full"
                           style={{ width: totalAssets > 0 ? `${Math.min((val / totalAssets) * 100, 100)}%` : '0%', backgroundColor: color }}
                         />
                       </div>
                       <span className="text-[11px] font-bold w-6 text-right" style={{ color }}>{val}</span>
-                      <Link href={href} className="text-[11px] text-portal-muted hover:text-indigo-600 hover:underline truncate max-w-[120px]">
+                      <Link href={href} className="text-[11px] text-portal-muted hover:text-portal-blue hover:underline truncate max-w-[120px]">
                         {label}
                       </Link>
                     </div>
@@ -933,13 +933,13 @@ export default async function IntelligencePage({
                   {noTeaser.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-portal-sub">Newsletter teasers needed</span>
-                      <Link href="/admin/editorial/approval" className="font-semibold text-amber-600 hover:underline">{noTeaser.length} items</Link>
+                      <Link href="/admin/editorial/approval" className="font-semibold text-portal-amber hover:underline">{noTeaser.length} items</Link>
                     </div>
                   )}
                   {socialUnexported.length > 0 && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-portal-sub">Social export pending</span>
-                      <Link href="/admin/distribution/social-export" className="font-semibold text-purple-600 hover:underline">{socialUnexported.length} ready</Link>
+                      <Link href="/admin/distribution/social-export" className="font-semibold text-portal-blue hover:underline">{socialUnexported.length} ready</Link>
                     </div>
                   )}
                   {pendingReview.length === 0 && noTeaser.length === 0 && socialUnexported.length === 0 && (
@@ -977,7 +977,7 @@ export default async function IntelligencePage({
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Audience Intelligence</h2>
-              <Link href="/admin/engagement" className="text-xs text-indigo-600 hover:underline font-semibold">Engagement →</Link>
+              <Link href="/admin/engagement" className="text-xs text-portal-blue hover:underline font-semibold">Engagement →</Link>
             </div>
             <div className="p-5 space-y-4">
 
@@ -1013,11 +1013,11 @@ export default async function IntelligencePage({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1 mb-0.5">
                               <p className="text-[11px] font-semibold text-portal-text truncate">{tc?.shortLabel ?? type}</p>
-                              {isHS && <span className="text-[9px] bg-pink-100 text-pink-600 px-1 rounded font-bold shrink-0">🔥</span>}
+                              {isHS && <span className="text-[9px] bg-portal-red-lt text-portal-red px-1 rounded font-bold shrink-0">🔥</span>}
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-100 rounded-full h-1">
-                                <div className="h-1 rounded-full bg-indigo-400" style={{ width: `${pct}%` }} />
+                              <div className="flex-1 bg-portal-row-hover rounded-full h-1">
+                                <div className="h-1 rounded-full bg-portal-blue" style={{ width: `${pct}%` }} />
                               </div>
                               <span className="text-[11px] font-bold text-portal-sub w-4 text-right">{count}</span>
                             </div>
@@ -1036,7 +1036,7 @@ export default async function IntelligencePage({
                 <p className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Family Favorites</p>
                 <div className="flex items-center gap-4 text-xs">
                   <div className="text-center">
-                    <p className="text-xl font-bold text-yellow-500">{ffActive + ffPending}</p>
+                    <p className="text-xl font-bold text-portal-amber">{ffActive + ffPending}</p>
                     <p className="text-[10px] text-portal-muted">nominations</p>
                   </div>
                   {ffPending > 0 && (
@@ -1046,7 +1046,7 @@ export default async function IntelligencePage({
                     </div>
                   )}
                 </div>
-                <Link href="/admin/family-favorites" className="text-[11px] text-indigo-500 hover:underline mt-1 block">
+                <Link href="/admin/family-favorites" className="text-[11px] text-portal-blue hover:underline mt-1 block">
                   Manage Family Favorites →
                 </Link>
               </div>
@@ -1073,7 +1073,7 @@ export default async function IntelligencePage({
                 <span className="text-sm">✨</span>
                 <h2 className="text-base font-bold text-portal-text">Strategic Opportunities</h2>
               </div>
-              <div className="flex-1 h-px bg-gray-100" />
+              <div className="flex-1 h-px bg-portal-row-hover" />
               <span className="text-[11px] text-portal-muted">Data-derived · Not AI-generated yet</span>
             </div>
 
@@ -1135,7 +1135,7 @@ export default async function IntelligencePage({
                 ].map(label => (
                   <span key={label} className="text-[10px] px-2.5 py-1 border border-portal-border rounded-lg text-portal-muted flex items-center gap-1">
                     {label}
-                    <span className="bg-gray-100 text-portal-muted text-[9px] px-1 rounded font-semibold">Soon</span>
+                    <span className="bg-portal-row-hover text-portal-muted text-[9px] px-1 rounded font-semibold">Soon</span>
                   </span>
                 ))}
               </div>

@@ -98,9 +98,9 @@ export default function ColumnBrandingPage() {
       </p>
 
       {error && (
-        <div className="mb-6 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+        <div className="mb-6 flex items-start gap-2 p-3 rounded-lg bg-portal-red-lt border border-portal-red/30">
           <AlertTriangle size={14} className="text-portal-red shrink-0 mt-0.5" />
-          <p className="text-sm text-red-700 leading-relaxed">{error}</p>
+          <p className="text-sm text-portal-red leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -212,7 +212,7 @@ function ColumnCard({
               <button
                 type="button"
                 onClick={() => setLogoUrl('')}
-                className="ml-auto text-xs font-semibold text-portal-red hover:text-red-700 flex items-center gap-1"
+                className="ml-auto text-xs font-semibold text-portal-red hover:text-portal-red flex items-center gap-1"
               >
                 <X size={11} /> Remove
               </button>
@@ -228,7 +228,7 @@ function ColumnCard({
             />
             <span
               role="button"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-gray-100 text-portal-muted' : 'bg-portal-blue-lt text-portal-blue hover:bg-portal-blue-lt'}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-portal-row-hover text-portal-muted' : 'bg-portal-blue-lt text-portal-blue hover:bg-portal-blue-lt'}`}
             >
               {uploading
                 ? <><RefreshCw size={12} className="animate-spin" /> Uploading…</>
@@ -251,9 +251,9 @@ function ColumnCard({
         </div>
 
         {err && (
-          <div className="flex items-start gap-2 p-2 rounded-md bg-red-50 border border-red-200">
+          <div className="flex items-start gap-2 p-2 rounded-md bg-portal-red-lt border border-portal-red/30">
             <AlertTriangle size={11} className="text-portal-red shrink-0 mt-0.5" />
-            <p className="text-[11px] text-red-700">{err}</p>
+            <p className="text-[11px] text-portal-red">{err}</p>
           </div>
         )}
 

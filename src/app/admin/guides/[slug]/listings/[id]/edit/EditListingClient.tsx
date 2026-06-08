@@ -266,7 +266,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
         </div>
       )}
       {saved && !error && (
-        <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green">
+        <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}
@@ -317,7 +317,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
                 key={t}
                 type="button"
                 onClick={() => setTier(t)}
-                className={`px-4 py-2 text-sm font-semibold capitalize ${tier === t ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
+                className={`px-4 py-2 text-sm font-semibold capitalize ${tier === t ? 'bg-portal-navy text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
               >
                 {t}
               </button>
@@ -358,8 +358,8 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       {/* CRM association */}
       <Section icon={<Link2 size={14} />} title="CRM Association">
         {listing.advertiser_account_id ? (
-          <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm space-y-2">
-            <p className="text-emerald-900">
+          <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm space-y-2">
+            <p className="text-portal-green">
               Linked to CRM advertiser <Link href={`/admin/advertisers/${listing.advertiser_account_id}`} className="font-bold hover:underline inline-flex items-center gap-1">
                 {listing.linked_advertiser_name ?? 'View advertiser'} <ExternalLink size={11} />
               </Link>
@@ -393,7 +393,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
             </FieldRow>
 
             <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-3 text-sm space-y-2">
-              <p className="text-amber-900 font-semibold inline-flex items-center gap-1.5">
+              <p className="text-portal-amber font-semibold inline-flex items-center gap-1.5">
                 <Sparkles size={14} /> Promote to Featured
               </p>
               <p className="text-xs text-portal-amber leading-relaxed">
@@ -405,7 +405,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
                 type="button"
                 onClick={onPromote}
                 disabled={promoting || saving}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-amber-600 text-white rounded-full hover:bg-amber-700 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold bg-portal-amber text-white rounded-full hover:bg-portal-amber disabled:opacity-40"
               >
                 {promoting ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                 {promoting ? 'Promoting…' : 'Promote to Featured'}

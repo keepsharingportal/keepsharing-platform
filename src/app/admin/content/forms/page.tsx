@@ -21,17 +21,17 @@ const FORM_META: Record<string, { label: string; pub: string; path: string; colo
   'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
   'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-portal-red-lt text-portal-red border-portal-red/30' },
   'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-portal-green-lt text-portal-green ring-green-200' },
-  'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-purple-50 text-purple-700 ring-purple-200' },
-  'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-teal-50 text-teal-700 ring-teal-200' },
+  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-portal-green-lt text-portal-green ring-portal-green/30' },
+  'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
+  'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-portal-green-lt text-portal-green ring-portal-green/30' },
 }
 
 const STATUS_CONFIG: Record<string, string> = {
   pending:  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   reviewed: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  approved: 'bg-portal-green-lt text-portal-green ring-green-200',
-  rejected: 'bg-red-50 text-red-700 ring-red-200',
-  published:'bg-slate-50 text-slate-700 ring-slate-200',
+  approved: 'bg-portal-green-lt text-portal-green ring-portal-green/30',
+  rejected: 'bg-portal-red-lt text-portal-red ring-portal-red/30',
+  published:'bg-portal-bg text-portal-text ring-slate-200',
 }
 
 export default function FormsAdminPage() {
@@ -80,11 +80,11 @@ export default function FormsAdminPage() {
 
         {/* Filter tabs */}
         <div className="flex gap-1 flex-wrap">
-          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
+          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
             All
           </button>
           {Object.entries(FORM_META).map(([type, meta]) => (
-            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
+            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-sub hover:bg-portal-bg')}>
               {meta.label}
             </button>
           ))}

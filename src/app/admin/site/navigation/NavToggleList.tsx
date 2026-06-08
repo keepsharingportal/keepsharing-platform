@@ -462,7 +462,7 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
                 type="button"
                 onClick={saveRename}
                 disabled={busy}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-portal-green text-white hover:bg-portal-green"
               >
                 <Check size={10} /> Save
               </button>
@@ -511,7 +511,7 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               openInNewTab
-                ? 'bg-sky-50 text-sky-700 border-portal-blue/30'
+                ? 'bg-portal-blue-lt text-portal-blue border-portal-blue/30'
                 : 'bg-white text-portal-sub border-portal-border hover:ring-gray-400'
             }`}
             title={openInNewTab ? 'Opens in new tab — click to disable' : 'Click to open in new tab'}
@@ -582,7 +582,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
               className="w-full px-2 py-1 text-xs font-mono rounded-md border border-portal-border focus:outline-none focus:border-portal-blue"
             />
             <div className="flex items-center gap-2 mt-1">
-              <button type="button" onClick={saveRename} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-600 text-white hover:bg-emerald-700">
+              <button type="button" onClick={saveRename} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-portal-green text-white hover:bg-portal-green">
                 <Check size={10} /> Save
               </button>
               <button type="button" onClick={() => setRenaming(false)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-portal-sub hover:bg-portal-row-hover">
@@ -611,7 +611,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               row.open_in_new_tab
-                ? 'bg-sky-50 text-sky-700 border-portal-blue/30'
+                ? 'bg-portal-blue-lt text-portal-blue border-portal-blue/30'
                 : 'bg-white text-portal-sub border-portal-border hover:ring-gray-400'
             }`}
           >

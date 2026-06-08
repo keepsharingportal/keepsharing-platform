@@ -65,8 +65,8 @@ export default async function SchoolNewsPage({ searchParams }: PageProps) {
       <div className="flex-1 overflow-y-auto">
         <main className="p-6 max-w-3xl mx-auto">
           <h1 className="text-xl font-bold text-portal-text mb-4">School Bits</h1>
-          <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
+          <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+            <p className="text-sm font-bold text-portal-amber mb-1">Migration needed</p>
             <p className="text-sm text-portal-amber leading-relaxed">
               Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/085_schools_and_bits.sql</code> in the Supabase SQL editor to activate School News.
             </p>

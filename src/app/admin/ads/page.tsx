@@ -365,7 +365,7 @@ export default function AdminAdsPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2 text-sm text-red-800">
+          <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-4 flex items-start gap-2 text-sm text-portal-red">
             <AlertTriangle size={16} className="text-portal-red shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Load failed</p>
@@ -576,7 +576,7 @@ function SlotRowItem({
           <div className="inline-flex items-center gap-2">
             <Link
               href={`/admin/ads/new?placement_type=${encodeURIComponent(row.placement_type)}${row.page.context_slug ? `&context_slug=${encodeURIComponent(row.page.context_slug)}` : ''}`}
-              className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-2.5 py-1 rounded-md"
+              className="text-xs font-bold text-white bg-portal-amber hover:bg-portal-amber px-2.5 py-1 rounded-md"
             >
               + Sell this spot
             </Link>
@@ -591,7 +591,7 @@ function SlotRowItem({
         ) : isHidden ? (
           <button
             onClick={() => onToggleHidden(row.placement_type)}
-            className="text-xs font-bold text-portal-green hover:text-emerald-900 inline-flex items-center gap-1"
+            className="text-xs font-bold text-portal-green hover:text-portal-green inline-flex items-center gap-1"
           >
             <Eye size={11} /> Show
           </button>
@@ -605,15 +605,15 @@ function SlotRowItem({
                 >
                   Edit
                 </Link>
-                <span className="text-gray-300">·</span>
+                <span className="text-portal-border-2">·</span>
                 <button
                   onClick={() => onExpire(headBooking.id)}
-                  className="font-semibold text-portal-amber hover:text-amber-900"
+                  className="font-semibold text-portal-amber hover:text-portal-amber"
                   title="Mark this ad as expired — moves it out of active ads but keeps it in the customer's history"
                 >
                   Mark expired
                 </button>
-                <span className="text-gray-300">·</span>
+                <span className="text-portal-border-2">·</span>
               </>
             )}
             <button
@@ -635,10 +635,10 @@ function SlotRowItem({
 
 function StatusPill({ status }: { status: SlotRow['status'] }) {
   const styles = {
-    on:     'bg-green-600 text-white',
+    on:     'bg-portal-green text-white',
     empty:  'bg-portal-amber text-white',
-    paused: 'bg-red-600 text-white',
-    hidden: 'bg-gray-700 text-white',
+    paused: 'bg-portal-red text-white',
+    hidden: 'bg-portal-navy text-white',
   }[status]
   const label = { on: 'ON', empty: 'EMPTY', paused: 'PAUSED', hidden: 'HIDDEN' }[status]
   return (
@@ -666,15 +666,15 @@ function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) 
     try { await onChange(next) } finally { setBusy(false) }
   }
 
-  const onActiveCls  = 'bg-green-600 text-white shadow-sm'
-  const offActiveCls = 'bg-slate-600 text-white shadow-sm'
+  const onActiveCls  = 'bg-portal-green text-white shadow-sm'
+  const offActiveCls = 'bg-portal-navy text-white shadow-sm'
   const inactiveCls  = 'text-portal-muted hover:text-portal-sub'
 
   return (
     <div
       role="group"
       aria-label="On / Off"
-      className={`inline-flex items-center rounded-full bg-gray-100 border border-portal-border p-0.5 select-none ${busy ? 'opacity-70' : ''}`}
+      className={`inline-flex items-center rounded-full bg-portal-row-hover border border-portal-border p-0.5 select-none ${busy ? 'opacity-70' : ''}`}
     >
       <button
         type="button"

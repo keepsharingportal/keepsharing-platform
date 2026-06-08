@@ -97,7 +97,7 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
                 <td className="px-4 py-2.5 text-xs">
                   <div className="flex flex-wrap gap-1">
                     {(s.tags ?? []).filter(t => t !== 'rrp-main-email').slice(0, 3).map(t => (
-                      <span key={t} className="px-1.5 py-0.5 rounded bg-gray-100 text-portal-sub text-[10px]">{t}</span>
+                      <span key={t} className="px-1.5 py-0.5 rounded bg-portal-row-hover text-portal-sub text-[10px]">{t}</span>
                     ))}
                   </div>
                 </td>

@@ -61,10 +61,10 @@ const STATUS_STYLE: Record<string, { label: string; bg: string; color: string }>
 }
 
 const PRIORITY_STYLE: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700 font-bold',
-  high:   'bg-orange-100 text-orange-700 font-semibold',
+  urgent: 'bg-portal-red-lt text-portal-red font-bold',
+  high:   'bg-portal-amber-lt text-portal-amber font-semibold',
   normal: '',   // hidden for normal priority
-  low:    'bg-gray-100 text-portal-sub',
+  low:    'bg-portal-row-hover text-portal-sub',
 }
 
 type FilterKey = 'review' | 'queued' | 'approved' | 'rejected' | 'failed' | 'all'
@@ -263,7 +263,7 @@ export default async function AITasksPage({
             href={`/admin/ai-tasks?filter=${tab.key}`}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === tab.key
-                ? 'bg-gray-900 text-white'
+                ? 'bg-portal-navy text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
             }`}
           >
@@ -340,7 +340,7 @@ export default async function AITasksPage({
                         <p className="text-[11px] text-portal-muted mt-0.5">
                           Source: <span className="text-portal-sub">{task.source_table}</span>
                           {' · '}
-                          <Link href={srcLink.href} className="text-indigo-500 hover:underline">
+                          <Link href={srcLink.href} className="text-portal-blue hover:underline">
                             {srcLink.label} ↗
                           </Link>
                         </p>
@@ -384,9 +384,9 @@ export default async function AITasksPage({
 
                   {/* Error message */}
                   {task.error_message && (
-                    <div className="mt-3 px-4 py-3 bg-red-50 rounded-lg border border-red-100">
+                    <div className="mt-3 px-4 py-3 bg-portal-red-lt rounded-lg border border-portal-red/20">
                       <p className="text-[10px] font-semibold text-portal-red uppercase tracking-wide mb-1">Error</p>
-                      <p className="text-xs text-red-700 leading-relaxed">{task.error_message}</p>
+                      <p className="text-xs text-portal-red leading-relaxed">{task.error_message}</p>
                     </div>
                   )}
 
@@ -401,7 +401,7 @@ export default async function AITasksPage({
 
                   {/* Approval attribution */}
                   {task.approved_by && task.status === 'approved' && (
-                    <div className="mt-3 px-4 py-2 bg-portal-green-lt rounded-lg border border-green-100">
+                    <div className="mt-3 px-4 py-2 bg-portal-green-lt rounded-lg border border-portal-green/20">
                       <p className="text-xs text-portal-green font-medium">
                         ✓ Approved by {task.approved_by} · {fmtDatetime(task.approved_at)}
                       </p>
@@ -419,7 +419,7 @@ export default async function AITasksPage({
                         <form action={approveTask}>
                           <input type="hidden" name="task_id" value={task.id} />
                           <button type="submit"
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-green-600 hover:bg-green-700 transition-colors">
+                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-portal-green hover:bg-portal-green transition-colors">
                             ✓ Approve
                           </button>
                         </form>
@@ -435,7 +435,7 @@ export default async function AITasksPage({
                             className="text-xs border border-portal-border rounded-lg px-2.5 py-1.5 outline-none focus:border-portal-blue w-40 transition-colors"
                           />
                           <button type="submit"
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">
+                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-portal-red hover:bg-portal-red transition-colors">
                             ✗ Reject
                           </button>
                         </form>
@@ -445,7 +445,7 @@ export default async function AITasksPage({
                         <form action={retryTask}>
                           <input type="hidden" name="task_id" value={task.id} />
                           <button type="submit"
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-indigo-700 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+                            className="px-4 py-1.5 rounded-lg text-xs font-bold text-portal-blue border border-indigo-200 bg-portal-blue-lt hover:bg-portal-blue-lt transition-colors">
                             ↺ Retry
                           </button>
                         </form>

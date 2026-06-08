@@ -126,7 +126,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-red-lt text-portal-red'} inline-flex items-center gap-1`}>
               {msg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {msg.text}
             </span>
@@ -135,7 +135,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         <button
           onClick={save}
           disabled={saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-portal-red text-white rounded-lg hover:bg-portal-red disabled:opacity-50"
         >
           {saving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? 'Saving…' : 'Save Changes'}
@@ -167,14 +167,14 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         </label>
 
         <p className="text-[11px] text-portal-muted pt-2 border-t border-portal-border">
-          Public profile: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
+          Public profile: <code className="px-1 bg-portal-row-hover rounded">{publicPath}</code>
         </p>
       </section>
 
       {/* ── Blogger Portal Access ─────────────────────────────────────────── */}
-      <section className="rounded-lg border border-pink-200 bg-pink-50/40 p-5 space-y-3">
+      <section className="rounded-lg border border-portal-red/30 bg-portal-red-lt/40 p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
-          <Key size={14} className="text-pink-600" />
+          <Key size={14} className="text-portal-red" />
           Blogger Portal Access
         </h2>
         <FieldHint className="-mt-1">
@@ -202,7 +202,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
                   ? 'bg-portal-green-lt text-portal-green'
                   : form.email
                     ? 'bg-portal-amber-lt text-portal-amber'
-                    : 'bg-gray-100 text-portal-sub'
+                    : 'bg-portal-row-hover text-portal-sub'
               }`}
             >
               {form.has_login ? 'Active login' : form.email ? 'Not yet invited' : 'No login'}
@@ -210,10 +210,10 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 pt-2 border-t border-pink-200/60">
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-portal-red/30/60">
           <div className="min-w-0 flex-1">
             {inviteMsg && (
-              <span className={`text-xs font-semibold inline-flex items-center gap-1 ${inviteMsg.ok ? 'text-portal-green' : 'text-red-700'}`}>
+              <span className={`text-xs font-semibold inline-flex items-center gap-1 ${inviteMsg.ok ? 'text-portal-green' : 'text-portal-red'}`}>
                 {inviteMsg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
                 {inviteMsg.text}
               </span>
@@ -224,7 +224,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
             onClick={sendInvite}
             disabled={inviting || !form.email || !initial.email}
             title={!initial.email ? 'Save the email first, then send the login link.' : ''}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-pink-300 text-pink-700 rounded-lg hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white border border-portal-red/40 text-portal-red rounded-lg hover:bg-portal-red-lt disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {inviting ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
             {inviting ? 'Sending…' : 'Send Login Link'}
@@ -282,7 +282,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
             <p className="text-[11px] text-portal-muted mt-0.5">Short, fun Q&amp;A shown on her profile. Skip any she doesn&apos;t want to answer — empty rows are dropped on save.</p>
           </div>
           {form.quick_takes.length === 0 && (
-            <button type="button" onClick={loadDefaults} className="text-xs font-semibold text-pink-600 hover:underline">
+            <button type="button" onClick={loadDefaults} className="text-xs font-semibold text-portal-red hover:underline">
               Load suggested questions
             </button>
           )}

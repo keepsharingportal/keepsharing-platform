@@ -322,7 +322,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
-                <AlertTriangle size={16} className="text-rose-600" />
+                <AlertTriangle size={16} className="text-portal-red" />
                 Delete {previewIds.length} business{previewIds.length === 1 ? '' : 'es'}?
               </h3>
               <button onClick={() => !deleting && setConfirmOpen(false)} className="text-portal-muted hover:text-portal-text">
@@ -349,7 +349,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
              (preview.short_links ?? 0) === 0 &&
              (preview.guide_listings ?? 0) === 0 &&
              (preview.proposals ?? 0) === 0 && (
-              <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-xs text-portal-green">
+              <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-xs text-portal-green">
                 Safe to delete — none of the selected rows have related activity.
               </div>
             )}
@@ -365,7 +365,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 type="button"
                 onClick={onConfirmDelete}
                 disabled={deleting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-red text-white rounded-full hover:bg-portal-red disabled:opacity-40"
               >
                 {deleting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
                 {deleting ? 'Deleting…' : `Delete ${previewIds.length}`}
@@ -392,7 +392,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-lg p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
-                <GitMerge size={16} className="text-amber-600" />
+                <GitMerge size={16} className="text-portal-amber" />
                 Merge {selected.size} businesses into one
               </h3>
               <button onClick={() => !merging && setMergeOpen(false)} className="text-portal-muted hover:text-portal-text">
@@ -427,7 +427,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                       <div className="flex items-baseline gap-2 flex-wrap">
                         <p className="text-sm font-bold text-portal-text truncate">{r.business_name}</p>
                         {isSurvivor && (
-                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-portal-green text-white">
                             Keep
                           </span>
                         )}
@@ -471,7 +471,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 type="button"
                 onClick={onConfirmMerge}
                 disabled={merging || !mergeSurvivorId}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-amber-600 text-white rounded-full hover:bg-amber-700 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber text-white rounded-full hover:bg-portal-amber disabled:opacity-40"
               >
                 {merging ? <Loader2 size={14} className="animate-spin" /> : <GitMerge size={14} />}
                 {merging ? 'Merging…' : `Merge ${selected.size - 1} into selected`}

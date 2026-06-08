@@ -159,7 +159,7 @@ export function ArticleBulkActionsTable({
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
           resultMsg.ok
             ? 'bg-portal-green-lt border border-portal-green/30 text-portal-green'
-            : 'bg-red-50 border border-red-200 text-portal-red'
+            : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {resultMsg.text}
         </div>
@@ -167,7 +167,7 @@ export function ArticleBulkActionsTable({
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-portal-blue-lt border border-blue-200 rounded-lg">
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-portal-blue-lt border border-portal-blue/30 rounded-lg">
           <span className="text-sm font-semibold text-portal-blue mr-1">
             {selected.size} selected
           </span>
@@ -182,7 +182,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'approve')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-green text-white text-xs font-semibold rounded-lg hover:bg-portal-green disabled:opacity-50 transition-colors"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle size={12} />}
               Approve & Publish
@@ -190,7 +190,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'draft')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-portal-text text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-portal-border"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-row-hover text-portal-text text-xs font-semibold rounded-lg hover:bg-portal-border-2 disabled:opacity-50 transition-colors border border-portal-border"
             >
               <FileText size={12} />
               Move to Draft
@@ -198,7 +198,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'archive')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-portal-sub text-xs font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors border border-portal-border"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-row-hover text-portal-sub text-xs font-semibold rounded-lg hover:bg-portal-border-2 disabled:opacity-50 transition-colors border border-portal-border"
             >
               <Archive size={12} />
               Archive
@@ -319,8 +319,8 @@ export function ArticleBulkActionsTable({
                 {/* Image indicator */}
                 <div className="w-5 flex items-center justify-center">
                   {a.hero_image_url
-                    ? <div className="w-2 h-2 rounded-full bg-green-400" title="Has hero image" />
-                    : <span title="Missing hero image"><ImageOff size={12} className="text-red-300" /></span>
+                    ? <div className="w-2 h-2 rounded-full bg-portal-green" title="Has hero image" />
+                    : <span title="Missing hero image"><ImageOff size={12} className="text-portal-red" /></span>
                   }
                 </div>
 
@@ -345,7 +345,7 @@ export function ArticleBulkActionsTable({
                 {/* Views */}
                 <div className="hidden md:block tabular-nums text-right">
                   <span className={`text-xs whitespace-nowrap ${
-                    (a.view_count ?? 0) > 0 ? 'text-portal-text font-semibold' : 'text-gray-300'
+                    (a.view_count ?? 0) > 0 ? 'text-portal-text font-semibold' : 'text-portal-border-2'
                   }`}>
                     {fmtViews(a.view_count)}
                   </span>
@@ -399,7 +399,7 @@ export function ArticleBulkActionsTable({
             aria-disabled={page <= 1}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
               page <= 1
-                ? 'border-portal-border text-gray-300 pointer-events-none'
+                ? 'border-portal-border text-portal-border-2 pointer-events-none'
                 : 'border-portal-border-2 text-portal-text hover:bg-portal-bg'
             }`}
           >
@@ -416,7 +416,7 @@ export function ArticleBulkActionsTable({
             aria-disabled={page >= totalPages}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border ${
               page >= totalPages
-                ? 'border-portal-border text-gray-300 pointer-events-none'
+                ? 'border-portal-border text-portal-border-2 pointer-events-none'
                 : 'border-portal-border-2 text-portal-text hover:bg-portal-bg'
             }`}
           >

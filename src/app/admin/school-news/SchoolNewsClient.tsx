@@ -20,8 +20,8 @@ import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const SOURCE_BADGE: Record<string, string> = {
   public_form:     'bg-portal-green-lt text-portal-green border-portal-green/30',
-  staff_email:     'bg-purple-50 text-purple-700 ring-purple-200',
-  staff_facebook:  'bg-sky-50 text-sky-700 border-portal-blue/30',
+  staff_email:     'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
+  staff_facebook:  'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
   staff_manual:    'bg-portal-bg text-portal-sub border-portal-border',
 }
 
@@ -295,7 +295,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
           ))}
         </div>
         {scheduledCount > 0 && (
-          <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full ring-1 ring-purple-200 inline-flex items-center gap-1">
+          <span className="text-xs font-semibold text-portal-blue bg-portal-blue-lt px-2.5 py-1 rounded-full ring-1 ring-portal-blue/30 inline-flex items-center gap-1">
             <Clock size={11} /> {scheduledCount} scheduled to publish later
           </span>
         )}
@@ -550,8 +550,8 @@ function BitRow({
     ? (school.is_private ? 'Private' : (isValidArea(school.area) ? AREA_SHORT_LABELS[school.area] : school.area))
     : null
   const areaCls = school
-    ? (school.is_private ? PRIVATE_BADGE_CLASS : (isValidArea(school.area) ? AREA_BADGE_CLASS[school.area] : 'bg-gray-500 text-white'))
-    : 'bg-gray-500 text-white'
+    ? (school.is_private ? PRIVATE_BADGE_CLASS : (isValidArea(school.area) ? AREA_BADGE_CLASS[school.area] : 'bg-portal-muted text-white'))
+    : 'bg-portal-muted text-white'
 
   async function call(action: 'approve' | 'reject' | 'reopen') {
     setBusy(action); setErr(null)
@@ -594,7 +594,7 @@ function BitRow({
         )}
 
         {/* Thumbnail */}
-        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-portal-border">
+        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-portal-row-hover border border-portal-border">
           {item.image_web_url ? (
             <Image
               src={item.image_web_url}
@@ -605,7 +605,7 @@ function BitRow({
               unoptimized
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300">
+            <div className="w-full h-full flex items-center justify-center text-portal-border-2">
               <ImageIcon size={20} />
             </div>
           )}
@@ -619,7 +619,7 @@ function BitRow({
               {SOURCE_LABEL[item.source_type] ?? item.source_type}
             </span>
             {item.source_url && (
-              <a href={item.source_url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-600 hover:underline inline-flex items-center gap-0.5">
+              <a href={item.source_url} target="_blank" rel="noreferrer" className="text-[10px] text-portal-blue hover:underline inline-flex items-center gap-0.5">
                 source <ExternalLink size={9} />
               </a>
             )}
@@ -638,12 +638,12 @@ function BitRow({
               </span>
             )}
             {scheduledFor && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 ring-1 ring-purple-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30">
                 <Calendar size={9} /> Scheduled {scheduledFor}
               </span>
             )}
             {item.status === 'approved' && !scheduledFor && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30">
                 <CheckCircle2 size={9} /> Live
               </span>
             )}
@@ -671,7 +671,7 @@ function BitRow({
               <button
                 onClick={() => call('reject')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
               >
                 {busy === 'reject' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                 Reject
@@ -838,12 +838,12 @@ function BitRowEditor({
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={previewUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300">
+              <div className="w-full h-full flex items-center justify-center text-portal-border-2">
                 <ImageIcon size={28} />
               </div>
             )}
           </div>
-          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-portal-blue">
+          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-portal-blue text-portal-blue">
             {imageBusy ? <RefreshCw size={11} className="animate-spin" /> : <Camera size={11} />}
             {imageBusy ? 'Processing…' : 'Replace image'}
             <input
@@ -875,7 +875,7 @@ function BitRowEditor({
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full text-sm font-semibold border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white"
+              className="w-full text-sm font-semibold border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white"
             />
           </div>
           <div>
@@ -883,7 +883,7 @@ function BitRowEditor({
             <textarea
               value={blurb}
               onChange={e => setBlurb(e.target.value)}
-              className="w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white resize-y min-h-[80px]"
+              className="w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white resize-y min-h-[80px]"
             />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -893,7 +893,7 @@ function BitRowEditor({
                 type="date"
                 value={publishedAt}
                 onChange={e => setPublishedAt(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white"
+                className="w-full px-2 py-1.5 text-xs border border-portal-blue/30 rounded outline-none focus:border-portal-blue bg-white"
               />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Backdate to sort old bits. Blank = unscheduled.</p>
             </div>
@@ -903,7 +903,7 @@ function BitRowEditor({
                 type="month"
                 value={issueMonth}
                 onChange={e => setIssueMonth(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white"
+                className="w-full px-2 py-1.5 text-xs border border-portal-blue/30 rounded outline-none focus:border-portal-blue bg-white"
               />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Filters the print export ZIP.</p>
             </div>
@@ -918,7 +918,7 @@ function BitRowEditor({
               {busy ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
               Save changes
             </button>
-            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-blue-950">Cancel</button>
+            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-portal-navy">Cancel</button>
           </div>
         </div>
       </div>
@@ -963,7 +963,7 @@ function CropGravityPicker({
               onClick={() => onPick(gravity)}
               disabled={disabled}
               title={`Crop toward ${gravity}`}
-              className="aspect-square inline-flex items-center justify-center text-base font-bold rounded border border-blue-200 bg-white hover:border-blue-500 hover:bg-portal-blue-lt text-portal-blue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="aspect-square inline-flex items-center justify-center text-base font-bold rounded border border-portal-blue/30 bg-white hover:border-portal-blue hover:bg-portal-blue-lt text-portal-blue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isBusy ? <RefreshCw size={11} className="animate-spin" /> : label}
             </button>
@@ -974,7 +974,7 @@ function CropGravityPicker({
         type="button"
         onClick={() => onPick('attention')}
         disabled={disabled}
-        className="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-[11px] font-semibold rounded border border-blue-200 bg-white hover:border-blue-500 hover:bg-portal-blue-lt text-portal-blue disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-[11px] font-semibold rounded border border-portal-blue/30 bg-white hover:border-portal-blue hover:bg-portal-blue-lt text-portal-blue disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {busyGravity === 'attention' ? <RefreshCw size={10} className="animate-spin" /> : null}
         Auto (attention)
@@ -1177,9 +1177,9 @@ function QuickAddPanel({
   }
 
   return (
-    <div className="bg-portal-blue-lt border-b border-blue-200 px-6 py-4 shrink-0">
+    <div className="bg-portal-blue-lt border-b border-portal-blue/30 px-6 py-4 shrink-0">
       <div className="max-w-3xl space-y-3">
-        <h3 className="text-sm font-semibold text-blue-900">Quick Add School Bit</h3>
+        <h3 className="text-sm font-semibold text-portal-navy">Quick Add School Bit</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-portal-blue mb-1">School *</label>
@@ -1197,7 +1197,7 @@ function QuickAddPanel({
               <LinkIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-blue" />
               <input type="url" value={fbUrl} onChange={e => setFbUrl(e.target.value)}
                 placeholder="https://facebook.com/post/..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue" />
+                className="w-full pl-9 pr-3 py-2 text-sm border border-portal-blue/30 bg-white rounded-lg outline-none focus:border-portal-blue" />
             </div>
           </div>
         </div>
@@ -1205,13 +1205,13 @@ function QuickAddPanel({
           <label className="block text-xs font-semibold text-portal-blue mb-1">Headline *</label>
           <input ref={titleRef} value={title} onChange={e => setTitle(e.target.value)}
             placeholder="e.g., Pine Level Elementary Named Purple Star School"
-            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue" />
+            className="w-full px-3 py-2 text-sm border border-portal-blue/30 bg-white rounded-lg outline-none focus:border-portal-blue" />
         </div>
         <div>
           <label className="block text-xs font-semibold text-portal-blue mb-1">News Blurb *</label>
           <textarea value={blurb} onChange={e => setBlurb(e.target.value)}
             placeholder="Paste the Facebook post text or type the school news blurb here…"
-            className="w-full px-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue resize-y min-h-[80px]" />
+            className="w-full px-3 py-2 text-sm border border-portal-blue/30 bg-white rounded-lg outline-none focus:border-portal-blue resize-y min-h-[80px]" />
         </div>
 
         <div>
@@ -1225,7 +1225,7 @@ function QuickAddPanel({
           {imageFiles.length > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-2">
               {imageFilePreviews.map((url, i) => (
-                <div key={i} className="relative rounded-lg border-2 border-blue-200 bg-white overflow-hidden aspect-square">
+                <div key={i} className="relative rounded-lg border-2 border-portal-blue/30 bg-white overflow-hidden aspect-square">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                   {i === 0 && (
@@ -1251,21 +1251,21 @@ function QuickAddPanel({
 
           {imageFiles.length === 0 ? (
             <div className="grid sm:grid-cols-2 gap-2">
-              <label className="flex flex-col items-center justify-center px-4 py-5 border-2 border-dashed border-blue-200 rounded-lg bg-white cursor-pointer hover:border-blue-400 transition-colors">
+              <label className="flex flex-col items-center justify-center px-4 py-5 border-2 border-dashed border-portal-blue/30 rounded-lg bg-white cursor-pointer hover:border-portal-blue/50 transition-colors">
                 <Camera className="h-5 w-5 text-portal-blue mb-1" />
-                <span className="text-xs font-semibold text-blue-900">Upload from device</span>
+                <span className="text-xs font-semibold text-portal-navy">Upload from device</span>
                 <span className="text-[10px] text-portal-blue mt-0.5">Up to {MAX_IMAGES_PER_BIT} photos · 25 MB each</span>
                 <input ref={fileInputRef} type="file" accept={IMAGE_TYPE_ACCEPT} multiple onChange={handleFileChange} className="hidden" />
               </label>
 
-              <div className="border-2 border-dashed border-blue-200 rounded-lg bg-white px-3 py-3 space-y-1.5">
-                <p className="text-xs font-semibold text-blue-900 inline-flex items-center gap-1">
+              <div className="border-2 border-dashed border-portal-blue/30 rounded-lg bg-white px-3 py-3 space-y-1.5">
+                <p className="text-xs font-semibold text-portal-navy inline-flex items-center gap-1">
                   <LinkIcon size={12} /> Or paste image URL{imageUrls.length > 1 ? 's' : ''}
                 </p>
                 {imageUrls.map((url, i) => (
                   <input key={i} type="url" value={url} onChange={e => updateImageUrl(i, e.target.value)}
                     placeholder={i === 0 ? 'https://…/image.jpg' : `Optional photo ${i + 1}`}
-                    className="w-full px-2 py-1 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue" />
+                    className="w-full px-2 py-1 text-xs border border-portal-blue/30 rounded outline-none focus:border-portal-blue" />
                 ))}
                 {imageUrls.length < MAX_IMAGES_PER_BIT && imageUrls.some(u => u.trim()) && (
                   <button type="button" onClick={addImageUrlSlot}
@@ -1279,7 +1279,7 @@ function QuickAddPanel({
               </div>
             </div>
           ) : imageFiles.length < MAX_IMAGES_PER_BIT && (
-            <label className="flex items-center justify-center px-4 py-2 border border-dashed border-blue-200 rounded-lg bg-white cursor-pointer hover:border-blue-400 text-xs font-semibold text-blue-900">
+            <label className="flex items-center justify-center px-4 py-2 border border-dashed border-portal-blue/30 rounded-lg bg-white cursor-pointer hover:border-portal-blue/50 text-xs font-semibold text-portal-navy">
               <Camera className="h-3.5 w-3.5 text-portal-blue mr-1.5" />
               Add another photo ({imageFiles.length}/{MAX_IMAGES_PER_BIT})
               <input ref={fileInputRef} type="file" accept={IMAGE_TYPE_ACCEPT} multiple onChange={handleFileChange} className="hidden" />
@@ -1287,21 +1287,21 @@ function QuickAddPanel({
           )}
         </div>
 
-        <details className="rounded-lg border border-blue-200 bg-white/60">
-          <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-blue-900 select-none">
+        <details className="rounded-lg border border-portal-blue/30 bg-white/60">
+          <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-portal-navy select-none">
             Backfill / scheduling <span className="font-normal text-portal-blue">(leave blank for next issue + now)</span>
           </summary>
           <div className="px-3 pb-3 pt-1 grid sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">Print issue month</label>
               <input type="month" value={issueMonth} onChange={e => setIssueMonth(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white" />
+                className="w-full px-2 py-1.5 text-xs border border-portal-blue/30 rounded outline-none focus:border-portal-blue bg-white" />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Blank = next issue. Used by the print export ZIP filter.</p>
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1">Publish date</label>
               <input type="date" value={publishedAt} onChange={e => setPublishedAt(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-blue-200 rounded outline-none focus:border-portal-blue bg-white" />
+                className="w-full px-2 py-1.5 text-xs border border-portal-blue/30 rounded outline-none focus:border-portal-blue bg-white" />
               <p className="text-[10px] text-portal-blue/70 mt-0.5">Blank = stamps at approval. Backdate to sort old bits in time order.</p>
             </div>
           </div>
@@ -1313,7 +1313,7 @@ function QuickAddPanel({
           <button
             onClick={() => submit('publish')}
             disabled={!title.trim() || !blurb.trim() || !selected || busy !== null}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-portal-green rounded-lg hover:bg-portal-green disabled:opacity-50"
           >
             {busy === 'publish' ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
             {busy === 'publish' ? 'Publishing…' : 'Publish Now'}
@@ -1324,7 +1324,7 @@ function QuickAddPanel({
           <button
             onClick={() => submit('publish-and-add')}
             disabled={!title.trim() || !blurb.trim() || !selected || busy !== null}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-green bg-white border border-green-300 rounded-lg hover:bg-portal-green-lt disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-green bg-white border border-portal-green/40 rounded-lg hover:bg-portal-green-lt disabled:opacity-50"
           >
             {busy === 'publish-and-add' ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
             {busy === 'publish-and-add' ? 'Publishing…' : 'Publish & Add Another'}
@@ -1335,12 +1335,12 @@ function QuickAddPanel({
           <button
             onClick={() => submit('queue')}
             disabled={!title.trim() || !blurb.trim() || !selected || busy !== null}
-            className="text-xs text-portal-blue hover:text-blue-900 underline disabled:opacity-40 ml-1"
+            className="text-xs text-portal-blue hover:text-portal-navy underline disabled:opacity-40 ml-1"
           >
             {busy === 'queue' ? 'Saving…' : 'Save to queue instead'}
           </button>
 
-          <button onClick={onCancel} className="ml-auto px-3 py-2 text-sm text-portal-blue hover:text-blue-900">Cancel</button>
+          <button onClick={onCancel} className="ml-auto px-3 py-2 text-sm text-portal-blue hover:text-portal-navy">Cancel</button>
         </div>
       </div>
     </div>
@@ -1422,7 +1422,7 @@ function BulkActionBar({
             type="button"
             onClick={approve}
             disabled={busy !== null}
-            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40"
+            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40"
           >
             {busy === 'approve' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
             {busy === 'approve' ? 'Approving…' : `Approve ${selectedCount}`}

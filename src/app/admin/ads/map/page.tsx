@@ -237,7 +237,7 @@ function SlotCard({
               <Lock size={9} /> Locked
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 border border-portal-blue/30">
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-blue-lt text-portal-blue border border-portal-blue/30">
               <RotateCw size={9} /> Rotation
             </span>
           )}
@@ -284,7 +284,7 @@ function SlotCard({
       ) : (
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1 text-xs text-portal-amber font-semibold">
-            <Circle size={9} className="fill-amber-400 text-amber-400" /> Open
+            <Circle size={9} className="fill-portal-amber text-portal-amber" /> Open
           </span>
           <Link
             href={`/admin/ads/new?placement_type=${slot.placementType}&context_slug=${slot.surface}`}

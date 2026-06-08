@@ -22,8 +22,8 @@ interface Article {
 const STATUS_STYLES: Record<string, string> = {
   pending:   'bg-portal-amber-lt text-portal-amber border border-portal-amber/30',
   needs_edit:'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30',
-  approved:  'bg-portal-green-lt text-portal-green ring-1 ring-green-200',
-  rejected:  'bg-red-50 text-portal-red ring-1 ring-red-200',
+  approved:  'bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30',
+  rejected:  'bg-portal-red-lt text-portal-red ring-1 ring-portal-red/30',
 }
 
 type FilterStatus = 'all' | 'pending' | 'needs_edit' | 'approved' | 'rejected'
@@ -120,7 +120,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
               </div>
 
               {actionError && (
-                <p className="text-xs text-portal-red bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+                <p className="text-xs text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg px-3 py-2 mb-3">
                   ⚠ Approval failed: {actionError}
                 </p>
               )}
@@ -129,7 +129,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
                 <button
                   onClick={() => act('approved')}
                   disabled={acting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-portal-green text-white hover:bg-portal-green disabled:opacity-50 transition-colors"
                 >
                   <Check size={13} /> Approve & Publish
                 </button>
@@ -189,7 +189,7 @@ export function ArticleReviewQueue({ articles }: { articles: Article[] }) {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filter === f ? 'bg-portal-navy text-white' : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'}`}
           >
             {f === 'needs_edit' ? 'Needs Edit' : f.charAt(0).toUpperCase() + f.slice(1)}
             {f !== 'all' && counts[f as keyof typeof counts] > 0 && ` (${counts[f as keyof typeof counts]})`}

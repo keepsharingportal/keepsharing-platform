@@ -242,7 +242,7 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
   const hasGeo = stop.lat != null && stop.lng != null
   return (
     <div className="flex items-start gap-3 p-3">
-      <div className="flex flex-col items-center gap-0.5 text-gray-300 shrink-0">
+      <div className="flex flex-col items-center gap-0.5 text-portal-border-2 shrink-0">
         <button onClick={onUp}   disabled={idx === 0 || busyReorder} className="disabled:opacity-30 hover:text-portal-sub"><ArrowUp   size={12} /></button>
         <span className="text-[10px] font-bold text-portal-muted tabular-nums">{idx + 1}</span>
         <button onClick={onDown} disabled={last || busyReorder} className="disabled:opacity-30 hover:text-portal-sub"><ArrowDown size={12} /></button>
@@ -251,11 +251,11 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-sm font-bold text-portal-text truncate">{stop.name}</p>
-          {stop.is_advertiser   && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-semibold">Advertiser</span>}
+          {stop.is_advertiser   && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">Advertiser</span>}
           {stop.ad_level === 'platinum' && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-0.5"><Star size={9} fill="currentColor" /> Platinum</span>}
-          {stop.ad_level === 'gold'     && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">Gold</span>}
-          {stop.not_delivering  && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">Not delivering</span>}
-          {!stop.active         && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
+          {stop.ad_level === 'gold'     && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold">Gold</span>}
+          {stop.not_delivering  && <span className="text-[10px] bg-portal-red-lt text-portal-red px-1.5 py-0.5 rounded font-semibold">Not delivering</span>}
+          {!stop.active         && <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
           {hasGeo               && <span title="Geocoded" className="text-[10px] inline-flex items-center gap-0.5 text-portal-green"><MapPin size={9} /></span>}
         </div>
         <p className="text-xs text-portal-sub mt-0.5 truncate">
@@ -275,7 +275,7 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
         <button onClick={onEdit} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg">
           <Pencil size={11} /> Edit
         </button>
-        <button onClick={onDelete} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt">
+        <button onClick={onDelete} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt">
           <Trash2 size={11} /> Delete
         </button>
       </div>

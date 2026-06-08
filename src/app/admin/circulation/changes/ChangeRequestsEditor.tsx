@@ -32,10 +32,10 @@ const TYPE_LABEL: Record<string, string> = {
 }
 const TYPE_BADGE: Record<string, string> = {
   edit:  'bg-portal-blue-lt text-portal-blue',
-  close: 'bg-red-100 text-red-800',
-  new:   'bg-purple-100 text-purple-800',
+  close: 'bg-portal-red-lt text-portal-red',
+  new:   'bg-portal-blue-lt text-portal-blue',
   qty:   'bg-portal-amber-lt text-portal-amber',
-  move:  'bg-indigo-100 text-indigo-800',
+  move:  'bg-portal-blue-lt text-portal-blue',
 }
 
 const STATUSES = ['pending', 'approved', 'rejected']
@@ -83,7 +83,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
           <button
             key={s}
             onClick={() => gotoStatus(s)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {s}
           </button>
@@ -103,7 +103,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${TYPE_BADGE[r.type] ?? 'bg-gray-100 text-portal-text'}`}>
+                    <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${TYPE_BADGE[r.type] ?? 'bg-portal-row-hover text-portal-text'}`}>
                       {TYPE_LABEL[r.type] ?? r.type}
                     </span>
                     <p className="text-sm font-bold text-portal-text truncate">{r.circulation_stops?.name ?? 'New / unknown stop'}</p>
@@ -134,7 +134,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
                       <button
                         onClick={() => patch(r.id, 'apply')}
                         disabled={busy !== null}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-green text-white hover:bg-portal-green disabled:opacity-50"
                       >
                         {busy === `${r.id}-apply` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                         Apply
@@ -143,7 +143,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
                     <button
                       onClick={() => patch(r.id, 'approve')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-emerald-200 text-portal-green hover:bg-portal-green-lt disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-green/30 text-portal-green hover:bg-portal-green-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-approve` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                       Approve only
@@ -151,7 +151,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
                     <button
                       onClick={() => patch(r.id, 'reject')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-portal-red hover:bg-portal-red-lt disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-reject` ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
                       Reject

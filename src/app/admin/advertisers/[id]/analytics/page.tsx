@@ -81,14 +81,14 @@ export default async function AnalyticsTab({ params }: Props) {
             <p className="text-xs text-portal-sub">Printable performance snapshot for this business&apos;s contacts.</p>
           </div>
         </div>
-        <ArrowRight size={16} className="text-gray-300 group-hover:text-portal-blue transition-colors" />
+        <ArrowRight size={16} className="text-portal-border-2 group-hover:text-portal-blue transition-colors" />
       </Link>
 
       {/* ── Best performer callout ──────────────────────── */}
       {best && bestCtr && (
-        <section className="bg-portal-green-lt border border-emerald-200 rounded-lg p-5">
+        <section className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-5">
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-portal-green mb-1">Top performer</h3>
-          <p className="text-sm text-emerald-900">
+          <p className="text-sm text-portal-green">
             <span className="font-bold">{best.ad_headline ?? best.placement_type.replace(/_/g, ' ')}</span>
             <span className="ml-2 text-portal-green">
               {bestCtr}% CTR · {best.impression_count.toLocaleString()} impressions · {best.click_count.toLocaleString()} clicks
@@ -114,7 +114,7 @@ export default async function AnalyticsTab({ params }: Props) {
               const ctrPct = p.impression_count > 0 ? ((p.click_count / p.impression_count) * 100).toFixed(2) : '—'
               return (
                 <li key={p.id} className="px-5 py-3 flex items-center gap-3">
-                  <RotateCw size={11} className={p.rotation_group ? 'text-sky-500 shrink-0' : 'text-gray-300 shrink-0'} />
+                  <RotateCw size={11} className={p.rotation_group ? 'text-portal-blue shrink-0' : 'text-portal-border-2 shrink-0'} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-portal-text truncate">
                       {p.ad_headline ?? p.placement_type.replace(/_/g, ' ')}

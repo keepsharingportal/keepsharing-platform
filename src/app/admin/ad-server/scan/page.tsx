@@ -117,7 +117,7 @@ const MOCK_SCAN_RESULTS: ScannedAd[] = [
 const FLAG_CONFIG: Record<AIFlag, { label: string; cls: string; icon: React.ElementType; borderCls: string }> = {
   must_change: {
     label: 'Must Change',
-    cls: 'bg-red-50 text-red-700 ring-red-200',
+    cls: 'bg-portal-red-lt text-portal-red ring-portal-red/30',
     icon: XCircle,
     borderCls: 'border-l-red-500',
   },
@@ -129,7 +129,7 @@ const FLAG_CONFIG: Record<AIFlag, { label: string; cls: string; icon: React.Elem
   },
   safe: {
     label: 'Pickup Safe',
-    cls: 'bg-portal-green-lt text-portal-green ring-green-200',
+    cls: 'bg-portal-green-lt text-portal-green ring-portal-green/30',
     icon: CheckCircle2,
     borderCls: 'border-l-green-500',
   },
@@ -181,18 +181,18 @@ export default function DropboxScanPage() {
           <Link href="/admin/ad-server" className="text-sm text-portal-blue hover:text-portal-blue font-medium">
             ← Ad Server
           </Link>
-          <span className="text-gray-300">/</span>
+          <span className="text-portal-border-2">/</span>
           <h1 className="text-xl font-semibold text-portal-text">Dropbox Ad Scanner</h1>
         </div>
         {results && (
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-red-700 font-semibold bg-red-50 px-2.5 py-0.5 rounded-full ring-1 ring-red-200">
+            <span className="text-portal-red font-semibold bg-portal-red-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-red/30">
               {mustChange} must change
             </span>
             <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {verify} verify
             </span>
-            <span className="text-portal-green font-semibold bg-portal-green-lt px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
+            <span className="text-portal-green font-semibold bg-portal-green-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-green/30">
               {safe} safe
             </span>
           </div>
@@ -206,7 +206,7 @@ export default function DropboxScanPage() {
             <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">
               Dropbox Folder Path
             </label>
-            <div className="flex items-center gap-2 border border-portal-border-2 rounded-lg overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-portal-blue/20">
+            <div className="flex items-center gap-2 border border-portal-border-2 rounded-lg overflow-hidden focus-within:border-portal-blue/50 focus-within:ring-2 focus-within:ring-portal-blue/20">
               <FolderOpen size={15} className="text-portal-muted ml-3 shrink-0" />
               <input
                 type="text"
@@ -243,7 +243,7 @@ export default function DropboxScanPage() {
               <span className="text-xs text-portal-sub">Analyzing <span className="font-mono text-portal-blue">{scanFile}</span></span>
               <span className="text-xs font-semibold text-portal-sub">{scanProgress}%</span>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-portal-row-hover rounded-full overflow-hidden">
               <div
                 className="h-full bg-portal-navy rounded-full transition-all duration-500"
                 style={{ width: `${scanProgress}%` }}
@@ -277,9 +277,9 @@ export default function DropboxScanPage() {
                     className={cn(
                       'text-xs px-3 py-1.5 rounded-lg font-medium transition-colors',
                       flagFilter === f
-                        ? f === 'must_change' ? 'bg-red-600 text-white'
+                        ? f === 'must_change' ? 'bg-portal-red text-white'
                           : f === 'verify' ? 'bg-portal-amber text-white'
-                          : f === 'safe' ? 'bg-green-600 text-white'
+                          : f === 'safe' ? 'bg-portal-green text-white'
                           : 'bg-portal-navy text-white'
                         : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
                     )}>
@@ -333,7 +333,7 @@ export default function DropboxScanPage() {
                         <div className="text-xs text-portal-muted">Confidence</div>
                         <div className={cn(
                           'text-sm font-bold',
-                          ad.confidence >= 90 ? 'text-portal-green' : ad.confidence >= 70 ? 'text-amber-600' : 'text-portal-red'
+                          ad.confidence >= 90 ? 'text-portal-green' : ad.confidence >= 70 ? 'text-portal-amber' : 'text-portal-red'
                         )}>
                           {ad.confidence}%
                         </div>
@@ -365,7 +365,7 @@ export default function DropboxScanPage() {
                             <div className="text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">Issues Found</div>
                             <ul className="space-y-1">
                               {ad.issues.map((issue, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-red-700">
+                                <li key={i} className="flex items-start gap-2 text-sm text-portal-red">
                                   <XCircle size={13} className="mt-0.5 shrink-0 text-portal-red" />
                                   {issue}
                                 </li>
@@ -382,7 +382,7 @@ export default function DropboxScanPage() {
                               className={cn(
                                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                                 sent
-                                  ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200'
+                                  ? 'bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30'
                                   : 'bg-portal-navy text-white hover:opacity-90'
                               )}>
                               {sent

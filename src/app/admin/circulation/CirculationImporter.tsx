@@ -53,13 +53,13 @@ export function CirculationImporter({ market, regionName, pubLabels }: Props) {
     <div className="rounded-lg border border-portal-border bg-white p-4 space-y-3">
       <p className="text-xs text-portal-sub">
         Upload the stop export JSON from
-        <code className="px-1 bg-gray-100 rounded ml-1">drivers.keepsharing.com/admin/import.php</code>.
+        <code className="px-1 bg-portal-row-hover rounded ml-1">drivers.keepsharing.com/admin/import.php</code>.
         Each stop carries copy counts for every publication served from this region
         (<span className="font-semibold">{pubLabels}</span>) — one upload loads the whole{' '}
         <span className="font-semibold">{regionName}</span> distribution. Replaces all existing stops in this region.
-        Accepts a plain array or an object with a <code className="px-1 bg-gray-100 rounded">stops</code> /
-        <code className="px-1 bg-gray-100 rounded ml-1">data</code> /
-        <code className="px-1 bg-gray-100 rounded ml-1">rows</code> key.
+        Accepts a plain array or an object with a <code className="px-1 bg-portal-row-hover rounded">stops</code> /
+        <code className="px-1 bg-portal-row-hover rounded ml-1">data</code> /
+        <code className="px-1 bg-portal-row-hover rounded ml-1">rows</code> key.
       </p>
       <div className="flex items-center gap-2 flex-wrap">
         <input
@@ -79,7 +79,7 @@ export function CirculationImporter({ market, regionName, pubLabels }: Props) {
       </div>
       {error && <p className="text-xs text-portal-red">{error}</p>}
       {result && (
-        <div className="rounded-md border border-portal-green/30 bg-portal-green-lt p-3 text-xs text-green-900 flex items-start gap-2">
+        <div className="rounded-md border border-portal-green/30 bg-portal-green-lt p-3 text-xs text-portal-green flex items-start gap-2">
           <Check size={12} className="mt-0.5 shrink-0" />
           <div>
             <p className="font-bold">Import complete</p>

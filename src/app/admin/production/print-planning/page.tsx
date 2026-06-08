@@ -57,17 +57,17 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
           <Link
             key={m}
             href={`/admin/production/print-planning?month=${m}&pub=${pub}`}
-            className={`px-3 py-1.5 rounded-lg border ${month === m ? 'bg-portal-navy text-white border-blue-600 font-semibold' : 'bg-white text-portal-sub border-portal-border hover:border-portal-border-2'}`}
+            className={`px-3 py-1.5 rounded-lg border ${month === m ? 'bg-portal-navy text-white border-portal-blue font-semibold' : 'bg-white text-portal-sub border-portal-border hover:border-portal-border-2'}`}
           >
             {fmtMonth(m)}
           </Link>
         ))}
-        <span className="w-px bg-gray-200 mx-1" />
+        <span className="w-px bg-portal-border-2 mx-1" />
         {['RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB'].map(p => (
           <Link
             key={p}
             href={`/admin/production/print-planning?month=${month}&pub=${p}`}
-            className={`px-3 py-1.5 rounded-lg border ${pub === p ? 'bg-gray-900 text-white border-gray-900 font-semibold' : 'bg-white text-portal-sub border-portal-border hover:border-gray-400'}`}
+            className={`px-3 py-1.5 rounded-lg border ${pub === p ? 'bg-portal-navy text-white border-gray-900 font-semibold' : 'bg-white text-portal-sub border-portal-border hover:border-portal-border-2'}`}
           >
             {p}
           </Link>
@@ -112,7 +112,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
                       <td className="px-3 py-2.5 text-xs text-portal-sub">{r.author_name ?? <span className="text-portal-red">missing</span>}</td>
                       <td className="px-3 py-2.5 text-xs">{r.hero_image_url ? <CheckCircle2 size={13} className="text-portal-green" /> : <AlertTriangle size={13} className="text-portal-amber" />}</td>
                       <td className="px-3 py-2.5 text-xs text-portal-sub">{words}</td>
-                      <td className="px-3 py-2.5 text-xs">{hasAll ? <span className="text-portal-green font-semibold">Ready</span> : <span className="text-amber-600 font-semibold">Incomplete</span>}</td>
+                      <td className="px-3 py-2.5 text-xs">{hasAll ? <span className="text-portal-green font-semibold">Ready</span> : <span className="text-portal-amber font-semibold">Incomplete</span>}</td>
                     </tr>
                   )
                 })}

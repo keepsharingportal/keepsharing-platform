@@ -146,7 +146,7 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
   }
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
+    <div className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Field label="Short slug" value={short} onChange={setShort} />
         <Field label="Name" value={name} onChange={setName} />

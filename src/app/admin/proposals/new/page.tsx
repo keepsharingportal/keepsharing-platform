@@ -153,7 +153,7 @@ export default function NewProposalPage() {
               <label className={lbl}>Recommended tier</label>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(TIER_LABELS).map(([k, v]) => (
-                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-blue-500 bg-portal-blue-lt' : 'border-portal-border'}`}>
+                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-portal-blue bg-portal-blue-lt' : 'border-portal-border'}`}>
                     <input type="radio" name="tier" value={k} checked={form.recommended_tier === k} onChange={() => setForm(f => ({...f, recommended_tier: k}))} className="sr-only" />
                     <span className="font-medium text-portal-text">{v.split(' — ')[0]}</span>
                   </label>

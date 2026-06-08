@@ -123,15 +123,15 @@ export default async function DuplicatesPage({ searchParams }: Props) {
           <span className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">View:</span>
           {([
             { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-portal-navy'  },
-            { k: 'directory_only', label: 'Directory only', count: directoryClusters.length,  tone: 'bg-gray-500' },
-            { k: 'all',            label: 'All',            count: advertiserClusters.length + directoryClusters.length, tone: 'bg-gray-900' },
+            { k: 'directory_only', label: 'Directory only', count: directoryClusters.length,  tone: 'bg-portal-muted' },
+            { k: 'all',            label: 'All',            count: advertiserClusters.length + directoryClusters.length, tone: 'bg-portal-navy' },
           ] as const).map(c => {
             const on = kindFilter === c.k
             const href = c.k === 'advertiser' ? '/admin/advertisers/duplicates' : `/admin/advertisers/duplicates?kind=${c.k}`
             return (
               <a key={c.k} href={href}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                  on ? `${c.tone} text-white` : 'text-portal-sub hover:text-portal-text bg-gray-100 hover:bg-gray-200'
+                  on ? `${c.tone} text-white` : 'text-portal-sub hover:text-portal-text bg-portal-row-hover hover:bg-portal-border-2'
                 }`}>
                 {c.label}
                 <span className={`text-[10px] ${on ? 'opacity-80' : 'text-portal-muted'}`}>{c.count}</span>
@@ -164,7 +164,7 @@ export default async function DuplicatesPage({ searchParams }: Props) {
 
         {clusters.length === 0 ? (
           <div className="bg-white rounded-lg border border-portal-border p-8 text-center">
-            <CheckCircle2 size={28} className="mx-auto mb-3 text-emerald-500" />
+            <CheckCircle2 size={28} className="mx-auto mb-3 text-portal-green" />
             <p className="text-sm font-semibold text-portal-text">No duplicate clusters found</p>
             <p className="text-xs text-portal-sub mt-1">
               Fuzzy match scanned every business name; nothing crossed the similarity threshold.

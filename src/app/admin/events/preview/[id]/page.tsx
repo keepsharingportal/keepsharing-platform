@@ -29,8 +29,8 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   published: { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
   approved:  { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
   rejected:  { label: 'Rejected',       cls: 'bg-portal-red-lt text-portal-red border-portal-red/30' },
-  cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-portal-text border-portal-border' },
-  archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-portal-text border-portal-border' },
+  cancelled: { label: 'Cancelled',      cls: 'bg-portal-row-hover text-portal-text border-portal-border' },
+  archived:  { label: 'Trashed',        cls: 'bg-portal-row-hover text-portal-text border-portal-border' },
 }
 
 interface Props {
@@ -101,14 +101,14 @@ export default async function EventPreviewPage({ params }: Props) {
       {/* Admin preview banner */}
       <div className="bg-portal-amber-lt border-b border-portal-amber/30 px-6 py-2.5 flex items-center gap-2 text-xs">
         <Eye size={13} className="text-portal-amber shrink-0" />
-        <span className="font-bold text-amber-900">Preview mode</span>
+        <span className="font-bold text-portal-amber">Preview mode</span>
         <span className="text-portal-amber">— this is how the event will look on the public site.</span>
         <span className={`ml-auto inline-flex items-center px-2 py-0.5 rounded-full font-bold ring-1 ${badge.cls}`}>
           {badge.label}
         </span>
         <Link
           href="/admin/events"
-          className="ml-3 inline-flex items-center gap-1 text-xs font-semibold text-amber-900 hover:text-amber-950"
+          className="ml-3 inline-flex items-center gap-1 text-xs font-semibold text-portal-amber hover:text-portal-amber"
         >
           <ArrowLeft size={12} /> Back to Events
         </Link>
@@ -117,11 +117,11 @@ export default async function EventPreviewPage({ params }: Props) {
       <article className="max-w-4xl mx-auto px-4 py-8 md:px-6 md:py-12">
         {/* Hero */}
         {heroUrl ? (
-          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 border border-portal-border mb-6">
+          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-portal-row-hover border border-portal-border mb-6">
             <Image src={heroUrl} alt={String(ev.title)} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 1200px" unoptimized />
             {isFeatured && (
-              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-amber-900 border border-portal-amber/30">
-                <Star size={12} className="fill-amber-400 text-portal-amber" /> Featured
+              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-portal-amber border border-portal-amber/30">
+                <Star size={12} className="fill-portal-amber text-portal-amber" /> Featured
               </span>
             )}
           </div>
@@ -161,7 +161,7 @@ export default async function EventPreviewPage({ params }: Props) {
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-6">
             {tags.map(t => (
-              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-portal-text border border-portal-border text-xs">
+              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-row-hover text-portal-text border border-portal-border text-xs">
                 <Tag size={10} /> {t.replace(/-/g, ' ')}
               </span>
             ))}
@@ -196,7 +196,7 @@ export default async function EventPreviewPage({ params }: Props) {
             <div className="text-portal-text"><span className="text-portal-muted">Ages:</span> <span className="font-semibold">{ageRange}</span></div>
           )}
           {orgEmail && (
-            <a href={`mailto:${orgEmail}`} className="inline-flex items-center gap-1.5 text-sky-700 hover:underline">
+            <a href={`mailto:${orgEmail}`} className="inline-flex items-center gap-1.5 text-portal-blue hover:underline">
               <Mail size={13} /> {orgEmail}
             </a>
           )}
@@ -218,7 +218,7 @@ export default async function EventPreviewPage({ params }: Props) {
             <span className="font-bold uppercase tracking-wider mr-2">Source</span>
             {sourceName ?? 'Unknown'}
             {sourceUrl && (
-              <a href={sourceUrl} target="_blank" rel="noreferrer" className="ml-2 text-sky-600 hover:underline">
+              <a href={sourceUrl} target="_blank" rel="noreferrer" className="ml-2 text-portal-blue hover:underline">
                 {sourceUrl}
               </a>
             )}

@@ -46,8 +46,8 @@ export default async function SchoolsManagerPage() {
       <div className="flex-1 overflow-y-auto">
         <main className="p-6 max-w-3xl mx-auto">
           <BackLink />
-          <div className="mt-4 rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
+          <div className="mt-4 rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+            <p className="text-sm font-bold text-portal-amber mb-1">Migration needed</p>
             <p className="text-sm text-portal-amber leading-relaxed">
               Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/085_schools_and_bits.sql</code> in the Supabase SQL editor to enable the schools manager.
             </p>

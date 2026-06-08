@@ -72,14 +72,14 @@ export default async function OrganizationsAdminPage() {
             <Link href="/admin/events" className="text-portal-sub hover:text-portal-text inline-flex items-center gap-1 text-sm">
               <ChevronLeft size={14} /> Events
             </Link>
-            <span className="text-gray-300">/</span>
+            <span className="text-portal-border-2">/</span>
             <h1 className="text-xl font-semibold text-portal-text">Community Connections</h1>
           </div>
         </div>
         <div className="p-8">
           <div className="max-w-2xl bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-6">
-            <h2 className="text-base font-bold text-amber-900 mb-2">One-time setup needed</h2>
-            <p className="text-sm text-amber-900 mb-3">
+            <h2 className="text-base font-bold text-portal-amber mb-2">One-time setup needed</h2>
+            <p className="text-sm text-portal-amber mb-3">
               The <code className="px-1 py-0.5 bg-white rounded text-xs">community_organizations</code> table
               hasn&apos;t been created yet. Apply migration 089 to enable this page:
             </p>

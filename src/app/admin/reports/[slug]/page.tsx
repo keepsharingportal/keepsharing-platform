@@ -70,7 +70,7 @@ function Badge({ kind }: { kind: 'measured' | 'estimated' | 'not_tracked' }) {
   const styles = {
     measured:    { wrap: 'bg-portal-green-lt text-portal-green',   label: 'Measured'        },
     estimated:   { wrap: 'bg-portal-amber-lt text-portal-amber',   label: 'Estimated'       },
-    not_tracked: { wrap: 'bg-gray-100  text-portal-sub',    label: 'Not tracked yet' },
+    not_tracked: { wrap: 'bg-portal-row-hover  text-portal-sub',    label: 'Not tracked yet' },
   }[kind]
   return (
     <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${styles.wrap}`}>
@@ -203,7 +203,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             {adv.business_name}
           </h1>
           <p className="text-sm text-portal-sub mt-0.5">
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-text px-1.5 py-0.5 rounded mr-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest bg-portal-row-hover text-portal-text px-1.5 py-0.5 rounded mr-2">
               {tierLabel}
             </span>
             Performance for the last {days} days
@@ -344,12 +344,12 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                 <div key={p.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto_auto] gap-3 items-center">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      {isSponsor && <Crown size={11} className="text-amber-600 shrink-0" />}
+                      {isSponsor && <Crown size={11} className="text-portal-amber shrink-0" />}
                       <p className="text-sm font-semibold text-portal-text truncate">
                         {p.ad_headline || p.placement_type.replace(/_/g, ' ')}
                       </p>
                       {!p.is_active && (
-                        <span className="text-[9px] font-bold uppercase bg-gray-200 text-portal-sub px-1.5 py-0.5 rounded shrink-0">Inactive</span>
+                        <span className="text-[9px] font-bold uppercase bg-portal-border-2 text-portal-sub px-1.5 py-0.5 rounded shrink-0">Inactive</span>
                       )}
                     </div>
                     <p className="text-[11px] text-portal-muted truncate">
@@ -441,7 +441,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                   <p className="text-[11px] truncate">{l.source_page ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-semibold bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-semibold bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded">
                     {l.target_tier_interest ?? 'Inquiry'}
                   </span>
                 </div>
@@ -460,7 +460,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
-                <TrendingUp size={14} className="text-purple-600" />
+                <TrendingUp size={14} className="text-portal-blue" />
                 Top Traffic Sources
               </h2>
               <p className="text-[11px] text-portal-muted mt-0.5">First-touch attribution across the whole site in the last {days} days.</p>

@@ -40,8 +40,8 @@ function eventMatchesTab(row: EventRow, tab: TabName, todayIso: string): boolean
 const SOURCE_BADGE: Record<string, string> = {
   'public-submission': 'bg-portal-green-lt text-portal-green border-portal-green/30',
   'public_form':       'bg-portal-green-lt text-portal-green border-portal-green/30',
-  'ical':              'bg-sky-50 text-sky-700 border-portal-blue/30',
-  'ai-extraction':     'bg-purple-50 text-purple-700 ring-purple-200',
+  'ical':              'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
+  'ai-extraction':     'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
   'csv-import':        'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   'staff':             'bg-portal-bg text-portal-sub border-portal-border',
   'manual':            'bg-portal-bg text-portal-sub border-portal-border',
@@ -477,8 +477,8 @@ const BUTTONS_BY_TAB: Record<TabName, BulkButton[]> = {
 }
 
 const TONE_CLS: Record<BulkButton['tone'], string> = {
-  green: 'bg-green-600 text-white hover:bg-green-700',
-  red:   'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
+  green: 'bg-portal-green text-white hover:bg-portal-green',
+  red:   'bg-portal-red-lt text-portal-red border border-portal-red/30 hover:bg-portal-red-lt',
   amber: 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30 hover:bg-portal-amber-lt',
   gray:  'bg-white text-portal-text border border-portal-border hover:bg-portal-bg',
   rose:  'bg-portal-red-lt text-portal-red border border-portal-red/30 hover:bg-portal-red-lt',
@@ -669,11 +669,11 @@ function EventRowItem({
         )}
 
         {/* Thumb */}
-        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-portal-border">
+        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-portal-row-hover border border-portal-border">
           {ev.hero_image_url ? (
             <Image src={ev.hero_image_url} alt="" width={80} height={80} className="w-full h-full object-cover" unoptimized />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300">
+            <div className="w-full h-full flex items-center justify-center text-portal-border-2">
               <ImageIcon size={20} />
             </div>
           )}
@@ -703,7 +703,7 @@ function EventRowItem({
               </span>
             )}
             {ev.source_url && (
-              <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-600 hover:underline inline-flex items-center gap-0.5">
+              <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-[10px] text-portal-blue hover:underline inline-flex items-center gap-0.5">
                 source <ExternalLink size={9} />
               </a>
             )}
@@ -727,7 +727,7 @@ function EventRowItem({
               <span className="text-portal-sub">By {ev.organizer_name}</span>
             )}
             {ev.is_free && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30">
                 Free
               </span>
             )}
@@ -744,7 +744,7 @@ function EventRowItem({
                 target="_blank"
                 rel="noreferrer"
                 title="Preview the public page before approving"
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-sky-700 bg-sky-50 border border-sky-200 rounded-lg hover:bg-sky-100"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-blue bg-portal-blue-lt border border-sky-200 rounded-lg hover:bg-portal-blue-lt"
               >
                 <Eye size={11} /> Preview
               </a>
@@ -759,7 +759,7 @@ function EventRowItem({
               <button
                 onClick={() => call('reject')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
               >
                 {busy === 'reject' ? <RefreshCw size={11} className="animate-spin" /> : <X size={11} />}
                 Reject
@@ -997,7 +997,7 @@ function EventEditor({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -1011,12 +1011,12 @@ function EventEditor({
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={heroUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300">
+              <div className="w-full h-full flex items-center justify-center text-portal-border-2">
                 <ImageIcon size={28} />
               </div>
             )}
           </div>
-          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-portal-blue">
+          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-portal-blue text-portal-blue">
             {imageBusy ? <RefreshCw size={11} className="animate-spin" /> : <Camera size={11} />}
             {imageBusy ? 'Uploading…' : 'Replace image'}
             <input
@@ -1035,7 +1035,7 @@ function EventEditor({
               value={heroUrl}
               onChange={e => setHeroUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
+              className="w-full text-xs border border-portal-blue/30 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white"
             />
           </div>
           {/* Gravity picker — re-crops the saved original around a different
@@ -1135,11 +1135,11 @@ function EventEditor({
               </select>
             </div>
             <div className="flex flex-col gap-2 justify-end">
-              <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+              <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
                 <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="rounded" />
                 Free event
               </label>
-              <label className="inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+              <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
                 <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="rounded" />
                 Featured
               </label>
@@ -1152,7 +1152,7 @@ function EventEditor({
                     type="date"
                     value={featuredUntil}
                     onChange={e => setFeaturedUntil(e.target.value)}
-                    className="text-xs border border-blue-200 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white normal-case font-normal"
+                    className="text-xs border border-portal-blue/30 rounded px-2 py-1 outline-none focus:border-portal-blue bg-white normal-case font-normal"
                   />
                 </label>
               )}
@@ -1168,7 +1168,7 @@ function EventEditor({
               {busy ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
               Save changes
             </button>
-            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-blue-950">Cancel</button>
+            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-portal-navy">Cancel</button>
           </div>
         </div>
       </div>
@@ -1221,8 +1221,8 @@ function GravityPicker({
               title={`Re-crop toward ${gravity}`}
               className={`aspect-square text-xs font-bold rounded transition-colors ${
                 disabled
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
+                  ? 'bg-portal-row-hover text-portal-border-2 cursor-not-allowed'
+                  : 'bg-white text-portal-blue border border-portal-blue/30 hover:bg-portal-blue-lt disabled:opacity-50'
               }`}
             >
               {active ? <RefreshCw size={10} className="animate-spin mx-auto" /> : label}
@@ -1238,8 +1238,8 @@ function GravityPicker({
           title="Re-run automatic attention crop"
           className={`flex-1 text-[10px] font-bold rounded px-1 py-1 ${
             disabled
-              ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
+              ? 'bg-portal-row-hover text-portal-border-2 cursor-not-allowed'
+              : 'bg-white text-portal-blue border border-portal-blue/30 hover:bg-portal-blue-lt disabled:opacity-50'
           }`}
         >
           {busyGravity === 'attention' ? '…' : 'Auto'}
@@ -1251,8 +1251,8 @@ function GravityPicker({
           title="Re-run entropy crop (detail-densest region)"
           className={`flex-1 text-[10px] font-bold rounded px-1 py-1 ${
             disabled
-              ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
+              ? 'bg-portal-row-hover text-portal-border-2 cursor-not-allowed'
+              : 'bg-white text-portal-blue border border-portal-blue/30 hover:bg-portal-blue-lt disabled:opacity-50'
           }`}
         >
           {busyGravity === 'entropy' ? '…' : 'Entropy'}

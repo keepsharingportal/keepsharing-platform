@@ -103,17 +103,17 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
               <li key={s.id} className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-amber-900">{s.driver_name} suggests a new order</p>
+                    <p className="text-sm font-bold text-portal-amber">{s.driver_name} suggests a new order</p>
                     <p className="text-[11px] text-portal-amber">
                       {new Date(s.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                       {' · '}{s.suggestion.length} stops
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => patchSuggestion(s.id, 'approve')} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">
+                    <button onClick={() => patchSuggestion(s.id, 'approve')} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-green text-white hover:bg-portal-green disabled:opacity-50">
                       <Check size={11} /> Approve
                     </button>
-                    <button onClick={() => patchSuggestion(s.id, 'reject')} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-red-200 text-red-700 hover:bg-red-100 disabled:opacity-50">
+                    <button onClick={() => patchSuggestion(s.id, 'reject')} disabled={busy !== null} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-red/30 text-portal-red hover:bg-portal-red-lt disabled:opacity-50">
                       <X size={11} /> Reject
                     </button>
                   </div>
@@ -137,9 +137,9 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
               onDragStart={() => onDragStart(i)}
               onDragOver={onDragOver}
               onDrop={() => onDrop(i)}
-              className={`rounded-lg border bg-white p-2 flex items-center gap-2 ${dragFrom === i ? 'opacity-50 border-blue-400' : 'border-portal-border'}`}
+              className={`rounded-lg border bg-white p-2 flex items-center gap-2 ${dragFrom === i ? 'opacity-50 border-portal-blue/50' : 'border-portal-border'}`}
             >
-              <GripVertical size={14} className="text-gray-300 shrink-0 cursor-grab" />
+              <GripVertical size={14} className="text-portal-border-2 shrink-0 cursor-grab" />
               <span className="text-[11px] font-bold text-portal-muted tabular-nums w-6 shrink-0">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-portal-text truncate">

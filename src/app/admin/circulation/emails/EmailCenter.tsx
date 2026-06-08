@@ -194,7 +194,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
             <button
               onClick={() => call('process-queue', { batch_size: 30 })}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-green text-white rounded-md hover:bg-portal-green disabled:opacity-50"
             >
               {busy === 'process-queue' ? <Loader2 size={12} className="animate-spin" /> : <RotateCw size={12} />}
               Process queue
@@ -261,7 +261,7 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
                     {t.description ? ` · ${t.description}` : ''}
                   </p>
                 </div>
-                <ChevronDown size={14} className={`text-gray-300 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-portal-border-2 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               {isOpen && (
                 <div className="border-t border-portal-border p-3 space-y-2 bg-portal-bg">
@@ -390,7 +390,7 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
                   <p className="text-sm font-semibold text-portal-text truncate">{r.subject}</p>
                   <p className="text-[11px] text-portal-sub truncate">
                     {r.to_email}
-                    {r.template_key && <> · <code className="bg-gray-100 px-1 rounded">{r.template_key}</code></>}
+                    {r.template_key && <> · <code className="bg-portal-row-hover px-1 rounded">{r.template_key}</code></>}
                   </p>
                   {r.last_error && (
                     <p className="text-[11px] text-portal-red mt-0.5">⚠ {r.last_error}</p>
@@ -410,9 +410,9 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending: 'text-amber-600',
+  pending: 'text-portal-amber',
   sending: 'text-portal-blue',
-  sent:    'text-emerald-600',
+  sent:    'text-portal-green',
   failed:  'text-portal-red',
 }
 
@@ -421,7 +421,7 @@ function Badge({ label, count, color }: { label: string; count: number; color: '
     amber: 'bg-portal-amber-lt text-portal-amber',
     blue:  'bg-portal-blue-lt text-portal-blue',
     green: 'bg-portal-green-lt text-portal-green',
-    red:   'bg-red-50 text-red-800',
+    red:   'bg-portal-red-lt text-portal-red',
   }
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${bg[color]}`}>

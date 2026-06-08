@@ -54,7 +54,7 @@ export function ProposalRow({ id, gameType, payload, theme, model, createdAt }: 
           type="button"
           onClick={() => review('approve')}
           disabled={busy !== null}
-          className="inline-flex items-center gap-1 text-xs font-bold bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700 disabled:opacity-40"
+          className="inline-flex items-center gap-1 text-xs font-bold bg-portal-green text-white rounded-lg px-3 py-1.5 hover:bg-portal-green disabled:opacity-40"
         >
           {busy === 'approve' ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
           Approve
@@ -148,15 +148,15 @@ function MemoryPreview({ p }: { p: any }) {
 
 function FamilyConnectPreview({ p }: { p: any }) {
   const toneClass: Record<string, string> = {
-    yellow: 'bg-yellow-100 text-yellow-900',
-    green:  'bg-portal-green-lt text-green-900',
-    blue:   'bg-portal-blue-lt text-blue-900',
-    purple: 'bg-purple-100 text-purple-900',
+    yellow: 'bg-portal-amber-lt text-portal-amber',
+    green:  'bg-portal-green-lt text-portal-green',
+    blue:   'bg-portal-blue-lt text-portal-navy',
+    purple: 'bg-portal-blue-lt text-portal-navy',
   }
   return (
     <div className="space-y-1">
       {p.groups.map((g: any) => (
-        <div key={g.label} className={`text-xs rounded px-2 py-1 ${toneClass[g.tone] ?? 'bg-gray-100'}`}>
+        <div key={g.label} className={`text-xs rounded px-2 py-1 ${toneClass[g.tone] ?? 'bg-portal-row-hover'}`}>
           <strong>{g.label}</strong> · {g.words.join(', ')}
         </div>
       ))}

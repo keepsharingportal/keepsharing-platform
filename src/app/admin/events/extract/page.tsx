@@ -150,7 +150,7 @@ function ExtractPage() {
           <ArrowLeft size={12} /> Back to Sources
         </Link>
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles size={20} className="text-purple-600" />
+          <Sparkles size={20} className="text-portal-blue" />
           <h1 className="text-xl font-bold text-portal-text tracking-tight">AI Extract</h1>
         </div>
         <p className="text-sm text-portal-sub">
@@ -171,13 +171,13 @@ function ExtractPage() {
           <div className="flex gap-1.5">
             <button onClick={() => setMode('url')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                mode === 'url' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
+                mode === 'url' ? 'bg-portal-blue text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
               }`}>
               <LinkIcon size={11} /> Paste URL
             </button>
             <button onClick={() => setMode('text')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                mode === 'text' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-portal-sub hover:bg-gray-200'
+                mode === 'text' ? 'bg-portal-blue text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
               }`}>
               <FileText size={11} /> Paste text
             </button>
@@ -207,7 +207,7 @@ function ExtractPage() {
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={runExtract}
               disabled={running || (mode === 'url' ? !url.trim() : !text.trim())}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-40">
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-blue text-white rounded-lg hover:bg-portal-navy disabled:opacity-40">
               {running ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
               {running ? 'Extracting…' : 'Extract events'}
             </button>
@@ -220,7 +220,7 @@ function ExtractPage() {
 
       {err && (
         <div className="rounded-lg border border-portal-red/30 bg-portal-red-lt px-5 py-4">
-          <p className="text-sm font-bold text-rose-900 mb-1 flex items-center gap-1.5">
+          <p className="text-sm font-bold text-portal-red mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Error
           </p>
           <p className="text-sm text-portal-red leading-relaxed">{err}</p>
@@ -229,7 +229,7 @@ function ExtractPage() {
 
       {saved && (
         <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-5 py-4">
-          <p className="text-sm font-bold text-green-900 mb-1 flex items-center gap-1.5">
+          <p className="text-sm font-bold text-portal-green mb-1 flex items-center gap-1.5">
             <CheckCircle2 size={14} /> Saved {saved.inserted} pending event(s)
           </p>
           {saved.skipped > 0 && <p className="text-xs text-portal-green">{saved.skipped} skipped</p>}
@@ -241,7 +241,7 @@ function ExtractPage() {
               </ul>
             </details>
           )}
-          <Link href="/admin/events/pending" className="text-xs font-semibold text-green-800 underline mt-2 inline-flex items-center gap-1">
+          <Link href="/admin/events/pending" className="text-xs font-semibold text-portal-green underline mt-2 inline-flex items-center gap-1">
             <Inbox size={11} /> Review in pending queue →
           </Link>
         </div>
@@ -261,7 +261,7 @@ function ExtractPage() {
                 <button onClick={() => setKeep({})}
                   className="text-xs font-semibold text-portal-sub hover:text-portal-text px-2 py-1">Select none</button>
                 <button onClick={saveKept} disabled={saving || keptCount === 0}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40">
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy disabled:opacity-40">
                   {saving ? <RefreshCw size={11} className="animate-spin" /> : <Save size={11} />}
                   Save {keptCount} as pending
                 </button>
@@ -285,7 +285,7 @@ function ExtractPage() {
                 <li key={idx} className={`p-5 ${!keep[idx] ? 'opacity-50' : ''}`}>
                   <div className="flex items-start gap-3 mb-3">
                     <input type="checkbox" checked={!!keep[idx]} onChange={e => setKeep(k => ({ ...k, [idx]: e.target.checked }))}
-                      className="mt-1 w-4 h-4 rounded text-purple-600" />
+                      className="mt-1 w-4 h-4 rounded text-portal-blue" />
                     <div className="flex-1 min-w-0">
                       <input type="text" value={ev.title} onChange={e => updateField(idx, 'title', e.target.value)}
                         className="w-full text-base font-semibold text-portal-text bg-transparent outline-none focus:bg-portal-bg rounded px-1 -mx-1" />
@@ -299,7 +299,7 @@ function ExtractPage() {
                   {keep[idx] && (
                     <div className="ml-7 space-y-3">
                       {ev.confidence_notes && (
-                        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-3 py-1.5 text-xs text-amber-900 italic">
+                        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-3 py-1.5 text-xs text-portal-amber italic">
                           ⚠️ {ev.confidence_notes}
                         </div>
                       )}

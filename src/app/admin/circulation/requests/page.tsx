@@ -49,7 +49,7 @@ export default async function LocationRequestsPage({ searchParams }: PageProps) 
             <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
           </p>
           <p className="text-xs text-portal-muted mt-1">
-            Submitted via <code className="bg-gray-100 px-1 rounded">/distribution/{dbKey}/request</code>
+            Submitted via <code className="bg-portal-row-hover px-1 rounded">/distribution/{dbKey}/request</code>
           </p>
         </div>
 

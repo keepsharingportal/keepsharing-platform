@@ -77,7 +77,7 @@ export function NewAdvertiserForm({ existing }: Props) {
   return (
     <form onSubmit={submit} className="bg-white rounded-lg border border-portal-border p-5 md:p-6 space-y-5">
       <div>
-        <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
+        <label className={lbl}>Business Name <span className="text-portal-red">*</span></label>
         <input
           value={businessName}
           onChange={e => setBusinessName(e.target.value)}
@@ -88,13 +88,13 @@ export function NewAdvertiserForm({ existing }: Props) {
         />
         {dupCandidates.length > 0 && (
           <div className="mt-2 rounded-lg bg-portal-amber-lt border border-portal-amber/30 p-3 text-xs">
-            <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-2">
+            <p className="font-bold text-portal-amber inline-flex items-center gap-1.5 mb-2">
               <AlertTriangle size={12} /> Looks similar to {dupCandidates.length === 1 ? 'this existing business' : 'these'}:
             </p>
             <ul className="space-y-1">
               {dupCandidates.map(c => (
                 <li key={c.id} className="flex items-center justify-between gap-2">
-                  <span className="text-amber-900 inline-flex items-center gap-1.5">
+                  <span className="text-portal-amber inline-flex items-center gap-1.5">
                     <Building2 size={11} /> {c.name}
                     <span className="text-portal-amber font-mono text-[10px]">
                       ({Math.round(c.score * 100)}% match)

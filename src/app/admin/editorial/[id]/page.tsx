@@ -172,7 +172,7 @@ function Row({ label, required, hint, children }: { label: string; required?: bo
   return (
     <div>
       <label className="block text-xs font-semibold text-portal-sub mb-1.5">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+        {label}{required && <span className="text-portal-red ml-0.5">*</span>}
       </label>
       {children}
       {hint && <p className="text-[11px] text-portal-muted mt-1 leading-relaxed">{hint}</p>}
@@ -304,7 +304,7 @@ export default async function EditorialDetailPage({
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: sc?.bg ?? '#f9fafb', color: sc?.color ?? '#374151' }}>
                 {sc?.label ?? item.status}
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-portal-sub">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-row-hover text-portal-sub">
                 {item.target_publication.toUpperCase()}
               </span>
               {/* Readiness score */}
@@ -334,12 +334,12 @@ export default async function EditorialDetailPage({
           <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide flex items-center gap-2">
               <span>Source Submission Answers</span>
-              <span className="text-gray-300">▸</span>
+              <span className="text-portal-border-2">▸</span>
             </summary>
             <div className="px-5 pb-5 pt-1 border-t border-gray-50 space-y-4">
               {/* Submitter */}
               <div className="flex items-center gap-3 pt-2">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-portal-sub shrink-0">
+                <div className="w-8 h-8 rounded-full bg-portal-row-hover flex items-center justify-center text-sm font-bold text-portal-sub shrink-0">
                   {item.submitter_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -357,7 +357,7 @@ export default async function EditorialDetailPage({
                       {v ? (
                         <p className={`text-sm text-portal-text leading-relaxed ${f.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>{v}</p>
                       ) : (
-                        <p className="text-sm italic text-gray-300">{f.required ? 'Not provided' : 'Not provided (optional)'}</p>
+                        <p className="text-sm italic text-portal-border-2">{f.required ? 'Not provided' : 'Not provided (optional)'}</p>
                       )}
                     </div>
                   )
@@ -370,7 +370,7 @@ export default async function EditorialDetailPage({
           {item.ai_draft_content ? (
             <div className={`bg-white rounded-lg overflow-hidden border ${
               item.ai_draft_status === 'needs_info' ? 'border-portal-amber/30'
-              : item.ai_draft_status === 'failed'  ? 'border-red-200'
+              : item.ai_draft_status === 'failed'  ? 'border-portal-red/30'
               : 'border-portal-border'
             }`}>
               <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
@@ -379,7 +379,7 @@ export default async function EditorialDetailPage({
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     item.ai_draft_status === 'ready'     ? 'bg-portal-green-lt text-portal-green'
                     : item.ai_draft_status === 'needs_info' ? 'bg-portal-amber-lt text-portal-amber'
-                    : 'bg-red-100 text-red-700'
+                    : 'bg-portal-red-lt text-portal-red'
                   }`}>
                     {item.ai_draft_status === 'needs_info' ? 'Missing Info' : item.ai_draft_status}
                   </span>
@@ -389,7 +389,7 @@ export default async function EditorialDetailPage({
                 )}
               </div>
               {item.ai_draft_status === 'ready' && (
-                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-amber-100">
+                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-portal-amber/20">
                   <p className="text-xs text-portal-amber font-medium">
                     ⚠️ Review carefully. Verify all facts before publishing. Human editorial approval required.
                   </p>
@@ -409,7 +409,7 @@ export default async function EditorialDetailPage({
                     </button>
                   </form>
                   <form action={clearDraft}>
-                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-portal-red hover:bg-portal-red-lt font-semibold">
+                    <button type="submit" className="text-[11px] px-2.5 py-1 rounded-lg border border-portal-red/30 text-portal-red hover:bg-portal-red-lt font-semibold">
                       Clear
                     </button>
                   </form>
@@ -421,7 +421,7 @@ export default async function EditorialDetailPage({
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">AI Draft</h2>
               <p className="text-sm text-portal-muted italic mb-3">No draft generated yet.</p>
               <form action={generateDraft}>
-                <button type="submit" className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                <button type="submit" className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-portal-blue hover:bg-portal-navy transition-colors">
                   ✍️ Generate Draft
                 </button>
               </form>
@@ -546,7 +546,7 @@ export default async function EditorialDetailPage({
                         type="checkbox"
                         name={cb.name}
                         defaultChecked={cb.checked}
-                        className="w-4 h-4 rounded border-portal-border-2 text-indigo-600"
+                        className="w-4 h-4 rounded border-portal-border-2 text-portal-blue"
                       />
                       <span className="text-sm text-portal-text">{cb.label}</span>
                     </label>
@@ -569,7 +569,7 @@ export default async function EditorialDetailPage({
 
             {/* Save button */}
             <button type="submit"
-              className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
+              className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-navy hover:bg-portal-navy transition-colors">
               Save Editorial Details
             </button>
           </form>
@@ -577,7 +577,7 @@ export default async function EditorialDetailPage({
           {/* Publish Readiness Checklist */}
           <Card title="Publish Readiness">
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="flex-1 h-2 bg-portal-row-hover rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, backgroundColor: scoreColor }} />
               </div>
               <span className="text-xs font-bold" style={{ color: scoreColor }}>{score}%</span>
@@ -586,15 +586,15 @@ export default async function EditorialDetailPage({
               {checklist.map((ci, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <span className={`text-base shrink-0 leading-none mt-0.5 ${
-                    ci.present ? 'text-green-500' : ci.required ? 'text-red-400' : 'text-gray-300'
+                    ci.present ? 'text-portal-green' : ci.required ? 'text-portal-red' : 'text-portal-border-2'
                   }`}>
                     {ci.present ? '✓' : ci.required ? '✗' : '○'}
                   </span>
                   <span className={`text-xs ${
-                    ci.present ? 'text-portal-sub' : ci.required ? 'text-red-700 font-semibold' : 'text-portal-muted'
+                    ci.present ? 'text-portal-sub' : ci.required ? 'text-portal-red font-semibold' : 'text-portal-muted'
                   }`}>
                     {ci.label}
-                    {!ci.present && !ci.required && <span className="text-gray-300 ml-1">(optional)</span>}
+                    {!ci.present && !ci.required && <span className="text-portal-border-2 ml-1">(optional)</span>}
                   </span>
                 </div>
               ))}
@@ -647,7 +647,7 @@ export default async function EditorialDetailPage({
                 <button key={label} disabled
                   className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed">
                   <span className="flex-1">{label}</span>
-                  <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>

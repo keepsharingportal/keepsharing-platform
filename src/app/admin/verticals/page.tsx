@@ -110,7 +110,7 @@ export default async function VerticalsAdminPage() {
                     {KIND_LABEL[v.kind] ?? v.kind}
                   </span>
                   {!v.is_active && (
-                    <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-gray-700/80 text-white px-1.5 py-0.5 rounded">
+                    <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider bg-portal-navy/80 text-white px-1.5 py-0.5 rounded">
                       Inactive
                     </span>
                   )}
@@ -126,14 +126,14 @@ export default async function VerticalsAdminPage() {
                     <h3 className="text-base font-bold text-portal-text leading-tight group-hover:text-portal-blue">
                       {v.display_name}
                     </h3>
-                    <ChevronRight size={14} className="text-gray-300 shrink-0 mt-1" />
+                    <ChevronRight size={14} className="text-portal-border-2 shrink-0 mt-1" />
                   </div>
                   {v.subtitle && (
                     <p className="text-xs text-portal-sub leading-snug line-clamp-2 mb-3">{v.subtitle}</p>
                   )}
 
                   <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold">
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${sponsor ? 'bg-portal-amber-lt text-portal-amber' : 'bg-gray-100 text-portal-sub'}`}>
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${sponsor ? 'bg-portal-amber-lt text-portal-amber' : 'bg-portal-row-hover text-portal-sub'}`}>
                       {sponsor ? `Sponsor: ${sponsor}` : 'Sponsor available'}
                     </span>
                     {v.primary_cta_label && (
@@ -145,7 +145,7 @@ export default async function VerticalsAdminPage() {
                       href={publicHref}
                       target="_blank"
                       onClick={e => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-100 text-portal-sub hover:bg-gray-200"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-row-hover text-portal-sub hover:bg-portal-border-2"
                     >
                       <ExternalLink size={9} /> {publicHref}
                     </Link>

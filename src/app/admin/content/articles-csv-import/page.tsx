@@ -286,16 +286,16 @@ export default function ArticlesCsvImportPage() {
         {rows.length === 0 && (
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
+              dragging ? 'border-portal-blue/50 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-portal-border-2 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
           >
-            <Upload size={32} className="mx-auto mb-3 text-gray-300" />
+            <Upload size={32} className="mx-auto mb-3 text-portal-border-2" />
             <p className="text-sm font-semibold text-portal-text">
-              Drop <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">school_bits_cleaned_import.csv</code> or <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">wp_posts_cleaned_import.csv</code> here
+              Drop <code className="bg-portal-row-hover px-1.5 py-0.5 rounded text-xs">school_bits_cleaned_import.csv</code> or <code className="bg-portal-row-hover px-1.5 py-0.5 rounded text-xs">wp_posts_cleaned_import.csv</code> here
             </p>
             <p className="text-xs text-portal-muted mt-2">Or click to browse · Start with school_bits for fastest homepage impact</p>
             <input ref={fileRef} type="file" accept=".csv" className="hidden"
@@ -304,7 +304,7 @@ export default function ArticlesCsvImportPage() {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm text-red-700">
+          <div className="p-4 bg-portal-red-lt border border-portal-red/30 rounded-lg flex items-start gap-2 text-sm text-portal-red">
             <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
           </div>
         )}
@@ -316,7 +316,7 @@ export default function ArticlesCsvImportPage() {
               <div>
                 <span className="text-sm text-portal-sub">
                   <span className="font-bold text-portal-text">{rows.length}</span> articles from{' '}
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{fileName}</code>
+                  <code className="bg-portal-row-hover px-1.5 py-0.5 rounded text-xs">{fileName}</code>
                 </span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {Object.entries(byColumn).map(([col, list]) => (
@@ -362,7 +362,7 @@ export default function ArticlesCsvImportPage() {
                   <tbody>
                     {displayRows.map((row, i) => (
                       <tr key={i} className="border-b border-gray-50 hover:bg-portal-bg">
-                        <td className="px-4 py-2 text-gray-300">{i + 1}</td>
+                        <td className="px-4 py-2 text-portal-border-2">{i + 1}</td>
                         <td className="px-4 py-2 text-portal-text font-medium truncate max-w-[240px]">{row.title}</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-semibold">
@@ -376,7 +376,7 @@ export default function ArticlesCsvImportPage() {
                         <td className="px-4 py-2">
                           {row.hero_image_url
                             ? <span className="text-portal-green">✓</span>
-                            : <span className="text-gray-200">—</span>
+                            : <span className="text-portal-border-2">—</span>
                           }
                         </td>
                       </tr>
@@ -401,7 +401,7 @@ export default function ArticlesCsvImportPage() {
                   <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-portal-sub">{progress.done} / {progress.total} articles processed</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-portal-row-hover rounded-full h-2">
                   <div className="bg-portal-blue h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }} />
                 </div>
@@ -426,7 +426,7 @@ export default function ArticlesCsvImportPage() {
               {[
                 { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
-                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
+                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-portal-red-lt border-portal-red/30'    },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-lg border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
@@ -441,8 +441,8 @@ export default function ArticlesCsvImportPage() {
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
-                                               'bg-red-100 text-red-700'
+                      r.status === 'skipped' ? 'bg-portal-row-hover text-portal-sub'  :
+                                               'bg-portal-red-lt text-portal-red'
                     }`}>{r.status === 'ok' ? 'imported' : r.status}</span>
                     <span className="text-xs text-portal-text flex-1 truncate">{r.title}</span>
                     {r.message && <span className="text-[10px] text-portal-muted truncate max-w-xs">{r.message}</span>}

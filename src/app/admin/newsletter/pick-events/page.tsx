@@ -338,7 +338,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
             Free events only
           </label>
           <button type="submit"
-            className="px-4 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700">
+            className="px-4 py-2 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy">
             Apply
           </button>
         </form>
@@ -367,9 +367,9 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                   <li key={ev.id} className={`p-4 flex items-start gap-3 ${isPicked ? 'opacity-50' : wasFeatured ? 'opacity-70' : ''}`}>
                     {ev.hero_image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={ev.hero_image_url} alt={ev.title} className="w-16 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+                      <img src={ev.hero_image_url} alt={ev.title} className="w-16 h-12 rounded-lg object-cover bg-portal-row-hover shrink-0" />
                     ) : (
-                      <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
+                      <div className="w-16 h-12 rounded-lg bg-portal-row-hover shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{ev.title}</p>
@@ -380,7 +380,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                       <p className="text-[11px] text-portal-muted mt-0.5">
                         {ev.is_free && <span className="text-secondary font-semibold mr-1.5">Free</span>}
                         {ev.category && <span>{ev.category}</span>}
-                        {wasFeatured && <span className="ml-1.5 text-amber-600">· Featured {fmtDate(lastIssue!)}</span>}
+                        {wasFeatured && <span className="ml-1.5 text-portal-amber">· Featured {fmtDate(lastIssue!)}</span>}
                       </p>
                     </div>
                     {isPicked ? (
@@ -423,14 +423,14 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                   <li key={pickRow.id} className="p-4">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="flex flex-col items-center gap-1 pt-1">
-                        <GripVertical size={14} className="text-gray-300" />
+                        <GripVertical size={14} className="text-portal-border-2" />
                         <span className="text-[9px] font-bold text-portal-muted">{idx + 1}</span>
                       </div>
                       {pk.hero_image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={pk.hero_image_url} alt={pk.title} className="w-16 h-12 rounded-lg object-cover bg-gray-100 shrink-0" />
+                        <img src={pk.hero_image_url} alt={pk.title} className="w-16 h-12 rounded-lg object-cover bg-portal-row-hover shrink-0" />
                       ) : (
-                        <div className="w-16 h-12 rounded-lg bg-gray-100 shrink-0" />
+                        <div className="w-16 h-12 rounded-lg bg-portal-row-hover shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-portal-text truncate">{pk.title}</p>
@@ -455,7 +455,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                         )}
                         <form action={removePick}>
                           <input type="hidden" name="id" value={pickRow.id} />
-                          <button type="submit" className="p-1 text-rose-500 hover:bg-portal-red-lt rounded" title="Remove from picks">
+                          <button type="submit" className="p-1 text-portal-red hover:bg-portal-red-lt rounded" title="Remove from picks">
                             <X size={13} />
                           </button>
                         </form>
@@ -480,7 +480,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                             placeholder={pk.description?.slice(0, 200) ?? 'Custom newsletter blurb…'}
                             className="w-full text-sm border border-portal-border rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue/60 resize-y" />
                         </div>
-                        <button type="submit" className="text-xs font-bold bg-gray-900 text-white rounded-lg px-3 py-1.5 hover:bg-gray-700">
+                        <button type="submit" className="text-xs font-bold bg-portal-navy text-white rounded-lg px-3 py-1.5 hover:bg-portal-navy">
                           Save overrides
                         </button>
                       </form>
@@ -524,8 +524,8 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       )}
 
       {picks.length > 0 && !newsletterIssuesAvailable && (
-        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Send history needs a database migration
           </p>
           <p className="text-sm text-portal-amber leading-relaxed">
@@ -574,10 +574,10 @@ function IssueLine({ issue }: { issue: {
   picks_count: number; error_message: string | null
 }}) {
   const statusBadge =
-    issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-portal-green-lt text-green-800', label: 'Sent' } :
+    issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-portal-green-lt text-portal-green', label: 'Sent' } :
     issue.status === 'queued' ? { Icon: Clock,        cls: 'bg-portal-blue-lt text-portal-blue',   label: 'Scheduled' } :
     issue.status === 'failed' ? { Icon: AlertTriangle,cls: 'bg-portal-red-lt text-portal-red',   label: 'Failed' } :
-                                { Icon: Clock,        cls: 'bg-gray-100 text-portal-text',   label: 'Pending' }
+                                { Icon: Clock,        cls: 'bg-portal-row-hover text-portal-text',   label: 'Pending' }
   const Icon = statusBadge.Icon
   const when = issue.scheduled_for
     ? `for ${new Date(issue.scheduled_for).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`

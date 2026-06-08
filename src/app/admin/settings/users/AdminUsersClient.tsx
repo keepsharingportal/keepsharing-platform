@@ -38,8 +38,8 @@ const ROLE_LABELS: Record<AdminRole, string> = {
 const ROLE_BADGE: Record<AdminRole, string> = {
   super:     'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   admin:     'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
-  publisher: 'bg-sky-100 text-sky-800 border-portal-blue/30',
-  editor:    'bg-gray-100 text-portal-text border-portal-border',
+  publisher: 'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
+  editor:    'bg-portal-row-hover text-portal-text border-portal-border',
 }
 
 function fmtDate(iso: string | null): string {
@@ -251,7 +251,7 @@ function StatChip({ label, count, accent }: { label: string; count: number; acce
   const bg: Record<typeof accent, string> = {
     amber:  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
     violet: 'bg-violet-50 text-portal-blue border-portal-blue/30',
-    sky:    'bg-sky-50 text-sky-800 border-portal-blue/30',
+    sky:    'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
     gray:   'bg-portal-bg text-portal-text border-portal-border',
     rose:   'bg-portal-red-lt text-portal-red border-portal-red/30',
   }
@@ -321,12 +321,12 @@ function InvitePanel({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
     <form onSubmit={submit} className="bg-portal-bg border-b border-portal-border px-6 py-5">
-      <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2 mb-4">
+      <h2 className="text-sm font-bold text-portal-navy inline-flex items-center gap-2 mb-4">
         <ShieldCheck size={14} /> Invite a new admin
       </h2>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -335,11 +335,11 @@ function InvitePanel({
           <input value={fullName} onChange={e => setFullName(e.target.value)} className={inp} placeholder="Jane Smith" />
         </div>
         <div>
-          <label className={lbl}>Email <span className="text-rose-600">*</span></label>
+          <label className={lbl}>Email <span className="text-portal-red">*</span></label>
           <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inp} placeholder="jane@example.com" />
         </div>
         <div>
-          <label className={lbl}>Role <span className="text-rose-600">*</span></label>
+          <label className={lbl}>Role <span className="text-portal-red">*</span></label>
           <select value={role} onChange={e => setRole(e.target.value as AdminRole)} className={`${inp} cursor-pointer`}>
             {currentUserRole === 'super' && <option value="super">Super Admin</option>}
             {currentUserRole === 'super' && <option value="admin">Admin</option>}
@@ -351,7 +351,7 @@ function InvitePanel({
 
       {!isCrossBrand && (
         <div className="mt-3">
-          <p className={lbl}>Markets <span className="text-rose-600">*</span></p>
+          <p className={lbl}>Markets <span className="text-portal-red">*</span></p>
           <div className="flex flex-wrap gap-2">
             {MARKETS.map(m => {
               const on = markets.has(m.slug)
@@ -378,12 +378,12 @@ function InvitePanel({
       )}
 
       {isCrossBrand && (
-        <p className="mt-3 text-xs text-blue-900 bg-portal-blue-lt/50 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+        <p className="mt-3 text-xs text-portal-navy bg-portal-blue-lt/50 rounded-lg px-3 py-2 inline-flex items-center gap-2">
           <ShieldCheck size={12} /> {ROLE_LABELS[role]}s have access to every brand.
         </p>
       )}
 
-      <label className="mt-3 inline-flex items-center gap-2 text-xs text-blue-900 cursor-pointer">
+      <label className="mt-3 inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
         <input
           type="checkbox"
           checked={sendLink}
@@ -413,7 +413,7 @@ function InvitePanel({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
           {busy ? 'Inviting…' : 'Create + invite'}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-portal-navy">
           Cancel
         </button>
       </div>
@@ -480,7 +480,7 @@ function AdminRowItem({
   const marketsDisplay = isCrossBrand
     ? 'All brands'
     : (row.allowed_markets ?? []).length === 0
-      ? <span className="text-rose-600 font-semibold">No markets assigned</span>
+      ? <span className="text-portal-red font-semibold">No markets assigned</span>
       : (row.allowed_markets ?? []).map(m => marketShort(m)).join(', ')
 
   return (
@@ -541,7 +541,7 @@ function AdminRowItem({
                   onClick={resendInvite}
                   disabled={busy !== null}
                   title="Re-send sign-in link"
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-blue bg-portal-blue-lt border border-blue-200 rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-blue bg-portal-blue-lt border border-portal-blue/30 rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
                 >
                   {busy === 'resend' ? <RefreshCw size={11} className="animate-spin" /> : <Send size={11} />}
                   Resend
@@ -561,7 +561,7 @@ function AdminRowItem({
                 <button
                   onClick={() => setStatus('active')}
                   disabled={busy !== null}
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-green bg-portal-green-lt border border-emerald-200 rounded-lg hover:bg-portal-green-lt disabled:opacity-40"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg hover:bg-portal-green-lt disabled:opacity-40"
                 >
                   {busy === 'restore' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                   Restore
@@ -577,7 +577,7 @@ function AdminRowItem({
                 onClick={remove}
                 disabled={busy !== null || isSelf}
                 title={isSelf ? "You can't delete yourself" : 'Delete admin'}
-                className="p-1 text-portal-muted hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40 disabled:hover:text-portal-muted disabled:hover:bg-transparent"
+                className="p-1 text-portal-muted hover:text-portal-red rounded-lg hover:bg-portal-red-lt disabled:opacity-40 disabled:hover:text-portal-muted disabled:hover:bg-transparent"
               >
                 {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
               </button>
@@ -668,7 +668,7 @@ function EditRowPanel({
     }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -744,7 +744,7 @@ function EditRowPanel({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : 'Save changes'}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-portal-navy">
           Cancel
         </button>
       </div>
@@ -790,7 +790,7 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
     } finally { setBusy(false) }
   }
 
-  const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
@@ -798,7 +798,7 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-portal-blue hover:text-blue-950"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-portal-blue hover:text-portal-navy"
       >
         <KeyRound size={12} />
         Set or reset password

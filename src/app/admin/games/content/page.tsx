@@ -166,8 +166,8 @@ export default async function GamesContentPage({
       </div>
 
       {tableMissing && (
-        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
-          <p className="text-sm font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Brain Games tables not found
           </p>
           <p className="text-sm text-portal-amber">
@@ -198,14 +198,14 @@ export default async function GamesContentPage({
                 ))}
               </select>
             </div>
-            <button type="submit" className="px-4 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700">Apply</button>
+            <button type="submit" className="px-4 py-2 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy">Apply</button>
             <span className="ml-auto text-xs text-portal-muted">{active} active · {rows.length} total in this view</span>
           </form>
 
           {/* ADD FORM (per game type) */}
           {game === 'word-search' ? (
             <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt px-5 py-4">
-              <p className="text-sm font-bold text-amber-900 mb-1">Word search is edited in Supabase directly</p>
+              <p className="text-sm font-bold text-portal-amber mb-1">Word search is edited in Supabase directly</p>
               <p className="text-sm text-portal-amber leading-relaxed">
                 Word search payloads include a flat letter grid + word list + column count. The grid is too complex
                 for an inline form right now — edit existing rows or add new ones via the Supabase dashboard
@@ -231,7 +231,7 @@ export default async function GamesContentPage({
                     <input name="answer" required placeholder="COFFEE" className={inputCls} />
                   </div>
                   <div className="md:col-span-2">
-                    <button type="submit" className="w-full px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">Add</button>
+                    <button type="submit" className="w-full px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">Add</button>
                   </div>
                 </form>
               )}
@@ -248,7 +248,7 @@ export default async function GamesContentPage({
                     <input name="answer" required placeholder="NAPTIME" className={inputCls} />
                   </div>
                   <div className="md:col-span-2">
-                    <button type="submit" className="w-full px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">Add</button>
+                    <button type="submit" className="w-full px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">Add</button>
                   </div>
                 </form>
               )}
@@ -265,7 +265,7 @@ export default async function GamesContentPage({
                     <input name="a" required placeholder="6" className={inputCls} />
                   </div>
                   <div className="md:col-span-2">
-                    <button type="submit" className="w-full px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">Add</button>
+                    <button type="submit" className="w-full px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">Add</button>
                   </div>
                 </form>
               )}
@@ -289,7 +289,7 @@ export default async function GamesContentPage({
                     <label className="block text-[11px] font-semibold text-portal-sub mb-1">Correct answer * (must match one of the options exactly)</label>
                     <input name="a" required placeholder="9-15 months" className={inputCls} />
                   </div>
-                  <button type="submit" className="px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">Add trivia question</button>
+                  <button type="submit" className="px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">Add trivia question</button>
                 </form>
               )}
 
@@ -306,7 +306,7 @@ export default async function GamesContentPage({
                     <input name="pairs" type="number" min="4" max="12" placeholder="auto" className={inputCls} />
                   </div>
                   <div className="md:col-span-2">
-                    <button type="submit" className="w-full px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">Add board</button>
+                    <button type="submit" className="w-full px-4 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">Add board</button>
                   </div>
                 </form>
               )}
@@ -323,10 +323,10 @@ export default async function GamesContentPage({
                   </p>
                   {(['yellow', 'green', 'blue', 'purple'] as const).map(tone => {
                     const swatch =
-                      tone === 'yellow' ? 'bg-yellow-400 text-portal-text' :
+                      tone === 'yellow' ? 'bg-portal-amber text-portal-text' :
                       tone === 'green'  ? 'bg-portal-green text-white'     :
                       tone === 'blue'   ? 'bg-portal-blue text-white'      :
-                                          'bg-purple-500 text-white'
+                                          'bg-portal-blue text-white'
                     return (
                       <div key={tone} className="rounded-lg border border-portal-border overflow-hidden">
                         <div className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${swatch}`}>{tone}</div>
@@ -345,7 +345,7 @@ export default async function GamesContentPage({
                       </div>
                     )
                   })}
-                  <button type="submit" className="px-5 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700">
+                  <button type="submit" className="px-5 py-2 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy">
                     Add Family Connect puzzle
                   </button>
                 </form>

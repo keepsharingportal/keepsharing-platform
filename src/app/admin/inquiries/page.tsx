@@ -65,7 +65,7 @@ export default async function InquiriesPage() {
         </p>
         <p className="text-xs text-portal-muted mt-1">
           Admin notification email goes to {process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'} when GHL is configured.
-          Forward to the business&apos;s <code className="px-1 bg-gray-100 rounded">contact_email</code> shown on each card.
+          Forward to the business&apos;s <code className="px-1 bg-portal-row-hover rounded">contact_email</code> shown on each card.
         </p>
       </div>
 

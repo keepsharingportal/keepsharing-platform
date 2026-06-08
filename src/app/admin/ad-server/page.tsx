@@ -15,10 +15,10 @@ const PUBLICATIONS = ['RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
 
 const ZONE_COLORS: Record<string, string> = {
   'header-leaderboard':   'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  'article-inline-top':   'bg-portal-green-lt text-portal-green ring-green-200',
-  'article-inline-mid':   'bg-teal-50 text-teal-700 ring-teal-200',
-  'article-inline-bottom':'bg-purple-50 text-purple-700 ring-purple-200',
-  'guide-sidebar':        'bg-orange-50 text-orange-700 ring-orange-200',
+  'article-inline-top':   'bg-portal-green-lt text-portal-green ring-portal-green/30',
+  'article-inline-mid':   'bg-portal-green-lt text-portal-green ring-portal-green/30',
+  'article-inline-bottom':'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
+  'guide-sidebar':        'bg-portal-amber-lt text-portal-amber ring-portal-amber/30',
   'email-banner':         'bg-portal-red-lt text-portal-red border-portal-red/30',
   'event-sponsor':        'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
 }
@@ -96,13 +96,13 @@ export default function AdServerPage() {
           <span className="text-sm font-semibold text-portal-blue bg-portal-blue-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-blue/30">
             {ads.filter((a) => a.active).length} active
           </span>
-          <span className="text-xs font-semibold text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded border border-portal-amber/30">Demo Data</span>
+          <span className="text-xs font-semibold text-portal-amber bg-portal-amber-lt px-2 py-0.5 rounded border border-portal-amber/30">Demo Data</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-portal-sub">{totalImpressions.toLocaleString()} impressions</span>
-          <span className="text-gray-300">·</span>
+          <span className="text-portal-border-2">·</span>
           <span className="font-semibold text-portal-text">{totalClicks.toLocaleString()} clicks</span>
-          <span className="text-gray-300">·</span>
+          <span className="text-portal-border-2">·</span>
           <span className="text-portal-sub">{totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : '0.00'}% CTR</span>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function AdServerPage() {
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
+                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
               }`}
             >{tab}</button>
           ))}
@@ -165,7 +165,7 @@ export default function AdServerPage() {
                         <div className="flex items-center gap-3">
                           {/* Ad thumbnail placeholder */}
                           <div
-                            className="rounded border border-portal-border bg-portal-bg flex items-center justify-center text-gray-300 shrink-0"
+                            className="rounded border border-portal-border bg-portal-bg flex items-center justify-center text-portal-border-2 shrink-0"
                             style={{ width: zone ? Math.min(zone.width / 6, 72) : 48, height: zone ? Math.min(zone.height / 6, 36) : 24 }}
                           >
                             <Monitor size={12} />
@@ -185,15 +185,15 @@ export default function AdServerPage() {
                       <td className="px-4 py-3 text-sm font-semibold text-portal-text">{ad.publication}</td>
                       <td className="px-4 py-3 text-xs text-portal-sub whitespace-nowrap">
                         <div>{ad.startDate}</div>
-                        <div className="text-gray-300">→ {ad.endDate}</div>
+                        <div className="text-portal-border-2">→ {ad.endDate}</div>
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-portal-text">{ad.totalClicks.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-portal-sub">{ad.totalImpressions.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-portal-sub">{ctr}%</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${
-                          isExpired ? 'bg-red-50 text-portal-red ring-red-200' :
-                          ad.active ? 'bg-portal-green-lt text-portal-green ring-green-200' :
+                          isExpired ? 'bg-portal-red-lt text-portal-red ring-portal-red/30' :
+                          ad.active ? 'bg-portal-green-lt text-portal-green ring-portal-green/30' :
                           'bg-portal-bg text-portal-sub border-portal-border'
                         }`}>
                           {isExpired ? 'Expired' : ad.active ? 'Active' : 'Paused'}
@@ -222,7 +222,7 @@ export default function AdServerPage() {
             {uploadSuccess ? (
               <div className="text-center py-12">
                 <div className="w-14 h-14 rounded-lg bg-portal-green-lt border border-portal-green/30 flex items-center justify-center mx-auto mb-4">
-                  <Check size={24} className="text-green-500" />
+                  <Check size={24} className="text-portal-green" />
                 </div>
                 <h2 className="text-lg font-semibold text-portal-text">Ad Uploaded!</h2>
                 <p className="text-sm text-portal-sub mt-1">Returning to Active Ads…</p>
@@ -365,7 +365,7 @@ export default function AdServerPage() {
                         <td className="px-4 py-3 text-portal-sub">{ad.totalImpressions.toLocaleString()}</td>
                         <td className="px-4 py-3 text-portal-sub">{ctr}%</td>
                         <td className="px-4 py-3">
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-portal-green-lt text-portal-green ring-green-200">Active</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-portal-green-lt text-portal-green ring-portal-green/30">Active</span>
                         </td>
                       </tr>
                     )
@@ -406,7 +406,7 @@ export default function AdServerPage() {
                     {zoneAds.map((a) => (
                       <div key={a.id} className="py-1 border-b border-gray-50 last:border-0 truncate">{a.businessName}</div>
                     ))}
-                    {zoneAds.length === 0 && <div className="text-gray-300">No ads in this zone</div>}
+                    {zoneAds.length === 0 && <div className="text-portal-border-2">No ads in this zone</div>}
                   </div>
                 </div>
               )

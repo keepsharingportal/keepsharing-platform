@@ -78,7 +78,7 @@ export default async function IssuesPage() {
         {months.length === 0 ? (
           <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No articles have an issue month set yet.</p>
-            <p className="text-xs text-portal-muted mt-1">Set <code className="px-1 bg-gray-100 rounded">source_issue_month</code> on articles to populate this view.</p>
+            <p className="text-xs text-portal-muted mt-1">Set <code className="px-1 bg-portal-row-hover rounded">source_issue_month</code> on articles to populate this view.</p>
           </div>
         ) : (
           <div className="space-y-2">

@@ -195,7 +195,7 @@ export default async function ReportsLandingPage() {
                   <p className="text-[11px] text-portal-muted truncate">/{s.slug}</p>
                 </div>
                 <div className="hidden md:block">
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-gray-100 text-portal-text px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-portal-row-hover text-portal-text px-1.5 py-0.5 rounded">
                     {s.account_tier ?? '—'}
                   </span>
                 </div>
@@ -209,7 +209,7 @@ export default async function ReportsLandingPage() {
                 <div className="text-sm tabular-nums text-right font-semibold text-portal-text hidden md:block">
                   {s.clicks.toLocaleString('en-US')}
                 </div>
-                <ChevronRight size={14} className="text-gray-300" />
+                <ChevronRight size={14} className="text-portal-border-2" />
               </Link>
             ))}
           </div>

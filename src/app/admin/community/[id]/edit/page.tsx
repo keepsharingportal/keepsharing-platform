@@ -79,7 +79,7 @@ function FormRow({ label, required, hint, children }: {
     <div>
       <label className="block text-xs font-semibold text-portal-sub mb-1.5">
         {label}
-        {required && <span className="text-red-400 ml-0.5">*</span>}
+        {required && <span className="text-portal-red ml-0.5">*</span>}
       </label>
       {children}
       {hint && <p className="text-[11px] text-portal-muted mt-1 leading-relaxed">{hint}</p>}
@@ -263,7 +263,7 @@ export default async function EditSubmissionPage({
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
       <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4">
-        <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Operator Edit Mode</p>
+        <p className="text-sm font-bold text-portal-amber mb-1">⚠️ Operator Edit Mode</p>
         <p className="text-sm text-portal-amber leading-relaxed">
           Edits should preserve the submitter's intent. Do not rewrite their story here — use the editorial draft workflow later.
           This form is for fixing typos, adding info received by phone or email, and correcting routing details.
@@ -400,13 +400,13 @@ export default async function EditSubmissionPage({
         <div className="flex gap-3 items-center pt-1">
           <button
             type="submit"
-            className="px-7 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-7 py-2.5 bg-portal-navy text-white text-sm font-bold rounded-lg hover:bg-portal-navy transition-colors"
           >
             Save Changes
           </button>
           <Link
             href={`/admin/community/${id}`}
-            className="px-7 py-2.5 bg-gray-100 text-portal-sub text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-7 py-2.5 bg-portal-row-hover text-portal-sub text-sm font-semibold rounded-lg hover:bg-portal-border-2 transition-colors"
           >
             Cancel
           </Link>

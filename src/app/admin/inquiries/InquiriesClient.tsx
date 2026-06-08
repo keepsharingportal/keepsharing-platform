@@ -48,7 +48,7 @@ export function InquiriesClient({ rows }: Props) {
         return (
           <div
             key={r.id}
-            className={`rounded-lg border bg-white overflow-hidden ${fresh ? 'border-blue-200 border border-portal-blue/30' : 'border-portal-border'}`}
+            className={`rounded-lg border bg-white overflow-hidden ${fresh ? 'border-portal-blue/30 border border-portal-blue/30' : 'border-portal-border'}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3 p-4">
               <button
@@ -58,7 +58,7 @@ export function InquiriesClient({ rows }: Props) {
                 <div className="flex items-center gap-2 mb-1">
                   {fresh && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-1.5 py-0.5 rounded">New</span>}
                   {r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-green bg-portal-green-lt px-1.5 py-0.5 rounded">Replied</span>}
-                  {r.read_at && !r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-gray-100 px-1.5 py-0.5 rounded">Read</span>}
+                  {r.read_at && !r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-portal-row-hover px-1.5 py-0.5 rounded">Read</span>}
                   <span className="text-xs text-portal-muted">{fmtTs(r.created_at)}</span>
                 </div>
                 <p className="text-sm font-bold text-portal-text leading-tight">
@@ -84,7 +84,7 @@ export function InquiriesClient({ rows }: Props) {
                     onClick={() => mark(r.id, 'replied_at')}
                     disabled={busyHere}
                     title="Mark replied"
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40"
                   >
                     {busyHere ? <RefreshCw size={11} className="animate-spin" /> : <Reply size={11} />}
                     Replied

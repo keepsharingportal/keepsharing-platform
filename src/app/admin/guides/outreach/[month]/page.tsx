@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<UpdateStatus, { label: string; cls: string; icon: Re
   not_sent:  { label: 'Not Sent',  cls: 'bg-portal-bg text-portal-sub border-portal-border',   icon: Clock },
   sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30', icon: Mail },
   responded: { label: 'Responded', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',    icon: RefreshCw },
-  updated:   { label: 'Updated',   cls: 'bg-portal-green-lt text-portal-green ring-green-200', icon: CheckCircle2 },
+  updated:   { label: 'Updated',   cls: 'bg-portal-green-lt text-portal-green ring-portal-green/30', icon: CheckCircle2 },
 }
 
 function buildEmailDraft(listing: GuideListing, guideName: string, month: number, year: number) {
@@ -87,7 +87,7 @@ export default function GuidePage() {
       <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/admin/guides" className="text-sm text-portal-blue hover:text-portal-blue">← Guides</Link>
-          <span className="text-gray-300">/</span>
+          <span className="text-portal-border-2">/</span>
           <div>
             <h1 className="text-xl font-semibold text-portal-text">
               {guide.name}
@@ -115,7 +115,7 @@ export default function GuidePage() {
         {(['all', 'not_sent', 'sent', 'responded', 'updated'] as const).map((s) => {
           const count = s === 'all' ? stats.total : stats[s]
           const labels: Record<string, string> = { all: 'All', not_sent: 'Not Sent', sent: 'Sent', responded: 'Responded', updated: 'Updated' }
-          const colors: Record<string, string> = { all: 'text-portal-text', not_sent: 'text-portal-sub', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-portal-green' }
+          const colors: Record<string, string> = { all: 'text-portal-text', not_sent: 'text-portal-sub', sent: 'text-portal-amber', responded: 'text-portal-blue', updated: 'text-portal-green' }
           return (
             <button key={s} onClick={() => setFilterStatus(s)}
               className={cn('flex items-center gap-1.5 transition-colors', filterStatus === s ? 'font-semibold' : 'hover:text-portal-text', colors[s])}>
@@ -160,7 +160,7 @@ export default function GuidePage() {
                   <td className="px-4 py-3 text-xs text-portal-sub whitespace-nowrap">
                     {listing.lastVerified
                       ? new Date(listing.lastVerified).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                      : <span className="text-red-400">Never</span>
+                      : <span className="text-portal-red">Never</span>
                     }
                   </td>
                   <td className="px-4 py-3">
@@ -212,7 +212,7 @@ export default function GuidePage() {
                     <span className="text-xs font-semibold text-portal-sub uppercase">Subject</span>
                     <button onClick={() => handleCopy(draft.subject, 'subject')}
                       className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
-                      {copied === 'subject' ? <><CheckCheck size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy</>}
+                      {copied === 'subject' ? <><CheckCheck size={12} className="text-portal-green" /> Copied</> : <><Copy size={12} /> Copy</>}
                     </button>
                   </div>
                   <p className="text-sm text-portal-text font-medium">{draft.subject}</p>
@@ -222,12 +222,12 @@ export default function GuidePage() {
                     <span className="text-xs font-semibold text-portal-sub uppercase">Body</span>
                     <button onClick={() => handleCopy(draft.body, 'body')}
                       className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-sub">
-                      {copied === 'body' ? <><CheckCheck size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy</>}
+                      {copied === 'body' ? <><CheckCheck size={12} className="text-portal-green" /> Copied</> : <><Copy size={12} /> Copy</>}
                     </button>
                   </div>
                   <pre className="text-xs text-portal-text whitespace-pre-wrap font-sans leading-relaxed">{draft.body}</pre>
                 </div>
-                <div className="bg-portal-blue-lt border border-blue-200 rounded-lg p-4">
+                <div className="bg-portal-blue-lt border border-portal-blue/30 rounded-lg p-4">
                   <p className="text-xs font-semibold text-portal-blue mb-1">How to send</p>
                   <ol className="text-xs text-portal-blue space-y-1 list-decimal list-inside">
                     <li>Copy the subject and body above</li>
@@ -283,7 +283,7 @@ export default function GuidePage() {
               <button onClick={() => {
                 setLocalListings((prev) => prev.map((l) => l.id === pendingModal.id ? { ...l, ...l.pendingChanges, pendingChanges: null, updateStatus: 'updated', lastVerified: new Date().toISOString().slice(0,10) } : l))
                 setPendingModal(null)
-              }} className="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">
+              }} className="px-4 py-2 text-sm font-semibold text-white bg-portal-green rounded-lg hover:bg-portal-green">
                 ✓ Approve Changes
               </button>
             </div>

@@ -189,14 +189,14 @@ export default function NewArticlePage() {
           <button
             onClick={() => save('pending')}
             disabled={saving}
-            className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+            className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-portal-amber disabled:opacity-40"
           >
             Save for Review
           </button>
           <button
             onClick={() => save('publish')}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40"
           >
             {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> Publish Now</>}
           </button>
@@ -210,7 +210,7 @@ export default function NewArticlePage() {
           {/* Title */}
           <div className="bg-white rounded-lg border border-portal-border p-5">
             <input
-              className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-none bg-transparent"
+              className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-portal-border-2 border-none bg-transparent"
               value={form.title}
               onChange={e => handleTitle(e.target.value)}
               placeholder="Article title…"
@@ -524,10 +524,10 @@ export default function NewArticlePage() {
         <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg disabled:opacity-40">
           Save Draft
         </button>
-        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
+        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-portal-amber disabled:opacity-40">
           Send for Review
         </button>
-        <button onClick={() => save('publish')} disabled={saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40">
+        <button onClick={() => save('publish')} disabled={saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40">
           {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> Publish Now</>}
         </button>
       </div>

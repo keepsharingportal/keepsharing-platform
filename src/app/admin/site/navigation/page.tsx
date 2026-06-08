@@ -33,7 +33,7 @@ export default function NavigationAdminPage() {
             footer. Hidden items disappear from every public page within ~30
             seconds — handy for launch week when some destinations aren&apos;t
             live yet. To rename, reorder, or add new items, edit{' '}
-            <code className="bg-gray-100 px-1 rounded">src/lib/site-nav/items.ts</code>{' '}
+            <code className="bg-portal-row-hover px-1 rounded">src/lib/site-nav/items.ts</code>{' '}
             and redeploy.
           </p>
         </header>

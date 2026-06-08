@@ -320,9 +320,9 @@ export default async function SubmissionDetailPage({
   // ── Severity colors ────────────────────────────────────────────────────────
 
   const SEV_CLS: Record<string, string> = {
-    critical: 'bg-red-50 border-red-200 text-red-800',
+    critical: 'bg-portal-red-lt border-portal-red/30 text-portal-red',
     warning:  'bg-portal-amber-lt border-portal-amber/30 text-portal-amber',
-    success:  'bg-portal-green-lt border-portal-green/30 text-green-800',
+    success:  'bg-portal-green-lt border-portal-green/30 text-portal-green',
     info:     'bg-portal-blue-lt border-portal-blue/20 text-portal-blue',
   }
 
@@ -364,7 +364,7 @@ export default async function SubmissionDetailPage({
               </span>
               {sub.internal_priority !== 'normal' && (
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  sub.internal_priority === 'urgent' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                  sub.internal_priority === 'urgent' ? 'bg-portal-red-lt text-portal-red' : 'bg-portal-amber-lt text-portal-amber'
                 }`}>
                   ↑ {sub.internal_priority}
                 </span>
@@ -415,7 +415,7 @@ export default async function SubmissionDetailPage({
           <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Submitter</h2>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-portal-sub shrink-0">
+              <div className="w-10 h-10 rounded-full bg-portal-row-hover flex items-center justify-center text-base font-bold text-portal-sub shrink-0">
                 {sub.submitter_name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -444,14 +444,14 @@ export default async function SubmissionDetailPage({
                     <div key={field.id}>
                       <p className="text-xs font-semibold text-portal-sub mb-1">
                         {field.label}
-                        {field.required && <span className="text-red-400 ml-0.5">*</span>}
+                        {field.required && <span className="text-portal-red ml-0.5">*</span>}
                       </p>
                       {answer ? (
                         <p className={`text-sm text-portal-text leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
                           {answer}
                         </p>
                       ) : (
-                        <p className="text-sm italic text-gray-300">
+                        <p className="text-sm italic text-portal-border-2">
                           {field.required ? 'Not provided — required' : 'Not provided'}
                         </p>
                       )}
@@ -467,7 +467,7 @@ export default async function SubmissionDetailPage({
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">
               {config.photoLabel ?? 'Photos'}
               {config.photoRequired
-                ? <span className="text-red-400 font-normal ml-1">(Required)</span>
+                ? <span className="text-portal-red font-normal ml-1">(Required)</span>
                 : config.photoHint
                 ? <span className="text-portal-muted font-normal ml-1">(Optional)</span>
                 : null}
@@ -490,7 +490,7 @@ export default async function SubmissionDetailPage({
               <div className="mt-3 space-y-2">
                 <p className="text-sm text-portal-muted italic">No photos received yet.</p>
                 {config.photoHint && (
-                  <div className="bg-portal-amber-lt border border-amber-100 rounded-lg p-3">
+                  <div className="bg-portal-amber-lt border border-portal-amber/20 rounded-lg p-3">
                     <p className="text-xs font-semibold text-portal-amber mb-1">Instructions for submitter:</p>
                     <p className="text-xs text-portal-amber">{config.photoHint}</p>
                   </div>
@@ -505,7 +505,7 @@ export default async function SubmissionDetailPage({
               sub.ai_draft_status === 'edited'     ? 'border-portal-green/30'
               : sub.ai_draft_status === 'ready'    ? 'border-indigo-200'
               : sub.ai_draft_status === 'needs_info'? 'border-portal-amber/30'
-              : sub.ai_draft_status === 'failed'   ? 'border-red-200'
+              : sub.ai_draft_status === 'failed'   ? 'border-portal-red/30'
               : 'border-portal-border'
             }`}>
 
@@ -514,12 +514,12 @@ export default async function SubmissionDetailPage({
                 <div className="flex items-center gap-2">
                   <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    sub.ai_draft_status === 'ready'      ? 'bg-indigo-100 text-indigo-700'
+                    sub.ai_draft_status === 'ready'      ? 'bg-portal-blue-lt text-portal-blue'
                     : sub.ai_draft_status === 'edited'   ? 'bg-portal-green-lt text-portal-green'
                     : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                     : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
-                    : sub.ai_draft_status === 'failed'   ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-portal-sub'
+                    : sub.ai_draft_status === 'failed'   ? 'bg-portal-red-lt text-portal-red'
+                    : 'bg-portal-row-hover text-portal-sub'
                   }`}>
                     {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
                   </span>
@@ -531,7 +531,7 @@ export default async function SubmissionDetailPage({
 
               {/* Warning — always visible when ready or edited */}
               {['ready', 'edited'].includes(sub.ai_draft_status) && (
-                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-amber-100">
+                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-portal-amber/20">
                   <p className="text-xs text-portal-amber font-medium leading-relaxed">
                     ⚠️ AI-assisted draft. Verify all facts before publishing. Do not publish without human editorial approval.
                   </p>
@@ -559,7 +559,7 @@ export default async function SubmissionDetailPage({
                   <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-gray-800 text-white text-xs font-bold rounded-lg hover:bg-gray-700 transition-colors"
+                      className="px-5 py-2 bg-portal-navy text-white text-xs font-bold rounded-lg hover:bg-portal-navy transition-colors"
                     >
                       Save Edited Draft
                     </button>
@@ -580,7 +580,7 @@ export default async function SubmissionDetailPage({
                   <form action={markReadyForEditorial}>
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors"
+                      className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-green hover:bg-portal-green transition-colors"
                     >
                       ✓ Mark Ready for Editorial Pipeline
                     </button>
@@ -704,13 +704,13 @@ export default async function SubmissionDetailPage({
                 {checklist.map(item => (
                   <div key={item.key} className="flex items-start gap-2.5">
                     <span className={`text-base shrink-0 leading-none mt-0.5 ${
-                      item.present ? 'text-green-500' : item.required ? 'text-red-400' : 'text-amber-400'
+                      item.present ? 'text-portal-green' : item.required ? 'text-portal-red' : 'text-portal-amber'
                     }`}>
                       {item.present ? '✓' : item.required ? '✗' : '○'}
                     </span>
                     <div className="flex-1 min-w-0">
                       <span className={`text-xs ${
-                        item.present ? 'text-portal-sub' : item.required ? 'text-red-700 font-semibold' : 'text-portal-amber'
+                        item.present ? 'text-portal-sub' : item.required ? 'text-portal-red font-semibold' : 'text-portal-amber'
                       }`}>
                         {item.label}
                       </span>
@@ -743,7 +743,7 @@ export default async function SubmissionDetailPage({
               />
               <button
                 type="submit"
-                className="text-xs px-4 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy transition-colors"
               >
                 Save Notes
               </button>
@@ -801,7 +801,7 @@ export default async function SubmissionDetailPage({
               </div>
               <button
                 type="submit"
-                className="text-xs px-4 py-2 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy transition-colors"
               >
                 Save Assignment
               </button>
@@ -823,12 +823,12 @@ export default async function SubmissionDetailPage({
                 </div>
                 <div className="flex gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-portal-muted'
+                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-row-hover text-portal-muted'
                   }`}>
                     {publishDest.print ? '✓ Print' : '— Print'}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-gray-100 text-portal-muted'
+                    publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-row-hover text-portal-muted'
                   }`}>
                     {publishDest.digital ? '✓ Digital' : '— Digital'}
                   </span>
@@ -849,13 +849,13 @@ export default async function SubmissionDetailPage({
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                sub.ai_draft_status === 'none'        ? 'bg-gray-100 text-portal-muted'
-                : sub.ai_draft_status === 'ready'     ? 'bg-indigo-100 text-indigo-700'
+                sub.ai_draft_status === 'none'        ? 'bg-portal-row-hover text-portal-muted'
+                : sub.ai_draft_status === 'ready'     ? 'bg-portal-blue-lt text-portal-blue'
                 : sub.ai_draft_status === 'edited'    ? 'bg-portal-green-lt text-portal-green'
                 : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                 : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
-                : sub.ai_draft_status === 'failed'    ? 'bg-red-100 text-red-700'
-                : 'bg-gray-100 text-portal-sub'
+                : sub.ai_draft_status === 'failed'    ? 'bg-portal-red-lt text-portal-red'
+                : 'bg-portal-row-hover text-portal-sub'
               }`}>
                 {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
               </span>
@@ -865,7 +865,7 @@ export default async function SubmissionDetailPage({
             <form action={generateDraft} className="mb-2">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-blue hover:bg-portal-navy transition-colors"
               >
                 {sub.ai_draft_status === 'none' ? '✍️  Generate Draft' : '↺  Regenerate Draft'}
               </button>
@@ -887,7 +887,7 @@ export default async function SubmissionDetailPage({
                 <form action={clearDraft}>
                   <button
                     type="submit"
-                    className="py-1.5 px-3 text-xs font-semibold border border-red-200 rounded-lg text-portal-red hover:bg-portal-red-lt transition-colors"
+                    className="py-1.5 px-3 text-xs font-semibold border border-portal-red/30 rounded-lg text-portal-red hover:bg-portal-red-lt transition-colors"
                   >
                     Clear
                   </button>
@@ -914,7 +914,7 @@ export default async function SubmissionDetailPage({
                 >
                   <span>{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
-                  <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
+                  <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
               ))}
             </div>
@@ -937,7 +937,7 @@ export default async function SubmissionDetailPage({
                   {item.sent ? (
                     <span className="text-[10px] text-portal-green font-semibold">Sent</span>
                   ) : (
-                    <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
+                    <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                   )}
                 </div>
               ))}

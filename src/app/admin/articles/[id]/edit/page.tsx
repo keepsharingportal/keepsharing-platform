@@ -424,7 +424,7 @@ export default function ArticleEditPage({ params }: Props) {
           <Link href="/admin/articles/review" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1 whitespace-nowrap">
             <ArrowLeft size={13} /> Review Queue
           </Link>
-          <span className="text-gray-300">/</span>
+          <span className="text-portal-border-2">/</span>
           <Link href="/admin/articles" className="text-sm text-portal-blue hover:text-portal-blue hidden sm:block">All Articles</Link>
           <h1 className="text-sm font-semibold text-portal-text truncate max-w-xs hidden md:block">
             {form.title || 'Edit Article'}
@@ -432,7 +432,7 @@ export default function ArticleEditPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {saveMsg && (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-portal-red'}`}>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-red-lt text-portal-red'}`}>
               {saveMsg.text}
             </span>
           )}
@@ -441,7 +441,7 @@ export default function ArticleEditPage({ params }: Props) {
             Save Draft
           </button>
           <button onClick={() => save('publish')} disabled={saving || loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40">
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-green text-white rounded-lg hover:bg-portal-green disabled:opacity-40">
             {saving ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
             Publish
           </button>
@@ -461,7 +461,7 @@ export default function ArticleEditPage({ params }: Props) {
               {/* Title */}
               <div>
                 <input
-                  className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-0 border-b-2 border-portal-border focus:border-portal-blue bg-transparent py-2 transition-colors"
+                  className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-portal-border-2 border-0 border-b-2 border-portal-border focus:border-portal-blue bg-transparent py-2 transition-colors"
                   value={form.title}
                   onChange={e => handleTitle(e.target.value)}
                   placeholder="Article title…"
@@ -482,7 +482,7 @@ export default function ArticleEditPage({ params }: Props) {
                    (that's the Card Hook field in the right sidebar). */}
               <div>
                 <textarea
-                  className="w-full text-base text-portal-sub outline-none placeholder:text-gray-300 border-0 border-b border-portal-border focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
+                  className="w-full text-base text-portal-sub outline-none placeholder:text-portal-border-2 border-0 border-b border-portal-border focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
                   rows={2}
                   value={form.subtitle}
                   onChange={e => setField('subtitle', e.target.value)}
@@ -500,7 +500,7 @@ export default function ArticleEditPage({ params }: Props) {
                       className={[
                         'px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors capitalize',
                         tab === t
-                          ? 'border-blue-600 text-portal-blue'
+                          ? 'border-portal-blue text-portal-blue'
                           : 'border-transparent text-portal-muted hover:text-portal-text',
                       ].join(' ')}
                     >
@@ -610,7 +610,7 @@ export default function ArticleEditPage({ params }: Props) {
                 <button onClick={() => save('pending')} disabled={saving || loading}
                   className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-amber/30 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
                   Send to Review
-                  <span className="block text-xs font-normal text-amber-600/70 mt-0.5">Adds to the review queue</span>
+                  <span className="block text-xs font-normal text-portal-amber/70 mt-0.5">Adds to the review queue</span>
                 </button>
                 <button onClick={() => save('publish')} disabled={saving || loading}
                   className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-green/30 bg-portal-green-lt text-sm font-semibold text-portal-green hover:bg-portal-green-lt disabled:opacity-40 transition-colors">
@@ -682,13 +682,13 @@ export default function ArticleEditPage({ params }: Props) {
                   className="w-full text-left px-3 py-2.5 rounded-lg border border-rose-300 bg-white text-sm font-semibold text-portal-red hover:bg-portal-red-lt disabled:opacity-40 transition-colors"
                 >
                   Move to Trash
-                  <span className="block text-xs font-normal text-rose-500/80 mt-0.5">Restorable from /admin/articles/trash</span>
+                  <span className="block text-xs font-normal text-portal-red/80 mt-0.5">Restorable from /admin/articles/trash</span>
                 </button>
               </div>
             </div>
 
             {/* ── Feature on Homepage ── */}
-            <div className="border border-blue-200 rounded-lg overflow-hidden">
+            <div className="border border-portal-blue/30 rounded-lg overflow-hidden">
               <div className="bg-portal-blue-lt px-3 py-2 border-b border-portal-blue/20">
                 <p className="text-[11px] font-bold text-portal-blue uppercase tracking-wider">Homepage</p>
               </div>
@@ -745,7 +745,7 @@ export default function ArticleEditPage({ params }: Props) {
             <div>
               <div className="flex items-baseline justify-between mb-1.5">
                 <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider">Card Hook</label>
-                <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-amber-600' : 'text-portal-muted'}`}>
+                <span className={`text-[10px] font-mono ${form.excerpt.length > 160 ? 'text-portal-amber' : 'text-portal-muted'}`}>
                   {form.excerpt.length} / 160
                 </span>
               </div>

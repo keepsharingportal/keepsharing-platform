@@ -24,11 +24,11 @@ const ROLE_LABEL: Record<string, string> = {
   other:           'Other',
 }
 const ROLE_BADGE: Record<string, string> = {
-  ad_rep:          'bg-sky-100 text-sky-800',
+  ad_rep:          'bg-portal-blue-lt text-portal-blue',
   billing:         'bg-portal-amber-lt text-portal-amber',
   listing_owner:   'bg-portal-blue-lt text-portal-blue',
   decision_maker:  'bg-portal-green-lt text-portal-green',
-  other:           'bg-gray-100 text-portal-sub',
+  other:           'bg-portal-row-hover text-portal-sub',
 }
 
 interface Props {
@@ -129,7 +129,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                 href={hrefWithRole(r)}
                 className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
                   on
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-portal-navy text-white'
                     : 'bg-white text-portal-text border border-portal-border hover:bg-portal-bg'
                 }`}
               >
@@ -157,7 +157,7 @@ export default async function ContactsPage({ searchParams }: Props) {
       </div>
 
       {contactsTableMissing && (
-        <div className="bg-portal-amber-lt border-b border-portal-amber/30 px-6 py-3 text-sm text-amber-900 inline-flex items-center gap-2">
+        <div className="bg-portal-amber-lt border-b border-portal-amber/30 px-6 py-3 text-sm text-portal-amber inline-flex items-center gap-2">
           <AlertTriangle size={14} /> Multi-contact support pending — apply migration 128 (advertiser_contacts) in Supabase.
         </div>
       )}
@@ -202,7 +202,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                         href={`/admin/advertisers/${c.advertiser_account_id}`}
                         className="inline-flex items-center gap-1.5 text-xs text-portal-text hover:text-portal-blue"
                       >
-                        <Building2 size={12} className="text-gray-300" />
+                        <Building2 size={12} className="text-portal-border-2" />
                         {biz?.business_name ?? '(unknown business)'}
                       </Link>
                     </td>
@@ -216,14 +216,14 @@ export default async function ContactsPage({ searchParams }: Props) {
                         <a href={`mailto:${c.email}`} className="text-portal-blue hover:underline inline-flex items-center gap-1">
                           <Mail size={10} /> {c.email}
                         </a>
-                      ) : <span className="text-gray-300">—</span>}
+                      ) : <span className="text-portal-border-2">—</span>}
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {c.phone ? (
                         <a href={`tel:${c.phone}`} className="text-portal-text hover:text-portal-text inline-flex items-center gap-1">
                           <Phone size={10} /> {c.phone}
                         </a>
-                      ) : <span className="text-gray-300">—</span>}
+                      ) : <span className="text-portal-border-2">—</span>}
                     </td>
                   </tr>
                 )

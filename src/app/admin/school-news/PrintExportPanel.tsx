@@ -84,7 +84,7 @@ export function PrintExportPanel({ approvedCount }: Props) {
           type="button"
           onClick={download}
           disabled={busy || approvedCount === 0}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy disabled:opacity-40"
         >
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Download size={12} />}
           {busy ? 'Generating…' : 'Download ZIP'}

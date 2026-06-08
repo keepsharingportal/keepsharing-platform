@@ -43,9 +43,9 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  draft:     'bg-gray-100 text-portal-text',
+  draft:     'bg-portal-row-hover text-portal-text',
   submitted: 'bg-portal-blue-lt text-portal-blue',
-  reviewed:  'bg-indigo-100 text-indigo-800',
+  reviewed:  'bg-portal-blue-lt text-portal-blue',
   paid:      'bg-portal-green-lt text-portal-green',
 }
 
@@ -98,11 +98,11 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                 {d.done} <span className="text-base font-normal text-portal-sub">of {d.total} stops</span>
               </p>
             </div>
-            <p className={`text-3xl font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-portal-blue' : 'text-portal-muted'}`}>
+            <p className={`text-3xl font-bold ${pct === 100 ? 'text-portal-green' : pct > 0 ? 'text-portal-blue' : 'text-portal-muted'}`}>
               {pct}%
             </p>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-portal-row-hover rounded-full overflow-hidden">
             <div
               className={`h-full transition-all ${pct === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`}
               style={{ width: `${pct}%` }}
@@ -110,7 +110,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           </div>
           <div className="mt-3 flex items-center gap-3 text-xs text-portal-sub flex-wrap">
             <span><span className="font-bold text-portal-text">{d.driver_name}</span> · {d.route_name}</span>
-            <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLOR[d.status] ?? 'bg-gray-100 text-portal-text'}`}>
+            <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 ${STATUS_COLOR[d.status] ?? 'bg-portal-row-hover text-portal-text'}`}>
               {d.status}
             </span>
             {d.submitted_at && <span>Submitted {new Date(d.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
@@ -136,7 +136,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold ${s.checked ? 'text-portal-sub line-through' : 'text-portal-text'}`}>
                       {s.name}
-                      {s.not_delivering && <span className="ml-2 text-[10px] text-red-700">(not delivering)</span>}
+                      {s.not_delivering && <span className="ml-2 text-[10px] text-portal-red">(not delivering)</span>}
                     </p>
                     {s.address && <p className="text-[11px] text-portal-sub">{s.address}{s.city ? `, ${s.city}` : ''}</p>}
                     {s.driver_note && (
@@ -175,7 +175,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           <button
             key={m}
             onClick={() => gotoMonth(m)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-portal-blue' : 'bg-white border-portal-border text-portal-text hover:border-portal-border-2'}`}
           >
             {fmtShortMonth(m)}
           </button>
@@ -183,7 +183,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
         {!months.includes(activeMonth) && (
           <button
             onClick={() => gotoMonth(activeMonth)}
-            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-blue-600"
+            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-portal-blue"
           >
             {fmtShortMonth(activeMonth)}
           </button>
@@ -209,7 +209,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                       <p className="text-sm font-bold text-portal-text truncate">{r.driver_name}</p>
                       <p className="text-[11px] text-portal-sub truncate">
                         {r.route_name}
-                        <span className={`ml-2 inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 ${STATUS_COLOR[r.status] ?? 'bg-gray-100 text-portal-text'}`}>
+                        <span className={`ml-2 inline-block rounded-full text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 ${STATUS_COLOR[r.status] ?? 'bg-portal-row-hover text-portal-text'}`}>
                           {r.status}
                         </span>
                       </p>
@@ -220,15 +220,15 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                         <p className="text-[10px] text-portal-muted uppercase tracking-wider">stops</p>
                       </div>
                       <div className="text-right">
-                        <p className={`text-lg font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-portal-blue' : 'text-portal-muted'}`}>{pct}%</p>
+                        <p className={`text-lg font-bold ${pct === 100 ? 'text-portal-green' : pct > 0 ? 'text-portal-blue' : 'text-portal-muted'}`}>{pct}%</p>
                         {r.pay_final != null
                           ? <p className="text-[10px] text-portal-green font-semibold">{fmtMoney(r.pay_final)}</p>
                           : <p className="text-[10px] text-portal-muted">{fmtMoney(r.pay_calculated)}</p>}
                       </div>
-                      <ChevronRight size={14} className="text-gray-300 shrink-0" />
+                      <ChevronRight size={14} className="text-portal-border-2 shrink-0" />
                     </div>
                   </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-portal-row-hover rounded-full overflow-hidden">
                     <div
                       className={`h-full ${pct === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`}
                       style={{ width: `${pct}%` }}

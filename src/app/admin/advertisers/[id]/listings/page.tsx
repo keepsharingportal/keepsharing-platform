@@ -37,7 +37,7 @@ export default async function ListingsTab({ params }: Props) {
   if (listings.length === 0) {
     return (
       <section className="bg-white rounded-lg border border-portal-border p-10 text-center">
-        <BookOpen size={28} className="mx-auto text-gray-300 mb-3" />
+        <BookOpen size={28} className="mx-auto text-portal-border-2 mb-3" />
         <h2 className="text-base font-bold text-portal-text">No guide listings yet</h2>
         <p className="text-sm text-portal-sub mt-1">
           When this business is added to a guide (newcomer guide, family fun guide, etc.) the listing appears here with a link back to the guide&apos;s editor.
@@ -97,7 +97,7 @@ export default async function ListingsTab({ params }: Props) {
                       <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
                         tier === 'sponsor'    ? 'bg-portal-amber-lt text-portal-amber'   :
                         tier === 'premium'    ? 'bg-portal-blue-lt text-portal-blue' :
-                                                'bg-gray-100 text-portal-sub'
+                                                'bg-portal-row-hover text-portal-sub'
                       }`}>
                         {tier}
                       </span>

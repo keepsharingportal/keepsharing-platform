@@ -138,7 +138,7 @@ export default async function GuidesAdminPage() {
                   </div>
                 )}
                 {!isActive && (
-                  <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-gray-700/80 text-white px-1.5 py-0.5 rounded">
+                  <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-portal-navy/80 text-white px-1.5 py-0.5 rounded">
                     Inactive
                   </span>
                 )}
@@ -154,7 +154,7 @@ export default async function GuidesAdminPage() {
                   <h3 className="text-sm font-bold text-portal-text leading-tight group-hover:text-portal-blue transition-colors">
                     {g.display_name}
                   </h3>
-                  <ChevronRight size={14} className="text-gray-300 group-hover:text-portal-blue shrink-0 mt-0.5" />
+                  <ChevronRight size={14} className="text-portal-border-2 group-hover:text-portal-blue shrink-0 mt-0.5" />
                 </div>
                 {g.pitch && (
                   <p className="text-xs text-portal-sub mt-1 leading-snug line-clamp-2">{g.pitch}</p>
@@ -165,7 +165,7 @@ export default async function GuidesAdminPage() {
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue">
                     {listingCount} listings
                   </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue">
                     {articleCount} articles
                   </span>
                   {hasSponsor && (
@@ -192,7 +192,7 @@ export default async function GuidesAdminPage() {
 
       {rows.length === 0 && (
         <div className="rounded-lg border border-dashed border-portal-border p-12 text-center bg-white">
-          <p className="text-sm text-portal-sub">No guides in <code className="px-1 bg-gray-100 rounded">guide_types</code>.</p>
+          <p className="text-sm text-portal-sub">No guides in <code className="px-1 bg-portal-row-hover rounded">guide_types</code>.</p>
         </div>
       )}
     </div>

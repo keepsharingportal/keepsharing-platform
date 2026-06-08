@@ -255,14 +255,14 @@ export default function EventsImportPage() {
         {!parsed && (
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
+              dragging ? 'border-portal-blue/50 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-portal-border-2 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             onClick={() => fileRef.current?.click()}
           >
-            <Upload size={32} className="mx-auto mb-3 text-gray-300" />
+            <Upload size={32} className="mx-auto mb-3 text-portal-border-2" />
             <p className="text-sm font-semibold text-portal-sub">Drop CSV file here or click to browse</p>
             <p className="text-xs text-portal-muted mt-1">Exported from Excel or Google Sheets</p>
             <input
@@ -276,7 +276,7 @@ export default function EventsImportPage() {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm text-red-700">
+          <div className="p-4 bg-portal-red-lt border border-portal-red/30 rounded-lg flex items-start gap-2 text-sm text-portal-red">
             <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
           </div>
         )}
@@ -319,7 +319,7 @@ export default function EventsImportPage() {
                   <tbody>
                     {displayRows.map((row, i) => (
                       <tr key={i} className="border-b border-gray-50 hover:bg-portal-bg">
-                        <td className="px-4 py-2 text-gray-300">{i + 1}</td>
+                        <td className="px-4 py-2 text-portal-border-2">{i + 1}</td>
                         <td className="px-4 py-2 text-portal-text font-medium truncate max-w-[220px]">{row.title}</td>
                         <td className="px-4 py-2 text-portal-sub whitespace-nowrap">{row.start_date ?? '—'}</td>
                         <td className="px-4 py-2 text-portal-sub truncate max-w-[140px]">{row.location_name ?? '—'}</td>
@@ -327,7 +327,7 @@ export default function EventsImportPage() {
                         <td className="px-4 py-2">
                           {row.is_free
                             ? <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded-full font-semibold">Free</span>
-                            : <span className="text-gray-300">—</span>
+                            : <span className="text-portal-border-2">—</span>
                           }
                         </td>
                       </tr>
@@ -353,7 +353,7 @@ export default function EventsImportPage() {
                   <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-portal-sub">{progress.done} / {progress.total} events processed</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-portal-row-hover rounded-full h-2">
                   <div
                     className="bg-portal-blue h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
@@ -380,7 +380,7 @@ export default function EventsImportPage() {
               {[
                 { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
-                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
+                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-portal-red-lt border-portal-red/30'    },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-lg border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
@@ -395,8 +395,8 @@ export default function EventsImportPage() {
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
-                      r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
-                                               'bg-red-100 text-red-700'
+                      r.status === 'skipped' ? 'bg-portal-row-hover text-portal-sub'  :
+                                               'bg-portal-red-lt text-portal-red'
                     }`}>{r.status === 'ok' ? 'added' : r.status}</span>
                     <span className="text-xs text-portal-text flex-1 truncate">{r.title}</span>
                     {r.message && <span className="text-[10px] text-portal-muted truncate max-w-xs">{r.message}</span>}
@@ -434,14 +434,14 @@ export default function EventsImportPage() {
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               {Object.entries(COL_MAP).map(([header, field]) => field !== '_skip' && (
                 <div key={header} className="flex items-center gap-2 text-portal-muted">
-                  <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{header}</span>
-                  <span className="text-gray-300">→</span>
+                  <span className="font-mono bg-portal-row-hover px-1.5 py-0.5 rounded">{header}</span>
+                  <span className="text-portal-border-2">→</span>
                   <span className="text-portal-sub">{field as string}</span>
                 </div>
               ))}
             </div>
             <p className="mt-3 text-xs text-portal-muted">
-              Required: <code className="bg-gray-100 px-1 rounded">title</code> and <code className="bg-gray-100 px-1 rounded">start date</code>.
+              Required: <code className="bg-portal-row-hover px-1 rounded">title</code> and <code className="bg-portal-row-hover px-1 rounded">start date</code>.
               Date format: YYYY-MM-DD or M/D/YYYY.
             </p>
           </details>

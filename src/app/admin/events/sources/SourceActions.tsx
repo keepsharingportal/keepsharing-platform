@@ -89,7 +89,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
             type="button"
             onClick={runProbe}
             disabled={busy !== null || pending}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-purple-200 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 disabled:opacity-40"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-blue/30 bg-portal-blue-lt text-portal-blue rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
             title="Auto-detect an iCal feed by scanning the events page + trying common URL patterns"
           >
             {busy === 'probe' ? <RefreshCw size={11} className="animate-spin" /> : <Radar size={11} />}
@@ -101,7 +101,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
             type="button"
             onClick={runIngest}
             disabled={busy !== null || pending}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-blue-200 bg-portal-blue-lt text-portal-blue rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-blue/30 bg-portal-blue-lt text-portal-blue rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
             title="Pull events from the saved iCal feed and add them to the pending queue"
           >
             {busy === 'ingest' ? <RefreshCw size={11} className="animate-spin" /> : <Download size={11} />}
@@ -111,7 +111,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
         {showExtract && (
           <Link
             href={extractHref}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-purple-300 bg-white text-purple-700 rounded-lg hover:bg-purple-50"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-purple-300 bg-white text-portal-blue rounded-lg hover:bg-portal-blue-lt"
             title="Open the AI extractor with this source's events URL pre-filled"
           >
             <Sparkles size={11} /> Extract with AI
@@ -128,7 +128,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {probe && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          probe.found ? 'border-portal-green/30 bg-portal-green-lt text-green-800' : 'border-portal-amber/30 bg-portal-amber-lt text-amber-900'
+          probe.found ? 'border-portal-green/30 bg-portal-green-lt text-portal-green' : 'border-portal-amber/30 bg-portal-amber-lt text-portal-amber'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             {probe.found
@@ -153,7 +153,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {ingest && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          ingest.errors.length === 0 ? 'border-portal-green/30 bg-portal-green-lt text-green-800' : 'border-portal-amber/30 bg-portal-amber-lt text-amber-900'
+          ingest.errors.length === 0 ? 'border-portal-green/30 bg-portal-green-lt text-portal-green' : 'border-portal-amber/30 bg-portal-amber-lt text-portal-amber'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             <CheckCircle2 size={12} /> Ingestion complete
