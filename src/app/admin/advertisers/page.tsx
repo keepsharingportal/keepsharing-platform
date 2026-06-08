@@ -18,6 +18,7 @@ import {
   Download, Table2, AlertTriangle, ArrowRight,
 } from 'lucide-react'
 import { BusinessesTableClient, type BusinessRow } from './BusinessesTableClient'
+import { DirectoryCleanupBanner } from './DirectoryCleanupBanner'
 
 const PAGE_SIZE = 50
 const TABS = ['Active Advertisers', 'Pipeline', 'Duplicates']
@@ -302,6 +303,13 @@ export default async function AdvertisersPage({ searchParams }: Props) {
           Directory-only = listed in a guide but never a paid customer. Guide imports land here by default.
         </span>
       </div>
+
+      {/* Directory-only cleanup tool — shown only when the editor is
+          actually viewing directory rows. Surfaces the 'these are
+          orphans you can safely retire' move discoverably. */}
+      {kindFilter === 'directory_only' && (
+        <DirectoryCleanupBanner directoryCount={kindCounts.directory_only} />
+      )}
 
       {/* ── Search + status chips + sort + totals ──────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
