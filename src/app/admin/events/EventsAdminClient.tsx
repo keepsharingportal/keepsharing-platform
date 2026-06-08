@@ -361,7 +361,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
       )}
 
       {/* List */}
-      <div className="bg-[#f4f5f7] px-4 py-3">
+      <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-gray-400 bg-white rounded-xl border border-gray-200">
             <Calendar size={32} className="mb-2 opacity-30" />

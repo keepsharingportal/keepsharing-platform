@@ -327,7 +327,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
       )}
 
       {/* List */}
-      <div className="bg-[#f4f5f7] px-4 py-3">
+      <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (

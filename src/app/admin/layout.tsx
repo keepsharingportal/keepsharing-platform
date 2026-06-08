@@ -37,7 +37,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className={`${dmSans.variable} ${dmMono.variable} flex h-full overflow-hidden`}>
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden bg-[#F1F5F9] font-[family-name:var(--font-dm-sans)] text-[#1E293B]">
+      <main className="flex-1 flex flex-col overflow-hidden bg-portal-bg font-[family-name:var(--font-dm-sans)] text-portal-text">
         <AdminHeader />
         {children}
       </main>

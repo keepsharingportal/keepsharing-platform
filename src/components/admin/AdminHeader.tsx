@@ -473,8 +473,8 @@ export function AdminHeader() {
 
   return (
     <>
-      {/* Header bar */}
-      <header className="h-11 shrink-0 bg-white border-b border-gray-200 flex items-center justify-end px-4 gap-1 z-30">
+      {/* Header bar (Portal: white strip, 1px portal-border) */}
+      <header className="h-11 shrink-0 bg-white border-b border-portal-border flex items-center justify-end px-4 gap-1 z-30">
         {/* Maintenance toggle — Super/Admin only */}
         {isSettingsTier && (
           <button

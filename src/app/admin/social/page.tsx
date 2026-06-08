@@ -105,7 +105,7 @@ export default function SocialQueuePage() {
       </div>
 
       {/* Post cards */}
-      <div className="flex-1 overflow-y-auto bg-[#f4f5f7] p-4">
+      <div className="flex-1 overflow-y-auto bg-portal-bg p-4">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {filtered.map((post) => {
             const PlatIcon = PLATFORM_ICON[post.platform]

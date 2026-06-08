@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Sidebar (admin — stays dark) ───────────────────────── */
-  --color-sidebar:        #1a1a2e;
-  --color-sidebar-hover:  #252547;
-  --color-sidebar-active: #2d2d58;
+  /* ── Sidebar (admin — Portal navy from portal.css) ──────── */
+  --color-sidebar:        #0F1F35;   /* Portal --navy-dk */
+  --color-sidebar-hover:  #1A2F4A;   /* +5% lightness for hover */
+  --color-sidebar-active: #243F60;   /* +10% lightness for active */
 
   /* ── KeepSharing Gold (logo + revenue numbers) ────────────── */
   --color-gold-300: #f5d87a;
@@ -15,6 +15,30 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ── Distribution Portal palette (admin only) ────────────
+     Mirror of portal.css from the PHP distribution portal so the
+     admin shares typography + color exactly. Tailwind exposes these
+     as bg-portal-* / text-portal-* / border-portal-*. */
+  --color-portal-navy:      #1E3A5F;   /* primary dark, header backdrops */
+  --color-portal-navy-dk:   #0F1F35;   /* sidebar bg, drawer backdrops */
+  --color-portal-navy-lt:   #E8EFF8;   /* highlighted row background */
+  --color-portal-blue:      #1A5FA8;   /* action color, links, focus rings */
+  --color-portal-blue-lt:   #DBEAFE;   /* badge backgrounds, hover surfaces */
+  --color-portal-green:     #166534;
+  --color-portal-green-lt:  #DCFCE7;
+  --color-portal-amber:     #92400E;
+  --color-portal-amber-lt:  #FEF3C7;
+  --color-portal-red:       #991B1B;
+  --color-portal-red-lt:    #FEE2E2;
+  --color-portal-bg:        #F1F5F9;   /* page background */
+  --color-portal-card:      #FFFFFF;
+  --color-portal-text:      #1E293B;   /* body text */
+  --color-portal-sub:       #64748B;   /* secondary text (labels, captions) */
+  --color-portal-muted:     #94A3B8;   /* placeholders, em-dashes */
+  --color-portal-border:    #E2E8F0;   /* table + card borders */
+  --color-portal-border-2:  #CBD5E1;   /* button/input outlines */
+  --color-portal-row-hover: #F8FAFC;   /* table header bg + row hover */
 
   /* ── GHL Studio Vibe AI — Public pages (EXACT MATCH) ────── */
   --color-primary:            #ef6442;   /* vibrant coral terracotta — was muddy #c4622d */

@@ -31,7 +31,7 @@ export default async function NewAdvertiserPage() {
   }))
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7] min-h-full">
+    <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <Link
           href="/admin/advertisers"

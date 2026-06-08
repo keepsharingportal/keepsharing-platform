@@ -163,35 +163,35 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     <div className="flex flex-col flex-1 overflow-hidden">
 
       {/* ── Page header (Portal: .page-header) ──────────── */}
-      <div className="bg-white border-b border-[#E2E8F0] px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-[18px] font-bold text-[#1E293B]">Advertisers</h1>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+          <h1 className="text-[18px] font-bold text-portal-text">Advertisers</h1>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub">
             {totalAdvertisers} {totalAdvertisers === 1 ? 'business' : 'businesses'}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/admin/import" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/import" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             <Download size={14} /> Import
           </Link>
-          <Link href="/admin/advertisers/layout-sheet" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/advertisers/layout-sheet" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             <Table2 size={14} /> Layout Sheet
           </Link>
-          <Link href="/admin/advertisers/onboarding" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/advertisers/onboarding" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             Onboarding
           </Link>
-          <Link href="/admin/advertisers/proposals" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/advertisers/proposals" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             Proposals
           </Link>
-          <Link href="/admin/advertisers/sponsor-inventory" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/advertisers/sponsor-inventory" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             Sponsor Inventory
           </Link>
-          <Link href="/admin/advertisers/partner-ops" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
+          <Link href="/admin/advertisers/partner-ops" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
             Partner Ops
           </Link>
           <Link
             href="/admin/advertisers/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-[#1E3A5F] rounded-lg hover:opacity-90"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-[portal-navy] rounded-lg hover:opacity-90"
           >
             <Plus size={14} /> Add Advertiser
           </Link>
@@ -199,7 +199,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
       </div>
 
       {/* ── Tabs ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-[#E2E8F0] px-6 shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map(tab => {
             const href = tab === 'Active Advertisers' ? '/admin/advertisers'
@@ -209,8 +209,8 @@ export default async function AdvertisersPage({ searchParams }: Props) {
               <a key={tab} href={href}
                 className={`px-4 py-3 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
                   tab === 'Active Advertisers'
-                    ? 'text-[#1A5FA8] border-[#1A5FA8]'
-                    : 'text-[#64748B] hover:text-[#1E293B] border-transparent hover:border-[#CBD5E1]'
+                    ? 'text-[portal-blue] border-[portal-blue]'
+                    : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
                 }`}>
                 {tab}
               </a>
@@ -225,15 +225,15 @@ export default async function AdvertisersPage({ searchParams }: Props) {
       )}
 
       {/* ── Search + sort ─────────────────────────────── */}
-      <div className="bg-white border-b border-[#E2E8F0] px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
+      <div className="bg-white border-b border-portal-border px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
         <form className="flex-1 max-w-md relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
           <input
             type="text"
             name="q"
             defaultValue={query}
             placeholder="Search businesses…"
-            className="w-full text-[13px] pl-9 pr-3 py-2 border border-[#CBD5E1] rounded-lg outline-none focus:border-[#1A5FA8] bg-white text-[#1E293B] placeholder:text-[#94A3B8]"
+            className="w-full text-[13px] pl-9 pr-3 py-2 border border-portal-border-2 rounded-lg outline-none focus:border-[portal-blue] bg-white text-portal-text placeholder:text-portal-muted"
           />
           {/* preserve non-default filter state on search */}
           {statusFilter !== 'active' && <input type="hidden" name="status" value={statusFilter} />}
@@ -242,16 +242,16 @@ export default async function AdvertisersPage({ searchParams }: Props) {
         </form>
 
         {/* Sort toggle */}
-        <div className="inline-flex rounded-lg border border-[#CBD5E1] overflow-hidden text-[12px] font-semibold">
+        <div className="inline-flex rounded-lg border border-portal-border-2 overflow-hidden text-[12px] font-semibold">
           <a
             href={sortHref('active')}
-            className={`px-3 py-1.5 ${sort === 'active' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-[#64748B] hover:bg-[#F1F5F9]'}`}
+            className={`px-3 py-1.5 ${sort === 'active' ? 'bg-[portal-navy] text-white' : 'bg-white text-portal-sub hover:bg-portal-bg'}`}
           >
             Sort: Active
           </a>
           <a
             href={sortHref('name')}
-            className={`px-3 py-1.5 border-l border-[#CBD5E1] ${sort === 'name' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-[#64748B] hover:bg-[#F1F5F9]'}`}
+            className={`px-3 py-1.5 border-l border-portal-border-2 ${sort === 'name' ? 'bg-[portal-navy] text-white' : 'bg-white text-portal-sub hover:bg-portal-bg'}`}
           >
             Sort: Name A→Z
           </a>
@@ -268,22 +268,22 @@ export default async function AdvertisersPage({ searchParams }: Props) {
 
       {/* ── Pagination ────────────────────────────────────── */}
       {totalPages > 1 && (
-        <div className="bg-white border-t border-[#E2E8F0] px-6 py-3 flex items-center justify-between text-[12px] shrink-0">
-          <span className="text-[#64748B]">
+        <div className="bg-white border-t border-portal-border px-6 py-3 flex items-center justify-between text-[12px] shrink-0">
+          <span className="text-portal-sub">
             Page {page} of {totalPages} · {totalAdvertisers} businesses
           </span>
           <div className="flex items-center gap-1">
             <Link
               href={buildHref(Math.max(1, page - 1))}
               aria-disabled={page === 1}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[#64748B] hover:bg-[#F1F5F9] ${page === 1 ? 'opacity-40 pointer-events-none' : ''}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-portal-border-2 bg-white text-portal-sub hover:bg-portal-bg ${page === 1 ? 'opacity-40 pointer-events-none' : ''}`}
             >
               <ChevronLeft size={12} /> Prev
             </Link>
             <Link
               href={buildHref(Math.min(totalPages, page + 1))}
               aria-disabled={page === totalPages}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[#64748B] hover:bg-[#F1F5F9] ${page === totalPages ? 'opacity-40 pointer-events-none' : ''}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-portal-border-2 bg-white text-portal-sub hover:bg-portal-bg ${page === totalPages ? 'opacity-40 pointer-events-none' : ''}`}
             >
               Next <ChevronRight size={12} />
             </Link>

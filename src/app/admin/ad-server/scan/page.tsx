@@ -257,7 +257,7 @@ export default function DropboxScanPage() {
       </div>
 
       {/* Results */}
-      <div className="flex-1 overflow-y-auto bg-[#f4f5f7]">
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
         {!results && !scanning && (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
             <ScanLine size={40} className="opacity-20" />

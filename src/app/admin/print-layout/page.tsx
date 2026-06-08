@@ -85,7 +85,7 @@ export default async function PrintLayoutPage({ searchParams }: Props) {
     && /relation .* does not exist/i.test(placementsRes.error.message ?? '')
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7] min-h-full">
+    <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
       <PrintLayoutClient
         issue={issue}
         prevMonth={prevMonth}

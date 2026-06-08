@@ -227,7 +227,7 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
         </div>
       )}
 
-      <div className="bg-[#f4f5f7] px-4 py-3">
+      <div className="bg-portal-bg px-4 py-3">
         {rows.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-400">
             <QrCode size={32} className="mx-auto mb-3 opacity-30" />

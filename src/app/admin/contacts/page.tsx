@@ -101,7 +101,7 @@ export default async function ContactsPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7] min-h-full">
+    <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
 
       {/* ── Header + search ─────────────────────────────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">

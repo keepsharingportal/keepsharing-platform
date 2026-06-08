@@ -67,7 +67,7 @@ export default async function EditListingPage({ params }: Props) {
     .map(a => ({ id: a.id, business_name: a.business_name }))
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7] min-h-full">
+    <div className="flex-1 overflow-y-auto bg-portal-bg min-h-full">
       <EditListingClient
         slug={slug}
         guideName={guideRes.data.display_name}

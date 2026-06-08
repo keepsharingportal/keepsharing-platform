@@ -46,15 +46,15 @@ interface Props {
 // Portal badge palette — light bg + matching dark text. Mirrors the
 // portal.css .badge-* classes (green/amber/red/blue/gray).
 const LIFECYCLE_BADGE: Record<string, { className: string; label: string }> = {
-  active:       { className: 'bg-[#DCFCE7] text-[#166534]', label: 'Active' },
-  renewal:      { className: 'bg-[#FEF3C7] text-[#92400E]', label: 'Renewal' },
-  upgrade:      { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Upgrade' },
-  onboarding:   { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Onboarding' },
-  lead:         { className: 'bg-[#F1F5F9] text-[#64748B]', label: 'Lead' },
-  consultation: { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Consultation' },
-  proposal:     { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Proposal' },
-  dormant:      { className: 'bg-[#FEE2E2] text-[#991B1B]', label: 'Dormant' },
-  churned:      { className: 'bg-[#FEE2E2] text-[#991B1B]', label: 'Churned' },
+  active:       { className: 'bg-portal-green-lt text-portal-green', label: 'Active' },
+  renewal:      { className: 'bg-portal-amber-lt text-portal-amber', label: 'Renewal' },
+  upgrade:      { className: 'bg-portal-blue-lt text-portal-blue', label: 'Upgrade' },
+  onboarding:   { className: 'bg-portal-blue-lt text-portal-blue', label: 'Onboarding' },
+  lead:         { className: 'bg-portal-bg text-portal-sub', label: 'Lead' },
+  consultation: { className: 'bg-portal-blue-lt text-portal-blue', label: 'Consultation' },
+  proposal:     { className: 'bg-portal-blue-lt text-portal-blue', label: 'Proposal' },
+  dormant:      { className: 'bg-portal-red-lt text-portal-red', label: 'Dormant' },
+  churned:      { className: 'bg-portal-red-lt text-portal-red', label: 'Churned' },
 }
 
 function fmtDate(d: string | null): string {
@@ -199,7 +199,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
     <>
       {/* ── Bulk action bar (Portal: navy strip) ───────── */}
       {selected.size > 0 && (
-        <div className="bg-[#1E3A5F] text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10">
+        <div className="bg-[portal-navy] text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10">
           <span className="text-[13px] font-semibold">
             {selected.size} {selected.size === 1 ? 'business' : 'businesses'} selected
           </span>
@@ -240,8 +240,8 @@ export function BusinessesTableClient({ rows, query }: Props) {
 
       {/* ── Table (Portal: .data-table) ──────────────── */}
       <table className="w-full text-[13px]">
-        <thead className="bg-[#F8FAFC] sticky top-0 border-b-2 border-[#E2E8F0]">
-          <tr className="text-left text-[11px] uppercase tracking-[0.4px] text-[#64748B]">
+        <thead className="bg-portal-row-hover sticky top-0 border-b-2 border-portal-border">
+          <tr className="text-left text-[11px] uppercase tracking-[0.4px] text-portal-sub">
             <th className="px-3 py-2.5 font-semibold w-8">
               <input
                 type="checkbox"
@@ -265,7 +265,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
             return (
               <tr
                 key={a.id}
-                className={`border-b border-[#E2E8F0] ${isSelected ? 'bg-[#DBEAFE]/40' : 'hover:bg-[#F8FAFC]'}`}
+                className={`border-b border-portal-border ${isSelected ? 'bg-portal-blue-lt/40' : 'hover:bg-portal-row-hover'}`}
               >
                 <td className="px-3 py-2.5 w-8">
                   <input
@@ -279,7 +279,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 <td className="px-3 py-2.5">
                   <Link
                     href={`/admin/advertisers/${a.id}`}
-                    className="font-semibold text-[#1E293B] hover:text-[#1A5FA8] inline-flex items-center gap-1.5"
+                    className="font-semibold text-portal-text hover:text-portal-blue inline-flex items-center gap-1.5"
                   >
                     {a.business_name}
                   </Link>
@@ -289,26 +289,26 @@ export function BusinessesTableClient({ rows, query }: Props) {
                     </span>
                   )}
                   {a.package_tier && (
-                    <span className="ml-2 text-[10px] text-[#94A3B8]">{a.package_tier}</span>
+                    <span className="ml-2 text-[10px] text-portal-muted">{a.package_tier}</span>
                   )}
                 </td>
                 <td className="px-3 py-2.5">
                   <StageBadge stage={a.lifecycle_stage} />
                 </td>
                 <td className="px-3 py-2.5 text-right">
-                  <span className={`inline-flex items-center gap-1 text-[12px] font-semibold tabular-nums ${a.activePlacements > 0 ? 'text-[#166534]' : 'text-[#94A3B8]'}`}>
+                  <span className={`inline-flex items-center gap-1 text-[12px] font-semibold tabular-nums ${a.activePlacements > 0 ? 'text-[#166534]' : 'text-portal-muted'}`}>
                     <Megaphone size={11} /> {a.activePlacements}
                   </span>
                 </td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-[12px]">
                   {a.monthlyRevenue > 0 ? (
-                    <span className="font-semibold text-[#1E293B]">${a.monthlyRevenue.toLocaleString()}</span>
-                  ) : <span className="text-[#94A3B8]">—</span>}
+                    <span className="font-semibold text-portal-text">${a.monthlyRevenue.toLocaleString()}</span>
+                  ) : <span className="text-portal-muted">—</span>}
                 </td>
-                <td className="px-3 py-2.5 text-[12px] text-[#64748B]">
+                <td className="px-3 py-2.5 text-[12px] text-portal-sub">
                   {a.contract_start_date || a.contract_end_date ? (
                     <span>{fmtDate(a.contract_start_date)} → {fmtDate(a.contract_end_date)}</span>
-                  ) : <span className="text-[#94A3B8]">—</span>}
+                  ) : <span className="text-portal-muted">—</span>}
                 </td>
               </tr>
             )
@@ -520,7 +520,7 @@ function CascadeLine({ label, value }: { label: string; value: number | null }) 
 }
 
 function StageBadge({ stage }: { stage: string | null }) {
-  const cfg = LIFECYCLE_BADGE[stage ?? ''] ?? { className: 'bg-[#F1F5F9] text-[#64748B]', label: stage ?? '—' }
+  const cfg = LIFECYCLE_BADGE[stage ?? ''] ?? { className: 'bg-portal-bg text-portal-sub', label: stage ?? '—' }
   return (
     <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.className}`}>
       {cfg.label}

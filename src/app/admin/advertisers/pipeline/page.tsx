@@ -110,7 +110,7 @@ export default async function PipelinePage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto bg-[#f4f5f7] p-4">
+      <div className="flex-1 overflow-x-auto bg-portal-bg p-4">
         <div className="flex gap-3 min-w-max">
           {PIPELINE_STAGES.map(col => {
             const members = byStage.get(col.stage) ?? []

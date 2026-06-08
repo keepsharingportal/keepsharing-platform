@@ -80,12 +80,42 @@
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 8)",
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 5)",
       "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 6)",
-      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 25)"
+      "PowerShell($env:NODE_OPTIONS=\"--max-old-space-size=4096\"; npm run build 2>&1 | Select-Object -Last 25)",
+      "Bash(npx next *)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('rrp_stops_2026-06-03.json'\\)\\); routes=set\\(r['route'] for r in d\\); print\\(f'Total stops: {len\\(d\\)}'\\); print\\(f'Routes: {len\\(routes\\)}'\\); [print\\(f'  - {r}'\\) for r in sorted\\(routes\\)]\")",
+      "Bash(git fetch *)",
+      "Bash(git commit --allow-empty -m ' *)",
+      "Bash(xargs -I {} wc -l {})",
+      "Bash(sort -k1 -n -r)",
+      "Bash(grep -v \"^admin:\\\\|^driver:\\\\|^$\")",
+      "Bash(grep -h \"^// \\\\|^#\\\\|^/\\\\*\" admin/changes.php admin/route_suggestion.php admin/requests.php admin/order.php admin/import.php admin/emails.php)",
+      "Bash(grep -i \"RESEND\\\\|RESEND_API\" .env.local)",
+      "Bash(grep -i \"RESEND\\\\|RESEND_API\" .env.staging.example)",
+      "Bash(xargs grep -l \"getActiveAds\\\\|placement_type\")",
+      "Bash(grep -n \"Link\\\\s*$\\\\|href=.*admin/ads/.*edit\\\\|deleteAd\" src/app/admin/ads/page.tsx)",
+      "Bash(grep -n \"return NextResponse.json\\({ ok: true, sent\" \"src/app/api/cron/ad-renewals/route.ts\")",
+      "Bash(git commit *)",
+      "Bash(grep -rn \"ad_placement_id\\\\|short_links.*insert\\\\|short_links.*upsert\" \"src/app/api/admin/ads/tracked-link/\" 2>nul | head -10)",
+      "Bash(npx eslint *)",
+      "Bash(grep -n \"</StepSection>\\\\|</form>\\\\|</>$\\\\|^      </>\" \"src/app/admin/content/short-links/ShortLinksClient.tsx\")",
+      "Bash(git diff *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(command -v vercel)",
+      "Bash(vercel --version)",
+      "Bash(awk 'NR==807,NR==953' src/app/admin/print-layout/PrintLayoutClient.tsx)",
+      "Bash(awk 'NR<807 || NR>953' src/app/admin/print-layout/PrintLayoutClient.tsx)",
+      "Bash(mv /tmp/printlayout.tsx src/app/admin/print-layout/PrintLayoutClient.tsx)",
+      "Bash(xargs grep -l \"proposal\\\\|agreement\")",
+      "Bash(xargs grep -l -i \"agreement\")",
+      "Bash(xargs sed -i -e 's/bg-\\\\[#f4f5f7\\\\]/bg-portal-bg/g' -e 's/bg-\\\\[#f1f5f9\\\\]/bg-portal-bg/g' -e 's/bg-\\\\[#F1F5F9\\\\]/bg-portal-bg/g' -e 's/bg-\\\\[#F8FAFC\\\\]/bg-portal-row-hover/g' -e 's/bg-\\\\[#1E3A5F\\\\]/bg-portal-navy/g' -e 's/text-\\\\[#1E3A5F\\\\]/text-portal-navy/g' -e 's/bg-\\\\[#1A5FA8\\\\]/bg-portal-blue/g' -e 's/text-\\\\[#1A5FA8\\\\]/text-portal-blue/g' -e 's/border-\\\\[#1A5FA8\\\\]/border-portal-blue/g' -e 's/focus:border-\\\\[#1A5FA8\\\\]/focus:border-portal-blue/g' -e 's/border-\\\\[#E2E8F0\\\\]/border-portal-border/g' -e 's/border-\\\\[#CBD5E1\\\\]/border-portal-border-2/g' -e 's/text-\\\\[#1E293B\\\\]/text-portal-text/g' -e 's/text-\\\\[#64748B\\\\]/text-portal-sub/g' -e 's/text-\\\\[#94A3B8\\\\]/text-portal-muted/g')",
+      "Bash(cd /c/Users/jwats/projects/keepsharing-platform && find src/app/admin src/components/admin -name \"*.tsx\" -type f 2>/dev/null | xargs sed -i \\\\ *)",
+      "Read(//c/c/Users/jwats/projects/keepsharing-platform/src/app/**)"
     ],
     "additionalDirectories": [
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\.next",
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\node_modules",
-      "C:\\Users\\jwats\\projects\\keepsharing-platform\\src\\app\\admin\\articles\\[id]\\edit"
+      "C:\\Users\\jwats\\projects\\keepsharing-platform\\src\\app\\admin\\articles\\[id]\\edit",
+      "C:\\Users\\jwats\\projects\\keepsharing-platform"
     ]
   }
 }

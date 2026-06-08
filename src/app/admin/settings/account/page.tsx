@@ -37,7 +37,7 @@ export default async function AccountSettingsPage() {
     : ctx.allowedMarkets.map(m => marketDisplayName(m)).join(', ') || '—'
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7]">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
           <Shield size={18} className="text-primary" /> Account Settings

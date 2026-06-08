@@ -97,7 +97,7 @@ export default async function EventPreviewPage({ params }: Props) {
   const tags        = Array.isArray(ev.tags) ? (ev.tags as unknown[]).filter((x): x is string => typeof x === 'string') : []
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f5f7]">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Admin preview banner */}
       <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center gap-2 text-xs">
         <Eye size={13} className="text-amber-700 shrink-0" />
