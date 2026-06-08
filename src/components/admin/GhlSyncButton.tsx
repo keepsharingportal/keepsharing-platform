@@ -55,7 +55,7 @@ export function GhlSyncButton({ advertiserId }: Props) {
         </p>
       )}
       {last && !last.ok && (
-        <div className="text-[11px] text-portal-amber bg-portal-amber-lt border border-amber-200 rounded p-2">
+        <div className="text-[11px] text-portal-amber bg-portal-amber-lt border border-portal-amber/30 rounded p-2">
           <p className="font-bold inline-flex items-center gap-1 mb-1">
             <AlertTriangle size={11} /> Sync had errors
           </p>

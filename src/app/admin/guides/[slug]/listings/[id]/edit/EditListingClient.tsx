@@ -392,7 +392,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
               </datalist>
             </FieldRow>
 
-            <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-3 text-sm space-y-2">
+            <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-3 text-sm space-y-2">
               <p className="text-amber-900 font-semibold inline-flex items-center gap-1.5">
                 <Sparkles size={14} /> Promote to Featured
               </p>

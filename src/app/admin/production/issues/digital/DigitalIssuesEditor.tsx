@@ -182,7 +182,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         {!issue.is_current && (
           <button
             onClick={onSetCurrent}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-amber-lt0 text-white hover:bg-amber-600"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-amber text-white hover:bg-amber-600"
             title="Make this the current issue"
           >
             <Star size={11} /> Make Current

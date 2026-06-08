@@ -333,7 +333,7 @@ export default function ArticlesCsvImportPage() {
 
             {/* School region breakdown if school content */}
             {rows.some(r => r._schoolRegion) && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-xs text-portal-amber">
+              <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-3 text-xs text-portal-amber">
                 <strong>School content detected.</strong> School region slugs are stored in editorial notes for traceability.
                 {' '}After import, approve 8–12 articles from the Review Queue to populate the homepage immediately.
               </div>
@@ -402,7 +402,7 @@ export default function ArticlesCsvImportPage() {
                   <span className="text-sm text-portal-sub">{progress.done} / {progress.total} articles processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
+                  <div className="bg-portal-blue h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }} />
                 </div>
               </div>
@@ -424,7 +424,7 @@ export default function ArticlesCsvImportPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
+                { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
                 { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
@@ -440,7 +440,7 @@ export default function ArticlesCsvImportPage() {
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      r.status === 'ok'      ? 'bg-green-100 text-green-700' :
+                      r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
                       r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status === 'ok' ? 'imported' : r.status}</span>
@@ -463,7 +463,7 @@ export default function ArticlesCsvImportPage() {
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-sm text-portal-amber">
+              <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-3 text-sm text-portal-amber">
                 <strong>Next step:</strong> Go to{' '}
                 <a href="/admin/articles/review" className="underline">Article Review</a>
                 {' '}and approve 8–12 articles. Approved articles appear on the homepage immediately.

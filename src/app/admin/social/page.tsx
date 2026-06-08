@@ -6,10 +6,10 @@ import { MOCK_SOCIAL_POSTS, getSocialStats, type SocialPost, type SocialStatus }
 import { cn } from '@/lib/utils'
 
 const STATUS_CONFIG: Record<SocialStatus, { label: string; cls: string }> = {
-  draft:    { label: 'Draft',    cls: 'bg-portal-bg text-portal-sub ring-gray-200' },
-  pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  draft:    { label: 'Draft',    cls: 'bg-portal-bg text-portal-sub border-portal-border' },
+  pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
   approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-green-700 ring-green-200' },
+  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-portal-green ring-green-200' },
 }
 
 const PLATFORM_ICON = {
@@ -165,7 +165,7 @@ export default function SocialQueuePage() {
                       <Edit3 size={11} /> Edit
                     </button>
                     <button onClick={() => approve(post.id)}
-                      className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100">
+                      className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg hover:bg-portal-green-lt">
                       <CheckCircle2 size={11} /> Approve → GHL
                     </button>
                     <button onClick={() => reject(post.id)}

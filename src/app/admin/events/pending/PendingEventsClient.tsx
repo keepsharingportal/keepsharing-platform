@@ -192,7 +192,7 @@ export function PendingEventsClient({ events }: Props) {
             </div>
 
             {msg?.id === ev.id && (
-              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-portal-green-lt text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-50 text-red-700'}`}>
                 {msg.text}
               </div>
             )}

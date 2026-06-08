@@ -165,7 +165,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                     {/* Usage badges */}
                     {usageFlags.length > 0 && (
                       <div className="absolute bottom-1 left-1">
-                        <span className="text-[9px] font-bold bg-portal-green-lt0 text-white px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold bg-portal-green text-white px-1.5 py-0.5 rounded-full">
                           {usageFlags.join(' · ')}
                         </span>
                       </div>

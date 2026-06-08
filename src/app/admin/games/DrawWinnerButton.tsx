@@ -99,7 +99,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
   return (
     <div className="space-y-3">
       {hasExisting && !picks && (
-        <div className="rounded-lg border border-green-200 bg-portal-green-lt px-3 py-2 text-xs text-green-800">
+        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-3 py-2 text-xs text-green-800">
           <div className="flex items-center gap-2 mb-1">
             <Check size={13} />
             <strong>{existingWinners!.length} winner{existingWinners!.length === 1 ? '' : 's'} already recorded for {weekLabel}.</strong>
@@ -175,7 +175,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
             </button>
           )}
           {saved && (
-            <p className="text-xs text-green-700 font-semibold flex items-center gap-1 justify-center">
+            <p className="text-xs text-portal-green font-semibold flex items-center gap-1 justify-center">
               <Check size={12} /> Saved. Will display on the public /games page.
             </p>
           )}

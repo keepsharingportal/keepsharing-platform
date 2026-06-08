@@ -15,7 +15,7 @@ const PUBLICATIONS = [
 
 const TEAM_MEMBERS = [
   { name: 'Jason Watson',    email: 'jade31994@gmail.com',          role: 'Super Admin',  markets: 'All markets',            avatar: 'JW', color: 'bg-portal-navy' },
-  { name: 'DeAnne Watson',   email: 'deanne@riverregionparents.com', role: 'Editor',       markets: 'River Region Parents',   avatar: 'DW', color: 'bg-portal-red-lt0' },
+  { name: 'DeAnne Watson',   email: 'deanne@riverregionparents.com', role: 'Editor',       markets: 'River Region Parents',   avatar: 'DW', color: 'bg-portal-red' },
   { name: 'VA (Content)',    email: 'va1@keepsharing.com',           role: 'VA — Content', markets: 'River Region Parents',   avatar: 'V1', color: 'bg-purple-500' },
   { name: 'VA (Advertisers)',email: 'va2@keepsharing.com',           role: 'VA — Ads',     markets: 'River Region Parents',   avatar: 'V2', color: 'bg-teal-500' },
   { name: 'Auburn Publisher',email: 'auburn@keepsharing.com',        role: 'Publisher',    markets: 'Auburn Opelika Parents', avatar: 'AP', color: 'bg-orange-500' },
@@ -221,16 +221,16 @@ export default function SettingsPage() {
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                         member.role === 'Super Admin' ? 'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30' :
-                        member.role === 'Publisher'   ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' :
+                        member.role === 'Publisher'   ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200' :
                         member.role === 'Editor'      ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' :
-                        'bg-portal-bg text-portal-sub ring-1 ring-gray-200'
+                        'bg-portal-bg text-portal-sub border border-portal-border'
                       }`}>
                         {member.role}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-portal-sub">{member.markets}</td>
                     <td className="px-4 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-portal-green-lt text-green-700 ring-1 ring-green-200 font-medium">Active</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-portal-green-lt text-portal-green ring-1 ring-green-200 font-medium">Active</span>
                     </td>
                     <td className="px-4 py-3">
                       <button className="text-xs text-portal-muted hover:text-portal-sub transition-colors">Edit</button>
@@ -256,14 +256,14 @@ export default function SettingsPage() {
                   {process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://','').split('.')[0] ?? 'not configured'}.supabase.co
                 </div>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-green-lt text-green-700 ring-1 ring-green-200 font-medium">Connected</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-green-lt text-portal-green ring-1 ring-green-200 font-medium">Connected</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
               <div>
                 <div className="text-sm font-medium text-portal-text">Anthropic Claude API</div>
                 <div className="text-xs text-portal-sub mt-0.5">Powers Business Spotlight article generation</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.ANTHROPIC_API_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-portal-text">Stripe</div>
                 <div className="text-xs text-portal-sub mt-0.5">Birthday Spotlight payments</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.STRIPE_SECRET_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -296,8 +296,8 @@ export default function SettingsPage() {
               </div>
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                 process.env.DISTRIBUTION_PORTAL_URL
-                  ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
-                  : 'bg-portal-bg text-portal-sub ring-1 ring-gray-200'
+                  ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200'
+                  : 'bg-portal-bg text-portal-sub border border-portal-border'
               }`}>
                 {process.env.DISTRIBUTION_PORTAL_URL ? 'Connected' : 'External App'}
               </span>

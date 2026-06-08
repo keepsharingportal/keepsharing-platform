@@ -18,7 +18,7 @@ const TABS = ['Active Advertisers', 'Pipeline', 'Duplicates']
 const PIPELINE_STAGES: Array<{ stage: string; label: string; accent: string }> = [
   { stage: 'lead',              label: 'Lead',              accent: 'bg-gray-100 text-portal-text'       },
   { stage: 'consultation',      label: 'Consultation',      accent: 'bg-sky-100 text-sky-800'         },
-  { stage: 'proposal',          label: 'Proposal',          accent: 'bg-violet-100 text-violet-800'   },
+  { stage: 'proposal',          label: 'Proposal',          accent: 'bg-portal-blue-lt text-portal-blue'   },
   { stage: 'onboarding',        label: 'Onboarding',        accent: 'bg-portal-amber-lt text-portal-amber'     },
   { stage: 'active',            label: 'Active',            accent: 'bg-portal-green-lt text-portal-green' },
   { stage: 'renewal',           label: 'Renewal',           accent: 'bg-portal-amber-lt text-portal-amber'     },
@@ -116,7 +116,7 @@ export default async function PipelinePage() {
             const members = byStage.get(col.stage) ?? []
             const colRev  = members.reduce((s, a) => s + (revenueByAdv.get(a.id) ?? 0), 0)
             return (
-              <section key={col.stage} className="w-72 shrink-0 bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden flex flex-col">
+              <section key={col.stage} className="w-72 shrink-0 bg-white rounded-lg border border-portal-border overflow-hidden flex flex-col">
                 <header className={`px-3 py-2 ${col.accent} flex items-center justify-between`}>
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-wider">{col.label}</p>

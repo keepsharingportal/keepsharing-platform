@@ -175,7 +175,7 @@ export default async function ProposalQueuePage() {
                 </span>
                 <span className="flex items-center gap-3 shrink-0">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-portal-red-lt text-portal-red'
+                    r.status === 'approved' ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-red-lt text-portal-red'
                   }`}>{r.status}</span>
                   <span className="text-xs text-portal-muted">{new Date(r.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 </span>

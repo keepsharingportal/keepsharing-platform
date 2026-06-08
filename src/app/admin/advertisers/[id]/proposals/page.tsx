@@ -61,7 +61,7 @@ export default async function ProposalsTab({ params }: Props) {
   const stageBadge: Record<string, string> = {
     draft:    'bg-gray-100 text-portal-text',
     sent:     'bg-sky-100 text-sky-800',
-    viewed:   'bg-violet-100 text-violet-800',
+    viewed:   'bg-portal-blue-lt text-portal-blue',
     accepted: 'bg-portal-green-lt text-portal-green',
     declined: 'bg-portal-red-lt text-portal-red',
     expired:  'bg-gray-100 text-portal-muted',
@@ -71,7 +71,7 @@ export default async function ProposalsTab({ params }: Props) {
     <div className="space-y-6">
 
       {/* ── Proposals ─────────────────────────────────── */}
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <FileText size={12} /> Proposals {proposals.length > 0 && <span className="text-portal-muted">({proposals.length})</span>}
@@ -126,7 +126,7 @@ export default async function ProposalsTab({ params }: Props) {
       </section>
 
       {/* ── Agreements (stub) ─────────────────────────── */}
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <FileCheck2 size={12} /> Agreements

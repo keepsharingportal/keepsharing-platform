@@ -432,7 +432,7 @@ export default function ArticleEditPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {saveMsg && (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-portal-red'}`}>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${saveMsg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-portal-red'}`}>
               {saveMsg.text}
             </span>
           )}
@@ -608,12 +608,12 @@ export default function ArticleEditPage({ params }: Props) {
                   <span className="block text-xs font-normal text-portal-muted mt-0.5">Not visible to the public</span>
                 </button>
                 <button onClick={() => save('pending')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-amber-200 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-amber/30 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
                   Send to Review
                   <span className="block text-xs font-normal text-amber-600/70 mt-0.5">Adds to the review queue</span>
                 </button>
                 <button onClick={() => save('publish')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-green-200 bg-portal-green-lt text-sm font-semibold text-green-700 hover:bg-green-100 disabled:opacity-40 transition-colors">
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-green/30 bg-portal-green-lt text-sm font-semibold text-portal-green hover:bg-portal-green-lt disabled:opacity-40 transition-colors">
                   {saving
                     ? <span className="flex items-center gap-2"><RefreshCw size={13} className="animate-spin" /> Publishing…</span>
                     : 'Publish Now'}

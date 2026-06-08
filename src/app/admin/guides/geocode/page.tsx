@@ -126,8 +126,8 @@ export default function GeocodePage() {
             <div className="text-2xl font-bold text-portal-text">{listings.length}</div>
             <div className="text-xs text-portal-sub mt-0.5">Need Geocoding</div>
           </div>
-          <div className="bg-portal-green-lt rounded-lg border border-green-200 p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">{ok}</div>
+          <div className="bg-portal-green-lt rounded-lg border border-portal-green/30 p-4 text-center">
+            <div className="text-2xl font-bold text-portal-green">{ok}</div>
             <div className="text-xs text-portal-green mt-0.5">Geocoded This Session</div>
           </div>
           <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
@@ -154,7 +154,7 @@ export default function GeocodePage() {
 
         {/* API key warning */}
         {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-4">
+          <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-4">
             <div className="text-sm font-semibold text-portal-amber mb-1">Google Maps API key not configured</div>
             <p className="text-xs text-portal-amber">
               Add <code className="bg-portal-amber-lt px-1 rounded">GOOGLE_MAPS_API_KEY</code> (server-side) or{' '}

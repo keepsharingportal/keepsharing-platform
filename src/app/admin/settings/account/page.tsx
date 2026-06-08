@@ -50,7 +50,7 @@ export default async function AccountSettingsPage() {
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
         {/* Identity card (read-only fields) */}
-        <section className="bg-white rounded-lg ring-1 ring-gray-200 p-6">
+        <section className="bg-white rounded-lg border border-portal-border p-6">
           <h2 className="text-sm font-bold text-portal-text mb-4">Your account</h2>
           <dl className="space-y-3 text-sm">
             <Row icon={<Mail size={14} className="text-portal-muted" />} label="Email">
@@ -60,7 +60,7 @@ export default async function AccountSettingsPage() {
               </p>
             </Row>
             <Row icon={<Shield size={14} className="text-portal-muted" />} label="Role">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-800 border border-portal-blue/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-portal-blue-lt text-portal-blue border border-portal-blue/30">
                 {ROLE_LABEL[ctx.role] ?? ctx.role}
               </span>
             </Row>

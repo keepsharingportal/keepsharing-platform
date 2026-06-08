@@ -204,7 +204,7 @@ export default async function GamesContentPage({
 
           {/* ADD FORM (per game type) */}
           {game === 'word-search' ? (
-            <div className="rounded-lg border border-amber-200 bg-portal-amber-lt px-5 py-4">
+            <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt px-5 py-4">
               <p className="text-sm font-bold text-amber-900 mb-1">Word search is edited in Supabase directly</p>
               <p className="text-sm text-portal-amber leading-relaxed">
                 Word search payloads include a flat letter grid + word list + column count. The grid is too complex
@@ -324,8 +324,8 @@ export default async function GamesContentPage({
                   {(['yellow', 'green', 'blue', 'purple'] as const).map(tone => {
                     const swatch =
                       tone === 'yellow' ? 'bg-yellow-400 text-portal-text' :
-                      tone === 'green'  ? 'bg-portal-green-lt0 text-white'     :
-                      tone === 'blue'   ? 'bg-portal-blue-lt0 text-white'      :
+                      tone === 'green'  ? 'bg-portal-green text-white'     :
+                      tone === 'blue'   ? 'bg-portal-blue text-white'      :
                                           'bg-purple-500 text-white'
                     return (
                       <div key={tone} className="rounded-lg border border-portal-border overflow-hidden">
@@ -375,7 +375,7 @@ export default async function GamesContentPage({
                         <button type="submit" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                           r.weight > 0
                             ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
-                            : 'bg-portal-green-lt text-green-700 border-green-200 hover:bg-green-100'
+                            : 'bg-portal-green-lt text-portal-green border-portal-green/30 hover:bg-portal-green-lt'
                         }`}>
                           {r.weight > 0 ? 'Retire' : 'Restore'}
                         </button>

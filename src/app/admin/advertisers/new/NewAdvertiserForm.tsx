@@ -87,7 +87,7 @@ export function NewAdvertiserForm({ existing }: Props) {
           className={inp}
         />
         {dupCandidates.length > 0 && (
-          <div className="mt-2 rounded-lg bg-portal-amber-lt border border-amber-200 p-3 text-xs">
+          <div className="mt-2 rounded-lg bg-portal-amber-lt border border-portal-amber/30 p-3 text-xs">
             <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-2">
               <AlertTriangle size={12} /> Looks similar to {dupCandidates.length === 1 ? 'this existing business' : 'these'}:
             </p>

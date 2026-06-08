@@ -53,7 +53,7 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
           </p>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className={`h-full ${pctGeo === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`} style={{ width: `${pctGeo}%` }} />
+          <div className={`h-full ${pctGeo === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`} style={{ width: `${pctGeo}%` }} />
         </div>
         <button
           onClick={geocode}

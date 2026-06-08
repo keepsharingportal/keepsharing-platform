@@ -129,7 +129,7 @@ function TriviaPreview({ p }: { p: any }) {
       <p className="text-sm font-semibold text-portal-text mb-1">{p.q}</p>
       <ul className="text-xs text-portal-sub space-y-0.5">
         {p.options.map((opt: string) => (
-          <li key={opt} className={opt === p.a ? 'text-green-700 font-bold' : ''}>
+          <li key={opt} className={opt === p.a ? 'text-portal-green font-bold' : ''}>
             {opt === p.a ? '✓ ' : '· '}{opt}
           </li>
         ))}
@@ -149,7 +149,7 @@ function MemoryPreview({ p }: { p: any }) {
 function FamilyConnectPreview({ p }: { p: any }) {
   const toneClass: Record<string, string> = {
     yellow: 'bg-yellow-100 text-yellow-900',
-    green:  'bg-green-100 text-green-900',
+    green:  'bg-portal-green-lt text-green-900',
     blue:   'bg-portal-blue-lt text-blue-900',
     purple: 'bg-purple-100 text-purple-900',
   }

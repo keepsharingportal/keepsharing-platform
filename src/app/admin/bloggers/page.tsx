@@ -122,7 +122,7 @@ export default async function BloggersAdminPage() {
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <p className="text-[11px] text-portal-muted">{count} post{count === 1 ? '' : 's'} · /{b.slug}</p>
                     {b.user_id ? (
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-portal-green-lt text-green-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                         <KeyRound size={8} /> Has Login
                       </span>
                     ) : b.email ? (

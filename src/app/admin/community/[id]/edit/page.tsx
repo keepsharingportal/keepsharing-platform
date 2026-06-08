@@ -262,7 +262,7 @@ export default async function EditSubmissionPage({
       </div>
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
-      <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
+      <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4">
         <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Operator Edit Mode</p>
         <p className="text-sm text-portal-amber leading-relaxed">
           Edits should preserve the submitter's intent. Do not rewrite their story here — use the editorial draft workflow later.

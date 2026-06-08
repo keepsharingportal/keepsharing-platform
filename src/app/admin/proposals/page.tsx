@@ -9,7 +9,7 @@ const STATUS_COLORS: Record<string, string> = {
   draft:    'bg-gray-100 text-portal-sub',
   sent:     'bg-portal-blue-lt text-portal-blue',
   viewed:   'bg-portal-amber-lt text-amber-600',
-  accepted: 'bg-portal-green-lt text-green-700',
+  accepted: 'bg-portal-green-lt text-portal-green',
   declined: 'bg-red-50 text-portal-red',
   expired:  'bg-portal-bg text-portal-muted',
 }

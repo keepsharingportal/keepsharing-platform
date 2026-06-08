@@ -26,7 +26,7 @@ const ROLE_LABEL: Record<string, string> = {
 const ROLE_BADGE: Record<string, string> = {
   ad_rep:          'bg-sky-100 text-sky-800',
   billing:         'bg-portal-amber-lt text-portal-amber',
-  listing_owner:   'bg-violet-100 text-violet-800',
+  listing_owner:   'bg-portal-blue-lt text-portal-blue',
   decision_maker:  'bg-portal-green-lt text-portal-green',
   other:           'bg-gray-100 text-portal-sub',
 }
@@ -157,7 +157,7 @@ export default async function ContactsPage({ searchParams }: Props) {
       </div>
 
       {contactsTableMissing && (
-        <div className="bg-portal-amber-lt border-b border-amber-200 px-6 py-3 text-sm text-amber-900 inline-flex items-center gap-2">
+        <div className="bg-portal-amber-lt border-b border-portal-amber/30 px-6 py-3 text-sm text-amber-900 inline-flex items-center gap-2">
           <AlertTriangle size={14} /> Multi-contact support pending — apply migration 128 (advertiser_contacts) in Supabase.
         </div>
       )}

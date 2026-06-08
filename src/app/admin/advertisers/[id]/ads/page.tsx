@@ -84,7 +84,7 @@ export default async function AdsTab({ params }: Props) {
       />
 
       {/* ── Digital Ad Placements ─────────────────────────── */}
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <Megaphone size={11} /> Digital Placements {plRows.length > 0 && <span className="text-portal-muted">({plRows.length})</span>}
@@ -134,7 +134,7 @@ export default async function AdsTab({ params }: Props) {
                       <CloneAdButton id={p.id} variant="pill" />
                     </>
                   ) : !p.is_active ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-portal-sub ring-1 ring-gray-200 font-bold shrink-0">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-portal-sub border border-portal-border font-bold shrink-0">
                       Inactive
                     </span>
                   ) : null}
@@ -147,7 +147,7 @@ export default async function AdsTab({ params }: Props) {
 
       {/* ── QR Codes ──────────────────────────────────────── */}
       {qrCodes.length > 0 && (
-        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               QR Codes ({qrCodes.length})
@@ -188,7 +188,7 @@ export default async function AdsTab({ params }: Props) {
       )}
 
       {/* ── Available Slots ───────────────────────────────── */}
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <div className="px-5 py-3 border-b border-portal-border">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Available Slots</h2>
           <p className="text-[11px] text-portal-muted mt-0.5">Open positions this business could fill. Click to assign.</p>

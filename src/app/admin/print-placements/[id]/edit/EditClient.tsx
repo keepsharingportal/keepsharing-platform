@@ -329,7 +329,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             <button
               type="button"
               onClick={() => setOngoing(false)}
-              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-portal-amber-lt0 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
+              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-portal-amber text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
             >
               Check Status
             </button>

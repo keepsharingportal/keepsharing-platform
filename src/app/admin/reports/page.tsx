@@ -93,7 +93,7 @@ export default async function ReportsLandingPage() {
       {/* ── Top Content + QR Performance — site-wide pulse ─────────────── */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Top Articles */}
-        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top Articles — Most Viewed
@@ -125,7 +125,7 @@ export default async function ReportsLandingPage() {
         </section>
 
         {/* Top QR Codes */}
-        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top QR Codes — Most Scanned
@@ -200,7 +200,7 @@ export default async function ReportsLandingPage() {
                   </span>
                 </div>
                 <div className="hidden lg:block text-xs text-portal-sub tabular-nums">
-                  {s.active_count > 0 ? <strong className="text-green-700">{s.active_count} active</strong> : <span className="text-portal-muted">0 active</span>}
+                  {s.active_count > 0 ? <strong className="text-portal-green">{s.active_count} active</strong> : <span className="text-portal-muted">0 active</span>}
                   {' '}<span className="text-portal-muted">/ {s.placement_count}</span>
                 </div>
                 <div className="text-sm tabular-nums text-right font-semibold text-portal-text">

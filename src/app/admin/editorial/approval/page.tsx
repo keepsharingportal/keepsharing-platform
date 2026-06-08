@@ -387,7 +387,7 @@ export default async function ApprovalPage({
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-amber-lt text-portal-amber">Changes Requested</span>
                 )}
                 {item.social_planner_ready && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">Planner Ready ✓</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-green-lt text-green-800">Planner Ready ✓</span>
                 )}
               </div>
               <h1 className="text-2xl font-bold text-portal-text tracking-tight">{title}</h1>
@@ -405,7 +405,7 @@ export default async function ApprovalPage({
 
         {/* Changes requested banner */}
         {item.needs_changes_note && (
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
+          <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4">
             <p className="text-sm font-bold text-amber-900 mb-1">✎ Changes Requested</p>
             <p className="text-sm text-portal-amber leading-relaxed whitespace-pre-wrap">{item.needs_changes_note}</p>
             <Link href={`/admin/community/${item.id}/edit`} className="text-xs text-portal-amber hover:underline font-semibold mt-2 inline-block">
@@ -428,7 +428,7 @@ export default async function ApprovalPage({
                   <p className="text-[11px] text-portal-muted mt-0.5">This content is not published. Read carefully before approving.</p>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  item.ai_draft_status === 'edited' ? 'bg-green-100 text-green-700'
+                  item.ai_draft_status === 'edited' ? 'bg-portal-green-lt text-portal-green'
                   : item.ai_draft_status === 'ready' ? 'bg-indigo-100 text-indigo-700'
                   : 'bg-gray-100 text-portal-sub'
                 }`}>
@@ -507,7 +507,7 @@ export default async function ApprovalPage({
                 ))}
               </div>
               {allPass && (
-                <p className="text-xs text-green-700 font-semibold mt-3 pt-3 border-t border-gray-50">
+                <p className="text-xs text-portal-green font-semibold mt-3 pt-3 border-t border-gray-50">
                   Content checklist complete ✓
                 </p>
               )}
@@ -583,7 +583,7 @@ export default async function ApprovalPage({
                   className={iClsTA}
                 />
                 <button type="submit"
-                  className="w-full py-2 rounded-lg text-xs font-bold text-portal-amber bg-portal-amber-lt border border-amber-200 hover:bg-portal-amber-lt transition-colors">
+                  className="w-full py-2 rounded-lg text-xs font-bold text-portal-amber bg-portal-amber-lt border border-portal-amber/30 hover:bg-portal-amber-lt transition-colors">
                   ↩ Request Changes
                 </button>
               </form>
@@ -652,7 +652,7 @@ export default async function ApprovalPage({
               <Card title="Social Planner Handoff">
                 {item.social_planner_ready ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-green-700 font-semibold text-sm">
+                    <div className="flex items-center gap-2 text-portal-green font-semibold text-sm">
                       <span className="text-lg">✓</span> Ready for Social Planner
                     </div>
                     <div className="space-y-1.5 text-xs">
@@ -824,7 +824,7 @@ export default async function ApprovalPage({
           {[
             { label: 'Needs Editor Review',   items: groups.needsReview,  stageCls: 'text-portal-text',  desc: 'Approved drafts awaiting your review.' },
             { label: 'Changes Requested',     items: groups.needsChanges, stageCls: 'text-portal-amber', desc: 'Sent back for revisions.' },
-            { label: 'Approved',              items: groups.approved,     stageCls: 'text-green-700', desc: 'Approved for at least one channel.' },
+            { label: 'Approved',              items: groups.approved,     stageCls: 'text-portal-green', desc: 'Approved for at least one channel.' },
             { label: 'Ready for Planner',     items: groups.plannerReady, stageCls: 'text-purple-700',desc: 'Social copy complete and handed off.' },
             { label: 'Published / Promoted',  items: groups.published,    stageCls: 'text-portal-muted',  desc: 'Live or promoted.' },
           ].map(grp => {

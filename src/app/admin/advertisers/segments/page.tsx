@@ -159,7 +159,7 @@ export default async function SegmentsPage() {
                 <div className="text-xs text-white/50 shrink-0 capitalize">{SIZE_LABEL[b.ad_size] ?? b.ad_size}</div>
                 <div className="text-xs text-white/50 shrink-0">{b.months.length} month{b.months.length !== 1 ? 's' : ''}</div>
                 {b.ghl_contact_id ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-green-lt0/20 text-green-400 font-semibold shrink-0">GHL synced</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-green/20 text-green-400 font-semibold shrink-0">GHL synced</span>
                 ) : (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/8 text-white/30 font-semibold shrink-0">No GHL ID</span>
                 )}

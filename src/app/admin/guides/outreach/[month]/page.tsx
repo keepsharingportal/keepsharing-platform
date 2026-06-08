@@ -11,10 +11,10 @@ const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December']
 
 const STATUS_CONFIG: Record<UpdateStatus, { label: string; cls: string; icon: React.ElementType }> = {
-  not_sent:  { label: 'Not Sent',  cls: 'bg-portal-bg text-portal-sub ring-gray-200',   icon: Clock },
-  sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200', icon: Mail },
+  not_sent:  { label: 'Not Sent',  cls: 'bg-portal-bg text-portal-sub border-portal-border',   icon: Clock },
+  sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30', icon: Mail },
   responded: { label: 'Responded', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',    icon: RefreshCw },
-  updated:   { label: 'Updated',   cls: 'bg-portal-green-lt text-green-700 ring-green-200', icon: CheckCircle2 },
+  updated:   { label: 'Updated',   cls: 'bg-portal-green-lt text-portal-green ring-green-200', icon: CheckCircle2 },
 }
 
 function buildEmailDraft(listing: GuideListing, guideName: string, month: number, year: number) {

@@ -321,8 +321,8 @@ export default async function SubmissionDetailPage({
 
   const SEV_CLS: Record<string, string> = {
     critical: 'bg-red-50 border-red-200 text-red-800',
-    warning:  'bg-portal-amber-lt border-amber-200 text-portal-amber',
-    success:  'bg-portal-green-lt border-green-200 text-green-800',
+    warning:  'bg-portal-amber-lt border-portal-amber/30 text-portal-amber',
+    success:  'bg-portal-green-lt border-portal-green/30 text-green-800',
     info:     'bg-portal-blue-lt border-portal-blue/20 text-portal-blue',
   }
 
@@ -502,9 +502,9 @@ export default async function SubmissionDetailPage({
           {/* AI Draft — editable when ready or edited */}
           {sub.ai_draft_content && (
             <div className={`bg-white rounded-lg overflow-hidden border ${
-              sub.ai_draft_status === 'edited'     ? 'border-green-200'
+              sub.ai_draft_status === 'edited'     ? 'border-portal-green/30'
               : sub.ai_draft_status === 'ready'    ? 'border-indigo-200'
-              : sub.ai_draft_status === 'needs_info'? 'border-amber-200'
+              : sub.ai_draft_status === 'needs_info'? 'border-portal-amber/30'
               : sub.ai_draft_status === 'failed'   ? 'border-red-200'
               : 'border-portal-border'
             }`}>
@@ -515,7 +515,7 @@ export default async function SubmissionDetailPage({
                   <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     sub.ai_draft_status === 'ready'      ? 'bg-indigo-100 text-indigo-700'
-                    : sub.ai_draft_status === 'edited'   ? 'bg-green-100 text-green-700'
+                    : sub.ai_draft_status === 'edited'   ? 'bg-portal-green-lt text-portal-green'
                     : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                     : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                     : sub.ai_draft_status === 'failed'   ? 'bg-red-100 text-red-700'
@@ -722,7 +722,7 @@ export default async function SubmissionDetailPage({
                 ))}
               </div>
               {allComplete && (
-                <p className="text-xs text-green-700 font-semibold mt-3 pt-3 border-t border-gray-50">
+                <p className="text-xs text-portal-green font-semibold mt-3 pt-3 border-t border-gray-50">
                   All required info received ✓
                 </p>
               )}
@@ -828,7 +828,7 @@ export default async function SubmissionDetailPage({
                     {publishDest.print ? '✓ Print' : '— Print'}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.digital ? 'bg-portal-green-lt text-green-700' : 'bg-gray-100 text-portal-muted'
+                    publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-gray-100 text-portal-muted'
                   }`}>
                     {publishDest.digital ? '✓ Digital' : '— Digital'}
                   </span>
@@ -851,7 +851,7 @@ export default async function SubmissionDetailPage({
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 sub.ai_draft_status === 'none'        ? 'bg-gray-100 text-portal-muted'
                 : sub.ai_draft_status === 'ready'     ? 'bg-indigo-100 text-indigo-700'
-                : sub.ai_draft_status === 'edited'    ? 'bg-green-100 text-green-700'
+                : sub.ai_draft_status === 'edited'    ? 'bg-portal-green-lt text-portal-green'
                 : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
                 : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                 : sub.ai_draft_status === 'failed'    ? 'bg-red-100 text-red-700'

@@ -550,7 +550,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
 
         {/* Migration banner — until 129 is applied. */}
         {tableMissing && (
-          <div className="mt-3 rounded-lg border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="mt-3 rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold">Migration 129 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/129_print_ad_placements.sql</code> in Supabase Studio. The page works without it; the table just stays empty.
@@ -857,13 +857,13 @@ function StatusPill({ label, count, tone, active, onClick }: {
   const toneActive: Record<string, string> = {
     neutral: 'bg-gray-900 text-white border-gray-900',
     green:   'bg-emerald-600 text-white border-emerald-600',
-    amber:   'bg-portal-amber-lt0 text-white border-amber-500',
+    amber:   'bg-portal-amber text-white border-amber-500',
     rose:    'bg-rose-600 text-white border-rose-600',
   }
   const toneIdle: Record<string, string> = {
     neutral: 'bg-white text-portal-text border-portal-border-2 hover:bg-portal-bg',
     green:   'bg-white text-portal-green border-emerald-200 hover:bg-portal-green-lt',
-    amber:   'bg-white text-portal-amber border-amber-200 hover:bg-portal-amber-lt',
+    amber:   'bg-white text-portal-amber border-portal-amber/30 hover:bg-portal-amber-lt',
     rose:    'bg-white text-portal-red border-portal-red/30 hover:bg-portal-red-lt',
   }
   return (

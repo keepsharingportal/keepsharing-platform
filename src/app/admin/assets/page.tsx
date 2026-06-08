@@ -109,7 +109,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLE: Record<string, string> = {
   uploaded:     'bg-gray-100 text-portal-sub',
   needs_review: 'bg-portal-amber-lt text-portal-amber',
-  approved:     'bg-green-100 text-green-700',
+  approved:     'bg-portal-green-lt text-portal-green',
   needs_graphic:'bg-orange-100 text-orange-700',
   social_ready: 'bg-portal-blue-lt text-portal-blue',
   print_ready:  'bg-purple-100 text-purple-700',
@@ -410,7 +410,7 @@ export default async function AssetsPage({
             Creative operations hub — photos, graphics, logos, and all ecosystem assets.
           </p>
         </div>
-        <div className="text-xs text-portal-muted bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-2 shrink-0">
+        <div className="text-xs text-portal-muted bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-2 shrink-0">
           📤 Upload via Supabase Storage, then register here
         </div>
       </div>
@@ -752,7 +752,7 @@ export default async function AssetsPage({
                     <div key={sub.id} className="bg-portal-bg border border-portal-border rounded-lg px-4 py-3 flex items-center gap-3">
                       <span>{tc?.emoji ?? '📝'}</span>
                       <p className="flex-1 text-xs font-medium text-portal-sub truncate">{title}</p>
-                      <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">✓ In Library</span>
+                      <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-semibold">✓ In Library</span>
                       <Link href={`/admin/community/${sub.id}`} className="text-[11px] text-portal-muted hover:underline">Submission →</Link>
                     </div>
                   )

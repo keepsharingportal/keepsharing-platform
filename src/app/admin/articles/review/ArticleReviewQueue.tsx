@@ -22,7 +22,7 @@ interface Article {
 const STATUS_STYLES: Record<string, string> = {
   pending:   'bg-portal-amber-lt text-portal-amber border border-portal-amber/30',
   needs_edit:'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30',
-  approved:  'bg-portal-green-lt text-green-700 ring-1 ring-green-200',
+  approved:  'bg-portal-green-lt text-portal-green ring-1 ring-green-200',
   rejected:  'bg-red-50 text-portal-red ring-1 ring-red-200',
 }
 
@@ -152,7 +152,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
           )}
 
           {article.editorial_review_status === 'approved' && (
-            <p className="text-xs text-green-700 font-medium">✓ Published at /articles/{article.slug}</p>
+            <p className="text-xs text-portal-green font-medium">✓ Published at /articles/{article.slug}</p>
           )}
         </div>
       )}

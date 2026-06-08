@@ -128,7 +128,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             >
               {label}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                tab === slug ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'
+                tab === slug ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted border-portal-border'
               }`}>{count}</span>
             </button>
           ))}
@@ -248,7 +248,7 @@ function OrgRow({
     <div className="bg-white hover:bg-portal-bg/60 transition-colors">
       <div className="px-4 py-3 flex items-start gap-3">
         {/* Logo */}
-        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200 flex items-center justify-center">
+        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-portal-border flex items-center justify-center">
           {org.logo_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
@@ -261,7 +261,7 @@ function OrgRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
             <h3 className="text-sm font-bold text-portal-text truncate">{org.name}</h3>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-bg text-portal-sub ring-1 ring-gray-200">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-bg text-portal-sub border border-portal-border">
               {kindLabel(org.kind)}
             </span>
             {org.tags?.includes('preferred') && (

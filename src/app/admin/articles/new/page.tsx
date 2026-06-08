@@ -189,7 +189,7 @@ export default function NewArticlePage() {
           <button
             onClick={() => save('pending')}
             disabled={saving}
-            className="px-4 py-2 text-sm font-semibold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+            className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
           >
             Save for Review
           </button>
@@ -281,8 +281,8 @@ export default function NewArticlePage() {
             <div className="space-y-2">
               {[
                 { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-portal-border text-portal-text hover:bg-portal-bg' },
-                { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-portal-amber hover:bg-portal-amber-lt bg-portal-amber-lt' },
-                { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-portal-green-lt' },
+                { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-portal-amber/30 text-portal-amber hover:bg-portal-amber-lt bg-portal-amber-lt' },
+                { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-portal-green/30 text-portal-green hover:bg-portal-green-lt' },
               ].map(opt => (
                 <button
                   key={opt.mode}
@@ -524,7 +524,7 @@ export default function NewArticlePage() {
         <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg disabled:opacity-40">
           Save Draft
         </button>
-        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
+        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
           Send for Review
         </button>
         <button onClick={() => save('publish')} disabled={saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40">

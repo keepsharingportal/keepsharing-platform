@@ -369,7 +369,7 @@ export default async function EditorialDetailPage({
           {/* AI Draft */}
           {item.ai_draft_content ? (
             <div className={`bg-white rounded-lg overflow-hidden border ${
-              item.ai_draft_status === 'needs_info' ? 'border-amber-200'
+              item.ai_draft_status === 'needs_info' ? 'border-portal-amber/30'
               : item.ai_draft_status === 'failed'  ? 'border-red-200'
               : 'border-portal-border'
             }`}>
@@ -377,7 +377,7 @@ export default async function EditorialDetailPage({
                 <div className="flex items-center gap-2">
                   <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    item.ai_draft_status === 'ready'     ? 'bg-green-100 text-green-700'
+                    item.ai_draft_status === 'ready'     ? 'bg-portal-green-lt text-portal-green'
                     : item.ai_draft_status === 'needs_info' ? 'bg-portal-amber-lt text-portal-amber'
                     : 'bg-red-100 text-red-700'
                   }`}>
@@ -600,7 +600,7 @@ export default async function EditorialDetailPage({
               ))}
             </div>
             {score === 100 && (
-              <p className="text-xs text-green-700 font-semibold mt-3 pt-3 border-t border-gray-50">
+              <p className="text-xs text-portal-green font-semibold mt-3 pt-3 border-t border-gray-50">
                 All required items checked ✓ — ready to approve
               </p>
             )}

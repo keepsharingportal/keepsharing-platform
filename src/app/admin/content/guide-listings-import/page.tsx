@@ -309,7 +309,7 @@ export default function GuideListingsImportPage() {
             </div>
 
             {!guideType && (
-              <div className="p-3 bg-portal-amber-lt border border-amber-200 rounded-lg text-sm text-portal-amber font-semibold">
+              <div className="p-3 bg-portal-amber-lt border border-portal-amber/30 rounded-lg text-sm text-portal-amber font-semibold">
                 Select which guide this is for before importing.
               </div>
             )}
@@ -376,7 +376,7 @@ export default function GuideListingsImportPage() {
                   <span className="text-sm text-portal-sub">{progress.done} / {progress.total} listings processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
+                  <div className="bg-portal-blue h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }} />
                 </div>
               </div>
@@ -403,7 +403,7 @@ export default function GuideListingsImportPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-4 gap-3">
               {[
-                { label: 'New',           value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
+                { label: 'New',           value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Auto-linked',   value: totals.matched,  color: 'text-portal-blue',  bg: 'bg-portal-blue-lt border-blue-200'   },
                 { label: 'Skipped',       value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'   },
                 { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'     },
@@ -420,7 +420,7 @@ export default function GuideListingsImportPage() {
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      r.status === 'inserted' ? 'bg-green-100 text-green-700' :
+                      r.status === 'inserted' ? 'bg-portal-green-lt text-portal-green' :
                       r.status === 'matched'  ? 'bg-portal-blue-lt text-portal-blue'  :
                       r.status === 'skipped'  ? 'bg-gray-100 text-portal-sub'  :
                                                 'bg-red-100 text-red-700'
@@ -444,7 +444,7 @@ export default function GuideListingsImportPage() {
             </div>
 
             {(totals.inserted + totals.matched) > 0 && (
-              <div className="bg-portal-green-lt border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800">
+              <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-3 text-sm text-green-800">
                 <strong>{totals.inserted + totals.matched} listings</strong> are now live in the{' '}
                 <strong>{guideLabel}</strong>. Import the next guide CSV or go populate FRG categories.
               </div>

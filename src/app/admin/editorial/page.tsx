@@ -329,7 +329,7 @@ export default async function EditorialPage({
                             {warns.length > 0 && (
                               <div className="flex gap-1.5 mt-2 flex-wrap">
                                 {warns.map(w => (
-                                  <span key={w} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber border border-amber-200">
+                                  <span key={w} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
                                     ⚠ {w}
                                   </span>
                                 ))}

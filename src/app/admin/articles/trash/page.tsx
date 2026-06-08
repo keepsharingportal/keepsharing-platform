@@ -128,7 +128,7 @@ export default function TrashPage() {
 
       {msg && (
         <div className={`rounded-lg px-4 py-3 text-sm font-semibold border ${
-          msg.ok ? 'bg-portal-green-lt border-green-200 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
+          msg.ok ? 'bg-portal-green-lt border-portal-green/30 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
         }`}>
           {msg.text}
         </div>

@@ -103,7 +103,7 @@ function PreviewRow({ post, index }: { post: WpPost; index: number }) {
         <div className="text-[10px] text-white/30 truncate">{post.slug}</div>
       </td>
       <td className="px-4 py-2">
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-blue-lt0/20 text-blue-300 font-semibold whitespace-nowrap">
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-blue/20 text-blue-300 font-semibold whitespace-nowrap">
           {label}
         </span>
         {row.guide_slug && (
@@ -429,7 +429,7 @@ export default function WpImportPage() {
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 mb-5">
               <div
-                className="bg-portal-blue-lt0 h-2 rounded-full transition-all duration-300"
+                className="bg-portal-blue h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
               />
             </div>
@@ -438,7 +438,7 @@ export default function WpImportPage() {
                 {results.slice(-10).map((r, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className={`w-16 shrink-0 text-center px-1.5 py-0.5 rounded-full font-semibold ${
-                      r.status === 'ok'      ? 'bg-green-100 text-green-700' :
+                      r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
                       r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status}</span>
@@ -456,7 +456,7 @@ export default function WpImportPage() {
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Inserted',  value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
+                { label: 'Inserted',  value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',   value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
                 { label: 'Errors',    value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
@@ -476,7 +476,7 @@ export default function WpImportPage() {
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      r.status === 'ok'      ? 'bg-green-100 text-green-700' :
+                      r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
                       r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status === 'ok' ? 'imported' : r.status}</span>
@@ -504,7 +504,7 @@ export default function WpImportPage() {
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-sm text-portal-amber">
+              <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-3 text-sm text-portal-amber">
                 <strong>{totals.inserted} articles</strong> imported as &ldquo;pending review.&rdquo;
                 Go to <a href="/admin/articles/review" className="underline">Article Review</a> to approve and publish.
                 Approved articles appear immediately on the homepage and guides.

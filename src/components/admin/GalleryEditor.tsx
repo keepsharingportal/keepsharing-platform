@@ -125,7 +125,7 @@ export function GalleryEditor({ value, onChange }: Props) {
           {safeValue.map((img, i) => (
             <li key={`${img.url}-${i}`} className="flex gap-3 p-2.5 rounded-lg border border-portal-border bg-white">
               {/* Thumb */}
-              <div className="relative w-24 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0 ring-1 ring-gray-200">
+              <div className="relative w-24 h-24 rounded-md overflow-hidden bg-gray-100 shrink-0 border border-portal-border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.thumbnail_url || img.url} alt={img.alt ?? ''} className="w-full h-full object-cover" />
                 <span className="absolute top-1 left-1 text-[10px] font-bold text-white bg-black/70 rounded px-1.5 py-0.5">

@@ -36,10 +36,10 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   editor:    'Editor',
 }
 const ROLE_BADGE: Record<AdminRole, string> = {
-  super:     'bg-portal-amber-lt text-portal-amber ring-amber-200',
-  admin:     'bg-violet-100 text-violet-800 ring-violet-200',
-  publisher: 'bg-sky-100 text-sky-800 ring-sky-200',
-  editor:    'bg-gray-100 text-portal-text ring-gray-200',
+  super:     'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
+  admin:     'bg-portal-blue-lt text-portal-blue border-portal-blue/30',
+  publisher: 'bg-sky-100 text-sky-800 border-portal-blue/30',
+  editor:    'bg-gray-100 text-portal-text border-portal-border',
 }
 
 function fmtDate(iso: string | null): string {
@@ -249,11 +249,11 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
 
 function StatChip({ label, count, accent }: { label: string; count: number; accent: 'amber' | 'violet' | 'sky' | 'gray' | 'rose' }) {
   const bg: Record<typeof accent, string> = {
-    amber:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
-    violet: 'bg-violet-50 text-violet-800 ring-violet-200',
-    sky:    'bg-sky-50 text-sky-800 ring-sky-200',
-    gray:   'bg-portal-bg text-portal-text ring-gray-200',
-    rose:   'bg-portal-red-lt text-portal-red ring-rose-200',
+    amber:  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
+    violet: 'bg-violet-50 text-portal-blue border-portal-blue/30',
+    sky:    'bg-sky-50 text-sky-800 border-portal-blue/30',
+    gray:   'bg-portal-bg text-portal-text border-portal-border',
+    rose:   'bg-portal-red-lt text-portal-red border-portal-red/30',
   }
   return (
     <span className={`text-[11px] px-2 py-1 rounded-full font-semibold ring-1 ${bg[accent]} inline-flex items-center gap-1.5`}>
@@ -363,7 +363,7 @@ function InvitePanel({
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
                       ? 'bg-portal-navy text-white ring-blue-600'
-                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg'
+                      : 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
                   }`}
                 >
                   {m.short} <span className="opacity-70">· {m.displayName}</span>
@@ -487,7 +487,7 @@ function AdminRowItem({
     <div className={`transition-colors ${row.status === 'suspended' ? 'bg-portal-bg/60 opacity-70' : 'bg-white hover:bg-portal-bg/60'}`}>
       <div className="px-4 py-3 flex items-start gap-3">
         {/* Avatar */}
-        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 ring-1 ring-gray-200 flex items-center justify-center text-sm font-bold text-portal-sub">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 border border-portal-border flex items-center justify-center text-sm font-bold text-portal-sub">
           {(row.full_name || row.email).slice(0, 1).toUpperCase()}
         </div>
 
@@ -710,7 +710,7 @@ function EditRowPanel({
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
                       ? 'bg-portal-navy text-white ring-blue-600'
-                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg'
+                      : 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
                   }`}
                   title={marketDisplayName(m.slug)}
                 >

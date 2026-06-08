@@ -63,7 +63,7 @@ const IMAGE_STATUS_OPTIONS = [
 ]
 
 const IMAGE_STATUS_STYLE: Record<string, string> = {
-  image_ready:         'bg-green-100 text-green-700',
+  image_ready:         'bg-portal-green-lt text-portal-green',
   use_existing_image:  'bg-portal-blue-lt text-portal-blue',
   no_image_needed:     'bg-gray-100 text-portal-sub',
   needs_photo:         'bg-portal-amber-lt text-portal-amber',
@@ -406,7 +406,7 @@ export default async function SocialExportPage({
                     <span className="text-sm">{tc?.emoji ?? '📝'}</span>
                     <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
                     <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
-                    {item.approved_social     && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">✓ Approved</span>}
+                    {item.approved_social     && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold">✓ Approved</span>}
                     {item.social_planner_ready && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">Planner Ready</span>}
                     {item.exported_to_social_planner && !item.social_promoted_at && (
                       <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">Exported</span>
@@ -415,8 +415,8 @@ export default async function SocialExportPage({
                       <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">Promoted</span>
                     )}
                     {ready
-                      ? <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold border border-green-200">✓ Ready</span>
-                      : <span className="text-[10px] bg-portal-amber-lt text-amber-600 px-1.5 py-0.5 rounded font-bold border border-amber-200">Needs work</span>
+                      ? <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold border border-portal-green/30">✓ Ready</span>
+                      : <span className="text-[10px] bg-portal-amber-lt text-amber-600 px-1.5 py-0.5 rounded font-bold border border-portal-amber/30">Needs work</span>
                     }
                   </div>
                   <p className="text-sm font-bold text-portal-text truncate">{title}</p>
@@ -558,7 +558,7 @@ export default async function SocialExportPage({
                 <h3 className="text-xs font-bold text-portal-sub">CSV — Spreadsheet / Import Format</h3>
                 <p className="text-[11px] text-portal-muted">publish_date, channel, caption, link, hashtags, image_note, asset_status, source_title, content_type</p>
               </div>
-              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-semibold shrink-0">One row per channel</span>
+              <span className="text-[10px] bg-portal-green-lt text-portal-green px-2 py-0.5 rounded font-semibold shrink-0">One row per channel</span>
             </div>
             <div className="p-4">
               <textarea
@@ -590,7 +590,7 @@ export default async function SocialExportPage({
           </div>
 
           {/* Reminder */}
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
+          <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4">
             <p className="text-xs font-bold text-portal-amber mb-1">After pasting into GHL:</p>
             <ol className="text-xs text-portal-amber space-y-0.5 list-decimal list-inside">
               <li>Verify caption, date, and channel in GHL before scheduling.</li>

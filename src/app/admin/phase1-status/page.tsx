@@ -21,8 +21,8 @@ function StatusDot({ status }: { status: Status }) {
 }
 
 function StatCard({ label, value, sub, status }: { label: string; value: number | string; sub?: string; status: Status }) {
-  const bg = status === 'ok' ? 'bg-portal-green-lt border-green-200' : status === 'warn' ? 'bg-portal-amber-lt border-amber-200' : 'bg-red-50 border-red-200'
-  const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-portal-amber' : 'text-portal-red'
+  const bg = status === 'ok' ? 'bg-portal-green-lt border-portal-green/30' : status === 'warn' ? 'bg-portal-amber-lt border-portal-amber/30' : 'bg-red-50 border-red-200'
+  const txt = status === 'ok' ? 'text-portal-green' : status === 'warn' ? 'text-portal-amber' : 'text-portal-red'
   return (
     <div className={`rounded-lg border px-5 py-4 ${bg}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
@@ -227,7 +227,7 @@ export default async function Phase1StatusPage() {
         <h2 className="text-lg font-bold mb-4">Pending Import Actions</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {(schoolBitsPending ?? 0) > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-5">
+            <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-5">
               <p className="font-bold text-amber-900 mb-1">{schoolBitsPending} School Bits articles pending</p>
               <p className="text-sm text-portal-amber mb-3">Review and bulk-approve to make them live on School Zone.</p>
               <Button asChild size="sm" className="rounded-full bg-amber-600 hover:bg-amber-700">
@@ -263,10 +263,10 @@ export default async function Phase1StatusPage() {
             </div>
           )}
           {(schoolBitsPending ?? 0) === 0 && summerCampCount > 0 && frgCount > 0 && (events ?? 0) > 0 && (
-            <div className="rounded-lg border border-green-200 bg-portal-green-lt p-5 col-span-full text-center">
+            <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt p-5 col-span-full text-center">
               <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <p className="font-bold text-green-900">All import actions complete</p>
-              <p className="text-sm text-green-700 mt-1">Platform is ready for the sales demo.</p>
+              <p className="text-sm text-portal-green mt-1">Platform is ready for the sales demo.</p>
             </div>
           )}
         </div>

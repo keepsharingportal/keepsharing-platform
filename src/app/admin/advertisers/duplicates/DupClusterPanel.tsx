@@ -100,7 +100,7 @@ export function DupClusterPanel({ cluster }: Props) {
   }
 
   return (
-    <section className="bg-white rounded-lg border border-amber-200 ring-1 ring-amber-100/40 overflow-hidden">
+    <section className="bg-white rounded-lg border border-portal-amber/30 ring-1 ring-amber-100/40 overflow-hidden">
       <header className="px-5 py-3 bg-portal-amber-lt border-b border-amber-100 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <AlertTriangle size={14} className="text-portal-amber" />

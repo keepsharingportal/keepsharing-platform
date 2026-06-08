@@ -493,7 +493,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={uploadedPreview} alt="preview" className="w-16 h-16 rounded-lg object-cover border border-portal-border" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-green-700">✓ Uploaded</p>
+                    <p className="text-xs font-semibold text-portal-green">✓ Uploaded</p>
                     <p className="text-[11px] text-portal-sub truncate">{uploadedPreview.split('/').pop()}</p>
                     <button type="button" onClick={() => fileInputRef.current?.click()}
                       className="text-[11px] text-portal-blue hover:underline mt-1">Replace image</button>

@@ -73,7 +73,7 @@ export default async function ContentDashboard() {
       icon: AlertCircle,
       href: '/admin/articles/review',
       color: pending > 0 ? 'text-amber-600' : 'text-portal-muted',
-      bg:    pending > 0 ? 'bg-portal-amber-lt border-amber-200' : 'bg-portal-bg border-portal-border',
+      bg:    pending > 0 ? 'bg-portal-amber-lt border-portal-amber/30' : 'bg-portal-bg border-portal-border',
       cta:   'Open Queue',
     },
     {
@@ -82,7 +82,7 @@ export default async function ContentDashboard() {
       icon: CheckCircle,
       href: '/admin/articles?filter=published',
       color: 'text-portal-green',
-      bg:    'bg-portal-green-lt border-green-200',
+      bg:    'bg-portal-green-lt border-portal-green/30',
       cta:   'View Published',
     },
     {
@@ -125,7 +125,7 @@ export default async function ContentDashboard() {
 
   const QUICK_ACTIONS = [
     { label: 'Write New Article',  href: '/admin/articles/new',         icon: Plus,          color: 'bg-portal-navy hover:opacity-90 text-white' },
-    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber-lt0 hover:bg-amber-600 text-white' },
+    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber hover:bg-amber-600 text-white' },
     { label: 'Import Content',     href: '/admin/content/imports',      icon: Upload,        color: 'bg-gray-800 hover:bg-gray-900 text-white' },
     { label: 'All Articles',       href: '/admin/articles',             icon: FileText,      color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
     { label: 'Add Event',          href: '/admin/content/events-import',icon: CalendarDays,  color: 'bg-white hover:bg-portal-bg text-portal-text border border-portal-border' },
@@ -259,7 +259,7 @@ export default async function ContentDashboard() {
               { step: '→', label: '', color: '' },
               { step: '3', label: 'Edit & polish', color: 'bg-portal-blue-lt' },
               { step: '→', label: '', color: '' },
-              { step: '4', label: 'Approve → Published', color: 'bg-green-100' },
+              { step: '4', label: 'Approve → Published', color: 'bg-portal-green-lt' },
             ].map((s, i) => s.step === '→' ? (
               <span key={i} className="text-gray-300">→</span>
             ) : (

@@ -317,7 +317,7 @@ export default async function TrendingAdminPage() {
 
         {/* Migration banner — only shows until 117 is applied. */}
         {!archiveMigrationApplied && (
-          <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold">Migration 117 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/117_trending_archived.sql</code> in Supabase Studio to enable auto-archive, the Archived filter, and the Archive bulk action. The page works without it — those features just sit dormant.
@@ -370,7 +370,7 @@ export default async function TrendingAdminPage() {
             unblockAction={unblockAutoPath}
           />
         ) : (
-          <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold">Migration 126 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/126_trending_blocked_paths.sql</code> in Supabase Studio to enable the auto-trending preview and the manual blocklist.

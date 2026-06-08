@@ -57,7 +57,7 @@ export function InquiriesClient({ rows }: Props) {
               >
                 <div className="flex items-center gap-2 mb-1">
                   {fresh && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-1.5 py-0.5 rounded">New</span>}
-                  {r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Replied</span>}
+                  {r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-green bg-portal-green-lt px-1.5 py-0.5 rounded">Replied</span>}
                   {r.read_at && !r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-gray-100 px-1.5 py-0.5 rounded">Read</span>}
                   <span className="text-xs text-portal-muted">{fmtTs(r.created_at)}</span>
                 </div>
@@ -121,7 +121,7 @@ export function InquiriesClient({ rows }: Props) {
                     )}
                   </div>
 
-                  <div className="rounded-lg border border-amber-200 bg-portal-amber-lt/50 p-3">
+                  <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt/50 p-3">
                     <p className="text-[10px] font-bold text-portal-amber uppercase tracking-wider mb-2">Forward to business</p>
                     <p className="text-sm font-semibold text-portal-text inline-flex items-center gap-1">
                       <Building2 size={11} /> {biz?.business_name ?? '—'}

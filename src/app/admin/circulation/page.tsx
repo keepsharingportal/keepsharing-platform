@@ -111,7 +111,7 @@ export default async function CirculationOverviewPage() {
         </header>
 
         {tableMissing && (
-          <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold mb-1">Migration not applied yet</p>
             <p>Run <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/113_circulation.sql</code> in Supabase Studio before using this section.</p>
           </div>
@@ -156,7 +156,7 @@ export default async function CirculationOverviewPage() {
                 </Link>
               )}
               {pendingChanges > 0 && (
-                <Link href="/admin/circulation/changes" className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
+                <Link href="/admin/circulation/changes" className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
                   <GitPullRequest size={18} className="text-amber-600 shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-amber-900">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>

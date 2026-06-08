@@ -125,7 +125,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
             <div className="flex items-center gap-4">
               {logoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={logoUrl} alt={name} className="w-16 h-16 rounded-lg object-contain ring-1 ring-gray-200" />
+                <img src={logoUrl} alt={name} className="w-16 h-16 rounded-lg object-contain border border-portal-border" />
               ) : null}
               <div>
                 <h1 className="text-3xl font-bold text-portal-text">{name}</h1>
@@ -162,7 +162,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
           {plRows.length === 0 ? (
             <p className="text-sm text-portal-sub italic">No active ad placements this month.</p>
           ) : (
-            <div className="rounded-lg ring-1 ring-gray-200 overflow-hidden">
+            <div className="rounded-lg border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
@@ -202,7 +202,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
             <h2 className="text-sm font-bold uppercase tracking-wider text-portal-sub mb-4">
               QR Code Performance
             </h2>
-            <div className="rounded-lg ring-1 ring-gray-200 overflow-hidden">
+            <div className="rounded-lg border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>

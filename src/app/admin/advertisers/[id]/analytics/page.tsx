@@ -72,7 +72,7 @@ export default async function AnalyticsTab({ params }: Props) {
       {/* ── Monthly report CTA ──────────────────────────── */}
       <Link
         href={`/admin/advertisers/${id}/report`}
-        className="group bg-white rounded-lg ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
+        className="group bg-white rounded-lg border border-portal-border p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
       >
         <div className="flex items-center gap-3">
           <FileText size={20} className="text-portal-muted group-hover:text-portal-blue transition-colors" />
@@ -98,7 +98,7 @@ export default async function AnalyticsTab({ params }: Props) {
       )}
 
       {/* ── Per-placement breakdown ─────────────────────── */}
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <header className="px-5 py-3 border-b border-portal-border">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
             Placement Performance ({activeCount} active{plRows.length > activeCount && ` · ${plRows.length} total`})
@@ -134,7 +134,7 @@ export default async function AnalyticsTab({ params }: Props) {
 
       {/* ── Top QR codes ────────────────────────────────── */}
       {qrRows.length > 0 && (
-        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
           <header className="px-5 py-3 border-b border-portal-border">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">QR Performance</h2>
           </header>
@@ -159,7 +159,7 @@ export default async function AnalyticsTab({ params }: Props) {
 
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+    <div className="bg-white rounded-lg border border-portal-border p-4">
       <div className="text-portal-muted mb-1">{icon}</div>
       <p className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">{label}</p>
       <p className="text-xl font-bold text-portal-text">{value}</p>

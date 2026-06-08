@@ -267,7 +267,7 @@ function ColumnCard({
             {saving ? <><RefreshCw size={11} className="animate-spin" /> Saving…</> : <><Save size={11} /> Save</>}
           </button>
           {savedOk && (
-            <span className="inline-flex items-center gap-1 text-xs text-green-700 font-semibold">
+            <span className="inline-flex items-center gap-1 text-xs text-portal-green font-semibold">
               <CheckCircle2 size={12} /> Saved
             </span>
           )}

@@ -111,7 +111,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
 
       {/* Stragglers */}
       {stragglers.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
+        <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Not yet submitted for {fmtMonth(activeMonth)}</p>
@@ -177,7 +177,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                   {row.status === 'paid' && (
                     <button
                       onClick={() => action(row.id, { action: 'reopen' })}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-amber-200 text-portal-amber hover:bg-portal-amber-lt"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-amber/30 text-portal-amber hover:bg-portal-amber-lt"
                     >
                       <RotateCcw size={11} /> Reopen
                     </button>

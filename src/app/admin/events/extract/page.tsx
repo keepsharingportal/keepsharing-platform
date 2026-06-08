@@ -228,11 +228,11 @@ function ExtractPage() {
       )}
 
       {saved && (
-        <div className="rounded-lg border border-green-200 bg-portal-green-lt px-5 py-4">
+        <div className="rounded-lg border border-portal-green/30 bg-portal-green-lt px-5 py-4">
           <p className="text-sm font-bold text-green-900 mb-1 flex items-center gap-1.5">
             <CheckCircle2 size={14} /> Saved {saved.inserted} pending event(s)
           </p>
-          {saved.skipped > 0 && <p className="text-xs text-green-700">{saved.skipped} skipped</p>}
+          {saved.skipped > 0 && <p className="text-xs text-portal-green">{saved.skipped} skipped</p>}
           {saved.errors.length > 0 && (
             <details className="mt-1">
               <summary className="text-xs cursor-pointer font-semibold">{saved.errors.length} insert error(s)</summary>
@@ -299,7 +299,7 @@ function ExtractPage() {
                   {keep[idx] && (
                     <div className="ml-7 space-y-3">
                       {ev.confidence_notes && (
-                        <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-3 py-1.5 text-xs text-amber-900 italic">
+                        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-3 py-1.5 text-xs text-amber-900 italic">
                           ⚠️ {ev.confidence_notes}
                         </div>
                       )}

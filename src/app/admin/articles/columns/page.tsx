@@ -32,8 +32,8 @@ async function fetchColumnCounts(): Promise<Record<string, number>> {
 const VERTICAL_COLORS: Record<string, string> = {
   'school-zone': 'bg-portal-blue-lt text-portal-blue border-blue-200',
   'mom-life':    'bg-pink-50 text-pink-700 border-pink-200',
-  'family-fun':  'bg-portal-amber-lt text-portal-amber border-amber-200',
-  'health':      'bg-portal-green-lt text-green-700 border-green-200',
+  'family-fun':  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
+  'health':      'bg-portal-green-lt text-portal-green border-portal-green/30',
   'summer':      'bg-orange-50 text-orange-700 border-orange-200',
   'general':     'bg-portal-bg text-portal-sub border-portal-border',
 }

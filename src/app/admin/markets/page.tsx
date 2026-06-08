@@ -5,7 +5,7 @@ import { Table2, LayoutGrid, TrendingUp, ExternalLink } from 'lucide-react'
 import { MarketBundleCount } from '@/components/distribution/DistributionWidget'
 
 const PUB_META = [
-  { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e', bg: 'bg-portal-green-lt',  ring: 'ring-green-200',  text: 'text-green-700'  },
+  { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e', bg: 'bg-portal-green-lt',  ring: 'ring-green-200',  text: 'text-portal-green'  },
   { abbrev: 'MBP', name: 'Mobile Bay Parents',        market: 'Mobile',        state: 'AL', color: '#3b82f6', bg: 'bg-portal-blue-lt',   ring: 'ring-portal-blue/30',   text: 'text-portal-blue'   },
   { abbrev: 'AOP', name: 'Auburn Opelika Parents',    market: 'Auburn/Opelika',state: 'AL', color: '#f97316', bg: 'bg-orange-50', ring: 'ring-orange-200', text: 'text-orange-700' },
   { abbrev: 'ESP', name: 'Eastern Shore Parents',     market: 'Eastern Shore', state: 'AL', color: '#a855f7', bg: 'bg-purple-50', ring: 'ring-purple-200', text: 'text-purple-700' },

@@ -332,7 +332,7 @@ export function HeroImageUpload({
           <p className="text-[10px] text-portal-blue mt-1">Optimizing URL on server…</p>
         )}
         {optimized && !optimizing && (
-          <p className="text-[10px] text-green-700 mt-1">Optimized + saved to Supabase Storage.</p>
+          <p className="text-[10px] text-portal-green mt-1">Optimized + saved to Supabase Storage.</p>
         )}
       </div>
 

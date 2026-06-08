@@ -341,7 +341,7 @@ export default async function GamesAdminPage() {
                         <td className="px-4 py-2 text-xs text-portal-sub">{fmtDateTime(s.created_at)}</td>
                         <td className="px-4 py-2 text-xs">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            s.ghl_status === 'sent'   ? 'bg-green-100 text-green-700' :
+                            s.ghl_status === 'sent'   ? 'bg-portal-green-lt text-portal-green' :
                             s.ghl_status === 'failed' ? 'bg-portal-red-lt text-portal-red'   :
                                                         'bg-gray-100 text-portal-sub'
                           }`}>{s.ghl_status}</span>

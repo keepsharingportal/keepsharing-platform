@@ -375,7 +375,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
                 </span>
               )
             })()}
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-portal-sub ring-1 ring-gray-200">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-gray-100 text-portal-sub border border-portal-border">
               {typeDef.label}
             </span>
             {local.label && <span className="text-xs text-portal-sub">{local.label}</span>}
@@ -411,7 +411,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
 
       {showQr && (
         <div className="px-4 pb-4 pl-[calc(2.5rem+0.75rem+1rem)] flex items-start gap-4">
-          <div className="w-40 h-40 rounded-lg bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden">
+          <div className="w-40 h-40 rounded-lg bg-white border border-portal-border flex items-center justify-center overflow-hidden">
             {qrLoading ? (
               <RefreshCw size={20} className="text-gray-300 animate-spin" />
             ) : qrDataUrl ? (
@@ -895,7 +895,7 @@ export function AddPanel({
               so the editor adds the missing client before doing
               anything else. */}
           {showAddAdv && (
-            <div className="rounded-lg bg-portal-bg ring-1 ring-gray-200 p-4 space-y-3">
+            <div className="rounded-lg bg-portal-bg border border-portal-border p-4 space-y-3">
               <p className="text-xs font-bold text-portal-text inline-flex items-center gap-1.5">
                 <Plus size={12} /> Quick-Add Advertiser
               </p>
@@ -962,7 +962,7 @@ export function AddPanel({
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ring-1 ${
                     active
                       ? 'bg-gray-900 text-white ring-gray-900'
-                      : 'bg-white text-portal-text ring-gray-200 hover:bg-portal-bg hover:ring-gray-300'
+                      : 'bg-white text-portal-text border-portal-border hover:bg-portal-bg hover:ring-gray-300'
                   }`}
                 >
                   <I size={12} /> {ct.label}
@@ -1148,7 +1148,7 @@ export function AddPanel({
         {purpose === 'qr' && (
         <div className="flex flex-col items-center">
           <p className={lbl}>QR Preview</p>
-          <div className="w-[180px] h-[180px] rounded-lg bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden mb-2">
+          <div className="w-[180px] h-[180px] rounded-lg bg-white border border-portal-border flex items-center justify-center overflow-hidden mb-2">
             {qrLoading ? (
               <RefreshCw size={20} className="text-gray-300 animate-spin" />
             ) : qrDataUrl ? (

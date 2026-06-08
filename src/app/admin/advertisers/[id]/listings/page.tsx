@@ -36,7 +36,7 @@ export default async function ListingsTab({ params }: Props) {
 
   if (listings.length === 0) {
     return (
-      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-10 text-center">
+      <section className="bg-white rounded-lg border border-portal-border p-10 text-center">
         <BookOpen size={28} className="mx-auto text-gray-300 mb-3" />
         <h2 className="text-base font-bold text-portal-text">No guide listings yet</h2>
         <p className="text-sm text-portal-sub mt-1">
@@ -67,7 +67,7 @@ export default async function ListingsTab({ params }: Props) {
   return (
     <div className="space-y-4">
       {groups.map(g => (
-        <section key={g.guideSlug} className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <section key={g.guideSlug} className="bg-white rounded-lg border border-portal-border overflow-hidden">
           <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-2 min-w-0">
               <BookOpen size={14} className="text-portal-muted shrink-0" />
@@ -96,7 +96,7 @@ export default async function ListingsTab({ params }: Props) {
                       )}
                       <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
                         tier === 'sponsor'    ? 'bg-portal-amber-lt text-portal-amber'   :
-                        tier === 'premium'    ? 'bg-violet-100 text-violet-800' :
+                        tier === 'premium'    ? 'bg-portal-blue-lt text-portal-blue' :
                                                 'bg-gray-100 text-portal-sub'
                       }`}>
                         {tier}

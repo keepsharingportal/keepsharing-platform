@@ -86,7 +86,7 @@ const CAMPAIGN_TYPE_LABELS: Record<string, { label: string; color: string }> = {
 const CAMPAIGN_STATUS_STYLE: Record<string, string> = {
   idea:     'bg-gray-100 text-portal-sub',
   planned:  'bg-portal-blue-lt text-portal-blue',
-  active:   'bg-green-100 text-green-700',
+  active:   'bg-portal-green-lt text-portal-green',
   complete: 'bg-purple-100 text-purple-700',
   paused:   'bg-portal-amber-lt text-portal-amber',
 }
@@ -452,9 +452,9 @@ export default async function EngagementPage({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
               {sponsorGaps.length > 0 && (
-                <div className="bg-portal-green-lt border border-green-200 rounded-lg px-4 py-4">
+                <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-4">
                   <p className="text-xs font-bold text-green-800 mb-1">💰 Sponsor Revenue Gap</p>
-                  <p className="text-xs text-green-700 leading-relaxed">
+                  <p className="text-xs text-portal-green leading-relaxed">
                     <strong>{sponsorGaps[0]?.tc?.label ?? sponsorGaps[0]?.type}</strong> is your top participation category with no sponsor.
                     {sponsorGaps[0]?.count} submissions total — strong audience signal.
                   </p>
@@ -465,7 +465,7 @@ export default async function EngagementPage({
               )}
 
               {dormantGuides > 0 && (
-                <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-4">
+                <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-4 py-4">
                   <p className="text-xs font-bold text-portal-amber mb-1">📖 Guide Content Gaps</p>
                   <p className="text-xs text-portal-amber leading-relaxed">
                     {dormantGuides} guide{dormantGuides !== 1 ? 's are' : ' is'} dormant or empty.
@@ -617,7 +617,7 @@ export default async function EngagementPage({
                         {isHS      && <span className="text-[10px] bg-pink-100 text-pink-600 px-1 rounded font-bold">High share</span>}
                         {isPartic  && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1 rounded font-bold">Participation</span>}
                         {sponsorCat && !isSponsored && <span className="text-[10px] bg-red-100 text-portal-red px-1 rounded font-bold">No sponsor</span>}
-                        {sponsorCat && isSponsored  && <span className="text-[10px] bg-green-100 text-portal-green px-1 rounded font-bold">Sponsored</span>}
+                        {sponsorCat && isSponsored  && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1 rounded font-bold">Sponsored</span>}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
@@ -783,7 +783,7 @@ export default async function EngagementPage({
 
           {/* Underperforming sections */}
           {guideHealth.filter(g => g.status.label !== 'Active').length > 0 && (
-            <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-5">
+            <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-amber mb-3">🔧 Guides Needing Attention</h2>
               <div className="space-y-2">
                 {guideHealth.filter(g => g.status.label !== 'Active').slice(0, 5).map(g => (
@@ -834,7 +834,7 @@ export default async function EngagementPage({
                 <div className="flex items-start gap-4 p-4">
                   <div className="shrink-0 mt-0.5">
                     <span className={`text-[10px] px-2 py-1 rounded font-bold ${
-                      opp.urgency === 'high'   ? 'bg-green-100 text-green-700' :
+                      opp.urgency === 'high'   ? 'bg-portal-green-lt text-portal-green' :
                       opp.urgency === 'medium' ? 'bg-portal-blue-lt text-portal-blue'  :
                                                   'bg-gray-100 text-portal-sub'
                     }`}>

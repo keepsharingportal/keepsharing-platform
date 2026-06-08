@@ -35,11 +35,11 @@ interface Props {
 // roles by hue. Kept tiny and on-brand (no flashy colors); the badge is
 // information, not decoration.
 const ROLE_META: Record<ContactRole, { label: string; cls: string }> = {
-  ad_rep:         { label: 'Ad rep',         cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
-  billing:        { label: 'Billing',        cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
-  listing_owner:  { label: 'Listing owner',  cls: 'bg-sky-100 text-sky-800 ring-sky-200' },
-  decision_maker: { label: 'Decision maker', cls: 'bg-violet-100 text-violet-800 ring-violet-200' },
-  other:          { label: 'Other',          cls: 'bg-gray-100 text-portal-text ring-gray-200' },
+  ad_rep:         { label: 'Ad rep',         cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
+  billing:        { label: 'Billing',        cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
+  listing_owner:  { label: 'Listing owner',  cls: 'bg-sky-100 text-sky-800 border-portal-blue/30' },
+  decision_maker: { label: 'Decision maker', cls: 'bg-portal-blue-lt text-portal-blue border-portal-blue/30' },
+  other:          { label: 'Other',          cls: 'bg-gray-100 text-portal-text border-portal-border' },
 }
 
 const ROLE_OPTIONS: Array<{ value: ContactRole; label: string }> = [
@@ -105,7 +105,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
   }
 
   return (
-    <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 space-y-3 text-sm">
+    <section className="bg-white rounded-lg border border-portal-border p-5 space-y-3 text-sm">
       <header className="flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
           Contacts {contacts.length > 0 && <span className="text-portal-muted">({contacts.length})</span>}

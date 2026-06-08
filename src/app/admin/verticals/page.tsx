@@ -115,7 +115,7 @@ export default async function VerticalsAdminPage() {
                     </span>
                   )}
                   {!v.hero_image_url && (
-                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber-lt0 text-white px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber text-white px-1.5 py-0.5 rounded">
                       <AlertCircle size={9} /> No hero
                     </span>
                   )}

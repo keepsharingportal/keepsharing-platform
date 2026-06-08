@@ -27,7 +27,7 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; icon: string 
 
 const ROLE_CONFIG: Record<KBRole, { label: string; color: string }> = {
   publisher: { label: 'Publisher',  color: 'bg-portal-blue-lt text-portal-blue' },
-  va:        { label: 'VA',         color: 'bg-green-100 text-green-700' },
+  va:        { label: 'VA',         color: 'bg-portal-green-lt text-portal-green' },
   editor:    { label: 'Editor',     color: 'bg-purple-100 text-purple-700' },
   all:       { label: 'Everyone',   color: 'bg-gray-100 text-portal-sub' },
 }
@@ -129,11 +129,11 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </div>
 
       {/* What happens next */}
-      <div className="bg-portal-green-lt border border-green-200 rounded-lg p-5 mb-5">
+      <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-5 mb-5">
         <h2 className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
           <CheckCircle2 size={15} className="text-portal-green" /> What happens next
         </h2>
-        <p className="text-sm text-green-700 leading-relaxed">{article.whatHappensNext}</p>
+        <p className="text-sm text-portal-green leading-relaxed">{article.whatHappensNext}</p>
       </div>
 
       {/* Common errors */}

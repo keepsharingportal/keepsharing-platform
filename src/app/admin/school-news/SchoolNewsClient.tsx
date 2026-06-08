@@ -19,10 +19,10 @@ import {
 import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const SOURCE_BADGE: Record<string, string> = {
-  public_form:     'bg-portal-green-lt text-portal-green ring-emerald-200',
+  public_form:     'bg-portal-green-lt text-portal-green border-portal-green/30',
   staff_email:     'bg-purple-50 text-purple-700 ring-purple-200',
-  staff_facebook:  'bg-sky-50 text-sky-700 ring-sky-200',
-  staff_manual:    'bg-portal-bg text-portal-sub ring-gray-200',
+  staff_facebook:  'bg-sky-50 text-sky-700 border-portal-blue/30',
+  staff_manual:    'bg-portal-bg text-portal-sub border-portal-border',
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -288,7 +288,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
               }`}
             >
               {tab}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted border-portal-border'}`}>
                 {counts[tab]}
               </span>
             </button>
@@ -594,7 +594,7 @@ function BitRow({
         )}
 
         {/* Thumbnail */}
-        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200">
+        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-portal-border">
           {item.image_web_url ? (
             <Image
               src={item.image_web_url}
@@ -643,7 +643,7 @@ function BitRow({
               </span>
             )}
             {item.status === 'approved' && !scheduledFor && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-green-700 ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-green-200">
                 <CheckCircle2 size={9} /> Live
               </span>
             )}
@@ -663,7 +663,7 @@ function BitRow({
               <button
                 onClick={() => call('approve')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg hover:bg-portal-green-lt disabled:opacity-40"
               >
                 {busy === 'approve' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                 Approve
@@ -1324,7 +1324,7 @@ function QuickAddPanel({
           <button
             onClick={() => submit('publish-and-add')}
             disabled={!title.trim() || !blurb.trim() || !selected || busy !== null}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-green-700 bg-white border border-green-300 rounded-lg hover:bg-portal-green-lt disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-green bg-white border border-green-300 rounded-lg hover:bg-portal-green-lt disabled:opacity-50"
           >
             {busy === 'publish-and-add' ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
             {busy === 'publish-and-add' ? 'Publishing…' : 'Publish & Add Another'}

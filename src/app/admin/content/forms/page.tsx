@@ -18,18 +18,18 @@ type Submission = {
 }
 
 const FORM_META: Record<string, { label: string; pub: string; path: string; color: string }> = {
-  'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
-  'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-portal-red-lt text-portal-red ring-rose-200' },
+  'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
+  'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-portal-red-lt text-portal-red border-portal-red/30' },
   'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-portal-green-lt text-green-700 ring-green-200' },
+  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-portal-green-lt text-portal-green ring-green-200' },
   'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-teal-50 text-teal-700 ring-teal-200' },
 }
 
 const STATUS_CONFIG: Record<string, string> = {
-  pending:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
+  pending:  'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
   reviewed: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  approved: 'bg-portal-green-lt text-green-700 ring-green-200',
+  approved: 'bg-portal-green-lt text-portal-green ring-green-200',
   rejected: 'bg-red-50 text-red-700 ring-red-200',
   published:'bg-slate-50 text-slate-700 ring-slate-200',
 }
@@ -131,8 +131,8 @@ export default function FormsAdminPage() {
                           ))}
                         </div>
                         {s.ai_article && (
-                          <div className="bg-portal-green-lt border border-green-200 rounded-lg p-3">
-                            <div className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1">AI-Generated Article Draft</div>
+                          <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3">
+                            <div className="text-[10px] font-bold text-portal-green uppercase tracking-wide mb-1">AI-Generated Article Draft</div>
                             <p className="text-xs text-portal-text leading-relaxed whitespace-pre-line">{s.ai_article.slice(0, 400)}{s.ai_article.length > 400 ? '…' : ''}</p>
                           </div>
                         )}

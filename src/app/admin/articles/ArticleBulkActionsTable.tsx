@@ -158,7 +158,7 @@ export function ArticleBulkActionsTable({
       {resultMsg && (
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
           resultMsg.ok
-            ? 'bg-portal-green-lt border border-green-200 text-green-700'
+            ? 'bg-portal-green-lt border border-portal-green/30 text-portal-green'
             : 'bg-red-50 border border-red-200 text-portal-red'
         }`}>
           {resultMsg.text}
@@ -362,7 +362,7 @@ export function ArticleBulkActionsTable({
                     <button
                       onClick={() => runBulkAction([a.id], 'approve')}
                       disabled={busy}
-                      className="px-2.5 py-1 text-xs font-semibold text-green-700 bg-portal-green-lt hover:bg-green-100 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                      className="px-2.5 py-1 text-xs font-semibold text-portal-green bg-portal-green-lt hover:bg-portal-green-lt rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
                     >
                       Approve
                     </button>

@@ -231,7 +231,7 @@ export function GeneratePanel({ pendingCount }: Props) {
               type="button"
               onClick={runBulk}
               disabled={bulkBusy || busy}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
             >
               {bulkBusy ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
               {bulkBusy
@@ -242,7 +242,7 @@ export function GeneratePanel({ pendingCount }: Props) {
         </div>
 
         {bulkProgress && (
-          <div className="mt-3 bg-white border border-amber-200 rounded-lg p-3">
+          <div className="mt-3 bg-white border border-portal-amber/30 rounded-lg p-3">
             <div className="flex items-center justify-between gap-2 mb-2">
               <p className="text-xs font-bold text-portal-text">
                 {bulkProgress.label}
@@ -253,13 +253,13 @@ export function GeneratePanel({ pendingCount }: Props) {
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber-lt0' : 'bg-portal-green-lt0'}`}
+                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber' : 'bg-portal-green'}`}
                 style={{ width: `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` }}
               />
             </div>
             <div className="flex items-center justify-between gap-3 mt-2 text-[11px] text-portal-sub">
               <span>
-                <strong className="text-green-700">{bulkProgress.saved}</strong> items queued
+                <strong className="text-portal-green">{bulkProgress.saved}</strong> items queued
                 {bulkProgress.failed.length > 0 && (
                   <>
                     {' '}·{' '}
@@ -412,7 +412,7 @@ export function GeneratePanel({ pendingCount }: Props) {
       {result && (
         <div className={`mx-5 mb-5 rounded-lg px-3 py-2 text-xs font-semibold flex items-start gap-2 ${
           result.ok
-            ? 'bg-portal-green-lt border border-green-200 text-green-800'
+            ? 'bg-portal-green-lt border border-portal-green/30 text-green-800'
             : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {result.ok && <Check size={13} className="shrink-0 mt-0.5" />}

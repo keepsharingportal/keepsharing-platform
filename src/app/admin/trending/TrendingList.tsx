@@ -257,7 +257,7 @@ export function TrendingList(props: Props) {
       </section>
 
       {/* ── Help ───────────────────────────────────────────────────────── */}
-      <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4 text-sm leading-relaxed">
+      <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-4 text-sm leading-relaxed">
         <p className="font-bold text-amber-900 mb-1">How the trending bar works</p>
         <ul className="list-disc list-inside text-portal-amber space-y-0.5 text-xs">
           <li><strong>Pinned items below show first</strong> — these are your editorial picks (Best Of, guides, nominations, etc.).</li>
@@ -343,7 +343,7 @@ export function TrendingList(props: Props) {
                         {status === 'archived' ? (
                           <form action={props.restoreItem}>
                             <input type="hidden" name="id" value={item.id} />
-                            <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
+                            <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-portal-blue/30 text-portal-blue hover:bg-portal-blue-lt">
                               Restore
                             </button>
                           </form>
@@ -352,14 +352,14 @@ export function TrendingList(props: Props) {
                             <form action={props.toggleActive}>
                               <input type="hidden" name="id"      value={item.id} />
                               <input type="hidden" name="current" value={String(item.is_active)} />
-                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg' : 'bg-portal-green-lt text-green-700 border-green-200 hover:bg-green-100'}`}>
+                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg' : 'bg-portal-green-lt text-portal-green border-portal-green/30 hover:bg-portal-green-lt'}`}>
                                 {item.is_active ? 'Turn off' : 'Turn on'}
                               </button>
                             </form>
                             {status === 'live' && (
                               <form action={props.endNow}>
                                 <input type="hidden" name="id" value={item.id} />
-                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200 text-portal-amber hover:bg-portal-amber-lt">
+                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-portal-amber/30 text-portal-amber hover:bg-portal-amber-lt">
                                   End now
                                 </button>
                               </form>
@@ -367,7 +367,7 @@ export function TrendingList(props: Props) {
                             {(status === 'expired' || status === 'off') && (
                               <form action={props.archiveItem}>
                                 <input type="hidden" name="id" value={item.id} />
-                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-violet-200 text-violet-700 hover:bg-violet-50">
+                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-portal-blue/30 text-portal-blue hover:bg-portal-blue-lt">
                                   Archive
                                 </button>
                               </form>
@@ -413,10 +413,10 @@ export function TrendingList(props: Props) {
             <span className="text-white/30">·</span>
             <button onClick={() => runBulk('turn-off')} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn off</button>
             <button onClick={() => runBulk('turn-on')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn on</button>
-            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber-lt0 hover:bg-amber-400">End now</button>
-            <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-violet-500">Archive</button>
+            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber hover:bg-amber-400">End now</button>
+            <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-portal-blue-lt0">Archive</button>
             <button onClick={() => runBulk('restore')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Restore</button>
-            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-portal-red-lt0">Delete</button>
+            <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-portal-red">Delete</button>
             <button onClick={clearSelection} className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-md text-white/60 hover:text-white">
               Cancel
             </button>

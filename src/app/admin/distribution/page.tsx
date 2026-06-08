@@ -102,7 +102,7 @@ function freshnessDays(iso: string): number {
 }
 
 function freshnessChip(days: number): { label: string; cls: string } {
-  if (days <= 7)  return { label: 'Fresh',    cls: 'bg-portal-green-lt text-green-700'  }
+  if (days <= 7)  return { label: 'Fresh',    cls: 'bg-portal-green-lt text-portal-green'  }
   if (days <= 21) return { label: 'Recent',   cls: 'bg-portal-blue-lt text-portal-blue'   }
   if (days <= 60) return { label: 'Aging',    cls: 'bg-portal-amber-lt text-portal-amber' }
   return                 { label: 'Stale',    cls: 'bg-red-50 text-red-700'     }
@@ -831,7 +831,7 @@ export default async function DistributionPage({
               {nlWarnings.map((w, i) => (
                 <div key={i} className={`flex items-start gap-3 px-4 py-3 rounded-lg border text-xs font-medium ${
                   w.level === 'error'   ? 'bg-red-50 border-red-200 text-red-800'
-                  : w.level === 'warning' ? 'bg-portal-amber-lt border-amber-200 text-portal-amber'
+                  : w.level === 'warning' ? 'bg-portal-amber-lt border-portal-amber/30 text-portal-amber'
                   : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
                 }`}>
                   <span className="shrink-0 mt-0.5">{w.level === 'error' ? '✗' : w.level === 'warning' ? '⚠️' : 'ℹ️'}</span>
@@ -878,7 +878,7 @@ export default async function DistributionPage({
                       <h3 className="text-xs font-bold text-portal-sub">Plain Text</h3>
                       <p className="text-[11px] text-portal-muted">Paste into any email builder as plain content</p>
                     </div>
-                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-semibold">Ready</span>
+                    <span className="text-[10px] bg-portal-green-lt text-portal-green px-2 py-0.5 rounded font-semibold">Ready</span>
                   </div>
                   <div className="p-4">
                     <textarea
@@ -992,7 +992,7 @@ export default async function DistributionPage({
                         <span>{tc?.emoji}</span>
                         <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
                         <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">High Share</span>
-                        {item.social_queue && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">In Queue</span>}
+                        {item.social_queue && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold">In Queue</span>}
                       </div>
                       <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                     </div>
@@ -1058,7 +1058,7 @@ export default async function DistributionPage({
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[11px] text-portal-muted">{item.submission_type}</span>
                         {item.destination_guide_slug && (
-                          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                          <span className="text-[10px] bg-portal-green-lt text-portal-green px-2 py-0.5 rounded-full font-semibold">
                             → {guideName(item.destination_guide_slug)}
                           </span>
                         )}
@@ -1098,7 +1098,7 @@ export default async function DistributionPage({
                         </div>
                       </div>
                       <div className="w-16 bg-gray-100 rounded-full h-2 mt-1.5 shrink-0">
-                        <div className="h-2 rounded-full bg-portal-green-lt0" style={{ width: `${Math.min(count * 10, 100)}%` }} />
+                        <div className="h-2 rounded-full bg-portal-green" style={{ width: `${Math.min(count * 10, 100)}%` }} />
                       </div>
                     </div>
                   </div>
@@ -1114,7 +1114,7 @@ export default async function DistributionPage({
       ══════════════════════════════════════════════════════════════════════ */}
       {activeView === 'sponsors' && (
         <div className="space-y-6">
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-3">
+          <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-5 py-3">
             <p className="text-xs text-portal-amber font-medium">
               🤝 Editorial integrity first. Sponsor alignment is an opportunity signal — never auto-insert sponsors into content. All sponsor/content pairing requires editorial review.
             </p>
@@ -1238,7 +1238,7 @@ export default async function DistributionPage({
             ].filter(Boolean).map((alert, i) => {
               if (!alert) return null
               const cls = alert.severity === 'critical' ? 'bg-red-50 border-red-200 text-red-800'
-                        : alert.severity === 'warning'  ? 'bg-portal-amber-lt border-amber-200 text-portal-amber'
+                        : alert.severity === 'warning'  ? 'bg-portal-amber-lt border-portal-amber/30 text-portal-amber'
                         : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
               return (
                 <Link key={i} href={alert.href}

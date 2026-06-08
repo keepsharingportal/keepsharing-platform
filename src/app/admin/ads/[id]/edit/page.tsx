@@ -280,7 +280,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           />
         )}
         {success && (
-          <div className="bg-portal-green-lt border border-green-200 rounded-lg p-3 text-sm text-green-800">
+          <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-green-800">
             ✓ Saved. Public homepage may take up to ~10 min to refresh (revalidate cache).
           </div>
         )}
@@ -734,7 +734,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
   onDeleteForever: () => void | Promise<void>
 }) {
   return (
-    <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
         <p className="text-sm font-bold text-amber-900">
           This ad is expired (since {new Date(expiredAt).toLocaleDateString()}).

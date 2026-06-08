@@ -74,7 +74,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
               {msg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {msg.text}
             </span>
@@ -158,14 +158,14 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Sponsor ───────────────────────────────────────────────────────── */}
-      <section className="rounded-lg border border-amber-200 bg-portal-amber-lt/40 p-5 space-y-3">
+      <section className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt/40 p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
           <Crown size={14} className="text-amber-600" />
           Section Sponsor
         </h2>
 
         {sponsorBusinessName ? (
-          <div className="rounded-lg bg-white border border-amber-200 p-3">
+          <div className="rounded-lg bg-white border border-portal-amber/30 p-3">
             <p className="text-[11px] font-bold uppercase tracking-widest text-portal-amber mb-1">Currently Sponsored</p>
             <p className="text-sm font-bold text-portal-text">{sponsorBusinessName}</p>
             <p className="text-[11px] text-portal-sub mt-1">
@@ -173,7 +173,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
             </p>
           </div>
         ) : (
-          <div className="rounded-lg bg-white border border-amber-200 p-3">
+          <div className="rounded-lg bg-white border border-portal-amber/30 p-3">
             <p className="text-[11px] font-bold uppercase tracking-widest text-portal-amber mb-1">Available</p>
             <p className="text-sm text-portal-text">
               No sponsor on this vertical right now. The public page shows the &quot;Sponsor This Section Available&quot; CTA.
@@ -187,7 +187,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
           </div>
         )}
 
-        <div className="pt-2 border-t border-amber-200/60">
+        <div className="pt-2 border-t border-portal-amber/30/60">
           <FieldLabel hint='The line above the sponsor name on the public page. Examples: "Proudly Presented By", "Brought to you by", "In partnership with".'>
             Sponsor label
           </FieldLabel>

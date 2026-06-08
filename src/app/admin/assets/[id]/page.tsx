@@ -74,7 +74,7 @@ const STATUS_OPTIONS = [
 const STATUS_STYLE: Record<string, string> = {
   uploaded:     'bg-gray-100 text-portal-sub',
   needs_review: 'bg-portal-amber-lt text-portal-amber',
-  approved:     'bg-green-100 text-green-700',
+  approved:     'bg-portal-green-lt text-portal-green',
   needs_graphic:'bg-orange-100 text-orange-700',
   social_ready: 'bg-portal-blue-lt text-portal-blue',
   print_ready:  'bg-purple-100 text-purple-700',

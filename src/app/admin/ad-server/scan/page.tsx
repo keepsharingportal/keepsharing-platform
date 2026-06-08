@@ -123,13 +123,13 @@ const FLAG_CONFIG: Record<AIFlag, { label: string; cls: string; icon: React.Elem
   },
   verify: {
     label: 'Verify',
-    cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200',
+    cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
     icon: AlertTriangle,
     borderCls: 'border-l-amber-400',
   },
   safe: {
     label: 'Pickup Safe',
-    cls: 'bg-portal-green-lt text-green-700 ring-green-200',
+    cls: 'bg-portal-green-lt text-portal-green ring-green-200',
     icon: CheckCircle2,
     borderCls: 'border-l-green-500',
   },
@@ -192,7 +192,7 @@ export default function DropboxScanPage() {
             <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {verify} verify
             </span>
-            <span className="text-green-700 font-semibold bg-portal-green-lt px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
+            <span className="text-portal-green font-semibold bg-portal-green-lt px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
               {safe} safe
             </span>
           </div>
@@ -278,7 +278,7 @@ export default function DropboxScanPage() {
                       'text-xs px-3 py-1.5 rounded-lg font-medium transition-colors',
                       flagFilter === f
                         ? f === 'must_change' ? 'bg-red-600 text-white'
-                          : f === 'verify' ? 'bg-portal-amber-lt0 text-white'
+                          : f === 'verify' ? 'bg-portal-amber text-white'
                           : f === 'safe' ? 'bg-green-600 text-white'
                           : 'bg-portal-navy text-white'
                         : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -382,7 +382,7 @@ export default function DropboxScanPage() {
                               className={cn(
                                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                                 sent
-                                  ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
+                                  ? 'bg-portal-green-lt text-portal-green ring-1 ring-green-200'
                                   : 'bg-portal-navy text-white hover:opacity-90'
                               )}>
                               {sent
@@ -400,7 +400,7 @@ export default function DropboxScanPage() {
                             <ExternalLink size={11} /> Open GHL
                           </a>
                           {ad.flag === 'safe' && (
-                            <span className="flex items-center gap-1 text-xs text-green-700 font-medium">
+                            <span className="flex items-center gap-1 text-xs text-portal-green font-medium">
                               <CheckCircle2 size={12} /> No action needed — cleared for print
                             </span>
                           )}

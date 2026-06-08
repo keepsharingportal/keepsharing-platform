@@ -127,7 +127,7 @@ export function SchoolTypeahead({
       </div>
 
       {selected && !open && (
-        <p className="text-[11px] text-green-700 font-semibold mt-1 flex items-center gap-1">
+        <p className="text-[11px] text-portal-green font-semibold mt-1 flex items-center gap-1">
           <Check size={11} /> Selected: {selected.name} · {AREA_LABELS[selected.area]}{selected.is_private ? ' · Private' : ''}
         </p>
       )}
@@ -234,7 +234,7 @@ function AddSchoolInline({
       </p>
 
       {dupeMatches.length > 0 && (
-        <div className="bg-portal-amber-lt border border-amber-200 rounded px-2 py-1.5 text-[11px] text-amber-900">
+        <div className="bg-portal-amber-lt border border-portal-amber/30 rounded px-2 py-1.5 text-[11px] text-amber-900">
           <p className="font-bold flex items-center gap-1 mb-0.5">
             <AlertTriangle size={11} /> Similar school{dupeMatches.length === 1 ? '' : 's'} already in the list — did you mean one of these?
           </p>

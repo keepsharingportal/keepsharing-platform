@@ -45,7 +45,7 @@ interface Props {
 
 const TIER_BADGE: Record<string, string> = {
   featured:    'bg-portal-amber-lt text-portal-amber',
-  enhanced:    'bg-violet-100 text-violet-800',
+  enhanced:    'bg-portal-blue-lt text-portal-blue',
   community:   'bg-gray-100 text-portal-sub',
 }
 

@@ -326,7 +326,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
         onChange={e => setCsv(e.target.value)}
         placeholder={CSV_TEMPLATE}
         rows={10}
-        className="w-full font-mono text-xs px-3 py-2 border border-amber-200 bg-white rounded-lg outline-none focus:border-amber-400"
+        className="w-full font-mono text-xs px-3 py-2 border border-portal-amber/30 bg-white rounded-lg outline-none focus:border-amber-400"
       />
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <button
@@ -346,7 +346,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
       </div>
 
       {result && (
-        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-portal-green-lt border border-green-200 text-green-800' : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'}`}>
+        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-portal-green-lt border border-portal-green/30 text-green-800' : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'}`}>
           <p>{result.msg}</p>
           {result.skipped && result.skipped.length > 0 && (
             <details className="mt-1">

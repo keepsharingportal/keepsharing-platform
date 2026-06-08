@@ -256,7 +256,7 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
           {stop.ad_level === 'gold'     && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">Gold</span>}
           {stop.not_delivering  && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">Not delivering</span>}
           {!stop.active         && <span className="text-[10px] bg-gray-100 text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
-          {hasGeo               && <span title="Geocoded" className="text-[10px] inline-flex items-center gap-0.5 text-green-700"><MapPin size={9} /></span>}
+          {hasGeo               && <span title="Geocoded" className="text-[10px] inline-flex items-center gap-0.5 text-portal-green"><MapPin size={9} /></span>}
         </div>
         <p className="text-xs text-portal-sub mt-0.5 truncate">
           {stop.address}{stop.city ? ` · ${stop.city}` : ''}

@@ -20,7 +20,7 @@ const IMPORT_CARDS = [
     desc: 'Same as Article CSV Import — select the school_bits_cleaned_import.csv file. Articles import as Pending Review automatically.',
     href: '/admin/content/articles-csv-import',
     badge: 'School Zone',
-    badgeColor: 'bg-green-100 text-green-700',
+    badgeColor: 'bg-portal-green-lt text-portal-green',
     cta: 'Import School Bits',
   },
   {
@@ -133,7 +133,7 @@ export default function ImportsPage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/articles/review"
-              className="flex items-center gap-2 px-4 py-2 bg-portal-amber-lt border border-amber-200 text-portal-amber text-sm font-semibold rounded-lg hover:bg-portal-amber-lt transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-portal-amber-lt border border-portal-amber/30 text-portal-amber text-sm font-semibold rounded-lg hover:bg-portal-amber-lt transition-colors"
             >
               Open Review Queue →
             </Link>

@@ -70,7 +70,7 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
       </div>
 
       {!webhookConfigured && (
-        <div className="px-5 py-3 bg-portal-amber-lt border-b border-amber-200 text-xs text-amber-900 leading-relaxed">
+        <div className="px-5 py-3 bg-portal-amber-lt border-b border-portal-amber/30 text-xs text-amber-900 leading-relaxed">
           Set <code className="bg-portal-amber-lt px-1 rounded">GHL_GAMES_ANNOUNCEMENT_WEBHOOK_URL</code> in <code className="bg-portal-amber-lt px-1 rounded">.env.local</code>{' '}
           (or fall back to <code className="bg-portal-amber-lt px-1 rounded">GHL_NEWSLETTER_WEBHOOK_URL</code> if you want to reuse the same workflow), then restart the dev server.
         </div>
@@ -126,7 +126,7 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
 
         {result && (
           <div className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-2 ${
-            result.ok ? 'border-green-200 bg-portal-green-lt text-green-800' : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
+            result.ok ? 'border-portal-green/30 bg-portal-green-lt text-green-800' : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
           }`}>
             {result.ok ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}
             <span>{result.msg}</span>

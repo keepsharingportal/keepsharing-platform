@@ -77,13 +77,13 @@ export default async function OrganizationsAdminPage() {
           </div>
         </div>
         <div className="p-8">
-          <div className="max-w-2xl bg-portal-amber-lt border border-amber-200 rounded-lg p-6">
+          <div className="max-w-2xl bg-portal-amber-lt border border-portal-amber/30 rounded-lg p-6">
             <h2 className="text-base font-bold text-amber-900 mb-2">One-time setup needed</h2>
             <p className="text-sm text-amber-900 mb-3">
               The <code className="px-1 py-0.5 bg-white rounded text-xs">community_organizations</code> table
               hasn&apos;t been created yet. Apply migration 089 to enable this page:
             </p>
-            <pre className="text-xs bg-white border border-amber-200 rounded p-3 overflow-x-auto">
+            <pre className="text-xs bg-white border border-portal-amber/30 rounded p-3 overflow-x-auto">
 {`supabase db push
 # or in Supabase SQL editor, run:
 # supabase/migrations/089_community_organizations.sql`}

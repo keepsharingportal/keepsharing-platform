@@ -517,7 +517,7 @@ function SlotRowItem({
           </span>
         ) : (
           <div>
-            <span className="text-violet-700 font-semibold text-xs block">{row.bookings.length} rotating</span>
+            <span className="text-portal-blue font-semibold text-xs block">{row.bookings.length} rotating</span>
             {/* Show first 2 advertiser names in rotation pool */}
             <div className="text-[11px] text-portal-sub mt-0.5">
               {row.bookings.slice(0, 2).map(b => b.advertiser_accounts?.business_name ?? b.ad_headline).filter(Boolean).join(' · ')}
@@ -636,7 +636,7 @@ function SlotRowItem({
 function StatusPill({ status }: { status: SlotRow['status'] }) {
   const styles = {
     on:     'bg-green-600 text-white',
-    empty:  'bg-portal-amber-lt0 text-white',
+    empty:  'bg-portal-amber text-white',
     paused: 'bg-red-600 text-white',
     hidden: 'bg-gray-700 text-white',
   }[status]
@@ -674,7 +674,7 @@ function OnOffToggle({ on, onChange }: { on: boolean; onChange: (next: boolean) 
     <div
       role="group"
       aria-label="On / Off"
-      className={`inline-flex items-center rounded-full bg-gray-100 ring-1 ring-gray-200 p-0.5 select-none ${busy ? 'opacity-70' : ''}`}
+      className={`inline-flex items-center rounded-full bg-gray-100 border border-portal-border p-0.5 select-none ${busy ? 'opacity-70' : ''}`}
     >
       <button
         type="button"

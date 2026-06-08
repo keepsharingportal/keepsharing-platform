@@ -38,16 +38,16 @@ function eventMatchesTab(row: EventRow, tab: TabName, todayIso: string): boolean
 }
 
 const SOURCE_BADGE: Record<string, string> = {
-  'public-submission': 'bg-portal-green-lt text-portal-green ring-emerald-200',
-  'public_form':       'bg-portal-green-lt text-portal-green ring-emerald-200',
-  'ical':              'bg-sky-50 text-sky-700 ring-sky-200',
+  'public-submission': 'bg-portal-green-lt text-portal-green border-portal-green/30',
+  'public_form':       'bg-portal-green-lt text-portal-green border-portal-green/30',
+  'ical':              'bg-sky-50 text-sky-700 border-portal-blue/30',
   'ai-extraction':     'bg-purple-50 text-purple-700 ring-purple-200',
-  'csv-import':        'bg-portal-amber-lt text-portal-amber ring-amber-200',
-  'staff':             'bg-portal-bg text-portal-sub ring-gray-200',
-  'manual':            'bg-portal-bg text-portal-sub ring-gray-200',
+  'csv-import':        'bg-portal-amber-lt text-portal-amber border-portal-amber/30',
+  'staff':             'bg-portal-bg text-portal-sub border-portal-border',
+  'manual':            'bg-portal-bg text-portal-sub border-portal-border',
 }
 function sourceClass(s: string | null | undefined): string {
-  return SOURCE_BADGE[s ?? ''] ?? 'bg-portal-bg text-portal-sub ring-gray-200'
+  return SOURCE_BADGE[s ?? ''] ?? 'bg-portal-bg text-portal-sub border-portal-border'
 }
 
 const CATEGORY_OPTIONS = [
@@ -278,7 +278,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
             >
               {tab}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${
-                activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted ring-gray-200'
+                activeTab === tab ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/20' : 'bg-portal-bg text-portal-muted border-portal-border'
               }`}>
                 {counts[tab]}
               </span>
@@ -479,7 +479,7 @@ const BUTTONS_BY_TAB: Record<TabName, BulkButton[]> = {
 const TONE_CLS: Record<BulkButton['tone'], string> = {
   green: 'bg-green-600 text-white hover:bg-green-700',
   red:   'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
-  amber: 'bg-portal-amber-lt text-portal-amber border border-amber-200 hover:bg-portal-amber-lt',
+  amber: 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30 hover:bg-portal-amber-lt',
   gray:  'bg-white text-portal-text border border-portal-border hover:bg-portal-bg',
   rose:  'bg-portal-red-lt text-portal-red border border-portal-red/30 hover:bg-portal-red-lt',
 }
@@ -669,7 +669,7 @@ function EventRowItem({
         )}
 
         {/* Thumb */}
-        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200">
+        <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-portal-border">
           {ev.hero_image_url ? (
             <Image src={ev.hero_image_url} alt="" width={80} height={80} className="w-full h-full object-cover" unoptimized />
           ) : (
@@ -727,7 +727,7 @@ function EventRowItem({
               <span className="text-portal-sub">By {ev.organizer_name}</span>
             )}
             {ev.is_free && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-green-700 ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-portal-green ring-1 ring-green-200">
                 Free
               </span>
             )}
@@ -751,7 +751,7 @@ function EventRowItem({
               <button
                 onClick={() => call('approve')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg hover:bg-portal-green-lt disabled:opacity-40"
               >
                 {busy === 'approve' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                 Approve

@@ -574,7 +574,7 @@ function IssueLine({ issue }: { issue: {
   picks_count: number; error_message: string | null
 }}) {
   const statusBadge =
-    issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-green-100 text-green-800', label: 'Sent' } :
+    issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-portal-green-lt text-green-800', label: 'Sent' } :
     issue.status === 'queued' ? { Icon: Clock,        cls: 'bg-portal-blue-lt text-portal-blue',   label: 'Scheduled' } :
     issue.status === 'failed' ? { Icon: AlertTriangle,cls: 'bg-portal-red-lt text-portal-red',   label: 'Failed' } :
                                 { Icon: Clock,        cls: 'bg-gray-100 text-portal-text',   label: 'Pending' }

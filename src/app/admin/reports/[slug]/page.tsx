@@ -68,7 +68,7 @@ function fmtPct(num: number, denom: number): string {
 
 function Badge({ kind }: { kind: 'measured' | 'estimated' | 'not_tracked' }) {
   const styles = {
-    measured:    { wrap: 'bg-green-100 text-green-700',   label: 'Measured'        },
+    measured:    { wrap: 'bg-portal-green-lt text-portal-green',   label: 'Measured'        },
     estimated:   { wrap: 'bg-portal-amber-lt text-portal-amber',   label: 'Estimated'       },
     not_tracked: { wrap: 'bg-gray-100  text-portal-sub',    label: 'Not tracked yet' },
   }[kind]

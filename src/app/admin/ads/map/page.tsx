@@ -219,10 +219,10 @@ function SlotCard({
   // site regardless of booking, so the card should read "off" not
   // "booked" or "open".
   const ringClass = disabled
-    ? 'bg-portal-red-lt/40 ring-rose-200 opacity-90'
+    ? 'bg-portal-red-lt/40 border-portal-red/30 opacity-90'
     : booked
-      ? 'bg-portal-green-lt/50 ring-emerald-200'
-      : 'bg-white ring-gray-200'
+      ? 'bg-portal-green-lt/50 border-portal-green/30'
+      : 'bg-white border-portal-border'
 
   return (
     <div className={`rounded-lg ring-1 p-4 ${ringClass}`}>

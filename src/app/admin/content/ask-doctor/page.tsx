@@ -20,11 +20,11 @@ type Question = {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  pending:  { label: 'New',        color: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  pending:  { label: 'New',        color: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
   reviewed: { label: 'Reviewed',   color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
   selected: { label: 'Selected',   color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   assigned: { label: 'Assigned',   color: 'bg-teal-50 text-teal-700 ring-teal-200' },
-  answered: { label: 'Answered',   color: 'bg-portal-green-lt text-green-700 ring-green-200' },
+  answered: { label: 'Answered',   color: 'bg-portal-green-lt text-portal-green ring-green-200' },
   rejected: { label: 'Not Used',   color: 'bg-red-50 text-red-700 ring-red-200' },
 }
 
@@ -149,7 +149,7 @@ export default function AskDoctorAdminPage() {
             { key: 'reviewed', label: 'Reviewed', count: counts.reviewed,  color: 'text-portal-blue' },
             { key: 'selected', label: 'Selected', count: counts.selected,  color: 'text-purple-700' },
             { key: 'assigned', label: 'Assigned', count: counts.assigned,  color: 'text-teal-700' },
-            { key: 'answered', label: 'Answered', count: counts.answered,  color: 'text-green-700' },
+            { key: 'answered', label: 'Answered', count: counts.answered,  color: 'text-portal-green' },
           ].map(s => (
             <button
               key={s.key}

@@ -276,7 +276,7 @@ export default function SummerGuideImportPage() {
 
           {/* Unmapped columns warning */}
           {unmapped.length > 0 && (
-            <div className="p-3 bg-portal-amber-lt0/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
+            <div className="p-3 bg-portal-amber/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
               <span className="font-semibold">Columns not recognised (will be skipped):</span>{' '}
               {unmapped.join(', ')}
             </div>
@@ -310,8 +310,8 @@ export default function SummerGuideImportPage() {
                       <td className="px-4 py-2 text-white/60">{row.city ?? '—'}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          row.listing_tier === 'advertiser' ? 'bg-portal-amber-lt0/20 text-amber-400' :
-                          row.listing_tier === 'enhanced'  ? 'bg-portal-blue-lt0/20 text-portal-blue' :
+                          row.listing_tier === 'advertiser' ? 'bg-portal-amber/20 text-amber-400' :
+                          row.listing_tier === 'enhanced'  ? 'bg-portal-blue/20 text-portal-blue' :
                                                               'bg-white/8 text-white/40'
                         }`}>
                           {row.listing_tier ?? 'community'}
@@ -383,8 +383,8 @@ export default function SummerGuideImportPage() {
                   <span className="text-xs text-white/25 w-8 shrink-0">{r.row}</span>
                   <span className="text-xs text-white flex-1">{r.name}</span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    r.status === 'ok'      ? 'bg-portal-green-lt0/20 text-green-400' :
-                    r.status === 'updated' ? 'bg-portal-blue-lt0/20 text-portal-blue'  :
+                    r.status === 'ok'      ? 'bg-portal-green/20 text-green-400' :
+                    r.status === 'updated' ? 'bg-portal-blue/20 text-portal-blue'  :
                     r.status === 'skipped' ? 'bg-white/8 text-white/40'      :
                                              'bg-red-500/20 text-red-400'
                   }`}>
@@ -404,7 +404,7 @@ export default function SummerGuideImportPage() {
               Import another file
             </button>
             <a href="/summer-fun-guide" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-blue-500/30 rounded-lg hover:bg-portal-blue-lt0/10 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-blue-500/30 rounded-lg hover:bg-portal-blue/10 transition-colors">
               <FileText size={14} />
               View Summer Fun Guide
             </a>

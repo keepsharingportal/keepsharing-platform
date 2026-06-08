@@ -284,7 +284,7 @@ export default async function SourcesAdminPage() {
                       <button type="submit" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                         s.is_active
                           ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
-                          : 'bg-portal-green-lt text-green-700 border-green-200 hover:bg-green-100'
+                          : 'bg-portal-green-lt text-portal-green border-portal-green/30 hover:bg-portal-green-lt'
                       }`}>
                         {s.is_active ? 'Turn off' : 'Turn on'}
                       </button>

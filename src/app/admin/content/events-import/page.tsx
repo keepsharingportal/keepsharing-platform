@@ -294,7 +294,7 @@ export default function EventsImportPage() {
             </div>
 
             {unmapped.length > 0 && (
-              <div className="p-3 bg-portal-amber-lt border border-amber-200 rounded-lg text-xs text-portal-amber">
+              <div className="p-3 bg-portal-amber-lt border border-portal-amber/30 rounded-lg text-xs text-portal-amber">
                 <span className="font-semibold">Columns not recognised (will be skipped):</span> {unmapped.join(', ')}
               </div>
             )}
@@ -326,7 +326,7 @@ export default function EventsImportPage() {
                         <td className="px-4 py-2 text-portal-sub">{row.category ?? 'Family'}</td>
                         <td className="px-4 py-2">
                           {row.is_free
-                            ? <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">Free</span>
+                            ? <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded-full font-semibold">Free</span>
                             : <span className="text-gray-300">—</span>
                           }
                         </td>
@@ -355,7 +355,7 @@ export default function EventsImportPage() {
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
-                    className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
+                    className="bg-portal-blue h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -378,7 +378,7 @@ export default function EventsImportPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
+                { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
                 { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
                 { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
@@ -394,7 +394,7 @@ export default function EventsImportPage() {
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      r.status === 'ok'      ? 'bg-green-100 text-green-700' :
+                      r.status === 'ok'      ? 'bg-portal-green-lt text-portal-green' :
                       r.status === 'skipped' ? 'bg-gray-100 text-portal-sub'  :
                                                'bg-red-100 text-red-700'
                     }`}>{r.status === 'ok' ? 'added' : r.status}</span>
@@ -417,7 +417,7 @@ export default function EventsImportPage() {
             </div>
 
             {totals.inserted > 0 && (
-              <div className="flex items-center gap-2 text-sm text-green-700 bg-portal-green-lt border border-green-200 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-3">
                 <CheckCircle size={16} />
                 <strong>{totals.inserted} events</strong> are live and visible on the public calendar.
               </div>

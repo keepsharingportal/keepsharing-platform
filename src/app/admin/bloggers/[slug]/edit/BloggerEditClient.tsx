@@ -126,7 +126,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       <div className="sticky top-0 z-10 -mx-6 px-6 py-2 bg-white border-b border-portal-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {msg && (
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.ok ? 'bg-portal-green-lt text-portal-green' : 'bg-red-100 text-red-700'} inline-flex items-center gap-1`}>
               {msg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {msg.text}
             </span>
@@ -199,7 +199,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
             <span
               className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap ${
                 form.has_login
-                  ? 'bg-green-100 text-green-700'
+                  ? 'bg-portal-green-lt text-portal-green'
                   : form.email
                     ? 'bg-portal-amber-lt text-portal-amber'
                     : 'bg-gray-100 text-portal-sub'
@@ -213,7 +213,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
         <div className="flex items-center justify-between gap-3 pt-2 border-t border-pink-200/60">
           <div className="min-w-0 flex-1">
             {inviteMsg && (
-              <span className={`text-xs font-semibold inline-flex items-center gap-1 ${inviteMsg.ok ? 'text-green-700' : 'text-red-700'}`}>
+              <span className={`text-xs font-semibold inline-flex items-center gap-1 ${inviteMsg.ok ? 'text-portal-green' : 'text-red-700'}`}>
                 {inviteMsg.ok ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
                 {inviteMsg.text}
               </span>

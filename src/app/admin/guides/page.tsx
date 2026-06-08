@@ -143,7 +143,7 @@ export default async function GuidesAdminPage() {
                   </span>
                 )}
                 {missingHero && (
-                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber-lt0 text-white px-1.5 py-0.5 rounded">
+                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber text-white px-1.5 py-0.5 rounded">
                     <AlertCircle size={9} /> No hero
                   </span>
                 )}

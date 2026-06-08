@@ -36,8 +36,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 const DOT_COLORS: Record<Notification['dot'], string> = {
   red:   'bg-red-500',
   amber: 'bg-amber-400',
-  green: 'bg-portal-green-lt0',
-  blue:  'bg-portal-blue-lt0',
+  green: 'bg-portal-green',
+  blue:  'bg-portal-blue',
 }
 
 // ── AI Chat message type ───────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
 
   const CATEGORY_COLORS: Record<string, string> = {
     'Getting Started': 'bg-portal-blue-lt text-portal-blue',
-    'Advertisers':     'bg-green-100 text-green-700',
+    'Advertisers':     'bg-portal-green-lt text-portal-green',
     'Content':         'bg-purple-100 text-purple-700',
     'Distribution':    'bg-orange-100 text-orange-700',
     'Settings':        'bg-slate-100 text-slate-600',

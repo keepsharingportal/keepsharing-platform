@@ -230,7 +230,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
               type="button"
               onClick={() => onBulk(allKeys, false)}
               disabled={groupBusy || allVisible}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-green-lt text-portal-green ring-emerald-200 hover:bg-portal-green-lt disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-green-lt text-portal-green border-portal-green/30 hover:bg-portal-green-lt disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <Eye size={11} />}
               Show all
@@ -239,7 +239,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
               type="button"
               onClick={() => onBulk(allKeys, true)}
               disabled={groupBusy || allHidden}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-red-lt text-portal-red ring-rose-200 hover:bg-portal-red-lt disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-red-lt text-portal-red border-portal-red/30 hover:bg-portal-red-lt disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <EyeOff size={11} />}
               Hide all
@@ -511,8 +511,8 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               openInNewTab
-                ? 'bg-sky-50 text-sky-700 ring-sky-200'
-                : 'bg-white text-portal-sub ring-gray-200 hover:ring-gray-400'
+                ? 'bg-sky-50 text-sky-700 border-portal-blue/30'
+                : 'bg-white text-portal-sub border-portal-border hover:ring-gray-400'
             }`}
             title={openInNewTab ? 'Opens in new tab — click to disable' : 'Click to open in new tab'}
           >
@@ -522,7 +522,7 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             type="button"
             onClick={startRename}
             disabled={busy}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-text ring-1 ring-gray-200 hover:ring-gray-400"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-text border border-portal-border hover:ring-gray-400"
             title="Rename / change URL"
           >
             <Edit3 size={10} /> Rename
@@ -533,8 +533,8 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               isHidden
-                ? 'bg-portal-red-lt text-portal-red ring-rose-200 hover:bg-portal-red-lt'
-                : 'bg-portal-green-lt text-portal-green ring-emerald-200 hover:bg-portal-green-lt'
+                ? 'bg-portal-red-lt text-portal-red border-portal-red/30 hover:bg-portal-red-lt'
+                : 'bg-portal-green-lt text-portal-green border-portal-green/30 hover:bg-portal-green-lt'
             }`}
           >
             {busy ? <RefreshCw size={11} className="animate-spin" /> : isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
@@ -611,13 +611,13 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               row.open_in_new_tab
-                ? 'bg-sky-50 text-sky-700 ring-sky-200'
-                : 'bg-white text-portal-sub ring-gray-200 hover:ring-gray-400'
+                ? 'bg-sky-50 text-sky-700 border-portal-blue/30'
+                : 'bg-white text-portal-sub border-portal-border hover:ring-gray-400'
             }`}
           >
             <ExternalLink size={10} /> {row.open_in_new_tab ? 'New tab' : 'Same tab'}
           </button>
-          <button type="button" onClick={() => setRenaming(true)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-text ring-1 ring-gray-200 hover:ring-gray-400">
+          <button type="button" onClick={() => setRenaming(true)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-text border border-portal-border hover:ring-gray-400">
             <Edit3 size={10} /> Edit
           </button>
           <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-red border border-portal-red/30 hover:bg-portal-red-lt">
@@ -668,7 +668,7 @@ function AddCustomItemForm({ parentKey, onClose, onAdded }: AddFormProps) {
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-amber-200 bg-portal-amber-lt/40 px-3 py-3 space-y-2">
+    <div className="mt-3 rounded-lg border border-portal-amber/30 bg-portal-amber-lt/40 px-3 py-3 space-y-2">
       <p className="text-[10px] uppercase tracking-wide font-bold text-portal-amber">Add a custom link</p>
       {err && <p className="text-xs text-portal-red">{err}</p>}
       <div className="space-y-1.5">

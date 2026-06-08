@@ -138,7 +138,7 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
   // structure first and then the status as a secondary visual layer.
   type SlotStatus = 'live' | 'paused' | 'sellable' | 'hidden' | undefined
   function multiClasses(status: SlotStatus): string {
-    if (status === 'live')     return 'border-green-600 bg-green-100'
+    if (status === 'live')     return 'border-green-600 bg-portal-green-lt'
     if (status === 'paused')   return 'border-gray-400 bg-gray-100'
     if (status === 'sellable') return 'border-amber-400 bg-portal-amber-lt'
     if (status === 'hidden')   return 'border-portal-border-2 bg-portal-bg opacity-50'

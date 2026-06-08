@@ -15,7 +15,7 @@ function StatusBar({ not_sent, sent, responded, updated, total }: {
         {not_sent  > 0 && <div className="bg-gray-300"     style={{ width: `${(not_sent  / total) * 100}%` }} />}
         {sent      > 0 && <div className="bg-amber-400"    style={{ width: `${(sent      / total) * 100}%` }} />}
         {responded > 0 && <div className="bg-blue-400"     style={{ width: `${(responded / total) * 100}%` }} />}
-        {updated   > 0 && <div className="bg-portal-green-lt0"    style={{ width: `${(updated   / total) * 100}%` }} />}
+        {updated   > 0 && <div className="bg-portal-green"    style={{ width: `${(updated   / total) * 100}%` }} />}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
         {not_sent  > 0 && <span className="text-portal-sub"  >{not_sent} not sent</span>}
@@ -76,11 +76,11 @@ export default function GuidesPage() {
               <div key={guide.month}
                 className={`bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow ${
                   isCurrent ? 'border-portal-border-2 ring-1 ring-portal-blue/30' :
-                  urgentSoon ? 'border-amber-200' : 'border-portal-border'
+                  urgentSoon ? 'border-portal-amber/30' : 'border-portal-border'
                 }`}
               >
                 {/* Color bar */}
-                <div className={`h-1 ${isCurrent ? 'bg-portal-blue-lt0' : isPast ? 'bg-gray-200' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
+                <div className={`h-1 ${isCurrent ? 'bg-portal-blue' : isPast ? 'bg-gray-200' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -128,7 +128,7 @@ export default function GuidesPage() {
                       <BookOpen size={12} /> Manage
                     </Link>
                     {guide.stats.not_sent > 0 && (
-                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-amber bg-portal-amber-lt border border-amber-200 rounded-lg hover:bg-portal-amber-lt transition-colors">
+                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-amber bg-portal-amber-lt border border-portal-amber/30 rounded-lg hover:bg-portal-amber-lt transition-colors">
                         <Mail size={12} /> Send {guide.stats.not_sent}
                       </button>
                     )}

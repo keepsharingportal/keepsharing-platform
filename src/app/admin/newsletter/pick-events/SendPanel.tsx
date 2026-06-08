@@ -81,7 +81,7 @@ export function SendPanel({
       </div>
 
       {!webhookConfigured && (
-        <div className="px-5 py-3 bg-portal-amber-lt border-b border-amber-200">
+        <div className="px-5 py-3 bg-portal-amber-lt border-b border-portal-amber/30">
           <p className="text-xs text-amber-900 leading-relaxed">
             Set <code className="bg-portal-amber-lt px-1 rounded">GHL_NEWSLETTER_WEBHOOK_URL</code> in <code className="bg-portal-amber-lt px-1 rounded">.env.local</code> with the webhook URL from your GHL workflow trigger. Then restart the dev server.
           </p>
@@ -133,7 +133,7 @@ export function SendPanel({
         {result && (
           <div className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-2 ${
             result.ok
-              ? 'border-green-200 bg-portal-green-lt text-green-800'
+              ? 'border-portal-green/30 bg-portal-green-lt text-green-800'
               : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
           }`}>
             {result.ok ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}

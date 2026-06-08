@@ -104,7 +104,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${pct === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`}
+              className={`h-full transition-all ${pct === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -127,8 +127,8 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
               return (
                 <li key={s.id} className={`px-4 py-3 flex items-center gap-3 ${bg}`}>
                   <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    s.checked    ? 'bg-portal-green-lt0 text-white' :
-                    s.is_pickup  ? 'bg-portal-blue-lt0 text-white'    :
+                    s.checked    ? 'bg-portal-green text-white' :
+                    s.is_pickup  ? 'bg-portal-blue text-white'    :
                                    'bg-white border-2 border-portal-border-2 text-portal-muted'
                   }`}>
                     {s.checked ? <Check size={12} strokeWidth={3} /> : s.is_pickup ? 'P' : number}
@@ -230,7 +230,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${pct === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`}
+                      className={`h-full ${pct === 100 ? 'bg-portal-green' : 'bg-portal-blue'}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>

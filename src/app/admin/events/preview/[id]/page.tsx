@@ -25,12 +25,12 @@ export const metadata: Metadata = { title: 'Event Preview — Admin' }
 export const dynamic  = 'force-dynamic'
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  pending:   { label: 'Pending Review', cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
-  published: { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
-  approved:  { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
-  rejected:  { label: 'Rejected',       cls: 'bg-portal-red-lt text-portal-red ring-rose-200' },
-  cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-portal-text ring-gray-200' },
-  archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-portal-text ring-gray-200' },
+  pending:   { label: 'Pending Review', cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
+  published: { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
+  approved:  { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
+  rejected:  { label: 'Rejected',       cls: 'bg-portal-red-lt text-portal-red border-portal-red/30' },
+  cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-portal-text border-portal-border' },
+  archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-portal-text border-portal-border' },
 }
 
 interface Props {
@@ -99,7 +99,7 @@ export default async function EventPreviewPage({ params }: Props) {
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Admin preview banner */}
-      <div className="bg-portal-amber-lt border-b border-amber-200 px-6 py-2.5 flex items-center gap-2 text-xs">
+      <div className="bg-portal-amber-lt border-b border-portal-amber/30 px-6 py-2.5 flex items-center gap-2 text-xs">
         <Eye size={13} className="text-portal-amber shrink-0" />
         <span className="font-bold text-amber-900">Preview mode</span>
         <span className="text-portal-amber">— this is how the event will look on the public site.</span>
@@ -117,7 +117,7 @@ export default async function EventPreviewPage({ params }: Props) {
       <article className="max-w-4xl mx-auto px-4 py-8 md:px-6 md:py-12">
         {/* Hero */}
         {heroUrl ? (
-          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200 mb-6">
+          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 border border-portal-border mb-6">
             <Image src={heroUrl} alt={String(ev.title)} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 1200px" unoptimized />
             {isFeatured && (
               <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-amber-900 border border-portal-amber/30">
@@ -161,7 +161,7 @@ export default async function EventPreviewPage({ params }: Props) {
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-6">
             {tags.map(t => (
-              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-portal-text ring-1 ring-gray-200 text-xs">
+              <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-portal-text border border-portal-border text-xs">
                 <Tag size={10} /> {t.replace(/-/g, ' ')}
               </span>
             ))}
@@ -175,7 +175,7 @@ export default async function EventPreviewPage({ params }: Props) {
         )}
 
         {/* Details panel */}
-        <div className="rounded-lg bg-white ring-1 ring-gray-200 p-5 md:p-6 space-y-3 text-sm">
+        <div className="rounded-lg bg-white border border-portal-border p-5 md:p-6 space-y-3 text-sm">
           {(address || city) && (
             <div className="flex items-start gap-2">
               <MapPin size={14} className="text-portal-muted mt-0.5 shrink-0" />
@@ -214,7 +214,7 @@ export default async function EventPreviewPage({ params }: Props) {
 
         {/* Source attribution — admin-only, doesn't render on public page */}
         {(sourceUrl || sourceName) && (
-          <div className="mt-6 rounded-lg bg-portal-bg ring-1 ring-gray-200 px-4 py-3 text-xs text-portal-sub">
+          <div className="mt-6 rounded-lg bg-portal-bg border border-portal-border px-4 py-3 text-xs text-portal-sub">
             <span className="font-bold uppercase tracking-wider mr-2">Source</span>
             {sourceName ?? 'Unknown'}
             {sourceUrl && (

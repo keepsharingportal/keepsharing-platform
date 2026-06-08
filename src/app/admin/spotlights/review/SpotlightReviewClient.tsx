@@ -95,7 +95,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
     <div>
       {msg && (
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-          msg.ok ? 'bg-portal-green-lt border border-green-200 text-green-700'
+          msg.ok ? 'bg-portal-green-lt border border-portal-green/30 text-portal-green'
                  : 'bg-red-50 border border-red-200 text-portal-red'
         }`}>
           {msg.ok ? <CheckCircle2 size={14} className="inline mr-1 -mt-0.5" /> : <AlertCircle size={14} className="inline mr-1 -mt-0.5" />}
@@ -130,7 +130,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <button
               onClick={() => runBulkAction([...selected], 'send-to-review')}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-amber-lt text-portal-amber border border-amber-200 rounded-lg hover:bg-portal-amber-lt disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-amber-lt text-portal-amber border border-portal-amber/30 rounded-lg hover:bg-portal-amber-lt disabled:opacity-50 transition-colors"
             >
               Needs Editing
             </button>
