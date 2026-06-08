@@ -188,9 +188,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
                 key={row.id}
                 row={row}
                 currentUser={currentUser}
-                editing={editingId === row.id}
                 onEdit={() => setEditingId(row.id)}
-                onCancelEdit={() => setEditingId(null)}
                 onUpdated={(patch) => onUpdated(row.id, patch)}
                 onRemoved={() => onRemoved(row.id)}
               />
@@ -198,6 +196,51 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
           </div>
         )}
       </div>
+
+      {/* Edit modal — Portal pattern: list stays a list, editing
+          happens in a focused overlay dialog (not inline expansion). */}
+      {editingId && (() => {
+        const row = rows.find(r => r.id === editingId)
+        if (!row) return null
+        const isSelf = row.id === currentUser.id
+        const manage = canManageAdminRow(currentUser.role, row.role, isSelf)
+        if (!manage.allowed) { setEditingId(null); return null }
+        return (
+          <div
+            className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+            onClick={() => setEditingId(null)}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-12 overflow-hidden border border-portal-border"
+            >
+              <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
+                <div>
+                  <h2 className="text-base font-bold text-portal-text">Edit user</h2>
+                  <p className="text-xs text-portal-sub mt-0.5">{row.full_name || row.email.split('@')[0]} · {row.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingId(null)}
+                  className="text-portal-muted hover:text-portal-text"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </header>
+              <div className="px-6 py-5">
+                <EditRowPanel
+                  row={row}
+                  currentUserRole={currentUser.role}
+                  isSelf={isSelf}
+                  onCancel={() => setEditingId(null)}
+                  onSaved={(patch) => { onUpdated(row.id, patch); setEditingId(null) }}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -381,13 +424,11 @@ function InvitePanel({
 // ── Admin row ────────────────────────────────────────────────────────────────
 
 function AdminRowItem({
-  row, currentUser, editing, onEdit, onCancelEdit, onUpdated, onRemoved,
+  row, currentUser, onEdit, onUpdated, onRemoved,
 }: {
   row:          AdminUserRow
   currentUser:  CurrentUser
-  editing:      boolean
   onEdit:       () => void
-  onCancelEdit: () => void
   onUpdated:    (patch: Partial<AdminUserRow>) => void
   onRemoved:    () => void
 }) {
@@ -527,11 +568,10 @@ function AdminRowItem({
                 </button>
               )}
               <button
-                onClick={editing ? onCancelEdit : onEdit}
+                onClick={onEdit}
                 className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
               >
-                <Pencil size={11} />
-                {editing ? 'Close' : 'Edit'}
+                <Pencil size={11} /> Edit
               </button>
               <button
                 onClick={remove}
@@ -553,15 +593,6 @@ function AdminRowItem({
         </div>
       </div>
 
-      {editing && manage.allowed && (
-        <EditRowPanel
-          row={row}
-          currentUserRole={currentUser.role}
-          isSelf={isSelf}
-          onCancel={onCancelEdit}
-          onSaved={(patch) => { onUpdated(patch); onCancelEdit() }}
-        />
-      )}
     </div>
   )
 }
@@ -641,7 +672,7 @@ function EditRowPanel({
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <div className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
+    <div className="-mx-1">
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
           <label className={lbl}>Full name</label>
