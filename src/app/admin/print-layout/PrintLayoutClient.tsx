@@ -459,7 +459,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
             <button
               type="button"
               onClick={() => setAdding(v => !v)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-700"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
             >
               <Plus size={14} /> Add Placement
             </button>
@@ -550,7 +550,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
 
         {/* Migration banner — until 129 is applied. */}
         {tableMissing && (
-          <div className="mt-3 rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="mt-3 rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-portal-amber">
             <p className="font-bold">Migration 129 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/129_print_ad_placements.sql</code> in Supabase Studio. The page works without it; the table just stays empty.
@@ -576,7 +576,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           Slides in above the table whenever the editor has rows
           selected. Stays sticky-visible until they Clear. */}
       {selected.size > 0 && (
-        <div className="mx-4 mt-3 bg-gray-900 text-white rounded-lg px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 print:hidden">
+        <div className="mx-4 mt-3 bg-portal-navy text-white rounded-lg px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 print:hidden">
           <span className="text-sm font-bold">
             {selected.size} {selected.size === 1 ? 'placement' : 'placements'} selected
           </span>
@@ -602,7 +602,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
               type="button"
               onClick={onBulkDelete}
               disabled={busy}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 rounded-lg disabled:opacity-40"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-portal-red hover:opacity-90 rounded-lg disabled:opacity-40"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
               Delete
@@ -779,7 +779,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
-      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-rose-900' : 'text-portal-text'}`}>
+      <td className={`px-4 py-2 font-bold ${isExpired ? 'text-portal-red' : 'text-portal-text'}`}>
         {/* Click anywhere on the business name to open the inline editor
             — matches the convention on /admin/advertisers and saves a
             hover-and-aim at the tiny pencil icon. */}
@@ -820,7 +820,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         <div className="flex flex-col gap-0.5">
           <span>{row.expires_month ? shortMonth(row.expires_month) : ''}</span>
           {isExpired && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Past expires_month — re-up by bumping the date, or delete the row to let lapse.">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-portal-red text-white text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Past expires_month — re-up by bumping the date, or delete the row to let lapse.">
               Expired
             </span>
           )}
@@ -831,10 +831,10 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
       </td>
       <td className="px-3 py-2 print:hidden">
         <div className="flex items-center gap-1">
-          <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-portal-muted hover:text-portal-text" aria-label="Edit">
+          <button onClick={onEdit} className="p-1 rounded hover:bg-portal-row-hover text-portal-muted hover:text-portal-text" aria-label="Edit">
             <Pencil size={11} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-portal-red-lt text-gray-300 hover:text-rose-600" aria-label="Delete">
+          <button onClick={onDelete} className="p-1 rounded hover:bg-portal-red-lt text-portal-muted hover:text-portal-red" aria-label="Delete">
             <Trash2 size={11} />
           </button>
         </div>
@@ -855,14 +855,14 @@ function StatusPill({ label, count, tone, active, onClick }: {
   onClick: () => void
 }) {
   const toneActive: Record<string, string> = {
-    neutral: 'bg-gray-900 text-white border-gray-900',
-    green:   'bg-emerald-600 text-white border-emerald-600',
+    neutral: 'bg-portal-navy text-white border-gray-900',
+    green:   'bg-portal-green text-white border-portal-green',
     amber:   'bg-portal-amber text-white border-amber-500',
-    rose:    'bg-rose-600 text-white border-rose-600',
+    rose:    'bg-portal-red text-white border-rose-600',
   }
   const toneIdle: Record<string, string> = {
     neutral: 'bg-white text-portal-text border-portal-border-2 hover:bg-portal-bg',
-    green:   'bg-white text-portal-green border-emerald-200 hover:bg-portal-green-lt',
+    green:   'bg-white text-portal-green border-portal-green/30 hover:bg-portal-green-lt',
     amber:   'bg-white text-portal-amber border-portal-amber/30 hover:bg-portal-amber-lt',
     rose:    'bg-white text-portal-red border-portal-red/30 hover:bg-portal-red-lt',
   }
@@ -870,7 +870,7 @@ function StatusPill({ label, count, tone, active, onClick }: {
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold transition-colors ${active ? toneActive[tone] : toneIdle[tone]}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-semibold transition-colors ${active ? toneActive[tone] : toneIdle[tone]}`}
       aria-pressed={active}
     >
       <span>{label}</span>
@@ -1030,7 +1030,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
             type="button"
             onClick={apply}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
           >
             {saving ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
             {saving ? 'Applying…' : `Apply to ${count}`}
@@ -1206,7 +1206,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
           type="button"
           onClick={save}
           disabled={!advId || saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
         >
           {saving ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
           {saving ? 'Saving…' : 'Add to layout'}

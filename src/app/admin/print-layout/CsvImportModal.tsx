@@ -345,7 +345,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 type="button"
                 onClick={onPlan}
                 disabled={planning}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
               >
                 {planning ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {planning ? 'Analyzing…' : 'Preview import'}
@@ -359,21 +359,21 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
         {step === 'plan' && plan && counts && (
           <>
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-portal-green-lt text-portal-green border border-emerald-200 font-semibold">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-portal-green-lt text-portal-green border border-portal-green/30 font-semibold">
                 {counts.matched} auto-matched
               </span>
               {counts.fuzzy > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-portal-amber-lt text-portal-amber border border-portal-amber/30 font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-portal-amber-lt text-portal-amber border border-portal-amber/30 font-semibold">
                   {counts.fuzzy} fuzzy
                 </span>
               )}
               {counts.new > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
                   {counts.new} no match
                 </span>
               )}
               {counts.duplicate > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-portal-sub border border-portal-border font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 text-portal-sub border border-portal-border font-semibold">
                   {counts.duplicate} already on issue (skipped)
                 </span>
               )}
@@ -381,7 +381,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
 
             {reviewRows.length > 0 && (
               <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3">
-                <p className="text-xs font-bold text-amber-900 mb-2">
+                <p className="text-xs font-bold text-portal-amber mb-2">
                   Review {reviewRows.length} row{reviewRows.length === 1 ? '' : 's'}
                   <span className="font-normal ml-1 text-portal-amber">— pick existing business or type a new one</span>
                 </p>
@@ -415,7 +415,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 title={unresolvedNewCount > 0
                   ? `${unresolvedNewCount} no-match row${unresolvedNewCount === 1 ? '' : 's'} still need a business name or Skip`
                   : ''}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
               >
                 {committing ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {committing ? 'Importing…' : `Import to ${fmtIssue(targetMonth)}`}
@@ -456,7 +456,7 @@ function PreviewCoerce({ field, raw }: { field: string; raw: string }) {
   const [coerced, changed] = txt
   if (!changed && field !== 'expires_month') return null         // hide noise
   return (
-    <div className={`mt-0.5 text-[10px] font-mono inline-flex items-center gap-1 ${changed ? 'text-emerald-600' : 'text-portal-muted'}`}>
+    <div className={`mt-0.5 text-[10px] font-mono inline-flex items-center gap-1 ${changed ? 'text-portal-green' : 'text-portal-muted'}`}>
       → {coerced}
     </div>
   )
@@ -567,7 +567,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
   }
 
   return (
-    <div className="rounded-lg border border-amber-100 bg-white p-2.5 text-xs">
+    <div className="rounded-lg border border-portal-amber/30 bg-white p-2.5 text-xs">
       <div className="flex items-center justify-between gap-2">
         <p className="font-bold text-portal-text">{planned.input.business}</p>
         <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-portal-amber-lt text-portal-amber'}`}>

@@ -208,7 +208,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
         </div>
       )}
       {saved && !error && (
-        <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green">
+        <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}
@@ -240,7 +240,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
                 key={d}
                 type="button"
                 onClick={() => setDesign(d)}
-                className={`px-4 py-2 text-sm font-semibold capitalize ${design === d ? 'bg-gray-900 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
+                className={`px-4 py-2 text-sm font-semibold capitalize ${design === d ? 'bg-portal-navy text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
               >
                 {d}
               </button>
@@ -322,7 +322,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             <button
               type="button"
               onClick={() => setOngoing(true)}
-              className={`px-4 py-2 text-sm font-semibold ${ongoing ? 'bg-emerald-600 text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
+              className={`px-4 py-2 text-sm font-semibold ${ongoing ? 'bg-portal-green text-white' : 'bg-white text-portal-text hover:bg-portal-bg'}`}
             >
               Ongoing
             </button>
@@ -390,7 +390,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
           type="button"
           onClick={onDelete}
           disabled={deleting || saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-red bg-white border border-portal-red/30 rounded-full hover:bg-portal-red-lt disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-red bg-white border border-portal-red/30 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
         >
           {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           Delete placement
@@ -406,7 +406,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             type="button"
             onClick={onSave}
             disabled={saving || busy}
-            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Saving…' : 'Save changes'}
