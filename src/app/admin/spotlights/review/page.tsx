@@ -96,7 +96,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
 
       <div className="p-6">
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border bg-white p-12 text-center max-w-2xl mx-auto">
+          <div className="rounded-lg border border-dashed border-portal-border bg-white p-12 text-center max-w-2xl mx-auto">
             <Inbox className="h-8 w-8 text-portal-muted mx-auto mb-2" />
             <p className="text-sm font-semibold text-portal-text mb-1">Nothing in the {status} queue.</p>
             <p className="text-xs text-portal-sub mb-4">

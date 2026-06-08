@@ -93,13 +93,13 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
       {err && <p className="text-xs text-portal-red">{err}</p>}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
           <p className="text-sm text-portal-sub">No {activeStatus} change requests.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {rows.map(r => (
-            <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3">
+            <li key={r.id} className="rounded-lg border border-portal-border bg-white p-3">
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

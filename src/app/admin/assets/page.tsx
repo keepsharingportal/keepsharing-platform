@@ -239,7 +239,7 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
   return (
     <Link
       href={`/admin/assets/${asset.id}`}
-      className="bg-white border border-portal-border rounded-xl overflow-hidden hover:border-portal-border-2 hover:shadow-sm transition-all group block"
+      className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border-2 hover:shadow-sm transition-all group block"
     >
       {/* Thumbnail */}
       <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
@@ -410,7 +410,7 @@ export default async function AssetsPage({
             Creative operations hub — photos, graphics, logos, and all ecosystem assets.
           </p>
         </div>
-        <div className="text-xs text-portal-muted bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-2 shrink-0">
+        <div className="text-xs text-portal-muted bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-2 shrink-0">
           📤 Upload via Supabase Storage, then register here
         </div>
       </div>
@@ -427,7 +427,7 @@ export default async function AssetsPage({
           <Link
             key={label}
             href={viewHref(v)}
-            className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center hover:border-portal-border hover:shadow-sm transition-all"
+            className="bg-white border border-portal-border rounded-lg px-4 py-3 text-center hover:border-portal-border hover:shadow-sm transition-all"
           >
             <p className="text-2xl font-bold" style={{ color }}>{val}</p>
             <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
@@ -441,7 +441,7 @@ export default async function AssetsPage({
           <Link
             key={v.key}
             href={viewHref(v.key)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -556,7 +556,7 @@ export default async function AssetsPage({
                 const preview  = previewSrc(asset)
                 const needs    = designNeeds(asset)
                 return (
-                  <div key={asset.id} className="bg-white border border-portal-border rounded-xl overflow-hidden hover:border-portal-border transition-colors">
+                  <div key={asset.id} className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border transition-colors">
                     <div className="flex items-start gap-4 p-4">
                       {/* Thumbnail */}
                       <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0">
@@ -692,7 +692,7 @@ export default async function AssetsPage({
                   const tc    = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
                   const title = submissionTitle(sub)
                   return (
-                    <div key={sub.id} className="bg-white border border-portal-border rounded-xl p-4">
+                    <div key={sub.id} className="bg-white border border-portal-border rounded-lg p-4">
                       <div className="flex items-start gap-3 mb-3">
                         <span className="text-lg">{tc?.emoji ?? '📝'}</span>
                         <div className="flex-1 min-w-0">
@@ -749,7 +749,7 @@ export default async function AssetsPage({
                   const tc    = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
                   const title = submissionTitle(sub)
                   return (
-                    <div key={sub.id} className="bg-portal-bg border border-portal-border rounded-xl px-4 py-3 flex items-center gap-3">
+                    <div key={sub.id} className="bg-portal-bg border border-portal-border rounded-lg px-4 py-3 flex items-center gap-3">
                       <span>{tc?.emoji ?? '📝'}</span>
                       <p className="flex-1 text-xs font-medium text-portal-sub truncate">{title}</p>
                       <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">✓ In Library</span>
@@ -784,7 +784,7 @@ export default async function AssetsPage({
               { label: 'No Web Crop',         count: noWebCrop.length,    color: '#d97706', icon: '🌐' },
               { label: 'No Social Crop',      count: noSocialCrop.length, color: '#7c3aed', icon: '📱' },
             ] as const).map(({ label, count, color, icon }) => (
-              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-lg px-4 py-4 text-center">
                 <p className="text-2xl mb-1">{icon}</p>
                 <p className="text-2xl font-bold" style={{ color }}>{count}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5 leading-tight">{label}</p>
@@ -830,7 +830,7 @@ export default async function AssetsPage({
               </div>
               <div className="space-y-2">
                 {items.slice(0, 10).map(asset => (
-                  <div key={asset.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-2.5">
+                  <div key={asset.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-2.5">
                     <div className="w-8 h-8 rounded bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
                       {previewSrc(asset)
                         ? <img src={previewSrc(asset)!} alt="" className="w-full h-full object-cover" />  // eslint-disable-line @next/next/no-img-element

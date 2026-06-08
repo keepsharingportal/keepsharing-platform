@@ -550,7 +550,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
 
         {/* Migration banner — until 129 is applied. */}
         {tableMissing && (
-          <div className="mt-3 rounded-xl border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
+          <div className="mt-3 rounded-lg border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold">Migration 129 not applied yet</p>
             <p className="text-xs mt-1">
               Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/129_print_ad_placements.sql</code> in Supabase Studio. The page works without it; the table just stays empty.
@@ -576,7 +576,7 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
           Slides in above the table whenever the editor has rows
           selected. Stays sticky-visible until they Clear. */}
       {selected.size > 0 && (
-        <div className="mx-4 mt-3 bg-gray-900 text-white rounded-xl px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 print:hidden">
+        <div className="mx-4 mt-3 bg-gray-900 text-white rounded-lg px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 print:hidden">
           <span className="text-sm font-bold">
             {selected.size} {selected.size === 1 ? 'placement' : 'placements'} selected
           </span>

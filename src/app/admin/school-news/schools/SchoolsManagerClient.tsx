@@ -346,7 +346,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
       </div>
 
       {result && (
-        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'}`}>
+        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-portal-green-lt border border-green-200 text-green-800' : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'}`}>
           <p>{result.msg}</p>
           {result.skipped && result.skipped.length > 0 && (
             <details className="mt-1">

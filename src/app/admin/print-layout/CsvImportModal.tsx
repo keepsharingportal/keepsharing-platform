@@ -380,7 +380,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
             </div>
 
             {reviewRows.length > 0 && (
-              <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3">
+              <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3">
                 <p className="text-xs font-bold text-amber-900 mb-2">
                   Review {reviewRows.length} row{reviewRows.length === 1 ? '' : 's'}
                   <span className="font-normal ml-1 text-portal-amber">— pick existing business or type a new one</span>

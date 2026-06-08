@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   reviewed: { label: 'Reviewed',   color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
   selected: { label: 'Selected',   color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   assigned: { label: 'Assigned',   color: 'bg-teal-50 text-teal-700 ring-teal-200' },
-  answered: { label: 'Answered',   color: 'bg-green-50 text-green-700 ring-green-200' },
+  answered: { label: 'Answered',   color: 'bg-portal-green-lt text-green-700 ring-green-200' },
   rejected: { label: 'Not Used',   color: 'bg-red-50 text-red-700 ring-red-200' },
 }
 
@@ -155,7 +155,7 @@ export default function AskDoctorAdminPage() {
               key={s.key}
               onClick={() => setFilter(s.key)}
               className={cn(
-                'bg-white rounded-xl border p-3 text-center transition-all',
+                'bg-white rounded-lg border p-3 text-center transition-all',
                 filter === s.key ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-portal-border hover:border-portal-border-2'
               )}
             >
@@ -166,25 +166,25 @@ export default function AskDoctorAdminPage() {
         </div>
 
         {/* Workflow guide */}
-        <div className="bg-portal-blue-lt border border-blue-200 rounded-xl p-4">
+        <div className="bg-portal-blue-lt border border-blue-200 rounded-lg p-4">
           <div className="text-xs font-bold text-portal-blue uppercase tracking-wide mb-2">Monthly Workflow</div>
           <div className="flex flex-wrap gap-2 items-center text-xs text-portal-blue">
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">1. Review new questions</span>
-            <span className="text-blue-400">→</span>
+            <span className="text-portal-blue">→</span>
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">2. Select one for this month</span>
-            <span className="text-blue-400">→</span>
+            <span className="text-portal-blue">→</span>
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">3. Assign to doctor partner</span>
-            <span className="text-blue-400">→</span>
+            <span className="text-portal-blue">→</span>
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">4. Doctor emails answer</span>
-            <span className="text-blue-400">→</span>
+            <span className="text-portal-blue">→</span>
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">5. AI formats Q&A article</span>
-            <span className="text-blue-400">→</span>
+            <span className="text-portal-blue">→</span>
             <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">6. Publishes in Boom Health dept</span>
           </div>
         </div>
 
         {/* Questions list */}
-        <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+        <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-portal-muted">Loading questions…</div>
           ) : visible.length === 0 ? (
@@ -234,7 +234,7 @@ export default function AskDoctorAdminPage() {
                         {/* Full question */}
                         <div className="pt-4">
                           <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1">Full Question</div>
-                          <p className="text-sm text-portal-text leading-relaxed bg-white border border-portal-border rounded-xl p-3">
+                          <p className="text-sm text-portal-text leading-relaxed bg-white border border-portal-border rounded-lg p-3">
                             {fd.question}
                           </p>
                         </div>
@@ -247,7 +247,7 @@ export default function AskDoctorAdminPage() {
                             onChange={e => setNotes(n => ({ ...n, [q.id]: e.target.value }))}
                             placeholder="Add internal notes (doctor to contact, topic relevance, etc.)"
                             rows={2}
-                            className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-xl outline-none focus:border-portal-blue resize-none"
+                            className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-lg outline-none focus:border-portal-blue resize-none"
                           />
                         </div>
 
@@ -276,14 +276,14 @@ export default function AskDoctorAdminPage() {
                         {q.status !== 'selected' && q.status !== 'assigned' && q.status !== 'answered' && (
                           <button
                             onClick={() => updateStatus(q.id, 'selected')}
-                            className="w-full py-2 px-4 text-sm font-bold text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-colors"
+                            className="w-full py-2 px-4 text-sm font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
                           >
                             Select as This Month's Feature →
                           </button>
                         )}
 
                         {q.status === 'selected' && (
-                          <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
                             <div className="text-xs font-bold text-purple-800 mb-1">Selected for This Month</div>
                             <p className="text-xs text-purple-700">
                               Forward this question to your doctor partner. Once they reply, paste their answer below and generate the Q&A article.
@@ -298,12 +298,12 @@ export default function AskDoctorAdminPage() {
                         )}
 
                         {q.status === 'assigned' && (
-                          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 space-y-3">
+                          <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 space-y-3">
                             <div className="text-xs font-bold text-teal-800">Doctor's Answer</div>
                             <textarea
                               placeholder="Paste the doctor's emailed answer here…"
                               rows={4}
-                              className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-xl outline-none focus:border-teal-400 resize-none"
+                              className="w-full px-3 py-2 text-xs text-portal-text bg-white border border-portal-border rounded-lg outline-none focus:border-teal-400 resize-none"
                             />
                             <button className="px-4 py-1.5 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
                               Generate Q&A Article with AI →

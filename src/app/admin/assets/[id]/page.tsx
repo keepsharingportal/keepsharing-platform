@@ -459,7 +459,7 @@ export default async function AssetDetailPage({
             </div>
 
             <div className="flex justify-end pt-1">
-              <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">
+              <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
                 Save Metadata
               </button>
             </div>
@@ -508,7 +508,7 @@ export default async function AssetDetailPage({
               <p className="text-[11px] text-amber-600 mt-2">⚠ Add alt text to reach 80% readiness.</p>
             )}
             <div className="flex justify-end mt-4">
-              <button type="submit" form="readiness-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-700">
+              <button type="submit" form="readiness-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
                 Save Readiness
               </button>
             </div>
@@ -563,7 +563,7 @@ export default async function AssetDetailPage({
             </div>
 
             {asset.graphic_completed_at ? (
-              <p className="text-xs text-green-600 font-semibold">
+              <p className="text-xs text-portal-green font-semibold">
                 ✓ Graphic completed {new Date(asset.graphic_completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             ) : (
@@ -574,7 +574,7 @@ export default async function AssetDetailPage({
             )}
 
             <div className="flex justify-end pt-1">
-              <button type="submit" form="canva-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-700">
+              <button type="submit" form="canva-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
                 Save Design Info
               </button>
             </div>
@@ -596,7 +596,7 @@ export default async function AssetDetailPage({
               <CheckField name="used_in_sponsor_section"  label="Sponsor section" checked={asset.used_in_sponsor_section}  formId="usage-form" />
             </div>
             <div className="flex justify-end pt-2">
-              <button type="submit" form="usage-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-700">
+              <button type="submit" form="usage-form" className="text-xs px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-700">
                 Save Usage
               </button>
             </div>

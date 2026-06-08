@@ -83,12 +83,12 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
 
       <ul className="space-y-2">
         {rows.length === 0 && !adding && (
-          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-xl border border-dashed border-portal-border">
+          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-lg border border-dashed border-portal-border">
             No resources yet.
           </li>
         )}
         {rows.map(r => (
-          <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3">
+          <li key={r.id} className="rounded-lg border border-portal-border bg-white p-3">
             {editing === r.id ? (
               <div className="space-y-2">
                 <Field label="Name" value={r.name} onChange={v => patchLocal(r.id, { name: v })} />
@@ -178,7 +178,7 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
+    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New resource</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>

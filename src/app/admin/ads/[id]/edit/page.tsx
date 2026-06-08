@@ -280,12 +280,12 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
           />
         )}
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800">
+          <div className="bg-portal-green-lt border border-green-200 rounded-lg p-3 text-sm text-green-800">
             ✓ Saved. Public homepage may take up to ~10 min to refresh (revalidate cache).
           </div>
         )}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-800">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
             {error}
           </div>
         )}
@@ -906,7 +906,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
             {adsLoading ? (
               <p className="text-xs text-portal-muted">Loading customer ad history…</p>
             ) : otherAdsFiltered.length === 0 ? (
-              <div className="rounded-xl border border-portal-border p-3 text-xs text-portal-sub italic">
+              <div className="rounded-lg border border-portal-border p-3 text-xs text-portal-sub italic">
                 This is the only ad this customer is running. Could be an upsell opportunity.
               </div>
             ) : (
@@ -964,7 +964,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
   onClone?:  (id: string) => void | Promise<void>
 }) {
   return (
-    <div className="rounded-xl border border-portal-border overflow-hidden">
+    <div className="rounded-lg border border-portal-border overflow-hidden">
       <div className="px-4 py-2 border-b border-portal-border bg-portal-bg flex items-center justify-between">
         <p className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">
           {label}
@@ -1258,7 +1258,7 @@ function ImageOnlyPreview({ ad, category, placementType }: {
 // most in-feed/sidebar/article placements.
 function InlinePreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="rounded-xl border border-portal-border bg-white p-4 shadow-sm max-w-xl">
+    <div className="rounded-lg border border-portal-border bg-white p-4 shadow-sm max-w-xl">
       <div className="flex items-start gap-4">
         <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={80} />
         <div className="flex-1 min-w-0">
@@ -1357,7 +1357,7 @@ function BannerPreview({ ad, wide }: { ad: AdRow; wide?: boolean }) {
 // In-article body break — appears mid-paragraph, wider.
 function InArticlePreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="rounded-xl border-2 border-dashed border-portal-blue/30 bg-portal-blue-lt p-4 max-w-xl">
+    <div className="rounded-lg border-2 border-dashed border-portal-blue/30 bg-portal-blue-lt p-4 max-w-xl">
       <p className="text-[10px] font-bold uppercase tracking-widest text-portal-blue mb-2">
         {ad.ad_eyebrow || 'Sponsored'}
       </p>
@@ -1455,7 +1455,7 @@ function FooterPreview({ ad }: { ad: AdRow }) {
 function SponsorPreview({ ad }: { ad: AdRow }) {
   const accent = ad.accent_color && /^#[0-9a-f]{3,8}$/i.test(ad.accent_color) ? ad.accent_color : '#0f172a'
   return (
-    <div className="rounded-xl p-5 text-white shadow-sm max-w-2xl" style={{ backgroundColor: accent }}>
+    <div className="rounded-lg p-5 text-white shadow-sm max-w-2xl" style={{ backgroundColor: accent }}>
       <div className="flex items-center gap-4">
         {ad.logo_url && (
           // eslint-disable-next-line @next/next/no-img-element

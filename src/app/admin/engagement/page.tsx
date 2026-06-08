@@ -388,7 +388,7 @@ export default async function EngagementPage({
           <Link
             key={v.key}
             href={viewHref(v.key)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -414,7 +414,7 @@ export default async function EngagementPage({
               { label: 'Active Guides',     val: `${activeGuides} / ${GUIDE_CONFIGS.length}`, color: '#7c3aed', sub: `${dormantGuides} dormant` },
               { label: 'Sponsor Gaps',      val: sponsorGaps.length,    color: sponsorGaps.length > 3 ? '#ef4444' : '#d97706', sub: 'high-engagement, unsponsored' },
             ] as const).map(({ label, val, color, sub }) => (
-              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4">
+              <div key={label} className="bg-white border border-portal-border rounded-lg px-4 py-4">
                 <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                 <p className="text-xs font-semibold text-portal-sub mt-0.5">{label}</p>
                 <p className="text-[10px] text-portal-muted mt-0.5">{sub}</p>
@@ -452,20 +452,20 @@ export default async function EngagementPage({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
               {sponsorGaps.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-4">
+                <div className="bg-portal-green-lt border border-green-200 rounded-lg px-4 py-4">
                   <p className="text-xs font-bold text-green-800 mb-1">💰 Sponsor Revenue Gap</p>
                   <p className="text-xs text-green-700 leading-relaxed">
                     <strong>{sponsorGaps[0]?.tc?.label ?? sponsorGaps[0]?.type}</strong> is your top participation category with no sponsor.
                     {sponsorGaps[0]?.count} submissions total — strong audience signal.
                   </p>
-                  <Link href={viewHref('participation')} className="text-[11px] text-green-600 font-semibold mt-2 block hover:underline">
+                  <Link href={viewHref('participation')} className="text-[11px] text-portal-green font-semibold mt-2 block hover:underline">
                     See gap analysis →
                   </Link>
                 </div>
               )}
 
               {dormantGuides > 0 && (
-                <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-4">
+                <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-4">
                   <p className="text-xs font-bold text-portal-amber mb-1">📖 Guide Content Gaps</p>
                   <p className="text-xs text-portal-amber leading-relaxed">
                     {dormantGuides} guide{dormantGuides !== 1 ? 's are' : ' is'} dormant or empty.
@@ -477,7 +477,7 @@ export default async function EngagementPage({
                 </div>
               )}
 
-              <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-4">
                 <p className="text-xs font-bold text-purple-800 mb-1">📧 Email Growth Moment</p>
                 <p className="text-xs text-purple-700 leading-relaxed">
                   Community submission thank-you page is an untapped newsletter capture moment.
@@ -589,7 +589,7 @@ export default async function EngagementPage({
               { label: 'High-Share Types (30d)',     val: highShareCount30,          color: '#ec4899' },
               { label: 'Total All Time',             val: allSubs.length,            color: '#374151' },
             ] as const).map(({ label, val, color }) => (
-              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-lg px-4 py-3 text-center">
                 <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5 leading-tight">{label}</p>
               </div>
@@ -617,7 +617,7 @@ export default async function EngagementPage({
                         {isHS      && <span className="text-[10px] bg-pink-100 text-pink-600 px-1 rounded font-bold">High share</span>}
                         {isPartic  && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1 rounded font-bold">Participation</span>}
                         {sponsorCat && !isSponsored && <span className="text-[10px] bg-red-100 text-portal-red px-1 rounded font-bold">No sponsor</span>}
-                        {sponsorCat && isSponsored  && <span className="text-[10px] bg-green-100 text-green-600 px-1 rounded font-bold">Sponsored</span>}
+                        {sponsorCat && isSponsored  && <span className="text-[10px] bg-green-100 text-portal-green px-1 rounded font-bold">Sponsored</span>}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
@@ -651,7 +651,7 @@ export default async function EngagementPage({
               </p>
               <div className="space-y-3">
                 {sponsorGaps.map(({ type, count, category, tc }) => (
-                  <div key={type} className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                  <div key={type} className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
                     <span className="text-xl shrink-0">{tc?.emoji ?? '📝'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-portal-text">{tc?.label ?? type}</p>
@@ -721,7 +721,7 @@ export default async function EngagementPage({
               { label: 'Slow / Aging',    count: guideHealth.filter(g => g.status.label === 'Slow').length,     color: '#d97706' },
               { label: 'Dormant / Empty', count: guideHealth.filter(g => ['Dormant','No content'].includes(g.status.label)).length, color: '#ef4444' },
             ] as const).map(({ label, count, color }) => (
-              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-lg px-4 py-4 text-center">
                 <p className="text-3xl font-bold" style={{ color }}>{count}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
               </div>
@@ -771,7 +771,7 @@ export default async function EngagementPage({
                 const tc    = SUBMISSION_TYPES.find(t => t.type === type)
                 const count = typeCounts.get(type) ?? 0
                 return (
-                  <div key={type} className="bg-pink-50 border border-pink-100 rounded-xl px-4 py-3">
+                  <div key={type} className="bg-pink-50 border border-pink-100 rounded-lg px-4 py-3">
                     <p className="text-xl mb-1">{tc?.emoji}</p>
                     <p className="text-xs font-semibold text-portal-text leading-tight">{tc?.label ?? type}</p>
                     <p className="text-[11px] text-portal-muted mt-0.5">{count} total submissions</p>
@@ -830,7 +830,7 @@ export default async function EngagementPage({
           <div className="space-y-3">
             <h2 className="text-sm font-bold text-portal-text">High-Value Newsletter Capture Moments</h2>
             {EMAIL_OPPORTUNITIES.map((opp, i) => (
-              <div key={i} className="bg-white border border-portal-border rounded-xl overflow-hidden">
+              <div key={i} className="bg-white border border-portal-border rounded-lg overflow-hidden">
                 <div className="flex items-start gap-4 p-4">
                   <div className="shrink-0 mt-0.5">
                     <span className={`text-[10px] px-2 py-1 rounded font-bold ${
@@ -869,7 +869,7 @@ export default async function EngagementPage({
                 { guide: 'Afterschool Guide',        magnet: '"Afterschool Activity Cost Comparison"', type: 'comparison'},
                 { guide: 'Family Resource Guide',    magnet: '"New Family Moving to River Region Guide"',type: 'guide' },
               ].map(({ guide, magnet, type }) => (
-                <div key={guide} className="bg-portal-bg border border-portal-border rounded-xl px-4 py-3">
+                <div key={guide} className="bg-portal-bg border border-portal-border rounded-lg px-4 py-3">
                   <p className="text-[10px] text-portal-muted font-semibold uppercase tracking-wide mb-0.5">{guide}</p>
                   <p className="text-xs font-semibold text-portal-text">{magnet}</p>
                   <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-semibold mt-1 inline-block">{type}</span>
@@ -891,7 +891,7 @@ export default async function EngagementPage({
                 { name: 'Birthday Spotlights', desc: 'Families who submitted get "your story is live" email', status: 'planned' },
                 { name: 'Guide Update Digest', desc: 'Monthly email: what\'s new in guides you follow',   status: 'planned' },
               ].map(({ name, desc }) => (
-                <div key={name} className="border border-dashed border-portal-border rounded-xl px-3 py-2.5">
+                <div key={name} className="border border-dashed border-portal-border rounded-lg px-3 py-2.5">
                   <p className="text-xs font-semibold text-portal-text">{name}</p>
                   <p className="text-[10px] text-portal-muted mt-0.5 leading-relaxed">{desc}</p>
                 </div>
@@ -920,7 +920,7 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'campaigns' && (
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-100 rounded-lg px-5 py-3">
+          <div className="bg-portal-green-lt border border-green-100 rounded-lg px-5 py-3">
             <p className="text-xs text-green-800 font-medium">
               🎯 Campaigns are operator-planned engagement pushes. Track ideas from concept through execution. Each campaign should have a clear goal and a named owner.
             </p>
@@ -931,7 +931,7 @@ export default async function EngagementPage({
             {(['idea','planned','active','complete','paused'] as const).map(s => {
               const count = campaigns.filter(c => c.status === s).length
               return (
-                <div key={s} className={`text-center px-3 py-3 rounded-xl border ${count > 0 ? 'bg-white border-portal-border' : 'bg-portal-bg border-gray-50'}`}>
+                <div key={s} className={`text-center px-3 py-3 rounded-lg border ${count > 0 ? 'bg-white border-portal-border' : 'bg-portal-bg border-gray-50'}`}>
                   <p className={`text-xl font-bold ${count > 0 ? 'text-portal-text' : 'text-gray-300'}`}>{count}</p>
                   <p className="text-[10px] text-portal-muted capitalize mt-0.5">{s}</p>
                 </div>
@@ -954,7 +954,7 @@ export default async function EngagementPage({
                 }
                 const nextStep = STATUS_NEXT[c.status]
                 return (
-                  <div key={c.id} className="bg-white border border-portal-border rounded-xl overflow-hidden">
+                  <div key={c.id} className="bg-white border border-portal-border rounded-lg overflow-hidden">
                     <div className="flex items-start gap-3 p-4">
                       <div
                         className="w-1 self-stretch rounded-full shrink-0"
@@ -1077,7 +1077,7 @@ export default async function EngagementPage({
               </div>
 
               <div className="flex justify-end">
-                <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">
+                <button type="submit" className="text-sm px-5 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
                   Add Campaign Idea
                 </button>
               </div>

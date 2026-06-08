@@ -93,7 +93,7 @@ export default async function ReportsLandingPage() {
       {/* ── Top Content + QR Performance — site-wide pulse ─────────────── */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Top Articles */}
-        <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top Articles — Most Viewed
@@ -125,7 +125,7 @@ export default async function ReportsLandingPage() {
         </section>
 
         {/* Top QR Codes */}
-        <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top QR Codes — Most Scanned
@@ -163,13 +163,13 @@ export default async function ReportsLandingPage() {
       </div>
 
       {summaries.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-12 text-center bg-white">
           <Activity className="h-8 w-8 text-portal-muted mx-auto mb-2" />
           <p className="text-sm font-semibold text-portal-text">No advertiser accounts yet</p>
           <p className="text-xs text-portal-sub mt-1">Add one at <Link href="/admin/advertisers/onboarding" className="text-portal-blue hover:underline">Onboarding</Link>.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+        <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
             <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Business</div>
             <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden md:block">Tier</div>

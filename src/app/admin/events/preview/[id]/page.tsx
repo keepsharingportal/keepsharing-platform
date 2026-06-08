@@ -121,7 +121,7 @@ export default async function EventPreviewPage({ params }: Props) {
             <Image src={heroUrl} alt={String(ev.title)} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 1200px" unoptimized />
             {isFeatured && (
               <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-amber-900 border border-portal-amber/30">
-                <Star size={12} className="fill-amber-400 text-amber-500" /> Featured
+                <Star size={12} className="fill-amber-400 text-portal-amber" /> Featured
               </span>
             )}
           </div>
@@ -214,7 +214,7 @@ export default async function EventPreviewPage({ params }: Props) {
 
         {/* Source attribution — admin-only, doesn't render on public page */}
         {(sourceUrl || sourceName) && (
-          <div className="mt-6 rounded-xl bg-portal-bg ring-1 ring-gray-200 px-4 py-3 text-xs text-portal-sub">
+          <div className="mt-6 rounded-lg bg-portal-bg ring-1 ring-gray-200 px-4 py-3 text-xs text-portal-sub">
             <span className="font-bold uppercase tracking-wider mr-2">Source</span>
             {sourceName ?? 'Unknown'}
             {sourceUrl && (

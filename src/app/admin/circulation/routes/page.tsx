@@ -77,13 +77,13 @@ export default async function RoutesPage() {
         <section>
           <AdminSectionHeader title="All routes" count={routes.length} />
           {routes.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+            <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
               <p className="text-sm text-portal-sub">No routes yet. Add one above or import from the PHP portal.</p>
             </div>
           ) : (
             <ul className="space-y-2">
               {routes.map(r => (
-                <li key={r.id} className="rounded-xl border border-portal-border bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
+                <li key={r.id} className="rounded-lg border border-portal-border bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
                   <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-portal-text truncate flex items-center gap-2">
                       {r.name}

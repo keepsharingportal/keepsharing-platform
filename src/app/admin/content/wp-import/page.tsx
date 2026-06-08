@@ -66,7 +66,7 @@ function CategoryFilter({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Filter by WP Category</span>
-        <button onClick={toggleAll} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+        <button onClick={toggleAll} className="text-xs text-portal-blue hover:text-blue-300 transition-colors">
           {selected.size === categories.length ? 'Deselect all' : 'Select all'}
         </button>
       </div>
@@ -272,7 +272,7 @@ export default function WpImportPage() {
             onClick={() => fileRef.current?.click()}
           >
             {parsing ? (
-              <RefreshCw size={32} className="mx-auto mb-3 text-blue-400 animate-spin" />
+              <RefreshCw size={32} className="mx-auto mb-3 text-portal-blue animate-spin" />
             ) : (
               <Upload size={32} className="mx-auto mb-3 text-gray-300" />
             )}
@@ -294,7 +294,7 @@ export default function WpImportPage() {
 
         {/* Error */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-sm text-red-700">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm text-red-700">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             {error}
           </div>
@@ -304,7 +304,7 @@ export default function WpImportPage() {
         {phase === 'preview' && parsed && (
           <div className="space-y-5">
             {/* Site info bar */}
-            <div className="bg-white rounded-xl border border-portal-border px-5 py-4">
+            <div className="bg-white rounded-lg border border-portal-border px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-portal-text">{parsed.siteTitle || 'WordPress Export'}</p>
@@ -328,7 +328,7 @@ export default function WpImportPage() {
 
             {/* Category filter */}
             {parsed.categories.length > 0 && (
-              <div className="bg-white rounded-xl border border-portal-border px-5 py-4">
+              <div className="bg-white rounded-lg border border-portal-border px-5 py-4">
                 <CategoryFilter
                   categories={parsed.categories}
                   selected={selectedCats}
@@ -357,7 +357,7 @@ export default function WpImportPage() {
 
             {/* Preview table */}
             {filteredPosts.length > 0 && (
-              <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+              <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
                 <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                   <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">
                     Preview — {displayPosts.length} of {filteredPosts.length}
@@ -400,7 +400,7 @@ export default function WpImportPage() {
             )}
 
             {filteredPosts.length === 0 && (
-              <div className="bg-white rounded-xl border border-portal-border p-8 text-center text-sm text-portal-muted">
+              <div className="bg-white rounded-lg border border-portal-border p-8 text-center text-sm text-portal-muted">
                 No posts match the selected categories.
               </div>
             )}
@@ -409,7 +409,7 @@ export default function WpImportPage() {
             {filteredPosts.length > 0 && (
               <button
                 onClick={runImport}
-                className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 text-white text-sm font-bold rounded-xl transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 text-white text-sm font-bold rounded-lg transition-colors"
               >
                 <Upload size={15} />
                 Import {filteredPosts.length} article{filteredPosts.length !== 1 ? 's' : ''} as Pending Review
@@ -420,7 +420,7 @@ export default function WpImportPage() {
 
         {/* Importing progress */}
         {phase === 'importing' && (
-          <div className="bg-white rounded-xl border border-portal-border p-8">
+          <div className="bg-white rounded-lg border border-portal-border p-8">
             <div className="flex items-center gap-3 mb-5">
               <RefreshCw size={18} className="text-portal-blue animate-spin" />
               <span className="text-sm font-semibold text-portal-text">
@@ -456,11 +456,11 @@ export default function WpImportPage() {
             {/* Summary cards */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Inserted',  value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
+                { label: 'Inserted',  value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
                 { label: 'Skipped',   value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
                 { label: 'Errors',    value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
-                <div key={label} className={`rounded-xl border p-5 text-center ${bg}`}>
+                <div key={label} className={`rounded-lg border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
                   <div className="text-xs text-portal-sub mt-1">{label}</div>
                 </div>
@@ -468,7 +468,7 @@ export default function WpImportPage() {
             </div>
 
             {/* Result rows */}
-            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+            <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
               <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                 <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Row Results</span>
               </div>
@@ -490,13 +490,13 @@ export default function WpImportPage() {
             <div className="flex gap-3">
               <button
                 onClick={reset}
-                className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-xl hover:bg-portal-bg transition-colors"
+                className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg transition-colors"
               >
                 Import another file
               </button>
               <a
                 href="/admin/articles/review"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-lg hover:bg-portal-blue-lt transition-colors"
               >
                 <ExternalLink size={14} />
                 Review imported articles
@@ -504,7 +504,7 @@ export default function WpImportPage() {
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-sm text-portal-amber">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-sm text-portal-amber">
                 <strong>{totals.inserted} articles</strong> imported as &ldquo;pending review.&rdquo;
                 Go to <a href="/admin/articles/review" className="underline">Article Review</a> to approve and publish.
                 Approved articles appear immediately on the homepage and guides.

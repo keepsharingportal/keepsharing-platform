@@ -100,7 +100,7 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
           <h2 className="text-sm font-bold text-portal-text mb-2">Driver suggestions</h2>
           <ul className="space-y-2">
             {suggestions.map(s => (
-              <li key={s.id} className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3">
+              <li key={s.id} className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-bold text-amber-900">{s.driver_name} suggests a new order</p>

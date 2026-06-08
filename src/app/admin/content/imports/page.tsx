@@ -99,9 +99,9 @@ export default function ImportsPage() {
         {/* Import cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {IMPORT_CARDS.map(card => (
-            <div key={card.label} className="bg-white rounded-xl border border-portal-border p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all">
+            <div key={card.label} className="bg-white rounded-lg border border-portal-border p-5 flex flex-col gap-3 hover:border-blue-200 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                   <card.icon size={18} className="text-portal-sub" />
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${card.badgeColor}`}>
@@ -125,7 +125,7 @@ export default function ImportsPage() {
         </div>
 
         {/* After importing */}
-        <div className="bg-white rounded-xl border border-portal-border p-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5">
           <h2 className="font-bold text-portal-text mb-1">After Importing</h2>
           <p className="text-sm text-portal-sub mb-4">
             Imported articles always land in the Review Queue as &ldquo;Needs Review.&rdquo; Nobody sees them publicly until you approve them.
@@ -147,7 +147,7 @@ export default function ImportsPage() {
         </div>
 
         {/* Tips */}
-        <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-xl p-5">
+        <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-lg p-5">
           <h2 className="font-bold text-blue-900 mb-3 text-sm">Import Tips</h2>
           <ul className="space-y-2">
             {TIPS.map((tip, i) => (

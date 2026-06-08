@@ -120,7 +120,7 @@ export default async function AdRenewalsPage() {
           <details key={tpl.id} className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary className="cursor-pointer px-5 py-4 flex items-center justify-between gap-4 hover:bg-portal-bg">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-gray-100 text-portal-sub'}`}>
+                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${tpl.is_live ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' : 'bg-gray-100 text-portal-sub'}`}>
                   {tpl.is_live ? <><Check size={12} /> Live</> : <><Clock size={12} /> Draft</>}
                 </span>
                 <span className="font-bold text-portal-text">{tpl.name}</span>
@@ -205,7 +205,7 @@ export default async function AdRenewalsPage() {
                     <td className="px-4 py-2 text-xs text-portal-sub">{new Date(r.ends_at_snapshot).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-xs">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
-                        r.status === 'sent'   ? 'bg-green-50 text-green-700' :
+                        r.status === 'sent'   ? 'bg-portal-green-lt text-green-700' :
                         r.status === 'failed' ? 'bg-red-50 text-red-700' :
                                                 'bg-gray-100 text-portal-sub'
                       }`}>

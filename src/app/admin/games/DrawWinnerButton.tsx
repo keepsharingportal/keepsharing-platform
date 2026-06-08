@@ -99,7 +99,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
   return (
     <div className="space-y-3">
       {hasExisting && !picks && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800">
+        <div className="rounded-lg border border-green-200 bg-portal-green-lt px-3 py-2 text-xs text-green-800">
           <div className="flex items-center gap-2 mb-1">
             <Check size={13} />
             <strong>{existingWinners!.length} winner{existingWinners!.length === 1 ? '' : 's'} already recorded for {weekLabel}.</strong>
@@ -141,7 +141,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
 
           <div className="grid sm:grid-cols-3 gap-3">
             {picks.map((w, i) => (
-              <div key={`${w.id}-${i}`} className="bg-card border border-portal-blue/20 rounded-xl p-3">
+              <div key={`${w.id}-${i}`} className="bg-card border border-portal-blue/20 rounded-lg p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   Slot #{i + 1} · ${PRIZE_AMOUNT}
                 </p>

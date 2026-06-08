@@ -245,7 +245,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <Eye size={12} />
@@ -260,7 +260,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </p>
         </div>
 
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <MousePointerClick size={12} />
@@ -277,7 +277,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </p>
         </div>
 
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <MessageSquare size={12} />
@@ -294,7 +294,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </p>
         </div>
 
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-1.5">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub">
               <TrendingUp size={12} />
@@ -320,7 +320,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
       </div>
 
       {/* Per-placement breakdown */}
-      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <section className="rounded-lg border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
@@ -381,10 +381,10 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
       </section>
 
       {/* Lead list */}
-      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <section className="rounded-lg border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-portal-border">
           <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
-            <MessageSquare size={14} className="text-green-600" />
+            <MessageSquare size={14} className="text-portal-green" />
             Recent Leads
           </h2>
           <p className="text-[11px] text-portal-muted mt-0.5">Up to 50 most recent in the last {days} days. Includes UTM where captured.</p>
@@ -456,7 +456,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* Traffic sources */}
       {topSources.length > 0 && (
-        <section className="rounded-xl border border-portal-border bg-white p-5">
+        <section className="rounded-lg border border-portal-border bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">

@@ -105,7 +105,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
   }
 
   return (
-    <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
+    <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 space-y-3 text-sm">
       <header className="flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
           Contacts {contacts.length > 0 && <span className="text-portal-muted">({contacts.length})</span>}
@@ -158,7 +158,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                   <p className="font-bold text-portal-text leading-tight">{c.name}</p>
                   {c.is_primary && (
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-portal-amber">
-                      <Star size={9} className="fill-amber-500 text-amber-500" /> Primary
+                      <Star size={9} className="fill-amber-500 text-portal-amber" /> Primary
                     </span>
                   )}
                   <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ring-1 ${ROLE_META[c.role].cls}`}>

@@ -65,7 +65,7 @@ function ArticleCard({ article, onClick }: { article: KBArticle; onClick: () => 
             ))}
           </div>
         </div>
-        <ChevronRight size={15} className="text-gray-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
+        <ChevronRight size={15} className="text-gray-300 group-hover:text-portal-blue shrink-0 mt-0.5 transition-colors" />
       </div>
     </button>
   )
@@ -119,7 +119,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
                 <div className="text-sm font-semibold text-portal-text mb-1">{step.title}</div>
                 <p className="text-sm text-portal-sub leading-relaxed">{step.description}</p>
                 {/* Screenshot placeholder */}
-                <div className="mt-3 h-16 rounded-xl border-2 border-dashed border-portal-border flex items-center justify-center">
+                <div className="mt-3 h-16 rounded-lg border-2 border-dashed border-portal-border flex items-center justify-center">
                   <span className="text-xs text-gray-300">Screenshot placeholder</span>
                 </div>
               </div>
@@ -129,9 +129,9 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </div>
 
       {/* What happens next */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-5 mb-5">
+      <div className="bg-portal-green-lt border border-green-200 rounded-lg p-5 mb-5">
         <h2 className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
-          <CheckCircle2 size={15} className="text-green-600" /> What happens next
+          <CheckCircle2 size={15} className="text-portal-green" /> What happens next
         </h2>
         <p className="text-sm text-green-700 leading-relaxed">{article.whatHappensNext}</p>
       </div>
@@ -140,11 +140,11 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       {article.commonErrors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-5">
           <h2 className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">
-            <AlertCircle size={15} className="text-red-500" /> Common errors & fixes
+            <AlertCircle size={15} className="text-portal-red" /> Common errors & fixes
           </h2>
           <div className="space-y-3">
             {article.commonErrors.map((err, i) => (
-              <div key={i} className="bg-white rounded-xl border border-red-100 p-3">
+              <div key={i} className="bg-white rounded-lg border border-red-100 p-3">
                 <div className="text-xs font-semibold text-red-700 mb-1">⚠ {err.error}</div>
                 <div className="text-xs text-portal-text leading-relaxed">→ {err.fix}</div>
               </div>
@@ -167,7 +167,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                   // Navigate handled by parent
                 }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-portal-bg transition-colors text-left">
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-portal-bg transition-colors text-left">
                   <span className="text-base">{rcfg.icon}</span>
                   <span className="text-sm text-portal-blue hover:underline font-medium">{rel.title}</span>
                   <ChevronRight size={13} className="text-gray-300 ml-auto" />
@@ -267,7 +267,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
       </div>
 
       <div className="border-t border-portal-border px-3 py-2.5">
-        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-1.5">
+        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-lg px-3 py-1.5">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -360,7 +360,7 @@ export function HelpPage() {
           <button
             onClick={() => { setActiveCategory(null); setSearch(''); setActiveArticle(null) }}
             className={cn(
-              'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1',
+              'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-1',
               !activeCategory && !search
                 ? 'bg-portal-blue-lt text-portal-blue'
                 : 'text-portal-sub hover:bg-portal-bg'
@@ -383,7 +383,7 @@ export function HelpPage() {
                 key={cat}
                 onClick={() => { setActiveCategory(cat); setSearch(''); setActiveArticle(null) }}
                 className={cn(
-                  'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-0.5',
+                  'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-0.5',
                   isActive ? 'text-white' : 'text-portal-sub hover:bg-portal-bg'
                 )}
                 style={isActive ? { backgroundColor: cfg.color } : undefined}
@@ -403,15 +403,15 @@ export function HelpPage() {
           <div className="h-px bg-gray-100 my-3" />
           <div className="px-3 text-xs font-semibold text-portal-muted uppercase tracking-wide mb-2">Quick help</div>
           <Link href="/admin/today"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>📅</span> Today screen
           </Link>
           <Link href="/admin/advertisers"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>📊</span> Advertisers
           </Link>
           <Link href="/admin/content/editorial-board"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-portal-sub hover:bg-portal-bg transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-portal-sub hover:bg-portal-bg transition-colors">
             <span>✏️</span> Editorial Board
           </Link>
         </aside>

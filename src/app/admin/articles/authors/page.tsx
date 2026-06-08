@@ -62,11 +62,11 @@ export default async function AuthorsAdminPage() {
 
       <div className="p-6 max-w-3xl">
         {authors.length === 0 ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
             <p className="text-portal-muted text-sm">No authors found. Authors are pulled from the <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">author_name</code> field on articles.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             {/* Table header */}
             <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center px-5 py-2.5 border-b border-portal-border bg-portal-bg">
               <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Author</div>

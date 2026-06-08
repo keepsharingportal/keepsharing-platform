@@ -400,13 +400,13 @@ export default async function EditSubmissionPage({
         <div className="flex gap-3 items-center pt-1">
           <button
             type="submit"
-            className="px-7 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-700 transition-colors"
+            className="px-7 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-700 transition-colors"
           >
             Save Changes
           </button>
           <Link
             href={`/admin/community/${id}`}
-            className="px-7 py-2.5 bg-gray-100 text-portal-sub text-sm font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+            className="px-7 py-2.5 bg-gray-100 text-portal-sub text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </Link>

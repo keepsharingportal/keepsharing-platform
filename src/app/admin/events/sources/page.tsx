@@ -159,7 +159,7 @@ export default async function SourcesAdminPage() {
       </div>
 
       {tableMissing && (
-        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
+        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Trusted sources need a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/077_calendar_sources_and_workflow.sql</code> in the Supabase SQL editor.
@@ -284,7 +284,7 @@ export default async function SourcesAdminPage() {
                       <button type="submit" className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
                         s.is_active
                           ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg'
-                          : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                          : 'bg-portal-green-lt text-green-700 border-green-200 hover:bg-green-100'
                       }`}>
                         {s.is_active ? 'Turn off' : 'Turn on'}
                       </button>

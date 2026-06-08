@@ -16,15 +16,15 @@ type Status = 'ok' | 'warn' | 'empty'
 
 function StatusDot({ status }: { status: Status }) {
   if (status === 'ok')   return <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-  if (status === 'warn') return <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
+  if (status === 'warn') return <AlertCircle className="h-5 w-5 text-portal-amber shrink-0" />
   return <XCircle className="h-5 w-5 text-red-400 shrink-0" />
 }
 
 function StatCard({ label, value, sub, status }: { label: string; value: number | string; sub?: string; status: Status }) {
-  const bg = status === 'ok' ? 'bg-green-50 border-green-200' : status === 'warn' ? 'bg-portal-amber-lt border-amber-200' : 'bg-red-50 border-red-200'
+  const bg = status === 'ok' ? 'bg-portal-green-lt border-green-200' : status === 'warn' ? 'bg-portal-amber-lt border-amber-200' : 'bg-red-50 border-red-200'
   const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-portal-amber' : 'text-portal-red'
   return (
-    <div className={`rounded-xl border px-5 py-4 ${bg}`}>
+    <div className={`rounded-lg border px-5 py-4 ${bg}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
       <p className={`text-3xl font-black ${txt}`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
@@ -144,7 +144,7 @@ export default async function Phase1StatusPage() {
 
       {/* Overall score */}
       <div className={`rounded-lg border-2 p-6 flex items-center gap-4 ${
-        overallStatus === 'ok' ? 'border-green-400 bg-green-50' :
+        overallStatus === 'ok' ? 'border-green-400 bg-portal-green-lt' :
         overallStatus === 'warn' ? 'border-amber-400 bg-portal-amber-lt' :
         'border-red-300 bg-red-50'
       }`}>
@@ -227,7 +227,7 @@ export default async function Phase1StatusPage() {
         <h2 className="text-lg font-bold mb-4">Pending Import Actions</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {(schoolBitsPending ?? 0) > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-5">
+            <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-5">
               <p className="font-bold text-amber-900 mb-1">{schoolBitsPending} School Bits articles pending</p>
               <p className="text-sm text-portal-amber mb-3">Review and bulk-approve to make them live on School Zone.</p>
               <Button asChild size="sm" className="rounded-full bg-amber-600 hover:bg-amber-700">
@@ -236,7 +236,7 @@ export default async function Phase1StatusPage() {
             </div>
           )}
           {summerCampCount === 0 && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-5">
               <p className="font-bold text-red-900 mb-1">Summer Camp Guide: no listings</p>
               <p className="text-sm text-red-700 mb-3">Import the summer camp CSV to populate the guide.</p>
               <Button asChild size="sm" variant="destructive" className="rounded-full">
@@ -245,7 +245,7 @@ export default async function Phase1StatusPage() {
             </div>
           )}
           {frgCount === 0 && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-5">
               <p className="font-bold text-red-900 mb-1">Family Resource Guide: no listings</p>
               <p className="text-sm text-red-700 mb-3">Import the FRG priority CSV to populate the directory.</p>
               <Button asChild size="sm" variant="destructive" className="rounded-full">
@@ -254,7 +254,7 @@ export default async function Phase1StatusPage() {
             </div>
           )}
           {(events ?? 0) === 0 && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-5">
               <p className="font-bold text-red-900 mb-1">Events calendar: no events</p>
               <p className="text-sm text-red-700 mb-3">Import events CSV to show upcoming family events.</p>
               <Button asChild size="sm" variant="destructive" className="rounded-full">
@@ -263,7 +263,7 @@ export default async function Phase1StatusPage() {
             </div>
           )}
           {(schoolBitsPending ?? 0) === 0 && summerCampCount > 0 && frgCount > 0 && (events ?? 0) > 0 && (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-5 col-span-full text-center">
+            <div className="rounded-lg border border-green-200 bg-portal-green-lt p-5 col-span-full text-center">
               <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <p className="font-bold text-green-900">All import actions complete</p>
               <p className="text-sm text-green-700 mt-1">Platform is ready for the sales demo.</p>
@@ -285,7 +285,7 @@ export default async function Phase1StatusPage() {
             { step: 6, action: 'Navigate to Family Resource Guide', url: '/family-resource-guide', note: 'Show full vertical layout, category directory, tier system' },
             { step: 7, action: 'Click "Get Listed Today"', url: '/advertise', note: 'Show lead capture form — close the loop on the advertiser journey' },
           ].map(({ step, action, url, note }) => (
-            <li key={step} className="flex gap-4 items-start rounded-xl border border-border px-5 py-4 bg-card">
+            <li key={step} className="flex gap-4 items-start rounded-lg border border-border px-5 py-4 bg-card">
               <span className="h-6 w-6 rounded-full bg-portal-navy text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {step}
               </span>

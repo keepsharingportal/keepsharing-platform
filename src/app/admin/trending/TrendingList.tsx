@@ -352,7 +352,7 @@ export function TrendingList(props: Props) {
                             <form action={props.toggleActive}>
                               <input type="hidden" name="id"      value={item.id} />
                               <input type="hidden" name="current" value={String(item.is_active)} />
-                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'}`}>
+                              <button type="submit" className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${item.is_active ? 'bg-white text-portal-text border-portal-border hover:bg-portal-bg' : 'bg-portal-green-lt text-green-700 border-green-200 hover:bg-green-100'}`}>
                                 {item.is_active ? 'Turn off' : 'Turn on'}
                               </button>
                             </form>

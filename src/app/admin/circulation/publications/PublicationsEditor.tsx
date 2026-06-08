@@ -67,12 +67,12 @@ export function PublicationsEditor({ initial }: { initial: Publication[] }) {
       {err && <p className="text-xs text-portal-red">{err}</p>}
       <ul className="space-y-2">
         {rows.length === 0 && (
-          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-xl border border-dashed border-portal-border">
+          <li className="text-xs text-portal-sub italic p-3 bg-white rounded-lg border border-dashed border-portal-border">
             No publications — apply migration 116 to seed defaults.
           </li>
         )}
         {rows.map(p => (
-          <li key={p.id} className="rounded-xl border border-portal-border bg-white p-4">
+          <li key={p.id} className="rounded-lg border border-portal-border bg-white p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg shrink-0" style={{ background: p.color_hex }} />
@@ -146,7 +146,7 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
+    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Field label="Short slug" value={short} onChange={setShort} />
         <Field label="Name" value={name} onChange={setName} />

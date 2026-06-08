@@ -77,7 +77,7 @@ export default async function OrganizationsAdminPage() {
           </div>
         </div>
         <div className="p-8">
-          <div className="max-w-2xl bg-portal-amber-lt border border-amber-200 rounded-xl p-6">
+          <div className="max-w-2xl bg-portal-amber-lt border border-amber-200 rounded-lg p-6">
             <h2 className="text-base font-bold text-amber-900 mb-2">One-time setup needed</h2>
             <p className="text-sm text-amber-900 mb-3">
               The <code className="px-1 py-0.5 bg-white rounded text-xs">community_organizations</code> table

@@ -84,7 +84,7 @@ export default async function AdsTab({ params }: Props) {
       />
 
       {/* ── Digital Ad Placements ─────────────────────────── */}
-      <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <Megaphone size={11} /> Digital Placements {plRows.length > 0 && <span className="text-portal-muted">({plRows.length})</span>}
@@ -110,7 +110,7 @@ export default async function AdsTab({ params }: Props) {
                   {p.rotation_group ? (
                     <RotateCw size={12} className="text-sky-500 shrink-0" />
                   ) : (
-                    <Lock size={12} className="text-amber-500 shrink-0" />
+                    <Lock size={12} className="text-portal-amber shrink-0" />
                   )}
                   <Link href={`/admin/ads/${p.id}/edit`} className="flex-1 min-w-0 hover:opacity-80">
                     <p className="text-sm font-semibold text-portal-text truncate">
@@ -147,7 +147,7 @@ export default async function AdsTab({ params }: Props) {
 
       {/* ── QR Codes ──────────────────────────────────────── */}
       {qrCodes.length > 0 && (
-        <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
           <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               QR Codes ({qrCodes.length})
@@ -188,7 +188,7 @@ export default async function AdsTab({ params }: Props) {
       )}
 
       {/* ── Available Slots ───────────────────────────────── */}
-      <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-portal-border">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Available Slots</h2>
           <p className="text-[11px] text-portal-muted mt-0.5">Open positions this business could fill. Click to assign.</p>
@@ -204,7 +204,7 @@ export default async function AdsTab({ params }: Props) {
               >
                 <div className="flex items-center gap-2 min-w-0">
                   {slot.locked ? (
-                    <Lock size={10} className="text-amber-500 shrink-0" />
+                    <Lock size={10} className="text-portal-amber shrink-0" />
                   ) : (
                     <RotateCw size={10} className="text-sky-500 shrink-0" />
                   )}

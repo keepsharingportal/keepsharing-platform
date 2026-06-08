@@ -15,7 +15,7 @@ const PUBLICATIONS = ['RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
 
 const ZONE_COLORS: Record<string, string> = {
   'header-leaderboard':   'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  'article-inline-top':   'bg-green-50 text-green-700 ring-green-200',
+  'article-inline-top':   'bg-portal-green-lt text-green-700 ring-green-200',
   'article-inline-mid':   'bg-teal-50 text-teal-700 ring-teal-200',
   'article-inline-bottom':'bg-purple-50 text-purple-700 ring-purple-200',
   'guide-sidebar':        'bg-orange-50 text-orange-700 ring-orange-200',
@@ -193,7 +193,7 @@ export default function AdServerPage() {
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ring-1 ${
                           isExpired ? 'bg-red-50 text-portal-red ring-red-200' :
-                          ad.active ? 'bg-green-50 text-green-700 ring-green-200' :
+                          ad.active ? 'bg-portal-green-lt text-green-700 ring-green-200' :
                           'bg-portal-bg text-portal-sub ring-gray-200'
                         }`}>
                           {isExpired ? 'Expired' : ad.active ? 'Active' : 'Paused'}
@@ -221,7 +221,7 @@ export default function AdServerPage() {
           <div className="max-w-lg mx-auto">
             {uploadSuccess ? (
               <div className="text-center py-12">
-                <div className="w-14 h-14 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-lg bg-portal-green-lt border border-green-200 flex items-center justify-center mx-auto mb-4">
                   <Check size={24} className="text-green-500" />
                 </div>
                 <h2 className="text-lg font-semibold text-portal-text">Ad Uploaded!</h2>
@@ -300,7 +300,7 @@ export default function AdServerPage() {
                 </div>
 
                 <button type="submit" disabled={uploading}
-                  className="w-full py-3 text-sm font-semibold text-white bg-portal-navy rounded-xl hover:opacity-90 transition-colors disabled:opacity-60">
+                  className="w-full py-3 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors disabled:opacity-60">
                   {uploading ? 'Uploading…' : 'Upload Ad'}
                 </button>
               </form>
@@ -314,7 +314,7 @@ export default function AdServerPage() {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div>
             <h2 className="text-sm font-semibold text-portal-text mb-3">Clicks by Zone — RRP All Time</h2>
-            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+            <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
@@ -340,7 +340,7 @@ export default function AdServerPage() {
 
           <div>
             <h2 className="text-sm font-semibold text-portal-text mb-3">Per-Advertiser Performance</h2>
-            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+            <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
@@ -365,7 +365,7 @@ export default function AdServerPage() {
                         <td className="px-4 py-3 text-portal-sub">{ad.totalImpressions.toLocaleString()}</td>
                         <td className="px-4 py-3 text-portal-sub">{ctr}%</td>
                         <td className="px-4 py-3">
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-green-50 text-green-700 ring-green-200">Active</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium ring-1 bg-portal-green-lt text-green-700 ring-green-200">Active</span>
                         </td>
                       </tr>
                     )
@@ -384,7 +384,7 @@ export default function AdServerPage() {
             {AD_ZONES.map((zone) => {
               const zoneAds = ads.filter((a) => a.zone === zone.id)
               return (
-                <div key={zone.id} className="bg-white rounded-xl border border-portal-border p-5">
+                <div key={zone.id} className="bg-white rounded-lg border border-portal-border p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h3 className="text-sm font-semibold text-portal-text">{zone.name}</h3>

@@ -363,12 +363,12 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-lg border border-portal-border">
             <Calendar size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No events match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
             {paged.map(ev => (
               <EventRowItem
                 key={ev.id}
@@ -376,9 +376,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
                 selectable
                 selected={selectedIds.has(ev.id)}
                 onToggleSelect={() => toggleSelection(ev.id)}
-                editing={editingId === ev.id}
                 onEdit={() => setEditingId(ev.id)}
-                onCancelEdit={() => setEditingId(null)}
                 onUpdated={(patch) => handleUpdated(ev.id, patch)}
                 onRemoved={() => handleRemoved(ev.id)}
               />
@@ -395,6 +393,38 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
           />
         )}
       </div>
+
+      {/* Edit modal — list stays a list; editing happens in a focused overlay. */}
+      {editingId && (() => {
+        const ev = events.find(e => e.id === editingId)
+        if (!ev) return null
+        return (
+          <div
+            className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+            onClick={() => setEditingId(null)}
+          >
+            <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-3xl my-12 border border-portal-border overflow-hidden">
+              <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
+                <div>
+                  <h2 className="text-base font-bold text-portal-text">Edit event</h2>
+                  <p className="text-xs text-portal-sub mt-0.5 truncate">{ev.title}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingId(null)}
+                  className="text-portal-muted hover:text-portal-text"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </header>
+              <div className="px-6 py-5">
+                <EventEditor ev={ev} onCancel={() => setEditingId(null)} onSaved={(patch) => { handleUpdated(ev.id, patch); setEditingId(null) }} />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -555,15 +585,13 @@ function Pagination({
 // ── Event row ──────────────────────────────────────────────────────────────
 
 function EventRowItem({
-  ev, selectable, selected, onToggleSelect, editing, onEdit, onCancelEdit, onUpdated, onRemoved,
+  ev, selectable, selected, onToggleSelect, onEdit, onUpdated, onRemoved,
 }: {
   ev:             EventRow
   selectable:     boolean
   selected:       boolean
   onToggleSelect: () => void
-  editing:        boolean
   onEdit:         () => void
-  onCancelEdit:   () => void
   onUpdated:      (patch: Partial<EventRow>) => void
   onRemoved:      () => void
 }) {
@@ -657,7 +685,7 @@ function EventRowItem({
             <h3 className="text-sm font-bold text-portal-text truncate">{ev.title}</h3>
             {ev.is_featured && (
               <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
-                <Star size={9} className="fill-amber-500 text-amber-500" /> Featured
+                <Star size={9} className="fill-amber-500 text-portal-amber" /> Featured
               </span>
             )}
             {/* "Possible duplicate" badge — set automatically by iCal ingest
@@ -699,7 +727,7 @@ function EventRowItem({
               <span className="text-portal-sub">By {ev.organizer_name}</span>
             )}
             {ev.is_free && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-green-700 ring-1 ring-green-200">
                 Free
               </span>
             )}
@@ -723,7 +751,7 @@ function EventRowItem({
               <button
                 onClick={() => call('approve')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
               >
                 {busy === 'approve' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                 Approve
@@ -761,11 +789,10 @@ function EventRowItem({
             </button>
           )}
           <button
-            onClick={editing ? onCancelEdit : onEdit}
+            onClick={onEdit}
             className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
-            <Pencil size={11} />
-            {editing ? 'Close' : 'Edit'}
+            <Pencil size={11} /> Edit
           </button>
           <div className="relative">
             <button
@@ -818,9 +845,6 @@ function EventRowItem({
         </div>
       </div>
 
-      {editing && (
-        <EventEditor ev={ev} onCancel={onCancelEdit} onSaved={(patch) => { onUpdated(patch); onCancelEdit() }} />
-      )}
     </div>
   )
 }

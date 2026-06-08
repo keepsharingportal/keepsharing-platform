@@ -102,7 +102,7 @@ export default function NewProposalPage() {
 
       <div className="p-6 max-w-3xl">
         {/* Section 1: Business Info */}
-        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-base font-semibold text-portal-text mb-4">Business Info</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -146,7 +146,7 @@ export default function NewProposalPage() {
         </div>
 
         {/* Section 2: Recommendation */}
-        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-base font-semibold text-portal-text mb-4">Recommendation</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -181,7 +181,7 @@ export default function NewProposalPage() {
         </div>
 
         {/* Section 3: Proposal Content */}
-        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-base font-semibold text-portal-text mb-4">Proposal Content</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>

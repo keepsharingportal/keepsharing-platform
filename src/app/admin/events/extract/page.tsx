@@ -219,7 +219,7 @@ function ExtractPage() {
       </section>
 
       {err && (
-        <div className="rounded-xl border border-portal-red/30 bg-portal-red-lt px-5 py-4">
+        <div className="rounded-lg border border-portal-red/30 bg-portal-red-lt px-5 py-4">
           <p className="text-sm font-bold text-rose-900 mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Error
           </p>
@@ -228,7 +228,7 @@ function ExtractPage() {
       )}
 
       {saved && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4">
+        <div className="rounded-lg border border-green-200 bg-portal-green-lt px-5 py-4">
           <p className="text-sm font-bold text-green-900 mb-1 flex items-center gap-1.5">
             <CheckCircle2 size={14} /> Saved {saved.inserted} pending event(s)
           </p>

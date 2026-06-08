@@ -33,7 +33,7 @@ export function NewRouteForm({ market }: { market: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-dashed border-portal-border-2 bg-white p-4 space-y-2">
+    <div className="rounded-lg border border-dashed border-portal-border-2 bg-white p-4 space-y-2">
       <p className="text-xs font-bold text-portal-text">Add a new route</p>
       <div className="flex flex-wrap items-center gap-2">
         <input

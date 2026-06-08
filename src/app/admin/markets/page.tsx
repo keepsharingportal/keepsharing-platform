@@ -5,7 +5,7 @@ import { Table2, LayoutGrid, TrendingUp, ExternalLink } from 'lucide-react'
 import { MarketBundleCount } from '@/components/distribution/DistributionWidget'
 
 const PUB_META = [
-  { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e', bg: 'bg-green-50',  ring: 'ring-green-200',  text: 'text-green-700'  },
+  { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e', bg: 'bg-portal-green-lt',  ring: 'ring-green-200',  text: 'text-green-700'  },
   { abbrev: 'MBP', name: 'Mobile Bay Parents',        market: 'Mobile',        state: 'AL', color: '#3b82f6', bg: 'bg-portal-blue-lt',   ring: 'ring-portal-blue/30',   text: 'text-portal-blue'   },
   { abbrev: 'AOP', name: 'Auburn Opelika Parents',    market: 'Auburn/Opelika',state: 'AL', color: '#f97316', bg: 'bg-orange-50', ring: 'ring-orange-200', text: 'text-orange-700' },
   { abbrev: 'ESP', name: 'Eastern Shore Parents',     market: 'Eastern Shore', state: 'AL', color: '#a855f7', bg: 'bg-purple-50', ring: 'ring-purple-200', text: 'text-purple-700' },
@@ -66,7 +66,7 @@ export default async function MarketsPage() {
           {marketData.map((m) => (
             <div
               key={m.abbrev}
-              className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg border border-portal-border overflow-hidden hover:shadow-md transition-shadow"
             >
               {/* Color bar */}
               <div className="h-1" style={{ backgroundColor: m.color }} />
@@ -79,7 +79,7 @@ export default async function MarketsPage() {
                       {m.abbrev}
                     </span>
                     {m.count > 0 && (
-                      <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded-full ring-1 ring-green-200">
+                      <span className="text-xs text-portal-green font-medium bg-portal-green-lt px-1.5 py-0.5 rounded-full ring-1 ring-green-200">
                         Live
                       </span>
                     )}
@@ -159,7 +159,7 @@ export default async function MarketsPage() {
           <p className="text-xs font-semibold text-portal-muted uppercase tracking-wider mb-3">Planned Markets</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {['Mobile Prime', 'Pensacola Prime', 'Wiregrass Parents'].map((name) => (
-              <div key={name} className="bg-white rounded-xl border border-dashed border-portal-border p-4 flex items-center gap-3">
+              <div key={name} className="bg-white rounded-lg border border-dashed border-portal-border p-4 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-portal-bg border border-portal-border flex items-center justify-center">
                   <TrendingUp size={14} className="text-gray-300" />
                 </div>

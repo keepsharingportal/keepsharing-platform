@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<UpdateStatus, { label: string; cls: string; icon: Re
   not_sent:  { label: 'Not Sent',  cls: 'bg-portal-bg text-portal-sub ring-gray-200',   icon: Clock },
   sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200', icon: Mail },
   responded: { label: 'Responded', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',    icon: RefreshCw },
-  updated:   { label: 'Updated',   cls: 'bg-green-50 text-green-700 ring-green-200', icon: CheckCircle2 },
+  updated:   { label: 'Updated',   cls: 'bg-portal-green-lt text-green-700 ring-green-200', icon: CheckCircle2 },
 }
 
 function buildEmailDraft(listing: GuideListing, guideName: string, month: number, year: number) {
@@ -115,7 +115,7 @@ export default function GuidePage() {
         {(['all', 'not_sent', 'sent', 'responded', 'updated'] as const).map((s) => {
           const count = s === 'all' ? stats.total : stats[s]
           const labels: Record<string, string> = { all: 'All', not_sent: 'Not Sent', sent: 'Sent', responded: 'Responded', updated: 'Updated' }
-          const colors: Record<string, string> = { all: 'text-portal-text', not_sent: 'text-portal-sub', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-green-600' }
+          const colors: Record<string, string> = { all: 'text-portal-text', not_sent: 'text-portal-sub', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-portal-green' }
           return (
             <button key={s} onClick={() => setFilterStatus(s)}
               className={cn('flex items-center gap-1.5 transition-colors', filterStatus === s ? 'font-semibold' : 'hover:text-portal-text', colors[s])}>
@@ -207,7 +207,7 @@ export default function GuidePage() {
                 <button onClick={() => setEmailModal(null)} className="p-1.5 rounded-lg text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover">✕</button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="bg-portal-bg rounded-xl p-4">
+                <div className="bg-portal-bg rounded-lg p-4">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-portal-sub uppercase">Subject</span>
                     <button onClick={() => handleCopy(draft.subject, 'subject')}
@@ -217,7 +217,7 @@ export default function GuidePage() {
                   </div>
                   <p className="text-sm text-portal-text font-medium">{draft.subject}</p>
                 </div>
-                <div className="bg-portal-bg rounded-xl p-4">
+                <div className="bg-portal-bg rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-portal-sub uppercase">Body</span>
                     <button onClick={() => handleCopy(draft.body, 'body')}
@@ -227,7 +227,7 @@ export default function GuidePage() {
                   </div>
                   <pre className="text-xs text-portal-text whitespace-pre-wrap font-sans leading-relaxed">{draft.body}</pre>
                 </div>
-                <div className="bg-portal-blue-lt border border-blue-200 rounded-xl p-4">
+                <div className="bg-portal-blue-lt border border-blue-200 rounded-lg p-4">
                   <p className="text-xs font-semibold text-portal-blue mb-1">How to send</p>
                   <ol className="text-xs text-portal-blue space-y-1 list-decimal list-inside">
                     <li>Copy the subject and body above</li>
@@ -262,15 +262,15 @@ export default function GuidePage() {
               {Object.entries(pendingModal.pendingChanges).map(([field, newValue]) => {
                 const oldValue = pendingModal[field as keyof GuideListing] as string
                 return (
-                  <div key={field} className="bg-portal-bg rounded-xl p-4">
+                  <div key={field} className="bg-portal-bg rounded-lg p-4">
                     <div className="text-xs font-semibold text-portal-sub uppercase mb-2">{field.replace(/([A-Z])/g, ' $1')}</div>
                     <div className="flex gap-3 text-sm">
                       <div className="flex-1">
-                        <div className="text-xs text-red-500 font-medium mb-0.5">Current</div>
+                        <div className="text-xs text-portal-red font-medium mb-0.5">Current</div>
                         <div className="text-portal-text line-through">{oldValue}</div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-green-600 font-medium mb-0.5">Proposed</div>
+                        <div className="text-xs text-portal-green font-medium mb-0.5">Proposed</div>
                         <div className="text-portal-text font-medium">{newValue as string}</div>
                       </div>
                     </div>

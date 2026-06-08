@@ -128,7 +128,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {probe && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          probe.found ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
+          probe.found ? 'border-green-200 bg-portal-green-lt text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             {probe.found
@@ -153,7 +153,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {ingest && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          ingest.errors.length === 0 ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
+          ingest.errors.length === 0 ? 'border-green-200 bg-portal-green-lt text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             <CheckCircle2 size={12} /> Ingestion complete

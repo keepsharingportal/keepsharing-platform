@@ -66,7 +66,7 @@ export default async function MarketAssignmentsPage() {
             const c   = counts[p.abbrev]    ?? { total: 0, published: 0, thisMonth: 0 }
             const sub = subCounts[p.abbrev] ?? 0
             return (
-              <div key={p.abbrev} className="rounded-xl border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors">
+              <div key={p.abbrev} className="rounded-lg border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: p.color }}>{p.abbrev}</p>

@@ -144,7 +144,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                   Found <b>{preview.totalDirectoryOnly}</b> directory-only advertiser row{preview.totalDirectoryOnly === 1 ? '' : 's'}.
                   Of those:
                 </p>
-                <div className="bg-portal-bg rounded-xl p-3 text-sm space-y-1">
+                <div className="bg-portal-bg rounded-lg p-3 text-sm space-y-1">
                   <Line label="Eligible to delete"        value={preview.eligible}        emphasis />
                   <Line label="Skipped (has activity)"    value={preview.skipped}        />
                   <Line label="Guide listings to unlink"  value={preview.listingsToUnlink} />

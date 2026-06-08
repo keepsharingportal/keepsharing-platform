@@ -177,12 +177,12 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-lg border border-portal-border">
             <Shield size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No admins match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
             {filtered.map(row => (
               <AdminRowItem
                 key={row.id}
@@ -212,7 +212,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
           >
             <div
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-md w-full max-w-2xl my-12 overflow-hidden border border-portal-border"
+              className="bg-white rounded-lg shadow-md w-full max-w-2xl my-12 overflow-hidden border border-portal-border"
             >
               <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
                 <div>

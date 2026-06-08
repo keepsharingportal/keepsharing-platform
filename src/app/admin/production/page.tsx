@@ -55,7 +55,7 @@ export default async function ProductionHubPage() {
             <Link
               key={t.href}
               href={t.href}
-              className="flex items-start gap-3 p-4 rounded-xl border border-portal-border bg-white hover:border-portal-border-2 hover:shadow-sm transition-all"
+              className="flex items-start gap-3 p-4 rounded-lg border border-portal-border bg-white hover:border-portal-border-2 hover:shadow-sm transition-all"
             >
               <div className="w-9 h-9 rounded-lg bg-portal-blue-lt flex items-center justify-center shrink-0">
                 <t.icon size={16} className="text-portal-blue" />
@@ -73,7 +73,7 @@ export default async function ProductionHubPage() {
       <section>
         <AdminSectionHeader title="Recent Issues" count={recentIssues.length} description="Based on articles with a source_issue_month" />
         {recentIssues.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No articles have an issue month set yet.</p>
             <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Articles <ArrowRight size={11} />
@@ -85,7 +85,7 @@ export default async function ProductionHubPage() {
               <Link
                 key={month}
                 href={`/admin/production/issues?month=${month.slice(0, 7)}`}
-                className="rounded-xl border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
+                className="rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">{month.slice(0, 7)}</p>
                 <p className="text-lg font-bold text-portal-text mt-0.5">{count}</p>

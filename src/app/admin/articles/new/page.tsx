@@ -166,7 +166,7 @@ export default function NewArticlePage() {
         </div>
         <div className="flex items-center gap-2">
           {saveMsg && (
-            <span className={`text-sm font-medium ${saveMsg.ok ? 'text-green-600' : 'text-portal-red'}`}>
+            <span className={`text-sm font-medium ${saveMsg.ok ? 'text-portal-green' : 'text-portal-red'}`}>
               {saveMsg.text}
             </span>
           )}
@@ -208,7 +208,7 @@ export default function NewArticlePage() {
         {/* Main content column */}
         <div className="space-y-5">
           {/* Title */}
-          <div className="bg-white rounded-xl border border-portal-border p-5">
+          <div className="bg-white rounded-lg border border-portal-border p-5">
             <input
               className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-none bg-transparent"
               value={form.title}
@@ -228,7 +228,7 @@ export default function NewArticlePage() {
 
           {/* Article Lead — magazine-style deck shown on the article page,
                under the title, before the body. NOT used in card listings. */}
-          <div className="bg-white rounded-xl border border-portal-border p-5">
+          <div className="bg-white rounded-lg border border-portal-border p-5">
             <label className="block text-xs font-semibold text-portal-sub mb-1">Article Lead</label>
             <p className="text-[11px] text-portal-muted mb-2">
               Magazine-style deck shown on the article page, under the title. Two-to-three-sentence opener that pulls the reader in.
@@ -255,7 +255,7 @@ export default function NewArticlePage() {
 
           {/* Closing bio / author line — renders below the photo gallery on
               the public article as a thin divider + italic text. Skip when empty. */}
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             <div className="px-4 py-3 border-b border-portal-border">
               <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
               <p className="text-[11px] text-portal-muted mt-0.5">
@@ -276,13 +276,13 @@ export default function NewArticlePage() {
         <div className="space-y-4">
 
           {/* Publish status */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Save As</h3>
             <div className="space-y-2">
               {[
                 { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-portal-border text-portal-text hover:bg-portal-bg' },
                 { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-portal-amber hover:bg-portal-amber-lt bg-portal-amber-lt' },
-                { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-green-50' },
+                { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-portal-green-lt' },
               ].map(opt => (
                 <button
                   key={opt.mode}
@@ -298,7 +298,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Author */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Author</h3>
             <input
               className={inp}
@@ -313,7 +313,7 @@ export default function NewArticlePage() {
               yet); they light up after the first save when the editor lands
               on /edit. The saved origPath travels with the first POST so
               re-cropping works immediately on /edit. */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Hero Image</h3>
             <HeroImageUpload
               value={form.hero_image_url}
@@ -328,7 +328,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Profile image — same article-profile pipeline as /edit. */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Profile Image</h3>
             <HeroImageUpload
               value={form.profile_image_url}
@@ -345,7 +345,7 @@ export default function NewArticlePage() {
           {/* Photo Gallery — mirrors /edit. Multi-upload supported even on
               first-create; images flow through the Sharp pipeline and persist
               with the initial POST. */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">
               Photo Gallery
               <span className="ml-1.5 text-portal-muted font-normal normal-case text-[11px]">— supporting photos for the lightbox</span>
@@ -357,7 +357,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Where this article appears */}
-          <div className="bg-white rounded-xl border border-portal-blue/20 bg-portal-blue-lt/40 p-3">
+          <div className="bg-white rounded-lg border border-portal-blue/20 bg-portal-blue-lt/40 p-3">
             <SectionHelp variant="info" title="Where will this appear?">
               <strong>Section</strong> = which editorial column it belongs to.{' '}
               <strong>Guide</strong> = which Guide landing page it shows up on (if any).{' '}
@@ -366,7 +366,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Section / Column */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3 flex items-center gap-1.5">
               Section
               <HelpTip text="Pick the editorial column. Sections are grouped by vertical (School Zone, Mom Life, etc.) — choose the one that matches your article." />
@@ -427,7 +427,7 @@ export default function NewArticlePage() {
           )}
 
           {/* Guide */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3 flex items-center gap-1.5">
               Guide / Resource
               <HelpTip text="If this article should appear on a specific Guide's landing page (Family Resource, Summer Fun, etc.), pick it here. Leave as 'Not a guide article' for standalone pieces." />
@@ -450,7 +450,7 @@ export default function NewArticlePage() {
           {/* Topics — cross-cutting theme tags. Distinct from Guide above:
                Guide = primary home (one), Topics = themes (many) that drive
                the "Across the Site" rows on each guide page. */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-2 flex items-center gap-1.5">
               Topics
               <HelpTip text="Cross-cutting theme tags. Different from Guide — Guide is the article's primary home (write FOR that guide). Topics decide which guide pages ALSO surface this piece in their 'Across the Site' rows." />
@@ -490,7 +490,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Issue month */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Issue Month</h3>
             <input
               type="month"
@@ -502,7 +502,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Editorial notes */}
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <h3 className="text-xs font-semibold text-portal-sub uppercase tracking-wider mb-3">Editorial Notes</h3>
             <textarea
               className={`${inp} resize-none`}

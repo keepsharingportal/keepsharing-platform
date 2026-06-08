@@ -69,7 +69,7 @@ export default async function RouteOrderPage() {
         </div>
 
         {routes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No active routes in this region yet.</p>
           </div>
         ) : (
@@ -80,7 +80,7 @@ export default async function RouteOrderPage() {
                 <li key={r.id}>
                   <Link
                     href={`/admin/circulation/routes/${r.id}/reorder`}
-                    className="flex items-center gap-3 rounded-xl border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
+                    className="flex items-center gap-3 rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
                   >
                     <GripVertical size={14} className="text-gray-300 shrink-0" />
                     <div className="flex-1 min-w-0">

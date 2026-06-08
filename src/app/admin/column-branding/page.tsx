@@ -99,7 +99,7 @@ export default function ColumnBrandingPage() {
 
       {error && (
         <div className="mb-6 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-          <AlertTriangle size={14} className="text-red-500 shrink-0 mt-0.5" />
+          <AlertTriangle size={14} className="text-portal-red shrink-0 mt-0.5" />
           <p className="text-sm text-red-700 leading-relaxed">{error}</p>
         </div>
       )}
@@ -192,7 +192,7 @@ function ColumnCard({
   }
 
   return (
-    <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+    <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
       <div className="px-4 py-3 border-b border-portal-border bg-portal-bg">
         <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">{column.vertical}</p>
         <h3 className="font-black text-portal-text mt-0.5">{column.label}</h3>
@@ -252,7 +252,7 @@ function ColumnCard({
 
         {err && (
           <div className="flex items-start gap-2 p-2 rounded-md bg-red-50 border border-red-200">
-            <AlertTriangle size={11} className="text-red-500 shrink-0 mt-0.5" />
+            <AlertTriangle size={11} className="text-portal-red shrink-0 mt-0.5" />
             <p className="text-[11px] text-red-700">{err}</p>
           </div>
         )}

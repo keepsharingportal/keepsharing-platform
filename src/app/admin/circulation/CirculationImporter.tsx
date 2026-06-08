@@ -50,7 +50,7 @@ export function CirculationImporter({ market, regionName, pubLabels }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
+    <div className="rounded-lg border border-portal-border bg-white p-4 space-y-3">
       <p className="text-xs text-portal-sub">
         Upload the stop export JSON from
         <code className="px-1 bg-gray-100 rounded ml-1">drivers.keepsharing.com/admin/import.php</code>.
@@ -79,7 +79,7 @@ export function CirculationImporter({ market, regionName, pubLabels }: Props) {
       </div>
       {error && <p className="text-xs text-portal-red">{error}</p>}
       {result && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-3 text-xs text-green-900 flex items-start gap-2">
+        <div className="rounded-md border border-green-200 bg-portal-green-lt p-3 text-xs text-green-900 flex items-start gap-2">
           <Check size={12} className="mt-0.5 shrink-0" />
           <div>
             <p className="font-bold">Import complete</p>

@@ -16,10 +16,10 @@ const LEVEL: Record<HealthLevel, {
   overall: string
 }> = {
   green: {
-    dot:     'bg-green-500',
-    pill:    'bg-green-50 hover:bg-green-100 ring-1 ring-green-200',
+    dot:     'bg-portal-green-lt0',
+    pill:    'bg-portal-green-lt hover:bg-green-100 ring-1 ring-green-200',
     label:   'text-green-700',
-    overall: 'text-green-600',
+    overall: 'text-portal-green',
   },
   amber: {
     dot:     'bg-amber-400',
@@ -85,7 +85,7 @@ export function EcosystemHealthBar({ health }: { health: EcosystemHealth }) {
   ]
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+    <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           Ecosystem Health

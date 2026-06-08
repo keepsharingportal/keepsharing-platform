@@ -36,7 +36,7 @@ export default async function ProposalDetailPage({ params }: Props) {
 
       <div className="p-6 max-w-3xl">
         {/* View tracking */}
-        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-sm font-semibold text-portal-sub uppercase tracking-wider mb-4">Tracking</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -55,7 +55,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
 
         {/* Proposal summary */}
-        <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-sm font-semibold text-portal-sub uppercase tracking-wider mb-4">Proposal Summary</h2>
           <div className="space-y-3 text-sm">
             <div className="flex gap-3"><span className="text-portal-muted w-32 shrink-0">Business</span><span className="text-portal-text">{p.business_name}</span></div>
@@ -69,7 +69,7 @@ export default async function ProposalDetailPage({ params }: Props) {
 
         {/* Value props */}
         {valueProps.length > 0 && (
-          <div className="bg-white rounded-xl border border-portal-border p-5 mb-5">
+          <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
             <h2 className="text-sm font-semibold text-portal-sub uppercase tracking-wider mb-4">Value Props</h2>
             <ol className="space-y-2 text-sm text-portal-text">
               {valueProps.map((v, i) => <li key={i} className="flex gap-2"><span className="text-portal-muted shrink-0">{i + 1}.</span>{v}</li>)}
@@ -78,7 +78,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         )}
 
         {/* Public link */}
-        <div className="bg-portal-blue-lt rounded-xl border border-blue-200 p-4">
+        <div className="bg-portal-blue-lt rounded-lg border border-blue-200 p-4">
           <p className="text-xs font-semibold text-portal-blue mb-1">Proposal URL</p>
           <code className="text-sm text-portal-blue break-all">/proposal/{p.token_slug}</code>
           <p className="text-xs text-portal-blue mt-1">Send this URL to {p.business_name} to let them view and accept.</p>

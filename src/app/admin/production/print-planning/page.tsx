@@ -78,14 +78,14 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
         <AdminSectionHeader title="Articles in this issue" count={rows.length} description={`${ready} print-ready`} />
 
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No articles assigned to {fmtMonth(month)} yet.</p>
             <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Articles <ArrowRight size={11} />
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+          <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-portal-bg border-b border-portal-border">
@@ -109,10 +109,10 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
                         </Link>
                       </td>
                       <td className="px-3 py-2.5 text-xs text-portal-sub">{r.column_slug ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-xs text-portal-sub">{r.author_name ?? <span className="text-red-500">missing</span>}</td>
-                      <td className="px-3 py-2.5 text-xs">{r.hero_image_url ? <CheckCircle2 size={13} className="text-green-600" /> : <AlertTriangle size={13} className="text-amber-500" />}</td>
+                      <td className="px-3 py-2.5 text-xs text-portal-sub">{r.author_name ?? <span className="text-portal-red">missing</span>}</td>
+                      <td className="px-3 py-2.5 text-xs">{r.hero_image_url ? <CheckCircle2 size={13} className="text-portal-green" /> : <AlertTriangle size={13} className="text-portal-amber" />}</td>
                       <td className="px-3 py-2.5 text-xs text-portal-sub">{words}</td>
-                      <td className="px-3 py-2.5 text-xs">{hasAll ? <span className="text-green-600 font-semibold">Ready</span> : <span className="text-amber-600 font-semibold">Incomplete</span>}</td>
+                      <td className="px-3 py-2.5 text-xs">{hasAll ? <span className="text-portal-green font-semibold">Ready</span> : <span className="text-amber-600 font-semibold">Incomplete</span>}</td>
                     </tr>
                   )
                 })}

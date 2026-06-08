@@ -225,7 +225,7 @@ export function EventRecurrenceEditor({ value, onChange }: Props) {
   const showRaw      = state.freq === 'ADVANCED' || state.freq === 'CUSTOM_DAYS'
 
   return (
-    <div className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
+    <div className="rounded-lg border border-portal-border bg-white p-4 space-y-3">
       <label className="flex items-center gap-2 text-sm font-semibold text-portal-text">
         <input
           type="checkbox"

@@ -338,7 +338,7 @@ export function HeroImageUpload({
 
       {error && (
         <div className="flex items-start gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200">
-          <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />
+          <AlertTriangle size={13} className="text-portal-red shrink-0 mt-0.5" />
           <p className="text-[11px] text-red-700 leading-relaxed">{error}</p>
         </div>
       )}

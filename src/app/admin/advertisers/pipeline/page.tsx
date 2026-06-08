@@ -116,7 +116,7 @@ export default async function PipelinePage() {
             const members = byStage.get(col.stage) ?? []
             const colRev  = members.reduce((s, a) => s + (revenueByAdv.get(a.id) ?? 0), 0)
             return (
-              <section key={col.stage} className="w-72 shrink-0 bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden flex flex-col">
+              <section key={col.stage} className="w-72 shrink-0 bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden flex flex-col">
                 <header className={`px-3 py-2 ${col.accent} flex items-center justify-between`}>
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-wider">{col.label}</p>

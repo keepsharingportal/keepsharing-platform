@@ -167,7 +167,7 @@ export default async function GamesAdminPage() {
       </div>
 
       {!poolAvailable && (
-        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
+        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Brain Games need a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply migrations <code className="bg-portal-amber-lt px-1 rounded">080_brain_games.sql</code> through <code className="bg-portal-amber-lt px-1 rounded">084_game_content_proposals.sql</code> in the Supabase SQL editor. The full admin (winners + AI queue) activates once all are in.

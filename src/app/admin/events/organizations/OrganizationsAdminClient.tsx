@@ -170,7 +170,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
       {/* List */}
       <div className="bg-portal-bg px-4 py-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
+          <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-lg border border-portal-border">
             <Building2 size={32} className="mb-2 opacity-30" />
             <p className="text-sm">No organizations match the current filter</p>
             {orgs.length === 0 && (
@@ -183,7 +183,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
             {filtered.map(org => (
               <OrgRow
                 key={org.id}

@@ -45,7 +45,7 @@ export default async function ProposalQueuePage() {
       <div className="flex-1 overflow-y-auto">
       <main className="p-6 max-w-3xl mx-auto">
         <BackLink />
-        <div className="mt-4 rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
+        <div className="mt-4 rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/084_game_content_proposals.sql</code> in the Supabase SQL editor to enable the AI proposal queue.

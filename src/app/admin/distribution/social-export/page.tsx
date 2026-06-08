@@ -344,7 +344,7 @@ export default async function SocialExportPage({
           { label: 'Exported',         val: counts.exported,color: '#2563eb' },
           { label: 'Promoted',         val: counts.promoted, color: '#7c3aed' },
         ] as const).map(({ label, val, color }) => (
-          <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center">
+          <div key={label} className="bg-white border border-portal-border rounded-lg px-4 py-3 text-center">
             <p className="text-2xl font-bold" style={{ color }}>{val}</p>
             <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
           </div>
@@ -357,7 +357,7 @@ export default async function SocialExportPage({
           <Link
             key={tab.key}
             href={`/admin/distribution/social-export?filter=${tab.key}`}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeFilter === tab.key
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -415,7 +415,7 @@ export default async function SocialExportPage({
                       <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">Promoted</span>
                     )}
                     {ready
-                      ? <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-bold border border-green-200">✓ Ready</span>
+                      ? <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold border border-green-200">✓ Ready</span>
                       : <span className="text-[10px] bg-portal-amber-lt text-amber-600 px-1.5 py-0.5 rounded font-bold border border-amber-200">Needs work</span>
                     }
                   </div>
@@ -458,7 +458,7 @@ export default async function SocialExportPage({
                 )}
                 {item.caption_sms && (
                   <div>
-                    <p className="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-1">SMS / Short</p>
+                    <p className="text-[10px] font-bold text-portal-green uppercase tracking-wide mb-1">SMS / Short</p>
                     <p className="text-xs text-portal-text leading-relaxed">{item.caption_sms}</p>
                   </div>
                 )}

@@ -51,7 +51,7 @@ export default async function ImportPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900">
+        <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900">
           <p className="font-bold mb-1">Heads-up — this is a replace, not a merge</p>
           <p className="text-xs">
             Currently in the system: <span className="font-bold">{routeCount} routes</span> · <span className="font-bold">{stopCount} active stops</span>.

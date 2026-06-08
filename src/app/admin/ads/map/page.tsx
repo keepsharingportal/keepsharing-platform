@@ -225,7 +225,7 @@ function SlotCard({
       : 'bg-white ring-gray-200'
 
   return (
-    <div className={`rounded-xl ring-1 p-4 ${ringClass}`}>
+    <div className={`rounded-lg ring-1 p-4 ${ringClass}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-portal-text leading-snug">{slot.label}</h3>

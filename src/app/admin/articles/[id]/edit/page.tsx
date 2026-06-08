@@ -545,7 +545,7 @@ export default function ArticleEditPage({ params }: Props) {
               {/* Closing bio / author line — renders below the photo gallery
                   on the public article as a thin divider + italic text.
                   No title shown, only the text. Skip when empty. */}
-              <div className="border border-portal-border rounded-xl overflow-hidden bg-white">
+              <div className="border border-portal-border rounded-lg overflow-hidden bg-white">
                 <div className="px-4 py-3 border-b border-portal-border">
                   <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
                   <p className="text-[11px] text-portal-muted mt-0.5">
@@ -562,7 +562,7 @@ export default function ArticleEditPage({ params }: Props) {
               </div>
 
               {/* Formatting tips */}
-              <div className="border border-portal-border rounded-xl overflow-hidden">
+              <div className="border border-portal-border rounded-lg overflow-hidden">
                 <button
                   onClick={() => setTipsOpen(v => !v)}
                   className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
@@ -597,7 +597,7 @@ export default function ArticleEditPage({ params }: Props) {
           <div className="p-4 space-y-4">
 
             {/* ── Publish status card ── */}
-            <div className="border border-portal-border rounded-xl overflow-hidden">
+            <div className="border border-portal-border rounded-lg overflow-hidden">
               <div className="bg-portal-bg px-3 py-2 border-b border-portal-border">
                 <p className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Publish</p>
               </div>
@@ -613,11 +613,11 @@ export default function ArticleEditPage({ params }: Props) {
                   <span className="block text-xs font-normal text-amber-600/70 mt-0.5">Adds to the review queue</span>
                 </button>
                 <button onClick={() => save('publish')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-green-200 bg-green-50 text-sm font-semibold text-green-700 hover:bg-green-100 disabled:opacity-40 transition-colors">
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-green-200 bg-portal-green-lt text-sm font-semibold text-green-700 hover:bg-green-100 disabled:opacity-40 transition-colors">
                   {saving
                     ? <span className="flex items-center gap-2"><RefreshCw size={13} className="animate-spin" /> Publishing…</span>
                     : 'Publish Now'}
-                  <span className="block text-xs font-normal text-green-600/70 mt-0.5">Goes live immediately</span>
+                  <span className="block text-xs font-normal text-portal-green/70 mt-0.5">Goes live immediately</span>
                 </button>
                 {form.slug && (
                   <Link
@@ -632,7 +632,7 @@ export default function ArticleEditPage({ params }: Props) {
             </div>
 
             {/* ── Danger zone — unpublish + move to trash ── */}
-            <div className="border border-portal-red/30 rounded-xl overflow-hidden">
+            <div className="border border-portal-red/30 rounded-lg overflow-hidden">
               <div className="bg-portal-red-lt px-3 py-2 border-b border-rose-100">
                 <p className="text-[11px] font-bold text-portal-red uppercase tracking-wider">Danger Zone</p>
               </div>
@@ -688,7 +688,7 @@ export default function ArticleEditPage({ params }: Props) {
             </div>
 
             {/* ── Feature on Homepage ── */}
-            <div className="border border-blue-200 rounded-xl overflow-hidden">
+            <div className="border border-blue-200 rounded-lg overflow-hidden">
               <div className="bg-portal-blue-lt px-3 py-2 border-b border-portal-blue/20">
                 <p className="text-[11px] font-bold text-portal-blue uppercase tracking-wider">Homepage</p>
               </div>

@@ -375,8 +375,8 @@ function TodoRow({ todo, children, showDone, onCycle, onCycleChild, onDelete }: 
 
 function StatusIcon({ status, small }: { status: Todo['status']; small?: boolean }) {
   const size = small ? 12 : 14
-  if (status === 'done')        return <CheckCircle2 size={size} className="text-green-600" />
-  if (status === 'in-progress') return <AlertCircle  size={size} className="text-amber-500" />
+  if (status === 'done')        return <CheckCircle2 size={size} className="text-portal-green" />
+  if (status === 'in-progress') return <AlertCircle  size={size} className="text-portal-amber" />
   return <Circle size={size} className="text-gray-300" />
 }
 

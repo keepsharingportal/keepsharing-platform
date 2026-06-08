@@ -110,7 +110,7 @@ export function FieldLabel({
       className="flex items-center gap-1.5 text-xs font-bold text-portal-sub uppercase tracking-wider mb-1.5"
     >
       <span>{children}</span>
-      {required && <span className="text-red-500 font-bold" aria-label="required">*</span>}
+      {required && <span className="text-portal-red font-bold" aria-label="required">*</span>}
       {hint && <HelpTip text={hint} />}
     </label>
   )

@@ -94,7 +94,7 @@ export default async function PendingEventsPage() {
       <section>
         <AdminSectionHeader title="Submissions" count={rows.length} />
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No pending submissions right now.</p>
             <p className="text-xs text-portal-muted mt-1">New submissions will appear here automatically.</p>
           </div>

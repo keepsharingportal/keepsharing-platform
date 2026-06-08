@@ -111,7 +111,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
 
       {/* Stragglers */}
       {stragglers.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
+        <div className="rounded-lg border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Not yet submitted for {fmtMonth(activeMonth)}</p>
@@ -121,13 +121,13 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
       )}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
           <p className="text-sm text-portal-sub">No deliveries on file for {fmtMonth(activeMonth)} yet.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {rows.map(row => (
-            <li key={row.id} className={`rounded-xl border bg-white p-3 ${row.status === 'paid' ? 'border-emerald-200' : row.status === 'draft' ? 'border-portal-border' : 'border-blue-200'}`}>
+            <li key={row.id} className={`rounded-lg border bg-white p-3 ${row.status === 'paid' ? 'border-emerald-200' : row.status === 'draft' ? 'border-portal-border' : 'border-blue-200'}`}>
 
               <div className="flex flex-wrap items-start gap-3">
                 <div className="flex-1 min-w-0">

@@ -45,7 +45,7 @@ export default async function ArticleReviewPage() {
 
       <div className="p-6">
         {(articles ?? []).length === 0 ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
             <p className="text-portal-sub text-base mb-4">No imported articles yet.</p>
             <p className="text-sm text-portal-muted">Run <code className="bg-gray-100 px-2 py-0.5 rounded">npm run import-articles</code> after dropping PDFs in <code className="bg-gray-100 px-2 py-0.5 rounded">/imports/magazines/</code></p>
           </div>

@@ -22,8 +22,8 @@ function panelBorder(state: PanelState): string {
 }
 
 function StateIcon({ state }: { state: PanelState }) {
-  if (state === 'urgent')    return <AlertTriangle size={13} className="text-red-500" />
-  if (state === 'attention') return <Clock size={13} className="text-amber-500" />
+  if (state === 'urgent')    return <AlertTriangle size={13} className="text-portal-red" />
+  if (state === 'attention') return <Clock size={13} className="text-portal-amber" />
   return <CheckCircle size={13} className="text-green-500" />
 }
 
@@ -63,7 +63,7 @@ interface OpsCardProps {
 function OpsCard({ icon: Icon, label, role, href, state, children }: OpsCardProps) {
   return (
     <Link href={href} className="block group">
-      <div className={`bg-white rounded-xl border border-gray-200 ${panelBorder(state)} p-4 hover:shadow-md transition-all h-full`}>
+      <div className={`bg-white rounded-lg border border-gray-200 ${panelBorder(state)} p-4 hover:shadow-md transition-all h-full`}>
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ function OpsCard({ icon: Icon, label, role, href, state, children }: OpsCardProp
 
 function AllClear() {
   return (
-    <div className="flex items-center gap-1.5 text-xs text-green-600">
+    <div className="flex items-center gap-1.5 text-xs text-portal-green">
       <CheckCircle size={12} />
       <span>All clear</span>
     </div>
@@ -239,7 +239,7 @@ function NewsletterPanel({ s }: { s: OpsSnapshot }) {
             </p>
           )}
           {s.newsletterQualityIssues === 0 && s.newsletterItems >= 6 && (
-            <p className="text-[10px] text-green-600">Ready to export</p>
+            <p className="text-[10px] text-portal-green">Ready to export</p>
           )}
         </>
       )}
@@ -260,7 +260,7 @@ const FF_PHASE_LABELS: Record<string, string> = {
 
 const FF_PHASE_STYLES: Record<string, string> = {
   planning:        'bg-gray-50 border-gray-200 text-gray-700',
-  nominations:     'bg-green-50 border-green-200 text-green-800',
+  nominations:     'bg-portal-green-lt border-green-200 text-green-800',
   'finalist-review': 'bg-amber-50 border-amber-200 text-amber-800',
   voting:          'bg-blue-50 border-blue-200 text-blue-800',
   announcing:      'bg-purple-50 border-purple-200 text-purple-800',
@@ -276,7 +276,7 @@ export function FfPhaseBanner({ phase, label, deadline }: { phase: string; label
 
   return (
     <Link href="/admin/family-favorites">
-      <div className={`flex items-center justify-between rounded-xl border px-4 py-3 hover:shadow-sm transition-shadow ${style}`}>
+      <div className={`flex items-center justify-between rounded-lg border px-4 py-3 hover:shadow-sm transition-shadow ${style}`}>
         <div className="flex items-center gap-2.5">
           <Zap size={14} />
           <div>
@@ -306,7 +306,7 @@ export function AiTasksBar({ count }: { count: number }) {
   if (count === 0) return null
   return (
     <Link href="/admin/ai-tasks">
-      <div className="flex items-center justify-between rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2.5 hover:shadow-sm transition-shadow">
+      <div className="flex items-center justify-between rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2.5 hover:shadow-sm transition-shadow">
         <div className="flex items-center gap-2.5">
           <Zap size={13} className="text-cyan-600" />
           <span className="text-sm text-cyan-800 font-medium">

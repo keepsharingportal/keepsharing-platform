@@ -53,7 +53,7 @@ export default function ThemesPage() {
       <section>
         <AdminSectionHeader title="Theme Grid" description="Markets across · Months down" />
 
-        <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+        <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

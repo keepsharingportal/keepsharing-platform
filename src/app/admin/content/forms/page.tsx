@@ -21,7 +21,7 @@ const FORM_META: Record<string, { label: string; pub: string; path: string; colo
   'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
   'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-portal-red-lt text-portal-red ring-rose-200' },
   'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-green-50 text-green-700 ring-green-200' },
+  'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-portal-green-lt text-green-700 ring-green-200' },
   'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-teal-50 text-teal-700 ring-teal-200' },
 }
@@ -29,7 +29,7 @@ const FORM_META: Record<string, { label: string; pub: string; path: string; colo
 const STATUS_CONFIG: Record<string, string> = {
   pending:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
   reviewed: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
-  approved: 'bg-green-50 text-green-700 ring-green-200',
+  approved: 'bg-portal-green-lt text-green-700 ring-green-200',
   rejected: 'bg-red-50 text-red-700 ring-red-200',
   published:'bg-slate-50 text-slate-700 ring-slate-200',
 }
@@ -67,7 +67,7 @@ export default function FormsAdminPage() {
         {/* Form directory */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
           {Object.entries(FORM_META).map(([type, meta]) => (
-            <div key={type} className="bg-white rounded-xl border border-portal-border p-3 text-center">
+            <div key={type} className="bg-white rounded-lg border border-portal-border p-3 text-center">
               <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 block mb-2', meta.color)}>{meta.pub}</span>
               <div className="text-xs font-semibold text-portal-text mb-2 leading-tight">{meta.label}</div>
               <a href={meta.path} target="_blank" rel="noopener noreferrer"
@@ -91,7 +91,7 @@ export default function FormsAdminPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+        <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-portal-muted">Loading submissions…</div>
           ) : submissions.length === 0 ? (
@@ -110,7 +110,7 @@ export default function FormsAdminPage() {
                           {meta && <span className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-semibold ring-1', meta.color)}>{meta.label}</span>}
                           <span className="text-sm font-semibold text-portal-text">{s.name ?? 'Anonymous'}</span>
                           <span className="text-xs text-portal-muted">{s.email}</span>
-                          {s.ai_article && <span className="text-[10px] text-green-600 font-medium">✦ AI article</span>}
+                          {s.ai_article && <span className="text-[10px] text-portal-green font-medium">✦ AI article</span>}
                         </div>
                       </div>
                       <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 shrink-0', STATUS_CONFIG[s.status] ?? STATUS_CONFIG.pending)}>
@@ -131,7 +131,7 @@ export default function FormsAdminPage() {
                           ))}
                         </div>
                         {s.ai_article && (
-                          <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                          <div className="bg-portal-green-lt border border-green-200 rounded-lg p-3">
                             <div className="text-[10px] font-bold text-green-700 uppercase tracking-wide mb-1">AI-Generated Article Draft</div>
                             <p className="text-xs text-portal-text leading-relaxed whitespace-pre-line">{s.ai_article.slice(0, 400)}{s.ai_article.length > 400 ? '…' : ''}</p>
                           </div>

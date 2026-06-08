@@ -193,7 +193,7 @@ export default async function EditorialPage({
           { label: 'Scheduled',    val: stageCounts.get('scheduled')!,     color: '#b8860b' },
           { label: 'Urgent',       val: urgent,                            color: '#dc2626' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-3 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-lg px-3 py-3">
             <div className="text-xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[10px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>

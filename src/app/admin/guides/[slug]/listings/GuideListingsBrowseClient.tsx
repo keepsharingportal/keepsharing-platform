@@ -273,7 +273,7 @@ export function GuideListingsBrowseClient(props: Props) {
                       >
                         {r.business_name}
                         {r.listing_tier === 'featured' && (
-                          <Star size={11} className="fill-amber-500 text-amber-500" />
+                          <Star size={11} className="fill-amber-500 text-portal-amber" />
                         )}
                       </Link>
                       {(r.address || r.city_state_zip || r.neighborhood) && (

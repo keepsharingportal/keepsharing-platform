@@ -88,7 +88,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
     } finally { setSigningOut(false) }
   }
 
-  const inp = 'w-full px-4 py-2.5 text-sm rounded-xl border border-portal-border outline-none focus:border-portal-blue bg-white'
+  const inp = 'w-full px-4 py-2.5 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1.5'
 
   return (
@@ -117,7 +117,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
             <button
               type="submit"
               disabled={nameBusy || fullName === initialFullName}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
             >
               {nameBusy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
               {nameBusy ? 'Saving…' : 'Save name'}
@@ -168,7 +168,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
           <button
             type="submit"
             disabled={pwBusy || !pw1 || !pw2}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-portal-navy text-white hover:bg-portal-navy/90 transition-colors disabled:opacity-40"
           >
             {pwBusy ? <RefreshCw size={12} className="animate-spin" /> : <KeyRound size={12} />}
             {pwBusy ? 'Saving…' : 'Save password'}
@@ -186,7 +186,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
           type="button"
           onClick={signOut}
           disabled={signingOut}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-white text-portal-red border border-portal-red/30 hover:bg-portal-red-lt transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-white text-portal-red border border-portal-red/30 hover:bg-portal-red-lt transition-colors disabled:opacity-40"
         >
           {signingOut ? <RefreshCw size={12} className="animate-spin" /> : <LogOut size={12} />}
           {signingOut ? 'Signing out…' : 'Sign out'}

@@ -304,7 +304,7 @@ export default function ArticlesCsvImportPage() {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-sm text-red-700">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm text-red-700">
             <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
           </div>
         )}
@@ -333,14 +333,14 @@ export default function ArticlesCsvImportPage() {
 
             {/* School region breakdown if school content */}
             {rows.some(r => r._schoolRegion) && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-xs text-portal-amber">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-xs text-portal-amber">
                 <strong>School content detected.</strong> School region slugs are stored in editorial notes for traceability.
                 {' '}After import, approve 8–12 articles from the Review Queue to populate the homepage immediately.
               </div>
             )}
 
             {/* Preview table */}
-            <div className="bg-white border border-portal-border rounded-xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                 <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Preview</span>
                 <span className="text-xs text-portal-muted">
@@ -375,7 +375,7 @@ export default function ArticlesCsvImportPage() {
                         </td>
                         <td className="px-4 py-2">
                           {row.hero_image_url
-                            ? <span className="text-green-600">✓</span>
+                            ? <span className="text-portal-green">✓</span>
                             : <span className="text-gray-200">—</span>
                           }
                         </td>
@@ -396,7 +396,7 @@ export default function ArticlesCsvImportPage() {
 
             {/* Import progress (during import) */}
             {importing && (
-              <div className="bg-white rounded-xl border border-portal-border p-4">
+              <div className="bg-white rounded-lg border border-portal-border p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-portal-sub">{progress.done} / {progress.total} articles processed</span>
@@ -411,7 +411,7 @@ export default function ArticlesCsvImportPage() {
             <button
               onClick={runImport}
               disabled={importing}
-              className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-lg transition-colors"
             >
               {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
               {importing ? 'Importing…' : `Import ${rows.length} articles as Pending Review`}
@@ -424,18 +424,18 @@ export default function ArticlesCsvImportPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Inserted', value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
+                { label: 'Inserted', value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-green-200' },
                 { label: 'Skipped',  value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'  },
                 { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-red-50 border-red-200'    },
               ].map(({ label, value, color, bg }) => (
-                <div key={label} className={`rounded-xl border p-5 text-center ${bg}`}>
+                <div key={label} className={`rounded-lg border p-5 text-center ${bg}`}>
                   <div className={`text-3xl font-bold ${color}`}>{value}</div>
                   <div className="text-xs text-portal-sub mt-1">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+            <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
               <div className="divide-y divide-portal-border max-h-80 overflow-y-auto">
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
@@ -452,18 +452,18 @@ export default function ArticlesCsvImportPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={reset} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-xl hover:bg-portal-bg">
+              <button onClick={reset} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg">
                 Import another file
               </button>
               <a href="/admin/articles/review"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-lg hover:bg-portal-blue-lt">
                 <ExternalLink size={14} />
                 Review Queue ({totals.inserted} pending)
               </a>
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-sm text-portal-amber">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-3 text-sm text-portal-amber">
                 <strong>Next step:</strong> Go to{' '}
                 <a href="/admin/articles/review" className="underline">Article Review</a>
                 {' '}and approve 8–12 articles. Approved articles appear on the homepage immediately.

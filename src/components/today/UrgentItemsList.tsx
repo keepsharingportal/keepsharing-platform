@@ -54,7 +54,7 @@ export function UrgentItemsList({ items, urgency }: Props) {
 
         return (
           <div key={item.id}
-            className={`bg-white rounded-xl border border-gray-200 border-l-4 ${borderColor} overflow-hidden hover:shadow-sm transition-shadow group`}
+            className={`bg-white rounded-lg border border-gray-200 border-l-4 ${borderColor} overflow-hidden hover:shadow-sm transition-shadow group`}
           >
             {/* Item row */}
             <div
@@ -129,7 +129,7 @@ export function UrgentItemsList({ items, urgency }: Props) {
                         onClick={() => handleCopy(item.id, draft)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                           copied === item.id
-                            ? 'bg-green-50 text-green-700 ring-1 ring-green-200'
+                            ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
                             : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                         }`}
                       >
@@ -156,7 +156,7 @@ export function UrgentItemsList({ items, urgency }: Props) {
                       )}
                       <button
                         onClick={(e) => dismiss(item.id, e)}
-                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors ml-auto"
+                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-portal-red transition-colors ml-auto"
                       >
                         <X size={11} /> Dismiss
                       </button>

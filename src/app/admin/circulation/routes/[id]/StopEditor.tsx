@@ -204,7 +204,7 @@ export function StopEditor({ routeId, market, initialStops }: Props) {
         {stops.map((stop, idx) => (
           <li
             key={stop.id}
-            className={`rounded-xl border bg-white ${editing === stop.id ? 'border-portal-border-2 border border-portal-blue/30' : 'border-portal-border'}`}
+            className={`rounded-lg border bg-white ${editing === stop.id ? 'border-portal-border-2 border border-portal-blue/30' : 'border-portal-border'}`}
           >
             {editing === stop.id ? (
               <EditRow

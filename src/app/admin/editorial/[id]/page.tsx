@@ -318,7 +318,7 @@ export default async function EditorialDetailPage({
             </p>
           </div>
           <Link href={`/admin/community/${id}`}
-            className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-xl hover:bg-portal-bg transition-colors">
+            className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg transition-colors">
             Submission View ↗
           </Link>
         </div>
@@ -421,7 +421,7 @@ export default async function EditorialDetailPage({
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">AI Draft</h2>
               <p className="text-sm text-portal-muted italic mb-3">No draft generated yet.</p>
               <form action={generateDraft}>
-                <button type="submit" className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                <button type="submit" className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
                   ✍️ Generate Draft
                 </button>
               </form>
@@ -558,7 +558,7 @@ export default async function EditorialDetailPage({
                         type="checkbox"
                         name="permissions_confirmed"
                         defaultChecked={item.permissions_confirmed}
-                        className="w-4 h-4 rounded border-portal-border-2 text-green-600"
+                        className="w-4 h-4 rounded border-portal-border-2 text-portal-green"
                       />
                       <span className="text-sm text-portal-text font-medium">Permissions confirmed</span>
                     </label>
@@ -569,7 +569,7 @@ export default async function EditorialDetailPage({
 
             {/* Save button */}
             <button type="submit"
-              className="w-full py-2.5 rounded-xl text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
+              className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
               Save Editorial Details
             </button>
           </form>

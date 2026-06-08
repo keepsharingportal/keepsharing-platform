@@ -9,7 +9,7 @@ const STATUS_CONFIG: Record<SocialStatus, { label: string; cls: string }> = {
   draft:    { label: 'Draft',    cls: 'bg-portal-bg text-portal-sub ring-gray-200' },
   pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
   approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
-  posted:   { label: 'Posted',   cls: 'bg-green-50 text-green-700 ring-green-200' },
+  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-green-700 ring-green-200' },
 }
 
 const PLATFORM_ICON = {
@@ -71,7 +71,7 @@ export default function SocialQueuePage() {
         <div className="flex items-center gap-3 text-sm">
           <span className="text-portal-sub">All publications</span>
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-bg border border-portal-border rounded-lg text-portal-sub">
-            <span className="font-semibold text-green-600">{statusCount('posted')}</span>
+            <span className="font-semibold text-portal-green">{statusCount('posted')}</span>
             <span>posted</span>
             <span className="text-gray-300">·</span>
             <span className="font-semibold text-portal-blue">{statusCount('approved')}</span>
@@ -111,7 +111,7 @@ export default function SocialQueuePage() {
             const PlatIcon = PLATFORM_ICON[post.platform]
             const platColor = PLATFORM_COLOR[post.platform]
             return (
-              <div key={post.id} className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-sm transition-shadow">
+              <div key={post.id} className="bg-white rounded-lg border border-portal-border overflow-hidden hover:shadow-sm transition-shadow">
                 {/* Card header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
                   <div className="flex items-center gap-2">
@@ -165,11 +165,11 @@ export default function SocialQueuePage() {
                       <Edit3 size={11} /> Edit
                     </button>
                     <button onClick={() => approve(post.id)}
-                      className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100">
+                      className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100">
                       <CheckCircle2 size={11} /> Approve → GHL
                     </button>
                     <button onClick={() => reject(post.id)}
-                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 text-red-500 hover:text-red-700 transition-colors">
+                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 text-portal-red hover:text-red-700 transition-colors">
                       <X size={11} /> Reject
                     </button>
                   </div>

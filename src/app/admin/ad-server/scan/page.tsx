@@ -129,7 +129,7 @@ const FLAG_CONFIG: Record<AIFlag, { label: string; cls: string; icon: React.Elem
   },
   safe: {
     label: 'Pickup Safe',
-    cls: 'bg-green-50 text-green-700 ring-green-200',
+    cls: 'bg-portal-green-lt text-green-700 ring-green-200',
     icon: CheckCircle2,
     borderCls: 'border-l-green-500',
   },
@@ -192,7 +192,7 @@ export default function DropboxScanPage() {
             <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {verify} verify
             </span>
-            <span className="text-green-700 font-semibold bg-green-50 px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
+            <span className="text-green-700 font-semibold bg-portal-green-lt px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
               {safe} safe
             </span>
           </div>
@@ -302,7 +302,7 @@ export default function DropboxScanPage() {
                 return (
                   <div key={ad.id}
                     className={cn(
-                      'bg-white rounded-xl border border-portal-border border-l-4 overflow-hidden hover:shadow-sm transition-shadow',
+                      'bg-white rounded-lg border border-portal-border border-l-4 overflow-hidden hover:shadow-sm transition-shadow',
                       FLAG_CONFIG[ad.flag].borderCls
                     )}>
                     {/* Row */}
@@ -333,7 +333,7 @@ export default function DropboxScanPage() {
                         <div className="text-xs text-portal-muted">Confidence</div>
                         <div className={cn(
                           'text-sm font-bold',
-                          ad.confidence >= 90 ? 'text-green-600' : ad.confidence >= 70 ? 'text-amber-600' : 'text-portal-red'
+                          ad.confidence >= 90 ? 'text-portal-green' : ad.confidence >= 70 ? 'text-amber-600' : 'text-portal-red'
                         )}>
                           {ad.confidence}%
                         </div>
@@ -366,7 +366,7 @@ export default function DropboxScanPage() {
                             <ul className="space-y-1">
                               {ad.issues.map((issue, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-red-700">
-                                  <XCircle size={13} className="mt-0.5 shrink-0 text-red-500" />
+                                  <XCircle size={13} className="mt-0.5 shrink-0 text-portal-red" />
                                   {issue}
                                 </li>
                               ))}
@@ -382,7 +382,7 @@ export default function DropboxScanPage() {
                               className={cn(
                                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                                 sent
-                                  ? 'bg-green-50 text-green-700 ring-1 ring-green-200'
+                                  ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
                                   : 'bg-portal-navy text-white hover:opacity-90'
                               )}>
                               {sent

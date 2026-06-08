@@ -203,12 +203,12 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       </div>
 
       {error && (
-        <div className="bg-portal-red-lt border border-portal-red/30 rounded-xl p-3 text-sm text-portal-red inline-flex items-center gap-2">
+        <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-sm text-portal-red inline-flex items-center gap-2">
           <AlertCircle size={14} /> {error}
         </div>
       )}
       {saved && !error && (
-        <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm text-portal-green">
+        <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}

@@ -48,7 +48,7 @@ export function InquiriesClient({ rows }: Props) {
         return (
           <div
             key={r.id}
-            className={`rounded-xl border bg-white overflow-hidden ${fresh ? 'border-blue-200 border border-portal-blue/30' : 'border-portal-border'}`}
+            className={`rounded-lg border bg-white overflow-hidden ${fresh ? 'border-blue-200 border border-portal-blue/30' : 'border-portal-border'}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3 p-4">
               <button

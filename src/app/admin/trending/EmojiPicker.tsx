@@ -270,7 +270,7 @@ export function EmojiPicker({ name = 'emoji', defaultValue }: Props) {
         <div
           ref={popRef}
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width }}
-          className="z-50 bg-white rounded-xl border border-portal-border shadow p-3"
+          className="z-50 bg-white rounded-lg border border-portal-border shadow p-3"
         >
           <div className="relative mb-2">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-portal-muted" />

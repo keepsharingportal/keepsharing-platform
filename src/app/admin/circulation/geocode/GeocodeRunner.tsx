@@ -39,7 +39,7 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
+      <section className="rounded-lg border border-portal-border bg-white p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-portal-text">Coverage</p>
@@ -73,7 +73,7 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
       {missing.length > 0 && (
         <section>
           <h2 className="text-sm font-bold text-portal-text mb-2">Up next ({Math.min(25, missing.length)})</h2>
-          <ul className="rounded-xl border border-portal-border bg-white divide-y divide-portal-border">
+          <ul className="rounded-lg border border-portal-border bg-white divide-y divide-portal-border">
             {missing.slice(0, 25).map(s => (
               <li key={s.id} className="p-3">
                 <p className="text-sm font-bold text-portal-text">{s.name}</p>
@@ -89,7 +89,7 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
       {history.length > 0 && (
         <section>
           <h2 className="text-sm font-bold text-portal-text mb-2">Recent runs</h2>
-          <ul className="rounded-xl border border-portal-border bg-white divide-y divide-portal-border">
+          <ul className="rounded-lg border border-portal-border bg-white divide-y divide-portal-border">
             {history.map(h => (
               <li key={h.id} className="p-3 flex items-center justify-between">
                 <div>

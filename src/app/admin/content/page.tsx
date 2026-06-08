@@ -81,8 +81,8 @@ export default async function ContentDashboard() {
       value: publishedWk,
       icon: CheckCircle,
       href: '/admin/articles?filter=published',
-      color: 'text-green-600',
-      bg:    'bg-green-50 border-green-200',
+      color: 'text-portal-green',
+      bg:    'bg-portal-green-lt border-green-200',
       cta:   'View Published',
     },
     {
@@ -158,7 +158,7 @@ export default async function ContentDashboard() {
             <Link
               key={s.label}
               href={s.href}
-              className={`flex flex-col gap-2 p-4 rounded-xl border transition-shadow hover:shadow-md ${s.bg}`}
+              className={`flex flex-col gap-2 p-4 rounded-lg border transition-shadow hover:shadow-md ${s.bg}`}
             >
               <div className="flex items-center justify-between">
                 <s.icon size={16} className={s.color} />
@@ -179,7 +179,7 @@ export default async function ContentDashboard() {
               <Link
                 key={a.label}
                 href={a.href}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl text-center text-sm font-semibold transition-all hover:shadow-sm ${a.color}`}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg text-center text-sm font-semibold transition-all hover:shadow-sm ${a.color}`}
               >
                 <a.icon size={20} />
                 <span className="text-xs leading-tight">{a.label}</span>
@@ -196,7 +196,7 @@ export default async function ContentDashboard() {
               View All →
             </Link>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden divide-y divide-portal-border">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden divide-y divide-portal-border">
             {recentArticles.length === 0 ? (
               <div className="p-8 text-center text-portal-muted text-sm">No articles yet. Write your first one!</div>
             ) : (
@@ -246,7 +246,7 @@ export default async function ContentDashboard() {
         </div>
 
         {/* Editorial workflow guide */}
-        <div className="bg-white rounded-xl border border-portal-border p-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5">
           <h2 className="text-sm font-semibold text-portal-text mb-3 flex items-center gap-2">
             <Clock size={14} className="text-portal-muted" />
             Editorial Workflow

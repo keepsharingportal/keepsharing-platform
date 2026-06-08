@@ -331,7 +331,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
             {paged.map(item => (
               <BitRow
                 key={item.id}
@@ -340,9 +340,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
                 selectable={activeTab === 'Pending Review'}
                 selected={selectedIds.has(item.id)}
                 onToggleSelect={() => toggleSelection(item.id)}
-                editing={editingId === item.id}
                 onEdit={() => setEditingId(item.id)}
-                onCancelEdit={() => setEditingId(null)}
                 onUpdated={(patch) => handleUpdated(item.id, patch)}
                 onRemoved={() => handleRemoved(item.id)}
               />
@@ -360,6 +358,42 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
           />
         )}
       </div>
+
+      {/* Edit modal — list stays a list, editing happens in an overlay. */}
+      {editingId && (() => {
+        const item = bits.find((i: SchoolBitRow) => i.id === editingId)
+        if (!item) return null
+        return (
+          <div
+            className="fixed inset-0 z-50 bg-black/45 flex items-start justify-center p-4 overflow-y-auto"
+            onClick={() => setEditingId(null)}
+          >
+            <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-3xl my-12 border border-portal-border overflow-hidden">
+              <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
+                <div>
+                  <h2 className="text-base font-bold text-portal-text">Edit School Bit</h2>
+                  <p className="text-xs text-portal-sub mt-0.5 truncate">{item.title || item.school_name || '—'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingId(null)}
+                  className="text-portal-muted hover:text-portal-text"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </header>
+              <div className="px-6 py-5">
+                <BitRowEditor
+                  item={item}
+                  onCancel={() => setEditingId(null)}
+                  onSaved={(patch) => { handleUpdated(item.id, patch); setEditingId(null) }}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -368,7 +402,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-xl border border-portal-border">
+    <div className="flex flex-col items-center justify-center h-48 text-portal-muted bg-white rounded-lg border border-portal-border">
       <School size={32} className="mb-2 opacity-30" />
       <p className="text-sm">No bits match the current filter</p>
     </div>
@@ -485,16 +519,14 @@ function Pagination({
 
 function BitRow({
   item, school, selectable, selected, onToggleSelect,
-  editing, onEdit, onCancelEdit, onUpdated, onRemoved,
+  onEdit, onUpdated, onRemoved,
 }: {
   item:           SchoolBitRow
   school?:        SchoolOption
   selectable:     boolean
   selected:       boolean
   onToggleSelect: () => void
-  editing:        boolean
   onEdit:         () => void
-  onCancelEdit:   () => void
   onUpdated:      (patch: Partial<SchoolBitRow>) => void
   onRemoved:      () => void
 }) {
@@ -611,7 +643,7 @@ function BitRow({
               </span>
             )}
             {item.status === 'approved' && !scheduledFor && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 ring-1 ring-green-200">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-green-lt text-green-700 ring-1 ring-green-200">
                 <CheckCircle2 size={9} /> Live
               </span>
             )}
@@ -631,7 +663,7 @@ function BitRow({
               <button
                 onClick={() => call('approve')}
                 disabled={busy !== null}
-                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-green-700 bg-portal-green-lt border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-40"
               >
                 {busy === 'approve' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                 Approve
@@ -658,11 +690,11 @@ function BitRow({
             </button>
           )}
           <button
-            onClick={editing ? onCancelEdit : onEdit}
+            onClick={onEdit}
             className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
           >
             <Pencil size={11} />
-            {editing ? 'Close' : 'Edit'}
+            Edit
           </button>
           <div className="relative">
             <button
@@ -695,14 +727,6 @@ function BitRow({
         </div>
       </div>
 
-      {/* Inline editor */}
-      {editing && (
-        <BitRowEditor
-          item={item}
-          onCancel={onCancelEdit}
-          onSaved={(patch) => { onUpdated(patch); onCancelEdit() }}
-        />
-      )}
     </div>
   )
 }
@@ -1170,7 +1194,7 @@ function QuickAddPanel({
           <div>
             <label className="block text-xs font-semibold text-portal-blue mb-1">Facebook Post URL <span className="font-normal text-portal-blue">(optional)</span></label>
             <div className="relative">
-              <LinkIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" />
+              <LinkIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-blue" />
               <input type="url" value={fbUrl} onChange={e => setFbUrl(e.target.value)}
                 placeholder="https://facebook.com/post/..."
                 className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 bg-white rounded-lg outline-none focus:border-portal-blue" />
@@ -1228,7 +1252,7 @@ function QuickAddPanel({
           {imageFiles.length === 0 ? (
             <div className="grid sm:grid-cols-2 gap-2">
               <label className="flex flex-col items-center justify-center px-4 py-5 border-2 border-dashed border-blue-200 rounded-lg bg-white cursor-pointer hover:border-blue-400 transition-colors">
-                <Camera className="h-5 w-5 text-blue-400 mb-1" />
+                <Camera className="h-5 w-5 text-portal-blue mb-1" />
                 <span className="text-xs font-semibold text-blue-900">Upload from device</span>
                 <span className="text-[10px] text-portal-blue mt-0.5">Up to {MAX_IMAGES_PER_BIT} photos · 25 MB each</span>
                 <input ref={fileInputRef} type="file" accept={IMAGE_TYPE_ACCEPT} multiple onChange={handleFileChange} className="hidden" />
@@ -1256,7 +1280,7 @@ function QuickAddPanel({
             </div>
           ) : imageFiles.length < MAX_IMAGES_PER_BIT && (
             <label className="flex items-center justify-center px-4 py-2 border border-dashed border-blue-200 rounded-lg bg-white cursor-pointer hover:border-blue-400 text-xs font-semibold text-blue-900">
-              <Camera className="h-3.5 w-3.5 text-blue-400 mr-1.5" />
+              <Camera className="h-3.5 w-3.5 text-portal-blue mr-1.5" />
               Add another photo ({imageFiles.length}/{MAX_IMAGES_PER_BIT})
               <input ref={fileInputRef} type="file" accept={IMAGE_TYPE_ACCEPT} multiple onChange={handleFileChange} className="hidden" />
             </label>
@@ -1300,7 +1324,7 @@ function QuickAddPanel({
           <button
             onClick={() => submit('publish-and-add')}
             disabled={!title.trim() || !blurb.trim() || !selected || busy !== null}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-green-700 bg-white border border-green-300 rounded-lg hover:bg-green-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-green-700 bg-white border border-green-300 rounded-lg hover:bg-portal-green-lt disabled:opacity-50"
           >
             {busy === 'publish-and-add' ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
             {busy === 'publish-and-add' ? 'Publishing…' : 'Publish & Add Another'}

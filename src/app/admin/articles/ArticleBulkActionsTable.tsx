@@ -139,7 +139,7 @@ export function ArticleBulkActionsTable({
 
   if (articles.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+      <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
         <p className="text-portal-sub text-sm mb-3">No articles in this view.</p>
         <Link href="/admin/articles/new" className="text-sm font-semibold text-portal-blue hover:text-portal-blue">
           Write your first article →
@@ -158,7 +158,7 @@ export function ArticleBulkActionsTable({
       {resultMsg && (
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
           resultMsg.ok
-            ? 'bg-green-50 border border-green-200 text-green-700'
+            ? 'bg-portal-green-lt border border-green-200 text-green-700'
             : 'bg-red-50 border border-red-200 text-portal-red'
         }`}>
           {resultMsg.text}
@@ -167,7 +167,7 @@ export function ArticleBulkActionsTable({
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-portal-blue-lt border border-blue-200 rounded-xl">
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-portal-blue-lt border border-blue-200 rounded-lg">
           <span className="text-sm font-semibold text-portal-blue mr-1">
             {selected.size} selected
           </span>
@@ -226,7 +226,7 @@ export function ArticleBulkActionsTable({
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+      <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
         {/* Table header */}
         <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
           <div className="flex items-center justify-center">
@@ -362,7 +362,7 @@ export function ArticleBulkActionsTable({
                     <button
                       onClick={() => runBulkAction([a.id], 'approve')}
                       disabled={busy}
-                      className="px-2.5 py-1 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                      className="px-2.5 py-1 text-xs font-semibold text-green-700 bg-portal-green-lt hover:bg-green-100 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
                     >
                       Approve
                     </button>

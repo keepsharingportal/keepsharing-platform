@@ -90,7 +90,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           ← Back to month
         </button>
 
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-sm text-portal-sub uppercase font-bold tracking-wider">Progress</p>
@@ -118,7 +118,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           </div>
         </div>
 
-        <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+        <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
           <p className="px-4 py-3 text-sm font-bold text-portal-text border-b border-portal-border">Every stop</p>
           <ul className="divide-y divide-portal-border">
             {focusDetail.stops.map((s, idx) => {
@@ -191,7 +191,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
           <p className="text-sm text-portal-sub">No deliveries on file for this month.</p>
         </div>
       ) : (
@@ -202,7 +202,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
               <li key={r.id}>
                 <button
                   onClick={() => gotoDelivery(r.id)}
-                  className="w-full text-left rounded-xl border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
+                  className="w-full text-left rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
                 >
                   <div className="flex items-center justify-between gap-3 mb-2">
                     <div className="min-w-0 flex-1">

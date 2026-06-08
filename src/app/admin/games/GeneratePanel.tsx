@@ -253,7 +253,7 @@ export function GeneratePanel({ pendingCount }: Props) {
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber-lt0' : 'bg-green-500'}`}
+                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber-lt0' : 'bg-portal-green-lt0'}`}
                 style={{ width: `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` }}
               />
             </div>
@@ -412,7 +412,7 @@ export function GeneratePanel({ pendingCount }: Props) {
       {result && (
         <div className={`mx-5 mb-5 rounded-lg px-3 py-2 text-xs font-semibold flex items-start gap-2 ${
           result.ok
-            ? 'bg-green-50 border border-green-200 text-green-800'
+            ? 'bg-portal-green-lt border border-green-200 text-green-800'
             : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {result.ok && <Check size={13} className="shrink-0 mt-0.5" />}

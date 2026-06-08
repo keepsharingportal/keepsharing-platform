@@ -54,7 +54,7 @@ export default async function PrintExportPage() {
         <AdminSectionHeader title="Issues Ready to Export" count={months.length} />
 
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No issues with tagged articles yet.</p>
             <Link href="/admin/production/issues" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Issues <ArrowRight size={11} />
@@ -67,7 +67,7 @@ export default async function PrintExportPage() {
               const ready = readyCount(rows)
               const pct   = rows.length > 0 ? Math.round((ready / rows.length) * 100) : 0
               return (
-                <div key={m} className="rounded-xl border border-portal-border bg-white p-4 flex flex-wrap items-center justify-between gap-3">
+                <div key={m} className="rounded-lg border border-portal-border bg-white p-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-portal-blue-lt flex items-center justify-center shrink-0">
                       <Printer size={15} className="text-portal-blue" />

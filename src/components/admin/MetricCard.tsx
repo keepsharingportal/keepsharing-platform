@@ -18,13 +18,13 @@ export function MetricCard({
   label, value, sub, color = '#374151', href, variant = 'light',
 }: MetricCardProps) {
   const content = variant === 'dark' ? (
-    <div className="rounded-xl px-3 py-3" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+    <div className="rounded-lg px-3 py-3" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
       <p className="text-white/70 text-[11px] font-semibold mt-0.5 leading-tight">{label}</p>
       {sub && <p className="text-white/30 text-[10px] mt-0.5">{sub}</p>}
     </div>
   ) : (
-    <div className="bg-white border border-portal-border rounded-xl px-4 py-3 hover:border-portal-border hover:shadow-sm transition-all">
+    <div className="bg-white border border-portal-border rounded-lg px-4 py-3 hover:border-portal-border hover:shadow-sm transition-all">
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
       <p className="text-xs font-semibold text-portal-sub mt-0.5">{label}</p>
       {sub && <p className="text-[10px] text-portal-muted mt-0.5">{sub}</p>}

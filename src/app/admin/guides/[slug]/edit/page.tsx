@@ -119,17 +119,17 @@ export default async function GuideEditPage({ params }: Props) {
 
       {/* ── Read-only context ────────────────────────────────────────────── */}
       <section className="grid sm:grid-cols-3 gap-3">
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Listings</p>
           <p className="text-2xl font-bold text-portal-text mt-1">{(featuredCount ?? 0) + (standardCount ?? 0)}</p>
           <p className="text-xs text-portal-sub">{featuredCount ?? 0} featured · {standardCount ?? 0} standard</p>
         </div>
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Articles</p>
           <p className="text-2xl font-bold text-portal-text mt-1">{articles?.length ?? 0}</p>
           <p className="text-xs text-portal-sub">tagged to this guide</p>
         </div>
-        <div className="rounded-xl border border-portal-border bg-white p-4">
+        <div className="rounded-lg border border-portal-border bg-white p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Section Sponsor</p>
           <p className="text-sm font-bold text-portal-text mt-1 leading-tight">
             {sponsor
@@ -141,7 +141,7 @@ export default async function GuideEditPage({ params }: Props) {
       </section>
 
       {/* ── Connected articles list ──────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <section className="rounded-lg border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text">Connected Articles ({articles?.length ?? 0})</h2>
           <Link
@@ -178,7 +178,7 @@ export default async function GuideEditPage({ params }: Props) {
       </section>
 
       {/* ── Listings shortcut ────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-4 flex items-center justify-between gap-3">
+      <section className="rounded-lg border border-portal-border bg-white p-4 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-portal-text">Listings for this guide</p>
           <p className="text-xs text-portal-sub mt-0.5">Edit listings under the advertisers area — they map to guide_listings here.</p>

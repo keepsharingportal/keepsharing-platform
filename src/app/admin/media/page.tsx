@@ -102,7 +102,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
 
       <div className="p-5">
         {assets.length === 0 ? (
-          <div className="bg-white rounded-xl border border-portal-border p-16 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-16 text-center">
             <ImageIcon size={32} className="text-gray-300 mx-auto mb-4" />
             <p className="text-portal-sub text-sm mb-2">
               {q ? `No media found for "${q}"` : 'No media uploaded yet'}
@@ -128,7 +128,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
               return (
                 <div
                   key={asset.id}
-                  className="group bg-white rounded-xl border border-portal-border overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
+                  className="group bg-white rounded-lg border border-portal-border overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -165,7 +165,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
                     {/* Usage badges */}
                     {usageFlags.length > 0 && (
                       <div className="absolute bottom-1 left-1">
-                        <span className="text-[9px] font-bold bg-green-500 text-white px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold bg-portal-green-lt0 text-white px-1.5 py-0.5 rounded-full">
                           {usageFlags.join(' · ')}
                         </span>
                       </div>
@@ -201,7 +201,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
 
         {/* Upload note */}
         {assets.length > 0 && (
-          <div className="mt-6 p-4 bg-white rounded-xl border border-portal-border text-sm text-portal-sub">
+          <div className="mt-6 p-4 bg-white rounded-lg border border-portal-border text-sm text-portal-sub">
             <p>
               <strong className="text-portal-text">How to add images:</strong> Upload images directly inside the article editor
               using the image toolbar button → "Upload File". Images are automatically compressed and tracked here.

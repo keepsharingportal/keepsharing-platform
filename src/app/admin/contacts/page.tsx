@@ -192,7 +192,7 @@ export default async function ContactsPage({ searchParams }: Props) {
                         {c.name}
                         {c.is_primary && (
                           <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-portal-amber">
-                            <Star size={9} className="fill-amber-500 text-amber-500" /> Primary
+                            <Star size={9} className="fill-amber-500 text-portal-amber" /> Primary
                           </span>
                         )}
                       </Link>

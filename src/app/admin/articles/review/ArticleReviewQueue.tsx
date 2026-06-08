@@ -22,7 +22,7 @@ interface Article {
 const STATUS_STYLES: Record<string, string> = {
   pending:   'bg-portal-amber-lt text-portal-amber border border-portal-amber/30',
   needs_edit:'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30',
-  approved:  'bg-green-50 text-green-700 ring-1 ring-green-200',
+  approved:  'bg-portal-green-lt text-green-700 ring-1 ring-green-200',
   rejected:  'bg-red-50 text-portal-red ring-1 ring-red-200',
 }
 
@@ -61,7 +61,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
     : null
 
   return (
-    <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+    <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
       <div
         className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-portal-bg transition-colors"
         onClick={() => setExpanded(e => !e)}
@@ -205,7 +205,7 @@ export function ArticleReviewQueue({ articles }: { articles: Article[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-portal-border p-8 text-center text-sm text-portal-muted">
+        <div className="bg-white rounded-lg border border-portal-border p-8 text-center text-sm text-portal-muted">
           No articles match this filter.
         </div>
       ) : (

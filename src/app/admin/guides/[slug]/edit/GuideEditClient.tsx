@@ -94,7 +94,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
@@ -145,7 +145,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Images ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-5">
         <h2 className="text-sm font-bold text-portal-text">Images</h2>
 
         <div>
@@ -179,7 +179,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Print edition link ─────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Print Edition</h2>
         <p className="text-[11px] text-portal-muted -mt-2">Connect the print issue. The web guide is the expanded digital edition of the same theme.</p>
 
@@ -201,7 +201,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Primary CTA ────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Primary CTA</h2>
         <p className="text-[11px] text-portal-muted -mt-2">Optional CTA used by the homepage Summer Fun block and other featured-guide modules.</p>
 

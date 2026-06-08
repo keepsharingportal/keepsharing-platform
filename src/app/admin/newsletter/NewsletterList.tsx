@@ -72,7 +72,7 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+      <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-portal-bg border-b border-portal-border">
             <tr>
@@ -106,8 +106,8 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
                 </td>
                 <td className="px-4 py-2.5 text-xs">
                   {s.ghl_contact_id
-                    ? <span className="text-green-600 font-medium">✓ Synced</span>
-                    : <span className="text-amber-500">Pending</span>
+                    ? <span className="text-portal-green font-medium">✓ Synced</span>
+                    : <span className="text-portal-amber">Pending</span>
                   }
                 </td>
               </tr>

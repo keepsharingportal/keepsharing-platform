@@ -133,7 +133,7 @@ export function SendPanel({
         {result && (
           <div className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-2 ${
             result.ok
-              ? 'border-green-200 bg-green-50 text-green-800'
+              ? 'border-green-200 bg-portal-green-lt text-green-800'
               : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
           }`}>
             {result.ok ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}

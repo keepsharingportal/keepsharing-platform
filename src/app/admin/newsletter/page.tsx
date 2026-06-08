@@ -30,7 +30,7 @@ export default async function NewsletterAdminPage() {
       </div>
       <div className="p-6">
         {(!subscribers || subscribers.length === 0) ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
             <p className="text-portal-muted">No subscribers yet. Forms are live — they'll appear here as people sign up.</p>
           </div>
         ) : (

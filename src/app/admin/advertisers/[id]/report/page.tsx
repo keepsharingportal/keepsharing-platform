@@ -162,7 +162,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
           {plRows.length === 0 ? (
             <p className="text-sm text-portal-sub italic">No active ad placements this month.</p>
           ) : (
-            <div className="rounded-xl ring-1 ring-gray-200 overflow-hidden">
+            <div className="rounded-lg ring-1 ring-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
@@ -202,7 +202,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
             <h2 className="text-sm font-bold uppercase tracking-wider text-portal-sub mb-4">
               QR Code Performance
             </h2>
-            <div className="rounded-xl ring-1 ring-gray-200 overflow-hidden">
+            <div className="rounded-lg ring-1 ring-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-portal-bg border-b border-portal-border">
                   <tr>
@@ -245,7 +245,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
 
 function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-[#fdf0eb] ring-1 ring-portal-blue/15 p-4">
+    <div className="rounded-lg bg-[#fdf0eb] ring-1 ring-portal-blue/15 p-4">
       <div className="mb-2">{icon}</div>
       <p className="text-[10px] uppercase tracking-wider font-bold text-portal-blue/80 mb-0.5">{label}</p>
       <p className="text-2xl font-bold text-portal-text">{value}</p>

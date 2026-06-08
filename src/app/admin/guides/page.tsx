@@ -118,7 +118,7 @@ export default async function GuidesAdminPage() {
             <Link
               key={g.slug}
               href={`/admin/guides/${g.slug}/listings`}
-              className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${isActive ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
+              className={`group rounded-lg border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${isActive ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
             >
               {/* Hero image strip */}
               <div className="relative aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
@@ -191,7 +191,7 @@ export default async function GuidesAdminPage() {
       </div>
 
       {rows.length === 0 && (
-        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-12 text-center bg-white">
           <p className="text-sm text-portal-sub">No guides in <code className="px-1 bg-gray-100 rounded">guide_types</code>.</p>
         </div>
       )}

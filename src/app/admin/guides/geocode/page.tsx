@@ -122,23 +122,23 @@ export default function GeocodePage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-portal-border p-4 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-4 text-center">
             <div className="text-2xl font-bold text-portal-text">{listings.length}</div>
             <div className="text-xs text-portal-sub mt-0.5">Need Geocoding</div>
           </div>
-          <div className="bg-green-50 rounded-xl border border-green-200 p-4 text-center">
+          <div className="bg-portal-green-lt rounded-lg border border-green-200 p-4 text-center">
             <div className="text-2xl font-bold text-green-700">{ok}</div>
-            <div className="text-xs text-green-600 mt-0.5">Geocoded This Session</div>
+            <div className="text-xs text-portal-green mt-0.5">Geocoded This Session</div>
           </div>
-          <div className="bg-red-50 rounded-xl border border-red-200 p-4 text-center">
+          <div className="bg-red-50 rounded-lg border border-red-200 p-4 text-center">
             <div className="text-2xl font-bold text-portal-red">{errors}</div>
-            <div className="text-xs text-red-500 mt-0.5">Failed</div>
+            <div className="text-xs text-portal-red mt-0.5">Failed</div>
           </div>
         </div>
 
         {/* Progress bar */}
         {running && (
-          <div className="bg-white rounded-xl border border-portal-border p-4">
+          <div className="bg-white rounded-lg border border-portal-border p-4">
             <div className="flex items-center justify-between text-xs text-portal-sub mb-2">
               <span>Processing listings…</span>
               <span>{progress}%</span>
@@ -154,7 +154,7 @@ export default function GeocodePage() {
 
         {/* API key warning */}
         {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-xl p-4">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-4">
             <div className="text-sm font-semibold text-portal-amber mb-1">Google Maps API key not configured</div>
             <p className="text-xs text-portal-amber">
               Add <code className="bg-portal-amber-lt px-1 rounded">GOOGLE_MAPS_API_KEY</code> (server-side) or{' '}
@@ -165,7 +165,7 @@ export default function GeocodePage() {
         )}
 
         {/* Listing table */}
-        <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+        <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-portal-muted flex items-center justify-center gap-2">
               <Loader2 size={16} className="animate-spin" /> Loading listings…
@@ -204,7 +204,7 @@ export default function GeocodePage() {
                             </span>
                           )}
                           {r?.status === 'ok' && (
-                            <span className="flex items-center gap-1 text-green-600">
+                            <span className="flex items-center gap-1 text-portal-green">
                               <CheckCircle2 size={11} /> {r.lat?.toFixed(4)}, {r.lng?.toFixed(4)}
                             </span>
                           )}

@@ -129,7 +129,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
   return (
     <section>
       <SectionHeading icon={Send} title="Quick actions" description="Enqueue scheduled templates manually or drain the queue right now" />
-      <div className="rounded-xl border border-portal-border bg-white p-4 space-y-3">
+      <div className="rounded-lg border border-portal-border bg-white p-4 space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* On-our-way */}
           <div className="rounded-md border border-portal-border p-3 space-y-2">
@@ -247,7 +247,7 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
         {templates.map(t => {
           const isOpen = openId === t.id
           return (
-            <li key={t.id} className="rounded-xl border border-portal-border bg-white overflow-hidden">
+            <li key={t.id} className="rounded-lg border border-portal-border bg-white overflow-hidden">
               <button
                 onClick={() => setOpenId(isOpen ? null : t.id)}
                 className="w-full flex items-center gap-3 p-3 text-left hover:bg-portal-bg"
@@ -338,7 +338,7 @@ function SchedulesEditor({ schedules, onChange }: { schedules: RouteSchedule[]; 
       ) : (
         <ul className="space-y-2">
           {schedules.map(s => (
-            <li key={s.route_id} className="rounded-xl border border-portal-border bg-white p-3">
+            <li key={s.route_id} className="rounded-lg border border-portal-border bg-white p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-bold text-portal-text">{s.route_name}</p>
                 <button
@@ -370,7 +370,7 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
   return (
     <section>
       <SectionHeading icon={Inbox} title="Queue" description="Recent 50 outbound emails" />
-      <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
         <div className="flex items-center gap-3 p-3 border-b border-portal-border text-xs">
           <Badge label="Pending"  count={stats.pending  ?? 0} color="amber" />
           <Badge label="Sending"  count={stats.sending  ?? 0} color="blue"  />

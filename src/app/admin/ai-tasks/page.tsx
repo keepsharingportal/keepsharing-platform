@@ -248,7 +248,7 @@ export default async function AITasksPage({
           { label: 'Approved',     val: metrics.approved, color: '#16a34a' },
           { label: 'Failed',       val: metrics.failed,   color: '#dc2626' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
@@ -261,7 +261,7 @@ export default async function AITasksPage({
           <Link
             key={tab.key}
             href={`/admin/ai-tasks?filter=${tab.key}`}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === tab.key
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -352,7 +352,7 @@ export default async function AITasksPage({
                       <p>Created: {timeAgo(task.created_at)}</p>
                       {task.completed_at && <p>Completed: {timeAgo(task.completed_at)}</p>}
                       {task.approved_at && (
-                        <p className="text-green-600 font-medium">Approved: {fmtDatetime(task.approved_at)}</p>
+                        <p className="text-portal-green font-medium">Approved: {fmtDatetime(task.approved_at)}</p>
                       )}
                       {task.rejected_at && (
                         <p className="text-portal-red font-medium">Rejected: {fmtDatetime(task.rejected_at)}</p>
@@ -362,7 +362,7 @@ export default async function AITasksPage({
 
                   {/* Output preview */}
                   {task.output_preview && (
-                    <div className="mt-3 px-4 py-3 bg-portal-bg rounded-xl border border-portal-border">
+                    <div className="mt-3 px-4 py-3 bg-portal-bg rounded-lg border border-portal-border">
                       <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide mb-1.5">
                         AI Output Preview
                       </p>
@@ -384,7 +384,7 @@ export default async function AITasksPage({
 
                   {/* Error message */}
                   {task.error_message && (
-                    <div className="mt-3 px-4 py-3 bg-red-50 rounded-xl border border-red-100">
+                    <div className="mt-3 px-4 py-3 bg-red-50 rounded-lg border border-red-100">
                       <p className="text-[10px] font-semibold text-portal-red uppercase tracking-wide mb-1">Error</p>
                       <p className="text-xs text-red-700 leading-relaxed">{task.error_message}</p>
                     </div>
@@ -401,11 +401,11 @@ export default async function AITasksPage({
 
                   {/* Approval attribution */}
                   {task.approved_by && task.status === 'approved' && (
-                    <div className="mt-3 px-4 py-2 bg-green-50 rounded-xl border border-green-100">
+                    <div className="mt-3 px-4 py-2 bg-portal-green-lt rounded-lg border border-green-100">
                       <p className="text-xs text-green-700 font-medium">
                         ✓ Approved by {task.approved_by} · {fmtDatetime(task.approved_at)}
                       </p>
-                      <p className="text-[11px] text-green-600 mt-0.5">
+                      <p className="text-[11px] text-portal-green mt-0.5">
                         Output marked as reviewed. Apply to source record when publishing workflow is ready.
                       </p>
                     </div>

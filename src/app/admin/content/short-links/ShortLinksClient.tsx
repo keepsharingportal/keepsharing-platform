@@ -229,17 +229,17 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
 
       <div className="bg-portal-bg px-4 py-3">
         {rows.length === 0 ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center text-portal-muted">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center text-portal-muted">
             <QrCode size={32} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">No tracked links yet. Create one for your first QR or campaign.</p>
           </div>
         ) : visibleRows.length === 0 ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center text-portal-muted">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center text-portal-muted">
             <p className="text-sm">No rows match these filters.</p>
             <button onClick={clearAllFilters} className="mt-2 text-xs font-semibold text-portal-blue hover:underline">Clear all filters</button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border overflow-hidden">
             {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
           </div>
         )}
@@ -411,7 +411,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
 
       {showQr && (
         <div className="px-4 pb-4 pl-[calc(2.5rem+0.75rem+1rem)] flex items-start gap-4">
-          <div className="w-40 h-40 rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden">
+          <div className="w-40 h-40 rounded-lg bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden">
             {qrLoading ? (
               <RefreshCw size={20} className="text-gray-300 animate-spin" />
             ) : qrDataUrl ? (
@@ -818,7 +818,7 @@ export function AddPanel({
                 key={p.value}
                 type="button"
                 onClick={() => pickPurpose(p.value)}
-                className={`text-left rounded-xl border p-3.5 transition-all ${
+                className={`text-left rounded-lg border p-3.5 transition-all ${
                   active
                     ? 'border-2 border-gray-900 bg-white shadow-sm'
                     : 'border-portal-border bg-white hover:border-gray-400'
@@ -895,7 +895,7 @@ export function AddPanel({
               so the editor adds the missing client before doing
               anything else. */}
           {showAddAdv && (
-            <div className="rounded-xl bg-portal-bg ring-1 ring-gray-200 p-4 space-y-3">
+            <div className="rounded-lg bg-portal-bg ring-1 ring-gray-200 p-4 space-y-3">
               <p className="text-xs font-bold text-portal-text inline-flex items-center gap-1.5">
                 <Plus size={12} /> Quick-Add Advertiser
               </p>
@@ -1148,7 +1148,7 @@ export function AddPanel({
         {purpose === 'qr' && (
         <div className="flex flex-col items-center">
           <p className={lbl}>QR Preview</p>
-          <div className="w-[180px] h-[180px] rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden mb-2">
+          <div className="w-[180px] h-[180px] rounded-lg bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden mb-2">
             {qrLoading ? (
               <RefreshCw size={20} className="text-gray-300 animate-spin" />
             ) : qrDataUrl ? (

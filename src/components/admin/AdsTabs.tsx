@@ -45,7 +45,7 @@ export function AdsTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
               active
                 ? 'bg-gray-900 text-white'
                 : 'text-portal-sub hover:text-portal-text hover:bg-portal-bg'

@@ -36,7 +36,7 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 const DOT_COLORS: Record<Notification['dot'], string> = {
   red:   'bg-red-500',
   amber: 'bg-amber-400',
-  green: 'bg-green-500',
+  green: 'bg-portal-green-lt0',
   blue:  'bg-portal-blue-lt0',
 }
 
@@ -327,7 +327,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
 
       {/* Input */}
       <div className="px-3 pb-3 shrink-0 border-t border-portal-border pt-3">
-        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-lg px-3 py-2">
           <input
             ref={inputRef}
             value={input}

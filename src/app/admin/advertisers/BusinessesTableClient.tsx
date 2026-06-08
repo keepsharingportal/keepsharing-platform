@@ -334,7 +334,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
               This cannot be undone. The following related rows will also be deleted by cascade:
             </p>
 
-            <div className="bg-portal-bg rounded-xl p-3 text-sm space-y-1">
+            <div className="bg-portal-bg rounded-lg p-3 text-sm space-y-1">
               <CascadeLine label="Digital ad placements" value={preview.ad_placements} />
               <CascadeLine label="Print ad placements" value={preview.print_ad_placements} />
               <CascadeLine label="Contacts"             value={preview.advertiser_contacts} />

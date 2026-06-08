@@ -74,7 +74,7 @@ export default async function BloggerEditPage({ params }: Props) {
       />
 
       {/* ── Posts ─────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
+      <section className="rounded-lg border border-portal-border bg-white overflow-hidden">
         <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text">Posts by {blogger.display_name.split(' ')[0]} ({posts?.length ?? 0})</h2>
           <Link

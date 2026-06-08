@@ -139,7 +139,7 @@ export function PendingEventsClient({ events }: Props) {
         const dirty    = !!edits[ev.id] && Object.keys(edits[ev.id]).length > 0
 
         return (
-          <div key={ev.id} className="rounded-xl border border-portal-border bg-white overflow-hidden">
+          <div key={ev.id} className="rounded-lg border border-portal-border bg-white overflow-hidden">
             {/* Summary row */}
             <div className="flex flex-wrap items-start justify-between gap-3 p-4">
               <button onClick={() => setExpanded(isOpen ? null : ev.id)} className="flex-1 min-w-0 text-left">
@@ -192,7 +192,7 @@ export function PendingEventsClient({ events }: Props) {
             </div>
 
             {msg?.id === ev.id && (
-              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <div className={`px-4 py-2 text-xs font-semibold ${msg.ok ? 'bg-portal-green-lt text-green-700' : 'bg-red-50 text-red-700'}`}>
                 {msg.text}
               </div>
             )}

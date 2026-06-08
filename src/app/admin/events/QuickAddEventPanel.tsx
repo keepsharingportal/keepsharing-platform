@@ -426,7 +426,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               matches inline, and the operator can override with "Add anyway"
               if they're sure this is a different event. */}
           {duplicates.length > 0 && (
-            <div className="rounded-xl bg-portal-amber-lt border border-portal-amber/30 p-3">
+            <div className="rounded-lg bg-portal-amber-lt border border-portal-amber/30 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle size={14} className="text-portal-amber shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">

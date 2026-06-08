@@ -153,7 +153,7 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
   }
 
   return (
-    <div className="bg-portal-bg border border-portal-border rounded-xl p-4">
+    <div className="bg-portal-bg border border-portal-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-bold uppercase tracking-wider text-portal-sub">{surfaceLabel(surface)}</p>
         {multiMode && (

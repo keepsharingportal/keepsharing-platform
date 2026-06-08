@@ -524,7 +524,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       )}
 
       {picks.length > 0 && !newsletterIssuesAvailable && (
-        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
+        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Send history needs a database migration
           </p>

@@ -48,7 +48,7 @@ function sortIssues(rows: PrintPlacementSummary[], todayYM: string): PrintPlacem
 export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing }: Props) {
   if (tableMissing) {
     return (
-      <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 text-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-2 inline-flex items-center gap-1.5">
           <Printer size={11} /> Print Placements
         </h2>
@@ -67,7 +67,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
   const addIssue = sorted.find(r => r.issue_month > todayYM)?.issue_month ?? todayYM
 
   return (
-    <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm space-y-3">
+    <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 text-sm space-y-3">
       <header className="flex items-center justify-between gap-2">
         <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
           <Printer size={11} /> Print Placements {initial.length > 0 && <span className="text-portal-muted">({initial.length})</span>}

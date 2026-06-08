@@ -106,7 +106,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
       {/* ── Left column ── contacts + contract + GHL */}
       <div className="space-y-4">
         {contactsTableMissing ? (
-          <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
+          <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 space-y-3 text-sm">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contact</h2>
             {contactName && <p className="font-bold text-portal-text">{contactName}</p>}
             {contactEmail && (
@@ -126,7 +126,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
         )}
 
         {businessUrl && (
-          <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 text-sm">
+          <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 text-sm">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-2">Website</h2>
             <a href={businessUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-portal-blue hover:underline break-all">
               <Globe size={13} /> {businessUrl.replace(/^https?:\/\//, '')}
@@ -134,7 +134,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
           </section>
         )}
 
-        <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-3 text-sm">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 space-y-3 text-sm">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contract</h2>
           <div className="flex items-center gap-1.5 text-portal-text">
             <Calendar size={13} />
@@ -150,7 +150,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
           )}
         </section>
 
-        <section className="bg-white rounded-xl ring-1 ring-gray-200 p-5 space-y-2 text-sm">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 p-5 space-y-2 text-sm">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">GoHighLevel</h2>
           <p className="text-[11px] text-portal-sub leading-snug">
             Sync this business&apos;s contacts to GHL with role + tier tags.

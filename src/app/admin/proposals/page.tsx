@@ -9,7 +9,7 @@ const STATUS_COLORS: Record<string, string> = {
   draft:    'bg-gray-100 text-portal-sub',
   sent:     'bg-portal-blue-lt text-portal-blue',
   viewed:   'bg-portal-amber-lt text-amber-600',
-  accepted: 'bg-green-50 text-green-700',
+  accepted: 'bg-portal-green-lt text-green-700',
   declined: 'bg-red-50 text-portal-red',
   expired:  'bg-portal-bg text-portal-muted',
 }
@@ -37,14 +37,14 @@ export default async function ProposalsPage() {
 
       <div className="p-6">
         {(!proposals || proposals.length === 0) ? (
-          <div className="bg-white rounded-xl border border-portal-border p-12 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-12 text-center">
             <p className="text-portal-sub mb-4">No proposals yet.</p>
             <Link href="/admin/proposals/new" className="px-5 py-2.5 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90">
               Create your first proposal
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-portal-bg border-b border-portal-border">
                 <tr>

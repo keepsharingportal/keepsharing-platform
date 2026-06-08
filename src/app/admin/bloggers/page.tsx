@@ -78,7 +78,7 @@ export default async function BloggersAdminPage() {
       </SectionHelp>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-12 text-center bg-white">
           <Users className="h-8 w-8 text-portal-muted mx-auto mb-2" />
           <p className="text-sm font-semibold text-portal-text">No bloggers yet</p>
           <p className="text-xs text-portal-sub mt-1">Click <strong>+ New Blogger</strong> to add the first one.</p>
@@ -91,9 +91,9 @@ export default async function BloggersAdminPage() {
               <Link
                 key={b.id}
                 href={`/admin/bloggers/${b.slug}/edit`}
-                className={`rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-pink-300 transition-all flex gap-4 p-4 ${b.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
+                className={`rounded-lg border bg-white overflow-hidden hover:shadow-md hover:border-pink-300 transition-all flex gap-4 p-4 ${b.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
               >
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                   {b.profile_image_url ? (
                     <Image
                       src={b.profile_image_url}
@@ -122,7 +122,7 @@ export default async function BloggersAdminPage() {
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <p className="text-[11px] text-portal-muted">{count} post{count === 1 ? '' : 's'} · /{b.slug}</p>
                     {b.user_id ? (
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-green-50 text-green-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-portal-green-lt text-green-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                         <KeyRound size={8} /> Has Login
                       </span>
                     ) : b.email ? (

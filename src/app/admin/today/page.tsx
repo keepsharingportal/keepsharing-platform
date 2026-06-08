@@ -203,14 +203,14 @@ export default async function TodayPage() {
             {PUBLICATIONS.map(pub => {
               const stats = marketStats[pub.abbrev]
               return (
-                <div key={pub.abbrev} className="bg-white rounded-xl border border-portal-border p-4 hover:shadow-sm transition-shadow">
+                <div key={pub.abbrev} className="bg-white rounded-lg border border-portal-border p-4 hover:shadow-sm transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PUB_COLORS[pub.abbrev] }} />
                       <span className="text-xs font-bold text-portal-muted">{pub.abbrev}</span>
                     </div>
                     {stats && stats.count > 0 && (
-                      <span className="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded-full">Live</span>
+                      <span className="text-xs text-portal-green font-medium bg-portal-green-lt px-1.5 py-0.5 rounded-full">Live</span>
                     )}
                   </div>
                   <div className="text-sm font-semibold text-portal-text mb-2 truncate">{pub.name}</div>
@@ -250,26 +250,26 @@ export default async function TodayPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section>
-            <SectionHeader icon={AlertCircle} label="Urgent — Click to Draft Email" color="text-red-500" />
+            <SectionHeader icon={AlertCircle} label="Urgent — Click to Draft Email" color="text-portal-red" />
             {actionItems.urgent.length > 0
               ? <UrgentItemsList items={actionItems.urgent} urgency="urgent" />
-              : <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">No urgent items — inbox clear ✓</div>
+              : <div className="bg-white rounded-lg border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">No urgent items — inbox clear ✓</div>
             }
           </section>
 
           <div className="space-y-5">
             <section>
-              <SectionHeader icon={Clock} label="Review This Week — Click to Draft" color="text-amber-500" />
+              <SectionHeader icon={Clock} label="Review This Week — Click to Draft" color="text-portal-amber" />
               {actionItems.review.length > 0
                 ? <UrgentItemsList items={actionItems.review} urgency="review" />
-                : <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">Nothing due this week</div>
+                : <div className="bg-white rounded-lg border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">Nothing due this week</div>
               }
             </section>
 
             <section>
               <SectionHeader icon={Inbox} label="Incoming" color="text-portal-blue" />
               {incoming.length > 0 ? (
-                <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border">
+                <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border">
                   {incoming.map(item => (
                     <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-portal-bg transition-colors">
                       <div className="flex items-center gap-2.5">
@@ -283,7 +283,7 @@ export default async function TodayPage() {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">
+                <div className="bg-white rounded-lg border border-portal-border px-4 py-6 text-center text-sm text-portal-muted">
                   No new submissions yet — they&apos;ll appear here as they come in
                 </div>
               )}

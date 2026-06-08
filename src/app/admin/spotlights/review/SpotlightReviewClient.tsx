@@ -95,7 +95,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
     <div>
       {msg && (
         <div className={`mb-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-          msg.ok ? 'bg-green-50 border border-green-200 text-green-700'
+          msg.ok ? 'bg-portal-green-lt border border-green-200 text-green-700'
                  : 'bg-red-50 border border-red-200 text-portal-red'
         }`}>
           {msg.ok ? <CheckCircle2 size={14} className="inline mr-1 -mt-0.5" /> : <AlertCircle size={14} className="inline mr-1 -mt-0.5" />}
@@ -104,7 +104,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
       )}
 
       {/* Bulk action bar */}
-      <div className="mb-4 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white border border-portal-border rounded-xl sticky top-32 z-5">
+      <div className="mb-4 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white border border-portal-border rounded-lg sticky top-32 z-5">
         <input
           type="checkbox"
           checked={allChecked}
@@ -162,7 +162,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
           return (
             <article
               key={r.id}
-              className={`flex flex-col bg-white rounded-xl border overflow-hidden transition-colors ${
+              className={`flex flex-col bg-white rounded-lg border overflow-hidden transition-colors ${
                 isSelected ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-portal-border'
               }`}
             >

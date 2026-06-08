@@ -256,7 +256,7 @@ export default function SummerGuideImportPage() {
       )}
 
       {error && (
-        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-2 text-sm text-red-400">
+        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2 text-sm text-red-400">
           <AlertCircle size={16} className="shrink-0 mt-0.5" />
           {error}
         </div>
@@ -276,7 +276,7 @@ export default function SummerGuideImportPage() {
 
           {/* Unmapped columns warning */}
           {unmapped.length > 0 && (
-            <div className="p-3 bg-portal-amber-lt0/10 border border-amber-500/30 rounded-xl text-xs text-amber-400">
+            <div className="p-3 bg-portal-amber-lt0/10 border border-amber-500/30 rounded-lg text-xs text-amber-400">
               <span className="font-semibold">Columns not recognised (will be skipped):</span>{' '}
               {unmapped.join(', ')}
             </div>
@@ -305,13 +305,13 @@ export default function SummerGuideImportPage() {
                   {displayRows.map((row, i) => (
                     <tr key={i} className="border-b border-white/5 hover:bg-white/3">
                       <td className="px-4 py-2 text-white/25">{i + 1}</td>
-                      <td className="px-4 py-2 text-blue-400 font-medium">{row.category}</td>
+                      <td className="px-4 py-2 text-portal-blue font-medium">{row.category}</td>
                       <td className="px-4 py-2 text-white font-medium">{row.business_name}</td>
                       <td className="px-4 py-2 text-white/60">{row.city ?? '—'}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           row.listing_tier === 'advertiser' ? 'bg-portal-amber-lt0/20 text-amber-400' :
-                          row.listing_tier === 'enhanced'  ? 'bg-portal-blue-lt0/20 text-blue-400' :
+                          row.listing_tier === 'enhanced'  ? 'bg-portal-blue-lt0/20 text-portal-blue' :
                                                               'bg-white/8 text-white/40'
                         }`}>
                           {row.listing_tier ?? 'community'}
@@ -338,7 +338,7 @@ export default function SummerGuideImportPage() {
           <button
             onClick={runImport}
             disabled={importing}
-            className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-lg transition-colors"
           >
             {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
             {importing ? 'Importing...' : `Import ${parsed.rows.length} records`}
@@ -352,10 +352,10 @@ export default function SummerGuideImportPage() {
           <div className="grid grid-cols-3 gap-3">
             {[
               { label: 'Inserted', value: result.inserted, color: 'text-green-400' },
-              { label: 'Updated',  value: result.updated,  color: 'text-blue-400'  },
+              { label: 'Updated',  value: result.updated,  color: 'text-portal-blue'  },
               { label: 'Skipped',  value: result.skipped,  color: 'text-white/40'  },
             ].map(({ label, value, color }) => (
-              <div key={label} className="bg-white/3 border border-white/10 rounded-xl p-4 text-center">
+              <div key={label} className="bg-white/3 border border-white/10 rounded-lg p-4 text-center">
                 <div className={`text-3xl font-bold ${color}`}>{value}</div>
                 <div className="text-xs text-white/40 mt-1">{label}</div>
               </div>
@@ -363,7 +363,7 @@ export default function SummerGuideImportPage() {
           </div>
 
           {result.errors.length > 0 && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
               <p className="text-xs font-semibold text-red-400 mb-2">{result.errors.length} error(s)</p>
               <ul className="space-y-1">
                 {result.errors.map((e, i) => (
@@ -383,8 +383,8 @@ export default function SummerGuideImportPage() {
                   <span className="text-xs text-white/25 w-8 shrink-0">{r.row}</span>
                   <span className="text-xs text-white flex-1">{r.name}</span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    r.status === 'ok'      ? 'bg-green-500/20 text-green-400' :
-                    r.status === 'updated' ? 'bg-portal-blue-lt0/20 text-blue-400'  :
+                    r.status === 'ok'      ? 'bg-portal-green-lt0/20 text-green-400' :
+                    r.status === 'updated' ? 'bg-portal-blue-lt0/20 text-portal-blue'  :
                     r.status === 'skipped' ? 'bg-white/8 text-white/40'      :
                                              'bg-red-500/20 text-red-400'
                   }`}>
@@ -399,12 +399,12 @@ export default function SummerGuideImportPage() {
           <div className="flex gap-2">
             <button
               onClick={() => { setParsed(null); setResult(null) }}
-              className="px-4 py-2 text-sm text-white/60 border border-white/15 rounded-xl hover:bg-white/5 transition-colors"
+              className="px-4 py-2 text-sm text-white/60 border border-white/15 rounded-lg hover:bg-white/5 transition-colors"
             >
               Import another file
             </button>
             <a href="/summer-fun-guide" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-400 border border-blue-500/30 rounded-xl hover:bg-portal-blue-lt0/10 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-blue-500/30 rounded-lg hover:bg-portal-blue-lt0/10 transition-colors">
               <FileText size={14} />
               View Summer Fun Guide
             </a>

@@ -642,7 +642,7 @@ export default async function IntelligencePage({
           </div>
 
           {recommendedActions.length === 0 ? (
-            <div className="bg-green-50 border border-green-100 rounded-lg px-6 py-8 text-center">
+            <div className="bg-portal-green-lt border border-green-100 rounded-lg px-6 py-8 text-center">
               <p className="text-2xl mb-2">✅</p>
               <p className="text-sm font-semibold text-green-800">No urgent actions — ecosystem is in good shape.</p>
             </div>
@@ -653,7 +653,7 @@ export default async function IntelligencePage({
                 return (
                   <div
                     key={action.id}
-                    className={`relative ${style.bg} border ${style.border} rounded-xl overflow-hidden`}
+                    className={`relative ${style.bg} border ${style.border} rounded-lg overflow-hidden`}
                   >
                     <div
                       className="absolute left-0 top-0 bottom-0 w-1"
@@ -702,7 +702,7 @@ export default async function IntelligencePage({
                   { label: 'Upgrading', val: upgradeReady.length, color: '#d97706' },
                   { label: 'At-Risk',   val: atRisk.length,       color: atRisk.length > 0 ? '#dc2626' : '#9ca3af' },
                 ] as const).map(({ label, val, color }) => (
-                  <div key={label} className="text-center bg-portal-bg rounded-xl py-3">
+                  <div key={label} className="text-center bg-portal-bg rounded-lg py-3">
                     <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                     <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
                   </div>
@@ -734,7 +734,7 @@ export default async function IntelligencePage({
                   {proposalsAccepted > 0 && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-portal-sub">Accepted</span>
-                      <span className="font-semibold text-green-600">{proposalsAccepted}</span>
+                      <span className="font-semibold text-portal-green">{proposalsAccepted}</span>
                     </div>
                   )}
                   {proposals.length === 0 && (
@@ -752,7 +752,7 @@ export default async function IntelligencePage({
                       <div key={cat} className="flex items-center gap-2 text-xs">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
                         <span className="text-portal-sub truncate font-mono text-[11px]">{cat}</span>
-                        <span className="text-red-500 font-semibold shrink-0">No sponsor</span>
+                        <span className="text-portal-red font-semibold shrink-0">No sponsor</span>
                       </div>
                     ))}
                   </div>
@@ -761,7 +761,7 @@ export default async function IntelligencePage({
 
               {/* Renewal window */}
               {renewalSoon.length > 0 && (
-                <div className="bg-portal-amber-lt border border-amber-100 rounded-xl px-3 py-2.5">
+                <div className="bg-portal-amber-lt border border-amber-100 rounded-lg px-3 py-2.5">
                   <p className="text-xs text-portal-amber font-semibold">{renewalSoon.length} partner{renewalSoon.length !== 1 ? 's' : ''} renewing within 60 days</p>
                   <div className="mt-1 space-y-0.5">
                     {renewalSoon.slice(0, 3).map(a => (
@@ -808,7 +808,7 @@ export default async function IntelligencePage({
                   { label: 'In Work',    val: inProgress.length,    color: '#2563eb' },
                   { label: 'Ready',      val: readyToPublish.length, color: '#16a34a' },
                 ] as const).map(({ label, val, color }) => (
-                  <div key={label} className="text-center bg-portal-bg rounded-xl py-3">
+                  <div key={label} className="text-center bg-portal-bg rounded-lg py-3">
                     <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                     <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
                   </div>
@@ -869,7 +869,7 @@ export default async function IntelligencePage({
 
               {/* AI task summary */}
               {(aiPending.length > 0 || aiFailed.length > 0) && (
-                <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
+                <div className="bg-orange-50 border border-orange-100 rounded-lg px-3 py-2.5">
                   <p className="text-xs font-semibold text-orange-800 mb-1">AI Task Queue</p>
                   <div className="flex gap-4 text-[11px] text-orange-700">
                     {aiPending.length > 0 && <span>{aiPending.length} awaiting human review</span>}
@@ -990,7 +990,7 @@ export default async function IntelligencePage({
                     <p className="text-[11px] text-portal-muted">subscribers across all publications</p>
                   </div>
                   {newSubs24h > 0 && (
-                    <span className="text-sm font-bold text-green-600 mb-0.5">+{newSubs24h} today</span>
+                    <span className="text-sm font-bold text-portal-green mb-0.5">+{newSubs24h} today</span>
                   )}
                 </div>
               </div>
@@ -1041,7 +1041,7 @@ export default async function IntelligencePage({
                   </div>
                   {ffPending > 0 && (
                     <div className="text-center">
-                      <p className="text-xl font-bold text-amber-500">{ffPending}</p>
+                      <p className="text-xl font-bold text-portal-amber">{ffPending}</p>
                       <p className="text-[10px] text-portal-muted">pending review</p>
                     </div>
                   )}

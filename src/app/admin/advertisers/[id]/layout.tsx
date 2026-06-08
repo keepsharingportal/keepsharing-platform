@@ -98,9 +98,9 @@ export default async function AdvertiserLayout({ children, params }: Props) {
             <div className="flex items-center gap-4 min-w-0">
               {logoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={logoUrl} alt="" className="w-12 h-12 rounded-xl object-cover ring-1 ring-gray-200 shrink-0" />
+                <img src={logoUrl} alt="" className="w-12 h-12 rounded-lg object-cover ring-1 ring-gray-200 shrink-0" />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-gray-100 ring-1 ring-gray-200 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gray-100 ring-1 ring-gray-200 flex items-center justify-center shrink-0">
                   <Building2 size={20} className="text-gray-300" />
                 </div>
               )}

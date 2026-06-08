@@ -143,7 +143,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
@@ -172,7 +172,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Blogger Portal Access ─────────────────────────────────────────── */}
-      <section className="rounded-xl border border-pink-200 bg-pink-50/40 p-5 space-y-3">
+      <section className="rounded-lg border border-pink-200 bg-pink-50/40 p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
           <Key size={14} className="text-pink-600" />
           Blogger Portal Access
@@ -233,7 +233,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Photos ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-5">
         <h2 className="text-sm font-bold text-portal-text">Photos</h2>
 
         <div>
@@ -262,7 +262,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Bio ───────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-2">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-2">
         <h2 className="text-sm font-bold text-portal-text">Bio</h2>
         <p className="text-[11px] text-portal-muted">Longer about-me paragraph(s). Line breaks preserved.</p>
         <textarea
@@ -275,7 +275,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
       </section>
 
       {/* ── Quick Takes ───────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-3">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
             <h2 className="text-sm font-bold text-portal-text">Quick Takes</h2>
@@ -302,7 +302,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
                   type="button"
                   onClick={() => removeQuickTake(i)}
                   title="Remove this question"
-                  className="text-portal-muted hover:text-red-500 p-1"
+                  className="text-portal-muted hover:text-portal-red p-1"
                 >
                   <X size={14} />
                 </button>

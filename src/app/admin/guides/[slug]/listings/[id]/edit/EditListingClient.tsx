@@ -261,12 +261,12 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       </div>
 
       {error && (
-        <div className="bg-portal-red-lt border border-portal-red/30 rounded-xl p-3 text-sm text-portal-red inline-flex items-center gap-2">
+        <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-sm text-portal-red inline-flex items-center gap-2">
           <AlertCircle size={14} /> {error}
         </div>
       )}
       {saved && !error && (
-        <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm text-portal-green">
+        <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}
@@ -358,7 +358,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       {/* CRM association */}
       <Section icon={<Link2 size={14} />} title="CRM Association">
         {listing.advertiser_account_id ? (
-          <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm space-y-2">
+          <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm space-y-2">
             <p className="text-emerald-900">
               Linked to CRM advertiser <Link href={`/admin/advertisers/${listing.advertiser_account_id}`} className="font-bold hover:underline inline-flex items-center gap-1">
                 {listing.linked_advertiser_name ?? 'View advertiser'} <ExternalLink size={11} />
@@ -392,7 +392,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
               </datalist>
             </FieldRow>
 
-            <div className="bg-portal-amber-lt border border-amber-200 rounded-xl p-3 text-sm space-y-2">
+            <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-3 text-sm space-y-2">
               <p className="text-amber-900 font-semibold inline-flex items-center gap-1.5">
                 <Sparkles size={14} /> Promote to Featured
               </p>

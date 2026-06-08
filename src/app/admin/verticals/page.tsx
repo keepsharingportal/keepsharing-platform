@@ -74,7 +74,7 @@ export default async function VerticalsAdminPage() {
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-12 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-12 text-center bg-white">
           <LayoutGrid className="h-8 w-8 text-portal-muted mx-auto mb-2" />
           <p className="text-sm font-semibold text-portal-text">No verticals yet</p>
           <p className="text-xs text-portal-sub mt-1">Run migration 069 in Supabase SQL editor to seed the first two.</p>
@@ -88,7 +88,7 @@ export default async function VerticalsAdminPage() {
               <Link
                 key={v.slug}
                 href={`/admin/verticals/${v.slug}/edit`}
-                className={`rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${v.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
+                className={`rounded-lg border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${v.is_active ? 'border-portal-border' : 'border-portal-border opacity-70'}`}
               >
                 {/* Hero strip */}
                 <div className="relative aspect-[16/7] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">

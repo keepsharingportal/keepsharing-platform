@@ -72,7 +72,7 @@ export default async function InquiriesPage() {
       <section>
         <AdminSectionHeader title="Inquiries" count={rows.length} />
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No inquiries yet.</p>
             <p className="text-xs text-portal-muted mt-1">
               When a family submits the &quot;Request Info&quot; form on any listing page, it appears here.

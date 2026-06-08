@@ -46,7 +46,7 @@ export function SpotlightSection({
   }
 
   return (
-    <div className="rounded-xl border border-portal-amber/30 bg-portal-amber-lt/40 p-4 space-y-4">
+    <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt/40 p-4 space-y-4">
       <div>
         <label className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1.5">
           {heading}

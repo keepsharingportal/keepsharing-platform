@@ -15,13 +15,13 @@ function StatusBar({ not_sent, sent, responded, updated, total }: {
         {not_sent  > 0 && <div className="bg-gray-300"     style={{ width: `${(not_sent  / total) * 100}%` }} />}
         {sent      > 0 && <div className="bg-amber-400"    style={{ width: `${(sent      / total) * 100}%` }} />}
         {responded > 0 && <div className="bg-blue-400"     style={{ width: `${(responded / total) * 100}%` }} />}
-        {updated   > 0 && <div className="bg-green-500"    style={{ width: `${(updated   / total) * 100}%` }} />}
+        {updated   > 0 && <div className="bg-portal-green-lt0"    style={{ width: `${(updated   / total) * 100}%` }} />}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
         {not_sent  > 0 && <span className="text-portal-sub"  >{not_sent} not sent</span>}
         {sent      > 0 && <span className="text-amber-600" >{sent} sent</span>}
         {responded > 0 && <span className="text-portal-blue"  >{responded} responded</span>}
-        {updated   > 0 && <span className="text-green-600" >{updated} updated</span>}
+        {updated   > 0 && <span className="text-portal-green" >{updated} updated</span>}
       </div>
     </div>
   )
@@ -56,7 +56,7 @@ export default function GuidesPage() {
             <span className="font-semibold">{totalNotSent}</span>
             <span className="text-portal-sub">not sent</span>
           </div>
-          <div className="flex items-center gap-1.5 text-green-600">
+          <div className="flex items-center gap-1.5 text-portal-green">
             <CheckCircle2 size={14} />
             <span className="font-semibold">{totalUpdated}</span>
             <span className="text-portal-sub">updated</span>
@@ -74,7 +74,7 @@ export default function GuidesPage() {
 
             return (
               <div key={guide.month}
-                className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow ${
+                className={`bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow ${
                   isCurrent ? 'border-portal-border-2 ring-1 ring-portal-blue/30' :
                   urgentSoon ? 'border-amber-200' : 'border-portal-border'
                 }`}

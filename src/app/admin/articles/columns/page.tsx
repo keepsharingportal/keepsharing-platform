@@ -33,7 +33,7 @@ const VERTICAL_COLORS: Record<string, string> = {
   'school-zone': 'bg-portal-blue-lt text-portal-blue border-blue-200',
   'mom-life':    'bg-pink-50 text-pink-700 border-pink-200',
   'family-fun':  'bg-portal-amber-lt text-portal-amber border-amber-200',
-  'health':      'bg-green-50 text-green-700 border-green-200',
+  'health':      'bg-portal-green-lt text-green-700 border-green-200',
   'summer':      'bg-orange-50 text-orange-700 border-orange-200',
   'general':     'bg-portal-bg text-portal-sub border-portal-border',
 }
@@ -87,7 +87,7 @@ export default async function ColumnsAdminPage() {
                     <Link
                       key={col.slug}
                       href={`/admin/articles?filter=${col.slug}`}
-                      className="bg-white rounded-xl border border-portal-border p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
+                      className="bg-white rounded-lg border border-portal-border p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -109,7 +109,7 @@ export default async function ColumnsAdminPage() {
         })}
 
         {/* Legend */}
-        <div className="bg-white rounded-xl border border-portal-border p-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5">
           <h3 className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-3">About Columns</h3>
           <p className="text-sm text-portal-sub leading-relaxed mb-3">
             Columns are recurring content slots grouped by vertical. Each article can be assigned one column slug,

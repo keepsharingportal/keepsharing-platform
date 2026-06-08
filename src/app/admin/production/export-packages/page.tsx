@@ -51,12 +51,12 @@ export default async function ExportPackagesPage() {
         <AdminSectionHeader title="Recent Issues" count={months.length} />
 
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No issues have been built yet.</p>
             <p className="text-xs text-portal-muted mt-1">Tag articles with <code className="px-1 bg-gray-100 rounded">source_issue_month</code> to populate this view.</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
+          <div className="rounded-lg border border-portal-border bg-white overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-portal-bg border-b border-portal-border">
@@ -86,7 +86,7 @@ export default async function ExportPackagesPage() {
                       </td>
                       <td className="px-3 py-3 text-xs">
                         {allPub
-                          ? <span className="text-green-600 font-semibold">All published</span>
+                          ? <span className="text-portal-green font-semibold">All published</span>
                           : <span className="text-amber-600 font-semibold">{g.published}/{g.total} published</span>}
                       </td>
                       <td className="px-3 py-3 text-right">

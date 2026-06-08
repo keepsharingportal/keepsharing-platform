@@ -30,7 +30,7 @@ const URGENCY: Record<HealthLevel, {
   },
   green: {
     border:    'border-l-green-400',
-    badge:     'bg-green-50 text-green-700 ring-1 ring-green-200',
+    badge:     'bg-portal-green-lt text-green-700 ring-1 ring-green-200',
     badgeText: 'All clear',
     number:    'text-green-400',
   },
@@ -40,11 +40,11 @@ const URGENCY: Record<HealthLevel, {
 
 function AllClearPanel({ action }: { action: FocusAction }) {
   return (
-    <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3.5 flex items-center gap-3">
+    <div className="bg-portal-green-lt border border-green-200 rounded-lg px-4 py-3.5 flex items-center gap-3">
       <CheckCircle size={16} className="text-green-500 shrink-0" />
       <div>
         <p className="text-sm font-semibold text-green-800">{action.label}</p>
-        <p className="text-xs text-green-600 mt-0.5">{action.context}</p>
+        <p className="text-xs text-portal-green mt-0.5">{action.context}</p>
       </div>
     </div>
   )
@@ -57,7 +57,7 @@ function ActionCard({ action, rank }: { action: FocusAction; rank: number }) {
   return (
     <Link href={action.href}>
       <div
-        className={`bg-white rounded-xl border border-gray-200 border-l-4 ${s.border} px-4 py-3 hover:shadow-md transition-all flex items-start justify-between gap-4 group`}
+        className={`bg-white rounded-lg border border-gray-200 border-l-4 ${s.border} px-4 py-3 hover:shadow-md transition-all flex items-start justify-between gap-4 group`}
       >
         <div className="flex items-start gap-3 min-w-0">
           {/* Rank number */}

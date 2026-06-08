@@ -206,7 +206,7 @@ export default async function AdminCommunityPage({
           {guidance.map((g, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
                 g.critical
                   ? 'bg-red-50 border border-red-200 text-red-800'
                   : 'bg-portal-blue-lt border border-portal-blue/20 text-portal-blue'
@@ -229,7 +229,7 @@ export default async function AdminCommunityPage({
           { label: 'In Editing',  val: inEditing,  color: '#c4622d' },
           { label: 'Published',   val: published,  color: '#64748b' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>

@@ -127,15 +127,15 @@ export default function TrashPage() {
       </div>
 
       {msg && (
-        <div className={`rounded-xl px-4 py-3 text-sm font-semibold border ${
-          msg.ok ? 'bg-green-50 border-green-200 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
+        <div className={`rounded-lg px-4 py-3 text-sm font-semibold border ${
+          msg.ok ? 'bg-portal-green-lt border-green-200 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
         }`}>
           {msg.text}
         </div>
       )}
 
       {migrationMissing && (
-        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
+        <div className="rounded-lg border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Trash needs a database migration</p>
           <p className="text-sm text-portal-amber leading-relaxed">
             Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/076_article_soft_delete.sql</code> in the Supabase SQL editor.

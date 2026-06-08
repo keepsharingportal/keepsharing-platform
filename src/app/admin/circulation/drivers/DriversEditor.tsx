@@ -56,13 +56,13 @@ export function DriversEditor({ market, initialDrivers, availableRoutes }: Props
       )}
 
       {drivers.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
           <p className="text-sm text-portal-sub">No drivers yet.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {drivers.map(d => (
-            <li key={d.user_id} className={`rounded-xl border bg-white ${editing === d.user_id ? 'border-portal-border-2 border border-portal-blue/30' : 'border-portal-border'}`}>
+            <li key={d.user_id} className={`rounded-lg border bg-white ${editing === d.user_id ? 'border-portal-border-2 border border-portal-blue/30' : 'border-portal-border'}`}>
               {editing === d.user_id ? (
                 <EditRow
                   driver={d}
@@ -167,7 +167,7 @@ function AddForm({ market, routes, onCancel, onCreated }: {
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New driver</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub"><X size={14} /></button>

@@ -91,7 +91,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </div>
 
       {/* ── Identity ──────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Identity</h2>
 
         <div>
@@ -129,7 +129,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Images ────────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-5">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-5">
         <h2 className="text-sm font-bold text-portal-text">Images</h2>
 
         <div>
@@ -158,7 +158,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Sponsor ───────────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-amber-200 bg-portal-amber-lt/40 p-5 space-y-3">
+      <section className="rounded-lg border border-amber-200 bg-portal-amber-lt/40 p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
           <Crown size={14} className="text-amber-600" />
           Section Sponsor
@@ -202,7 +202,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Primary CTA ───────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-4">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-4">
         <h2 className="text-sm font-bold text-portal-text">Primary CTA</h2>
         <FieldHint className="-mt-2">Optional button in the hero area. Skip if not needed — the existing in-page CTAs (Submit School News, etc.) still appear regardless.</FieldHint>
 
@@ -234,7 +234,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
       </section>
 
       {/* ── Theming (optional) ────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-portal-border bg-white p-5 space-y-3">
+      <section className="rounded-lg border border-portal-border bg-white p-5 space-y-3">
         <h2 className="text-sm font-bold text-portal-text">Brand Accent (optional)</h2>
         <FieldHint className="-mt-1">
           Hex color used for accent borders + badges. Example: <code className="px-1 bg-gray-100 rounded">#d4a843</code> for gold.

@@ -67,7 +67,7 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-portal-text">GoHighLevel API Keys</h2>
             <span className="text-xs text-portal-muted">One sub-account per publication</span>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             <div className="px-4 py-2.5 bg-portal-bg border-b border-portal-border grid grid-cols-3 gap-4">
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Publication</span>
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide col-span-2">GHL Location API Key</span>
@@ -114,7 +114,7 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-portal-text">Dropbox Folder Paths</h2>
             <span className="text-xs text-portal-muted">Used for ad file scanning and artwork storage</span>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             <div className="px-4 py-2.5 bg-portal-bg border-b border-portal-border grid grid-cols-3 gap-4">
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Publication</span>
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide col-span-2">Dropbox Path</span>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
             <Bell size={15} className="text-portal-muted" />
             <h2 className="text-sm font-semibold text-portal-text">Email Notifications</h2>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             {(Object.entries(notifications) as [keyof typeof notifications, boolean][]).map(([key, enabled]) => {
               const labels: Record<string, string> = {
                 newBirthdaySpotlight:  'New Birthday Spotlight order received',
@@ -195,7 +195,7 @@ export default function SettingsPage() {
               + Invite Member
             </button>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-portal-bg border-b border-portal-border">
                 <tr>
@@ -221,7 +221,7 @@ export default function SettingsPage() {
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                         member.role === 'Super Admin' ? 'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30' :
-                        member.role === 'Publisher'   ? 'bg-green-50 text-green-700 ring-1 ring-green-200' :
+                        member.role === 'Publisher'   ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' :
                         member.role === 'Editor'      ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' :
                         'bg-portal-bg text-portal-sub ring-1 ring-gray-200'
                       }`}>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-portal-sub">{member.markets}</td>
                     <td className="px-4 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 ring-1 ring-green-200 font-medium">Active</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-portal-green-lt text-green-700 ring-1 ring-green-200 font-medium">Active</span>
                     </td>
                     <td className="px-4 py-3">
                       <button className="text-xs text-portal-muted hover:text-portal-sub transition-colors">Edit</button>
@@ -248,7 +248,7 @@ export default function SettingsPage() {
             <Database size={15} className="text-portal-muted" />
             <h2 className="text-sm font-semibold text-portal-text">Data & Integrations</h2>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border">
+          <div className="bg-white rounded-lg border border-portal-border divide-y divide-portal-border">
             <div className="flex items-center justify-between px-5 py-4">
               <div>
                 <div className="text-sm font-medium text-portal-text">Supabase</div>
@@ -256,14 +256,14 @@ export default function SettingsPage() {
                   {process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://','').split('.')[0] ?? 'not configured'}.supabase.co
                 </div>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700 ring-1 ring-green-200 font-medium">Connected</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-green-lt text-green-700 ring-1 ring-green-200 font-medium">Connected</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
               <div>
                 <div className="text-sm font-medium text-portal-text">Anthropic Claude API</div>
                 <div className="text-xs text-portal-sub mt-0.5">Powers Business Spotlight article generation</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.ANTHROPIC_API_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-portal-text">Stripe</div>
                 <div className="text-xs text-portal-sub mt-0.5">Birthday Spotlight payments</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.STRIPE_SECRET_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
               </div>
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                 process.env.DISTRIBUTION_PORTAL_URL
-                  ? 'bg-green-50 text-green-700 ring-1 ring-green-200'
+                  ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
                   : 'bg-portal-bg text-portal-sub ring-1 ring-gray-200'
               }`}>
                 {process.env.DISTRIBUTION_PORTAL_URL ? 'Connected' : 'External App'}
@@ -311,7 +311,7 @@ export default function SettingsPage() {
             <Globe size={15} className="text-portal-muted" />
             <h2 className="text-sm font-semibold text-portal-text">Distribution Portal Connection</h2>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border p-5 space-y-4">
+          <div className="bg-white rounded-lg border border-portal-border p-5 space-y-4">
             <div className="text-sm text-portal-sub leading-relaxed">
               The distribution portal at <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"
                 className="text-portal-blue hover:underline font-medium">drivers.keepsharing.com</a> is a separate application
@@ -321,18 +321,18 @@ export default function SettingsPage() {
               This platform reads its status data — it never writes to the portal. Distribution status appears in the
               Today screen and My Markets pages automatically.
             </div>
-            <div className="bg-portal-bg rounded-xl border border-portal-border p-4 space-y-2 font-mono text-xs text-portal-sub">
+            <div className="bg-portal-bg rounded-lg border border-portal-border p-4 space-y-2 font-mono text-xs text-portal-sub">
               <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-2">Required .env.local vars</div>
               <div>DISTRIBUTION_PORTAL_URL=https://drivers.keepsharing.com</div>
               <div>DISTRIBUTION_PORTAL_TOKEN=your_api_token_here</div>
             </div>
             <div className="flex gap-3">
               <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-xl hover:opacity-90 transition-colors">
+                className="px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                 Open Distribution Portal ↗
               </a>
               <Link href="/admin/today"
-                className="px-4 py-2 text-sm font-semibold text-portal-text border border-portal-border rounded-xl hover:bg-portal-bg transition-colors">
+                className="px-4 py-2 text-sm font-semibold text-portal-text border border-portal-border rounded-lg hover:bg-portal-bg transition-colors">
                 View Status in Today Screen
               </Link>
             </div>

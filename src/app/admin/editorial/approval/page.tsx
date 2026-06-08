@@ -397,7 +397,7 @@ export default async function ApprovalPage({
               </p>
             </div>
             <Link href={`/admin/editorial/${item.id}`}
-              className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-xl hover:bg-portal-bg">
+              className="shrink-0 px-4 py-2 text-xs font-semibold text-portal-sub bg-white border border-portal-border rounded-lg hover:bg-portal-bg">
               Full Editorial View ↗
             </Link>
           </div>
@@ -529,7 +529,7 @@ export default async function ApprovalPage({
                 <form action={approveAll} className="mb-3">
                   <input type="hidden" name="item_id" value={item.id} />
                   <button type="submit"
-                    className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
+                    className="w-full py-3 rounded-lg text-sm font-bold text-white bg-gray-900 hover:bg-gray-700 transition-colors">
                     ✓ Approve All Channels
                   </button>
                 </form>
@@ -544,14 +544,14 @@ export default async function ApprovalPage({
                 ].map(ch => (
                   ch.approved ? (
                     <div key={ch.label} className="flex items-center gap-2 px-3 py-2 bg-portal-bg rounded-lg">
-                      <span className="text-green-600 font-bold">✓</span>
+                      <span className="text-portal-green font-bold">✓</span>
                       <span className="text-xs font-semibold text-portal-sub">{ch.label.replace('Approve for ', '')} approved</span>
                     </div>
                   ) : (
                     <form key={ch.label} action={ch.action}>
                       <input type="hidden" name="item_id" value={item.id} />
                       <button type="submit"
-                        className={`w-full py-2 rounded-xl text-xs font-bold text-white ${ch.color} transition-colors`}>
+                        className={`w-full py-2 rounded-lg text-xs font-bold text-white ${ch.color} transition-colors`}>
                         ✓ {ch.label}
                       </button>
                     </form>
@@ -564,7 +564,7 @@ export default async function ApprovalPage({
                 <form action={markPublished} className="mt-3 pt-3 border-t border-gray-50">
                   <input type="hidden" name="item_id" value={item.id} />
                   <button type="submit"
-                    className="w-full py-2 rounded-xl text-xs font-bold border border-portal-border text-portal-text hover:bg-portal-bg transition-colors">
+                    className="w-full py-2 rounded-lg text-xs font-bold border border-portal-border text-portal-text hover:bg-portal-bg transition-colors">
                     Mark as Published
                   </button>
                 </form>
@@ -583,7 +583,7 @@ export default async function ApprovalPage({
                   className={iClsTA}
                 />
                 <button type="submit"
-                  className="w-full py-2 rounded-xl text-xs font-bold text-portal-amber bg-portal-amber-lt border border-amber-200 hover:bg-portal-amber-lt transition-colors">
+                  className="w-full py-2 rounded-lg text-xs font-bold text-portal-amber bg-portal-amber-lt border border-amber-200 hover:bg-portal-amber-lt transition-colors">
                   ↩ Request Changes
                 </button>
               </form>
@@ -640,7 +640,7 @@ export default async function ApprovalPage({
                     <input name="social_link" type="url" defaultValue={item.social_link ?? ''} placeholder="https://…" className={iCls} />
                   </div>
 
-                  <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 transition-colors">
+                  <button type="submit" className="w-full py-2.5 rounded-lg text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 transition-colors">
                     Save Social Prep
                   </button>
                 </form>
@@ -680,7 +680,7 @@ export default async function ApprovalPage({
                     <form action={markPlannerReady}>
                       <input type="hidden" name="item_id" value={item.id} />
                       <button type="submit"
-                        className="w-full py-2.5 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 transition-colors">
+                        className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 transition-colors">
                         ✓ Mark Ready for Social Planner
                       </button>
                     </form>
@@ -743,7 +743,7 @@ export default async function ApprovalPage({
                         {btn.has ? `↺ Regenerate ${btn.field}` : btn.label}
                       </span>
                       {btn.has && (
-                        <span className="text-[10px] text-green-600 font-bold shrink-0">✓ Has copy</span>
+                        <span className="text-[10px] text-portal-green font-bold shrink-0">✓ Has copy</span>
                       )}
                     </button>
                   </form>
@@ -803,7 +803,7 @@ export default async function ApprovalPage({
           { label: 'Planner Ready',  val: groups.plannerReady.length, color: '#7c3aed' },
           { label: 'Published',      val: groups.published.length,    color: '#64748b' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>

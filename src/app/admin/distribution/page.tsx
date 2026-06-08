@@ -102,7 +102,7 @@ function freshnessDays(iso: string): number {
 }
 
 function freshnessChip(days: number): { label: string; cls: string } {
-  if (days <= 7)  return { label: 'Fresh',    cls: 'bg-green-50 text-green-700'  }
+  if (days <= 7)  return { label: 'Fresh',    cls: 'bg-portal-green-lt text-green-700'  }
   if (days <= 21) return { label: 'Recent',   cls: 'bg-portal-blue-lt text-portal-blue'   }
   if (days <= 60) return { label: 'Aging',    cls: 'bg-portal-amber-lt text-portal-amber' }
   return                 { label: 'Stale',    cls: 'bg-red-50 text-red-700'     }
@@ -344,7 +344,7 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
 
   return (
     <div
-      className="bg-white border border-portal-border rounded-xl overflow-hidden hover:border-portal-border transition-colors"
+      className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border transition-colors"
       style={{ borderLeft: `3px solid ${accent}` }}
     >
       <div className={`px-4 ${compact ? 'py-2.5' : 'py-3'} flex items-start gap-3`}>
@@ -533,7 +533,7 @@ export default async function DistributionPage({
           <Link
             key={v.key}
             href={viewHref(v.key)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               activeView === v.key
                 ? 'bg-gray-900 text-white'
                 : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
@@ -557,7 +557,7 @@ export default async function DistributionPage({
           { label: 'No Image',     val: missingImages.length,      color: '#b8860b', href: viewHref('health')     },
         ].map(m => (
           <Link key={m.label} href={m.href}
-            className="bg-white border border-portal-border rounded-xl px-3 py-2.5 hover:border-portal-border transition-colors block">
+            className="bg-white border border-portal-border rounded-lg px-3 py-2.5 hover:border-portal-border transition-colors block">
             <div className="text-xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[10px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </Link>
@@ -649,7 +649,7 @@ export default async function DistributionPage({
                 </div>
                 <div className="space-y-1.5">
                   {secItems.map(item => (
-                    <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-3">
+                    <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                         <p className="text-[11px] text-portal-muted">
@@ -713,7 +713,7 @@ export default async function DistributionPage({
               />
               <div className="space-y-2">
                 {items.filter(i => !i.homepage_feature).slice(0, 6).map(item => (
-                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-3">
+                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                       <p className="text-[11px] text-portal-muted">{item.submission_type} · {item.target_publication.toUpperCase()}</p>
@@ -801,7 +801,7 @@ export default async function DistributionPage({
             />
             <div className="space-y-2">
               {groups.newsletter.map(item => (
-                <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-3">
+                <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                     <p className="text-[11px] text-portal-muted">{item.submission_type} · {item.target_publication.toUpperCase()}</p>
@@ -829,7 +829,7 @@ export default async function DistributionPage({
             <div className="space-y-2">
               <h2 className="text-sm font-bold text-portal-text">Quality Check</h2>
               {nlWarnings.map((w, i) => (
-                <div key={i} className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-xs font-medium ${
+                <div key={i} className={`flex items-start gap-3 px-4 py-3 rounded-lg border text-xs font-medium ${
                   w.level === 'error'   ? 'bg-red-50 border-red-200 text-red-800'
                   : w.level === 'warning' ? 'bg-portal-amber-lt border-amber-200 text-portal-amber'
                   : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
@@ -969,7 +969,7 @@ export default async function DistributionPage({
             </div>
             <Link
               href="/admin/distribution/social-export"
-              className="shrink-0 text-xs px-4 py-2.5 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors flex items-center gap-1.5"
+              className="shrink-0 text-xs px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-1.5"
             >
               📤 Social Planner Export →
             </Link>
@@ -986,7 +986,7 @@ export default async function DistributionPage({
               {groups.socialHigh.slice(0, 10).map(item => {
                 const tc = SUBMISSION_TYPES.find(t => t.type === item.submission_type)
                 return (
-                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-3" style={{ borderLeft: `3px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}>
+                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3" style={{ borderLeft: `3px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span>{tc?.emoji}</span>
@@ -1052,7 +1052,7 @@ export default async function DistributionPage({
               <SectionHeader title="Guide Integration Queue" count={groups.guides.length} description="Content flagged for guide integration." />
               <div className="space-y-2">
                 {groups.guides.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-3">
+                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -1085,7 +1085,7 @@ export default async function DistributionPage({
                 const fc    = freshnessChip(fresh)
                 const inQueue = groups.guides.filter(i => i.destination_guide_slug === g.slug).length
                 return (
-                  <div key={g.slug} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+                  <div key={g.slug} className="bg-white border border-portal-border rounded-lg px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-portal-text leading-tight">{guideName(g.slug)}</p>
@@ -1098,7 +1098,7 @@ export default async function DistributionPage({
                         </div>
                       </div>
                       <div className="w-16 bg-gray-100 rounded-full h-2 mt-1.5 shrink-0">
-                        <div className="h-2 rounded-full bg-green-500" style={{ width: `${Math.min(count * 10, 100)}%` }} />
+                        <div className="h-2 rounded-full bg-portal-green-lt0" style={{ width: `${Math.min(count * 10, 100)}%` }} />
                       </div>
                     </div>
                   </div>
@@ -1129,7 +1129,7 @@ export default async function DistributionPage({
             />
             <div className="space-y-2">
               {sponsorOpportunities.filter(o => o.aligned.length > 0).slice(0, 12).map(({ sponsor, aligned }) => (
-                <div key={sponsor.id} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+                <div key={sponsor.id} className="bg-white border border-portal-border rounded-lg px-4 py-3">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1146,7 +1146,7 @@ export default async function DistributionPage({
                         {aligned.length > 3 ? ` +${aligned.length - 3} more` : ''}
                       </p>
                     </div>
-                    <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full shrink-0">
+                    <span className="text-xs font-bold text-portal-green bg-portal-green-lt px-3 py-1 rounded-full shrink-0">
                       {aligned.length} match{aligned.length !== 1 ? 'es' : ''}
                     </span>
                   </div>
@@ -1165,7 +1165,7 @@ export default async function DistributionPage({
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {sponsorGaps.slice(0, 12).map(({ sponsor }) => (
-                  <div key={sponsor.id} className="flex items-center gap-3 bg-white border border-amber-100 rounded-xl px-4 py-3">
+                  <div key={sponsor.id} className="flex items-center gap-3 bg-white border border-amber-100 rounded-lg px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-portal-text truncate">{sponsor.business_name}</p>
                       <p className="text-[11px] text-portal-muted">
@@ -1218,7 +1218,7 @@ export default async function DistributionPage({
                 { label: 'No Destination', val: noDestination.length },
                 { label: 'No Title',       val: noTitle.length },
               ].map(m => (
-                <div key={m.label} className="bg-portal-bg rounded-xl px-3 py-2.5">
+                <div key={m.label} className="bg-portal-bg rounded-lg px-3 py-2.5">
                   <div className="text-xl font-bold text-portal-text">{m.val}</div>
                   <div className="text-[11px] text-portal-muted">{m.label}</div>
                 </div>
@@ -1242,7 +1242,7 @@ export default async function DistributionPage({
                         : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
               return (
                 <Link key={i} href={alert.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium ${cls} hover:opacity-90 transition-opacity`}>
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-sm font-medium ${cls} hover:opacity-90 transition-opacity`}>
                   <span>{alert.icon}</span>
                   <span className="flex-1">{alert.msg}</span>
                   <span className="text-[11px] opacity-60 shrink-0">View →</span>
@@ -1261,7 +1261,7 @@ export default async function DistributionPage({
               { label: 'Print Ready',        val: groups.print.length,      max: 20, color: '#374151' },
               { label: 'Seasonal Push',      val: groups.seasonal.length,   max: 10, color: '#b8860b' },
             ].map(m => (
-              <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
+              <div key={m.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-portal-sub">{m.label}</p>
                   <span className="text-sm font-bold" style={{ color: m.color }}>{m.val}</span>

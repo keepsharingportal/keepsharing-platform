@@ -147,7 +147,7 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
     tone === 'gray'    ? 'border-portal-border bg-portal-bg/60'     :
                          'border-portal-border bg-white'
   return (
-    <div className={`rounded-xl border p-3 ${cls}`}>
+    <div className={`rounded-lg border p-3 ${cls}`}>
       <p className="text-[10px] uppercase tracking-wider font-bold text-portal-sub">{label}</p>
       <p className="text-2xl font-bold text-portal-text tabular-nums leading-tight mt-0.5">{value}</p>
     </div>

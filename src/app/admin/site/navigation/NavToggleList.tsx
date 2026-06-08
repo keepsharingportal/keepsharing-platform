@@ -139,7 +139,7 @@ export function NavToggleList({ catalog }: Props) {
   return (
     <div className="space-y-6">
       {err && (
-        <div className="rounded-xl bg-portal-red-lt border border-portal-red/30 px-4 py-3 text-sm font-semibold text-portal-red flex items-center gap-2">
+        <div className="rounded-lg bg-portal-red-lt border border-portal-red/30 px-4 py-3 text-sm font-semibold text-portal-red flex items-center gap-2">
           <AlertTriangle size={14} /> {err}
         </div>
       )}

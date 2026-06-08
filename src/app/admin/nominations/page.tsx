@@ -20,7 +20,7 @@ const STATUS_BADGE: Record<NominationStatus, string> = {
   interviewed:         'bg-purple-50 text-purple-700 ring-purple-200',
   article_drafted:     'bg-teal-50 text-teal-700 ring-teal-200',
   photos_received:     'bg-orange-50 text-orange-700 ring-orange-200',
-  approved:            'bg-green-50 text-green-700 ring-green-200',
+  approved:            'bg-portal-green-lt text-green-700 ring-green-200',
   published:           'bg-portal-green-lt text-portal-green ring-emerald-200',
 }
 
@@ -30,7 +30,7 @@ function NominationCard({ nom, onSelect }: { nom: NominationRecord; onSelect: (n
   const config = NOMINATION_TYPE_CONFIG[nom.type]
   const stepIdx = getStatusStep(nom.status)
   return (
-    <div className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
+    <div className="bg-white rounded-lg border border-portal-border overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
       onClick={() => onSelect(nom)}>
       <div className={`h-1 bg-${config.color}-400`}
         style={{ backgroundColor: nom.type === 'cover-profile' ? '#3b82f6' : nom.type === 'mom-to-mom' ? '#f43f5e' : nom.type === 'teacher-of-month' ? '#22c55e' : '#f59e0b' }} />
@@ -159,7 +159,7 @@ export default function NominationsPage() {
                       <NominationCard key={nom.id} nom={nom} onSelect={setSelected} />
                     ))}
                     {stageNoms.length === 0 && (
-                      <div className="h-16 border-2 border-dashed border-portal-border rounded-xl flex items-center justify-center text-xs text-portal-muted">
+                      <div className="h-16 border-2 border-dashed border-portal-border rounded-lg flex items-center justify-center text-xs text-portal-muted">
                         Empty
                       </div>
                     )}

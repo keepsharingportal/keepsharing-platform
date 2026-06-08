@@ -76,7 +76,7 @@ export default async function IssuesPage() {
       <section>
         <AdminSectionHeader title="Recent Issues" count={months.length} />
         {months.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
             <p className="text-sm text-portal-sub">No articles have an issue month set yet.</p>
             <p className="text-xs text-portal-muted mt-1">Set <code className="px-1 bg-gray-100 rounded">source_issue_month</code> on articles to populate this view.</p>
           </div>
@@ -86,7 +86,7 @@ export default async function IssuesPage() {
               const info = byMonth[m]
               const pct  = info.total > 0 ? Math.round((info.published / info.total) * 100) : 0
               return (
-                <div key={m} className="rounded-xl border border-portal-border bg-white p-4">
+                <div key={m} className="rounded-lg border border-portal-border bg-white p-4">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div>
                       <p className="text-sm font-bold text-portal-text">{fmtMonth(m)}</p>

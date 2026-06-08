@@ -175,7 +175,7 @@ function AdminLoginInner() {
         type="button"
         onClick={signInWithGoogle}
         disabled={busy !== null}
-        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-portal-border bg-white text-sm font-bold text-portal-text hover:bg-portal-bg hover:border-portal-border-2 transition-colors disabled:opacity-40"
+        className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-portal-border bg-white text-sm font-bold text-portal-text hover:bg-portal-bg hover:border-portal-border-2 transition-colors disabled:opacity-40"
       >
         {busy === 'google' ? (
           <RefreshCw size={16} className="animate-spin" />
@@ -204,7 +204,7 @@ function AdminLoginInner() {
             required
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-lg border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
 
           <div className="mt-3 flex items-baseline justify-between">
@@ -226,7 +226,7 @@ function AdminLoginInner() {
             required
             autoComplete="current-password"
             placeholder="••••••••"
-            className="mt-1 w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
+            className="mt-1 w-full px-4 py-3 text-base rounded-lg border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
 
           {error && (
@@ -239,7 +239,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim() || !password}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {busy === 'password' ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
             {busy === 'password' ? 'Signing in…' : 'Sign in'}
@@ -270,7 +270,7 @@ function AdminLoginInner() {
             autoFocus
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-lg border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
           <p className="mt-2 text-[11px] text-portal-sub leading-relaxed">
             We&apos;ll email you a one-time sign-in link. Useful if you&apos;ve never set a password or you&apos;re a new admin getting in for the first time.
@@ -286,7 +286,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim()}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
           >
             {busy === 'magic' ? <RefreshCw size={14} className="animate-spin" /> : <Mail size={14} />}
             {busy === 'magic' ? 'Sending link…' : 'Send sign-in link'}
@@ -316,7 +316,7 @@ function AdminLoginInner() {
             autoFocus
             autoComplete="email"
             placeholder="you@example.com"
-            className="w-full px-4 py-3 text-base rounded-xl border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
+            className="w-full px-4 py-3 text-base rounded-lg border border-portal-border outline-none focus:border-[#4a90d9] bg-white"
           />
           <p className="mt-2 text-[11px] text-portal-sub leading-relaxed">
             We&apos;ll email you a reset link. Click it and you&apos;ll be sent to a page where you can pick a new password.
@@ -332,7 +332,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim()}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-xl bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
           >
             {busy === 'reset' ? <RefreshCw size={14} className="animate-spin" /> : <ArrowRight size={14} />}
             {busy === 'reset' ? 'Sending…' : 'Send reset link'}

@@ -104,7 +104,7 @@ export function DigitalIssuesEditor({ initial, market }: Props) {
       <AddIssueForm market={market} onCreated={handleCreated} />
 
       {issues.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-portal-border p-8 text-center bg-white">
+        <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
           <p className="text-sm text-portal-sub">No issues yet.</p>
           <p className="text-xs text-portal-muted mt-1">Add your first issue above.</p>
         </div>
@@ -148,7 +148,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
   }
 
   return (
-    <li className={`rounded-xl border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 border border-portal-amber/30' : 'border-portal-border'}`}>
+    <li className={`rounded-lg border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 border border-portal-amber/30' : 'border-portal-border'}`}>
       <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
         {issue.cover_url ? (
           <Image src={issue.cover_url} alt={`${issue.label} cover`} fill style={{ objectFit: 'cover' }} unoptimized sizes="64px" />
@@ -226,7 +226,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
 
   if (!open) {
     return (
-      <div className="rounded-xl border border-dashed border-portal-border-2 bg-white p-4">
+      <div className="rounded-lg border border-dashed border-portal-border-2 bg-white p-4">
         <button
           onClick={() => setOpen(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
@@ -285,7 +285,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <div className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">New Issue</p>
         <button onClick={() => setOpen(false)} className="text-portal-muted hover:text-portal-sub">
@@ -396,7 +396,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
   }
 
   return (
-    <li className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
+    <li className="rounded-lg border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-portal-text">Edit Issue</p>
         <button onClick={onCancel} className="text-portal-muted hover:text-portal-sub">

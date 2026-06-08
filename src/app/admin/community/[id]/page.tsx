@@ -322,7 +322,7 @@ export default async function SubmissionDetailPage({
   const SEV_CLS: Record<string, string> = {
     critical: 'bg-red-50 border-red-200 text-red-800',
     warning:  'bg-portal-amber-lt border-amber-200 text-portal-amber',
-    success:  'bg-green-50 border-green-200 text-green-800',
+    success:  'bg-portal-green-lt border-green-200 text-green-800',
     info:     'bg-portal-blue-lt border-portal-blue/20 text-portal-blue',
   }
 
@@ -378,7 +378,7 @@ export default async function SubmissionDetailPage({
           </div>
           <Link
             href={`/admin/community/${id}/edit`}
-            className="shrink-0 px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-xl hover:bg-portal-bg transition-colors"
+            className="shrink-0 px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg transition-colors"
           >
             Edit Submission →
           </Link>
@@ -580,7 +580,7 @@ export default async function SubmissionDetailPage({
                   <form action={markReadyForEditorial}>
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors"
+                      className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors"
                     >
                       ✓ Mark Ready for Editorial Pipeline
                     </button>
@@ -657,7 +657,7 @@ export default async function SubmissionDetailPage({
                 <input type="hidden" name="status" value={nextStatus} />
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                  className="w-full py-2.5 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
                   style={{ backgroundColor: accentColor }}
                 >
                   → {STATUS_CONFIG[nextStatus]?.label}
@@ -828,7 +828,7 @@ export default async function SubmissionDetailPage({
                     {publishDest.print ? '✓ Print' : '— Print'}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.digital ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-portal-muted'
+                    publishDest.digital ? 'bg-portal-green-lt text-green-700' : 'bg-gray-100 text-portal-muted'
                   }`}>
                     {publishDest.digital ? '✓ Digital' : '— Digital'}
                   </span>
@@ -865,7 +865,7 @@ export default async function SubmissionDetailPage({
             <form action={generateDraft} className="mb-2">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
               >
                 {sub.ai_draft_status === 'none' ? '✍️  Generate Draft' : '↺  Regenerate Draft'}
               </button>
@@ -935,7 +935,7 @@ export default async function SubmissionDetailPage({
                   <span className="text-base">{item.icon}</span>
                   <span className="text-xs text-portal-sub flex-1">{item.label}</span>
                   {item.sent ? (
-                    <span className="text-[10px] text-green-600 font-semibold">Sent</span>
+                    <span className="text-[10px] text-portal-green font-semibold">Sent</span>
                   ) : (
                     <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                   )}
