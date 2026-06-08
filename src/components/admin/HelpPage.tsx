@@ -39,7 +39,7 @@ function ArticleCard({ article, onClick }: { article: KBArticle; onClick: () => 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-white rounded-2xl border border-portal-border p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
+      className="w-full text-left bg-white rounded-lg border border-portal-border p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
     >
       <div className="flex items-start gap-3">
         <div className="text-xl shrink-0">{cfg.icon}</div>
@@ -85,7 +85,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </button>
 
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-portal-border p-6 mb-5">
+      <div className="bg-white rounded-lg border border-portal-border p-6 mb-5">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
             style={{ backgroundColor: cfg.bg, color: cfg.color }}>
@@ -105,7 +105,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </div>
 
       {/* Steps */}
-      <div className="bg-white rounded-2xl border border-portal-border p-6 mb-5">
+      <div className="bg-white rounded-lg border border-portal-border p-6 mb-5">
         <h2 className="text-base font-bold text-portal-text mb-4 flex items-center gap-2">
           <BookOpen size={16} className="text-portal-blue" /> Step-by-step instructions
         </h2>
@@ -115,7 +115,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
               <div className="w-7 h-7 rounded-full bg-portal-navy text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {i + 1}
               </div>
-              <div className="flex-1 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div className="flex-1 pb-5 border-b border-portal-border last:border-0 last:pb-0">
                 <div className="text-sm font-semibold text-portal-text mb-1">{step.title}</div>
                 <p className="text-sm text-portal-sub leading-relaxed">{step.description}</p>
                 {/* Screenshot placeholder */}
@@ -129,7 +129,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       </div>
 
       {/* What happens next */}
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-5">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-5 mb-5">
         <h2 className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
           <CheckCircle2 size={15} className="text-green-600" /> What happens next
         </h2>
@@ -138,7 +138,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
 
       {/* Common errors */}
       {article.commonErrors.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-5">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-5">
           <h2 className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">
             <AlertCircle size={15} className="text-red-500" /> Common errors & fixes
           </h2>
@@ -155,7 +155,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
 
       {/* Related articles */}
       {article.relatedArticles.length > 0 && (
-        <div className="bg-white rounded-2xl border border-portal-border p-5 mb-5">
+        <div className="bg-white rounded-lg border border-portal-border p-5 mb-5">
           <h2 className="text-sm font-bold text-portal-text mb-3">Related articles</h2>
           <div className="space-y-2">
             {article.relatedArticles.map(id => {
@@ -222,8 +222,8 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-portal-border overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100"
+    <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-portal-border"
         style={{ backgroundColor: 'var(--color-sidebar)' }}>
         <MessageSquare size={14} className="text-white/70" />
         <span className="text-sm font-semibold text-white">Ask the AI Assistant</span>
@@ -238,7 +238,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
         {messages.map((msg, i) => (
           <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             <div className={cn(
-              'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
+              'max-w-[85%] rounded-lg px-3 py-2 text-sm',
               msg.role === 'user' ? 'bg-portal-navy text-white rounded-br-sm' : 'bg-gray-100 text-portal-text rounded-bl-sm'
             )}>
               {msg.content}
@@ -257,7 +257,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3 py-2 flex items-center gap-2">
+            <div className="bg-gray-100 rounded-lg rounded-bl-sm px-3 py-2 flex items-center gap-2">
               <Loader2 size={12} className="text-portal-muted animate-spin" />
               <span className="text-xs text-portal-muted">Thinking…</span>
             </div>
@@ -266,7 +266,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-gray-100 px-3 py-2.5">
+      <div className="border-t border-portal-border px-3 py-2.5">
         <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-1.5">
           <input
             value={input}
@@ -340,7 +340,7 @@ export function HelpPage() {
               value={search}
               onChange={e => { setSearch(e.target.value); setActiveCategory(null); setActiveArticle(null) }}
               placeholder="Search articles — e.g. clone sheet, import zoho, editorial board"
-              className="w-full pl-10 pr-10 py-3 text-sm text-portal-text bg-portal-bg border border-portal-border rounded-2xl outline-none focus:border-portal-blue focus:bg-white transition-all"
+              className="w-full pl-10 pr-10 py-3 text-sm text-portal-text bg-portal-bg border border-portal-border rounded-lg outline-none focus:border-portal-blue focus:bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}

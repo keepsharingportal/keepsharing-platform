@@ -153,7 +153,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
   if (!ad) {
     return (
       <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-        <div className="max-w-[800px] mx-auto bg-red-50 border border-red-200 rounded-2xl p-5 text-sm text-red-800">
+        <div className="max-w-[800px] mx-auto bg-red-50 border border-red-200 rounded-lg p-5 text-sm text-red-800">
           <p className="font-bold flex items-center gap-2"><AlertTriangle size={16} /> Could not load</p>
           <p className="text-xs mt-1">{error ?? 'Unknown error'}</p>
           <Link href="/admin/ads" className="inline-flex items-center gap-1 mt-3 text-xs text-red-900 font-semibold underline">
@@ -292,8 +292,8 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
 
         {/* ── Where on the page is this? ────────────────────────── */}
         {def && (
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg">
               <h2 className="text-sm font-bold text-portal-text flex items-center gap-1.5">
                 <MapPin size={14} className="text-portal-blue" />
                 Where this appears on the site
@@ -543,8 +543,8 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
             creation and almost never changes; surfacing it as a
             top-level section confused staff. Behind <details> it stays
             available for the rare "I picked the wrong slot" recovery. */}
-        <details className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <summary className="px-5 py-3 bg-portal-bg border-b border-gray-100 cursor-pointer text-sm font-bold text-portal-text hover:bg-portal-row-hover">
+        <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <summary className="px-5 py-3 bg-portal-bg border-b border-portal-border cursor-pointer text-sm font-bold text-portal-text hover:bg-portal-row-hover">
             Change placement type (advanced)
           </summary>
           <div className="p-5">
@@ -696,8 +696,8 @@ function pagesForPlacement(placementType: string): PageDef[] {
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 bg-portal-bg">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-portal-border bg-portal-bg">
         <h2 className="text-base font-bold text-portal-text tracking-tight">{title}</h2>
         {subtitle && <p className="text-xs text-portal-sub mt-1">{subtitle}</p>}
       </div>
@@ -734,7 +734,7 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
   onDeleteForever: () => void | Promise<void>
 }) {
   return (
-    <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
         <p className="text-sm font-bold text-amber-900">
           This ad is expired (since {new Date(expiredAt).toLocaleDateString()}).
@@ -825,8 +825,8 @@ function CustomerSection({ ad, advertisers, onChange }: {
   const expiredOtherAds  = otherAdsFiltered.filter(o => o.archived_at)
 
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 bg-portal-bg">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-portal-border bg-portal-bg">
         <h2 className="text-base font-bold text-portal-text tracking-tight flex items-center gap-2">
           <Users size={16} className="text-portal-blue" />
           Customer (advertiser)
@@ -852,7 +852,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
 
         {selected && (
           <div className="grid sm:grid-cols-2 gap-3">
-            <div className="bg-portal-bg rounded-lg p-3 border border-gray-100">
+            <div className="bg-portal-bg rounded-lg p-3 border border-portal-border">
               <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1 flex items-center gap-1">
                 <Building2 size={11} /> Business
               </p>
@@ -866,7 +866,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
                 </Link>
               )}
             </div>
-            <div className="bg-portal-bg rounded-lg p-3 border border-gray-100">
+            <div className="bg-portal-bg rounded-lg p-3 border border-portal-border">
               <p className="text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">
                 Contact
               </p>
@@ -965,7 +965,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
 }) {
   return (
     <div className="rounded-xl border border-portal-border overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+      <div className="px-4 py-2 border-b border-portal-border bg-portal-bg flex items-center justify-between">
         <p className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">
           {label}
         </p>
@@ -976,7 +976,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
       {ads.length === 0 ? (
         <p className="p-3 text-xs text-portal-sub italic">{empty}</p>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-portal-border">
           {ads.slice(0, 10).map(other => (
             <li key={other.id} className={`px-4 py-2 flex items-center gap-3 hover:bg-portal-bg ${isExpired ? 'opacity-70' : ''}`}>
               {isExpired ? (
@@ -1095,8 +1095,8 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
   }
 
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 bg-portal-bg">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-portal-border bg-portal-bg">
         <h2 className="text-base font-bold text-portal-text tracking-tight flex items-center gap-2">
           <Link2 size={16} className="text-portal-blue" />
           Tracked CTA link
@@ -1238,7 +1238,7 @@ function ImageOnlyPreview({ ad, category, placementType }: {
                              'max-w-xl'
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl shadow-sm border border-portal-border ${maxW}`} style={{ aspectRatio: aspect }}>
+    <div className={`relative overflow-hidden rounded-lg shadow-sm border border-portal-border ${maxW}`} style={{ aspectRatio: aspect }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={ad.ad_image_url ?? ''}
@@ -1277,7 +1277,7 @@ function InlinePreview({ ad }: { ad: AdRow }) {
 // Square sidebar card with overlay text — homepage_sidebar_ad style.
 function SquareCardPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="relative w-56 aspect-square rounded-2xl overflow-hidden shadow-sm bg-gray-200">
+    <div className="relative w-56 aspect-square rounded-lg overflow-hidden shadow-sm bg-gray-200">
       {ad.ad_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ad.ad_image_url} alt={ad.ad_headline ?? ''} className="absolute inset-0 w-full h-full object-cover" />
@@ -1307,7 +1307,7 @@ function SquareCardPreview({ ad }: { ad: AdRow }) {
 // Dark Business Spotlight card — homepage_business_spotlight style.
 function DarkCardPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="rounded-2xl bg-gray-900 text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
+    <div className="rounded-lg bg-gray-900 text-white p-5 max-w-sm shadow-sm relative overflow-hidden">
       <div className="absolute top-0 right-0 w-24 h-24 bg-portal-navy/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       {ad.ad_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -1334,9 +1334,9 @@ function DarkCardPreview({ ad }: { ad: AdRow }) {
 // Wide gradient banner — homepage_bottom_ad / footer variants.
 function BannerPreview({ ad, wide }: { ad: AdRow; wide?: boolean }) {
   return (
-    <div className={`rounded-2xl bg-gradient-to-r from-secondary/10 to-primary/10 border border-portal-border p-5 shadow-sm ${wide ? 'max-w-2xl' : 'max-w-xl'}`}>
+    <div className={`rounded-lg bg-gradient-to-r from-secondary/10 to-primary/10 border border-portal-border p-5 shadow-sm ${wide ? 'max-w-2xl' : 'max-w-xl'}`}>
       <div className="flex items-center gap-5">
-        <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={120} rounded="rounded-2xl" />
+        <PreviewImage src={ad.ad_image_url} alt={ad.ad_headline} size={120} rounded="rounded-lg" />
         <div className="flex-1 min-w-0">
           <PreviewEyebrow text={ad.ad_eyebrow} />
           <PreviewHeadline text={ad.ad_headline} size="lg" />
@@ -1382,7 +1382,7 @@ function InArticlePreview({ ad }: { ad: AdRow }) {
 // Big hero rotator — used at the very top of homepage.
 function HeroPreview({ ad }: { ad: AdRow }) {
   return (
-    <div className="relative aspect-[3/1] w-full max-w-2xl rounded-2xl overflow-hidden bg-gray-200 shadow-sm">
+    <div className="relative aspect-[3/1] w-full max-w-2xl rounded-lg overflow-hidden bg-gray-200 shadow-sm">
       {ad.ad_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={ad.ad_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />

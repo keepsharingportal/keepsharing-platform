@@ -97,7 +97,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !committing && setOpen(false)}>
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-4">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <Sparkles size={16} className="text-sky-600" />
@@ -166,7 +166,7 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
                   directory-only advertiser_accounts rows are deleted.
                 </p>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-2 pt-2 border-t border-portal-border">
                   <button
                     type="button"
                     onClick={commit}

@@ -231,7 +231,7 @@ export default async function AITasksPage({
       </div>
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-portal-amber-lt border border-amber-200 rounded-2xl">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-portal-amber-lt border border-amber-200 rounded-lg">
         <span className="text-lg shrink-0">⚠️</span>
         <p className="text-sm text-portal-amber font-medium">
           Human review required before any AI output is used.
@@ -248,7 +248,7 @@ export default async function AITasksPage({
           { label: 'Approved',     val: metrics.approved, color: '#16a34a' },
           { label: 'Failed',       val: metrics.failed,   color: '#dc2626' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
@@ -279,7 +279,7 @@ export default async function AITasksPage({
 
       {/* ── TASK LIST ───────────────────────────────────────────────────── */}
       {tasks.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl px-8 py-20 text-center">
+        <div className="bg-white border border-portal-border rounded-lg px-8 py-20 text-center">
           <div className="text-5xl mb-4">🤖</div>
           <h2 className="text-lg font-bold text-portal-text mb-2">
             {activeFilter === 'review' ? 'Nothing needs review right now' : 'No tasks here'}
@@ -308,7 +308,7 @@ export default async function AITasksPage({
             const canRetry    = task.status === 'failed'
 
             return (
-              <div key={task.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+              <div key={task.id} className="bg-white border border-portal-border rounded-lg overflow-hidden">
                 <div className="px-5 py-4">
 
                   {/* Header row */}
@@ -362,7 +362,7 @@ export default async function AITasksPage({
 
                   {/* Output preview */}
                   {task.output_preview && (
-                    <div className="mt-3 px-4 py-3 bg-portal-bg rounded-xl border border-gray-100">
+                    <div className="mt-3 px-4 py-3 bg-portal-bg rounded-xl border border-portal-border">
                       <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide mb-1.5">
                         AI Output Preview
                       </p>
@@ -374,7 +374,7 @@ export default async function AITasksPage({
                           <summary className="text-[11px] text-portal-muted cursor-pointer hover:text-portal-sub select-none">
                             Show full output →
                           </summary>
-                          <pre className="text-[10px] text-portal-sub bg-white border border-gray-100 rounded-lg p-3 mt-2 overflow-auto max-h-48 leading-relaxed">
+                          <pre className="text-[10px] text-portal-sub bg-white border border-portal-border rounded-lg p-3 mt-2 overflow-auto max-h-48 leading-relaxed">
                             {JSON.stringify(task.output_payload, null, 2)}
                           </pre>
                         </details>
@@ -470,7 +470,7 @@ export default async function AITasksPage({
       )}
 
       {/* ── FUTURE ARCHITECTURE NOTES ────────────────────────────────────── */}
-      <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+      <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
         <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg select-none uppercase tracking-wide">
           Future: How background AI processing will work
         </summary>

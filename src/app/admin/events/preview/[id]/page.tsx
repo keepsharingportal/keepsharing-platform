@@ -117,16 +117,16 @@ export default async function EventPreviewPage({ params }: Props) {
       <article className="max-w-4xl mx-auto px-4 py-8 md:px-6 md:py-12">
         {/* Hero */}
         {heroUrl ? (
-          <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-gray-100 ring-1 ring-gray-200 mb-6">
+          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 ring-1 ring-gray-200 mb-6">
             <Image src={heroUrl} alt={String(ev.title)} fill style={{ objectFit: 'cover' }} sizes="(max-width: 768px) 100vw, 1200px" unoptimized />
             {isFeatured && (
-              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-amber-900 ring-1 ring-amber-200">
+              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 shadow text-xs font-bold text-amber-900 border border-portal-amber/30">
                 <Star size={12} className="fill-amber-400 text-amber-500" /> Featured
               </span>
             )}
           </div>
         ) : (
-          <div className="mb-6 rounded-2xl border-2 border-dashed border-portal-border bg-portal-bg p-8 text-center text-sm text-portal-sub inline-flex items-center gap-2 w-full justify-center">
+          <div className="mb-6 rounded-lg border-2 border-dashed border-portal-border bg-portal-bg p-8 text-center text-sm text-portal-sub inline-flex items-center gap-2 w-full justify-center">
             <AlertTriangle size={14} /> No hero image — public detail page will use a fallback.
           </div>
         )}
@@ -149,7 +149,7 @@ export default async function EventPreviewPage({ params }: Props) {
             </span>
           )}
           {isFree && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-green-lt text-portal-green ring-1 ring-emerald-200 font-bold text-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-green-lt text-portal-green border border-portal-green/30 font-bold text-xs">
               Free
             </span>
           )}
@@ -175,7 +175,7 @@ export default async function EventPreviewPage({ params }: Props) {
         )}
 
         {/* Details panel */}
-        <div className="rounded-2xl bg-white ring-1 ring-gray-200 p-5 md:p-6 space-y-3 text-sm">
+        <div className="rounded-lg bg-white ring-1 ring-gray-200 p-5 md:p-6 space-y-3 text-sm">
           {(address || city) && (
             <div className="flex items-start gap-2">
               <MapPin size={14} className="text-portal-muted mt-0.5 shrink-0" />

@@ -109,7 +109,7 @@ function ArticlePreview({
     <div className="max-w-3xl mx-auto py-6 px-4">
       {/* Mimic the article page header (eyebrow + title + dek) so the preview
           matches the front-end's vertical rhythm, not just the body block. */}
-      <div className="mb-6 pb-4 border-b border-gray-100">
+      <div className="mb-6 pb-4 border-b border-portal-border">
         {columnSlug && (
           <p className="text-[11px] font-bold uppercase tracking-widest text-portal-blue mb-2">
             {columnSlug.replace(/-/g, ' ')}
@@ -150,7 +150,7 @@ function ArticlePreview({
       ) : (
         <>
           {heroUrl && (
-            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-2xl overflow-hidden mb-6 shadow-sm border border-portal-border">
+            <div className="relative w-full aspect-[3/2] md:aspect-[16/9] rounded-lg overflow-hidden mb-6 shadow-sm border border-portal-border">
               <Image
                 src={heroUrl}
                 alt={safeTitle}
@@ -461,7 +461,7 @@ export default function ArticleEditPage({ params }: Props) {
               {/* Title */}
               <div>
                 <input
-                  className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-0 border-b-2 border-gray-100 focus:border-portal-blue bg-transparent py-2 transition-colors"
+                  className="w-full text-2xl font-bold text-portal-text outline-none placeholder:text-gray-300 border-0 border-b-2 border-portal-border focus:border-portal-blue bg-transparent py-2 transition-colors"
                   value={form.title}
                   onChange={e => handleTitle(e.target.value)}
                   placeholder="Article title…"
@@ -482,7 +482,7 @@ export default function ArticleEditPage({ params }: Props) {
                    (that's the Card Hook field in the right sidebar). */}
               <div>
                 <textarea
-                  className="w-full text-base text-portal-sub outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
+                  className="w-full text-base text-portal-sub outline-none placeholder:text-gray-300 border-0 border-b border-portal-border focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
                   rows={2}
                   value={form.subtitle}
                   onChange={e => setField('subtitle', e.target.value)}
@@ -546,7 +546,7 @@ export default function ArticleEditPage({ params }: Props) {
                   on the public article as a thin divider + italic text.
                   No title shown, only the text. Skip when empty. */}
               <div className="border border-portal-border rounded-xl overflow-hidden bg-white">
-                <div className="px-4 py-3 border-b border-gray-100">
+                <div className="px-4 py-3 border-b border-portal-border">
                   <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
                   <p className="text-[11px] text-portal-muted mt-0.5">
                     Renders as a simple italic line under the photo gallery. Example: &quot;Phyllis Palmer resides in Sturbridge with her husband Markus, Sr. They&apos;re raising two boys.&quot;
@@ -571,7 +571,7 @@ export default function ArticleEditPage({ params }: Props) {
                   {tipsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
                 {tipsOpen && (
-                  <div className="px-4 pb-4 pt-1 space-y-2 text-xs text-portal-sub bg-portal-bg border-t border-gray-100">
+                  <div className="px-4 pb-4 pt-1 space-y-2 text-xs text-portal-sub bg-portal-bg border-t border-portal-border">
                     {[
                       ['H2', 'Use H2 (##) for section headings like "About the School" or "Why We\'re Proud"'],
                       ['Bold', 'Bold student and teacher names on first mention'],
@@ -598,7 +598,7 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Publish status card ── */}
             <div className="border border-portal-border rounded-xl overflow-hidden">
-              <div className="bg-portal-bg px-3 py-2 border-b border-gray-100">
+              <div className="bg-portal-bg px-3 py-2 border-b border-portal-border">
                 <p className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Publish</p>
               </div>
               <div className="p-3 space-y-2">

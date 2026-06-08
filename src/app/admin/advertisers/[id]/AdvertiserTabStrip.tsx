@@ -37,7 +37,7 @@ export function AdvertiserTabStrip({ id, counts }: {
   ]
 
   return (
-    <div className="px-6 border-t border-gray-100">
+    <div className="px-6 border-t border-portal-border">
       <nav className="flex items-center gap-1 overflow-x-auto">
         {tabs.map(t => {
           const active = t.match(pathname, id)

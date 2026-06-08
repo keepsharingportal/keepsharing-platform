@@ -123,7 +123,7 @@ export default async function MarketsPage() {
                           </span>
                         )}
                         {m.dropboxCount > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200 font-medium">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber border border-portal-amber/30 font-medium">
                             {m.dropboxCount} DropBox
                           </span>
                         )}

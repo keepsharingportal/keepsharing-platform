@@ -216,8 +216,8 @@ export function TrendingList(props: Props) {
   return (
     <div className="space-y-6">
       {/* ── Live preview ───────────────────────────────────────────────── */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
             <Eye size={14} className="text-portal-muted" />
             Live preview — exactly what the homepage shows right now
@@ -257,7 +257,7 @@ export function TrendingList(props: Props) {
       </section>
 
       {/* ── Help ───────────────────────────────────────────────────────── */}
-      <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4 text-sm leading-relaxed">
+      <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4 text-sm leading-relaxed">
         <p className="font-bold text-amber-900 mb-1">How the trending bar works</p>
         <ul className="list-disc list-inside text-portal-amber space-y-0.5 text-xs">
           <li><strong>Pinned items below show first</strong> — these are your editorial picks (Best Of, guides, nominations, etc.).</li>
@@ -283,8 +283,8 @@ export function TrendingList(props: Props) {
       </div>
 
       {/* ── List ──────────────────────────────────────────────────────── */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text">{visible.length} items</h2>
           <div className="flex items-center gap-3">
             {visible.length > 0 && (
@@ -299,7 +299,7 @@ export function TrendingList(props: Props) {
         {visible.length === 0 ? (
           <p className="p-8 text-center text-sm text-portal-muted">No items match this filter.</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-portal-border">
             {visible.map((item, idx) => {
               const status = classify(item, now)
               const style  = STATUS_STYLE[status]
@@ -408,7 +408,7 @@ export function TrendingList(props: Props) {
       {/* ── Bulk action bar ────────────────────────────────────────────── */}
       {selected.size > 0 && (
         <div className="sticky bottom-4 z-40 mx-auto max-w-[1100px]">
-          <div className="rounded-2xl bg-gray-900 text-white shadow-2xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div className="rounded-lg bg-gray-900 text-white shadow-md px-4 py-3 flex items-center gap-3 flex-wrap">
             <p className="text-sm font-bold">{selected.size} selected</p>
             <span className="text-white/30">·</span>
             <button onClick={() => runBulk('turn-off')} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn off</button>
@@ -452,8 +452,8 @@ function FilterChip({ label, count, active, onClick, tone }: { label: string; co
 function AddForm({ onCreate, nextOrder }: { onCreate: (fd: FormData) => Promise<void>; nextOrder: number }) {
   const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors'
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-portal-border bg-portal-bg">
         <h2 className="text-sm font-bold text-portal-text">Add a new trending item</h2>
       </div>
       <form action={onCreate} className="p-5 grid md:grid-cols-12 gap-3 items-end">

@@ -190,8 +190,8 @@ export default async function SourcesAdminPage() {
 
       {/* ADD NEW */}
       {!tableMissing && (
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
             <Plus size={14} className="text-portal-muted" />
             <h2 className="text-sm font-bold text-portal-text">Add a source</h2>
           </div>
@@ -243,8 +243,8 @@ export default async function SourcesAdminPage() {
 
       {/* LIST */}
       {!tableMissing && (
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between">
             <h2 className="text-sm font-bold text-portal-text">All sources</h2>
             <span className="text-xs text-portal-muted">{sources.length} total · {activeCount} active</span>
           </div>
@@ -252,7 +252,7 @@ export default async function SourcesAdminPage() {
           {sources.length === 0 ? (
             <p className="p-8 text-center text-sm text-portal-muted">No sources yet. Add one above.</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-portal-border">
               {sources.map(s => (
                 <li key={s.id} className="p-5">
                   <div className="flex items-start gap-3 mb-2">

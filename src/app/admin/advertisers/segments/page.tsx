@@ -96,7 +96,7 @@ export default async function SegmentsPage() {
       </div>
 
       {/* Active by tier */}
-      <div className="bg-white/3 border border-white/10 rounded-2xl p-5 mb-6">
+      <div className="bg-white/3 border border-white/10 rounded-lg p-5 mb-6">
         <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
           <TrendingUp size={14} className="text-blue-400" /> Active by Ad Size
         </h2>
@@ -111,7 +111,7 @@ export default async function SegmentsPage() {
       </div>
 
       {/* Expiring */}
-      <div className="bg-white/3 border border-white/10 rounded-2xl p-5 mb-6">
+      <div className="bg-white/3 border border-white/10 rounded-lg p-5 mb-6">
         <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
           <Clock size={14} className="text-yellow-400" /> Expiring Bookings (by campaign end)
         </h2>
@@ -129,7 +129,7 @@ export default async function SegmentsPage() {
       </div>
 
       {/* Newcomer Issue 2026 */}
-      <div className="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
+      <div className="bg-white/3 border border-white/10 rounded-lg overflow-hidden">
         <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-white flex items-center gap-2">

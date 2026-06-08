@@ -161,8 +161,8 @@ function ExtractPage() {
       </div>
 
       {/* INPUT FORM */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
           <h2 className="text-sm font-bold text-portal-text">Source</h2>
         </div>
 
@@ -249,8 +249,8 @@ function ExtractPage() {
 
       {/* RESULTS */}
       {result && (
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between flex-wrap gap-2">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-bold text-portal-text">
               {events.length === 0 ? 'No events found' : `${events.length} event(s) extracted — keeping ${keptCount}`}
             </h2>
@@ -270,7 +270,7 @@ function ExtractPage() {
           </div>
 
           {result.model_notes && (
-            <p className="px-5 py-3 text-xs text-portal-sub italic bg-portal-bg/50 border-b border-gray-100">
+            <p className="px-5 py-3 text-xs text-portal-sub italic bg-portal-bg/50 border-b border-portal-border">
               Model notes: {result.model_notes}
             </p>
           )}
@@ -280,7 +280,7 @@ function ExtractPage() {
               No events extracted. Try Paste text mode with the visible event body, or check the source.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-portal-border">
               {events.map((ev, idx) => (
                 <li key={idx} className={`p-5 ${!keep[idx] ? 'opacity-50' : ''}`}>
                   <div className="flex items-start gap-3 mb-3">

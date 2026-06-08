@@ -97,7 +97,7 @@ export default function FormsAdminPage() {
           ) : submissions.length === 0 ? (
             <div className="p-8 text-center text-sm text-portal-muted">No submissions yet.</div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-portal-border">
               {submissions.map(s => {
                 const meta = FORM_META[s.form_type]
                 const isOpen = expanded === s.id
@@ -121,7 +121,7 @@ export default function FormsAdminPage() {
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-4 bg-portal-bg/50 border-t border-gray-100 space-y-3">
+                      <div className="px-5 pb-4 bg-portal-bg/50 border-t border-portal-border space-y-3">
                         <div className="pt-3 grid grid-cols-2 gap-2 text-xs">
                           {Object.entries(s.form_data).map(([k, v]) => (
                             <div key={k} className={cn(v && String(v).length > 60 ? 'col-span-2' : '')}>

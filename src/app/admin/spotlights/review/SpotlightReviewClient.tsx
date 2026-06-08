@@ -212,7 +212,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
 
               {/* Expanded body */}
               {isExpanded && (
-                <div className="px-3.5 pb-3 space-y-2 border-t border-gray-100 pt-2.5">
+                <div className="px-3.5 pb-3 space-y-2 border-t border-portal-border pt-2.5">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-portal-sub mb-0.5">Why special</p>
                     <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{whySpecial}</p>
@@ -223,7 +223,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                       <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{achievement}</p>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-portal-border">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-portal-sub">Submitter</p>
                       <p className="text-xs text-portal-text">{r.submitter_name ?? '—'}</p>
@@ -249,7 +249,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
               )}
 
               {/* Actions */}
-              <div className="flex items-center justify-between px-3.5 py-2 border-t border-gray-100 bg-portal-bg/50">
+              <div className="flex items-center justify-between px-3.5 py-2 border-t border-portal-border bg-portal-bg/50">
                 <button
                   onClick={() => toggleExpand(r.id)}
                   className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1"

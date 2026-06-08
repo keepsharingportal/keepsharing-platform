@@ -319,7 +319,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
       {/* ── Delete confirm modal ─────────────────────────── */}
       {confirmOpen && preview && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmOpen(false)}>
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-4">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <AlertTriangle size={16} className="text-rose-600" />
@@ -360,7 +360,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
               </div>
             )}
 
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-portal-border">
               <button
                 type="button"
                 onClick={onConfirmDelete}
@@ -389,7 +389,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
           className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto"
           onClick={() => !merging && setMergeOpen(false)}
         >
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 my-12 space-y-4">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-lg p-5 my-12 space-y-4">
             <header className="flex items-center justify-between">
               <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
                 <GitMerge size={16} className="text-amber-600" />
@@ -405,7 +405,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
               repointed at the survivor; the others are deleted.
             </p>
 
-            <div className="max-h-64 overflow-y-auto border border-portal-border rounded-lg divide-y divide-gray-100">
+            <div className="max-h-64 overflow-y-auto border border-portal-border rounded-lg divide-y divide-portal-border">
               {rows.filter(r => selected.has(r.id)).map(r => {
                 const isSurvivor = r.id === mergeSurvivorId
                 return (
@@ -466,7 +466,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
               </div>
             )}
 
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-portal-border">
               <button
                 type="button"
                 onClick={onConfirmMerge}

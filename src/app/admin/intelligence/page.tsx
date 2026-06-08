@@ -642,7 +642,7 @@ export default async function IntelligencePage({
           </div>
 
           {recommendedActions.length === 0 ? (
-            <div className="bg-green-50 border border-green-100 rounded-2xl px-6 py-8 text-center">
+            <div className="bg-green-50 border border-green-100 rounded-lg px-6 py-8 text-center">
               <p className="text-2xl mb-2">✅</p>
               <p className="text-sm font-semibold text-green-800">No urgent actions — ecosystem is in good shape.</p>
             </div>
@@ -688,7 +688,7 @@ export default async function IntelligencePage({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Revenue Intelligence */}
-          <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Revenue Intelligence</h2>
               <Link href="/admin/advertisers" className="text-xs text-indigo-600 hover:underline font-semibold">Advertisers →</Link>
@@ -794,7 +794,7 @@ export default async function IntelligencePage({
           </section>
 
           {/* Editorial Intelligence */}
-          <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Editorial Intelligence</h2>
               <Link href="/admin/community" className="text-xs text-indigo-600 hover:underline font-semibold">Community →</Link>
@@ -888,7 +888,7 @@ export default async function IntelligencePage({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Operational Intelligence */}
-          <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Operational Intelligence</h2>
               <Link href="/admin/assets" className="text-xs text-indigo-600 hover:underline font-semibold">Assets →</Link>
@@ -963,7 +963,7 @@ export default async function IntelligencePage({
                     <Link
                       key={href}
                       href={href}
-                      className="text-[11px] font-semibold text-portal-sub hover:text-portal-text hover:bg-portal-bg px-3 py-2 rounded-lg border border-gray-100 hover:border-portal-border transition-colors"
+                      className="text-[11px] font-semibold text-portal-sub hover:text-portal-text hover:bg-portal-bg px-3 py-2 rounded-lg border border-portal-border hover:border-portal-border transition-colors"
                     >
                       {label}
                     </Link>
@@ -974,7 +974,7 @@ export default async function IntelligencePage({
           </section>
 
           {/* Audience Intelligence */}
-          <section className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Audience Intelligence</h2>
               <Link href="/admin/engagement" className="text-xs text-indigo-600 hover:underline font-semibold">Engagement →</Link>
@@ -1090,7 +1090,7 @@ export default async function IntelligencePage({
                   <Link
                     key={i}
                     href={opp.href}
-                    className="block bg-white border border-gray-100 rounded-2xl p-5 hover:border-portal-border hover:shadow-sm transition-all group"
+                    className="block bg-white border border-portal-border rounded-lg p-5 hover:border-portal-border hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-2xl shrink-0">{opp.icon}</span>
@@ -1115,7 +1115,7 @@ export default async function IntelligencePage({
         )}
 
         {/* ── Future AI layer placeholder ──────────────────────────────── */}
-        <section className="bg-portal-bg border border-gray-100 rounded-2xl p-5">
+        <section className="bg-portal-bg border border-portal-border rounded-lg p-5">
           <div className="flex items-start gap-3">
             <span className="text-lg">🔮</span>
             <div className="flex-1">

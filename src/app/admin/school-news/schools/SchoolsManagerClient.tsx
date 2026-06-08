@@ -45,8 +45,8 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
   return (
     <>
       {/* Toolbar */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between flex-wrap gap-2">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Filter size={14} className="text-portal-muted" />
             <h2 className="text-sm font-bold text-portal-text">Schools list</h2>
@@ -85,7 +85,7 @@ export function SchoolsManagerClient({ initialSchools }: Props) {
         )}
 
         {/* Filters */}
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+        <div className="px-5 py-3 border-b border-portal-border flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-portal-muted" />
             <input
@@ -414,7 +414,7 @@ function SchoolTableRow({
 
   if (editing) {
     return (
-      <tr className="border-t border-gray-100 bg-portal-blue-lt/40">
+      <tr className="border-t border-portal-border bg-portal-blue-lt/40">
         <td className="px-4 py-2"><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inputCls} /></td>
         <td className="px-4 py-2">
           <select value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value as Area }))} className={inputCls}>
@@ -444,7 +444,7 @@ function SchoolTableRow({
   }
 
   return (
-    <tr className={`border-t border-gray-100 ${school.status === 'archived' ? 'opacity-50' : ''}`}>
+    <tr className={`border-t border-portal-border ${school.status === 'archived' ? 'opacity-50' : ''}`}>
       <td className="px-4 py-2.5">
         <p className="font-semibold text-portal-text">{school.name}</p>
         {school.city && <p className="text-xs text-portal-muted">{school.city}</p>}

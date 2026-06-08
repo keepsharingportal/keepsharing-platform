@@ -230,7 +230,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-portal-text">Events</h1>
           {counts['Pending Review'] > 0 && (
-            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {counts['Pending Review']} pending
             </span>
           )}
@@ -368,7 +368,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
             <p className="text-sm">No events match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
             {paged.map(ev => (
               <EventRowItem
                 key={ev.id}
@@ -656,7 +656,7 @@ function EventRowItem({
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
             <h3 className="text-sm font-bold text-portal-text truncate">{ev.title}</h3>
             {ev.is_featured && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
+              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
                 <Star size={9} className="fill-amber-500 text-amber-500" /> Featured
               </span>
             )}
@@ -665,7 +665,7 @@ function EventRowItem({
                 row, stored as a prefix in discovery_notes. Editors see this
                 at-a-glance in the list and can resolve via the editor. */}
             {typeof ev.discovery_notes === 'string' && /^possible duplicate/i.test(ev.discovery_notes) && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200" title={ev.discovery_notes}>
+              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30" title={ev.discovery_notes}>
                 ⚠ Possible duplicate
               </span>
             )}
@@ -783,7 +783,7 @@ function EventRowItem({
                   className="fixed inset-0 z-10 cursor-default"
                   aria-hidden
                 />
-                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow-lg py-1 text-xs">
+                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow py-1 text-xs">
                   {ev.slug && (
                     <a
                       href={`/calendar/events/${ev.slug}`}

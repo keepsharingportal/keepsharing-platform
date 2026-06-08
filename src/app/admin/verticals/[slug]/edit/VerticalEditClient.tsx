@@ -123,7 +123,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
           Unchecking this hides the vertical from public navigation but keeps existing articles reachable by direct link.
         </FieldHint>
 
-        <p className="text-[11px] text-portal-muted pt-2 border-t border-gray-100">
+        <p className="text-[11px] text-portal-muted pt-2 border-t border-portal-border">
           Public landing: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
         </p>
       </section>
@@ -144,7 +144,7 @@ export function VerticalEditClient({ slug, publicPath, sponsorBusinessName, init
           />
         </div>
 
-        <div className="pt-3 border-t border-gray-100">
+        <div className="pt-3 border-t border-portal-border">
           <FieldLabel hint="Optional. If empty, the homepage tile uses the hero image above. Set this if you want a tighter crop or a different shot for the homepage card.">
             Homepage tile image (optional)
           </FieldLabel>

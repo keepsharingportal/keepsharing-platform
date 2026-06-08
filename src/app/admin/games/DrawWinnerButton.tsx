@@ -134,7 +134,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
       )}
 
       {picks && picks.length > 0 && (
-        <div className="rounded-2xl border-2 border-portal-blue/30 bg-portal-blue-lt p-4 space-y-3">
+        <div className="rounded-lg border-2 border-portal-blue/30 bg-portal-blue-lt p-4 space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-portal-blue text-center">
             {drawing ? 'Drawing…' : `${picks.length} Winner${picks.length === 1 ? '' : 's'}!`}
           </p>

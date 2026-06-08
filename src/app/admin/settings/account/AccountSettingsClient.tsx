@@ -94,7 +94,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
   return (
     <>
       {/* Name edit */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-6">
         <h2 className="text-sm font-bold text-portal-text mb-4 inline-flex items-center gap-2">
           <User size={14} className="text-portal-muted" /> Display name
         </h2>
@@ -127,7 +127,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
       </section>
 
       {/* Password */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-6">
         <h2 className="text-sm font-bold text-portal-text mb-1 inline-flex items-center gap-2">
           <KeyRound size={14} className="text-portal-muted" /> Password
         </h2>
@@ -177,7 +177,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
       </section>
 
       {/* Sign out */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-6">
         <h2 className="text-sm font-bold text-portal-text mb-1">Sign out</h2>
         <p className="text-xs text-portal-sub mb-4 leading-relaxed">
           Ends your session on this browser. You&apos;ll need to sign in again next visit.
@@ -186,7 +186,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
           type="button"
           onClick={signOut}
           disabled={signingOut}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-white text-portal-red ring-1 ring-rose-200 hover:bg-portal-red-lt transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-white text-portal-red border border-portal-red/30 hover:bg-portal-red-lt transition-colors disabled:opacity-40"
         >
           {signingOut ? <RefreshCw size={12} className="animate-spin" /> : <LogOut size={12} />}
           {signingOut ? 'Signing out…' : 'Sign out'}

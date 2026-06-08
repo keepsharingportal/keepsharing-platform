@@ -73,7 +73,7 @@ export default async function ExportPackagesPage() {
                   const pubsList   = Object.entries(g.pubs).sort((a, b) => b[1] - a[1])
                   const allPub     = g.total > 0 && g.published === g.total
                   return (
-                    <tr key={m} className="border-b border-gray-100 last:border-0 hover:bg-portal-bg">
+                    <tr key={m} className="border-b border-portal-border last:border-0 hover:bg-portal-bg">
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <Package size={14} className="text-portal-muted" />

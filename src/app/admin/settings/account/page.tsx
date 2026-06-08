@@ -50,7 +50,7 @@ export default async function AccountSettingsPage() {
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
         {/* Identity card (read-only fields) */}
-        <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-6">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 p-6">
           <h2 className="text-sm font-bold text-portal-text mb-4">Your account</h2>
           <dl className="space-y-3 text-sm">
             <Row icon={<Mail size={14} className="text-portal-muted" />} label="Email">
@@ -60,7 +60,7 @@ export default async function AccountSettingsPage() {
               </p>
             </Row>
             <Row icon={<Shield size={14} className="text-portal-muted" />} label="Role">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-800 ring-1 ring-violet-200">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-800 border border-portal-blue/30">
                 {ROLE_LABEL[ctx.role] ?? ctx.role}
               </span>
             </Row>
@@ -77,7 +77,7 @@ export default async function AccountSettingsPage() {
         />
 
         {/* Tip card — explains the magic-link → password upgrade path */}
-        <div className="rounded-2xl bg-portal-amber-lt ring-1 ring-amber-200 p-5 text-sm">
+        <div className="rounded-lg bg-portal-amber-lt border border-portal-amber/30 p-5 text-sm">
           <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-1.5">
             <KeyRound size={14} /> Daily admin? Set a password.
           </p>

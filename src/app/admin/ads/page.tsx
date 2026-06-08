@@ -298,7 +298,7 @@ export default function AdminAdsPage() {
         </div>
 
         {/* ── Filter bar — 4 dropdowns + search ────────────────── */}
-        <div className="bg-white border border-portal-border rounded-2xl p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="bg-white border border-portal-border rounded-lg p-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <Field label="Page">
             <select
               value={filterPage}
@@ -365,7 +365,7 @@ export default function AdminAdsPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-2 text-sm text-red-800">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2 text-sm text-red-800">
             <AlertTriangle size={16} className="text-portal-red shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Load failed</p>
@@ -375,8 +375,8 @@ export default function AdminAdsPage() {
         )}
 
         {/* ── Slot table ───────────────────────────────────────── */}
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between">
             <h2 className="text-sm font-bold text-portal-text">
               {visibleRows.length} of {slotRows.length} slots
               {visibleRows.length > PER_PAGE && (
@@ -438,7 +438,7 @@ export default function AdminAdsPage() {
 
           {/* ── Pagination ────────────────────────────────────── */}
           {visibleRows.length > PER_PAGE && (
-            <div className="px-5 py-3 border-t border-gray-100 bg-portal-bg flex items-center justify-between text-xs">
+            <div className="px-5 py-3 border-t border-portal-border bg-portal-bg flex items-center justify-between text-xs">
               <span className="text-portal-sub">
                 Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, visibleRows.length)} of {visibleRows.length}
               </span>
@@ -484,7 +484,7 @@ function SlotRowItem({
   const isPaused  = row.status === 'paused'
   const headBooking = row.bookings[0]
 
-  const rowClass = `group border-b border-gray-100 last:border-0 ${
+  const rowClass = `group border-b border-portal-border last:border-0 ${
     isEmpty  ? 'bg-portal-amber-lt/40 hover:bg-portal-amber-lt' :
     isHidden ? 'bg-portal-bg hover:bg-portal-row-hover opacity-70' :
                'hover:bg-portal-bg'
@@ -722,7 +722,7 @@ function Stat({ label, value, tone, active, onClick }: {
   active?: boolean
   onClick?: () => void
 }) {
-  const className = `text-left bg-white border rounded-2xl p-4 transition-all ${
+  const className = `text-left bg-white border rounded-lg p-4 transition-all ${
     active
       ? 'border-2 ring-2 ring-offset-1'
       : 'border-portal-border hover:border-portal-border-2'

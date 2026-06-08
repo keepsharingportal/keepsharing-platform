@@ -75,7 +75,7 @@ export default async function BloggerEditPage({ params }: Props) {
 
       {/* ── Posts ─────────────────────────────────────────────────────────── */}
       <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text">Posts by {blogger.display_name.split(' ')[0]} ({posts?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`}
@@ -92,7 +92,7 @@ export default async function BloggerEditPage({ params }: Props) {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-portal-border">
             {posts.map(p => (
               <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-portal-bg">
                 <Link href={`/admin/articles/${p.id}/edit`} className="text-sm font-semibold text-portal-text hover:text-portal-blue line-clamp-1 flex-1 min-w-0">

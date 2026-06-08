@@ -233,11 +233,11 @@ function SlotCard({
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {slot.locked ? (
-            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
               <Lock size={9} /> Locked
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 ring-1 ring-sky-200">
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 border border-portal-blue/30">
               <RotateCw size={9} /> Rotation
             </span>
           )}

@@ -228,7 +228,7 @@ export function ArticleBulkActionsTable({
 
       <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-gray-100 bg-portal-bg">
+        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
@@ -282,7 +282,7 @@ export function ArticleBulkActionsTable({
         </div>
 
         {/* Rows */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-portal-border">
           {articles.map(a => {
             const isSelected = selected.has(a.id)
             const st   = editorialStatusInfo(a.editorial_review_status)

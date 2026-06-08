@@ -72,7 +72,7 @@ export default async function AnalyticsTab({ params }: Props) {
       {/* ── Monthly report CTA ──────────────────────────── */}
       <Link
         href={`/admin/advertisers/${id}/report`}
-        className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
+        className="group bg-white rounded-lg ring-1 ring-gray-200 p-5 flex items-center justify-between hover:ring-portal-blue hover:shadow-sm transition-all"
       >
         <div className="flex items-center gap-3">
           <FileText size={20} className="text-portal-muted group-hover:text-portal-blue transition-colors" />
@@ -86,7 +86,7 @@ export default async function AnalyticsTab({ params }: Props) {
 
       {/* ── Best performer callout ──────────────────────── */}
       {best && bestCtr && (
-        <section className="bg-portal-green-lt border border-emerald-200 rounded-2xl p-5">
+        <section className="bg-portal-green-lt border border-emerald-200 rounded-lg p-5">
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-portal-green mb-1">Top performer</h3>
           <p className="text-sm text-emerald-900">
             <span className="font-bold">{best.ad_headline ?? best.placement_type.replace(/_/g, ' ')}</span>
@@ -98,8 +98,8 @@ export default async function AnalyticsTab({ params }: Props) {
       )}
 
       {/* ── Per-placement breakdown ─────────────────────── */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
-        <header className="px-5 py-3 border-b border-gray-100">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <header className="px-5 py-3 border-b border-portal-border">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
             Placement Performance ({activeCount} active{plRows.length > activeCount && ` · ${plRows.length} total`})
           </h2>
@@ -109,7 +109,7 @@ export default async function AnalyticsTab({ params }: Props) {
             No placement data yet. Once ads start running, performance shows up here.
           </div>
         ) : (
-          <ul className="divide-y divide-gray-50">
+          <ul className="divide-y divide-portal-border">
             {byImpressions.map(p => {
               const ctrPct = p.impression_count > 0 ? ((p.click_count / p.impression_count) * 100).toFixed(2) : '—'
               return (
@@ -134,11 +134,11 @@ export default async function AnalyticsTab({ params }: Props) {
 
       {/* ── Top QR codes ────────────────────────────────── */}
       {qrRows.length > 0 && (
-        <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
-          <header className="px-5 py-3 border-b border-gray-100">
+        <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+          <header className="px-5 py-3 border-b border-portal-border">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">QR Performance</h2>
           </header>
-          <ul className="divide-y divide-gray-50">
+          <ul className="divide-y divide-portal-border">
             {[...qrRows].sort((a, b) => b.click_count - a.click_count).slice(0, 5).map(q => (
               <li key={q.id} className="px-5 py-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
@@ -159,7 +159,7 @@ export default async function AnalyticsTab({ params }: Props) {
 
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="bg-white rounded-2xl ring-1 ring-gray-200 p-4">
+    <div className="bg-white rounded-lg ring-1 ring-gray-200 p-4">
       <div className="text-portal-muted mb-1">{icon}</div>
       <p className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">{label}</p>
       <p className="text-xl font-bold text-portal-text">{value}</p>

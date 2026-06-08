@@ -14,7 +14,7 @@ const CirculationMap = dynamic(
 
 function MapSkeleton() {
   return (
-    <div className="rounded-2xl border border-portal-border bg-portal-bg animate-pulse" style={{ height: 600 }} />
+    <div className="rounded-lg border border-portal-border bg-portal-bg animate-pulse" style={{ height: 600 }} />
   )
 }
 

@@ -143,7 +143,7 @@ export default async function Phase1StatusPage() {
       </div>
 
       {/* Overall score */}
-      <div className={`rounded-2xl border-2 p-6 flex items-center gap-4 ${
+      <div className={`rounded-lg border-2 p-6 flex items-center gap-4 ${
         overallStatus === 'ok' ? 'border-green-400 bg-green-50' :
         overallStatus === 'warn' ? 'border-amber-400 bg-portal-amber-lt' :
         'border-red-300 bg-red-50'
@@ -193,7 +193,7 @@ export default async function Phase1StatusPage() {
       {/* Demo path checklist */}
       <section>
         <h2 className="text-lg font-bold mb-4">Demo Path Checklist</h2>
-        <div className="divide-y divide-border rounded-2xl border border-border overflow-hidden">
+        <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
           {demoSteps.map((step) => (
             <div key={step.label} className="flex items-center gap-4 px-5 py-4 bg-card hover:bg-muted/30 transition-colors">
               <StatusDot status={step.status} />

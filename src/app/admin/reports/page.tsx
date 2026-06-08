@@ -94,7 +94,7 @@ export default async function ReportsLandingPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Top Articles */}
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+          <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top Articles — Most Viewed
             </h2>
@@ -107,7 +107,7 @@ export default async function ReportsLandingPage() {
               No view data yet. Tracking activates on article page visits.
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-portal-border">
               {(topArticles as Array<{ id: string; title: string; slug: string; column_slug: string | null; view_count: number | null }>).slice(0, 8).map((a, i) => (
                 <div key={a.id} className="px-5 py-2.5 flex items-center gap-3">
                   <span className="text-[10px] font-bold text-portal-muted w-5">{i + 1}.</span>
@@ -126,7 +126,7 @@ export default async function ReportsLandingPage() {
 
         {/* Top QR Codes */}
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+          <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               Top QR Codes — Most Scanned
             </h2>
@@ -139,7 +139,7 @@ export default async function ReportsLandingPage() {
               No QR codes yet. Create one in QR Codes.
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-portal-border">
               {(topQrs as unknown as Array<{ id: string; shortcode: string; label: string | null; click_count: number; advertiser: { business_name: string } | { business_name: string }[] | null }>).slice(0, 8).map((q, i) => {
                 const adv = Array.isArray(q.advertiser) ? q.advertiser[0] : q.advertiser
                 return (
@@ -170,7 +170,7 @@ export default async function ReportsLandingPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-gray-100 bg-portal-bg">
+          <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-x-4 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
             <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Business</div>
             <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden md:block">Tier</div>
             <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider hidden lg:block">Placements</div>
@@ -183,7 +183,7 @@ export default async function ReportsLandingPage() {
             <div />
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-portal-border">
             {summaries.map(s => (
               <Link
                 key={s.id}

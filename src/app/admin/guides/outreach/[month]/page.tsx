@@ -136,7 +136,7 @@ export default function GuidePage() {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-portal-border">
             {filtered.map((listing) => {
               const { label, cls, icon: Icon } = STATUS_CONFIG[listing.updateStatus]
               return (
@@ -198,7 +198,7 @@ export default function GuidePage() {
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEmailModal(null)} />
-            <div className="relative z-10 w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+            <div className="relative z-10 w-full max-w-2xl bg-white rounded-lg shadow-md overflow-hidden max-h-[85vh] flex flex-col">
               <div className="flex items-center justify-between px-6 py-4 border-b border-portal-border shrink-0">
                 <div>
                   <h2 className="text-base font-semibold text-portal-text">Update Request Email</h2>
@@ -253,7 +253,7 @@ export default function GuidePage() {
       {pendingModal && pendingModal.pendingChanges && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPendingModal(null)} />
-          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b border-portal-border">
               <h2 className="text-base font-semibold text-portal-text">Review Requested Changes</h2>
               <p className="text-xs text-portal-sub mt-0.5">{pendingModal.businessName}</p>

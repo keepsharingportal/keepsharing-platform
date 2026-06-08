@@ -148,7 +148,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
   }
 
   return (
-    <li className={`rounded-xl border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 ring-1 ring-amber-200' : 'border-portal-border'}`}>
+    <li className={`rounded-xl border bg-white p-4 flex gap-4 ${issue.is_current ? 'border-amber-300 border border-portal-amber/30' : 'border-portal-border'}`}>
       <div className="w-16 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
         {issue.cover_url ? (
           <Image src={issue.cover_url} alt={`${issue.label} cover`} fill style={{ objectFit: 'cover' }} unoptimized sizes="64px" />

@@ -211,8 +211,8 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
   const groupBusy   = busyKey === `__group__:${allKeys[0] ?? ''}`
 
   return (
-    <section className="bg-white rounded-2xl border border-portal-border overflow-hidden">
-      <header className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between gap-3 flex-wrap">
+    <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
+      <header className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
           <h2 className="text-sm font-bold text-portal-text">
             {group.groupLabel}
@@ -248,7 +248,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
         )}
       </header>
 
-      <ul className="divide-y divide-gray-100">
+      <ul className="divide-y divide-portal-border">
         {loading && (
           <li className="px-5 py-6 text-xs text-portal-muted inline-flex items-center gap-2">
             <RefreshCw size={11} className="animate-spin" /> Loading items
@@ -277,7 +277,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
 
       {/* For nested groups, render children indented + custom items + add button per parent */}
       {!loading && isNested && (
-        <div className="border-t border-gray-100">
+        <div className="border-t border-portal-border">
           {topLevel.map(parent => {
             const catalogChildren = childrenByParent.get(parent.key) ?? []
             const customChildren  = customsByParent.get(parent.key) ?? []
@@ -358,7 +358,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
         const inferredParent = group.items[0]?.key.split('.').slice(0, 2).join('.') ?? null
         const customChildren = customsByParent.get(inferredParent) ?? []
         return (
-          <div className="px-5 py-3 bg-portal-bg/40 border-t border-gray-100">
+          <div className="px-5 py-3 bg-portal-bg/40 border-t border-portal-border">
             {customChildren.length > 0 && (
               <>
                 <p className="text-[10px] uppercase tracking-wide font-bold text-portal-muted mb-2">
@@ -490,7 +490,7 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-portal-text truncate">{labelDisplay}</p>
               {hasOverrides && (
-                <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">
+                <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt border border-portal-amber/30 px-1.5 py-0.5 rounded-full">
                   Edited
                 </span>
               )}
@@ -594,7 +594,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
           <>
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-portal-text truncate">{row.label_override}</p>
-              <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">Custom</span>
+              <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt border border-portal-amber/30 px-1.5 py-0.5 rounded-full">Custom</span>
             </div>
             <p className="text-[11px] text-portal-muted truncate mt-0.5 font-mono">
               {row.href_override}
@@ -620,7 +620,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
           <button type="button" onClick={() => setRenaming(true)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-text ring-1 ring-gray-200 hover:ring-gray-400">
             <Edit3 size={10} /> Edit
           </button>
-          <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-red ring-1 ring-rose-200 hover:bg-portal-red-lt">
+          <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-red border border-portal-red/30 hover:bg-portal-red-lt">
             <Trash2 size={10} /> Delete
           </button>
         </div>

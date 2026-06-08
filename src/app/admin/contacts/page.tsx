@@ -183,7 +183,7 @@ export default async function ContactsPage({ searchParams }: Props) {
               {filtered.map(c => {
                 const biz = bizMap.get(c.advertiser_account_id)
                 return (
-                  <tr key={c.id} className="border-b border-gray-100 hover:bg-portal-bg">
+                  <tr key={c.id} className="border-b border-portal-border hover:bg-portal-bg">
                     <td className="px-6 py-3">
                       <Link
                         href={`/admin/advertisers/${c.advertiser_account_id}`}

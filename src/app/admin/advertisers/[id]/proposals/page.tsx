@@ -71,8 +71,8 @@ export default async function ProposalsTab({ params }: Props) {
     <div className="space-y-6">
 
       {/* ── Proposals ─────────────────────────────────── */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
-        <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <FileText size={12} /> Proposals {proposals.length > 0 && <span className="text-portal-muted">({proposals.length})</span>}
           </h2>
@@ -88,7 +88,7 @@ export default async function ProposalsTab({ params }: Props) {
             No proposals yet. <Link href={`/admin/advertisers/proposals/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Draft one →</Link>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-50">
+          <ul className="divide-y divide-portal-border">
             {proposals.map(p => {
               const stage = (p.status ?? 'draft').toLowerCase()
               return (
@@ -126,8 +126,8 @@ export default async function ProposalsTab({ params }: Props) {
       </section>
 
       {/* ── Agreements (stub) ─────────────────────────── */}
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
-        <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+        <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <FileCheck2 size={12} /> Agreements
             <span className="ml-2 text-[9px] font-normal text-portal-muted normal-case tracking-normal">

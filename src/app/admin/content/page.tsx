@@ -196,7 +196,7 @@ export default async function ContentDashboard() {
               View All →
             </Link>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border overflow-hidden divide-y divide-gray-100">
+          <div className="bg-white rounded-xl border border-portal-border overflow-hidden divide-y divide-portal-border">
             {recentArticles.length === 0 ? (
               <div className="p-8 text-center text-portal-muted text-sm">No articles yet. Write your first one!</div>
             ) : (

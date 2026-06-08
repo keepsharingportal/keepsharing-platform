@@ -176,7 +176,7 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
             const baseClasses    = multiMode
               ? multiClasses(status)
               : isSingleActive
-                ? 'border-portal-blue bg-portal-navy/15 z-10 shadow-lg'
+                ? 'border-portal-blue bg-portal-navy/15 z-10 shadow'
                 : 'border-portal-border-2 bg-white'
             const labelClass = multiMode
               ? multiLabelClass(status)

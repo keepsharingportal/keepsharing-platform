@@ -123,7 +123,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
           Guide is active (shown on public site)
         </label>
 
-        <div className="pt-3 border-t border-gray-100">
+        <div className="pt-3 border-t border-portal-border">
           <label className={lbl}>Featured in month</label>
           <p className="text-[11px] text-portal-muted mb-2">
             When today&apos;s month matches this, this guide takes the homepage&apos;s
@@ -157,7 +157,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
           />
         </div>
 
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-2 border-t border-portal-border">
           <label className={lbl}>Homepage feature image</label>
           <p className="text-[11px] text-portal-muted mb-2">Used by the homepage Summer Fun block and the &quot;Featured Guide&quot; tile when this guide is featured. If empty, falls back to the hero image.</p>
           <HeroImageUpload
@@ -167,7 +167,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
           />
         </div>
 
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-2 border-t border-portal-border">
           <label className={lbl}>Print cover</label>
           <p className="text-[11px] text-portal-muted mb-2">The print magazine cover for this issue. Optional — shown in the digital edition box alongside the Issuu link.</p>
           <HeroImageUpload

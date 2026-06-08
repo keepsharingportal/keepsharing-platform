@@ -239,7 +239,7 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
   return (
     <Link
       href={`/admin/assets/${asset.id}`}
-      className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-portal-border-2 hover:shadow-sm transition-all group block"
+      className="bg-white border border-portal-border rounded-xl overflow-hidden hover:border-portal-border-2 hover:shadow-sm transition-all group block"
     >
       {/* Thumbnail */}
       <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
@@ -427,7 +427,7 @@ export default async function AssetsPage({
           <Link
             key={label}
             href={viewHref(v)}
-            className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-center hover:border-portal-border hover:shadow-sm transition-all"
+            className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center hover:border-portal-border hover:shadow-sm transition-all"
           >
             <p className="text-2xl font-bold" style={{ color }}>{val}</p>
             <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
@@ -514,7 +514,7 @@ export default async function AssetsPage({
               ))}
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl px-6 py-16 text-center">
+            <div className="bg-white border border-portal-border rounded-lg px-6 py-16 text-center">
               {allAssets.length === 0 ? (
                 <>
                   <p className="text-3xl mb-3">🖼️</p>
@@ -539,14 +539,14 @@ export default async function AssetsPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'design' && (
         <div className="space-y-4">
-          <div className="bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3">
+          <div className="bg-orange-50 border border-orange-100 rounded-lg px-5 py-3">
             <p className="text-xs text-orange-800 font-medium">
               🎨 These assets need creative work before they are ready to publish. Assign a designer, add the Canva link, and mark complete when done.
             </p>
           </div>
 
           {designQueue.length === 0 ? (
-            <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
+            <div className="bg-white border border-portal-border rounded-lg px-6 py-12 text-center">
               <p className="text-2xl mb-2">✅</p>
               <p className="text-sm text-portal-sub font-semibold">Design queue is clear</p>
             </div>
@@ -556,7 +556,7 @@ export default async function AssetsPage({
                 const preview  = previewSrc(asset)
                 const needs    = designNeeds(asset)
                 return (
-                  <div key={asset.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-portal-border transition-colors">
+                  <div key={asset.id} className="bg-white border border-portal-border rounded-xl overflow-hidden hover:border-portal-border transition-colors">
                     <div className="flex items-start gap-4 p-4">
                       {/* Thumbnail */}
                       <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0">
@@ -601,12 +601,12 @@ export default async function AssetsPage({
           )}
 
           {/* AI Future */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Assist — Coming Soon</p>
             <div className="flex gap-2 flex-wrap">
               {['Suggest Crop Type', 'Generate Alt Text', 'Detect Low Quality', 'Suggest Social Image'].map(label => (
                 <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-gray-100 rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
+                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
                   <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
@@ -621,7 +621,7 @@ export default async function AssetsPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'sponsor' && (
         <div className="space-y-4">
-          <div className="bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3">
+          <div className="bg-purple-50 border border-purple-100 rounded-lg px-5 py-3">
             <p className="text-xs text-purple-800 font-medium">
               🤝 Sponsor logos and brand assets. Check that logos are current, approved, and usable at correct resolution before placing in guides or print.
             </p>
@@ -635,7 +635,7 @@ export default async function AssetsPage({
             </div>
 
             {sponsorAssets.length === 0 ? (
-              <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
+              <div className="bg-white border border-portal-border rounded-lg px-6 py-12 text-center">
                 <p className="text-2xl mb-2">🤝</p>
                 <p className="text-sm text-portal-sub font-semibold mb-1">No sponsor assets registered</p>
                 <p className="text-xs text-portal-muted">
@@ -650,7 +650,7 @@ export default async function AssetsPage({
           </div>
 
           {/* Sponsor asset guidance */}
-          <div className="bg-portal-bg border border-portal-border rounded-2xl px-5 py-4 space-y-2">
+          <div className="bg-portal-bg border border-portal-border rounded-lg px-5 py-4 space-y-2">
             <p className="text-xs font-bold text-portal-sub">Sponsor Asset Checklist</p>
             <ul className="text-xs text-portal-muted space-y-1 list-disc list-inside">
               <li>Logo received in high-resolution (PNG or SVG preferred)</li>
@@ -669,7 +669,7 @@ export default async function AssetsPage({
       {activeView === 'submissions' && (
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-3">
+            <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-lg px-5 py-3">
               <p className="text-xs text-indigo-800 font-medium">
                 📤 Photos submitted with community submissions. Import to the Asset Library to track readiness, add alt text, confirm permissions, and coordinate design.
               </p>
@@ -692,7 +692,7 @@ export default async function AssetsPage({
                   const tc    = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
                   const title = submissionTitle(sub)
                   return (
-                    <div key={sub.id} className="bg-white border border-gray-100 rounded-xl p-4">
+                    <div key={sub.id} className="bg-white border border-portal-border rounded-xl p-4">
                       <div className="flex items-start gap-3 mb-3">
                         <span className="text-lg">{tc?.emoji ?? '📝'}</span>
                         <div className="flex-1 min-w-0">
@@ -749,7 +749,7 @@ export default async function AssetsPage({
                   const tc    = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
                   const title = submissionTitle(sub)
                   return (
-                    <div key={sub.id} className="bg-portal-bg border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <div key={sub.id} className="bg-portal-bg border border-portal-border rounded-xl px-4 py-3 flex items-center gap-3">
                       <span>{tc?.emoji ?? '📝'}</span>
                       <p className="flex-1 text-xs font-medium text-portal-sub truncate">{title}</p>
                       <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">✓ In Library</span>
@@ -762,7 +762,7 @@ export default async function AssetsPage({
           )}
 
           {allSubs.length === 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
+            <div className="bg-white border border-portal-border rounded-lg px-6 py-12 text-center">
               <p className="text-2xl mb-2">📤</p>
               <p className="text-sm text-portal-sub font-semibold">No submission photos found</p>
               <p className="text-xs text-portal-muted mt-1">Photos appear here when community submissions include photo uploads.</p>
@@ -784,7 +784,7 @@ export default async function AssetsPage({
               { label: 'No Web Crop',         count: noWebCrop.length,    color: '#d97706', icon: '🌐' },
               { label: 'No Social Crop',      count: noSocialCrop.length, color: '#7c3aed', icon: '📱' },
             ] as const).map(({ label, count, color, icon }) => (
-              <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-4 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4 text-center">
                 <p className="text-2xl mb-1">{icon}</p>
                 <p className="text-2xl font-bold" style={{ color }}>{count}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5 leading-tight">{label}</p>
@@ -800,7 +800,7 @@ export default async function AssetsPage({
             ).length
             const pct = Math.round((fullyOk / total) * 100)
             return (
-              <div className="bg-white border border-gray-100 rounded-2xl p-5">
+              <div className="bg-white border border-portal-border rounded-lg p-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-portal-text">Overall Readiness</p>
                   <p className="text-sm font-bold" style={{ color: pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#ef4444' }}>{pct}%</p>
@@ -830,7 +830,7 @@ export default async function AssetsPage({
               </div>
               <div className="space-y-2">
                 {items.slice(0, 10).map(asset => (
-                  <div key={asset.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-2.5">
+                  <div key={asset.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-xl px-4 py-2.5">
                     <div className="w-8 h-8 rounded bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
                       {previewSrc(asset)
                         ? <img src={previewSrc(asset)!} alt="" className="w-full h-full object-cover" />  // eslint-disable-line @next/next/no-img-element
@@ -854,18 +854,18 @@ export default async function AssetsPage({
           ))}
 
           {allAssets.length === 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
+            <div className="bg-white border border-portal-border rounded-lg px-6 py-12 text-center">
               <p className="text-sm text-portal-muted">No assets to check yet. Import photos from the Submissions tab to get started.</p>
             </div>
           )}
 
           {/* AI Future hooks */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Readiness Tools — Coming Soon</p>
             <div className="flex gap-2 flex-wrap">
               {['Auto-Generate Alt Text', 'Detect Low Resolution', 'Suggest Best Image', 'Identify Missing Coverage'].map(label => (
                 <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-gray-100 rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
+                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
                   <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>

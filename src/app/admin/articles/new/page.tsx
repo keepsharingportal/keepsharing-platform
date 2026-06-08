@@ -256,7 +256,7 @@ export default function NewArticlePage() {
           {/* Closing bio / author line — renders below the photo gallery on
               the public article as a thin divider + italic text. Skip when empty. */}
           <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
+            <div className="px-4 py-3 border-b border-portal-border">
               <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">Closing line — bio or author note</p>
               <p className="text-[11px] text-portal-muted mt-0.5">
                 Renders as a simple italic line under the photo gallery. Leave blank to hide.

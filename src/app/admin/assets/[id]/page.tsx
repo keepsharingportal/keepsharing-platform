@@ -296,8 +296,8 @@ export default async function AssetDetailPage({
         <div className="space-y-5">
 
           {/* Preview */}
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="bg-portal-bg border-b border-gray-100 aspect-video flex items-center justify-center relative">
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="bg-portal-bg border-b border-portal-border aspect-video flex items-center justify-center relative">
               {isImageUrl && preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -339,7 +339,7 @@ export default async function AssetDetailPage({
           </div>
 
           {/* Quick status */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-3">Status</h2>
             <form action={updateStatus} className="flex gap-2 items-center flex-wrap">
               <input type="hidden" name="id" value={asset.id} />
@@ -357,7 +357,7 @@ export default async function AssetDetailPage({
           </div>
 
           {/* Metadata form */}
-          <form id="metadata-form" action={saveMetadata} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
+          <form id="metadata-form" action={saveMetadata} className="bg-white border border-portal-border rounded-lg p-5 space-y-4">
             <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Asset Metadata</h2>
             <input type="hidden" name="id" value={asset.id} />
 
@@ -470,7 +470,7 @@ export default async function AssetDetailPage({
         <div className="space-y-5">
 
           {/* Readiness checklist */}
-          <form id="readiness-form" action={saveReadiness} className="bg-white border border-gray-100 rounded-2xl p-5">
+          <form id="readiness-form" action={saveReadiness} className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-4">Readiness</h2>
             <input type="hidden" name="id" value={asset.id} form="readiness-form" />
             <div className="space-y-3">
@@ -515,7 +515,7 @@ export default async function AssetDetailPage({
           </form>
 
           {/* Canva / Creative coordination */}
-          <form id="canva-form" action={saveCanvaInfo} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4">
+          <form id="canva-form" action={saveCanvaInfo} className="bg-white border border-portal-border rounded-lg p-5 space-y-4">
             <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">Canva / Design Work</h2>
             <input type="hidden" name="id" value={asset.id} form="canva-form" />
 
@@ -581,7 +581,7 @@ export default async function AssetDetailPage({
           </form>
 
           {/* Usage tracking */}
-          <form id="usage-form" action={saveUsage} className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+          <form id="usage-form" action={saveUsage} className="bg-white border border-portal-border rounded-lg p-5 space-y-3">
             <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">Usage Locations</h2>
             <input type="hidden" name="id" value={asset.id} form="usage-form" />
             <p className="text-[11px] text-portal-muted -mt-1 mb-2">Where is this asset currently used?</p>
@@ -604,7 +604,7 @@ export default async function AssetDetailPage({
 
           {/* Linked content */}
           {(linkedSubTitle || linkedAdvName || asset.linked_guide_slug) && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+            <div className="bg-white border border-portal-border rounded-lg p-5 space-y-3">
               <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Linked Content</h2>
               {linkedSubTitle && (
                 <div className="flex items-center gap-2">
@@ -640,7 +640,7 @@ export default async function AssetDetailPage({
           )}
 
           {/* Asset timestamps */}
-          <div className="bg-portal-bg border border-gray-100 rounded-2xl p-4 space-y-1.5">
+          <div className="bg-portal-bg border border-portal-border rounded-lg p-4 space-y-1.5">
             <p className="text-[10px] text-portal-muted">
               <span className="font-semibold">Added:</span>{' '}
               {new Date(asset.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}

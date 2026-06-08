@@ -119,8 +119,8 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
         </div>
 
         <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
-          <p className="px-4 py-3 text-sm font-bold text-portal-text border-b border-gray-100">Every stop</p>
-          <ul className="divide-y divide-gray-100">
+          <p className="px-4 py-3 text-sm font-bold text-portal-text border-b border-portal-border">Every stop</p>
+          <ul className="divide-y divide-portal-border">
             {focusDetail.stops.map((s, idx) => {
               const number = s.is_pickup ? 'P' : (idx + (focusDetail.stops.findIndex(x => !x.is_pickup) >= 0 ? 0 : 1))
               const bg = s.checked ? 'bg-portal-green-lt' : s.not_delivering ? 'bg-portal-red-lt' : ''

@@ -238,12 +238,12 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-portal-text">School Bits</h1>
           {counts['Pending Review'] > 0 && (
-            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {counts['Pending Review']} pending
             </span>
           )}
           {schools.length === 0 && (
-            <span className="text-xs text-portal-red bg-portal-red-lt px-2.5 py-1 rounded-full ring-1 ring-rose-200">
+            <span className="text-xs text-portal-red bg-portal-red-lt px-2.5 py-1 rounded-full border border-portal-red/30">
               No schools added yet — set them up first
             </span>
           )}
@@ -331,7 +331,7 @@ export function SchoolNewsClient({ initialBits, schools, initialStatus }: Props)
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
             {paged.map(item => (
               <BitRow
                 key={item.id}
@@ -680,7 +680,7 @@ function BitRow({
                   className="fixed inset-0 z-10 cursor-default"
                   aria-hidden
                 />
-                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow-lg py-1 text-xs">
+                <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow py-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { setMenuOpen(false); remove() }}

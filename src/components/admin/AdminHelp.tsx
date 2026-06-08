@@ -43,7 +43,7 @@ export function HelpTip({ text, className = '' }: { text: string; className?: st
           z-50 pointer-events-none
           w-64 px-3 py-2
           text-[11px] leading-relaxed text-white
-          bg-gray-900 rounded-lg shadow-lg
+          bg-gray-900 rounded-lg shadow
           whitespace-normal text-left
         "
       >

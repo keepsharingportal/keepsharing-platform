@@ -133,7 +133,7 @@ export function SchoolTypeahead({
       )}
 
       {open && !addingNew && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-portal-border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-portal-border rounded-lg shadow max-h-80 overflow-y-auto">
           {matches.length === 0 ? (
             <p className="px-3 py-3 text-xs text-portal-sub">
               No schools match &ldquo;{trimmed}&rdquo;.
@@ -228,7 +228,7 @@ function AddSchoolInline({
   }
 
   return (
-    <div className="absolute z-30 left-0 right-0 mt-1 bg-white border-2 border-amber-300 rounded-lg shadow-lg p-3 space-y-2">
+    <div className="absolute z-30 left-0 right-0 mt-1 bg-white border-2 border-amber-300 rounded-lg shadow p-3 space-y-2">
       <p className="text-xs font-bold text-amber-900 inline-flex items-center gap-1.5">
         <Plus size={12} /> Add new school
       </p>

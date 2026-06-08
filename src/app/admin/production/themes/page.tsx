@@ -68,7 +68,7 @@ export default function ThemesPage() {
               </thead>
               <tbody>
                 {months.map(m => (
-                  <tr key={m} className="border-b border-gray-100 last:border-0">
+                  <tr key={m} className="border-b border-portal-border last:border-0">
                     <td className="px-3 py-3 text-sm font-semibold text-portal-text whitespace-nowrap">{fmtMonth(m)}</td>
                     {PUBLICATIONS.map(p => {
                       const theme = THEMES[m]?.[p.abbrev]

@@ -159,7 +159,7 @@ const iClsTA = `${iCls} resize-vertical`
 
 function Card({ title, children, accent }: { title: string; accent?: string; children: ReactNode }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
+    <div className="bg-white border border-portal-border rounded-lg overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
       <div className="px-5 py-3.5 border-b border-gray-50">
         <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">{title}</h2>
       </div>
@@ -331,7 +331,7 @@ export default async function EditorialDetailPage({
         <div className="flex-1 min-w-[320px] space-y-4">
 
           {/* Source submission answers — collapsed */}
-          <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide flex items-center gap-2">
               <span>Source Submission Answers</span>
               <span className="text-gray-300">▸</span>
@@ -368,10 +368,10 @@ export default async function EditorialDetailPage({
 
           {/* AI Draft */}
           {item.ai_draft_content ? (
-            <div className={`bg-white rounded-2xl overflow-hidden border ${
+            <div className={`bg-white rounded-lg overflow-hidden border ${
               item.ai_draft_status === 'needs_info' ? 'border-amber-200'
               : item.ai_draft_status === 'failed'  ? 'border-red-200'
-              : 'border-gray-100'
+              : 'border-portal-border'
             }`}>
               <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default async function EditorialDetailPage({
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">AI Draft</h2>
               <p className="text-sm text-portal-muted italic mb-3">No draft generated yet.</p>
               <form action={generateDraft}>
@@ -447,7 +447,7 @@ export default async function EditorialDetailPage({
           <form action={saveEditorial} className="space-y-4">
 
             {/* Article Metadata */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
               <div className="px-5 py-3.5 border-b border-gray-50">
                 <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Article Metadata</h2>
               </div>
@@ -479,7 +479,7 @@ export default async function EditorialDetailPage({
             </div>
 
             {/* Destination & Assignment */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
                 <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Destination & Assignment</h2>
               </div>
@@ -645,7 +645,7 @@ export default async function EditorialDetailPage({
                 '🤝 Suggest Sponsor Pairing',
               ].map(label => (
                 <button key={label} disabled
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed">
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed">
                   <span className="flex-1">{label}</span>
                   <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>

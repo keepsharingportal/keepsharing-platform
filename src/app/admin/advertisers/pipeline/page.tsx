@@ -125,7 +125,7 @@ export default async function PipelinePage() {
                     </p>
                   </div>
                 </header>
-                <div className="flex-1 overflow-y-auto divide-y divide-gray-50 max-h-[calc(100vh-220px)]">
+                <div className="flex-1 overflow-y-auto divide-y divide-portal-border max-h-[calc(100vh-220px)]">
                   {members.length === 0 ? (
                     <p className="text-xs text-portal-muted italic p-3">No businesses here.</p>
                   ) : (

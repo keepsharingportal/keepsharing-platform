@@ -102,7 +102,7 @@ export default function NominationsPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-portal-text">Nominations</h1>
           {totalPending > 0 && (
-            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {totalPending} pending
             </span>
           )}

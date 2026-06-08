@@ -217,7 +217,7 @@ function TileLink({ href, icon, title, primary, primaryLabel, secondary }: {
   return (
     <Link
       href={href}
-      className="group bg-white rounded-2xl ring-1 ring-gray-200 p-5 hover:ring-portal-blue hover:shadow-sm transition-all flex flex-col gap-2"
+      className="group bg-white rounded-lg ring-1 ring-gray-200 p-5 hover:ring-portal-blue hover:shadow-sm transition-all flex flex-col gap-2"
     >
       <div className="flex items-center justify-between">
         <div className="text-portal-muted group-hover:text-portal-blue transition-colors">{icon}</div>

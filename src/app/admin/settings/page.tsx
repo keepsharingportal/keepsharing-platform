@@ -73,7 +73,7 @@ export default function SettingsPage() {
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide col-span-2">GHL Location API Key</span>
             </div>
             {PUBLICATIONS.map((pub) => (
-              <div key={pub.abbrev} className="px-4 py-3 border-b border-gray-100 last:border-0 grid grid-cols-3 gap-4 items-center">
+              <div key={pub.abbrev} className="px-4 py-3 border-b border-portal-border last:border-0 grid grid-cols-3 gap-4 items-center">
                 <div>
                   <div className="text-sm font-semibold text-portal-text">{pub.abbrev}</div>
                   <div className="text-xs text-portal-muted">{pub.market}</div>
@@ -120,7 +120,7 @@ export default function SettingsPage() {
               <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide col-span-2">Dropbox Path</span>
             </div>
             {PUBLICATIONS.map((pub) => (
-              <div key={pub.abbrev} className="px-4 py-3 border-b border-gray-100 last:border-0 grid grid-cols-3 gap-4 items-center">
+              <div key={pub.abbrev} className="px-4 py-3 border-b border-portal-border last:border-0 grid grid-cols-3 gap-4 items-center">
                 <div>
                   <div className="text-sm font-semibold text-portal-text">{pub.abbrev}</div>
                   <div className="text-xs text-portal-muted">{pub.market}</div>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 importComplete:        'Zoho import completed',
               }
               return (
-                <label key={key} className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-portal-bg transition-colors">
+                <label key={key} className="flex items-center justify-between px-5 py-3.5 border-b border-portal-border last:border-0 cursor-pointer hover:bg-portal-bg transition-colors">
                   <span className="text-sm text-portal-text">{labels[key]}</span>
                   <button
                     onClick={() => setNotifications((p) => ({ ...p, [key]: !p[key] }))}
@@ -204,7 +204,7 @@ export default function SettingsPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-portal-border">
                 {TEAM_MEMBERS.map((member) => (
                   <tr key={member.email} className="hover:bg-portal-bg transition-colors">
                     <td className="px-4 py-3">
@@ -248,7 +248,7 @@ export default function SettingsPage() {
             <Database size={15} className="text-portal-muted" />
             <h2 className="text-sm font-semibold text-portal-text">Data & Integrations</h2>
           </div>
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border">
             <div className="flex items-center justify-between px-5 py-4">
               <div>
                 <div className="text-sm font-medium text-portal-text">Supabase</div>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-portal-text">Anthropic Claude API</div>
                 <div className="text-xs text-portal-sub mt-0.5">Powers Business Spotlight article generation</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.ANTHROPIC_API_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-portal-text">Stripe</div>
                 <div className="text-xs text-portal-sub mt-0.5">Birthday Spotlight payments</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber border border-portal-amber/30'}`}>
                 {process.env.STRIPE_SECRET_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-portal-text group-hover:text-portal-blue transition-colors">Import Zoho Data</div>
                 <div className="text-xs text-portal-sub mt-0.5">Upload your Zoho CRM CSV export</div>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200 font-medium">Action needed</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-amber-lt text-portal-amber border border-portal-amber/30 font-medium">Action needed</span>
             </Link>
             {/* Distribution Portal */}
             <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"

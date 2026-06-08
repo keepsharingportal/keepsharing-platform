@@ -269,11 +269,11 @@ export default async function TodayPage() {
             <section>
               <SectionHeader icon={Inbox} label="Incoming" color="text-portal-blue" />
               {incoming.length > 0 ? (
-                <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100">
+                <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border">
                   {incoming.map(item => (
                     <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-portal-bg transition-colors">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium ring-1 ring-portal-blue/20">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium border border-portal-blue/30">
                           {item.type}
                         </span>
                         <span className="text-sm text-portal-text">{item.label}</span>

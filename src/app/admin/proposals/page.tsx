@@ -56,7 +56,7 @@ export default async function ProposalsPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-portal-border">
                 {proposals.map(p => {
                   const isExpired = p.expires_at && new Date(p.expires_at) < new Date() && p.status !== 'accepted'
                   const displayStatus = isExpired && p.status !== 'accepted' ? 'expired' : p.status

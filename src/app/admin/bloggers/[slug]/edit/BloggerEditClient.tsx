@@ -166,7 +166,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
           Active (shows on public Mom Knows Best pages)
         </label>
 
-        <p className="text-[11px] text-portal-muted pt-2 border-t border-gray-100">
+        <p className="text-[11px] text-portal-muted pt-2 border-t border-portal-border">
           Public profile: <code className="px-1 bg-gray-100 rounded">{publicPath}</code>
         </p>
       </section>
@@ -248,7 +248,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
           />
         </div>
 
-        <div className="pt-3 border-t border-gray-100">
+        <div className="pt-3 border-t border-portal-border">
           <FieldLabel hint="Optional. Wider photo with her family. Used only as the hero background on her profile page — if empty, we fall back to the profile portrait above.">
             Family photo
           </FieldLabel>

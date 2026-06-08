@@ -20,7 +20,7 @@ interface Article {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:   'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200',
+  pending:   'bg-portal-amber-lt text-portal-amber border border-portal-amber/30',
   needs_edit:'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30',
   approved:  'bg-green-50 text-green-700 ring-1 ring-green-200',
   rejected:  'bg-red-50 text-portal-red ring-1 ring-red-200',
@@ -97,7 +97,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 bg-portal-bg px-4 py-4">
+        <div className="border-t border-portal-border bg-portal-bg px-4 py-4">
           <div className="flex items-center gap-2 mb-3">
             <Link
               href={`/admin/articles/${article.id}/edit`}

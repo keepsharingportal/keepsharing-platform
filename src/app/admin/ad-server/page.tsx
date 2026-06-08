@@ -96,7 +96,7 @@ export default function AdServerPage() {
           <span className="text-sm font-semibold text-portal-blue bg-portal-blue-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-blue/30">
             {ads.filter((a) => a.active).length} active
           </span>
-          <span className="text-xs font-semibold text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded ring-1 ring-amber-200">Demo Data</span>
+          <span className="text-xs font-semibold text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded border border-portal-amber/30">Demo Data</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-portal-sub">{totalImpressions.toLocaleString()} impressions</span>
@@ -153,7 +153,7 @@ export default function AdServerPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-portal-border">
                 {filtered.map((ad) => {
                   const zone = AD_ZONES.find((z) => z.id === ad.zone)
                   const ctr  = ad.totalImpressions > 0 ? ((ad.totalClicks / ad.totalImpressions) * 100).toFixed(2) : '0.00'
@@ -165,7 +165,7 @@ export default function AdServerPage() {
                         <div className="flex items-center gap-3">
                           {/* Ad thumbnail placeholder */}
                           <div
-                            className="rounded border border-gray-100 bg-portal-bg flex items-center justify-center text-gray-300 shrink-0"
+                            className="rounded border border-portal-border bg-portal-bg flex items-center justify-center text-gray-300 shrink-0"
                             style={{ width: zone ? Math.min(zone.width / 6, 72) : 48, height: zone ? Math.min(zone.height / 6, 36) : 24 }}
                           >
                             <Monitor size={12} />
@@ -221,7 +221,7 @@ export default function AdServerPage() {
           <div className="max-w-lg mx-auto">
             {uploadSuccess ? (
               <div className="text-center py-12">
-                <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center mx-auto mb-4">
                   <Check size={24} className="text-green-500" />
                 </div>
                 <h2 className="text-lg font-semibold text-portal-text">Ad Uploaded!</h2>
@@ -233,7 +233,7 @@ export default function AdServerPage() {
 
                 {/* Drop zone */}
                 <div onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed border-portal-border rounded-2xl p-8 text-center cursor-pointer hover:border-portal-border-2 hover:bg-portal-blue-lt transition-colors">
+                  className="border-2 border-dashed border-portal-border rounded-lg p-8 text-center cursor-pointer hover:border-portal-border-2 hover:bg-portal-blue-lt transition-colors">
                   {uploadPreview ? (
                     <div className="flex flex-col items-center gap-2">
                       <img src={uploadPreview} alt="Preview" className="max-h-32 object-contain rounded" />
@@ -323,7 +323,7 @@ export default function AdServerPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-portal-border">
                   {zoneStats.map((row) => (
                     <tr key={row.zone} className="hover:bg-portal-bg">
                       <td className="px-4 py-3 font-medium text-portal-text">{row.zone}</td>
@@ -349,7 +349,7 @@ export default function AdServerPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-portal-border">
                   {ads.sort((a, b) => b.totalClicks - a.totalClicks).map((ad) => {
                     const ctr = ad.totalImpressions > 0 ? ((ad.totalClicks / ad.totalImpressions) * 100).toFixed(2) : '0.00'
                     return (
@@ -396,7 +396,7 @@ export default function AdServerPage() {
                   </div>
                   {zone.width > 0 && (
                     <div
-                      className="rounded border border-gray-100 bg-portal-bg flex items-center justify-center text-xs text-portal-muted font-mono mb-3"
+                      className="rounded border border-portal-border bg-portal-bg flex items-center justify-center text-xs text-portal-muted font-mono mb-3"
                       style={{ width: '100%', height: Math.min(zone.height / 4, 60) }}
                     >
                       {zone.width} × {zone.height} · max {zone.maxKb}KB

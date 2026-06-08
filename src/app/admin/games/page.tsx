@@ -176,8 +176,8 @@ export default async function GamesAdminPage() {
       )}
 
       {/* HOW THIS WORKS */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
           <BookMarked size={14} className="text-portal-muted" />
           <h2 className="text-sm font-bold text-portal-text">How Brain Games works</h2>
         </div>
@@ -233,8 +233,8 @@ export default async function GamesAdminPage() {
           <GeneratePanel pendingCount={pendingProposalCount} />
 
           {/* CONTENT POOL */}
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <BookOpen size={14} className="text-portal-muted" />
               <h2 className="text-sm font-bold text-portal-text">Content pool · days of supply</h2>
             </div>
@@ -250,7 +250,7 @@ export default async function GamesAdminPage() {
                 </thead>
                 <tbody>
                   {GAMES.map(g => (
-                    <tr key={g.id} className="border-t border-gray-100">
+                    <tr key={g.id} className="border-t border-portal-border">
                       <td className="px-4 py-2.5">
                         <p className="font-semibold text-portal-text">{g.emoji} {g.title}</p>
                         <p className="text-xs text-portal-muted">{ROUNDS_PER_SESSION[g.id]}/day</p>
@@ -278,7 +278,7 @@ export default async function GamesAdminPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-3 bg-portal-bg border-t border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <div className="px-4 py-3 bg-portal-bg border-t border-portal-border flex items-center justify-between gap-3 flex-wrap">
               <p className="text-[11px] text-portal-muted flex items-center gap-1.5">
                 <AlertTriangle size={11} className="text-amber-600" />
                 Target: at least {TARGET_DAYS_OF_SUPPLY} days of supply per cell. Anything lower will repeat within a week.
@@ -291,12 +291,12 @@ export default async function GamesAdminPage() {
           </section>
 
           {/* TODAY'S ROTATION SNAPSHOT */}
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <Sparkles size={14} className="text-portal-muted" />
               <h2 className="text-sm font-bold text-portal-text">Today&apos;s rotation (Challenging preview)</h2>
             </div>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-portal-border">
               {rotationPreview.map(({ game, sample }) => (
                 <li key={game.id} className="p-4">
                   <p className="text-sm font-semibold text-portal-text mb-1">{game.emoji} {game.title}</p>
@@ -309,8 +309,8 @@ export default async function GamesAdminPage() {
           </section>
 
           {/* LEADERBOARD */}
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <Users size={14} className="text-portal-muted" />
               <h2 className="text-sm font-bold text-portal-text">This week&apos;s top 20</h2>
             </div>
@@ -332,7 +332,7 @@ export default async function GamesAdminPage() {
                   </thead>
                   <tbody>
                     {leaderboard.map((s, i) => (
-                      <tr key={s.id} className="border-t border-gray-100">
+                      <tr key={s.id} className="border-t border-portal-border">
                         <td className="px-4 py-2 font-semibold text-portal-sub">{i + 1}</td>
                         <td className="px-4 py-2">{s.first_name} {s.last_name}</td>
                         <td className="px-4 py-2 text-xs text-portal-sub">{s.email}</td>
@@ -362,8 +362,8 @@ export default async function GamesAdminPage() {
           />
 
           {/* WEEKLY 3 × $10 WINNER DRAW */}
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <Trophy size={14} className="text-portal-blue" />
               <h2 className="text-sm font-bold text-portal-text">Weekly 3 × $10 winners — {weekLabel}</h2>
             </div>

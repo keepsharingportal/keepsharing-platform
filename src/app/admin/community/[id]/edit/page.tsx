@@ -63,7 +63,7 @@ function Section({ title, accentColor, children }: {
   title: string; accentColor: string; children: ReactNode
 }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
+    <div className="bg-white border border-portal-border rounded-lg overflow-hidden" style={{ borderTop: `3px solid ${accentColor}` }}>
       <div className="px-6 py-4 border-b border-gray-50">
         <h2 className="text-sm font-bold text-portal-text">{title}</h2>
       </div>
@@ -262,7 +262,7 @@ export default async function EditSubmissionPage({
       </div>
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
-      <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
+      <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
         <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Operator Edit Mode</p>
         <p className="text-sm text-portal-amber leading-relaxed">
           Edits should preserve the submitter's intent. Do not rewrite their story here — use the editorial draft workflow later.

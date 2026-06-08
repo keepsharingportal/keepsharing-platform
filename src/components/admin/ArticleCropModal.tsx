@@ -192,7 +192,7 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
       aria-modal="true"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl shadow-md w-full max-w-3xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
           <div className="flex items-center gap-2">

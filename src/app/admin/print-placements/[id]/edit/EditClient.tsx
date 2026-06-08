@@ -1,7 +1,7 @@
 'use client'
 
 // EditClient — sectioned full-page form for one print_ad_placement.
-// Layout mirrors /admin/ads/[id]/edit: stacked rounded-2xl sections,
+// Layout mirrors /admin/ads/[id]/edit: stacked rounded-lg sections,
 // each one a coherent group (Identity / Ad Details / Pricing / Schedule
 // / Notes). Save PATCHes via the existing per-id endpoint; Delete
 // hits the existing DELETE endpoint. Back returns to the issue's
@@ -426,8 +426,8 @@ function Section({ icon, title, children }: {
   children: React.ReactNode
 }) {
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <header className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-portal-sub">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <header className="px-5 py-3 border-b border-portal-border flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-portal-sub">
         <span className="text-portal-muted">{icon}</span>
         {title}
       </header>

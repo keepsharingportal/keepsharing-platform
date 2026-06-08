@@ -161,7 +161,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
               </div>
 
               {r.status !== 'pending' && r.type === 'new' && (
-                <p className="mt-2 pt-2 border-t border-gray-100 text-[11px] text-portal-sub inline-flex items-center gap-1">
+                <p className="mt-2 pt-2 border-t border-portal-border text-[11px] text-portal-sub inline-flex items-center gap-1">
                   <AlertTriangle size={11} /> &ldquo;New stop&rdquo; requests need to be created manually in Routes.
                 </p>
               )}

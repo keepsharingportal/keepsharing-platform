@@ -254,7 +254,7 @@ const iClsTA = `${iCls} resize-vertical`
 
 function Card({ title, children, accent }: { title: string; accent?: string; children: ReactNode }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
+    <div className="bg-white border border-portal-border rounded-lg overflow-hidden" style={accent ? { borderTop: `3px solid ${accent}` } : {}}>
       <div className="px-5 py-3.5 border-b border-gray-50">
         <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">{title}</h2>
       </div>
@@ -405,7 +405,7 @@ export default async function ApprovalPage({
 
         {/* Changes requested banner */}
         {item.needs_changes_note && (
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
             <p className="text-sm font-bold text-amber-900 mb-1">✎ Changes Requested</p>
             <p className="text-sm text-portal-amber leading-relaxed whitespace-pre-wrap">{item.needs_changes_note}</p>
             <Link href={`/admin/community/${item.id}/edit`} className="text-xs text-portal-amber hover:underline font-semibold mt-2 inline-block">
@@ -421,7 +421,7 @@ export default async function ApprovalPage({
           <div className="flex-1 min-w-[320px] space-y-4">
 
             {/* Final Draft */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${accent}` }}>
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden" style={{ borderTop: `3px solid ${accent}` }}>
               <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
                 <div>
                   <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Final Draft</h2>
@@ -465,7 +465,7 @@ export default async function ApprovalPage({
             </div>
 
             {/* Source Answers — collapsed */}
-            <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg select-none uppercase tracking-wide">
                 Source Submission Answers
               </summary>
@@ -514,7 +514,7 @@ export default async function ApprovalPage({
             </Card>
 
             {/* Channel Approvals — the main editorial action */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-4">Channel Approvals</h2>
 
               {/* Current status */}
@@ -590,7 +590,7 @@ export default async function ApprovalPage({
             </Card>
 
             {/* Social Promotion Prep */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
                 <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Social Promotion Prep</h2>
                 <p className="text-[11px] text-portal-muted mt-0.5">Prepared copy — not sent automatically. Approve before any posting.</p>
@@ -690,7 +690,7 @@ export default async function ApprovalPage({
             )}
 
             {/* AI Assist — wired */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <div className="px-5 py-3.5 border-b border-gray-50">
                 <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
                 <p className="text-[11px] text-portal-muted mt-0.5">
@@ -754,7 +754,7 @@ export default async function ApprovalPage({
                   <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Refine — Coming Soon</p>
                   {['✂️ Shorten Caption', '🌡️ Make Warmer', '👔 Make More Professional'].map(label => (
                     <button key={label} disabled
-                      className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed">
+                      className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed">
                       <span className="flex-1">{label}</span>
                       <span className="text-[10px] bg-gray-100 text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
                     </button>
@@ -803,7 +803,7 @@ export default async function ApprovalPage({
           { label: 'Planner Ready',  val: groups.plannerReady.length, color: '#7c3aed' },
           { label: 'Published',      val: groups.published.length,    color: '#64748b' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
@@ -812,7 +812,7 @@ export default async function ApprovalPage({
 
       {/* Queue groups */}
       {queueItems.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
+        <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
           <div className="text-4xl mb-4">📬</div>
           <p className="text-portal-sub font-medium">Nothing in the review queue right now.</p>
           <Link href="/admin/editorial" className="text-sm text-indigo-600 mt-2 inline-block hover:underline">
@@ -848,7 +848,7 @@ export default async function ApprovalPage({
                       <Link
                         key={item.id}
                         href={`/admin/editorial/approval?id=${item.id}`}
-                        className="block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-portal-border-2 transition-colors"
+                        className="block bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border-2 transition-colors"
                         style={{ borderLeft: `4px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}
                       >
                         <div className="px-5 py-4 flex items-start justify-between gap-4">

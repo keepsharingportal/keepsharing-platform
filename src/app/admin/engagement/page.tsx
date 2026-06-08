@@ -414,7 +414,7 @@ export default async function EngagementPage({
               { label: 'Active Guides',     val: `${activeGuides} / ${GUIDE_CONFIGS.length}`, color: '#7c3aed', sub: `${dormantGuides} dormant` },
               { label: 'Sponsor Gaps',      val: sponsorGaps.length,    color: sponsorGaps.length > 3 ? '#ef4444' : '#d97706', sub: 'high-engagement, unsponsored' },
             ] as const).map(({ label, val, color, sub }) => (
-              <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-4">
+              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4">
                 <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                 <p className="text-xs font-semibold text-portal-sub mt-0.5">{label}</p>
                 <p className="text-[10px] text-portal-muted mt-0.5">{sub}</p>
@@ -423,7 +423,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Participation velocity — 6-month bar chart */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-portal-text">Submission Velocity — Last 6 Months</h2>
               <Link href={viewHref('participation')} className="text-xs text-indigo-600 hover:underline font-semibold">Full breakdown →</Link>
@@ -492,7 +492,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Top participation types (compact) */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-portal-text">Top Participation Categories</h2>
               <span className="text-[11px] text-portal-muted">All time</span>
@@ -524,7 +524,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Signals foundation note */}
-          <div className="bg-portal-bg border border-portal-border rounded-2xl px-5 py-4">
+          <div className="bg-portal-bg border border-portal-border rounded-lg px-5 py-4">
             <div className="flex items-start gap-3">
               <span className="text-lg mt-0.5">🔌</span>
               <div>
@@ -543,7 +543,7 @@ export default async function EngagementPage({
 
           {/* Active campaigns */}
           {activeCampaigns + plannedCampaigns > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-portal-text">Active Campaigns</h2>
                 <Link href={viewHref('campaigns')} className="text-xs text-indigo-600 hover:underline font-semibold">All campaigns →</Link>
@@ -575,7 +575,7 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'participation' && (
         <div className="space-y-6">
-          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-2xl px-5 py-3">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-lg px-5 py-3">
             <p className="text-xs text-portal-blue font-medium">
               🤝 Participation data is your most honest engagement signal. These families chose to contribute — they&apos;re your most engaged readers. Understand what&apos;s driving submissions and create more of it.
             </p>
@@ -589,7 +589,7 @@ export default async function EngagementPage({
               { label: 'High-Share Types (30d)',     val: highShareCount30,          color: '#ec4899' },
               { label: 'Total All Time',             val: allSubs.length,            color: '#374151' },
             ] as const).map(({ label, val, color }) => (
-              <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center">
                 <p className="text-2xl font-bold" style={{ color }}>{val}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5 leading-tight">{label}</p>
               </div>
@@ -597,7 +597,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Type distribution — full */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-sm font-bold text-portal-text mb-4">All Submission Types — All Time</h2>
             <div className="space-y-3">
               {sortedTypes.map(([type, count]) => {
@@ -641,7 +641,7 @@ export default async function EngagementPage({
 
           {/* Sponsor gap analysis */}
           {sponsorGaps.length > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-portal-text">Engagement → Sponsorship Gap</h2>
                 <span className="text-[11px] text-portal-muted">High participation, no sponsor</span>
@@ -668,7 +668,7 @@ export default async function EngagementPage({
 
           {/* Publication breakdown */}
           {pubCounts.size > 1 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <h2 className="text-sm font-bold text-portal-text mb-3">Submissions by Publication</h2>
               <div className="space-y-2">
                 {[...pubCounts.entries()].sort((a, b) => b[1] - a[1]).map(([pub, count]) => {
@@ -688,12 +688,12 @@ export default async function EngagementPage({
           )}
 
           {/* AI future */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Participation Intelligence — Coming Soon</p>
             <div className="flex gap-2 flex-wrap">
               {['Identify Viral Story Potential', 'Suggest Participation Pushes', 'Detect Seasonal Interest Spikes', 'Predict High-Share Content'].map(label => (
                 <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-gray-100 rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
+                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
                   <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
@@ -708,7 +708,7 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'content' && (
         <div className="space-y-6">
-          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-3">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-5 py-3">
             <p className="text-xs text-indigo-800 font-medium">
               📖 Guide health drives recurring readership. Families who find value in a guide return repeatedly — each guide is a retention loop, not a one-time visit.
             </p>
@@ -721,7 +721,7 @@ export default async function EngagementPage({
               { label: 'Slow / Aging',    count: guideHealth.filter(g => g.status.label === 'Slow').length,     color: '#d97706' },
               { label: 'Dormant / Empty', count: guideHealth.filter(g => ['Dormant','No content'].includes(g.status.label)).length, color: '#ef4444' },
             ] as const).map(({ label, count, color }) => (
-              <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-4 text-center">
+              <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-4 text-center">
                 <p className="text-3xl font-bold" style={{ color }}>{count}</p>
                 <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
               </div>
@@ -729,12 +729,12 @@ export default async function EngagementPage({
           </div>
 
           {/* Guide health table */}
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-sm font-bold text-portal-text">Guide-by-Guide Health</h2>
               <span className="text-[11px] text-portal-muted">Based on published articles</span>
             </div>
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-portal-border">
               {guideHealth.map(g => (
                 <div key={g.slug} className="flex items-center gap-3 px-5 py-3">
                   <span className="text-lg shrink-0">{g.emoji}</span>
@@ -761,7 +761,7 @@ export default async function EngagementPage({
           </div>
 
           {/* High-share content signal */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-sm font-bold text-portal-text mb-3">High-Share Content Types</h2>
             <p className="text-xs text-portal-sub mb-4">
               These content types naturally spread through family social networks. Prioritize them in editorial planning for organic reach amplification.
@@ -783,7 +783,7 @@ export default async function EngagementPage({
 
           {/* Underperforming sections */}
           {guideHealth.filter(g => g.status.label !== 'Active').length > 0 && (
-            <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl p-5">
+            <div className="bg-portal-amber-lt border border-amber-200 rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-amber mb-3">🔧 Guides Needing Attention</h2>
               <div className="space-y-2">
                 {guideHealth.filter(g => g.status.label !== 'Active').slice(0, 5).map(g => (
@@ -800,12 +800,12 @@ export default async function EngagementPage({
           )}
 
           {/* AI content hooks */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Content Intelligence — Coming Soon</p>
             <div className="flex gap-2 flex-wrap">
               {['Suggest Guide Content', 'Identify Coverage Gaps', 'Predict Seasonal Spikes', 'Suggest Newsletter Growth'].map(label => (
                 <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-gray-100 rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
+                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
                   <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
@@ -820,7 +820,7 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'email' && (
         <div className="space-y-6">
-          <div className="bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3">
+          <div className="bg-purple-50 border border-purple-100 rounded-lg px-5 py-3">
             <p className="text-xs text-purple-800 font-medium">
               📧 Email is the retention backbone. Every newsletter subscriber is a recurring relationship. These are the highest-leverage moments to add subscribers — mapped by intent and trust level.
             </p>
@@ -830,7 +830,7 @@ export default async function EngagementPage({
           <div className="space-y-3">
             <h2 className="text-sm font-bold text-portal-text">High-Value Newsletter Capture Moments</h2>
             {EMAIL_OPPORTUNITIES.map((opp, i) => (
-              <div key={i} className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+              <div key={i} className="bg-white border border-portal-border rounded-xl overflow-hidden">
                 <div className="flex items-start gap-4 p-4">
                   <div className="shrink-0 mt-0.5">
                     <span className={`text-[10px] px-2 py-1 rounded font-bold ${
@@ -855,7 +855,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Lead magnet ideas */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-sm font-bold text-portal-text mb-3">Lead Magnet Opportunities by Category</h2>
             <p className="text-xs text-portal-sub mb-4">
               High-value free resources create email capture moments. Each represents a downloadable or emailable resource tied to an existing guide.
@@ -869,7 +869,7 @@ export default async function EngagementPage({
                 { guide: 'Afterschool Guide',        magnet: '"Afterschool Activity Cost Comparison"', type: 'comparison'},
                 { guide: 'Family Resource Guide',    magnet: '"New Family Moving to River Region Guide"',type: 'guide' },
               ].map(({ guide, magnet, type }) => (
-                <div key={guide} className="bg-portal-bg border border-gray-100 rounded-xl px-4 py-3">
+                <div key={guide} className="bg-portal-bg border border-portal-border rounded-xl px-4 py-3">
                   <p className="text-[10px] text-portal-muted font-semibold uppercase tracking-wide mb-0.5">{guide}</p>
                   <p className="text-xs font-semibold text-portal-text">{magnet}</p>
                   <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-semibold mt-1 inline-block">{type}</span>
@@ -879,7 +879,7 @@ export default async function EngagementPage({
           </div>
 
           {/* Recurring engagement loops */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-sm font-bold text-portal-text mb-3">Future Recurring Engagement Loops</h2>
             <p className="text-xs text-portal-sub mb-3">Foundation structures ready — implementation follows as platform grows.</p>
             <div className="grid grid-cols-2 gap-2">
@@ -900,12 +900,12 @@ export default async function EngagementPage({
           </div>
 
           {/* AI email growth hooks */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Email Growth — Coming Soon</p>
             <div className="flex gap-2 flex-wrap">
               {['Suggest Newsletter Growth Opportunities', 'Identify High-Conversion Content', 'Suggest Engagement Campaigns'].map(label => (
                 <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-gray-100 rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
+                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
                   {label}
                   <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-medium">Soon</span>
                 </button>
@@ -920,7 +920,7 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'campaigns' && (
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-100 rounded-2xl px-5 py-3">
+          <div className="bg-green-50 border border-green-100 rounded-lg px-5 py-3">
             <p className="text-xs text-green-800 font-medium">
               🎯 Campaigns are operator-planned engagement pushes. Track ideas from concept through execution. Each campaign should have a clear goal and a named owner.
             </p>
@@ -931,7 +931,7 @@ export default async function EngagementPage({
             {(['idea','planned','active','complete','paused'] as const).map(s => {
               const count = campaigns.filter(c => c.status === s).length
               return (
-                <div key={s} className={`text-center px-3 py-3 rounded-xl border ${count > 0 ? 'bg-white border-gray-100' : 'bg-portal-bg border-gray-50'}`}>
+                <div key={s} className={`text-center px-3 py-3 rounded-xl border ${count > 0 ? 'bg-white border-portal-border' : 'bg-portal-bg border-gray-50'}`}>
                   <p className={`text-xl font-bold ${count > 0 ? 'text-portal-text' : 'text-gray-300'}`}>{count}</p>
                   <p className="text-[10px] text-portal-muted capitalize mt-0.5">{s}</p>
                 </div>
@@ -954,7 +954,7 @@ export default async function EngagementPage({
                 }
                 const nextStep = STATUS_NEXT[c.status]
                 return (
-                  <div key={c.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                  <div key={c.id} className="bg-white border border-portal-border rounded-xl overflow-hidden">
                     <div className="flex items-start gap-3 p-4">
                       <div
                         className="w-1 self-stretch rounded-full shrink-0"
@@ -1008,7 +1008,7 @@ export default async function EngagementPage({
           )}
 
           {/* Create campaign form */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-sm font-bold text-portal-text mb-4">New Engagement Campaign</h2>
             <form action={createCampaign} className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1085,7 +1085,7 @@ export default async function EngagementPage({
           </div>
 
           {campaigns.length === 0 && (
-            <div className="bg-portal-bg border border-gray-100 rounded-2xl px-6 py-8 text-center">
+            <div className="bg-portal-bg border border-portal-border rounded-lg px-6 py-8 text-center">
               <p className="text-2xl mb-2">🎯</p>
               <p className="text-sm text-portal-sub font-semibold">No campaigns yet</p>
               <p className="text-xs text-portal-muted mt-1">Create your first engagement campaign above. Start with an idea — move it through planned → active → complete.</p>

@@ -360,7 +360,7 @@ function AdminLoginInner() {
 function ShellCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center p-5">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-10">
+      <div className="bg-white rounded-lg shadow-md w-full max-w-md p-10">
         <div className="text-center mb-8">
           <div className="font-serif text-xl font-bold text-[#1a2744] mb-1">
             River Region <span className="text-[#4a90d9]">Parents</span>

@@ -188,7 +188,7 @@ export default function GeocodePage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-portal-border">
                   {listings.map(l => {
                     const r = results[l.id]
                     return (

@@ -119,7 +119,7 @@ export function BrandSwitcher() {
             className="fixed inset-0 z-30 cursor-default"
             aria-hidden
           />
-          <div className="absolute left-3 right-3 top-full z-40 mt-1 rounded-lg bg-[#0f1729] border border-white/10 shadow-xl py-1 overflow-hidden">
+          <div className="absolute left-3 right-3 top-full z-40 mt-1 rounded-lg bg-[#0f1729] border border-white/10 shadow-md py-1 overflow-hidden">
             {me.role === 'super' && (
               <button
                 type="button"

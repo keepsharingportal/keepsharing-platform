@@ -255,7 +255,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </div>
           <p className="text-2xl font-bold text-portal-text tabular-nums">{fmt(totalImpressions)}</p>
           <p className="text-[11px] text-portal-sub mt-0.5">in last {days} days</p>
-          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-portal-border pt-2">
             Lifetime: <span className="font-semibold text-portal-sub">{fmt(lifetimeImpressions)}</span>
           </p>
         </div>
@@ -272,7 +272,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           <p className="text-[11px] text-portal-sub mt-0.5">
             CTR <span className="font-semibold">{fmtPct(totalClicks, totalImpressions)}</span>
           </p>
-          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-portal-border pt-2">
             Lifetime: <span className="font-semibold text-portal-sub">{fmt(lifetimeClicks)}</span>
           </p>
         </div>
@@ -289,7 +289,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           <p className="text-[11px] text-portal-sub mt-0.5">
             {partnerLeadCount} offer · {submissionCount} inquiry
           </p>
-          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-portal-border pt-2">
             CR: <span className="font-semibold text-portal-sub">{fmtPct(totalLeads, totalClicks)}</span>
           </p>
         </div>
@@ -313,7 +313,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
               <p className="text-[11px] text-portal-muted mt-0.5">Start a UTM-tagged campaign</p>
             </>
           )}
-          <p className="text-[11px] text-portal-muted mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] text-portal-muted mt-2 border-t border-portal-border pt-2">
             Site-wide, not per-placement
           </p>
         </div>
@@ -321,7 +321,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* Per-placement breakdown */}
       <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
               <MapPin size={14} className="text-portal-blue" />
@@ -336,7 +336,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             No ad placements yet for this advertiser.
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-portal-border">
             {placementRows.map(p => {
               const stats = eventsBy[p.id] ?? { impressions: 0, clicks: 0 }
               const isSponsor = p.placement_type === 'section_sponsor'
@@ -382,7 +382,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
 
       {/* Lead list */}
       <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-4 py-3 border-b border-portal-border">
           <h2 className="text-sm font-bold text-portal-text flex items-center gap-2">
             <MessageSquare size={14} className="text-green-600" />
             Recent Leads
@@ -394,7 +394,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             No leads in this window. {topSources.length > 0 && 'Top traffic is arriving — sharing UTM-tagged links will tie those visits back here.'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-portal-border">
             {((partnerLeads ?? []) as Array<{
               id: string; lead_first_name: string | null; lead_last_name: string | null;
               lead_email: string | null; lead_phone: string | null;
@@ -469,7 +469,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
           </div>
           <div className="space-y-2">
             {topSources.map(([source, count]) => (
-              <div key={source} className="flex items-center justify-between gap-3 py-1.5 border-b border-gray-100 last:border-0">
+              <div key={source} className="flex items-center justify-between gap-3 py-1.5 border-b border-portal-border last:border-0">
                 <span className="text-sm font-semibold text-portal-text truncate">{source}</span>
                 <span className="text-sm text-portal-sub tabular-nums">{fmt(count)} visits</span>
               </div>

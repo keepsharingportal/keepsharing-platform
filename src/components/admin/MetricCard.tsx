@@ -24,7 +24,7 @@ export function MetricCard({
       {sub && <p className="text-white/30 text-[10px] mt-0.5">{sub}</p>}
     </div>
   ) : (
-    <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-portal-border hover:shadow-sm transition-all">
+    <div className="bg-white border border-portal-border rounded-xl px-4 py-3 hover:border-portal-border hover:shadow-sm transition-all">
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
       <p className="text-xs font-semibold text-portal-sub mt-0.5">{label}</p>
       {sub && <p className="text-[10px] text-portal-muted mt-0.5">{sub}</p>}

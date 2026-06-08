@@ -64,7 +64,7 @@ export default function SocialQueuePage() {
       <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-portal-text">Social Queue</h1>
-          <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+          <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
             {statusCount('pending')} pending approval
           </span>
         </div>
@@ -113,7 +113,7 @@ export default function SocialQueuePage() {
             return (
               <div key={post.id} className="bg-white rounded-xl border border-portal-border overflow-hidden hover:shadow-sm transition-shadow">
                 {/* Card header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
                   <div className="flex items-center gap-2">
                     <PlatIcon size={16} className={platColor} />
                     <span className="text-xs font-bold text-portal-sub">{post.publication}</span>
@@ -159,7 +159,7 @@ export default function SocialQueuePage() {
 
                 {/* Actions */}
                 {(post.status === 'pending' || post.status === 'draft') && (
-                  <div className="flex items-center gap-2 px-4 py-3 bg-portal-bg border-t border-gray-100">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-portal-bg border-t border-portal-border">
                     <button onClick={() => { setEditingId(post.id); setEditCaption(post.caption) }}
                       className="flex items-center gap-1 text-xs px-3 py-1.5 text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
                       <Edit3 size={11} /> Edit

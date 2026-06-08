@@ -256,7 +256,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 my-8 space-y-4">
+      <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-4xl p-5 my-8 space-y-4">
         <header className="flex items-center justify-between">
           <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-1.5">
             <Upload size={14} /> Import CSV
@@ -310,7 +310,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 </thead>
                 <tbody>
                   {headers.map((h, i) => (
-                    <tr key={i} className="border-b border-gray-100 last:border-0">
+                    <tr key={i} className="border-b border-portal-border last:border-0">
                       <td className="px-3 py-2 font-bold text-portal-text">
                         {h || <span className="text-portal-muted italic">(blank header)</span>}
                       </td>
@@ -399,7 +399,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
               </div>
             )}
 
-            <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
+            <div className="flex items-center gap-2 border-t border-portal-border pt-3">
               <button
                 type="button"
                 onClick={() => setStep('map')}

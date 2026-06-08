@@ -264,7 +264,7 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
                 <ChevronDown size={14} className={`text-gray-300 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               {isOpen && (
-                <div className="border-t border-gray-100 p-3 space-y-2 bg-portal-bg">
+                <div className="border-t border-portal-border p-3 space-y-2 bg-portal-bg">
                   <FieldText label="Subject" value={t.subject} onChange={v => patch(t.id, { subject: v })} />
                   <FieldArea label="Body (HTML — supports {{tokens}})" value={t.body_html} onChange={v => patch(t.id, { body_html: v })} rows={8} />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
@@ -371,7 +371,7 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
     <section>
       <SectionHeading icon={Inbox} title="Queue" description="Recent 50 outbound emails" />
       <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
-        <div className="flex items-center gap-3 p-3 border-b border-gray-100 text-xs">
+        <div className="flex items-center gap-3 p-3 border-b border-portal-border text-xs">
           <Badge label="Pending"  count={stats.pending  ?? 0} color="amber" />
           <Badge label="Sending"  count={stats.sending  ?? 0} color="blue"  />
           <Badge label="Sent"     count={stats.sent     ?? 0} color="green" />
@@ -383,7 +383,7 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
         {queue.length === 0 ? (
           <p className="text-xs text-portal-sub italic p-4">No emails sent yet.</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-portal-border">
             {queue.map(r => (
               <li key={r.id} className="p-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">

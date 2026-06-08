@@ -189,7 +189,7 @@ export default function DropboxScanPage() {
             <span className="text-red-700 font-semibold bg-red-50 px-2.5 py-0.5 rounded-full ring-1 ring-red-200">
               {mustChange} must change
             </span>
-            <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
               {verify} verify
             </span>
             <span className="text-green-700 font-semibold bg-green-50 px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
@@ -350,7 +350,7 @@ export default function DropboxScanPage() {
 
                     {/* Expanded details */}
                     {isExpanded && (
-                      <div className="border-t border-gray-100 bg-portal-bg px-4 py-4">
+                      <div className="border-t border-portal-border bg-portal-bg px-4 py-4">
                         {/* AI Reasoning */}
                         <div className="mb-3">
                           <div className="text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1.5">Claude's Analysis</div>

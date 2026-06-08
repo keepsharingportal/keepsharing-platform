@@ -172,7 +172,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
                     <th className="text-right px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-portal-sub">CTR</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-portal-border">
                   {plRows.map(p => {
                     const stats   = perPlacement[p.id] ?? { impressions: 0, clicks: 0 }
                     const ctrCell = stats.impressions > 0 ? ((stats.clicks / stats.impressions) * 100).toFixed(2) + '%' : '—'
@@ -211,7 +211,7 @@ export default async function MonthlyReportPage({ params, searchParams }: Props)
                     <th className="text-right px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-portal-sub">Total Scans</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-portal-border">
                   {qrCodes.map(q => (
                     <tr key={q.id}>
                       <td className="px-4 py-3">

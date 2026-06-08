@@ -62,7 +62,7 @@ export function DriversEditor({ market, initialDrivers, availableRoutes }: Props
       ) : (
         <ul className="space-y-2">
           {drivers.map(d => (
-            <li key={d.user_id} className={`rounded-xl border bg-white ${editing === d.user_id ? 'border-portal-border-2 ring-1 ring-portal-blue/20' : 'border-portal-border'}`}>
+            <li key={d.user_id} className={`rounded-xl border bg-white ${editing === d.user_id ? 'border-portal-border-2 border border-portal-blue/30' : 'border-portal-border'}`}>
               {editing === d.user_id ? (
                 <EditRow
                   driver={d}

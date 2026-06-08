@@ -163,8 +163,8 @@ export function GeneratePanel({ pendingCount }: Props) {
   function cancelBulk() { cancelRef.cancel = true }
 
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center justify-between gap-2 flex-wrap">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Wand2 size={14} className="text-portal-blue" />
           <h2 className="text-sm font-bold text-portal-text">Generate content with Claude</h2>
@@ -183,7 +183,7 @@ export function GeneratePanel({ pendingCount }: Props) {
       </div>
 
       {/* ── SKIP-REVIEW TOGGLE ─────────────────────────────────────────────── */}
-      <div className="px-5 py-3 bg-portal-bg border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+      <div className="px-5 py-3 bg-portal-bg border-b border-portal-border flex items-center justify-between flex-wrap gap-2">
         <label className="inline-flex items-center gap-2 cursor-pointer text-sm">
           <input
             type="checkbox"

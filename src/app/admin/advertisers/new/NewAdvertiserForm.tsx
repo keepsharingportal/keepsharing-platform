@@ -75,7 +75,7 @@ export function NewAdvertiserForm({ existing }: Props) {
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5'
 
   return (
-    <form onSubmit={submit} className="bg-white rounded-2xl border border-portal-border p-5 md:p-6 space-y-5">
+    <form onSubmit={submit} className="bg-white rounded-lg border border-portal-border p-5 md:p-6 space-y-5">
       <div>
         <label className={lbl}>Business Name <span className="text-rose-600">*</span></label>
         <input
@@ -161,7 +161,7 @@ export function NewAdvertiserForm({ existing }: Props) {
         </p>
       )}
 
-      <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+      <div className="flex items-center gap-3 pt-2 border-t border-portal-border">
         <button
           type="submit"
           disabled={busy || !businessName.trim()}

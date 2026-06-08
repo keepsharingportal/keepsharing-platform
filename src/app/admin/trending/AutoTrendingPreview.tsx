@@ -57,8 +57,8 @@ export function AutoTrendingPreview({ candidates, blocked, blockAction, unblockA
 
 function AutoSection({ candidates, blockAction }: { candidates: AutoCandidate[]; blockAction: Props['blockAction'] }) {
   return (
-    <section className="bg-white rounded-2xl border border-portal-border overflow-hidden">
-      <header className="px-5 py-4 border-b border-gray-100">
+    <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
+      <header className="px-5 py-4 border-b border-portal-border">
         <div className="flex items-center gap-2 mb-1">
           <Flame size={14} className="text-amber-600" />
           <h2 className="text-sm font-bold text-portal-text">Auto-filling — top pages this week</h2>
@@ -75,7 +75,7 @@ function AutoSection({ candidates, blockAction }: { candidates: AutoCandidate[];
           No auto-trending candidates right now. The bar will rely on your pinned items.
         </div>
       ) : (
-        <ol className="divide-y divide-gray-50">
+        <ol className="divide-y divide-portal-border">
           {candidates.map((c, i) => (
             <CandidateRow key={c.path} rank={i + 1} candidate={c} blockAction={blockAction} />
           ))}
@@ -133,8 +133,8 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
 
 function BlockedSection({ blocked, unblockAction }: { blocked: BlockedPath[]; unblockAction: Props['unblockAction'] }) {
   return (
-    <section className="bg-white rounded-2xl border border-portal-border overflow-hidden">
-      <header className="px-5 py-4 border-b border-gray-100">
+    <section className="bg-white rounded-lg border border-portal-border overflow-hidden">
+      <header className="px-5 py-4 border-b border-portal-border">
         <div className="flex items-center gap-2 mb-1">
           <EyeOff size={14} className="text-portal-sub" />
           <h2 className="text-sm font-bold text-portal-text">Blocked from auto-fill ({blocked.length})</h2>
@@ -143,7 +143,7 @@ function BlockedSection({ blocked, unblockAction }: { blocked: BlockedPath[]; un
           These paths are excluded from the auto-trending pool. Unblock to let them flow back in based on traffic.
         </p>
       </header>
-      <ul className="divide-y divide-gray-50">
+      <ul className="divide-y divide-portal-border">
         {blocked.map(b => (
           <BlockedRow key={b.path} item={b} unblockAction={unblockAction} />
         ))}

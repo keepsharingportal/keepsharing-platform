@@ -263,7 +263,7 @@ export default function WpImportPage() {
         {/* Upload zone */}
         {phase === 'upload' && (
           <div
-            className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
+            className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
               dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-portal-border-2 hover:border-gray-400 hover:bg-portal-bg bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
@@ -358,7 +358,7 @@ export default function WpImportPage() {
             {/* Preview table */}
             {filteredPosts.length > 0 && (
               <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                   <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">
                     Preview — {displayPosts.length} of {filteredPosts.length}
                   </span>
@@ -371,7 +371,7 @@ export default function WpImportPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-gray-100 bg-portal-bg">
+                      <tr className="border-b border-portal-border bg-portal-bg">
                         <th className="text-left px-4 py-2 text-portal-muted font-semibold w-8">#</th>
                         <th className="text-left px-4 py-2 text-portal-muted font-semibold">Title / Slug</th>
                         <th className="text-left px-4 py-2 text-portal-muted font-semibold">Routing</th>
@@ -390,7 +390,7 @@ export default function WpImportPage() {
                 {filteredPosts.length > 20 && (
                   <button
                     onClick={() => setShowAll(!showAll)}
-                    className="w-full py-3 text-xs text-portal-muted hover:text-portal-sub flex items-center justify-center gap-1 border-t border-gray-100 transition-colors"
+                    className="w-full py-3 text-xs text-portal-muted hover:text-portal-sub flex items-center justify-center gap-1 border-t border-portal-border transition-colors"
                   >
                     <ChevronDown size={13} className={showAll ? 'rotate-180' : ''} />
                     {showAll ? 'Show less' : `Show all ${filteredPosts.length} posts`}
@@ -469,10 +469,10 @@ export default function WpImportPage() {
 
             {/* Result rows */}
             <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                 <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Row Results</span>
               </div>
-              <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+              <div className="divide-y divide-portal-border max-h-96 overflow-y-auto">
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${

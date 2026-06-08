@@ -60,7 +60,7 @@ export function DupClusterPanel({ cluster }: Props) {
     // Render a tiny success placeholder where the cluster used to be —
     // hides the now-stale rows until the editor refreshes.
     return (
-      <div className="bg-portal-green-lt border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-900 inline-flex items-center gap-2">
+      <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-4 text-sm text-emerald-900 inline-flex items-center gap-2">
         <RefreshCw size={14} /> Merged. Refresh to recompute the duplicate clusters.
       </div>
     )
@@ -100,7 +100,7 @@ export function DupClusterPanel({ cluster }: Props) {
   }
 
   return (
-    <section className="bg-white rounded-2xl border border-amber-200 ring-1 ring-amber-100/40 overflow-hidden">
+    <section className="bg-white rounded-lg border border-amber-200 ring-1 ring-amber-100/40 overflow-hidden">
       <header className="px-5 py-3 bg-portal-amber-lt border-b border-amber-100 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <AlertTriangle size={14} className="text-portal-amber" />
@@ -122,7 +122,7 @@ export function DupClusterPanel({ cluster }: Props) {
       {/* Rename input — pre-filled with the selected survivor's name.
           Editor can leave as-is or type a different canonical name
           that becomes the survivor's business_name post-merge. */}
-      <div className="px-5 py-3 bg-portal-bg border-b border-gray-100">
+      <div className="px-5 py-3 bg-portal-bg border-b border-portal-border">
         <label className="block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1">
           Final business name
         </label>
@@ -138,7 +138,7 @@ export function DupClusterPanel({ cluster }: Props) {
         </p>
       </div>
 
-      <ul className="divide-y divide-gray-100">
+      <ul className="divide-y divide-portal-border">
         {cluster.members.map(m => {
           const isSurvivor = m.id === survivorId
           return (

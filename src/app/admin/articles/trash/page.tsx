@@ -146,7 +146,7 @@ export default function TrashPage() {
       )}
 
       {/* LIST */}
-      <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
+      <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-sm text-portal-muted flex items-center justify-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" /> Loading…
@@ -158,7 +158,7 @@ export default function TrashPage() {
             <p className="text-xs text-portal-muted">Articles you move to trash will appear here.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-portal-border">
             {articles.map(a => (
               <li key={a.id} className="p-4 flex items-center gap-4">
                 {a.hero_image_url ? (

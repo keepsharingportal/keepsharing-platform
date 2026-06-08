@@ -38,7 +38,7 @@ export function AdsTabs() {
   }
 
   return (
-    <div className="bg-white border border-portal-border rounded-2xl p-1 inline-flex items-center gap-0.5 flex-wrap">
+    <div className="bg-white border border-portal-border rounded-lg p-1 inline-flex items-center gap-0.5 flex-wrap">
       {TABS.map(tab => {
         const active = isActive(tab.href)
         return (

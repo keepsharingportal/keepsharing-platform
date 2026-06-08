@@ -116,7 +116,7 @@ export default async function AdvertiserLayout({ children, params }: Props) {
                     {lifecycle}
                   </span>
                   {loyaltyTier && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
                       <Star size={8} className="inline mr-0.5" />{loyaltyTier}
                     </span>
                   )}

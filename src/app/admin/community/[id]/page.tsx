@@ -392,7 +392,7 @@ export default async function SubmissionDetailPage({
         <div className="flex-1 min-w-[320px] space-y-4">
 
           {/* Routing / meta */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Routing & Targeting</h2>
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -412,7 +412,7 @@ export default async function SubmissionDetailPage({
           </div>
 
           {/* Submitter */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Submitter</h2>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-portal-sub shrink-0">
@@ -432,7 +432,7 @@ export default async function SubmissionDetailPage({
 
           {/* Submission answers */}
           <div
-            className="bg-white border border-gray-100 rounded-2xl overflow-hidden"
+            className="bg-white border border-portal-border rounded-lg overflow-hidden"
             style={{ borderTop: `4px solid ${accentColor}` }}
           >
             <div className="p-5">
@@ -463,7 +463,7 @@ export default async function SubmissionDetailPage({
           </div>
 
           {/* Photos */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">
               {config.photoLabel ?? 'Photos'}
               {config.photoRequired
@@ -501,12 +501,12 @@ export default async function SubmissionDetailPage({
 
           {/* AI Draft — editable when ready or edited */}
           {sub.ai_draft_content && (
-            <div className={`bg-white rounded-2xl overflow-hidden border ${
+            <div className={`bg-white rounded-lg overflow-hidden border ${
               sub.ai_draft_status === 'edited'     ? 'border-green-200'
               : sub.ai_draft_status === 'ready'    ? 'border-indigo-200'
               : sub.ai_draft_status === 'needs_info'? 'border-amber-200'
               : sub.ai_draft_status === 'failed'   ? 'border-red-200'
-              : 'border-gray-100'
+              : 'border-portal-border'
             }`}>
 
               {/* Header */}
@@ -591,7 +591,7 @@ export default async function SubmissionDetailPage({
           )}
 
           {/* Raw data — collapsed by default */}
-          <details className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide">
               Advanced: Raw Submission Data
             </summary>
@@ -603,7 +603,7 @@ export default async function SubmissionDetailPage({
                     <span className="text-portal-text break-all">{String(v)}</span>
                   </div>
                 ))}
-                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1.5">
+                <div className="border-t border-portal-border pt-2 mt-2 space-y-1.5">
                   <div className="flex gap-3 text-xs">
                     <span className="font-mono text-portal-muted w-40">id</span>
                     <span className="text-portal-sub font-mono break-all">{sub.id}</span>
@@ -631,7 +631,7 @@ export default async function SubmissionDetailPage({
         <div className="w-80 shrink-0 space-y-4">
 
           {/* Operator guidance */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Operator Guidance</h2>
             {guidance.length === 0 ? (
               <p className="text-sm text-portal-muted">No specific guidance available.</p>
@@ -648,7 +648,7 @@ export default async function SubmissionDetailPage({
           </div>
 
           {/* Status workflow */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Status Workflow</h2>
 
             {/* Recommended next — prominent */}
@@ -698,7 +698,7 @@ export default async function SubmissionDetailPage({
 
           {/* Missing info checklist */}
           {checklist.length > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Info Checklist</h2>
               <div className="space-y-2.5">
                 {checklist.map(item => (
@@ -730,7 +730,7 @@ export default async function SubmissionDetailPage({
           )}
 
           {/* Editor notes */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">Editor Notes</h2>
             <p className="text-[11px] text-portal-muted mb-2">Internal only — never shown to submitters.</p>
             <form action={saveEditorNotes} className="space-y-2">
@@ -751,7 +751,7 @@ export default async function SubmissionDetailPage({
           </div>
 
           {/* Assignment */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Assignment</h2>
             <form action={saveAssignment} className="space-y-3">
               <div>
@@ -810,7 +810,7 @@ export default async function SubmissionDetailPage({
 
           {/* Publishing destination */}
           {publishDest && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white border border-portal-border rounded-lg p-5">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Publishing Destination</h2>
               <div className="space-y-3">
                 <div>
@@ -845,7 +845,7 @@ export default async function SubmissionDetailPage({
           )}
 
           {/* AI Assist */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -910,7 +910,7 @@ export default async function SubmissionDetailPage({
                 <button
                   key={item.label}
                   disabled
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 text-xs text-portal-muted cursor-not-allowed"
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed"
                 >
                   <span>{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
@@ -921,7 +921,7 @@ export default async function SubmissionDetailPage({
           </div>
 
           {/* GHL future */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          <div className="bg-white border border-portal-border rounded-lg p-5">
             <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">GHL Workflow</h2>
             <p className="text-[11px] text-portal-muted mb-3">Future automation — not yet wired.</p>
             <div className="space-y-1.5">
@@ -931,7 +931,7 @@ export default async function SubmissionDetailPage({
                 { icon: '🎉', label: 'Notify When Published',  sent: sub.published_notice_sent_at },
                 { icon: '🔗', label: 'Send Share Link',        sent: null },
               ].map(item => (
-                <div key={item.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-100">
+                <div key={item.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-portal-border">
                   <span className="text-base">{item.icon}</span>
                   <span className="text-xs text-portal-sub flex-1">{item.label}</span>
                   {item.sent ? (

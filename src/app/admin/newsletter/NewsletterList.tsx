@@ -84,7 +84,7 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
               <th className="text-left px-4 py-3 text-xs font-semibold text-portal-sub uppercase tracking-wider">GHL</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-portal-border">
             {filtered.map(s => (
               <tr key={s.id} className="hover:bg-portal-bg transition-colors">
                 <td className="px-4 py-2.5 text-portal-text font-medium text-xs">{s.email}</td>

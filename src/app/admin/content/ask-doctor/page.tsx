@@ -190,7 +190,7 @@ export default function AskDoctorAdminPage() {
           ) : visible.length === 0 ? (
             <div className="p-8 text-center text-sm text-portal-muted">No questions in this queue.</div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-portal-border">
               {visible.map(q => {
                 const isOpen = expanded === q.id
                 const fd = q.form_data
@@ -230,7 +230,7 @@ export default function AskDoctorAdminPage() {
                     </button>
 
                     {isOpen && (
-                      <div className="px-5 pb-5 bg-portal-bg/50 border-t border-gray-100 space-y-4">
+                      <div className="px-5 pb-5 bg-portal-bg/50 border-t border-portal-border space-y-4">
                         {/* Full question */}
                         <div className="pt-4">
                           <div className="text-[10px] font-bold text-portal-muted uppercase tracking-wide mb-1">Full Question</div>

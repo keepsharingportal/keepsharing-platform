@@ -102,7 +102,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
                   const words      = (r.body ?? '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
                   const hasAll     = !!r.hero_image_url && !!r.author_name && words > 100
                   return (
-                    <tr key={r.id} className="border-b border-gray-100 last:border-0 hover:bg-portal-bg">
+                    <tr key={r.id} className="border-b border-portal-border last:border-0 hover:bg-portal-bg">
                       <td className="px-3 py-2.5">
                         <Link href={`/admin/articles/${r.id}/edit`} className="text-sm font-semibold text-portal-text hover:text-portal-blue line-clamp-1">
                           {r.title || 'Untitled'}

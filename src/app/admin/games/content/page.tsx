@@ -179,7 +179,7 @@ export default async function GamesContentPage({
       {!tableMissing && (
         <>
           {/* GAME + DIFFICULTY SELECTORS (via form GET) */}
-          <form className="bg-white border border-portal-border rounded-2xl px-5 py-4 flex flex-wrap items-end gap-3">
+          <form className="bg-white border border-portal-border rounded-lg px-5 py-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Game</label>
               <select name="game" defaultValue={game}
@@ -204,7 +204,7 @@ export default async function GamesContentPage({
 
           {/* ADD FORM (per game type) */}
           {game === 'word-search' ? (
-            <div className="rounded-2xl border border-amber-200 bg-portal-amber-lt px-5 py-4">
+            <div className="rounded-lg border border-amber-200 bg-portal-amber-lt px-5 py-4">
               <p className="text-sm font-bold text-amber-900 mb-1">Word search is edited in Supabase directly</p>
               <p className="text-sm text-portal-amber leading-relaxed">
                 Word search payloads include a flat letter grid + word list + column count. The grid is too complex
@@ -213,8 +213,8 @@ export default async function GamesContentPage({
               </p>
             </div>
           ) : (
-            <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+            <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
                 <Plus size={14} className="text-portal-muted" />
                 <h2 className="text-sm font-bold text-portal-text">Add a new {game} entry — {DIFFICULTY_LABELS[diff as keyof typeof DIFFICULTY_LABELS] ?? diff}</h2>
               </div>
@@ -354,14 +354,14 @@ export default async function GamesContentPage({
           )}
 
           {/* LIST */}
-          <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+          <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="px-5 py-3 border-b border-portal-border bg-portal-bg">
               <h2 className="text-sm font-bold text-portal-text">{game} · {DIFFICULTY_LABELS[diff as keyof typeof DIFFICULTY_LABELS] ?? diff} pool</h2>
             </div>
             {rows.length === 0 ? (
               <p className="p-8 text-center text-sm text-portal-muted">No entries yet — add one above.</p>
             ) : (
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-portal-border">
                 {rows.map(r => (
                   <li key={r.id} className={`p-4 flex items-start gap-3 ${r.weight === 0 ? 'opacity-50' : ''}`}>
                     <div className="flex-1 min-w-0">

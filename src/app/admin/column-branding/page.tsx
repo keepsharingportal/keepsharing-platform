@@ -193,7 +193,7 @@ function ColumnCard({
 
   return (
     <div className="rounded-xl border border-portal-border bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 bg-portal-bg">
+      <div className="px-4 py-3 border-b border-portal-border bg-portal-bg">
         <p className="text-xs font-bold text-portal-sub uppercase tracking-wider">{column.vertical}</p>
         <h3 className="font-black text-portal-text mt-0.5">{column.label}</h3>
         {column.description && (

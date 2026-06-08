@@ -193,7 +193,7 @@ export default async function EditorialPage({
           { label: 'Scheduled',    val: stageCounts.get('scheduled')!,     color: '#b8860b' },
           { label: 'Urgent',       val: urgent,                            color: '#dc2626' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-3 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-3 py-3">
             <div className="text-xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[10px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
@@ -241,7 +241,7 @@ export default async function EditorialPage({
 
       {/* ── STAGE GROUPS ────────────────────────────────────────────────── */}
       {total === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
+        <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
           <div className="text-4xl mb-4">📋</div>
           <p className="text-portal-sub font-medium">No editorial items match the current filters.</p>
           <Link href="/admin/editorial" className="text-sm text-portal-blue mt-2 inline-block hover:underline">Clear filters</Link>
@@ -276,7 +276,7 @@ export default async function EditorialPage({
                     const issue   = fmtIssue(item)
 
                     return (
-                      <div key={item.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-portal-border transition-colors"
+                      <div key={item.id} className="bg-white border border-portal-border rounded-lg overflow-hidden hover:border-portal-border transition-colors"
                         style={{ borderLeft: `4px solid ${accent}` }}>
                         <div className="px-5 py-4 flex items-start gap-4">
 

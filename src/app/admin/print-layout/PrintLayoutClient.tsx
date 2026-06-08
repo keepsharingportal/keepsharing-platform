@@ -621,14 +621,14 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
       {/* ── Table ──────────────────────────────────────────────────── */}
       <div className="px-4 py-4 print:px-0 print:py-0">
         {rows.length === 0 ? (
-          <div className="bg-white border border-portal-border rounded-2xl p-10 text-center text-sm text-portal-sub print:hidden">
+          <div className="bg-white border border-portal-border rounded-lg p-10 text-center text-sm text-portal-sub print:hidden">
             No placements for {fmtIssue(issue)} yet.{' '}
             {prevMonthCount > 0
               ? <>Clone {prevMonthCount} from {fmtIssue(prevMonth)} or add the first one.</>
               : <>Add the first placement.</>}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-portal-border overflow-hidden print:border-0 print:rounded-none">
+          <div className="bg-white rounded-lg border border-portal-border overflow-hidden print:border-0 print:rounded-none">
             <table className="w-full text-sm">
               <thead className="bg-portal-bg border-b border-portal-border text-[10px] uppercase tracking-wider text-portal-sub">
                 <tr className="text-left">
@@ -775,7 +775,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
       ? row.ad_label.trim()
       : null
   return (
-    <tr className={`border-b border-gray-100 last:border-0 group ${rowBg}`}>
+    <tr className={`border-b border-portal-border last:border-0 group ${rowBg}`}>
       <td className="px-3 py-2 w-8 print:hidden">
         <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${row.business_name}`} />
       </td>
@@ -958,7 +958,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 overflow-y-auto" onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-5 my-12 space-y-4">
+      <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-xl p-5 my-12 space-y-4">
         <header className="flex items-center justify-between">
           <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-1.5">
             <Edit3 size={14} /> Bulk edit {count} placement{count === 1 ? '' : 's'}
@@ -1025,7 +1025,7 @@ function BulkEditModal({ issue, count, onCancel, onApply }: {
           </FieldRow>
         </div>
 
-        <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-2 pt-3 border-t border-portal-border">
           <button
             type="button"
             onClick={apply}
@@ -1110,7 +1110,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1'
 
   return (
-    <div className="mx-4 mt-4 bg-white rounded-2xl border border-portal-border p-5 print:hidden">
+    <div className="mx-4 mt-4 bg-white rounded-lg border border-portal-border p-5 print:hidden">
       <header className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-portal-text inline-flex items-center gap-1.5">
           <Plus size={14} /> Add print placement
@@ -1201,7 +1201,7 @@ function AddRowForm({ advertisers, issue, initialAdvertiserId, onCancel, onSubmi
         </div>
       </div>
 
-      <div className="flex items-center gap-2 pt-4 mt-4 border-t border-gray-100">
+      <div className="flex items-center gap-2 pt-4 mt-4 border-t border-portal-border">
         <button
           type="button"
           onClick={save}

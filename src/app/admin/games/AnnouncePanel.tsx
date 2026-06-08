@@ -58,8 +58,8 @@ export function AnnouncePanel({ isoYear, isoWeek, webhookConfigured }: Props) {
   const inputCls = 'w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue/60 bg-white'
 
   return (
-    <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+    <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
         <Megaphone size={14} className="text-portal-blue" />
         <h2 className="text-sm font-bold text-portal-text">Announce new games</h2>
         {!webhookConfigured && (

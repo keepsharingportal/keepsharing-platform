@@ -68,7 +68,7 @@ export default async function AuthorsAdminPage() {
         ) : (
           <div className="bg-white rounded-xl border border-portal-border overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center px-5 py-2.5 border-b border-gray-100 bg-portal-bg">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center px-5 py-2.5 border-b border-portal-border bg-portal-bg">
               <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">Author</div>
               <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider text-right">Total</div>
               <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider text-right hidden sm:block">Live</div>
@@ -76,7 +76,7 @@ export default async function AuthorsAdminPage() {
               <div className="text-[11px] font-semibold text-portal-muted uppercase tracking-wider">View</div>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-portal-border">
               {authors.map(a => (
                 <div
                   key={a.name}

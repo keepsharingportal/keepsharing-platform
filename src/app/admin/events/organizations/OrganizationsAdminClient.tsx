@@ -183,7 +183,7 @@ export function OrganizationsAdminClient({ initialOrgs, sources }: Props) {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
             {filtered.map(org => (
               <OrgRow
                 key={org.id}
@@ -265,12 +265,12 @@ function OrgRow({
               {kindLabel(org.kind)}
             </span>
             {org.tags?.includes('preferred') && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
                 Preferred
               </span>
             )}
             {org.source_id && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sky-50 text-sky-700 ring-1 ring-sky-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sky-50 text-sky-700 border border-portal-blue/30">
                 Linked to feed
               </span>
             )}

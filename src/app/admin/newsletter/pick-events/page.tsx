@@ -312,7 +312,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       </div>
 
       {/* DATE + FILTERS */}
-      <section className="bg-white border border-portal-border rounded-2xl px-5 py-4 flex flex-wrap items-end gap-4">
+      <section className="bg-white border border-portal-border rounded-lg px-5 py-4 flex flex-wrap items-end gap-4">
         <form className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1">Issue date</label>
@@ -347,8 +347,8 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       <div className="grid lg:grid-cols-2 gap-6">
 
         {/* LEFT — eligible events */}
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
             <CalIcon size={14} className="text-portal-muted" />
             <h2 className="text-sm font-bold text-portal-text">Eligible events</h2>
             <span className="ml-auto text-xs text-portal-muted">{allEvents.length} found</span>
@@ -358,7 +358,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
               No upcoming events for this window. Try widening the date range or adjusting filters.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100 max-h-[800px] overflow-y-auto">
+            <ul className="divide-y divide-portal-border max-h-[800px] overflow-y-auto">
               {allEvents.map(ev => {
                 const isPicked    = pickedIds.has(ev.id)
                 const lastIssue   = recentlyFeatured.get(ev.id)
@@ -403,8 +403,8 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
         </section>
 
         {/* RIGHT — this week's picks */}
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg flex items-center gap-2">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
             <Mail size={14} className="text-portal-blue" />
             <h2 className="text-sm font-bold text-portal-text">This issue's picks ({picks.length})</h2>
             <span className="ml-auto text-xs text-portal-muted">{fmtDate(issueDate)}</span>
@@ -414,7 +414,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
               No picks yet for this issue. Add events from the left.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-portal-border">
               {picks.map((pk, idx) => {
                 const pickRow = pickRows.find(p => p.event_id === pk.id)!
                 const isFirst = idx === 0
@@ -495,12 +495,12 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
 
       {/* PREVIEW + COPY HTML */}
       {picks.length > 0 && (
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg">
             <h2 className="text-sm font-bold text-portal-text">Preview &amp; Export</h2>
           </div>
           <div className="grid lg:grid-cols-2 gap-0">
-            <div className="p-5 border-r border-gray-100">
+            <div className="p-5 border-r border-portal-border">
               <p className="text-xs font-bold text-portal-sub uppercase tracking-wider mb-2">Rendered preview</p>
               <div className="border border-portal-border rounded-lg bg-portal-bg p-3 overflow-auto max-h-[600px]"
                    dangerouslySetInnerHTML={{ __html: html }} />
@@ -538,8 +538,8 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
 
       {/* SEND HISTORY */}
       {newsletterIssuesAvailable && (thisIssueSends.length > 0 || recentSends.length > 0) && (
-        <section className="bg-white border border-portal-border rounded-2xl overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 bg-portal-bg">
+        <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-portal-border bg-portal-bg">
             <h2 className="text-sm font-bold text-portal-text">Send history</h2>
           </div>
           <div className="p-5 space-y-4">

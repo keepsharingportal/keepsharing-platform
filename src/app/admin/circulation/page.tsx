@@ -184,7 +184,7 @@ export default async function CirculationOverviewPage() {
               title="Low performers"
               description="Stops with high leftover counts — candidates for reducing quantities or removing"
             />
-            <div className="rounded-xl border border-portal-border bg-white divide-y divide-gray-100">
+            <div className="rounded-xl border border-portal-border bg-white divide-y divide-portal-border">
               {lowPerformers.map(lp => (
                 <div key={`${lp.stop_id}-${lp.month}`} className="p-3 flex items-center gap-3">
                   <Package size={14} className="text-amber-500 shrink-0" />

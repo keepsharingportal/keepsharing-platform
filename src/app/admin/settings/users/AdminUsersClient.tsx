@@ -182,7 +182,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
             <p className="text-sm">No admins match the current filter</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
             {filtered.map(row => (
               <AdminRowItem
                 key={row.id}
@@ -212,7 +212,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
           >
             <div
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-12 overflow-hidden border border-portal-border"
+              className="bg-white rounded-xl shadow-md w-full max-w-2xl my-12 overflow-hidden border border-portal-border"
             >
               <header className="flex items-center justify-between px-6 py-4 border-b border-portal-border">
                 <div>
@@ -325,7 +325,7 @@ function InvitePanel({
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <form onSubmit={submit} className="bg-portal-blue-lt/40 border-b border-portal-blue/20 px-6 py-5">
+    <form onSubmit={submit} className="bg-portal-bg border-b border-portal-border px-6 py-5">
       <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2 mb-4">
         <ShieldCheck size={14} /> Invite a new admin
       </h2>
@@ -394,12 +394,12 @@ function InvitePanel({
       </label>
 
       {!roleDecision.allowed && (
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
+        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt border border-portal-red/30 rounded-lg px-2.5 py-1">
           <AlertTriangle size={11} /> {roleDecision.reason}
         </p>
       )}
       {err && (
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
+        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt border border-portal-red/30 rounded-lg px-2.5 py-1">
           <AlertTriangle size={11} /> {err}
         </p>
       )}
@@ -501,17 +501,17 @@ function AdminRowItem({
               {ROLE_LABELS[row.role]}
             </span>
             {isSelf && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-green-lt text-portal-green ring-1 ring-emerald-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-green-lt text-portal-green border border-portal-green/30">
                 You
               </span>
             )}
             {row.status === 'suspended' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-red-lt text-portal-red ring-1 ring-rose-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-red-lt text-portal-red border border-portal-red/30">
                 Suspended
               </span>
             )}
             {!row.user_id && row.status === 'active' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-amber-lt text-portal-amber border border-portal-amber/30">
                 Invited · pending first login
               </span>
             )}

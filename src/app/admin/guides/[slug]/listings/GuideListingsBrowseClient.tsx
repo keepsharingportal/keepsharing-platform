@@ -256,7 +256,7 @@ export function GuideListingsBrowseClient(props: Props) {
                 const isSelected = selected.has(r.id)
                 const tierKey = r.listing_tier ?? 'community'
                 return (
-                  <tr key={r.id} className={`border-b border-gray-100 ${isSelected ? 'bg-portal-amber-lt/60' : 'hover:bg-portal-bg'}`}>
+                  <tr key={r.id} className={`border-b border-portal-border ${isSelected ? 'bg-portal-amber-lt/60' : 'hover:bg-portal-bg'}`}>
                     <td className="px-4 py-3 w-8">
                       <input
                         type="checkbox"
@@ -328,7 +328,7 @@ export function GuideListingsBrowseClient(props: Props) {
       {/* Delete confirm */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={() => !deleting && setConfirmOpen(false)}>
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 my-12 space-y-3">
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-lg shadow-md w-full max-w-md p-5 my-12 space-y-3">
             <h3 className="text-base font-bold text-portal-text inline-flex items-center gap-2">
               <AlertTriangle size={16} className="text-rose-600" />
               Delete {selected.size} listing{selected.size === 1 ? '' : 's'}?
@@ -336,7 +336,7 @@ export function GuideListingsBrowseClient(props: Props) {
             <p className="text-sm text-portal-text">
               The listing rows go away. Linked advertiser_accounts (if any) are not touched — those live in CRM.
             </p>
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-portal-border">
               <button
                 type="button"
                 onClick={onConfirmDelete}

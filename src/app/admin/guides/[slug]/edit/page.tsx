@@ -142,7 +142,7 @@ export default async function GuideEditPage({ params }: Props) {
 
       {/* ── Connected articles list ──────────────────────────────────────── */}
       <section className="rounded-xl border border-portal-border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
           <h2 className="text-sm font-bold text-portal-text">Connected Articles ({articles?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`}
@@ -157,7 +157,7 @@ export default async function GuideEditPage({ params }: Props) {
             <Link href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`} className="text-portal-blue hover:underline font-semibold">Write one →</Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-portal-border">
             {articles.map(a => (
               <div key={a.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-portal-bg">
                 <div className="min-w-0 flex-1">

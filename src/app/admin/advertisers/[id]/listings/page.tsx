@@ -36,7 +36,7 @@ export default async function ListingsTab({ params }: Props) {
 
   if (listings.length === 0) {
     return (
-      <section className="bg-white rounded-2xl ring-1 ring-gray-200 p-10 text-center">
+      <section className="bg-white rounded-lg ring-1 ring-gray-200 p-10 text-center">
         <BookOpen size={28} className="mx-auto text-gray-300 mb-3" />
         <h2 className="text-base font-bold text-portal-text">No guide listings yet</h2>
         <p className="text-sm text-portal-sub mt-1">
@@ -67,8 +67,8 @@ export default async function ListingsTab({ params }: Props) {
   return (
     <div className="space-y-4">
       {groups.map(g => (
-        <section key={g.guideSlug} className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden">
-          <header className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+        <section key={g.guideSlug} className="bg-white rounded-lg ring-1 ring-gray-200 overflow-hidden">
+          <header className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-2 min-w-0">
               <BookOpen size={14} className="text-portal-muted shrink-0" />
               <h2 className="text-sm font-bold text-portal-text truncate">{g.guideName}</h2>
@@ -81,7 +81,7 @@ export default async function ListingsTab({ params }: Props) {
               Open guide <ExternalLink size={10} />
             </Link>
           </header>
-          <ul className="divide-y divide-gray-50">
+          <ul className="divide-y divide-portal-border">
             {g.listings.map(l => {
               const tier = l.listing_tier ?? 'free'
               return (

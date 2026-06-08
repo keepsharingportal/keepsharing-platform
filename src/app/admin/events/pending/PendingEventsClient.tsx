@@ -199,7 +199,7 @@ export function PendingEventsClient({ events }: Props) {
 
             {/* Expanded inline edit form */}
             {isOpen && (
-              <div className="border-t border-gray-100 bg-portal-bg/40 p-4 space-y-4">
+              <div className="border-t border-portal-border bg-portal-bg/40 p-4 space-y-4">
 
                 {/* Title + description */}
                 <div className="grid md:grid-cols-3 gap-3">

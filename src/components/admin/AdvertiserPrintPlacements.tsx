@@ -104,7 +104,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
           {sorted.slice(0, 6).map(r => {
             const future = r.issue_month >= todayYM
             return (
-              <li key={r.id} className={`flex items-center gap-2 p-2 rounded-lg border border-gray-100 ${future ? 'bg-portal-green-lt/40' : ''}`}>
+              <li key={r.id} className={`flex items-center gap-2 p-2 rounded-lg border border-portal-border ${future ? 'bg-portal-green-lt/40' : ''}`}>
                 <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${future ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-portal-text'}`}>
                   {fmtIssue(r.issue_month)}
                 </span>

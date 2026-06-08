@@ -85,7 +85,7 @@ export default async function AdsTab({ params }: Props) {
 
       {/* ── Digital Ad Placements ─────────────────────────── */}
       <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+        <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub inline-flex items-center gap-1.5">
             <Megaphone size={11} /> Digital Placements {plRows.length > 0 && <span className="text-portal-muted">({plRows.length})</span>}
           </h2>
@@ -101,7 +101,7 @@ export default async function AdsTab({ params }: Props) {
             No digital placements yet. <Link href={`/admin/ads/new?advertiser_id=${id}`} className="text-portal-blue font-bold hover:underline">Assign one →</Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-portal-border">
             {plRows.map(p => {
               const rate      = RATE_CARD.find(r => r.placementType === p.placement_type)
               const isExpired = !!p.archived_at
@@ -128,7 +128,7 @@ export default async function AdsTab({ params }: Props) {
                   </div>
                   {isExpired ? (
                     <>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-portal-red-lt text-portal-red ring-1 ring-rose-200 font-bold uppercase tracking-wider shrink-0">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-portal-red-lt text-portal-red border border-portal-red/30 font-bold uppercase tracking-wider shrink-0">
                         Expired
                       </span>
                       <CloneAdButton id={p.id} variant="pill" />
@@ -148,7 +148,7 @@ export default async function AdsTab({ params }: Props) {
       {/* ── QR Codes ──────────────────────────────────────── */}
       {qrCodes.length > 0 && (
         <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
+          <div className="px-5 py-3 border-b border-portal-border flex items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">
               QR Codes ({qrCodes.length})
             </h2>
@@ -167,7 +167,7 @@ export default async function AdsTab({ params }: Props) {
               </Link>
             </div>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-portal-border">
             {qrCodes.map(q => (
               <div key={q.id} className={`px-5 py-3 flex items-center gap-3 ${q.is_active ? '' : 'opacity-50'}`}>
                 <div className="flex-1 min-w-0">
@@ -189,11 +189,11 @@ export default async function AdsTab({ params }: Props) {
 
       {/* ── Available Slots ───────────────────────────────── */}
       <section className="bg-white rounded-xl ring-1 ring-gray-200 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100">
+        <div className="px-5 py-3 border-b border-portal-border">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Available Slots</h2>
           <p className="text-[11px] text-portal-muted mt-0.5">Open positions this business could fill. Click to assign.</p>
         </div>
-        <div className="divide-y divide-gray-50 max-h-96 overflow-y-auto">
+        <div className="divide-y divide-portal-border max-h-96 overflow-y-auto">
           {RATE_CARD.filter(slot => !plRows.some(p => p.placement_type === slot.placementType && p.is_active))
             .slice(0, 16)
             .map(slot => (

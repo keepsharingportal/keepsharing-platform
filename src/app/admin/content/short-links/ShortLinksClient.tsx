@@ -239,7 +239,7 @@ export function ShortLinksClient({ initialRows, advertisers }: Props) {
             <button onClick={clearAllFilters} className="mt-2 text-xs font-semibold text-portal-blue hover:underline">Clear all filters</button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-portal-border divide-y divide-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-portal-border divide-y divide-portal-border overflow-hidden">
             {visibleRows.map(r => <LinkRow key={r.id} row={r} onRemoved={onRemoved} />)}
           </div>
         )}
@@ -1133,7 +1133,7 @@ export function AddPanel({
 
           {/* Footer actions — bigger, breathing room, only orange in
               the form so the Create CTA is unambiguous. */}
-          <div className="flex items-center gap-3 pt-3 border-t border-gray-100 mt-2">
+          <div className="flex items-center gap-3 pt-3 border-t border-portal-border mt-2">
             <button type="submit" disabled={busy} className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-portal-navy text-white rounded-full hover:bg-portal-navy/90 disabled:opacity-40 shadow-sm">
               {busy ? <RefreshCw size={14} className="animate-spin" /> : <Plus size={14} />}
               {busy ? 'Creating…' : `Create ${purposeOf(purpose).label}`}
@@ -1194,7 +1194,7 @@ function StepSection({ step, title, hint, children }: {
   children: React.ReactNode
 }) {
   return (
-    <section className="bg-white rounded-2xl border border-portal-border p-5 md:p-6 mb-5 last:mb-0">
+    <section className="bg-white rounded-lg border border-portal-border p-5 md:p-6 mb-5 last:mb-0">
       <header className="flex items-start gap-3 mb-4">
         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-900 text-white text-xs font-black shrink-0">
           {step}

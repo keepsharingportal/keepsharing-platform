@@ -60,8 +60,8 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
 
   return (
-    <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl border border-portal-border shadow-2xl z-50 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <div className="absolute right-0 top-10 w-80 bg-white rounded-lg border border-portal-border shadow-md z-50 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-portal-text">Notifications</span>
           {unread > 0 && (
@@ -80,7 +80,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <div className="divide-y divide-gray-50 max-h-80 overflow-y-auto">
+      <div className="divide-y divide-portal-border max-h-80 overflow-y-auto">
         {notifications.map(n => (
           <div
             key={n.id}
@@ -107,7 +107,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      <div className="border-t border-gray-100 px-4 py-2">
+      <div className="border-t border-portal-border px-4 py-2">
         <Link href="/admin/today" onClick={onClose}
           className="text-xs text-portal-blue hover:underline font-medium">
           View all in Today screen →
@@ -141,9 +141,9 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-xl bg-white rounded-lg shadow-md overflow-hidden">
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-portal-border">
           <Search size={18} className="text-portal-muted shrink-0" />
           <input
             ref={inputRef}
@@ -158,7 +158,7 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
         {/* Results */}
         {query.trim() ? (
           results.length > 0 ? (
-            <ul className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+            <ul className="max-h-80 overflow-y-auto divide-y divide-portal-border">
               {results.map(article => (
                 <li key={article.id}>
                   <button
@@ -259,9 +259,9 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
   const QUICK = ['How do I clone to next month?', 'How do I import from Zoho?', 'How does the editorial board work?']
 
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-portal-border shadow-2xl z-40 flex flex-col">
+    <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-portal-border shadow-md z-40 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0"
+      <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border shrink-0"
         style={{ backgroundColor: 'var(--color-sidebar)' }}>
         <div className="flex items-center gap-2">
           <MessageSquare size={16} className="text-white/70" />
@@ -282,7 +282,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
         {messages.map((msg, i) => (
           <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             <div className={cn(
-              'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
+              'max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed',
               msg.role === 'user'
                 ? 'bg-portal-navy text-white rounded-br-sm'
                 : 'bg-gray-100 text-portal-text rounded-bl-sm'
@@ -304,7 +304,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3.5 py-2.5 flex items-center gap-2">
+            <div className="bg-gray-100 rounded-lg rounded-bl-sm px-3.5 py-2.5 flex items-center gap-2">
               <Loader2 size={13} className="text-portal-muted animate-spin" />
               <span className="text-xs text-portal-muted">Thinking…</span>
             </div>
@@ -326,7 +326,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
       )}
 
       {/* Input */}
-      <div className="px-3 pb-3 shrink-0 border-t border-gray-100 pt-3">
+      <div className="px-3 pb-3 shrink-0 border-t border-portal-border pt-3">
         <div className="flex items-center gap-2 bg-portal-bg border border-portal-border rounded-xl px-3 py-2">
           <input
             ref={inputRef}
@@ -378,8 +378,8 @@ function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }
   }
 
   return (
-    <div className="absolute right-0 top-10 w-56 bg-white rounded-2xl border border-portal-border shadow-2xl z-50 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100">
+    <div className="absolute right-0 top-10 w-56 bg-white rounded-lg border border-portal-border shadow-md z-50 overflow-hidden">
+      <div className="px-4 py-3 border-b border-portal-border">
         <div className="text-sm font-semibold text-portal-text truncate">
           {me?.fullName || me?.email?.split('@')[0] || '—'}
         </div>
@@ -402,7 +402,7 @@ function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }
           Help Center
         </Link>
       </div>
-      <div className="border-t border-gray-100 py-1">
+      <div className="border-t border-portal-border py-1">
         <button
           onClick={signOut}
           disabled={signingOut}

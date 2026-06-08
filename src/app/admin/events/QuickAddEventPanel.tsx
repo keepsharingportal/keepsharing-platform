@@ -222,7 +222,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   return (
     <form
       onSubmit={submit}
-      className="bg-portal-blue-lt/40 border-b border-portal-blue/20 px-6 py-5"
+      className="bg-portal-bg border-b border-portal-border px-6 py-5"
     >
       <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2">
@@ -426,7 +426,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               matches inline, and the operator can override with "Add anyway"
               if they're sure this is a different event. */}
           {duplicates.length > 0 && (
-            <div className="rounded-xl bg-portal-amber-lt ring-1 ring-amber-200 p-3">
+            <div className="rounded-xl bg-portal-amber-lt border border-portal-amber/30 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle size={14} className="text-portal-amber shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">

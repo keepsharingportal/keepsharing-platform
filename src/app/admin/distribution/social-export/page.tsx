@@ -324,7 +324,7 @@ export default async function SocialExportPage({
       </div>
 
       {/* ── Safety notice ────────────────────────────────────────────────── */}
-      <div className="bg-purple-50 border border-purple-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+      <div className="bg-purple-50 border border-purple-200 rounded-lg px-5 py-4 flex items-start gap-3">
         <span className="text-lg mt-0.5">🔒</span>
         <div>
           <p className="text-sm font-semibold text-purple-900 mb-0.5">No automatic posting — operator action required</p>
@@ -344,7 +344,7 @@ export default async function SocialExportPage({
           { label: 'Exported',         val: counts.exported,color: '#2563eb' },
           { label: 'Promoted',         val: counts.promoted, color: '#7c3aed' },
         ] as const).map(({ label, val, color }) => (
-          <div key={label} className="bg-white border border-gray-100 rounded-xl px-4 py-3 text-center">
+          <div key={label} className="bg-white border border-portal-border rounded-xl px-4 py-3 text-center">
             <p className="text-2xl font-bold" style={{ color }}>{val}</p>
             <p className="text-[11px] text-portal-muted mt-0.5">{label}</p>
           </div>
@@ -376,7 +376,7 @@ export default async function SocialExportPage({
       {/* ── Item cards ───────────────────────────────────────────────────── */}
       <div className="space-y-4">
         {filtered.length === 0 && (
-          <div className="bg-white border border-gray-100 rounded-2xl px-6 py-12 text-center">
+          <div className="bg-white border border-portal-border rounded-lg px-6 py-12 text-center">
             <p className="text-portal-muted text-sm">No items in this filter.</p>
             <p className="text-[11px] text-portal-muted mt-1">
               Approve posts for social in the <Link href="/admin/editorial/approval" className="text-indigo-500 hover:underline">Approval Desk</Link>.
@@ -396,7 +396,7 @@ export default async function SocialExportPage({
           return (
             <div
               key={item.id}
-              className="bg-white border border-gray-100 rounded-2xl overflow-hidden"
+              className="bg-white border border-portal-border rounded-lg overflow-hidden"
               style={{ borderLeft: `3px solid ${accent}` }}
             >
               {/* Card header */}
@@ -552,7 +552,7 @@ export default async function SocialExportPage({
           </div>
 
           {/* CSV */}
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold text-portal-sub">CSV — Spreadsheet / Import Format</h3>
@@ -571,7 +571,7 @@ export default async function SocialExportPage({
           </div>
 
           {/* GHL */}
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold text-portal-sub">GHL Social Planner Format</h3>
@@ -590,7 +590,7 @@ export default async function SocialExportPage({
           </div>
 
           {/* Reminder */}
-          <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-5 py-4">
             <p className="text-xs font-bold text-portal-amber mb-1">After pasting into GHL:</p>
             <ol className="text-xs text-portal-amber space-y-0.5 list-decimal list-inside">
               <li>Verify caption, date, and channel in GHL before scheduling.</li>
@@ -603,7 +603,7 @@ export default async function SocialExportPage({
 
       {/* ── Empty state (no items at all) ────────────────────────────────── */}
       {allItems.length === 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl px-6 py-16 text-center">
+        <div className="bg-white border border-portal-border rounded-lg px-6 py-16 text-center">
           <p className="text-2xl mb-3">📱</p>
           <p className="text-portal-sub font-semibold text-sm mb-1">No approved social posts yet</p>
           <p className="text-xs text-portal-muted">

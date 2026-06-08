@@ -234,7 +234,7 @@ export default function SummerGuideImportPage() {
       {/* Upload zone */}
       {!parsed && (
         <div
-          className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
+          className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
             dragging ? 'border-blue-400 bg-blue-400/10' : 'border-white/15 hover:border-white/30 hover:bg-white/3'
           }`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
@@ -283,7 +283,7 @@ export default function SummerGuideImportPage() {
           )}
 
           {/* Preview table */}
-          <div className="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
+          <div className="bg-white/3 border border-white/10 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-white/8 flex items-center justify-between">
               <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Preview</span>
               <span className="text-xs text-white/30">Showing {displayRows.length} of {parsed.rows.length}</span>
@@ -373,7 +373,7 @@ export default function SummerGuideImportPage() {
             </div>
           )}
 
-          <div className="bg-white/3 border border-white/10 rounded-2xl overflow-hidden">
+          <div className="bg-white/3 border border-white/10 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-white/8">
               <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Row Results</span>
             </div>

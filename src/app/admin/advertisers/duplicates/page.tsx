@@ -119,7 +119,7 @@ export default async function DuplicatesPage({ searchParams }: Props) {
             is 'Advertisers' so the editor sees paid-customer dups first;
             she can switch to Directory-only when she's ready to clean
             that bigger pile. Cross-kind merges aren't offered. */}
-        <div className="bg-white rounded-2xl border border-portal-border px-4 py-3 flex items-center gap-2 flex-wrap">
+        <div className="bg-white rounded-lg border border-portal-border px-4 py-3 flex items-center gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-wider font-bold text-portal-muted">View:</span>
           {([
             { k: 'advertiser',     label: 'Advertisers',    count: advertiserClusters.length, tone: 'bg-portal-navy'  },
@@ -163,7 +163,7 @@ export default async function DuplicatesPage({ searchParams }: Props) {
         </div>
 
         {clusters.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-portal-border p-8 text-center">
+          <div className="bg-white rounded-lg border border-portal-border p-8 text-center">
             <CheckCircle2 size={28} className="mx-auto mb-3 text-emerald-500" />
             <p className="text-sm font-semibold text-portal-text">No duplicate clusters found</p>
             <p className="text-xs text-portal-sub mt-1">
@@ -219,7 +219,7 @@ function SummaryTile({ label, value, icon: Icon, tone }: {
     tone === 'warn' ? 'text-portal-amber'   :
                       'text-portal-text'
   return (
-    <div className="bg-white border border-portal-border rounded-2xl px-4 py-3">
+    <div className="bg-white border border-portal-border rounded-lg px-4 py-3">
       <div className="flex items-center gap-2 mb-1">
         <Icon size={12} className="text-portal-muted" />
         <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">{label}</span>

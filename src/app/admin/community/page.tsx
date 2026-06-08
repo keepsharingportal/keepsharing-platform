@@ -229,7 +229,7 @@ export default async function AdminCommunityPage({
           { label: 'In Editing',  val: inEditing,  color: '#c4622d' },
           { label: 'Published',   val: published,  color: '#64748b' },
         ].map(m => (
-          <div key={m.label} className="bg-white border border-gray-100 rounded-xl px-4 py-3">
+          <div key={m.label} className="bg-white border border-portal-border rounded-xl px-4 py-3">
             <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
             <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
           </div>
@@ -305,7 +305,7 @@ export default async function AdminCommunityPage({
 
       {/* ── SUBMISSION LIST ──────────────────────────────────────────────── */}
       {subs.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
+        <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
           <div className="text-5xl mb-4">📭</div>
           <p className="text-portal-sub font-medium">
             {total === 0 ? 'No community submissions yet.' : 'No submissions match the current filters.'}
@@ -328,7 +328,7 @@ export default async function AdminCommunityPage({
             return (
               <div
                 key={sub.id}
-                className="bg-white border border-gray-100 rounded-2xl overflow-hidden"
+                className="bg-white border border-portal-border rounded-lg overflow-hidden"
                 style={{ borderLeft: `4px solid ${accent}` }}
               >
                 <div className="px-5 py-4">

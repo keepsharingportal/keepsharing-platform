@@ -95,7 +95,7 @@ export default function GuidesPage() {
                           </span>
                         )}
                         {urgentSoon && (
-                          <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded-full ring-1 ring-amber-200 font-semibold">
+                          <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded-full border border-portal-amber/30 font-semibold">
                             Up next
                           </span>
                         )}
@@ -110,7 +110,7 @@ export default function GuidesPage() {
                   {/* Category tags */}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {guide.topCategories.slice(0, 3).map((cat) => (
-                      <span key={cat} className="text-[10px] px-1.5 py-0.5 rounded bg-portal-bg text-portal-sub border border-gray-100">
+                      <span key={cat} className="text-[10px] px-1.5 py-0.5 rounded bg-portal-bg text-portal-sub border border-portal-border">
                         {cat}
                       </span>
                     ))}
