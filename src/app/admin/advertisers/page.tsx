@@ -14,11 +14,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { normalize, findClusters, type DupCandidate } from '@/lib/advertisers/dedup'
 import {
-  Plus, Search, ChevronLeft, ChevronRight, Megaphone, DollarSign,
-  Mail, Phone, Star, Download, Table2, AlertTriangle, ArrowRight,
+  Plus, Search, ChevronLeft, ChevronRight, DollarSign,
+  Download, Table2, AlertTriangle, ArrowRight,
 } from 'lucide-react'
+import { BusinessesTableClient, type BusinessRow } from './BusinessesTableClient'
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 50
 const TABS = ['Active Advertisers', 'Pipeline', 'Duplicates']
 
 // Lifecycle taxonomy — splits the universe into Active vs Inactive vs
@@ -28,7 +29,7 @@ const ACTIVE_STAGES   = new Set(['active', 'renewal', 'upgrade-ready', 'sponsor-
 const INACTIVE_STAGES = new Set(['dormant', 'reactivation', 'churned', 'lost'])
 
 interface Props {
-  searchParams: Promise<{ page?: string; q?: string; status?: string }>
+  searchParams: Promise<{ page?: string; q?: string; status?: string; sort?: string }>
 }
 
 export const metadata: Metadata = { title: 'Advertisers — Admin' }
@@ -40,6 +41,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   const page         = Math.max(1, parseInt(params.page ?? '1', 10))
   const query        = params.q?.trim() ?? ''
   const statusFilter = (params.status ?? 'active') as 'active' | 'inactive' | 'all'
+  const sort         = (params.sort   ?? 'active') as 'active' | 'name'
 
   const supabase = createAdminClient()
 
@@ -117,6 +119,9 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     if (statusFilter === 'inactive' && !INACTIVE_STAGES.has(stage)) return false
     return true
   }).sort((a, b) => {
+    if (sort === 'name') return a.business_name.localeCompare(b.business_name)
+    // Default: most-active first (most engaged businesses up top), then
+    // alphabetical as the tiebreak.
     if (b.activePlacements !== a.activePlacements) return b.activePlacements - a.activePlacements
     return a.business_name.localeCompare(b.business_name)
   })
@@ -133,10 +138,22 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   const totalRevenue  = filtered.reduce((s, a) => s + a.monthlyRevenue, 0)
   const totalAdvertisers = filtered.length
 
-  const buildHref  = (p: number) =>
-    `/admin/advertisers?page=${p}${query ? `&q=${encodeURIComponent(query)}` : ''}${statusFilter !== 'active' ? `&status=${statusFilter}` : ''}`
-  const statusHref = (s: 'active' | 'inactive' | 'all') =>
-    `/admin/advertisers${query ? `?q=${encodeURIComponent(query)}` : ''}${s !== 'active' ? `${query ? '&' : '?'}status=${s}` : ''}`
+  function makeHref(overrides: Partial<{ page: number; q: string; status: 'active' | 'inactive' | 'all'; sort: 'active' | 'name' }>): string {
+    const sp = new URLSearchParams()
+    const p = overrides.page    ?? page
+    const q = overrides.q       ?? query
+    const s = overrides.status  ?? statusFilter
+    const o = overrides.sort    ?? sort
+    if (p !== 1)        sp.set('page',   String(p))
+    if (q)              sp.set('q',      q)
+    if (s !== 'active') sp.set('status', s)
+    if (o !== 'active') sp.set('sort',   o)
+    const qs = sp.toString()
+    return `/admin/advertisers${qs ? '?' + qs : ''}`
+  }
+  const buildHref  = (p: number) => makeHref({ page: p })
+  const statusHref = (s: 'active' | 'inactive' | 'all') => makeHref({ status: s, page: 1 })
+  const sortHref   = (o: 'active' | 'name') => makeHref({ sort: o, page: 1 })
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -222,7 +239,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
         </div>
       )}
 
-      {/* ── Search + status chips + totals ──────────────── */}
+      {/* ── Search + status chips + sort + totals ──────── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
         <div className="flex items-center gap-1">
           {(['active', 'inactive', 'all'] as const).map(s => {
@@ -246,11 +263,30 @@ export default async function AdvertisersPage({ searchParams }: Props) {
             type="text"
             name="q"
             defaultValue={query}
-            placeholder="Search advertisers…"
+            placeholder="Search businesses…"
             className="w-full text-sm pl-9 pr-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
           />
           {statusFilter !== 'active' && <input type="hidden" name="status" value={statusFilter} />}
+          {sort !== 'active' && <input type="hidden" name="sort" value={sort} />}
         </form>
+
+        {/* Sort toggle — 'Active' for daily use (most engaged up top),
+            'Name' for cleanup passes where alphabetical scan finds dups. */}
+        <div className="inline-flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold">
+          <a
+            href={sortHref('active')}
+            className={`px-3 py-1.5 ${sort === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Sort: Active
+          </a>
+          <a
+            href={sortHref('name')}
+            className={`px-3 py-1.5 border-l border-gray-200 ${sort === 'name' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            Sort: Name A→Z
+          </a>
+        </div>
+
         <div className="text-sm text-gray-600 inline-flex items-center gap-3">
           <span className="inline-flex items-center gap-1 font-semibold text-gray-900">
             <DollarSign size={13} /> ${totalRevenue.toLocaleString()} /mo
@@ -262,73 +298,10 @@ export default async function AdvertisersPage({ searchParams }: Props) {
 
       {/* ── List ──────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
-        {paginated.length === 0 ? (
-          <div className="p-12 text-center text-sm text-gray-500">
-            {query ? <>No advertisers match &quot;{query}&quot;.</> : 'No advertisers in this view.'}
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
-              <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
-                <th className="px-6 py-3 font-semibold">Business</th>
-                <th className="px-4 py-3 font-semibold">Primary contact</th>
-                <th className="px-4 py-3 font-semibold">Stage</th>
-                <th className="px-4 py-3 font-semibold text-right">Active ads</th>
-                <th className="px-4 py-3 font-semibold text-right">Monthly</th>
-                <th className="px-4 py-3 font-semibold">Contract</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map(a => (
-                <tr key={a.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3">
-                    <Link href={`/admin/advertisers/${a.id}`} className="font-bold text-gray-900 hover:text-primary inline-flex items-center gap-1.5">
-                      {a.business_name}
-                    </Link>
-                    {a.loyalty_tier && (
-                      <span className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
-                        <Star size={9} className="fill-amber-500 text-amber-500" /> {a.loyalty_tier}
-                      </span>
-                    )}
-                    {a.package_tier && (
-                      <span className="ml-2 text-[10px] text-gray-500">{a.package_tier}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {a.contact_name && <p className="font-semibold text-gray-900">{a.contact_name}</p>}
-                    {a.contact_email && (
-                      <a href={`mailto:${a.contact_email}`} className="text-primary hover:underline inline-flex items-center gap-0.5">
-                        <Mail size={10} /> {a.contact_email}
-                      </a>
-                    )}
-                    {a.contact_phone && (
-                      <p className="text-gray-500 inline-flex items-center gap-0.5"><Phone size={10} /> {a.contact_phone}</p>
-                    )}
-                    {!a.contact_name && !a.contact_email && !a.contact_phone && <span className="text-gray-400">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    <StageBadge stage={a.lifecycle_stage} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className={`inline-flex items-center gap-1 text-xs font-bold tabular-nums ${a.activePlacements > 0 ? 'text-emerald-700' : 'text-gray-400'}`}>
-                      <Megaphone size={11} /> {a.activePlacements}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-xs">
-                    {a.monthlyRevenue > 0 ? (
-                      <span className="font-bold text-gray-900">${a.monthlyRevenue.toLocaleString()}</span>
-                    ) : <span className="text-gray-400">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
-                    {a.contract_start_date || a.contract_end_date ? (
-                      <span>{fmtDate(a.contract_start_date)} → {fmtDate(a.contract_end_date)}</span>
-                    ) : <span className="text-gray-400">—</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <BusinessesTableClient
+          rows={paginated as unknown as BusinessRow[]}
+          query={query}
+        />
       </div>
 
       {/* ── Pagination ────────────────────────────────────── */}
@@ -359,31 +332,3 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   )
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtDate(d: string | null): string {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
-}
-
-const STAGE_LABELS: Record<string, { label: string; cls: string }> = {
-  'lead':              { label: 'Lead',             cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
-  'consultation':      { label: 'Consultation',     cls: 'bg-sky-100 text-sky-800 ring-sky-200' },
-  'proposal':          { label: 'Proposal',         cls: 'bg-violet-100 text-violet-800 ring-violet-200' },
-  'onboarding':        { label: 'Onboarding',       cls: 'bg-amber-100 text-amber-800 ring-amber-200' },
-  'active':            { label: 'Active',           cls: 'bg-emerald-100 text-emerald-800 ring-emerald-200' },
-  'renewal':           { label: 'Renewal',          cls: 'bg-amber-100 text-amber-800 ring-amber-200' },
-  'upgrade-ready':     { label: 'Upgrade Ready',    cls: 'bg-violet-100 text-violet-800 ring-violet-200' },
-  'sponsor-qualified': { label: 'Sponsor Qualified', cls: 'bg-emerald-100 text-emerald-800 ring-emerald-200' },
-  'dormant':           { label: 'Dormant',          cls: 'bg-rose-100 text-rose-700 ring-rose-200' },
-  'reactivation':      { label: 'Reactivation',     cls: 'bg-amber-100 text-amber-800 ring-amber-200' },
-}
-function StageBadge({ stage }: { stage: string | null }) {
-  if (!stage) return <span className="text-gray-400">—</span>
-  const meta = STAGE_LABELS[stage] ?? { label: stage, cls: 'bg-gray-100 text-gray-700 ring-gray-200' }
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ring-1 ${meta.cls}`}>
-      {meta.label}
-    </span>
-  )
-}
