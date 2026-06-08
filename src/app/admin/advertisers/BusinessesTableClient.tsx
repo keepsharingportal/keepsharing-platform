@@ -9,7 +9,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Mail, Phone, Megaphone, Star, Trash2, X, RefreshCw, AlertTriangle, GitMerge, Loader2,
+  Megaphone, Star, Trash2, X, RefreshCw, AlertTriangle, GitMerge, Loader2,
 } from 'lucide-react'
 
 export interface BusinessRow {
@@ -43,16 +43,18 @@ interface Props {
   query?: string
 }
 
+// Portal badge palette — light bg + matching dark text. Mirrors the
+// portal.css .badge-* classes (green/amber/red/blue/gray).
 const LIFECYCLE_BADGE: Record<string, { className: string; label: string }> = {
-  active:       { className: 'bg-emerald-100 text-emerald-800', label: 'Active' },
-  renewal:      { className: 'bg-amber-100 text-amber-800',     label: 'Renewal' },
-  upgrade:      { className: 'bg-violet-100 text-violet-800',   label: 'Upgrade' },
-  onboarding:   { className: 'bg-sky-100 text-sky-800',         label: 'Onboarding' },
-  lead:         { className: 'bg-gray-100 text-gray-700',       label: 'Lead' },
-  consultation: { className: 'bg-blue-100 text-blue-800',       label: 'Consultation' },
-  proposal:     { className: 'bg-indigo-100 text-indigo-800',   label: 'Proposal' },
-  dormant:      { className: 'bg-rose-100 text-rose-700',       label: 'Dormant' },
-  churned:      { className: 'bg-rose-100 text-rose-700',       label: 'Churned' },
+  active:       { className: 'bg-[#DCFCE7] text-[#166534]', label: 'Active' },
+  renewal:      { className: 'bg-[#FEF3C7] text-[#92400E]', label: 'Renewal' },
+  upgrade:      { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Upgrade' },
+  onboarding:   { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Onboarding' },
+  lead:         { className: 'bg-[#F1F5F9] text-[#64748B]', label: 'Lead' },
+  consultation: { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Consultation' },
+  proposal:     { className: 'bg-[#DBEAFE] text-[#1A5FA8]', label: 'Proposal' },
+  dormant:      { className: 'bg-[#FEE2E2] text-[#991B1B]', label: 'Dormant' },
+  churned:      { className: 'bg-[#FEE2E2] text-[#991B1B]', label: 'Churned' },
 }
 
 function fmtDate(d: string | null): string {
@@ -195,10 +197,10 @@ export function BusinessesTableClient({ rows, query }: Props) {
 
   return (
     <>
-      {/* ── Bulk action bar ──────────────────────────────── */}
+      {/* ── Bulk action bar (Portal: navy strip) ───────── */}
       {selected.size > 0 && (
-        <div className="bg-gray-900 text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10">
-          <span className="text-sm font-bold">
+        <div className="bg-[#1E3A5F] text-white px-6 py-2.5 flex items-center justify-between flex-wrap gap-2 sticky top-0 z-10">
+          <span className="text-[13px] font-semibold">
             {selected.size} {selected.size === 1 ? 'business' : 'businesses'} selected
           </span>
           <div className="flex items-center gap-2">
@@ -207,7 +209,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
               onClick={onMergeClicked}
               disabled={busy || merging || selected.size < 2}
               title={selected.size < 2 ? 'Pick at least 2 rows to merge' : 'Merge selected into one survivor'}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 rounded-lg disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold bg-[#D97706] hover:opacity-90 rounded-lg disabled:opacity-40"
             >
               <GitMerge size={12} /> Merge selected
             </button>
@@ -215,14 +217,14 @@ export function BusinessesTableClient({ rows, query }: Props) {
               type="button"
               onClick={onDeleteClicked}
               disabled={busy || deleting}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 rounded-lg disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold bg-[#DC2626] hover:opacity-90 rounded-lg disabled:opacity-40"
             >
               <Trash2 size={12} /> Delete selected
             </button>
             <button
               type="button"
               onClick={clear}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-lg"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold bg-white/10 hover:bg-white/20 rounded-lg"
             >
               <X size={12} /> Clear
             </button>
@@ -231,16 +233,16 @@ export function BusinessesTableClient({ rows, query }: Props) {
       )}
 
       {error && (
-        <div className="bg-rose-50 border-b border-rose-200 px-6 py-2 text-sm text-rose-800 inline-flex items-center gap-2">
+        <div className="bg-[#FEE2E2] border-b border-[#FCA5A5] px-6 py-2.5 text-[13px] text-[#991B1B] inline-flex items-center gap-2">
           <AlertTriangle size={13} /> {error}
         </div>
       )}
 
-      {/* ── Table ────────────────────────────────────────── */}
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
-          <tr className="text-left text-[11px] uppercase tracking-wider text-gray-600">
-            <th className="px-4 py-3 font-semibold w-8">
+      {/* ── Table (Portal: .data-table) ──────────────── */}
+      <table className="w-full text-[13px]">
+        <thead className="bg-[#F8FAFC] sticky top-0 border-b-2 border-[#E2E8F0]">
+          <tr className="text-left text-[11px] uppercase tracking-[0.4px] text-[#64748B]">
+            <th className="px-3 py-2.5 font-semibold w-8">
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -250,12 +252,11 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 className="cursor-pointer"
               />
             </th>
-            <th className="px-4 py-3 font-semibold">Business</th>
-            <th className="px-4 py-3 font-semibold">Primary contact</th>
-            <th className="px-4 py-3 font-semibold">Stage</th>
-            <th className="px-4 py-3 font-semibold text-right">Active ads</th>
-            <th className="px-4 py-3 font-semibold text-right">Monthly</th>
-            <th className="px-4 py-3 font-semibold">Contract</th>
+            <th className="px-3 py-2.5 font-semibold">Business</th>
+            <th className="px-3 py-2.5 font-semibold">Stage</th>
+            <th className="px-3 py-2.5 font-semibold text-right">Active ads</th>
+            <th className="px-3 py-2.5 font-semibold text-right">Monthly</th>
+            <th className="px-3 py-2.5 font-semibold">Contract</th>
           </tr>
         </thead>
         <tbody>
@@ -264,9 +265,9 @@ export function BusinessesTableClient({ rows, query }: Props) {
             return (
               <tr
                 key={a.id}
-                className={`border-b border-gray-100 ${isSelected ? 'bg-amber-50/60' : 'hover:bg-gray-50'}`}
+                className={`border-b border-[#E2E8F0] ${isSelected ? 'bg-[#DBEAFE]/40' : 'hover:bg-[#F8FAFC]'}`}
               >
-                <td className="px-4 py-3 w-8">
+                <td className="px-3 py-2.5 w-8">
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -275,51 +276,39 @@ export function BusinessesTableClient({ rows, query }: Props) {
                     className="cursor-pointer"
                   />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 py-2.5">
                   <Link
                     href={`/admin/advertisers/${a.id}`}
-                    className="font-bold text-gray-900 hover:text-primary inline-flex items-center gap-1.5"
+                    className="font-semibold text-[#1E293B] hover:text-[#1A5FA8] inline-flex items-center gap-1.5"
                   >
                     {a.business_name}
                   </Link>
                   {a.loyalty_tier && (
-                    <span className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
-                      <Star size={9} className="fill-amber-500 text-amber-500" /> {a.loyalty_tier}
+                    <span className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#92400E]">
+                      <Star size={9} className="fill-[#D97706] text-[#D97706]" /> {a.loyalty_tier}
                     </span>
                   )}
                   {a.package_tier && (
-                    <span className="ml-2 text-[10px] text-gray-500">{a.package_tier}</span>
+                    <span className="ml-2 text-[10px] text-[#94A3B8]">{a.package_tier}</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-xs">
-                  {a.contact_name && <p className="font-semibold text-gray-900">{a.contact_name}</p>}
-                  {a.contact_email && (
-                    <a href={`mailto:${a.contact_email}`} className="text-primary hover:underline inline-flex items-center gap-0.5">
-                      <Mail size={10} /> {a.contact_email}
-                    </a>
-                  )}
-                  {a.contact_phone && (
-                    <p className="text-gray-500 inline-flex items-center gap-0.5"><Phone size={10} /> {a.contact_phone}</p>
-                  )}
-                  {!a.contact_name && !a.contact_email && !a.contact_phone && <span className="text-gray-400">—</span>}
-                </td>
-                <td className="px-4 py-3 text-xs">
+                <td className="px-3 py-2.5">
                   <StageBadge stage={a.lifecycle_stage} />
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`inline-flex items-center gap-1 text-xs font-bold tabular-nums ${a.activePlacements > 0 ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <td className="px-3 py-2.5 text-right">
+                  <span className={`inline-flex items-center gap-1 text-[12px] font-semibold tabular-nums ${a.activePlacements > 0 ? 'text-[#166534]' : 'text-[#94A3B8]'}`}>
                     <Megaphone size={11} /> {a.activePlacements}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums text-xs">
+                <td className="px-3 py-2.5 text-right tabular-nums text-[12px]">
                   {a.monthlyRevenue > 0 ? (
-                    <span className="font-bold text-gray-900">${a.monthlyRevenue.toLocaleString()}</span>
-                  ) : <span className="text-gray-400">—</span>}
+                    <span className="font-semibold text-[#1E293B]">${a.monthlyRevenue.toLocaleString()}</span>
+                  ) : <span className="text-[#94A3B8]">—</span>}
                 </td>
-                <td className="px-4 py-3 text-xs text-gray-600">
+                <td className="px-3 py-2.5 text-[12px] text-[#64748B]">
                   {a.contract_start_date || a.contract_end_date ? (
                     <span>{fmtDate(a.contract_start_date)} → {fmtDate(a.contract_end_date)}</span>
-                  ) : <span className="text-gray-400">—</span>}
+                  ) : <span className="text-[#94A3B8]">—</span>}
                 </td>
               </tr>
             )
@@ -531,9 +520,9 @@ function CascadeLine({ label, value }: { label: string; value: number | null }) 
 }
 
 function StageBadge({ stage }: { stage: string | null }) {
-  const cfg = LIFECYCLE_BADGE[stage ?? ''] ?? { className: 'bg-gray-100 text-gray-700', label: stage ?? '—' }
+  const cfg = LIFECYCLE_BADGE[stage ?? ''] ?? { className: 'bg-[#F1F5F9] text-[#64748B]', label: stage ?? '—' }
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.className}`}>
+    <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.className}`}>
       {cfg.label}
     </span>
   )

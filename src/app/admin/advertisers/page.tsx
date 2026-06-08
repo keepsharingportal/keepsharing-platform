@@ -12,10 +12,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
-import { normalize, findClusters, type DupCandidate } from '@/lib/advertisers/dedup'
 import {
-  Plus, Search, ChevronLeft, ChevronRight, DollarSign,
-  Download, Table2, AlertTriangle, ArrowRight,
+  Plus, Search, ChevronLeft, ChevronRight,
+  Download, Table2,
 } from 'lucide-react'
 import { BusinessesTableClient, type BusinessRow } from './BusinessesTableClient'
 import { DirectoryCleanupBanner } from './DirectoryCleanupBanner'
@@ -108,23 +107,6 @@ export default async function AdvertisersPage({ searchParams }: Props) {
   // banner shows the count relevant to the CURRENT filter — counting
   // directory-only dups here when she's viewing 'Advertisers' would
   // be misleading noise.
-  function candidatesForKind(kind: 'advertiser' | 'directory_only'): DupCandidate[] {
-    return accounts
-      .filter(a => (a.kind ?? 'directory_only') === kind)
-      .map(a => ({
-        id:            a.id,
-        business_name: a.business_name,
-        slug:          a.slug ?? '',
-        tokens:        normalize(a.business_name),
-      }))
-  }
-  const dupClustersAdvertiser = findClusters(candidatesForKind('advertiser')).length
-  const dupClustersDirectory  = findClusters(candidatesForKind('directory_only')).length
-  const dupClusterCount =
-    kindFilter === 'advertiser'     ? dupClustersAdvertiser  :
-    kindFilter === 'directory_only' ? dupClustersDirectory   :
-                                      dupClustersAdvertiser + dupClustersDirectory
-
   // Search + status + kind filter applied in memory.
   const filtered = decorated.filter(a => {
     if (query && !a.business_name.toLowerCase().includes(query.toLowerCase())) return false
@@ -144,23 +126,14 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     return a.business_name.localeCompare(b.business_name)
   })
 
-  // Per-tab counts for the chips above the table.
-  const counts = {
-    active:   decorated.filter(a => ACTIVE_STAGES.has(a.lifecycle_stage ?? '')).length,
-    inactive: decorated.filter(a => INACTIVE_STAGES.has(a.lifecycle_stage ?? '')).length,
-    all:      decorated.length,
-  }
-  // Per-kind counts (use the same query but bypass the kind filter so the
-  // chips always show absolute totals regardless of which is active).
+  // Kept for the DirectoryCleanupBanner — surfaces 'how many directory
+  // rows can I retire?' when the editor lands on ?kind=directory_only.
   const kindCounts = {
-    advertiser:     decorated.filter(a => (a.kind ?? 'directory_only') === 'advertiser').length,
     directory_only: decorated.filter(a => (a.kind ?? 'directory_only') === 'directory_only').length,
-    all:            decorated.length,
   }
 
   const totalPages    = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated     = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const totalRevenue  = filtered.reduce((s, a) => s + a.monthlyRevenue, 0)
   const totalAdvertisers = filtered.length
 
   function makeHref(overrides: Partial<{
@@ -184,43 +157,41 @@ export default async function AdvertisersPage({ searchParams }: Props) {
     return `/admin/advertisers${qs ? '?' + qs : ''}`
   }
   const buildHref  = (p: number) => makeHref({ page: p })
-  const statusHref = (s: 'active' | 'inactive' | 'all') => makeHref({ status: s, page: 1 })
   const sortHref   = (o: 'active' | 'name') => makeHref({ sort: o, page: 1 })
-  const kindHref   = (k: 'advertiser' | 'directory_only' | 'all') => makeHref({ kind: k, page: 1 })
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
 
-      {/* ── Page Header ──────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
+      {/* ── Page header (Portal: .page-header) ──────────── */}
+      <div className="bg-white border-b border-[#E2E8F0] px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Advertisers</h1>
-          <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full ring-1 ring-blue-200">
+          <h1 className="text-[18px] font-bold text-[#1E293B]">Advertisers</h1>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
             {totalAdvertisers} {totalAdvertisers === 1 ? 'business' : 'businesses'}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Link href="/admin/import" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/import" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             <Download size={14} /> Import
           </Link>
-          <Link href="/admin/advertisers/layout-sheet" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/advertisers/layout-sheet" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             <Table2 size={14} /> Layout Sheet
           </Link>
-          <Link href="/admin/advertisers/onboarding" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/advertisers/onboarding" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             Onboarding
           </Link>
-          <Link href="/admin/advertisers/proposals" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/advertisers/proposals" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             Proposals
           </Link>
-          <Link href="/admin/advertisers/sponsor-inventory" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/advertisers/sponsor-inventory" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             Sponsor Inventory
           </Link>
-          <Link href="/admin/advertisers/partner-ops" className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <Link href="/admin/advertisers/partner-ops" className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded-lg hover:bg-[#F1F5F9]">
             Partner Ops
           </Link>
           <Link
             href="/admin/advertisers/new"
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-[#1E3A5F] rounded-lg hover:opacity-90"
           >
             <Plus size={14} /> Add Advertiser
           </Link>
@@ -228,7 +199,7 @@ export default async function AdvertisersPage({ searchParams }: Props) {
       </div>
 
       {/* ── Tabs ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 px-6 shrink-0">
+      <div className="bg-white border-b border-[#E2E8F0] px-6 shrink-0">
         <div className="flex items-center gap-1">
           {TABS.map(tab => {
             const href = tab === 'Active Advertisers' ? '/admin/advertisers'
@@ -236,10 +207,10 @@ export default async function AdvertisersPage({ searchParams }: Props) {
               :                                         '/admin/advertisers/duplicates'
             return (
               <a key={tab} href={href}
-                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                className={`px-4 py-3 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
                   tab === 'Active Advertisers'
-                    ? 'text-blue-600 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                    ? 'text-[#1A5FA8] border-[#1A5FA8]'
+                    : 'text-[#64748B] hover:text-[#1E293B] border-transparent hover:border-[#CBD5E1]'
                 }`}>
                 {tab}
               </a>
@@ -248,124 +219,42 @@ export default async function AdvertisersPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* ── Duplicate cleanup nag ────────────────────────
-          Surfaced here because every dup cluster turns into a 'fuzzy
-          match' prompt in the CSV importer every month. Cleaning these
-          once saves the editor that friction permanently. */}
-      {dupClusterCount > 0 && (
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 shrink-0">
-          <Link
-            href={kindFilter === 'advertiser' ? '/admin/advertisers/duplicates' : `/admin/advertisers/duplicates?kind=${kindFilter}`}
-            className="flex items-center justify-between gap-3 group"
-          >
-            <div className="flex items-center gap-2 text-sm text-amber-900">
-              <AlertTriangle size={14} className="text-amber-700 shrink-0" />
-              <span>
-                <span className="font-bold">{dupClusterCount}</span> likely-duplicate cluster{dupClusterCount === 1 ? '' : 's'} found
-                <span className="text-amber-700"> — merge them to stop repeating &ldquo;use existing or create new?&rdquo; prompts every CSV import.</span>
-              </span>
-            </div>
-            <span className="text-xs font-bold text-amber-900 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all whitespace-nowrap">
-              Review &amp; merge <ArrowRight size={11} />
-            </span>
-          </Link>
-        </div>
-      )}
-
-      {/* ── Kind chips (Advertiser vs Directory-only vs All) ─────
-          Sits above the status row because it controls the bigger
-          'which slice of the database am I looking at' decision.
-          Default = Advertiser so the CRM view is paying customers,
-          not the hundreds of guide-only entries. */}
-      <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center gap-2 flex-wrap shrink-0">
-        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mr-1">View:</span>
-        {(['advertiser', 'directory_only', 'all'] as const).map(k => {
-          const on = kindFilter === k
-          const label =
-            k === 'advertiser'     ? 'Advertisers' :
-            k === 'directory_only' ? 'Directory only' :
-                                     'All'
-          const tone =
-            k === 'advertiser'     ? 'bg-primary'   :
-            k === 'directory_only' ? 'bg-gray-500'  :
-                                     'bg-gray-900'
-          return (
-            <a key={k} href={kindHref(k)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                on ? `${tone} text-white` : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
-              }`}>
-              {label}
-              <span className={`text-[10px] ${on ? 'opacity-80' : 'text-gray-400'}`}>{kindCounts[k]}</span>
-            </a>
-          )
-        })}
-        <span className="text-[10px] text-gray-400 ml-2 leading-tight">
-          Directory-only = listed in a guide but never a paid customer. Guide imports land here by default.
-        </span>
-      </div>
-
-      {/* Directory-only cleanup tool — shown only when the editor is
-          actually viewing directory rows. Surfaces the 'these are
-          orphans you can safely retire' move discoverably. */}
+      {/* Directory-only cleanup tool — only when actually viewing directory rows. */}
       {kindFilter === 'directory_only' && (
         <DirectoryCleanupBanner directoryCount={kindCounts.directory_only} />
       )}
 
-      {/* ── Search + status chips + sort + totals ──────── */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
-        <div className="flex items-center gap-1">
-          {(['active', 'inactive', 'all'] as const).map(s => {
-            const on = statusFilter === s
-            const label = s === 'active' ? 'Active' : s === 'inactive' ? 'Inactive' : 'All'
-            const tone = s === 'active' ? 'bg-emerald-600' : s === 'inactive' ? 'bg-gray-500' : 'bg-gray-900'
-            return (
-              <a key={s} href={statusHref(s)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                  on ? `${tone} text-white` : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}>
-                {label}
-                <span className={`text-[10px] ${on ? 'opacity-80' : 'text-gray-400'}`}>{counts[s]}</span>
-              </a>
-            )
-          })}
-        </div>
+      {/* ── Search + sort ─────────────────────────────── */}
+      <div className="bg-white border-b border-[#E2E8F0] px-6 py-3 flex items-center justify-between gap-3 flex-wrap shrink-0">
         <form className="flex-1 max-w-md relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
           <input
             type="text"
             name="q"
             defaultValue={query}
             placeholder="Search businesses…"
-            className="w-full text-sm pl-9 pr-3 py-2 border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+            className="w-full text-[13px] pl-9 pr-3 py-2 border border-[#CBD5E1] rounded-lg outline-none focus:border-[#1A5FA8] bg-white text-[#1E293B] placeholder:text-[#94A3B8]"
           />
+          {/* preserve non-default filter state on search */}
           {statusFilter !== 'active' && <input type="hidden" name="status" value={statusFilter} />}
           {sort !== 'active' && <input type="hidden" name="sort" value={sort} />}
           {kindFilter !== 'advertiser' && <input type="hidden" name="kind" value={kindFilter} />}
         </form>
 
-        {/* Sort toggle — 'Active' for daily use (most engaged up top),
-            'Name' for cleanup passes where alphabetical scan finds dups. */}
-        <div className="inline-flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold">
+        {/* Sort toggle */}
+        <div className="inline-flex rounded-lg border border-[#CBD5E1] overflow-hidden text-[12px] font-semibold">
           <a
             href={sortHref('active')}
-            className={`px-3 py-1.5 ${sort === 'active' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-3 py-1.5 ${sort === 'active' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-[#64748B] hover:bg-[#F1F5F9]'}`}
           >
             Sort: Active
           </a>
           <a
             href={sortHref('name')}
-            className={`px-3 py-1.5 border-l border-gray-200 ${sort === 'name' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-3 py-1.5 border-l border-[#CBD5E1] ${sort === 'name' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-[#64748B] hover:bg-[#F1F5F9]'}`}
           >
             Sort: Name A→Z
           </a>
-        </div>
-
-        <div className="text-sm text-gray-600 inline-flex items-center gap-3">
-          <span className="inline-flex items-center gap-1 font-semibold text-gray-900">
-            <DollarSign size={13} /> ${totalRevenue.toLocaleString()} /mo
-          </span>
-          <span className="text-gray-400">·</span>
-          <span>{totalAdvertisers} {totalAdvertisers === 1 ? 'business' : 'businesses'}</span>
         </div>
       </div>
 
@@ -379,22 +268,22 @@ export default async function AdvertisersPage({ searchParams }: Props) {
 
       {/* ── Pagination ────────────────────────────────────── */}
       {totalPages > 1 && (
-        <div className="bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-between text-xs">
-          <span className="text-gray-500">
+        <div className="bg-white border-t border-[#E2E8F0] px-6 py-3 flex items-center justify-between text-[12px] shrink-0">
+          <span className="text-[#64748B]">
             Page {page} of {totalPages} · {totalAdvertisers} businesses
           </span>
           <div className="flex items-center gap-1">
             <Link
               href={buildHref(Math.max(1, page - 1))}
               aria-disabled={page === 1}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 ${page === 1 ? 'opacity-40 pointer-events-none' : ''}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[#64748B] hover:bg-[#F1F5F9] ${page === 1 ? 'opacity-40 pointer-events-none' : ''}`}
             >
               <ChevronLeft size={12} /> Prev
             </Link>
             <Link
               href={buildHref(Math.min(totalPages, page + 1))}
               aria-disabled={page === totalPages}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 ${page === totalPages ? 'opacity-40 pointer-events-none' : ''}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[#64748B] hover:bg-[#F1F5F9] ${page === totalPages ? 'opacity-40 pointer-events-none' : ''}`}
             >
               Next <ChevronRight size={12} />
             </Link>

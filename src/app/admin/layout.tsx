@@ -1,7 +1,24 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
+import { DM_Sans, DM_Mono } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+
+// Match the Distribution Portal (portal.css) so admin pages share a
+// consistent typographic feel. Only loaded on admin routes; the public
+// site keeps Geist Sans.
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  weight:   ['400', '500', '600', '700'],
+  subsets:  ['latin'],
+  display:  'swap',
+})
+const dmMono = DM_Mono({
+  variable: '--font-dm-mono',
+  weight:   ['400', '500'],
+  subsets:  ['latin'],
+  display:  'swap',
+})
 
 export const metadata: Metadata = {
   title: 'KeepSharing Admin',
@@ -18,9 +35,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className={`${dmSans.variable} ${dmMono.variable} flex h-full overflow-hidden`}>
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden bg-[#f4f5f7]">
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#F1F5F9] font-[family-name:var(--font-dm-sans)] text-[#1E293B]">
         <AdminHeader />
         {children}
       </main>
