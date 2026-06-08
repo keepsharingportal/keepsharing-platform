@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   CheckCircle2, X, Plus, Link as LinkIcon, School, RefreshCw, ExternalLink,
   Settings, Camera, Upload, Calendar, Clock, Search, ChevronLeft, ChevronRight,
-  MoreVertical, ImageIcon, Trash2, RotateCcw, Pencil, Crop,
+  MoreVertical, ImageIcon, Trash2, RotateCcw, Pencil, Crop, Eye, MousePointerClick,
 } from 'lucide-react'
 import Cropper from 'react-easy-crop'
 import type { SchoolBitRow, SchoolOption } from './page'
@@ -45,6 +45,12 @@ const STATUS_FOR_TAB: Record<TabName, string> = {
 }
 
 const PAGE_SIZE = 30
+
+function fmtCount(n: number | null | undefined): string {
+  if (!n || n <= 0) return '—'
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
+  return String(n)
+}
 
 interface Props {
   initialBits:    SchoolBitRow[]
@@ -711,6 +717,21 @@ function BitRow({
           </div>
           {err && <p className="text-xs text-portal-red font-semibold mt-1">{err}</p>}
         </div>
+
+        {/* Engagement column — only meaningful on approved bits */}
+        {item.status === 'approved' && (
+          <div className="shrink-0 text-right leading-tight w-20 pt-1 hidden md:block">
+            <div className="text-[10px] uppercase tracking-wider text-portal-muted">Reads</div>
+            <div className="text-xs text-portal-text font-semibold tabular-nums inline-flex items-center justify-end gap-1">
+              <MousePointerClick size={10} className="text-portal-blue" />
+              {fmtCount(item.click_count)}
+            </div>
+            <div className="text-[10px] text-portal-muted tabular-nums inline-flex items-center justify-end gap-1 mt-0.5">
+              <Eye size={9} />
+              {fmtCount(item.view_count)}
+            </div>
+          </div>
+        )}
 
         {/* Date column */}
         <div className="shrink-0 text-right leading-tight w-28 pt-1">
@@ -1412,6 +1433,8 @@ function QuickAddPanel({
         issue_month:        issueMonth.trim()  || null,
         published_at:       finalPublished,
         created_at:         nowIso,
+        view_count:         0,
+        click_count:        0,
       }
 
       if (mode === 'publish-and-add') {

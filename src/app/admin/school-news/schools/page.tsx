@@ -4,7 +4,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, School as SchoolIcon } from 'lucide-react'
+import { ArrowLeft, School as SchoolIcon, BarChart3 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import { AREAS, AREA_LABELS, type Area } from '@/lib/school-news/areas'
 import { SchoolsManagerClient } from './SchoolsManagerClient'
@@ -92,6 +92,12 @@ export default async function SchoolsManagerPage() {
               Used by the School News submission form + admin queue + public filters.
             </p>
           </div>
+          <Link
+            href="/admin/school-news/schools/report"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
+          >
+            <BarChart3 size={13} /> Engagement report
+          </Link>
         </header>
 
         {/* Stats by area */}

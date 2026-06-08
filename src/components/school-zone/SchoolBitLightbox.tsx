@@ -16,6 +16,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, Camera } from 'lucide-react'
 import { splitBlurbParagraphs, normalizeUnicodeText } from '@/lib/school-news/text'
+import { trackBitClick } from '@/lib/school-bits/track'
 import { SchoolBitsLogo } from '@/components/school-zone/SchoolBitsLogo'
 import { ShareRow } from '@/components/ShareRow'
 
@@ -64,6 +65,9 @@ export function SchoolBitLightbox({ bits, index, onClose, onIndexChange, buildSh
     setImages(null)
     setPhotoIdx(0)
     setLoading(true)
+    // Track this open. trackBitClick dedupes per-session so paging next →
+    // prev → next on the same bit only counts once.
+    trackBitClick(bitId)
     fetch(`/api/school-bits/${bitId}/images`)
       .then(r => r.ok ? r.json() : { images: [] })
       .then(json => setImages((json.images ?? []) as BitImage[]))

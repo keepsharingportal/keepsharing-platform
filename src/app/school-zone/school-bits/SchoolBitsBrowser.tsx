@@ -5,7 +5,7 @@
 // a `focus=<id>` URL param that pulls a specific bit to the top of the feed
 // when the reader arrives from a card click on FRG / discovery panel.
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
@@ -15,6 +15,7 @@ import { SchoolBitLightbox } from '@/components/school-zone/SchoolBitLightbox'
 import { SchoolBitsLogo } from '@/components/school-zone/SchoolBitsLogo'
 import { ShareRow } from '@/components/ShareRow'
 import { splitBlurbParagraphs, normalizeUnicodeText } from '@/lib/school-news/text'
+import { trackBitView, trackBitClick } from '@/lib/school-bits/track'
 import type { PublicSchoolBit, PublicSchool, InlineAd } from './page'
 
 const STORAGE_KEY = 'kp.preferredSchoolId'
@@ -332,7 +333,7 @@ export function SchoolBitsBrowser({
                         <BitCard
                           bit={item.bit}
                           highlight={item.bit.id === focusedBitId}
-                          onOpen={() => setOpenBitIndex(item.absoluteIndex)}
+                          onOpen={() => { trackBitClick(item.bit.id); setOpenBitIndex(item.absoluteIndex) }}
                           shareUrl={buildBitShareUrl(item.bit.id)}
                         />
                       ) : (
@@ -423,8 +424,30 @@ function BitCard({ bit, onOpen, highlight = false, shareUrl }: {
     }
   }
 
+  // Fire an "impression" the first time at least half the card is visible.
+  // Dedupes per-session inside trackBitView so scroll-past-and-back doesn't
+  // double-count. IntersectionObserver disconnect after first fire keeps
+  // long-feed pages cheap.
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          trackBitView(bit.id)
+          obs.disconnect()
+          break
+        }
+      }
+    }, { threshold: 0.5 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [bit.id])
+
   return (
     <div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       onClick={onOpen}

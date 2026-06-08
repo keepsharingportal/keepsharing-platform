@@ -38,6 +38,8 @@ export interface SchoolBitRow {
   issue_month:        string | null
   published_at:       string | null
   created_at:         string
+  view_count:         number | null
+  click_count:        number | null
 }
 
 export interface SchoolOption {
@@ -76,6 +78,14 @@ export default async function SchoolNewsPage({ searchParams }: PageProps) {
     )
   }
 
+  // Probe for migration 136's engagement columns so the page still loads
+  // pre-migration (we just won't show the counters).
+  const engagementProbe = await supabase.from('school_bits').select('view_count').limit(1)
+  const hasEngagement = !engagementProbe.error
+  const bitColumns = hasEngagement
+    ? 'id, school_id, school_name, title, blurb, image_web_url, source_type, source_url, submitted_by_name, submitted_by_email, status, issue_month, published_at, created_at, view_count, click_count'
+    : 'id, school_id, school_name, title, blurb, image_web_url, source_type, source_url, submitted_by_name, submitted_by_email, status, issue_month, published_at, created_at'
+
   // Load bits + schools in parallel.
   // Note: limit 1000 covers MVP comfortably. Filtering + pagination happen
   // client-side over this window. When bit count exceeds ~1000, swap this
@@ -84,7 +94,7 @@ export default async function SchoolNewsPage({ searchParams }: PageProps) {
   const [bitsRes, schoolsRes] = await Promise.all([
     supabase
       .from('school_bits')
-      .select('id, school_id, school_name, title, blurb, image_web_url, source_type, source_url, submitted_by_name, submitted_by_email, status, issue_month, published_at, created_at')
+      .select(bitColumns)
       .eq('market', MARKET)
       .order('created_at', { ascending: false })
       .limit(1000),
@@ -99,7 +109,7 @@ export default async function SchoolNewsPage({ searchParams }: PageProps) {
   if (bitsRes.error)    console.error('[school-news] load bits failed:',    bitsRes.error)
   if (schoolsRes.error) console.error('[school-news] load schools failed:', schoolsRes.error)
 
-  const bits    = (bitsRes.data    ?? []) as SchoolBitRow[]
+  const bits    = (bitsRes.data    ?? []) as unknown as SchoolBitRow[]
   const schools = (schoolsRes.data ?? []) as SchoolOption[]
 
   return (
