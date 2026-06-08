@@ -9,7 +9,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Mail, Phone, Megaphone, Star, Trash2, X, RefreshCw, AlertTriangle,
+  Mail, Phone, Megaphone, Star, Trash2, X, RefreshCw, AlertTriangle, GitMerge, Loader2,
 } from 'lucide-react'
 
 export interface BusinessRow {
@@ -69,6 +69,15 @@ export function BusinessesTableClient({ rows, query }: Props) {
   const [previewIds, setPreviewIds]  = useState<string[]>([])
   const [error, setError]            = useState<string | null>(null)
   const [deleting, setDeleting]      = useState(false)
+  // Merge-selected modal state. Editor picks one of the selected rows
+  // as the survivor (or leaves the default — the one with the most
+  // activity), can optionally rename the survivor's business_name on
+  // commit, then merge. Re-uses the existing /api/admin/advertisers/merge
+  // endpoint (which already supports survivorName).
+  const [mergeOpen, setMergeOpen]      = useState(false)
+  const [mergeSurvivorId, setMergeSurvivorId] = useState<string>('')
+  const [mergeSurvivorName, setMergeSurvivorName] = useState<string>('')
+  const [merging, setMerging]          = useState(false)
 
   const allSelected = rows.length > 0 && rows.every(r => selected.has(r.id))
   const someSelected = !allSelected && rows.some(r => selected.has(r.id))
@@ -132,6 +141,50 @@ export function BusinessesTableClient({ rows, query }: Props) {
     }
   }
 
+  // Merge selected → into one survivor. Seeded with the row carrying
+  // the most activity (best heuristic for 'which is the canonical
+  // record'). Editor can change the radio pick or rename the survivor.
+  function onMergeClicked() {
+    if (selected.size < 2) return
+    const selectedRows = rows.filter(r => selected.has(r.id))
+    const best = [...selectedRows].sort((a, b) => b.activePlacements - a.activePlacements)[0]
+    setMergeSurvivorId(best?.id ?? selectedRows[0]?.id ?? '')
+    setMergeSurvivorName(best?.business_name ?? '')
+    setError(null)
+    setMergeOpen(true)
+  }
+  async function onConfirmMerge() {
+    const ids = Array.from(selected)
+    if (!mergeSurvivorId || ids.length < 2) return
+    const mergeIds = ids.filter(id => id !== mergeSurvivorId)
+    if (mergeIds.length === 0) return
+    const survivor = rows.find(r => r.id === mergeSurvivorId)
+    const rename = mergeSurvivorName.trim() && survivor && mergeSurvivorName.trim().toLowerCase() !== survivor.business_name.toLowerCase()
+    setMerging(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/advertisers/merge', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          survivorId:    mergeSurvivorId,
+          mergeIds,
+          survivorName:  rename ? mergeSurvivorName.trim() : undefined,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json?.error ?? `HTTP ${res.status}`)
+        return
+      }
+      setMergeOpen(false)
+      clear()
+      startTransition(() => router.refresh())
+    } finally {
+      setMerging(false)
+    }
+  }
+
   if (rows.length === 0) {
     return (
       <div className="p-12 text-center text-sm text-gray-500">
@@ -149,6 +202,15 @@ export function BusinessesTableClient({ rows, query }: Props) {
             {selected.size} {selected.size === 1 ? 'business' : 'businesses'} selected
           </span>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onMergeClicked}
+              disabled={busy || merging || selected.size < 2}
+              title={selected.size < 2 ? 'Pick at least 2 rows to merge' : 'Merge selected into one survivor'}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 rounded-lg disabled:opacity-40"
+            >
+              <GitMerge size={12} /> Merge selected
+            </button>
             <button
               type="button"
               onClick={onDeleteClicked}
@@ -323,6 +385,112 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 type="button"
                 onClick={() => !deleting && setConfirmOpen(false)}
                 disabled={deleting}
+                className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Merge confirm modal ──────────────────────────── */}
+      {mergeOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => !merging && setMergeOpen(false)}
+        >
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 my-12 space-y-4">
+            <header className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-900 inline-flex items-center gap-2">
+                <GitMerge size={16} className="text-amber-600" />
+                Merge {selected.size} businesses into one
+              </h3>
+              <button onClick={() => !merging && setMergeOpen(false)} className="text-gray-400 hover:text-gray-700">
+                <X size={14} />
+              </button>
+            </header>
+
+            <p className="text-sm text-gray-700">
+              Pick the row to KEEP. Every ad placement, contact, listing, and proposal from the other rows gets
+              repointed at the survivor; the others are deleted.
+            </p>
+
+            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+              {rows.filter(r => selected.has(r.id)).map(r => {
+                const isSurvivor = r.id === mergeSurvivorId
+                return (
+                  <label
+                    key={r.id}
+                    className={`flex items-start gap-2 px-3 py-2 cursor-pointer ${isSurvivor ? 'bg-emerald-50/60' : 'hover:bg-gray-50'}`}
+                  >
+                    <input
+                      type="radio"
+                      name="merge-survivor"
+                      checked={isSurvivor}
+                      onChange={() => {
+                        setMergeSurvivorId(r.id)
+                        setMergeSurvivorName(r.business_name)
+                      }}
+                      className="mt-1 cursor-pointer accent-emerald-600"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-gray-900 truncate">{r.business_name}</p>
+                        {isSurvivor && (
+                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                            Keep
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {r.activePlacements} active ad{r.activePlacements === 1 ? '' : 's'}
+                        {r.contact_email && ` · ${r.contact_email}`}
+                        {r.contact_phone && ` · ${r.contact_phone}`}
+                      </p>
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                Final business name
+              </label>
+              <input
+                type="text"
+                value={mergeSurvivorName}
+                onChange={e => setMergeSurvivorName(e.target.value)}
+                placeholder="Canonical business name…"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-gray-400 bg-white"
+              />
+              <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+                Defaults to the picked survivor&apos;s name. Edit to give the merged record a cleaner canonical
+                name (e.g. drop punctuation, fix capitalization).
+              </p>
+            </div>
+
+            {error && (
+              <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 inline-flex items-center gap-2">
+                <AlertTriangle size={12} /> {error}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={onConfirmMerge}
+                disabled={merging || !mergeSurvivorId}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-amber-600 text-white rounded-full hover:bg-amber-700 disabled:opacity-40"
+              >
+                {merging ? <Loader2 size={14} className="animate-spin" /> : <GitMerge size={14} />}
+                {merging ? 'Merging…' : `Merge ${selected.size - 1} into selected`}
+              </button>
+              <button
+                type="button"
+                onClick={() => !merging && setMergeOpen(false)}
+                disabled={merging}
                 className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
               >
                 Cancel

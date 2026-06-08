@@ -106,10 +106,14 @@ export function findClusters(rows: DupCandidate[], threshold = 0.75): DupCluster
   for (let i = 0; i < rows.length; i++) {
     for (let j = i + 1; j < rows.length; j++) {
       const a = rows[i], b = rows[j]
-      // Need at least 2 shared meaningful tokens to count — prevents
-      // single-name brand collisions ('cookies' vs 'cookies & milk').
+      // Need at least 2 shared meaningful tokens, ALWAYS. The earlier
+      // 'unless one row has only 1 token' carve-out let single-token
+      // rows like 'Camp' act as union-find bridges that pulled every
+      // 'Camp Something' into one cluster of 20+ unrelated businesses.
+      // With the strict ≥2 rule, single-token names can't auto-cluster
+      // at all — editor merges those manually if needed.
       const sharedCount = countShared(a.tokens, b.tokens)
-      if (sharedCount < 2 && Math.min(a.tokens.length, b.tokens.length) > 1) continue
+      if (sharedCount < 2) continue
       const score = similarity(a.tokens, b.tokens)
       if (score >= threshold) union(a.id, b.id)
     }
