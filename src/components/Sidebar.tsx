@@ -12,7 +12,7 @@ import {
   GraduationCap, Printer, Map, Package, Calendar,
   Mail, Share2,
   Inbox, Upload, MapPin, Search, ClipboardList,
-  BarChart3, Navigation,
+  BarChart3, Navigation, Building2, UserCheck, Handshake,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
@@ -207,28 +207,32 @@ const NAV: NavItem[] = [
     ],
   },
 
-  // ── ADVERTISERS (CRM) ───────────────────────────────────────────────────
-  // The people and the franchise relationships. NOT the slot inventory —
-  // that lives under Ads & Sponsors above.
-  { section: 'ADVERTISERS' },
+  // ── CRM ─────────────────────────────────────────────────────────────────
+  // The relationship system. Businesses (advertiser_accounts) is the
+  // top-level entity — every other CRM record (contacts, proposals,
+  // pipeline stages, ad placements) attaches to a business. Slot
+  // inventory itself lives under Ads & Sponsors above, not here.
+  { section: 'CRM' },
   {
-    name: 'Advertisers',
+    name: 'Businesses',
     href: '/admin/advertisers',
-    icon: Users,
+    icon: Building2,
     children: [
-      // Clicking the parent goes to the active list. Pipeline +
-      // Businesses live in the section tab strip; Onboarding +
-      // Sponsor Inventory + Proposals + Partner Ops live in the
-      // top button row on /admin/advertisers — no point doubling
-      // them up in the sidebar. Duplicates stays here because it's
-      // a maintenance tool that isn't surfaced anywhere else.
+      { name: 'Pipeline',   href: '/admin/advertisers/pipeline'   },
       { name: 'Duplicates', href: '/admin/advertisers/duplicates' },
     ],
   },
-  { name: 'Proposals',     href: '/admin/advertisers/proposals', icon: FileText },
-  { name: 'Marketing',     href: '/admin/marketing-system',      icon: Megaphone },
-  { name: 'Client Reports', href: '/admin/reports',              icon: BarChart3 },
-  { name: 'Analytics',     href: '/admin/advertisers/intelligence', icon: TrendingUp },
+  { name: 'Contacts',       href: '/admin/contacts',              icon: UserCheck },
+  { name: 'Proposals',      href: '/admin/advertisers/proposals', icon: FileText  },
+  { name: 'Onboarding',     href: '/admin/advertisers/onboarding',icon: Sparkles  },
+  { name: 'Partner Ops',    href: '/admin/advertisers/partner-ops', icon: Handshake },
+  { name: 'Client Reports', href: '/admin/reports',               icon: BarChart3 },
+  { name: 'Analytics',      href: '/admin/advertisers/intelligence', icon: TrendingUp },
+
+  // ── MARKETING ───────────────────────────────────────────────────────────
+  // Promotion / campaigns / outreach — not relationship management.
+  { section: 'MARKETING' },
+  { name: 'Marketing System', href: '/admin/marketing-system', icon: Megaphone },
 
   // ── COMMUNITY ───────────────────────────────────────────────────────────
   { section: 'COMMUNITY' },
