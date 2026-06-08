@@ -68,6 +68,20 @@ interface RawListingRow {
   category: string | null
   guide_data: Record<string, unknown> | null
   display_order: number
+  // Inline business identity (migration 134). Listings populate these
+  // directly; the advertiser_accounts join below is only used as a
+  // fallback for legacy rows or for the slug (which only exists when
+  // a listing has been claimed and linked to a real advertiser).
+  business_name:  string | null
+  office_phone:   string | null
+  mobile_phone:   string | null
+  website_url:    string | null
+  contact_email:  string | null
+  address:        string | null
+  city_state_zip: string | null
+  neighborhood:   string | null
+  hero_photo_url: string | null
+  card_hook:      string | null
   advertiser_accounts: AccRow | null
 }
 
@@ -125,10 +139,17 @@ export default async function FamilyResourceGuidePage() {
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(5),
 
-    // Listings (joined to advertiser_accounts for display)
+    // Listings — read inline business identity columns first (migration
+    // 134) so basic listings render even when not linked to an
+    // advertiser. The advertiser_accounts join is kept for the slug
+    // (claim/listing URL) and as a legacy fallback for any row whose
+    // inline columns weren't backfilled.
     supabase.from('guide_listings')
       .select(`
         id, listing_tier, category, guide_data, display_order,
+        business_name, office_phone, mobile_phone,
+        website_url, contact_email, address, city_state_zip,
+        neighborhood, hero_photo_url, card_hook,
         advertiser_accounts (
           id, slug, business_name,
           office_phone, mobile_phone,
@@ -244,23 +265,31 @@ export default async function FamilyResourceGuidePage() {
   const heroTitle = guideMeta?.hero_title || guideType?.display_name || 'Family Resource Guide'
 
   // ── Listings ─────────────────────────────────────────────────────────────
+  // Prefer inline columns from guide_listings (migration 134) — listings
+  // are now self-sufficient content. Fall back to the joined
+  // advertiser_accounts row only when an inline value is missing
+  // (legacy rows or fields the editor hasn't filled in yet).
   const listings: GuideListing[] = ((listingsRaw ?? []) as unknown as RawListingRow[]).map(row => {
     const acc = row.advertiser_accounts
     const gd  = (row.guide_data ?? {}) as Record<string, unknown>
+    const phoneInline = row.office_phone ?? row.mobile_phone
+    const phoneFromAcc = acc?.office_phone ?? acc?.mobile_phone
+    const cityInline = row.neighborhood ?? row.city_state_zip?.split(',')[0]?.trim()
+    const cityFromAcc = acc?.neighborhood ?? acc?.city_state_zip?.split(',')[0]?.trim()
     return {
       id:              row.id,
-      slug:            acc?.slug ?? row.id,
-      business_name:   acc?.business_name ?? '',
+      slug:            acc?.slug ?? row.id,                  // claim URL slug only exists when linked
+      business_name:   row.business_name ?? acc?.business_name ?? '',
       listing_tier:    (row.listing_tier ?? 'free') as ListingTier,
       category:        row.category ?? undefined,
       description:     (gd.description as string) ?? null,
-      editorial_blurb: (gd.editorialBlurb as string) ?? acc?.card_hook ?? null,
+      editorial_blurb: (gd.editorialBlurb as string) ?? row.card_hook ?? acc?.card_hook ?? null,
       hours_summary:   (gd.hours as string) ?? null,
-      phone:           acc?.office_phone ?? acc?.mobile_phone ?? null,
-      website:         acc?.website_url ?? null,
-      address:         acc?.address ?? null,
-      city:            acc?.neighborhood ?? acc?.city_state_zip?.split(',')[0]?.trim() ?? null,
-      cover_image_url: acc?.hero_photo_url ?? null,
+      phone:           phoneInline ?? phoneFromAcc ?? null,
+      website:         row.website_url ?? acc?.website_url ?? null,
+      address:         row.address ?? acc?.address ?? null,
+      city:            cityInline ?? cityFromAcc ?? null,
+      cover_image_url: row.hero_photo_url ?? acc?.hero_photo_url ?? null,
       display_order:   row.display_order,
     }
   })
