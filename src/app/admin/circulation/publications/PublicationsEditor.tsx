@@ -84,7 +84,7 @@ export function PublicationsEditor({ initial }: { initial: Publication[] }) {
               <button
                 onClick={() => save(p)}
                 disabled={busy === p.id}
-                className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-navy text-white hover:opacity-90 disabled:opacity-50"
               >
                 {busy === p.id ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
                 Save
@@ -146,7 +146,7 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 space-y-2">
+    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Field label="Short slug" value={short} onChange={setShort} />
         <Field label="Name" value={name} onChange={setName} />
@@ -154,7 +154,7 @@ function AddPublication({ onCreated, onCancel }: { onCreated: (p: Publication) =
       </div>
       {err && <p className="text-xs text-red-600">{err}</p>}
       <div className="flex items-center gap-2">
-        <button onClick={submit} disabled={busy || !short.trim() || !name.trim() || !abbrev.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50">
+        <button onClick={submit} disabled={busy || !short.trim() || !name.trim() || !abbrev.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
           {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
           Create
         </button>
@@ -168,7 +168,7 @@ function Field({ label, value, onChange, className }: { label: string; value: st
   return (
     <label className={`block ${className ?? ''}`}>
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
@@ -176,7 +176,7 @@ function FieldNum({ label, value, onChange }: { label: string; value: number; on
   return (
     <label className="block">
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input type="number" value={value} onChange={e => onChange(parseInt(e.target.value || '0', 10))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+      <input type="number" value={value} onChange={e => onChange(parseInt(e.target.value || '0', 10))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }

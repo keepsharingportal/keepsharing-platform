@@ -38,11 +38,11 @@ function eventMatchesTab(row: EventRow, tab: TabName, todayIso: string): boolean
 }
 
 const SOURCE_BADGE: Record<string, string> = {
-  'public-submission': 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  'public_form':       'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  'public-submission': 'bg-portal-green-lt text-portal-green ring-emerald-200',
+  'public_form':       'bg-portal-green-lt text-portal-green ring-emerald-200',
   'ical':              'bg-sky-50 text-sky-700 ring-sky-200',
   'ai-extraction':     'bg-purple-50 text-purple-700 ring-purple-200',
-  'csv-import':        'bg-amber-50 text-amber-700 ring-amber-200',
+  'csv-import':        'bg-portal-amber-lt text-portal-amber ring-amber-200',
   'staff':             'bg-gray-50 text-gray-600 ring-gray-200',
   'manual':            'bg-gray-50 text-gray-600 ring-gray-200',
 }
@@ -230,7 +230,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-gray-900">Events</h1>
           {counts['Pending Review'] > 0 && (
-            <span className="text-sm font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {counts['Pending Review']} pending
             </span>
           )}
@@ -449,9 +449,9 @@ const BUTTONS_BY_TAB: Record<TabName, BulkButton[]> = {
 const TONE_CLS: Record<BulkButton['tone'], string> = {
   green: 'bg-green-600 text-white hover:bg-green-700',
   red:   'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
-  amber: 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100',
+  amber: 'bg-portal-amber-lt text-portal-amber border border-amber-200 hover:bg-portal-amber-lt',
   gray:  'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50',
-  rose:  'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100',
+  rose:  'bg-portal-red-lt text-portal-red border border-portal-red/30 hover:bg-portal-red-lt',
 }
 
 function BulkBar({
@@ -656,7 +656,7 @@ function EventRowItem({
           <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
             <h3 className="text-sm font-bold text-gray-900 truncate">{ev.title}</h3>
             {ev.is_featured && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200">
+              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
                 <Star size={9} className="fill-amber-500 text-amber-500" /> Featured
               </span>
             )}
@@ -665,7 +665,7 @@ function EventRowItem({
                 row, stored as a prefix in discovery_notes. Editors see this
                 at-a-glance in the list and can resolve via the editor. */}
             {typeof ev.discovery_notes === 'string' && /^possible duplicate/i.test(ev.discovery_notes) && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200" title={ev.discovery_notes}>
+              <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200" title={ev.discovery_notes}>
                 ⚠ Possible duplicate
               </span>
             )}
@@ -704,7 +704,7 @@ function EventRowItem({
               </span>
             )}
           </div>
-          {err && <p className="text-xs text-rose-700 font-semibold mt-1">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold mt-1">{err}</p>}
         </div>
 
         {/* Actions */}
@@ -807,7 +807,7 @@ function EventRowItem({
                   <button
                     type="button"
                     onClick={() => { setMenuOpen(false); remove() }}
-                    className="w-full text-left px-3 py-2 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-portal-red hover:bg-portal-red-lt inline-flex items-center gap-2"
                   >
                     <Trash2 size={11} /> Delete event
                   </button>
@@ -974,15 +974,15 @@ function EventEditor({
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <div className="bg-blue-50/40 border-t border-blue-100 px-4 py-4">
+    <div className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
       <div className="grid md:grid-cols-[160px_1fr] gap-4">
         {/* Image */}
         <div>
           <p className={lbl}>Image</p>
-          <div className="aspect-[4/3] w-full rounded-lg overflow-hidden bg-white ring-1 ring-blue-200">
+          <div className="aspect-[4/3] w-full rounded-lg overflow-hidden bg-white ring-1 ring-portal-blue/30">
             {heroUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={heroUrl} alt="" className="w-full h-full object-cover" />
@@ -992,7 +992,7 @@ function EventEditor({
               </div>
             )}
           </div>
-          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-blue-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-blue-800">
+          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-portal-blue">
             {imageBusy ? <RefreshCw size={11} className="animate-spin" /> : <Camera size={11} />}
             {imageBusy ? 'Uploading…' : 'Replace image'}
             <input
@@ -1122,7 +1122,7 @@ function EventEditor({
               {/* Featured-through date — only meaningful when Featured is on.
                   Empty = featured indefinitely until manually cleared. */}
               {isFeatured && (
-                <label className="inline-flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-800 mt-0.5">
+                <label className="inline-flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider text-portal-blue mt-0.5">
                   Featured through
                   <input
                     type="date"
@@ -1134,7 +1134,7 @@ function EventEditor({
               )}
             </div>
           </div>
-          {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
           <div className="flex gap-2">
             <button
               onClick={save}
@@ -1144,7 +1144,7 @@ function EventEditor({
               {busy ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
               Save changes
             </button>
-            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-blue-800 hover:text-blue-950">Cancel</button>
+            <button onClick={onCancel} className="px-3 py-1.5 text-xs text-portal-blue hover:text-blue-950">Cancel</button>
           </div>
         </div>
       </div>
@@ -1182,7 +1182,7 @@ function GravityPicker({
   const disabled = !origPath
   return (
     <div className="mt-3">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 inline-flex items-center gap-1">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1 inline-flex items-center gap-1">
         <Crop size={10} /> Re-crop hero
       </p>
       <div className="grid grid-cols-3 gap-0.5 w-full max-w-[120px]">
@@ -1198,7 +1198,7 @@ function GravityPicker({
               className={`aspect-square text-xs font-bold rounded transition-colors ${
                 disabled
                   ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
+                  : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
               }`}
             >
               {active ? <RefreshCw size={10} className="animate-spin mx-auto" /> : label}
@@ -1215,7 +1215,7 @@ function GravityPicker({
           className={`flex-1 text-[10px] font-bold rounded px-1 py-1 ${
             disabled
               ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
+              : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
           }`}
         >
           {busyGravity === 'attention' ? '…' : 'Auto'}
@@ -1228,7 +1228,7 @@ function GravityPicker({
           className={`flex-1 text-[10px] font-bold rounded px-1 py-1 ${
             disabled
               ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
+              : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
           }`}
         >
           {busyGravity === 'entropy' ? '…' : 'Entropy'}

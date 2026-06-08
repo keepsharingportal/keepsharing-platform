@@ -191,7 +191,7 @@ export function StopEditor({ routeId, market, initialStops }: Props) {
         <button
           onClick={addStop}
           disabled={busy !== null}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy === 'new' ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
           Add Stop
@@ -204,7 +204,7 @@ export function StopEditor({ routeId, market, initialStops }: Props) {
         {stops.map((stop, idx) => (
           <li
             key={stop.id}
-            className={`rounded-xl border bg-white ${editing === stop.id ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-200'}`}
+            className={`rounded-xl border bg-white ${editing === stop.id ? 'border-portal-border-2 ring-1 ring-portal-blue/20' : 'border-gray-200'}`}
           >
             {editing === stop.id ? (
               <EditRow
@@ -252,7 +252,7 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-sm font-bold text-gray-900 truncate">{stop.name}</p>
           {stop.is_advertiser   && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-semibold">Advertiser</span>}
-          {stop.ad_level === 'platinum' && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-0.5"><Star size={9} fill="currentColor" /> Platinum</span>}
+          {stop.ad_level === 'platinum' && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-0.5"><Star size={9} fill="currentColor" /> Platinum</span>}
           {stop.ad_level === 'gold'     && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">Gold</span>}
           {stop.not_delivering  && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">Not delivering</span>}
           {!stop.active         && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
@@ -346,7 +346,7 @@ function EditRow({ stop, busy, onCancel, onSave, patch }: {
         <button
           onClick={onSave}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save'}
@@ -364,7 +364,7 @@ function Field({ label, value, onChange, className }: { label: string; value: st
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -378,7 +378,7 @@ function FieldArea({ label, value, onChange, className }: { label: string; value
         value={value}
         rows={2}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-y"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
       />
     </label>
   )

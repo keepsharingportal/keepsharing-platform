@@ -35,8 +35,8 @@ interface Props {
 // roles by hue. Kept tiny and on-brand (no flashy colors); the badge is
 // information, not decoration.
 const ROLE_META: Record<ContactRole, { label: string; cls: string }> = {
-  ad_rep:         { label: 'Ad rep',         cls: 'bg-amber-100 text-amber-800 ring-amber-200' },
-  billing:        { label: 'Billing',        cls: 'bg-emerald-100 text-emerald-800 ring-emerald-200' },
+  ad_rep:         { label: 'Ad rep',         cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  billing:        { label: 'Billing',        cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
   listing_owner:  { label: 'Listing owner',  cls: 'bg-sky-100 text-sky-800 ring-sky-200' },
   decision_maker: { label: 'Decision maker', cls: 'bg-violet-100 text-violet-800 ring-violet-200' },
   other:          { label: 'Other',          cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
@@ -157,7 +157,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <p className="font-bold text-gray-900 leading-tight">{c.name}</p>
                   {c.is_primary && (
-                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-portal-amber">
                       <Star size={9} className="fill-amber-500 text-amber-500" /> Primary
                     </span>
                   )}
@@ -190,7 +190,7 @@ export function AdvertiserContactsPanel({ advertiserId, initial }: Props) {
                   type="button"
                   onClick={() => startTransition(() => { void onDelete(c.id, c.name) })}
                   disabled={busy}
-                  className="p-1 rounded hover:bg-rose-50 text-gray-400 hover:text-rose-600 disabled:opacity-40"
+                  className="p-1 rounded hover:bg-portal-red-lt text-gray-400 hover:text-rose-600 disabled:opacity-40"
                   aria-label={`Delete ${c.name}`}
                 >
                   <Trash2 size={11} />

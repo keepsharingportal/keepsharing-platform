@@ -261,12 +261,12 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-sm text-rose-800 inline-flex items-center gap-2">
+        <div className="bg-portal-red-lt border border-portal-red/30 rounded-xl p-3 text-sm text-portal-red inline-flex items-center gap-2">
           <AlertCircle size={14} /> {error}
         </div>
       )}
       {saved && !error && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800">
+        <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}
@@ -358,7 +358,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
       {/* CRM association */}
       <Section icon={<Link2 size={14} />} title="CRM Association">
         {listing.advertiser_account_id ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm space-y-2">
+          <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm space-y-2">
             <p className="text-emerald-900">
               Linked to CRM advertiser <Link href={`/admin/advertisers/${listing.advertiser_account_id}`} className="font-bold hover:underline inline-flex items-center gap-1">
                 {listing.linked_advertiser_name ?? 'View advertiser'} <ExternalLink size={11} />
@@ -368,7 +368,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
               type="button"
               onClick={onUnlink}
               disabled={saving}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-rose-700 bg-white border border-rose-200 rounded-full hover:bg-rose-50 disabled:opacity-40"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-portal-red bg-white border border-portal-red/30 rounded-full hover:bg-portal-red-lt disabled:opacity-40"
             >
               <Unlink size={12} /> Unlink
             </button>
@@ -392,11 +392,11 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
               </datalist>
             </FieldRow>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm space-y-2">
+            <div className="bg-portal-amber-lt border border-amber-200 rounded-xl p-3 text-sm space-y-2">
               <p className="text-amber-900 font-semibold inline-flex items-center gap-1.5">
                 <Sparkles size={14} /> Promote to Featured
               </p>
-              <p className="text-xs text-amber-800 leading-relaxed">
+              <p className="text-xs text-portal-amber leading-relaxed">
                 One click: flips this listing to <b>featured</b> tier AND either links to the typed advertiser above
                 (if it matches an existing CRM record) or creates a new advertiser_account seeded from this listing&apos;s info.
                 This is the bridge that turns directory content into a paying customer.
@@ -421,7 +421,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
           type="button"
           onClick={onDelete}
           disabled={deleting || saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-rose-700 bg-white border border-rose-200 rounded-full hover:bg-rose-50 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-red bg-white border border-portal-red/30 rounded-full hover:bg-portal-red-lt disabled:opacity-40"
         >
           {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           Delete listing

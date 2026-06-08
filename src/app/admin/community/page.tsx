@@ -209,7 +209,7 @@ export default async function AdminCommunityPage({
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${
                 g.critical
                   ? 'bg-red-50 border border-red-200 text-red-800'
-                  : 'bg-blue-50 border border-blue-100 text-blue-800'
+                  : 'bg-portal-blue-lt border border-portal-blue/20 text-portal-blue'
               }`}
             >
               <span>{g.icon}</span>
@@ -311,7 +311,7 @@ export default async function AdminCommunityPage({
             {total === 0 ? 'No community submissions yet.' : 'No submissions match the current filters.'}
           </p>
           {total > 0 && (
-            <Link href="/admin/community" className="text-sm text-blue-600 mt-2 inline-block hover:underline">
+            <Link href="/admin/community" className="text-sm text-portal-blue mt-2 inline-block hover:underline">
               Clear filters
             </Link>
           )}
@@ -371,7 +371,7 @@ export default async function AdminCommunityPage({
                         From{' '}
                         <span className="font-semibold text-gray-700">{sub.submitter_name}</span>
                         {' · '}
-                        <a href={`mailto:${sub.submitter_email}`} className="text-blue-600 hover:underline">
+                        <a href={`mailto:${sub.submitter_email}`} className="text-portal-blue hover:underline">
                           {sub.submitter_email}
                         </a>
                         {sub.submitter_phone && (
@@ -380,7 +380,7 @@ export default async function AdminCommunityPage({
                       </p>
 
                       {sub.editor_notes && (
-                        <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 mt-2 border border-amber-100 line-clamp-2">
+                        <p className="text-xs text-portal-amber bg-portal-amber-lt rounded-lg px-3 py-1.5 mt-2 border border-amber-100 line-clamp-2">
                           📝 {sub.editor_notes}
                         </p>
                       )}
@@ -402,7 +402,7 @@ export default async function AdminCommunityPage({
                       )}
                       <Link
                         href={`/admin/community/${sub.id}`}
-                        className="block text-xs text-blue-600 hover:underline font-semibold"
+                        className="block text-xs text-portal-blue hover:underline font-semibold"
                       >
                         View →
                       </Link>

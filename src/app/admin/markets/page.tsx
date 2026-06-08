@@ -6,7 +6,7 @@ import { MarketBundleCount } from '@/components/distribution/DistributionWidget'
 
 const PUB_META = [
   { abbrev: 'RRP', name: 'River Region Parents',      market: 'Montgomery',    state: 'AL', color: '#22c55e', bg: 'bg-green-50',  ring: 'ring-green-200',  text: 'text-green-700'  },
-  { abbrev: 'MBP', name: 'Mobile Bay Parents',        market: 'Mobile',        state: 'AL', color: '#3b82f6', bg: 'bg-blue-50',   ring: 'ring-blue-200',   text: 'text-blue-700'   },
+  { abbrev: 'MBP', name: 'Mobile Bay Parents',        market: 'Mobile',        state: 'AL', color: '#3b82f6', bg: 'bg-portal-blue-lt',   ring: 'ring-portal-blue/30',   text: 'text-portal-blue'   },
   { abbrev: 'AOP', name: 'Auburn Opelika Parents',    market: 'Auburn/Opelika',state: 'AL', color: '#f97316', bg: 'bg-orange-50', ring: 'ring-orange-200', text: 'text-orange-700' },
   { abbrev: 'ESP', name: 'Eastern Shore Parents',     market: 'Eastern Shore', state: 'AL', color: '#a855f7', bg: 'bg-purple-50', ring: 'ring-purple-200', text: 'text-purple-700' },
   { abbrev: 'GPP', name: 'Greater Pensacola Parents', market: 'Pensacola',     state: 'FL', color: '#14b8a6', bg: 'bg-teal-50',   ring: 'ring-teal-200',   text: 'text-teal-700'   },
@@ -118,12 +118,12 @@ export default async function MarketsPage() {
                     {(m.newCount > 0 || m.dropboxCount > 0) && (
                       <div className="flex gap-2 mb-4">
                         {m.newCount > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-200 font-medium">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30 font-medium">
                             {m.newCount} New
                           </span>
                         )}
                         {m.dropboxCount > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 font-medium">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200 font-medium">
                             {m.dropboxCount} DropBox
                           </span>
                         )}

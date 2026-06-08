@@ -20,7 +20,7 @@ function StatusBar({ not_sent, sent, responded, updated, total }: {
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
         {not_sent  > 0 && <span className="text-gray-500"  >{not_sent} not sent</span>}
         {sent      > 0 && <span className="text-amber-600" >{sent} sent</span>}
-        {responded > 0 && <span className="text-blue-600"  >{responded} responded</span>}
+        {responded > 0 && <span className="text-portal-blue"  >{responded} responded</span>}
         {updated   > 0 && <span className="text-green-600" >{updated} updated</span>}
       </div>
     </div>
@@ -75,12 +75,12 @@ export default function GuidesPage() {
             return (
               <div key={guide.month}
                 className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow ${
-                  isCurrent ? 'border-blue-300 ring-1 ring-blue-200' :
+                  isCurrent ? 'border-portal-border-2 ring-1 ring-portal-blue/30' :
                   urgentSoon ? 'border-amber-200' : 'border-gray-200'
                 }`}
               >
                 {/* Color bar */}
-                <div className={`h-1 ${isCurrent ? 'bg-blue-500' : isPast ? 'bg-gray-200' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
+                <div className={`h-1 ${isCurrent ? 'bg-portal-blue-lt0' : isPast ? 'bg-gray-200' : 'bg-gradient-to-r from-teal-400 to-blue-400'}`} />
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -90,12 +90,12 @@ export default function GuidesPage() {
                           {MONTH_NAMES[guide.month]}
                         </span>
                         {isCurrent && (
-                          <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full ring-1 ring-blue-200 font-semibold">
+                          <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded-full ring-1 ring-portal-blue/30 font-semibold">
                             Current
                           </span>
                         )}
                         {urgentSoon && (
-                          <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full ring-1 ring-amber-200 font-semibold">
+                          <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded-full ring-1 ring-amber-200 font-semibold">
                             Up next
                           </span>
                         )}
@@ -128,12 +128,12 @@ export default function GuidesPage() {
                       <BookOpen size={12} /> Manage
                     </Link>
                     {guide.stats.not_sent > 0 && (
-                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors">
+                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-amber bg-portal-amber-lt border border-amber-200 rounded-lg hover:bg-portal-amber-lt transition-colors">
                         <Mail size={12} /> Send {guide.stats.not_sent}
                       </button>
                     )}
                     {guide.stats.not_sent === 0 && guide.stats.responded > 0 && (
-                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                      <button className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-portal-blue bg-portal-blue-lt border border-blue-200 rounded-lg hover:bg-portal-blue-lt transition-colors">
                         <CheckCircle2 size={12} /> Review {guide.stats.responded}
                       </button>
                     )}

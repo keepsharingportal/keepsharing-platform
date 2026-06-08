@@ -23,7 +23,7 @@ export default async function ProposalDetailPage({ params }: Props) {
     <div className="flex-1 overflow-y-auto">
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
-          <Link href="/admin/proposals" className="text-xs text-blue-600 hover:text-blue-800">← All Proposals</Link>
+          <Link href="/admin/proposals" className="text-xs text-portal-blue hover:text-portal-blue">← All Proposals</Link>
           <h1 className="text-xl font-semibold text-gray-900 mt-1">{p.business_name}</h1>
           <p className="text-sm text-gray-500">Status: <strong>{p.status}</strong> · {p.viewed_count ?? 0} views · Created {new Date(p.created_at).toLocaleDateString()}</p>
         </div>
@@ -78,10 +78,10 @@ export default async function ProposalDetailPage({ params }: Props) {
         )}
 
         {/* Public link */}
-        <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
-          <p className="text-xs font-semibold text-blue-700 mb-1">Proposal URL</p>
-          <code className="text-sm text-blue-800 break-all">/proposal/{p.token_slug}</code>
-          <p className="text-xs text-blue-600 mt-1">Send this URL to {p.business_name} to let them view and accept.</p>
+        <div className="bg-portal-blue-lt rounded-xl border border-blue-200 p-4">
+          <p className="text-xs font-semibold text-portal-blue mb-1">Proposal URL</p>
+          <code className="text-sm text-portal-blue break-all">/proposal/{p.token_slug}</code>
+          <p className="text-xs text-portal-blue mt-1">Send this URL to {p.business_name} to let them view and accept.</p>
         </div>
       </div>
     </div>

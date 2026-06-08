@@ -262,9 +262,9 @@ export default async function EditSubmissionPage({
       </div>
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
+      <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
         <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Operator Edit Mode</p>
-        <p className="text-sm text-amber-800 leading-relaxed">
+        <p className="text-sm text-portal-amber leading-relaxed">
           Edits should preserve the submitter's intent. Do not rewrite their story here — use the editorial draft workflow later.
           This form is for fixing typos, adding info received by phone or email, and correcting routing details.
         </p>

@@ -56,12 +56,12 @@ export default async function InquiriesPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Inbox className="h-5 w-5 text-blue-600" />
+          <Inbox className="h-5 w-5 text-portal-blue" />
           Listing Inquiries
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
           Messages from families asking about guide listings.
-          {fresh > 0 && <span className="ml-2 font-semibold text-blue-700">{fresh} new</span>}
+          {fresh > 0 && <span className="ml-2 font-semibold text-portal-blue">{fresh} new</span>}
         </p>
         <p className="text-xs text-gray-400 mt-1">
           Admin notification email goes to {process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'hello@riverregionparents.com'} when GHL is configured.
@@ -77,7 +77,7 @@ export default async function InquiriesPage() {
             <p className="text-xs text-gray-400 mt-1">
               When a family submits the &quot;Request Info&quot; form on any listing page, it appears here.
             </p>
-            <Link href="/family-resource-guide" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-blue-600 hover:underline">
+            <Link href="/family-resource-guide" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-portal-blue hover:underline">
               View public guide <ExternalLink size={11} />
             </Link>
           </div>

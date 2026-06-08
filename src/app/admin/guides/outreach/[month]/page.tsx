@@ -12,8 +12,8 @@ const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
 
 const STATUS_CONFIG: Record<UpdateStatus, { label: string; cls: string; icon: React.ElementType }> = {
   not_sent:  { label: 'Not Sent',  cls: 'bg-gray-50 text-gray-500 ring-gray-200',   icon: Clock },
-  sent:      { label: 'Sent',      cls: 'bg-amber-50 text-amber-700 ring-amber-200', icon: Mail },
-  responded: { label: 'Responded', cls: 'bg-blue-50 text-blue-700 ring-blue-200',    icon: RefreshCw },
+  sent:      { label: 'Sent',      cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200', icon: Mail },
+  responded: { label: 'Responded', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',    icon: RefreshCw },
   updated:   { label: 'Updated',   cls: 'bg-green-50 text-green-700 ring-green-200', icon: CheckCircle2 },
 }
 
@@ -86,7 +86,7 @@ export default function GuidePage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Link href="/admin/guides" className="text-sm text-blue-600 hover:text-blue-800">← Guides</Link>
+          <Link href="/admin/guides" className="text-sm text-portal-blue hover:text-portal-blue">← Guides</Link>
           <span className="text-gray-300">/</span>
           <div>
             <h1 className="text-xl font-semibold text-gray-900">
@@ -101,7 +101,7 @@ export default function GuidePage() {
               const notSent = localListings.filter((l) => l.updateStatus === 'not_sent')
               if (notSent.length > 0) setEmailModal(notSent[0])
             }}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
             disabled={stats.not_sent === 0}
           >
             <Mail size={14} />
@@ -115,7 +115,7 @@ export default function GuidePage() {
         {(['all', 'not_sent', 'sent', 'responded', 'updated'] as const).map((s) => {
           const count = s === 'all' ? stats.total : stats[s]
           const labels: Record<string, string> = { all: 'All', not_sent: 'Not Sent', sent: 'Sent', responded: 'Responded', updated: 'Updated' }
-          const colors: Record<string, string> = { all: 'text-gray-700', not_sent: 'text-gray-500', sent: 'text-amber-600', responded: 'text-blue-600', updated: 'text-green-600' }
+          const colors: Record<string, string> = { all: 'text-gray-700', not_sent: 'text-gray-500', sent: 'text-amber-600', responded: 'text-portal-blue', updated: 'text-green-600' }
           return (
             <button key={s} onClick={() => setFilterStatus(s)}
               className={cn('flex items-center gap-1.5 transition-colors', filterStatus === s ? 'font-semibold' : 'hover:text-gray-900', colors[s])}>
@@ -152,9 +152,9 @@ export default function GuidePage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{listing.category}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                    <a href={`tel:${listing.phone}`} className="hover:text-blue-600 transition-colors">{listing.phone}</a>
+                    <a href={`tel:${listing.phone}`} className="hover:text-portal-blue transition-colors">{listing.phone}</a>
                   </td>
-                  <td className="px-4 py-3 text-sm text-blue-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-sm text-portal-blue whitespace-nowrap">
                     <a href={`mailto:${listing.email}`} className="hover:underline">{listing.email}</a>
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
@@ -167,13 +167,13 @@ export default function GuidePage() {
                     <div className="flex items-center gap-1.5">
                       {listing.updateStatus === 'not_sent' && (
                         <button onClick={() => setEmailModal(listing)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-portal-blue bg-portal-blue-lt rounded-lg hover:bg-portal-blue-lt transition-colors">
                           <Mail size={11} /> Draft Email
                         </button>
                       )}
                       {listing.updateStatus === 'responded' && listing.pendingChanges && (
                         <button onClick={() => setPendingModal(listing)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors ring-1 ring-blue-200">
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-portal-blue bg-portal-blue-lt rounded-lg hover:bg-portal-blue-lt transition-colors ring-1 ring-portal-blue/30">
                           Review Changes
                         </button>
                       )}
@@ -227,9 +227,9 @@ export default function GuidePage() {
                   </div>
                   <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{draft.body}</pre>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">How to send</p>
-                  <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+                <div className="bg-portal-blue-lt border border-blue-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-portal-blue mb-1">How to send</p>
+                  <ol className="text-xs text-portal-blue space-y-1 list-decimal list-inside">
                     <li>Copy the subject and body above</li>
                     <li>Open GHL → Conversations → New Email</li>
                     <li>Search for "{emailModal.businessName}"</li>
@@ -240,7 +240,7 @@ export default function GuidePage() {
               <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between shrink-0">
                 <button onClick={() => setEmailModal(null)} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
                 <button onClick={() => handleMarkSent(emailModal.id)}
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                   <CheckCircle2 size={14} /> Mark as Sent
                 </button>
               </div>

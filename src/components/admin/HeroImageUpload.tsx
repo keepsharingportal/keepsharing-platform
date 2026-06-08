@@ -244,11 +244,11 @@ export function HeroImageUpload({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+          className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <>
-              <RefreshCw size={18} className="text-blue-500 animate-spin" />
+              <RefreshCw size={18} className="text-portal-blue animate-spin" />
               <span className="text-xs font-semibold text-gray-600">
                 {compressing ? 'Resizing large image…' : 'Uploading…'}
               </span>
@@ -270,7 +270,7 @@ export function HeroImageUpload({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 disabled:opacity-50"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-portal-border-2 hover:bg-portal-blue-lt/40 disabled:opacity-50"
           >
             {uploading
               ? <><RefreshCw size={12} className="animate-spin" /> {compressing ? 'Resizing…' : 'Uploading…'}</>
@@ -322,14 +322,14 @@ export function HeroImageUpload({
             className="w-full px-3 py-2 pr-9 text-xs rounded-lg border border-gray-200 outline-none focus:border-blue-400 bg-white disabled:opacity-60"
           />
           {optimizing && (
-            <RefreshCw size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />
+            <RefreshCw size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-portal-blue animate-spin" />
           )}
           {!optimizing && optimized && (
             <CheckCircle2 size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500" />
           )}
         </div>
         {optimizing && (
-          <p className="text-[10px] text-blue-600 mt-1">Optimizing URL on server…</p>
+          <p className="text-[10px] text-portal-blue mt-1">Optimizing URL on server…</p>
         )}
         {optimized && !optimizing && (
           <p className="text-[10px] text-green-700 mt-1">Optimized + saved to Supabase Storage.</p>
@@ -383,8 +383,8 @@ function GravityPicker({
   hint:        string | null
 }) {
   return (
-    <div className="mt-2 p-2 rounded-lg border border-blue-100 bg-blue-50/40">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1 inline-flex items-center gap-1">
+    <div className="mt-2 p-2 rounded-lg border border-portal-blue/20 bg-portal-blue-lt/40">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1 inline-flex items-center gap-1">
         <Crop size={10} /> {label}
       </p>
       <div className="grid grid-cols-3 gap-0.5 w-full max-w-[140px]">
@@ -400,7 +400,7 @@ function GravityPicker({
               className={`aspect-square text-xs font-bold rounded transition-colors ${
                 !enabled
                   ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
+                  : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
               }`}
             >
               {active ? <RefreshCw size={10} className="animate-spin mx-auto" /> : label}
@@ -417,7 +417,7 @@ function GravityPicker({
           className={`text-[10px] font-bold rounded px-2 py-1 ${
             !enabled
               ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-50'
+              : 'bg-white text-portal-blue border border-blue-200 hover:bg-portal-blue-lt disabled:opacity-50'
           }`}
         >
           {busyGravity === 'attention' ? 'Re-cropping…' : 'Auto (attention)'}
@@ -431,7 +431,7 @@ function GravityPicker({
             className={`inline-flex items-center justify-center gap-1 text-[10px] font-bold rounded px-2 py-1 ${
               !enabled
                 ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
+                : 'bg-portal-navy text-white hover:opacity-90 disabled:opacity-50'
             }`}
           >
             <ZoomIn size={11} /> Zoom &amp; adjust…
@@ -439,7 +439,7 @@ function GravityPicker({
         )}
       </div>
       {hint && (
-        <p className="text-[10px] text-blue-700/80 mt-1.5 leading-snug">{hint}</p>
+        <p className="text-[10px] text-portal-blue/80 mt-1.5 leading-snug">{hint}</p>
       )}
     </div>
   )

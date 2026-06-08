@@ -40,7 +40,7 @@ export default async function ExportPackagesPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
         <h1 className="text-xl font-semibold text-gray-900">Export Packages</h1>
@@ -92,7 +92,7 @@ export default async function ExportPackagesPage() {
                       <td className="px-3 py-3 text-right">
                         <a
                           href={`/api/admin/articles/bulk?month=${m}&format=csv`}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-portal-blue hover:underline"
                         >
                           <Download size={11} /> Manifest CSV
                         </a>

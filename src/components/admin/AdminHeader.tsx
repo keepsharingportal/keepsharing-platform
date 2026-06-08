@@ -37,7 +37,7 @@ const DOT_COLORS: Record<Notification['dot'], string> = {
   red:   'bg-red-500',
   amber: 'bg-amber-400',
   green: 'bg-green-500',
-  blue:  'bg-blue-500',
+  blue:  'bg-portal-blue-lt0',
 }
 
 // ── AI Chat message type ───────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
         </div>
         <div className="flex items-center gap-2">
           {unread > 0 && (
-            <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">
+            <button onClick={markAllRead} className="text-xs text-portal-blue hover:underline">
               Mark all read
             </button>
           )}
@@ -87,7 +87,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
             onClick={() => markRead(n.id)}
             className={cn(
               'flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer',
-              !n.read && 'bg-blue-50/40'
+              !n.read && 'bg-portal-blue-lt/40'
             )}
           >
             <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', DOT_COLORS[n.dot])} />
@@ -109,7 +109,7 @@ function NotificationDropdown({ onClose }: { onClose: () => void }) {
 
       <div className="border-t border-gray-100 px-4 py-2">
         <Link href="/admin/today" onClick={onClose}
-          className="text-xs text-blue-600 hover:underline font-medium">
+          className="text-xs text-portal-blue hover:underline font-medium">
           View all in Today screen →
         </Link>
       </div>
@@ -130,7 +130,7 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
   const go = (id: string) => { onClose(); router.push(`/admin/help?article=${id}`) }
 
   const CATEGORY_COLORS: Record<string, string> = {
-    'Getting Started': 'bg-blue-100 text-blue-700',
+    'Getting Started': 'bg-portal-blue-lt text-portal-blue',
     'Advertisers':     'bg-green-100 text-green-700',
     'Content':         'bg-purple-100 text-purple-700',
     'Distribution':    'bg-orange-100 text-orange-700',
@@ -194,7 +194,7 @@ function KBSearchOverlay({ onClose }: { onClose: () => void }) {
               ))}
             </div>
             <Link href="/admin/help" onClick={onClose}
-              className="mt-4 block text-xs text-blue-600 font-medium hover:underline">
+              className="mt-4 block text-xs text-portal-blue font-medium hover:underline">
               Browse all articles →
             </Link>
           </div>
@@ -284,7 +284,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
             <div className={cn(
               'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
               msg.role === 'user'
-                ? 'bg-blue-600 text-white rounded-br-sm'
+                ? 'bg-portal-navy text-white rounded-br-sm'
                 : 'bg-gray-100 text-gray-800 rounded-bl-sm'
             )}>
               {msg.content}
@@ -292,7 +292,7 @@ function AIChatPanel({ onClose }: { onClose: () => void }) {
                 <div className="mt-2 space-y-1">
                   {msg.articles.map(a => (
                     <Link key={a.id} href={`/admin/help?article=${a.id}`} onClick={onClose}
-                      className="flex items-center gap-1 text-xs text-blue-700 hover:underline bg-white/60 rounded-lg px-2 py-1">
+                      className="flex items-center gap-1 text-xs text-portal-blue hover:underline bg-white/60 rounded-lg px-2 py-1">
                       <ExternalLink size={10} />
                       {a.title}
                     </Link>
@@ -385,7 +385,7 @@ function ProfileDropdown({ me, onClose }: { me: Me | null; onClose: () => void }
         </div>
         <div className="text-xs text-gray-400 truncate">{me?.email ?? '—'}</div>
         {me?.role && (
-          <div className="text-[10px] text-blue-600 font-medium mt-0.5">{ROLE_LABEL[me.role]}</div>
+          <div className="text-[10px] text-portal-blue font-medium mt-0.5">{ROLE_LABEL[me.role]}</div>
         )}
       </div>
       <div className="py-1">
@@ -484,7 +484,7 @@ export function AdminHeader() {
             className={cn(
               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors mr-auto disabled:opacity-50',
               maintenance
-                ? 'bg-amber-100 text-amber-800 ring-1 ring-amber-300 hover:bg-amber-200'
+                ? 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-300 hover:bg-amber-200'
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
             )}
           >
@@ -499,7 +499,7 @@ export function AdminHeader() {
             onClick={() => toggle('notifications')}
             className={cn(
               'w-8 h-8 rounded-lg flex items-center justify-center transition-colors relative',
-              openPanel === 'notifications' ? 'bg-blue-50 text-blue-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              openPanel === 'notifications' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
             )}
           >
             <Bell size={16} />
@@ -515,7 +515,7 @@ export function AdminHeader() {
           onClick={() => toggle('search')}
           className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-            openPanel === 'search' ? 'bg-blue-50 text-blue-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            openPanel === 'search' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
           )}
         >
           <HelpCircle size={16} />
@@ -526,7 +526,7 @@ export function AdminHeader() {
           onClick={() => toggle('chat')}
           className={cn(
             'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-            openPanel === 'chat' ? 'bg-blue-50 text-blue-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            openPanel === 'chat' ? 'bg-portal-blue-lt text-portal-blue' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
           )}
         >
           <MessageSquare size={16} />
@@ -536,7 +536,7 @@ export function AdminHeader() {
         <div className="relative ml-1">
           <button
             onClick={() => toggle('profile')}
-            className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold"
+            className="w-7 h-7 rounded-full bg-portal-navy flex items-center justify-center text-white text-xs font-bold"
             aria-label="Open profile menu"
           >
             {initials}

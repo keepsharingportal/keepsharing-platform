@@ -57,7 +57,7 @@ export function SlotToggleButton({ placementType, contextSlug, isDisabled }: Pro
         disabled={busy}
         className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold ring-1 transition disabled:opacity-50 ${
           isDisabled
-            ? 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100'
+            ? 'bg-portal-red-lt text-portal-red ring-rose-200 hover:bg-portal-red-lt'
             : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
         }`}
         title={isDisabled

@@ -203,12 +203,12 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-sm text-rose-800 inline-flex items-center gap-2">
+        <div className="bg-portal-red-lt border border-portal-red/30 rounded-xl p-3 text-sm text-portal-red inline-flex items-center gap-2">
           <AlertCircle size={14} /> {error}
         </div>
       )}
       {saved && !error && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800">
+        <div className="bg-portal-green-lt border border-emerald-200 rounded-xl p-3 text-sm text-portal-green">
           Saved.
         </div>
       )}
@@ -329,7 +329,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
             <button
               type="button"
               onClick={() => setOngoing(false)}
-              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-amber-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 py-2 text-sm font-semibold ${!ongoing ? 'bg-portal-amber-lt0 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
               Check Status
             </button>
@@ -390,7 +390,7 @@ export function EditClient({ placement }: { placement: EditablePlacement }) {
           type="button"
           onClick={onDelete}
           disabled={deleting || saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-rose-700 bg-white border border-rose-200 rounded-full hover:bg-rose-50 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-portal-red bg-white border border-portal-red/30 rounded-full hover:bg-portal-red-lt disabled:opacity-40"
         >
           {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           Delete placement

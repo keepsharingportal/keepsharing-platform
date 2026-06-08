@@ -219,11 +219,11 @@ function ExtractPage() {
       </section>
 
       {err && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4">
+        <div className="rounded-xl border border-portal-red/30 bg-portal-red-lt px-5 py-4">
           <p className="text-sm font-bold text-rose-900 mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Error
           </p>
-          <p className="text-sm text-rose-800 leading-relaxed">{err}</p>
+          <p className="text-sm text-portal-red leading-relaxed">{err}</p>
         </div>
       )}
 
@@ -299,7 +299,7 @@ function ExtractPage() {
                   {keep[idx] && (
                     <div className="ml-7 space-y-3">
                       {ev.confidence_notes && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs text-amber-900 italic">
+                        <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-3 py-1.5 text-xs text-amber-900 italic">
                           ⚠️ {ev.confidence_notes}
                         </div>
                       )}

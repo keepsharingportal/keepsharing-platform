@@ -94,7 +94,7 @@ export default function NewProposalPage() {
           <button onClick={() => save('draft')} disabled={saving || !form.business_name} className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
             Save Draft
           </button>
-          <button onClick={() => save('sent')} disabled={saving || !form.business_name} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+          <button onClick={() => save('sent')} disabled={saving || !form.business_name} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">
             {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : saved ? <><Check size={13} /> Saved!</> : <>Generate & Send <ArrowRight size={13} /></>}
           </button>
         </div>
@@ -153,7 +153,7 @@ export default function NewProposalPage() {
               <label className={lbl}>Recommended tier</label>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(TIER_LABELS).map(([k, v]) => (
-                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                  <label key={k} className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer text-sm ${form.recommended_tier === k ? 'border-blue-500 bg-portal-blue-lt' : 'border-gray-200'}`}>
                     <input type="radio" name="tier" value={k} checked={form.recommended_tier === k} onChange={() => setForm(f => ({...f, recommended_tier: k}))} className="sr-only" />
                     <span className="font-medium text-gray-800">{v.split(' — ')[0]}</span>
                   </label>
@@ -174,7 +174,7 @@ export default function NewProposalPage() {
             </div>
           </div>
           {form.business_category && form.recommended_tier && (
-            <p className="text-xs text-blue-600 mt-3">
+            <p className="text-xs text-portal-blue mt-3">
               ✓ Template auto-filled from {form.business_category} × {form.recommended_tier}. Edit the content below as needed.
             </p>
           )}

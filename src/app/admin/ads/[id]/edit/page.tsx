@@ -201,7 +201,7 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
               if (ad.ad_headline && !ad.advertiser_account_id) {
                 return (
                   <p className="text-base text-gray-600 mt-1 italic">
-                    {ad.ad_headline} <span className="text-xs text-amber-700 ml-1">(no advertiser linked — pick one below)</span>
+                    {ad.ad_headline} <span className="text-xs text-portal-amber ml-1">(no advertiser linked — pick one below)</span>
                   </p>
                 )
               }
@@ -734,12 +734,12 @@ function ExpiredBanner({ expiredAt, onRenew, onCloneAndRun, onDeleteForever }: {
   onDeleteForever: () => void | Promise<void>
 }) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
         <p className="text-sm font-bold text-amber-900">
           This ad is expired (since {new Date(expiredAt).toLocaleDateString()}).
         </p>
-        <p className="text-xs text-amber-800 mt-0.5">
+        <p className="text-xs text-portal-amber mt-0.5">
           Hidden from the public site and from the active ads list, but kept in the customer&apos;s history.
         </p>
       </div>
@@ -872,7 +872,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
               </p>
               {selected.contact_name && <p className="text-sm font-semibold text-gray-900">{selected.contact_name}</p>}
               {selected.contact_email && (
-                <a href={`mailto:${selected.contact_email}`} className="block text-xs text-blue-700 hover:underline">
+                <a href={`mailto:${selected.contact_email}`} className="block text-xs text-portal-blue hover:underline">
                   {selected.contact_email}
                 </a>
               )}
@@ -889,7 +889,7 @@ function CustomerSection({ ad, advertisers, onChange }: {
         )}
 
         {!selected && ad.advertiser_account_id && (
-          <p className="text-xs text-amber-700">
+          <p className="text-xs text-portal-amber">
             This ad references an advertiser ID that isn&apos;t in your list — they may have been deleted.
             Pick a current advertiser or leave blank.
           </p>
@@ -1014,7 +1014,7 @@ function CustomerAdGroup({ label, empty, ads, isExpired, onClone }: {
                     <button
                       type="button"
                       onClick={() => onClone(other.id)}
-                      className="text-[10px] font-bold text-emerald-700 hover:underline"
+                      className="text-[10px] font-bold text-portal-green hover:underline"
                       title="Copy this ad's creative into a new booking with fresh stats and new dates"
                     >
                       Clone & Run
@@ -1122,7 +1122,7 @@ function TrackedLinkSection({ adId, adLink }: { adId: string; adLink: string }) 
               {busy ? 'Generating…' : 'Generate tracked link'}
             </button>
             {!adLink && (
-              <p className="text-[11px] text-amber-700">
+              <p className="text-[11px] text-portal-amber">
                 Set a CTA link in the Creative section first — the tracked URL needs a destination to redirect to.
               </p>
             )}

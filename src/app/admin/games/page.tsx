@@ -167,10 +167,10 @@ export default async function GamesAdminPage() {
       </div>
 
       {!poolAvailable && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Brain Games need a database migration</p>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            Apply migrations <code className="bg-amber-100 px-1 rounded">080_brain_games.sql</code> through <code className="bg-amber-100 px-1 rounded">084_game_content_proposals.sql</code> in the Supabase SQL editor. The full admin (winners + AI queue) activates once all are in.
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply migrations <code className="bg-portal-amber-lt px-1 rounded">080_brain_games.sql</code> through <code className="bg-portal-amber-lt px-1 rounded">084_game_content_proposals.sql</code> in the Supabase SQL editor. The full admin (winners + AI queue) activates once all are in.
           </p>
         </div>
       )}
@@ -262,7 +262,7 @@ export default async function GamesAdminPage() {
                         const empty    = n === 0
                         return (
                           <td key={d} className="text-center px-4 py-2.5">
-                            <span className={`inline-block text-sm font-bold ${empty ? 'text-rose-700' : lowPool ? 'text-amber-700' : 'text-gray-800'}`}>
+                            <span className={`inline-block text-sm font-bold ${empty ? 'text-portal-red' : lowPool ? 'text-portal-amber' : 'text-gray-800'}`}>
                               {n}
                             </span>
                             <p className={`text-[10px] font-semibold ${empty ? 'text-rose-600' : lowPool ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -342,7 +342,7 @@ export default async function GamesAdminPage() {
                         <td className="px-4 py-2 text-xs">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             s.ghl_status === 'sent'   ? 'bg-green-100 text-green-700' :
-                            s.ghl_status === 'failed' ? 'bg-rose-100 text-rose-700'   :
+                            s.ghl_status === 'failed' ? 'bg-portal-red-lt text-portal-red'   :
                                                         'bg-gray-100 text-gray-600'
                           }`}>{s.ghl_status}</span>
                         </td>

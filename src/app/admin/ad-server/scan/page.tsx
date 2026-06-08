@@ -123,7 +123,7 @@ const FLAG_CONFIG: Record<AIFlag, { label: string; cls: string; icon: React.Elem
   },
   verify: {
     label: 'Verify',
-    cls: 'bg-amber-50 text-amber-700 ring-amber-200',
+    cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200',
     icon: AlertTriangle,
     borderCls: 'border-l-amber-400',
   },
@@ -178,7 +178,7 @@ export default function DropboxScanPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Link href="/admin/ad-server" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/admin/ad-server" className="text-sm text-portal-blue hover:text-portal-blue font-medium">
             ← Ad Server
           </Link>
           <span className="text-gray-300">/</span>
@@ -189,7 +189,7 @@ export default function DropboxScanPage() {
             <span className="text-red-700 font-semibold bg-red-50 px-2.5 py-0.5 rounded-full ring-1 ring-red-200">
               {mustChange} must change
             </span>
-            <span className="text-amber-700 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-portal-amber font-semibold bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {verify} verify
             </span>
             <span className="text-green-700 font-semibold bg-green-50 px-2.5 py-0.5 rounded-full ring-1 ring-green-200">
@@ -206,7 +206,7 @@ export default function DropboxScanPage() {
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
               Dropbox Folder Path
             </label>
-            <div className="flex items-center gap-2 border border-gray-300 rounded-lg overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="flex items-center gap-2 border border-gray-300 rounded-lg overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-portal-blue/20">
               <FolderOpen size={15} className="text-gray-400 ml-3 shrink-0" />
               <input
                 type="text"
@@ -219,7 +219,7 @@ export default function DropboxScanPage() {
           <button
             onClick={runScan}
             disabled={scanning || !folderPath.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {scanning
               ? <><Loader2 size={14} className="animate-spin" /> Scanning…</>
@@ -240,12 +240,12 @@ export default function DropboxScanPage() {
         {scanning && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-gray-500">Analyzing <span className="font-mono text-blue-600">{scanFile}</span></span>
+              <span className="text-xs text-gray-500">Analyzing <span className="font-mono text-portal-blue">{scanFile}</span></span>
               <span className="text-xs font-semibold text-gray-600">{scanProgress}%</span>
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                className="h-full bg-portal-navy rounded-full transition-all duration-500"
                 style={{ width: `${scanProgress}%` }}
               />
             </div>
@@ -278,9 +278,9 @@ export default function DropboxScanPage() {
                       'text-xs px-3 py-1.5 rounded-lg font-medium transition-colors',
                       flagFilter === f
                         ? f === 'must_change' ? 'bg-red-600 text-white'
-                          : f === 'verify' ? 'bg-amber-500 text-white'
+                          : f === 'verify' ? 'bg-portal-amber-lt0 text-white'
                           : f === 'safe' ? 'bg-green-600 text-white'
-                          : 'bg-blue-600 text-white'
+                          : 'bg-portal-navy text-white'
                         : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                     )}>
                     {labels[f]}
@@ -383,7 +383,7 @@ export default function DropboxScanPage() {
                                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                                 sent
                                   ? 'bg-green-50 text-green-700 ring-1 ring-green-200'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  : 'bg-portal-navy text-white hover:opacity-90'
                               )}>
                               {sent
                                 ? <><CheckCircle2 size={11} /> Outreach sent via GHL</>

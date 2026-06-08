@@ -7,8 +7,8 @@ export const metadata: Metadata = { title: 'Proposals — Admin' }
 
 const STATUS_COLORS: Record<string, string> = {
   draft:    'bg-gray-100 text-gray-600',
-  sent:     'bg-blue-50 text-blue-600',
-  viewed:   'bg-amber-50 text-amber-600',
+  sent:     'bg-portal-blue-lt text-portal-blue',
+  viewed:   'bg-portal-amber-lt text-amber-600',
   accepted: 'bg-green-50 text-green-700',
   declined: 'bg-red-50 text-red-600',
   expired:  'bg-gray-50 text-gray-400',
@@ -30,7 +30,7 @@ export default async function ProposalsPage() {
           <h1 className="text-xl font-semibold text-gray-900">Proposals</h1>
           <p className="text-sm text-gray-500 mt-0.5">{(proposals ?? []).length} total</p>
         </div>
-        <Link href="/admin/proposals/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+        <Link href="/admin/proposals/new" className="flex items-center gap-2 px-4 py-2 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">
           + New Proposal
         </Link>
       </div>
@@ -39,7 +39,7 @@ export default async function ProposalsPage() {
         {(!proposals || proposals.length === 0) ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-gray-500 mb-4">No proposals yet.</p>
-            <Link href="/admin/proposals/new" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">
+            <Link href="/admin/proposals/new" className="px-5 py-2.5 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90">
               Create your first proposal
             </Link>
           </div>
@@ -79,7 +79,7 @@ export default async function ProposalsPage() {
                       <td className="px-4 py-3 text-gray-400 text-xs">{new Date(p.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Link href={`/admin/proposals/${p.id}`} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</Link>
+                          <Link href={`/admin/proposals/${p.id}`} className="text-xs text-portal-blue hover:text-portal-blue font-medium">Edit</Link>
                           <Link href={`/proposal/${p.token_slug}`} target="_blank" className="text-xs text-gray-400 hover:text-gray-600">View ↗</Link>
                         </div>
                       </td>

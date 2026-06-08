@@ -55,10 +55,10 @@ export default async function ProductionHubPage() {
             <Link
               key={t.href}
               href={t.href}
-              className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm transition-all"
+              className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-portal-border-2 hover:shadow-sm transition-all"
             >
-              <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                <t.icon size={16} className="text-blue-600" />
+              <div className="w-9 h-9 rounded-lg bg-portal-blue-lt flex items-center justify-center shrink-0">
+                <t.icon size={16} className="text-portal-blue" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 leading-tight">{t.label}</p>
@@ -75,7 +75,7 @@ export default async function ProductionHubPage() {
         {recentIssues.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
             <p className="text-sm text-gray-500">No articles have an issue month set yet.</p>
-            <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-blue-600 hover:underline">
+            <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Articles <ArrowRight size={11} />
             </Link>
           </div>
@@ -85,7 +85,7 @@ export default async function ProductionHubPage() {
               <Link
                 key={month}
                 href={`/admin/production/issues?month=${month.slice(0, 7)}`}
-                className="rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300 transition-colors"
+                className="rounded-xl border border-gray-200 bg-white p-3 hover:border-portal-border-2 transition-colors"
               >
                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{month.slice(0, 7)}</p>
                 <p className="text-lg font-bold text-gray-900 mt-0.5">{count}</p>

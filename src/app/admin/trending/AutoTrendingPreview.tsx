@@ -62,7 +62,7 @@ function AutoSection({ candidates, blockAction }: { candidates: AutoCandidate[];
         <div className="flex items-center gap-2 mb-1">
           <Flame size={14} className="text-amber-600" />
           <h2 className="text-sm font-bold text-gray-900">Auto-filling — top pages this week</h2>
-          <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Live preview</span>
+          <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded uppercase tracking-wider">Live preview</span>
         </div>
         <p className="text-xs text-gray-500">
           These pages will fill any empty slots in the bar (after your pinned items). Top of the list rolls in first.
@@ -120,7 +120,7 @@ function CandidateRow({ rank, candidate, blockAction }: { rank: number; candidat
         type="button"
         onClick={onBlock}
         disabled={isPending}
-        className="text-[11px] font-bold text-rose-700 hover:text-rose-900 inline-flex items-center gap-1 disabled:opacity-50"
+        className="text-[11px] font-bold text-portal-red hover:text-rose-900 inline-flex items-center gap-1 disabled:opacity-50"
         title="Add this path to the blocklist so it stops auto-filling"
       >
         <EyeOff size={11} /> {isPending ? 'Blocking…' : 'Block'}
@@ -172,7 +172,7 @@ function BlockedRow({ item, unblockAction }: { item: BlockedPath; unblockAction:
         type="button"
         onClick={onUnblock}
         disabled={isPending}
-        className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 inline-flex items-center gap-1 disabled:opacity-50"
+        className="text-[11px] font-bold text-portal-green hover:text-emerald-900 inline-flex items-center gap-1 disabled:opacity-50"
         title="Remove from the blocklist — this path can fill the bar again"
       >
         <Eye size={11} /> {isPending ? 'Unblocking…' : 'Unblock'}

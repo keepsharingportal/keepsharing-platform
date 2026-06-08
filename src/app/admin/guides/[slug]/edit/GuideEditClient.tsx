@@ -86,7 +86,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
         <button
           onClick={save}
           disabled={saving}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {saving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
           {saving ? 'Saving…' : 'Save Changes'}
@@ -193,7 +193,7 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
             placeholder="https://issuu.com/keepsharing/docs/..."
           />
           {form.issuu_url && (
-            <a href={form.issuu_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1.5">
+            <a href={form.issuu_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mt-1.5">
               <ExternalLink size={11} /> Test link
             </a>
           )}

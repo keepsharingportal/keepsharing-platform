@@ -54,11 +54,11 @@ export default async function RouteOrderPage() {
       <div className="max-w-[900px] mx-auto space-y-6">
 
         <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Distribution Portal
           </Link>
           <div className="flex items-center gap-2">
-            <GripVertical size={18} className="text-blue-600" />
+            <GripVertical size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Route Order</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">
@@ -80,7 +80,7 @@ export default async function RouteOrderPage() {
                 <li key={r.id}>
                   <Link
                     href={`/admin/circulation/routes/${r.id}/reorder`}
-                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300 transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-portal-border-2 transition-colors"
                   >
                     <GripVertical size={14} className="text-gray-300 shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -90,7 +90,7 @@ export default async function RouteOrderPage() {
                       </p>
                     </div>
                     {pending > 0 && (
-                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber text-[10px] font-bold uppercase tracking-wider">
                         <Clock size={10} /> {pending} driver suggestion{pending === 1 ? '' : 's'}
                       </span>
                     )}

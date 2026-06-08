@@ -138,7 +138,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
             <select
               value={routeId}
               onChange={e => setRouteId(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
             >
               <option value="">— Whole region —</option>
               {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -146,7 +146,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
             <button
               onClick={() => call('send-on-our-way', routeId ? { route_id: routeId } : {})}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {busy === 'send-on-our-way' ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               Enqueue on-our-way
@@ -160,7 +160,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
             <button
               onClick={() => call('send-reminders')}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {busy === 'send-reminders' ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               Enqueue reminders
@@ -175,12 +175,12 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
               value={testEmail}
               onChange={e => setTestEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
             />
             <button
               onClick={() => call('send-test', { to_email: testEmail })}
               disabled={busy !== null || !testEmail.trim()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {busy === 'send-test' ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               Send test
@@ -203,7 +203,7 @@ function QuickActions({ market, routes, onDone }: { market: string; routes: Arra
         </div>
 
         {result && (
-          <p className={`text-xs font-semibold ${result.ok ? 'text-emerald-700' : 'text-red-600'} flex items-center gap-1`}>
+          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-red-600'} flex items-center gap-1`}>
             {result.ok ? <Check size={11} /> : <AlertTriangle size={11} />}
             {result.text}
           </p>
@@ -280,7 +280,7 @@ function TemplatesEditor({ templates, onChange }: { templates: EmailTemplate[]; 
                     <button
                       onClick={() => save(t)}
                       disabled={busy === t.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
                     >
                       {busy === t.id ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                       Save template
@@ -344,7 +344,7 @@ function SchedulesEditor({ schedules, onChange }: { schedules: RouteSchedule[]; 
                 <button
                   onClick={() => save(s)}
                   disabled={busy === s.route_id}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
                 >
                   {busy === s.route_id ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
                   Save
@@ -411,16 +411,16 @@ function QueueSection({ market, queue, stats, onRefresh }: { market: string; que
 
 const STATUS_COLOR: Record<string, string> = {
   pending: 'text-amber-600',
-  sending: 'text-blue-600',
+  sending: 'text-portal-blue',
   sent:    'text-emerald-600',
   failed:  'text-red-600',
 }
 
 function Badge({ label, count, color }: { label: string; count: number; color: 'amber' | 'blue' | 'green' | 'red' }) {
   const bg: Record<typeof color, string> = {
-    amber: 'bg-amber-50 text-amber-800',
-    blue:  'bg-blue-50 text-blue-800',
-    green: 'bg-emerald-50 text-emerald-800',
+    amber: 'bg-portal-amber-lt text-portal-amber',
+    blue:  'bg-portal-blue-lt text-portal-blue',
+    green: 'bg-portal-green-lt text-portal-green',
     red:   'bg-red-50 text-red-800',
   }
   return (
@@ -452,7 +452,7 @@ function FieldText({ label, value, onChange }: { label: string; value: string; o
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -466,7 +466,7 @@ function FieldArea({ label, value, onChange, rows = 4 }: { label: string; value:
         value={value}
         onChange={e => onChange(e.target.value)}
         rows={rows}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-200 resize-y"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30 resize-y"
       />
     </label>
   )
@@ -482,7 +482,7 @@ function FieldNumber({ label, value, onChange }: { label: string; value: number;
         min={1}
         max={31}
         onChange={e => onChange(parseInt(e.target.value || '0', 10))}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )

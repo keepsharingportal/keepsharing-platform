@@ -86,11 +86,11 @@ export default async function AnalyticsTab({ params }: Props) {
 
       {/* ── Best performer callout ──────────────────────── */}
       {best && bestCtr && (
-        <section className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-          <h3 className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1">Top performer</h3>
+        <section className="bg-portal-green-lt border border-emerald-200 rounded-2xl p-5">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-portal-green mb-1">Top performer</h3>
           <p className="text-sm text-emerald-900">
             <span className="font-bold">{best.ad_headline ?? best.placement_type.replace(/_/g, ' ')}</span>
-            <span className="ml-2 text-emerald-700">
+            <span className="ml-2 text-portal-green">
               {bestCtr}% CTR · {best.impression_count.toLocaleString()} impressions · {best.click_count.toLocaleString()} clicks
             </span>
           </p>

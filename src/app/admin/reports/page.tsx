@@ -75,7 +75,7 @@ export default async function ReportsLandingPage() {
 
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-blue-600" />
+          <BarChart3 className="h-5 w-5 text-portal-blue" />
           Reports
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
@@ -98,7 +98,7 @@ export default async function ReportsLandingPage() {
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
               Top Articles — Most Viewed
             </h2>
-            <Link href="/admin/articles" className="text-[11px] font-bold text-blue-600 hover:underline">
+            <Link href="/admin/articles" className="text-[11px] font-bold text-portal-blue hover:underline">
               All Articles →
             </Link>
           </div>
@@ -130,7 +130,7 @@ export default async function ReportsLandingPage() {
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500">
               Top QR Codes — Most Scanned
             </h2>
-            <Link href="/admin/content/short-links" className="text-[11px] font-bold text-blue-600 hover:underline">
+            <Link href="/admin/content/short-links" className="text-[11px] font-bold text-portal-blue hover:underline">
               All Codes →
             </Link>
           </div>
@@ -166,7 +166,7 @@ export default async function ReportsLandingPage() {
         <div className="rounded-xl border border-dashed border-gray-200 p-12 text-center bg-white">
           <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm font-semibold text-gray-700">No advertiser accounts yet</p>
-          <p className="text-xs text-gray-500 mt-1">Add one at <Link href="/admin/advertisers/onboarding" className="text-blue-600 hover:underline">Onboarding</Link>.</p>
+          <p className="text-xs text-gray-500 mt-1">Add one at <Link href="/admin/advertisers/onboarding" className="text-portal-blue hover:underline">Onboarding</Link>.</p>
         </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">

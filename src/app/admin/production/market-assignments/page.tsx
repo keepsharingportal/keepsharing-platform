@@ -52,7 +52,7 @@ export default async function MarketAssignmentsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
         <h1 className="text-xl font-semibold text-gray-900">Market Assignments</h1>
@@ -92,7 +92,7 @@ export default async function MarketAssignmentsPage() {
                 </div>
                 <Link
                   href={`/admin/articles?publication=${p.abbrev}`}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold text-blue-600 hover:bg-blue-50"
+                  className="flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-semibold text-portal-blue hover:bg-portal-blue-lt"
                 >
                   View articles <ArrowRight size={11} />
                 </Link>

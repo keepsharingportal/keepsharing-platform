@@ -128,7 +128,7 @@ export default async function AdsTab({ params }: Props) {
                   </div>
                   {isExpired ? (
                     <>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200 font-bold uppercase tracking-wider shrink-0">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-portal-red-lt text-portal-red ring-1 ring-rose-200 font-bold uppercase tracking-wider shrink-0">
                         Expired
                       </span>
                       <CloneAdButton id={p.id} variant="pill" />

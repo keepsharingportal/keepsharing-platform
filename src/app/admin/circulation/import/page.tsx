@@ -38,11 +38,11 @@ export default async function ImportPage() {
       <div className="max-w-[900px] mx-auto space-y-6">
 
         <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Distribution Portal
           </Link>
           <div className="flex items-center gap-2">
-            <Upload size={18} className="text-blue-600" />
+            <Upload size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Import Stops</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">
@@ -51,7 +51,7 @@ export default async function ImportPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900">
           <p className="font-bold mb-1">Heads-up — this is a replace, not a merge</p>
           <p className="text-xs">
             Currently in the system: <span className="font-bold">{routeCount} routes</span> · <span className="font-bold">{stopCount} active stops</span>.

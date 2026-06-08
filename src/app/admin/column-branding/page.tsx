@@ -228,7 +228,7 @@ function ColumnCard({
             />
             <span
               role="button"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer ${uploading ? 'bg-gray-100 text-gray-400' : 'bg-portal-blue-lt text-portal-blue hover:bg-portal-blue-lt'}`}
             >
               {uploading
                 ? <><RefreshCw size={12} className="animate-spin" /> Uploading…</>
@@ -262,7 +262,7 @@ function ColumnCard({
             type="button"
             onClick={save}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md bg-portal-navy hover:opacity-90 text-white disabled:opacity-50"
           >
             {saving ? <><RefreshCw size={11} className="animate-spin" /> Saving…</> : <><Save size={11} /> Save</>}
           </button>

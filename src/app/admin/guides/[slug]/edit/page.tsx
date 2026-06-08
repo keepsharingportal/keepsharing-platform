@@ -79,7 +79,7 @@ export default async function GuideEditPage({ params }: Props) {
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Link href="/admin/guides" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/guides" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Guides
           </Link>
           <h1 className="text-xl font-semibold text-gray-900">Edit {guide.display_name}</h1>
@@ -136,7 +136,7 @@ export default async function GuideEditPage({ params }: Props) {
               ? ((sponsor.advertiser as { business_name?: string } | null)?.business_name ?? sponsor.ad_headline ?? 'Sponsor set')
               : <span className="text-gray-400 font-normal">No active sponsor</span>}
           </p>
-          <Link href="/admin/advertisers/sponsor-inventory" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Manage sponsors →</Link>
+          <Link href="/admin/advertisers/sponsor-inventory" className="text-xs text-portal-blue hover:underline mt-1 inline-block">Manage sponsors →</Link>
         </div>
       </section>
 
@@ -146,7 +146,7 @@ export default async function GuideEditPage({ params }: Props) {
           <h2 className="text-sm font-bold text-gray-900">Connected Articles ({articles?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`}
-            className="text-xs font-semibold text-blue-600 hover:underline"
+            className="text-xs font-semibold text-portal-blue hover:underline"
           >
             + New article
           </Link>
@@ -154,23 +154,23 @@ export default async function GuideEditPage({ params }: Props) {
         {(!articles || articles.length === 0) ? (
           <div className="px-4 py-8 text-center text-sm text-gray-500">
             No articles tagged to this guide yet.{' '}
-            <Link href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`} className="text-blue-600 hover:underline font-semibold">Write one →</Link>
+            <Link href={`/admin/articles/new?guide_slug=${encodeURIComponent(guide.slug)}`} className="text-portal-blue hover:underline font-semibold">Write one →</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {articles.map(a => (
               <div key={a.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
                 <div className="min-w-0 flex-1">
-                  <Link href={`/admin/articles/${a.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-1">
+                  <Link href={`/admin/articles/${a.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-portal-blue line-clamp-1">
                     {a.title}
                   </Link>
                   <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-gray-500">
-                    {!a.published && <span className="font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Draft</span>}
+                    {!a.published && <span className="font-semibold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded">Draft</span>}
                     {a.column_slug && <span>{a.column_slug}</span>}
                     {a.published_at && <span>{new Date(a.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                   </div>
                 </div>
-                <Link href={`/admin/articles/${a.id}/edit`} className="text-xs text-blue-600 hover:underline shrink-0">Edit</Link>
+                <Link href={`/admin/articles/${a.id}/edit`} className="text-xs text-portal-blue hover:underline shrink-0">Edit</Link>
               </div>
             ))}
           </div>
@@ -185,7 +185,7 @@ export default async function GuideEditPage({ params }: Props) {
         </div>
         <Link
           href={`/admin/content/guide-listings-import`}
-          className="text-xs font-semibold text-blue-600 hover:underline"
+          className="text-xs font-semibold text-portal-blue hover:underline"
         >
           Bulk import →
         </Link>

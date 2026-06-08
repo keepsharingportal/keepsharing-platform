@@ -99,7 +99,7 @@ export default async function CirculationOverviewPage() {
 
         <header className="space-y-1">
           <div className="flex items-center gap-2">
-            <Navigation size={18} className="text-blue-600" />
+            <Navigation size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Distribution Routes</h1>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl">
@@ -111,9 +111,9 @@ export default async function CirculationOverviewPage() {
         </header>
 
         {tableMissing && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold mb-1">Migration not applied yet</p>
-            <p>Run <code className="px-1 bg-amber-100 rounded">supabase/migrations/113_circulation.sql</code> in Supabase Studio before using this section.</p>
+            <p>Run <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/113_circulation.sql</code> in Supabase Studio before using this section.</p>
           </div>
         )}
 
@@ -147,20 +147,20 @@ export default async function CirculationOverviewPage() {
             <AdminSectionHeader title="Needs your attention" description="Pending items across distribution" />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {pendingInvoices > 0 && (
-                <Link href="/admin/circulation/deliveries" className="rounded-xl border border-blue-200 bg-blue-50 p-3 hover:border-blue-300 transition-colors flex items-center gap-3">
-                  <Receipt size={18} className="text-blue-600 shrink-0" />
+                <Link href="/admin/circulation/deliveries" className="rounded-xl border border-blue-200 bg-portal-blue-lt p-3 hover:border-portal-border-2 transition-colors flex items-center gap-3">
+                  <Receipt size={18} className="text-portal-blue shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-blue-900">{pendingInvoices} invoice{pendingInvoices === 1 ? '' : 's'} to review</p>
-                    <p className="text-[11px] text-blue-700">Drivers submitted, awaiting payment</p>
+                    <p className="text-[11px] text-portal-blue">Drivers submitted, awaiting payment</p>
                   </div>
                 </Link>
               )}
               {pendingChanges > 0 && (
-                <Link href="/admin/circulation/changes" className="rounded-xl border border-amber-200 bg-amber-50 p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
+                <Link href="/admin/circulation/changes" className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3 hover:border-amber-300 transition-colors flex items-center gap-3">
                   <GitPullRequest size={18} className="text-amber-600 shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-amber-900">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>
-                    <p className="text-[11px] text-amber-700">Driver-submitted stop edits</p>
+                    <p className="text-[11px] text-portal-amber">Driver-submitted stop edits</p>
                   </div>
                 </Link>
               )}
@@ -193,7 +193,7 @@ export default async function CirculationOverviewPage() {
                     <p className="text-[11px] text-gray-500 truncate">{lp.route_name} · {lp.month}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-lg font-bold text-amber-700">{lp.leftovers}</p>
+                    <p className="text-lg font-bold text-portal-amber">{lp.leftovers}</p>
                     <p className="text-[10px] text-gray-400 uppercase tracking-wider">leftover</p>
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export default async function CirculationOverviewPage() {
                 <Link
                   key={r.id}
                   href={`/admin/circulation/routes/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300 transition-colors"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 hover:border-portal-border-2 transition-colors"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">{r.name}</p>
@@ -266,7 +266,7 @@ function MetricCard({ label, value, href, color, icon: Icon }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }) {
   return (
-    <Link href={href} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-blue-300 transition-colors block">
+    <Link href={href} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-portal-border-2 transition-colors block">
       <div className="flex items-center justify-between mb-1.5">
         <Icon size={14} className="text-gray-300" />
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>

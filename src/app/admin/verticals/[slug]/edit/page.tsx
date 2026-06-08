@@ -51,7 +51,7 @@ export default async function VerticalEditPage({ params }: Props) {
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Link href="/admin/verticals" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/verticals" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Verticals
           </Link>
           <div className="flex items-center gap-2 mb-1">

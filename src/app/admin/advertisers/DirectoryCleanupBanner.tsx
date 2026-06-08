@@ -115,13 +115,13 @@ export function DirectoryCleanupBanner({ directoryCount }: { directoryCount: num
             )}
 
             {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-800 inline-flex items-center gap-2">
+              <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-sm text-portal-red inline-flex items-center gap-2">
                 <AlertTriangle size={13} /> {error}
               </div>
             )}
 
             {success && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 space-y-1">
+              <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-sm text-portal-green space-y-1">
                 <p className="font-bold">Cleanup complete.</p>
                 <p>
                   Deleted <b>{success.deleted}</b> directory-only advertiser{success.deleted === 1 ? '' : 's'};

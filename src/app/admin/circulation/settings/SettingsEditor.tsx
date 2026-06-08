@@ -79,7 +79,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
     <div className="space-y-4">
       {err && <p className="text-xs text-red-600">{err}</p>}
 
-      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
+      <div className="rounded-md border border-amber-200 bg-portal-amber-lt p-3 text-xs text-amber-900 flex items-start gap-2">
         <AlertCircle size={14} className="shrink-0 mt-0.5" />
         <div>
           <p className="font-bold">Set these before drivers + readers see anything</p>
@@ -110,7 +110,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                   <button
                     onClick={() => save(row)}
                     disabled={busy === row.key}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-navy text-white hover:opacity-90 disabled:opacity-50"
                   >
                     {busy === row.key ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
                     Save
@@ -121,7 +121,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                     <select
                       value={row.value ?? ''}
                       onChange={e => patchLocal(row.key, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                     >
                       {m.options.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
@@ -130,7 +130,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                       type={m.type === 'number' ? 'number' : m.type === 'email' ? 'email' : 'text'}
                       value={row.value ?? ''}
                       onChange={e => patchLocal(row.key, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                     />
                   )}
                 </div>
@@ -151,7 +151,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                   <button
                     onClick={() => save(row)}
                     disabled={busy === row.key}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-navy text-white hover:opacity-90 disabled:opacity-50"
                   >
                     {busy === row.key ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
                     Save
@@ -160,7 +160,7 @@ export function SettingsEditor({ market, initial, meta }: Props) {
                 <input
                   value={row.value ?? ''}
                   onChange={e => patchLocal(row.key, e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
                 />
               </li>
             ))}
@@ -175,11 +175,11 @@ export function SettingsEditor({ market, initial, meta }: Props) {
             <Plus size={12} /> New setting
           </button>
         ) : (
-          <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 space-y-2">
+          <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
             <input placeholder="key (snake_case)" value={newKey} onChange={e => setNewKey(e.target.value)} className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm" />
             <input placeholder="value" value={newVal} onChange={e => setNewVal(e.target.value)} className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm" />
             <div className="flex items-center gap-2">
-              <button onClick={addNew} disabled={busy === '__new' || !newKey.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50">
+              <button onClick={addNew} disabled={busy === '__new' || !newKey.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
                 {busy === '__new' ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
                 Add
               </button>

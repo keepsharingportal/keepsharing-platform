@@ -54,7 +54,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 
   if (listErr) {
     return (
-      <div className="p-12 text-center text-sm text-rose-700">
+      <div className="p-12 text-center text-sm text-portal-red">
         Failed to load listings: {listErr.message}
       </div>
     )
@@ -142,8 +142,8 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 
 function StatTile({ label, value, tone }: { label: string; value: number; tone: 'neutral' | 'amber' | 'emerald' | 'gray' }) {
   const cls =
-    tone === 'amber'   ? 'border-amber-200 bg-amber-50/60'   :
-    tone === 'emerald' ? 'border-emerald-200 bg-emerald-50/60' :
+    tone === 'amber'   ? 'border-amber-200 bg-portal-amber-lt/60'   :
+    tone === 'emerald' ? 'border-emerald-200 bg-portal-green-lt/60' :
     tone === 'gray'    ? 'border-gray-200 bg-gray-50/60'     :
                          'border-gray-200 bg-white'
   return (

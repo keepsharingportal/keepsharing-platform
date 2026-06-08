@@ -77,7 +77,7 @@ export default async function AccountSettingsPage() {
         />
 
         {/* Tip card — explains the magic-link → password upgrade path */}
-        <div className="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-5 text-sm">
+        <div className="rounded-2xl bg-portal-amber-lt ring-1 ring-amber-200 p-5 text-sm">
           <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-1.5">
             <KeyRound size={14} /> Daily admin? Set a password.
           </p>

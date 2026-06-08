@@ -81,12 +81,12 @@ export default async function PendingEventsPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Inbox className="h-5 w-5 text-blue-600" />
+          <Inbox className="h-5 w-5 text-portal-blue" />
           Pending Events
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
           Events submitted by the community via{' '}
-          <Link href="/calendar/submit" className="text-blue-600 hover:underline">/calendar/submit</Link>.
+          <Link href="/calendar/submit" className="text-portal-blue hover:underline">/calendar/submit</Link>.
           Approve to publish, or reject with reason.
         </p>
       </div>

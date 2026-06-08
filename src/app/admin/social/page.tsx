@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils'
 
 const STATUS_CONFIG: Record<SocialStatus, { label: string; cls: string }> = {
   draft:    { label: 'Draft',    cls: 'bg-gray-50 text-gray-500 ring-gray-200' },
-  pending:  { label: 'Pending',  cls: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  approved: { label: 'Approved', cls: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
   posted:   { label: 'Posted',   cls: 'bg-green-50 text-green-700 ring-green-200' },
 }
 
@@ -20,7 +20,7 @@ const PLATFORM_ICON = {
 
 const PLATFORM_COLOR = {
   instagram: 'text-rose-500',
-  facebook:  'text-blue-500',
+  facebook:  'text-portal-blue',
   both:      'text-purple-500',
 }
 
@@ -64,7 +64,7 @@ export default function SocialQueuePage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">Social Queue</h1>
-          <span className="text-sm font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+          <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
             {statusCount('pending')} pending approval
           </span>
         </div>
@@ -74,7 +74,7 @@ export default function SocialQueuePage() {
             <span className="font-semibold text-green-600">{statusCount('posted')}</span>
             <span>posted</span>
             <span className="text-gray-300">·</span>
-            <span className="font-semibold text-blue-600">{statusCount('approved')}</span>
+            <span className="font-semibold text-portal-blue">{statusCount('approved')}</span>
             <span>approved</span>
             <span className="text-gray-300">·</span>
             <span className="font-semibold text-amber-600">{statusCount('pending')}</span>
@@ -89,7 +89,7 @@ export default function SocialQueuePage() {
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-blue-600 border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}
             >
               {tab}
@@ -137,14 +137,14 @@ export default function SocialQueuePage() {
                       <textarea value={editCaption} onChange={(e) => setEditCaption(e.target.value)}
                         className="w-full text-sm text-gray-700 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-y min-h-[100px]" />
                       <div className="flex gap-2">
-                        <button onClick={() => saveEdit(post.id)} className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium">Save</button>
+                        <button onClick={() => saveEdit(post.id)} className="text-xs px-3 py-1.5 bg-portal-navy text-white rounded-lg font-medium">Save</button>
                         <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1.5 text-gray-500">Cancel</button>
                       </div>
                     </div>
                   ) : (
                     <>
                       <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{post.caption}</p>
-                      <p className="text-xs text-blue-500 mt-2">{post.hashtags}</p>
+                      <p className="text-xs text-portal-blue mt-2">{post.hashtags}</p>
                     </>
                   )}
                 </div>
@@ -175,10 +175,10 @@ export default function SocialQueuePage() {
                   </div>
                 )}
                 {post.status === 'approved' && (
-                  <div className="px-4 py-2.5 bg-blue-50 border-t border-blue-100 flex items-center justify-between">
-                    <span className="text-xs text-blue-700 font-medium">✓ Ready for GHL Social Planner</span>
+                  <div className="px-4 py-2.5 bg-portal-blue-lt border-t border-portal-blue/20 flex items-center justify-between">
+                    <span className="text-xs text-portal-blue font-medium">✓ Ready for GHL Social Planner</span>
                     <a href="https://app.gohighlevel.com" target="_blank"
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
+                      className="flex items-center gap-1 text-xs text-portal-blue hover:text-portal-blue">
                       Open GHL <ExternalLink size={10} />
                     </a>
                   </div>

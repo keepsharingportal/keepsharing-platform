@@ -44,9 +44,9 @@ interface Props {
 
 const STATUS_COLOR: Record<string, string> = {
   draft:     'bg-gray-100 text-gray-700',
-  submitted: 'bg-blue-100 text-blue-800',
+  submitted: 'bg-portal-blue-lt text-portal-blue',
   reviewed:  'bg-indigo-100 text-indigo-800',
-  paid:      'bg-emerald-100 text-emerald-800',
+  paid:      'bg-portal-green-lt text-portal-green',
 }
 
 function fmtShortMonth(m: string): string {
@@ -86,7 +86,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
     const pct = d.total > 0 ? Math.round(d.done / d.total * 100) : 0
     return (
       <div className="space-y-4">
-        <button onClick={backToList} className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1">
+        <button onClick={backToList} className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1">
           ← Back to month
         </button>
 
@@ -98,13 +98,13 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                 {d.done} <span className="text-base font-normal text-gray-500">of {d.total} stops</span>
               </p>
             </div>
-            <p className={`text-3xl font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <p className={`text-3xl font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-portal-blue' : 'text-gray-400'}`}>
               {pct}%
             </p>
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${pct === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+              className={`h-full transition-all ${pct === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -114,7 +114,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
               {d.status}
             </span>
             {d.submitted_at && <span>Submitted {new Date(d.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
-            {d.leftovers > 0 && <span className="inline-flex items-center gap-1 text-amber-700 font-semibold"><Package size={11} /> {d.leftovers} leftover</span>}
+            {d.leftovers > 0 && <span className="inline-flex items-center gap-1 text-portal-amber font-semibold"><Package size={11} /> {d.leftovers} leftover</span>}
           </div>
         </div>
 
@@ -123,12 +123,12 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           <ul className="divide-y divide-gray-100">
             {focusDetail.stops.map((s, idx) => {
               const number = s.is_pickup ? 'P' : (idx + (focusDetail.stops.findIndex(x => !x.is_pickup) >= 0 ? 0 : 1))
-              const bg = s.checked ? 'bg-emerald-50' : s.not_delivering ? 'bg-rose-50' : ''
+              const bg = s.checked ? 'bg-portal-green-lt' : s.not_delivering ? 'bg-portal-red-lt' : ''
               return (
                 <li key={s.id} className={`px-4 py-3 flex items-center gap-3 ${bg}`}>
                   <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    s.checked    ? 'bg-emerald-500 text-white' :
-                    s.is_pickup  ? 'bg-blue-500 text-white'    :
+                    s.checked    ? 'bg-portal-green-lt0 text-white' :
+                    s.is_pickup  ? 'bg-portal-blue-lt0 text-white'    :
                                    'bg-white border-2 border-gray-300 text-gray-400'
                   }`}>
                     {s.checked ? <Check size={12} strokeWidth={3} /> : s.is_pickup ? 'P' : number}
@@ -140,12 +140,12 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                     </p>
                     {s.address && <p className="text-[11px] text-gray-500">{s.address}{s.city ? `, ${s.city}` : ''}</p>}
                     {s.driver_note && (
-                      <p className="text-[11px] text-amber-700 mt-0.5 inline-flex items-center gap-1">
+                      <p className="text-[11px] text-portal-amber mt-0.5 inline-flex items-center gap-1">
                         <MessageSquare size={10} /> {s.driver_note}
                       </p>
                     )}
                     {s.leftovers > 0 && (
-                      <p className="text-[11px] text-amber-700 mt-0.5 inline-flex items-center gap-1">
+                      <p className="text-[11px] text-portal-amber mt-0.5 inline-flex items-center gap-1">
                         <Package size={10} /> Leftover: {s.leftovers_json
                           ? Object.entries(s.leftovers_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(', ')
                           : `${s.leftovers} copies`}
@@ -153,7 +153,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                     )}
                   </div>
                   {s.checked && s.checked_at && (
-                    <span className="shrink-0 text-[10px] text-emerald-700 font-semibold">
+                    <span className="shrink-0 text-[10px] text-portal-green font-semibold">
                       {new Date(s.checked_at).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' })}
                     </span>
                   )}
@@ -175,7 +175,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
           <button
             key={m}
             onClick={() => gotoMonth(m)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
           >
             {fmtShortMonth(m)}
           </button>
@@ -183,7 +183,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
         {!months.includes(activeMonth) && (
           <button
             onClick={() => gotoMonth(activeMonth)}
-            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-blue-600 text-white border-blue-600"
+            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-blue-600"
           >
             {fmtShortMonth(activeMonth)}
           </button>
@@ -202,7 +202,7 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
               <li key={r.id}>
                 <button
                   onClick={() => gotoDelivery(r.id)}
-                  className="w-full text-left rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-300 transition-colors"
+                  className="w-full text-left rounded-xl border border-gray-200 bg-white p-3 hover:border-portal-border-2 transition-colors"
                 >
                   <div className="flex items-center justify-between gap-3 mb-2">
                     <div className="min-w-0 flex-1">
@@ -220,9 +220,9 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                         <p className="text-[10px] text-gray-400 uppercase tracking-wider">stops</p>
                       </div>
                       <div className="text-right">
-                        <p className={`text-lg font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-blue-600' : 'text-gray-400'}`}>{pct}%</p>
+                        <p className={`text-lg font-bold ${pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-portal-blue' : 'text-gray-400'}`}>{pct}%</p>
                         {r.pay_final != null
-                          ? <p className="text-[10px] text-emerald-700 font-semibold">{fmtMoney(r.pay_final)}</p>
+                          ? <p className="text-[10px] text-portal-green font-semibold">{fmtMoney(r.pay_final)}</p>
                           : <p className="text-[10px] text-gray-400">{fmtMoney(r.pay_calculated)}</p>}
                       </div>
                       <ChevronRight size={14} className="text-gray-300 shrink-0" />
@@ -230,12 +230,12 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                      className={`h-full ${pct === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                   {r.leftovers > 0 && (
-                    <p className="mt-2 text-[11px] text-amber-700 inline-flex items-center gap-1">
+                    <p className="mt-2 text-[11px] text-portal-amber inline-flex items-center gap-1">
                       <Package size={10} /> {r.leftovers} total leftover this run
                     </p>
                   )}

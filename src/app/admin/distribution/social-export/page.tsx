@@ -64,9 +64,9 @@ const IMAGE_STATUS_OPTIONS = [
 
 const IMAGE_STATUS_STYLE: Record<string, string> = {
   image_ready:         'bg-green-100 text-green-700',
-  use_existing_image:  'bg-blue-100 text-blue-700',
+  use_existing_image:  'bg-portal-blue-lt text-portal-blue',
   no_image_needed:     'bg-gray-100 text-gray-500',
-  needs_photo:         'bg-amber-100 text-amber-700',
+  needs_photo:         'bg-portal-amber-lt text-portal-amber',
   needs_canva_graphic: 'bg-orange-100 text-orange-700',
 }
 
@@ -407,7 +407,7 @@ export default async function SocialExportPage({
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
                     <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
                     {item.approved_social     && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">✓ Approved</span>}
-                    {item.social_planner_ready && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">Planner Ready</span>}
+                    {item.social_planner_ready && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">Planner Ready</span>}
                     {item.exported_to_social_planner && !item.social_promoted_at && (
                       <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">Exported</span>
                     )}
@@ -416,7 +416,7 @@ export default async function SocialExportPage({
                     )}
                     {ready
                       ? <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-bold border border-green-200">✓ Ready</span>
-                      : <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-bold border border-amber-200">Needs work</span>
+                      : <span className="text-[10px] bg-portal-amber-lt text-amber-600 px-1.5 py-0.5 rounded font-bold border border-amber-200">Needs work</span>
                     }
                   </div>
                   <p className="text-sm font-bold text-gray-900 truncate">{title}</p>
@@ -432,7 +432,7 @@ export default async function SocialExportPage({
                       <span
                         key={f.label}
                         className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                          f.level === 'error' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                          f.level === 'error' ? 'bg-red-100 text-red-600' : 'bg-portal-amber-lt text-amber-600'
                         }`}
                       >
                         {f.label}
@@ -446,7 +446,7 @@ export default async function SocialExportPage({
               <div className="px-5 py-4 space-y-4 border-b border-gray-50">
                 {item.caption_facebook && (
                   <div>
-                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide mb-1">Facebook</p>
+                    <p className="text-[10px] font-bold text-portal-blue uppercase tracking-wide mb-1">Facebook</p>
                     <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{item.caption_facebook}</p>
                   </div>
                 )}
@@ -577,7 +577,7 @@ export default async function SocialExportPage({
                 <h3 className="text-xs font-bold text-gray-600">GHL Social Planner Format</h3>
                 <p className="text-[11px] text-gray-400">Copy each block into GHL Social Planner, one post at a time</p>
               </div>
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold shrink-0">Manual paste</span>
+              <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-2 py-0.5 rounded font-semibold shrink-0">Manual paste</span>
             </div>
             <div className="p-4">
               <textarea
@@ -590,9 +590,9 @@ export default async function SocialExportPage({
           </div>
 
           {/* Reminder */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
-            <p className="text-xs font-bold text-amber-800 mb-1">After pasting into GHL:</p>
-            <ol className="text-xs text-amber-700 space-y-0.5 list-decimal list-inside">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
+            <p className="text-xs font-bold text-portal-amber mb-1">After pasting into GHL:</p>
+            <ol className="text-xs text-portal-amber space-y-0.5 list-decimal list-inside">
               <li>Verify caption, date, and channel in GHL before scheduling.</li>
               <li>Return here and click <strong>Mark Exported</strong> on each post you have queued.</li>
               <li>After posts actually go live, click <strong>Mark Promoted</strong> to close the loop.</li>

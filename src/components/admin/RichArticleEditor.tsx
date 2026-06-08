@@ -90,7 +90,7 @@ function UrlInput({
       <button
         type="button"
         onClick={onConfirm}
-        className="shrink-0 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        className="shrink-0 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
       >
         {confirmLabel}
       </button>
@@ -467,11 +467,11 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           {/* Mode toggle */}
           <div className="flex gap-1.5">
             <button type="button" onClick={() => setImageMode('url')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'url' ? 'bg-white border border-blue-400 text-blue-700 shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'url' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
               <Link2 size={11} /> Paste URL
             </button>
             <button type="button" onClick={() => setImageMode('upload')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'upload' ? 'bg-white border border-blue-400 text-blue-700 shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${imageMode === 'upload' ? 'bg-white border border-blue-400 text-portal-blue shadow-sm' : 'text-gray-500 hover:bg-white border border-gray-200'}`}>
               <Upload size={11} /> Upload File
             </button>
           </div>
@@ -496,13 +496,13 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
                     <p className="text-xs font-semibold text-green-700">✓ Uploaded</p>
                     <p className="text-[11px] text-gray-500 truncate">{uploadedPreview.split('/').pop()}</p>
                     <button type="button" onClick={() => fileInputRef.current?.click()}
-                      className="text-[11px] text-blue-600 hover:underline mt-1">Replace image</button>
+                      className="text-[11px] text-portal-blue hover:underline mt-1">Replace image</button>
                   </div>
                 </div>
               ) : (
                 /* Not yet uploaded */
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                  className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-white transition-colors disabled:opacity-50">
+                  className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-portal-blue hover:bg-white transition-colors disabled:opacity-50">
                   {uploading
                     ? <><RefreshCw size={14} className="animate-spin" /> Optimising &amp; uploading…</>
                     : <><Upload size={14} /> Click to choose an image (max 15 MB)</>}
@@ -531,7 +531,7 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
               {ALIGN_OPTIONS.map(({ value, label, Icon }) => (
                 <button key={value} type="button" onClick={() => setImageAlign(value)}
                   title={label}
-                  className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${imageAlign === value ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
+                  className={`flex items-center justify-center w-7 h-7 rounded transition-colors ${imageAlign === value ? 'bg-portal-navy text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
                   <Icon size={12} />
                 </button>
               ))}
@@ -541,12 +541,12 @@ function Toolbar({ editor, onSetHero }: { editor: Editor; onSetHero?: (url: stri
           {/* Actions */}
           <div className="flex gap-2 flex-wrap">
             <button type="button" onClick={insertImage} disabled={!imageUrl.trim()}
-              className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors">
+              className="px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-40 transition-colors">
               Insert Image
             </button>
             {onSetHero && imageUrl.trim() && (
               <button type="button" onClick={() => { onSetHero(imageUrl.trim()); resetImage() }}
-                className="px-3 py-1.5 text-xs font-semibold border border-blue-300 text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                className="px-3 py-1.5 text-xs font-semibold border border-portal-border-2 text-portal-blue bg-portal-blue-lt rounded-lg hover:bg-portal-blue-lt transition-colors">
                 Set as Hero Image
               </button>
             )}

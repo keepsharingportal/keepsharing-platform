@@ -286,7 +286,7 @@ export default function ArticlesCsvImportPage() {
         {rows.length === 0 && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -320,7 +320,7 @@ export default function ArticlesCsvImportPage() {
                 </span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {Object.entries(byColumn).map(([col, list]) => (
-                    <span key={col} className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                    <span key={col} className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-semibold">
                       {COLUMN_LABELS[col] ?? col} ({list.length})
                     </span>
                   ))}
@@ -333,7 +333,7 @@ export default function ArticlesCsvImportPage() {
 
             {/* School region breakdown if school content */}
             {rows.some(r => r._schoolRegion) && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-xs text-portal-amber">
                 <strong>School content detected.</strong> School region slugs are stored in editorial notes for traceability.
                 {' '}After import, approve 8–12 articles from the Review Queue to populate the homepage immediately.
               </div>
@@ -365,7 +365,7 @@ export default function ArticlesCsvImportPage() {
                         <td className="px-4 py-2 text-gray-300">{i + 1}</td>
                         <td className="px-4 py-2 text-gray-800 font-medium truncate max-w-[240px]">{row.title}</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                          <span className="px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-semibold">
                             {row.column_slug ?? 'article'}
                           </span>
                         </td>
@@ -398,11 +398,11 @@ export default function ArticlesCsvImportPage() {
             {importing && (
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <RefreshCw size={14} className="text-blue-500 animate-spin" />
+                  <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-gray-600">{progress.done} / {progress.total} articles processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full transition-all"
+                  <div className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }} />
                 </div>
               </div>
@@ -411,7 +411,7 @@ export default function ArticlesCsvImportPage() {
             <button
               onClick={runImport}
               disabled={importing}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
             >
               {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
               {importing ? 'Importing…' : `Import ${rows.length} articles as Pending Review`}
@@ -456,14 +456,14 @@ export default function ArticlesCsvImportPage() {
                 Import another file
               </button>
               <a href="/admin/articles/review"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt">
                 <ExternalLink size={14} />
                 Review Queue ({totals.inserted} pending)
               </a>
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-sm text-portal-amber">
                 <strong>Next step:</strong> Go to{' '}
                 <a href="/admin/articles/review" className="underline">Article Review</a>
                 {' '}and approve 8–12 articles. Approved articles appear on the homepage immediately.

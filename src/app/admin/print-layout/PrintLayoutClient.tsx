@@ -550,10 +550,10 @@ export function PrintLayoutClient({ issue, prevMonth, nextMonth, prevMonthCount,
 
         {/* Migration banner — until 129 is applied. */}
         {tableMissing && (
-          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="mt-3 rounded-xl border border-amber-200 bg-portal-amber-lt p-4 text-sm text-amber-900">
             <p className="font-bold">Migration 129 not applied yet</p>
             <p className="text-xs mt-1">
-              Apply <code className="px-1 bg-amber-100 rounded">supabase/migrations/129_print_ad_placements.sql</code> in Supabase Studio. The page works without it; the table just stays empty.
+              Apply <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/129_print_ad_placements.sql</code> in Supabase Studio. The page works without it; the table just stays empty.
             </p>
           </div>
         )}
@@ -758,10 +758,10 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
   // is more urgent than 'I picked this one'), then check-status, then
   // selection, then default.
   const rowBg = isExpired
-    ? 'bg-rose-50 hover:bg-rose-100'
+    ? 'bg-portal-red-lt hover:bg-portal-red-lt'
     : !row.is_ongoing
-      ? (selected ? 'bg-amber-100/70' : 'bg-amber-50/60 hover:bg-amber-50')
-      : (selected ? 'bg-amber-50/40' : 'hover:bg-gray-50')
+      ? (selected ? 'bg-portal-amber-lt/70' : 'bg-portal-amber-lt/60 hover:bg-portal-amber-lt')
+      : (selected ? 'bg-portal-amber-lt/40' : 'hover:bg-gray-50')
   // Show ad_label only when:
   //   - It exists and differs from the canonical business name AND
   //   - The advertiser has more than one placement on this issue
@@ -786,7 +786,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         <button
           type="button"
           onClick={onEdit}
-          className={`text-left hover:text-portal-blue inline-flex flex-col items-start ${isExpired ? 'hover:text-rose-700' : ''}`}
+          className={`text-left hover:text-portal-blue inline-flex flex-col items-start ${isExpired ? 'hover:text-portal-red' : ''}`}
           title="Click to edit this placement"
         >
           <span>{row.business_name}</span>
@@ -800,7 +800,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
         <div className="flex flex-col gap-0.5">
           {row.directory && <span>Yes</span>}
           {!isExpired && !row.is_ongoing && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Check status — sporadic advertiser, verify before issue ships.">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-portal-amber-lt text-portal-amber text-[9px] font-bold uppercase tracking-wide w-fit print:hidden" title="Check status — sporadic advertiser, verify before issue ships.">
               Check
             </span>
           )}
@@ -816,7 +816,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
             ? <span className="text-gray-400">N/A</span>
             : `$${row.social_budget.toLocaleString()}`}
       </td>
-      <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-rose-700 font-bold' : 'text-gray-600'}`}>
+      <td className={`px-3 py-2 text-[11px] ${isExpired ? 'text-portal-red font-bold' : 'text-gray-600'}`}>
         <div className="flex flex-col gap-0.5">
           <span>{row.expires_month ? shortMonth(row.expires_month) : ''}</span>
           {isExpired && (
@@ -834,7 +834,7 @@ function ReadRow({ row, isExpired, showVariant, selected, onToggle, onEdit, onDe
           <button onClick={onEdit} className="p-1 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-900" aria-label="Edit">
             <Pencil size={11} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-rose-50 text-gray-300 hover:text-rose-600" aria-label="Delete">
+          <button onClick={onDelete} className="p-1 rounded hover:bg-portal-red-lt text-gray-300 hover:text-rose-600" aria-label="Delete">
             <Trash2 size={11} />
           </button>
         </div>
@@ -857,14 +857,14 @@ function StatusPill({ label, count, tone, active, onClick }: {
   const toneActive: Record<string, string> = {
     neutral: 'bg-gray-900 text-white border-gray-900',
     green:   'bg-emerald-600 text-white border-emerald-600',
-    amber:   'bg-amber-500 text-white border-amber-500',
+    amber:   'bg-portal-amber-lt0 text-white border-amber-500',
     rose:    'bg-rose-600 text-white border-rose-600',
   }
   const toneIdle: Record<string, string> = {
     neutral: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
-    green:   'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50',
-    amber:   'bg-white text-amber-700 border-amber-200 hover:bg-amber-50',
-    rose:    'bg-white text-rose-700 border-rose-200 hover:bg-rose-50',
+    green:   'bg-white text-portal-green border-emerald-200 hover:bg-portal-green-lt',
+    amber:   'bg-white text-portal-amber border-amber-200 hover:bg-portal-amber-lt',
+    rose:    'bg-white text-portal-red border-portal-red/30 hover:bg-portal-red-lt',
   }
   return (
     <button

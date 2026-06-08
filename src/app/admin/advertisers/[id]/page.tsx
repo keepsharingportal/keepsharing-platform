@@ -117,7 +117,7 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
             {contactPhone && (
               <p className="flex items-center gap-1.5 text-gray-700"><Phone size={13} /> {contactPhone}</p>
             )}
-            <p className="text-[10px] text-amber-700 mt-2">
+            <p className="text-[10px] text-portal-amber mt-2">
               Multi-contact support pending — apply migration 128 (advertiser_contacts) in Supabase.
             </p>
           </section>

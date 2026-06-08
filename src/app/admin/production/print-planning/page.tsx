@@ -44,7 +44,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+        <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Production
         </Link>
         <h1 className="text-xl font-semibold text-gray-900">Print Planning — {fmtMonth(month)} · {pub}</h1>
@@ -57,7 +57,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
           <Link
             key={m}
             href={`/admin/production/print-planning?month=${m}&pub=${pub}`}
-            className={`px-3 py-1.5 rounded-lg border ${month === m ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'}`}
+            className={`px-3 py-1.5 rounded-lg border ${month === m ? 'bg-portal-navy text-white border-blue-600 font-semibold' : 'bg-white text-gray-600 border-gray-200 hover:border-portal-border-2'}`}
           >
             {fmtMonth(m)}
           </Link>
@@ -80,7 +80,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
         {rows.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
             <p className="text-sm text-gray-500">No articles assigned to {fmtMonth(month)} yet.</p>
-            <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-blue-600 hover:underline">
+            <Link href="/admin/articles" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Articles <ArrowRight size={11} />
             </Link>
           </div>
@@ -104,7 +104,7 @@ export default async function PrintPlanningPage({ searchParams }: Props) {
                   return (
                     <tr key={r.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                       <td className="px-3 py-2.5">
-                        <Link href={`/admin/articles/${r.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-1">
+                        <Link href={`/admin/articles/${r.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-portal-blue line-clamp-1">
                           {r.title || 'Untitled'}
                         </Link>
                       </td>

@@ -11,7 +11,7 @@ const IMPORT_CARDS = [
     desc: 'Import pre-cleaned article spreadsheets. Use this for School Bits, Mom to Mom, and any content prepared in CSV format.',
     href: '/admin/content/articles-csv-import',
     badge: 'Primary',
-    badgeColor: 'bg-blue-100 text-blue-700',
+    badgeColor: 'bg-portal-blue-lt text-portal-blue',
     cta: 'Open Article Importer',
   },
   {
@@ -56,7 +56,7 @@ const IMPORT_CARDS = [
     desc: 'Import the Summer Camp guide listings from the dedicated summer camp spreadsheet template.',
     href: '/admin/guides/summer-import',
     badge: 'Summer',
-    badgeColor: 'bg-amber-100 text-amber-700',
+    badgeColor: 'bg-portal-amber-lt text-portal-amber',
     cta: 'Import Summer Camps',
   },
   {
@@ -84,7 +84,7 @@ export default function ImportsPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center gap-3">
-          <Link href="/admin/content" className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <Link href="/admin/content" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1">
             <ArrowLeft size={13} /> Content
           </Link>
           <div>
@@ -133,7 +133,7 @@ export default function ImportsPage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/articles/review"
-              className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm font-semibold rounded-lg hover:bg-amber-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-portal-amber-lt border border-amber-200 text-portal-amber text-sm font-semibold rounded-lg hover:bg-portal-amber-lt transition-colors"
             >
               Open Review Queue →
             </Link>
@@ -147,12 +147,12 @@ export default function ImportsPage() {
         </div>
 
         {/* Tips */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
+        <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-xl p-5">
           <h2 className="font-bold text-blue-900 mb-3 text-sm">Import Tips</h2>
           <ul className="space-y-2">
             {TIPS.map((tip, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm text-blue-800">
-                <span className="shrink-0 w-5 h-5 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+              <li key={i} className="flex items-start gap-2.5 text-sm text-portal-blue">
+                <span className="shrink-0 w-5 h-5 rounded-full bg-blue-200 text-portal-blue flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                 {tip}
               </li>
             ))}

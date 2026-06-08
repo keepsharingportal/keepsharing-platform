@@ -54,7 +54,7 @@ export function BulkActions({ filter, count, label, variant = 'inline', showReje
           Reject all
         </button>
       )}
-      {err && <span className="text-xs text-rose-700 font-semibold">{err}</span>}
+      {err && <span className="text-xs text-portal-red font-semibold">{err}</span>}
     </div>
   )
 }

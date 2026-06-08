@@ -73,7 +73,7 @@ export default async function ContentDashboard() {
       icon: AlertCircle,
       href: '/admin/articles/review',
       color: pending > 0 ? 'text-amber-600' : 'text-gray-400',
-      bg:    pending > 0 ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200',
+      bg:    pending > 0 ? 'bg-portal-amber-lt border-amber-200' : 'bg-gray-50 border-gray-200',
       cta:   'Open Queue',
     },
     {
@@ -99,8 +99,8 @@ export default async function ContentDashboard() {
       value: sbPending,
       icon: GraduationCap,
       href: '/admin/articles?filter=school-bits',
-      color: sbPending > 0 ? 'text-blue-600' : 'text-gray-400',
-      bg:    sbPending > 0 ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200',
+      color: sbPending > 0 ? 'text-portal-blue' : 'text-gray-400',
+      bg:    sbPending > 0 ? 'bg-portal-blue-lt border-blue-200' : 'bg-gray-50 border-gray-200',
       cta:   'Review',
     },
     {
@@ -124,8 +124,8 @@ export default async function ContentDashboard() {
   ]
 
   const QUICK_ACTIONS = [
-    { label: 'Write New Article',  href: '/admin/articles/new',         icon: Plus,          color: 'bg-blue-600 hover:bg-blue-700 text-white' },
-    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-amber-500 hover:bg-amber-600 text-white' },
+    { label: 'Write New Article',  href: '/admin/articles/new',         icon: Plus,          color: 'bg-portal-navy hover:opacity-90 text-white' },
+    { label: 'Review Queue',       href: '/admin/articles/review',      icon: CheckCircle,   color: 'bg-portal-amber-lt0 hover:bg-amber-600 text-white' },
     { label: 'Import Content',     href: '/admin/content/imports',      icon: Upload,        color: 'bg-gray-800 hover:bg-gray-900 text-white' },
     { label: 'All Articles',       href: '/admin/articles',             icon: FileText,      color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200' },
     { label: 'Add Event',          href: '/admin/content/events-import',icon: CalendarDays,  color: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200' },
@@ -143,7 +143,7 @@ export default async function ContentDashboard() {
           </div>
           <Link
             href="/admin/articles/new"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors"
           >
             <Plus size={15} /> Write New Article
           </Link>
@@ -192,7 +192,7 @@ export default async function ContentDashboard() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Recent Articles</h2>
-            <Link href="/admin/articles" className="text-xs font-semibold text-blue-600 hover:text-blue-800">
+            <Link href="/admin/articles" className="text-xs font-semibold text-portal-blue hover:text-portal-blue">
               View All →
             </Link>
           </div>
@@ -223,7 +223,7 @@ export default async function ContentDashboard() {
                     <div className="flex items-center gap-1 shrink-0">
                       <Link
                         href={`/admin/articles/${a.id}/edit`}
-                        className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="px-2.5 py-1 text-xs font-semibold text-portal-blue hover:bg-portal-blue-lt rounded-lg transition-colors"
                       >
                         Edit
                       </Link>
@@ -255,9 +255,9 @@ export default async function ContentDashboard() {
             {[
               { step: '1', label: 'Import or write', color: 'bg-gray-200' },
               { step: '→', label: '', color: '' },
-              { step: '2', label: 'Needs Review', color: 'bg-amber-100' },
+              { step: '2', label: 'Needs Review', color: 'bg-portal-amber-lt' },
               { step: '→', label: '', color: '' },
-              { step: '3', label: 'Edit & polish', color: 'bg-blue-100' },
+              { step: '3', label: 'Edit & polish', color: 'bg-portal-blue-lt' },
               { step: '→', label: '', color: '' },
               { step: '4', label: 'Approve → Published', color: 'bg-green-100' },
             ].map((s, i) => s.step === '→' ? (

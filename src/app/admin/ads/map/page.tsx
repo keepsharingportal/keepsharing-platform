@@ -219,9 +219,9 @@ function SlotCard({
   // site regardless of booking, so the card should read "off" not
   // "booked" or "open".
   const ringClass = disabled
-    ? 'bg-rose-50/40 ring-rose-200 opacity-90'
+    ? 'bg-portal-red-lt/40 ring-rose-200 opacity-90'
     : booked
-      ? 'bg-emerald-50/50 ring-emerald-200'
+      ? 'bg-portal-green-lt/50 ring-emerald-200'
       : 'bg-white ring-gray-200'
 
   return (
@@ -233,7 +233,7 @@ function SlotCard({
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           {slot.locked ? (
-            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200">
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
               <Lock size={9} /> Locked
             </span>
           ) : (
@@ -250,7 +250,7 @@ function SlotCard({
       </div>
 
       {disabled && (
-        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-rose-700">
+        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-portal-red">
           <PowerOff size={11} /> Slot is OFF — public site is hiding this spot
         </div>
       )}
@@ -271,7 +271,7 @@ function SlotCard({
         <div className="space-y-1.5">
           {live.map((l, i) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 font-semibold text-emerald-800">
+              <span className="inline-flex items-center gap-1 font-semibold text-portal-green">
                 <CheckCircle2 size={11} /> {l.business_name ?? 'Unknown'}
               </span>
               <div className="flex items-center gap-2 text-gray-500">
@@ -283,7 +283,7 @@ function SlotCard({
         </div>
       ) : (
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1 text-xs text-amber-700 font-semibold">
+          <span className="inline-flex items-center gap-1 text-xs text-portal-amber font-semibold">
             <Circle size={9} className="fill-amber-400 text-amber-400" /> Open
           </span>
           <Link
@@ -299,8 +299,8 @@ function SlotCard({
 }
 
 function Stat({ label, value, accent }: { label: string; value: number; accent?: 'emerald' | 'amber' }) {
-  const valueClass = accent === 'emerald' ? 'text-emerald-700'
-    : accent === 'amber' ? 'text-amber-700'
+  const valueClass = accent === 'emerald' ? 'text-portal-green'
+    : accent === 'amber' ? 'text-portal-amber'
     : 'text-gray-900'
   return (
     <div>

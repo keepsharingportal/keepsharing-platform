@@ -51,7 +51,7 @@ export function CloneAdButton({ id, variant = 'inline' }: { id: string; variant?
     <button
       onClick={run}
       disabled={busy}
-      className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline disabled:opacity-50"
+      className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-green hover:underline disabled:opacity-50"
       title="Copy this ad's creative into a new booking with fresh stats and new dates"
     >
       <Copy size={10} /> {busy ? 'Cloning…' : 'Clone & Run'}

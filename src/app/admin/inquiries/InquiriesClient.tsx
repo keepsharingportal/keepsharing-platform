@@ -48,7 +48,7 @@ export function InquiriesClient({ rows }: Props) {
         return (
           <div
             key={r.id}
-            className={`rounded-xl border bg-white overflow-hidden ${fresh ? 'border-blue-200 ring-1 ring-blue-100' : 'border-gray-200'}`}
+            className={`rounded-xl border bg-white overflow-hidden ${fresh ? 'border-blue-200 ring-1 ring-portal-blue/20' : 'border-gray-200'}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3 p-4">
               <button
@@ -56,7 +56,7 @@ export function InquiriesClient({ rows }: Props) {
                 className="flex-1 min-w-0 text-left"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {fresh && <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">New</span>}
+                  {fresh && <span className="text-[10px] font-bold uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-1.5 py-0.5 rounded">New</span>}
                   {r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Replied</span>}
                   {r.read_at && !r.replied_at && <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">Read</span>}
                   <span className="text-xs text-gray-400">{fmtTs(r.created_at)}</span>
@@ -111,23 +111,23 @@ export function InquiriesClient({ rows }: Props) {
                   <div className="rounded-lg border border-gray-200 bg-white p-3">
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">From</p>
                     <p className="text-sm font-semibold text-gray-900">{r.parent_name}</p>
-                    <a href={`mailto:${r.parent_email}`} className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1">
+                    <a href={`mailto:${r.parent_email}`} className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1 mt-1">
                       <Mail size={11} /> {r.parent_email}
                     </a>
                     {r.parent_phone && (
-                      <a href={`tel:${r.parent_phone}`} className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-0.5 ml-3">
+                      <a href={`tel:${r.parent_phone}`} className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1 mt-0.5 ml-3">
                         <Phone size={11} /> {r.parent_phone}
                       </a>
                     )}
                   </div>
 
-                  <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
-                    <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-2">Forward to business</p>
+                  <div className="rounded-lg border border-amber-200 bg-portal-amber-lt/50 p-3">
+                    <p className="text-[10px] font-bold text-portal-amber uppercase tracking-wider mb-2">Forward to business</p>
                     <p className="text-sm font-semibold text-gray-900 inline-flex items-center gap-1">
                       <Building2 size={11} /> {biz?.business_name ?? '—'}
                     </p>
                     {biz?.contact_email ? (
-                      <a href={`mailto:${biz.contact_email}?subject=Inquiry from River Region Parents: ${r.parent_name}&body=${encodeURIComponent(`${r.message}\n\n---\nFrom: ${r.parent_name} (${r.parent_email}${r.parent_phone ? ', ' + r.parent_phone : ''})`)}`} className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1 block">
+                      <a href={`mailto:${biz.contact_email}?subject=Inquiry from River Region Parents: ${r.parent_name}&body=${encodeURIComponent(`${r.message}\n\n---\nFrom: ${r.parent_name} (${r.parent_email}${r.parent_phone ? ', ' + r.parent_phone : ''})`)}`} className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1 mt-1 block">
                         <Mail size={11} /> {biz.contact_email}
                       </a>
                     ) : (
@@ -139,7 +139,7 @@ export function InquiriesClient({ rows }: Props) {
                       </p>
                     )}
                     {biz?.website_url && (
-                      <a href={biz.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-1 block">
+                      <a href={biz.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1 mt-1 block">
                         <Globe size={11} /> {biz.website_url.replace(/^https?:\/\//, '')}
                       </a>
                     )}
@@ -148,7 +148,7 @@ export function InquiriesClient({ rows }: Props) {
 
                 {r.source_url && (
                   <p className="text-[11px] text-gray-400">
-                    Submitted from: <a href={r.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{r.source_url}</a>
+                    Submitted from: <a href={r.source_url} target="_blank" rel="noopener noreferrer" className="text-portal-blue hover:underline">{r.source_url}</a>
                   </p>
                 )}
               </div>

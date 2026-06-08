@@ -208,29 +208,24 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
   const monthOptions   = buildMonthOptions()
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Sticky header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Articles</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Search and filter editorial content across publications.</p>
+      <div className="bg-white border-b border-portal-border sticky top-0 z-10">
+        <div className="px-6 py-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-2 w-full">
+            <div>
+              <h1 className="portal-page-title">Articles</h1>
+              <p className="portal-page-subtitle">Search and filter editorial content across publications.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/admin/articles/trash" className="portal-btn portal-btn-ghost" style={{ color: 'var(--color-portal-red)', borderColor: 'rgba(153,27,27,0.3)' }}>
+                <Trash2 size={14} /> Trash
+              </Link>
+              <Link href="/admin/articles/new" className="portal-btn portal-btn-primary">
+                <Plus size={14} /> New Article
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/admin/articles/trash"
-              className="flex items-center gap-1.5 px-3 py-2 bg-white text-rose-700 text-xs font-semibold rounded-lg hover:bg-rose-50 transition-colors border border-rose-200"
-            >
-              <Trash2 size={14} /> Trash
-            </Link>
-            <Link
-              href="/admin/articles/new"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={14} /> New Article
-            </Link>
-          </div>
-        </div>
 
         <ArticleFilterBar
           initialQuery={q}
@@ -244,6 +239,7 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
           monthOptions={monthOptions}
           sortOptions={SORT_OPTIONS}
         />
+        </div>
       </div>
 
       {/* Table */}
@@ -263,10 +259,10 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
       <div className="px-4 pb-6">
         <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
           <span className="font-semibold text-gray-500">Jump to:</span>
-          <Link href="/admin/articles/columns" className="hover:text-blue-600 transition-colors">Columns</Link>
-          <Link href="/admin/articles/authors" className="hover:text-blue-600 transition-colors">Authors</Link>
-          <Link href="/admin/content/imports"  className="hover:text-blue-600 transition-colors">Imports</Link>
-          <Link href="/admin/articles/review"  className="hover:text-blue-600 transition-colors">Review Queue</Link>
+          <Link href="/admin/articles/columns" className="hover:text-portal-blue transition-colors">Columns</Link>
+          <Link href="/admin/articles/authors" className="hover:text-portal-blue transition-colors">Authors</Link>
+          <Link href="/admin/content/imports"  className="hover:text-portal-blue transition-colors">Imports</Link>
+          <Link href="/admin/articles/review"  className="hover:text-portal-blue transition-colors">Review Queue</Link>
           <Link href="/admin/articles/trash"   className="hover:text-rose-600 transition-colors">Trash</Link>
         </div>
       </div>

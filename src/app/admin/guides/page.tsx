@@ -87,7 +87,7 @@ export default async function GuidesAdminPage() {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-600" />
+            <BookOpen className="h-5 w-5 text-portal-blue" />
             Guides
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -118,7 +118,7 @@ export default async function GuidesAdminPage() {
             <Link
               key={g.slug}
               href={`/admin/guides/${g.slug}/listings`}
-              className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-blue-300 transition-all ${isActive ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
+              className={`group rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${isActive ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
             >
               {/* Hero image strip */}
               <div className="relative aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
@@ -143,7 +143,7 @@ export default async function GuidesAdminPage() {
                   </span>
                 )}
                 {missingHero && (
-                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white px-1.5 py-0.5 rounded">
+                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber-lt0 text-white px-1.5 py-0.5 rounded">
                     <AlertCircle size={9} /> No hero
                   </span>
                 )}
@@ -151,10 +151,10 @@ export default async function GuidesAdminPage() {
 
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-blue-700 transition-colors">
+                  <h3 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-portal-blue transition-colors">
                     {g.display_name}
                   </h3>
-                  <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-600 shrink-0 mt-0.5" />
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-portal-blue shrink-0 mt-0.5" />
                 </div>
                 {g.pitch && (
                   <p className="text-xs text-gray-500 mt-1 leading-snug line-clamp-2">{g.pitch}</p>
@@ -162,24 +162,24 @@ export default async function GuidesAdminPage() {
 
                 {/* Status pills */}
                 <div className="flex flex-wrap gap-1.5 mt-3 text-[10px] font-semibold">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue">
                     {listingCount} listings
                   </span>
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">
                     {articleCount} articles
                   </span>
                   {hasSponsor && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-amber-lt text-portal-amber">
                       Sponsor
                     </span>
                   )}
                   {printCover && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-green-lt text-portal-green">
                       Print cover
                     </span>
                   )}
                   {hasIssuu && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-green-lt text-portal-green">
                       <ExternalLink size={9} /> Issuu
                     </span>
                   )}

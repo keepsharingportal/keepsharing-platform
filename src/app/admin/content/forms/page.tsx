@@ -18,17 +18,17 @@ type Submission = {
 }
 
 const FORM_META: Record<string, { label: string; pub: string; path: string; color: string }> = {
-  'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-rose-50 text-rose-700 ring-rose-200' },
-  'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  'second-act':        { label: 'Second Act',             pub: 'RRB', path: '/boom/second-act',        color: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  'then-and-now':      { label: 'Then and Now',           pub: 'RRB', path: '/boom/then-and-now',      color: 'bg-portal-red-lt text-portal-red ring-rose-200' },
+  'ask-the-doctor':    { label: 'Ask the Doctor',         pub: 'RRB', path: '/boom/ask-the-doctor',    color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
   'student-spotlight': { label: 'Student Spotlight',      pub: 'RRP', path: '/rrp/student-spotlight',  color: 'bg-green-50 text-green-700 ring-green-200' },
   'local-kid':         { label: 'Local Kid Cool Things',  pub: 'RRP', path: '/rrp/local-kid',          color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   'parent-poll':       { label: 'Parent Poll',            pub: 'RRP', path: '/rrp/parent-poll',        color: 'bg-teal-50 text-teal-700 ring-teal-200' },
 }
 
 const STATUS_CONFIG: Record<string, string> = {
-  pending:  'bg-amber-50 text-amber-700 ring-amber-200',
-  reviewed: 'bg-blue-50 text-blue-700 ring-blue-200',
+  pending:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
+  reviewed: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
   approved: 'bg-green-50 text-green-700 ring-green-200',
   rejected: 'bg-red-50 text-red-700 ring-red-200',
   published:'bg-slate-50 text-slate-700 ring-slate-200',
@@ -71,7 +71,7 @@ export default function FormsAdminPage() {
               <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1 block mb-2', meta.color)}>{meta.pub}</span>
               <div className="text-xs font-semibold text-gray-800 mb-2 leading-tight">{meta.label}</div>
               <a href={meta.path} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1 text-[10px] text-blue-600 hover:underline">
+                className="flex items-center justify-center gap-1 text-[10px] text-portal-blue hover:underline">
                 <ExternalLink size={9} /> View Form
               </a>
             </div>
@@ -80,11 +80,11 @@ export default function FormsAdminPage() {
 
         {/* Filter tabs */}
         <div className="flex gap-1 flex-wrap">
-          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+          <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === 'all' ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
             All
           </button>
           {Object.entries(FORM_META).map(([type, meta]) => (
-            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
+            <button key={type} onClick={() => setFilter(type)} className={cn('px-3 py-1.5 text-xs rounded-lg border transition-all', filter === type ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50')}>
               {meta.label}
             </button>
           ))}
@@ -137,7 +137,7 @@ export default function FormsAdminPage() {
                           </div>
                         )}
                         <div className="flex items-center gap-2">
-                          <Link href="/admin/content/editorial-board" className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                          <Link href="/admin/content/editorial-board" className="px-3 py-1.5 text-xs font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90">
                             View in Editorial Board →
                           </Link>
                         </div>

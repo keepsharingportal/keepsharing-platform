@@ -108,7 +108,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
             className={inp}
           />
           {nameMsg && (
-            <p className={`mt-3 text-xs font-semibold inline-flex items-center gap-1 ${nameMsg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+            <p className={`mt-3 text-xs font-semibold inline-flex items-center gap-1 ${nameMsg.ok ? 'text-portal-green' : 'text-portal-red'}`}>
               {nameMsg.ok ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
               {nameMsg.text}
             </p>
@@ -160,7 +160,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
             />
           </div>
           {pwMsg && (
-            <p className={`text-xs font-semibold inline-flex items-center gap-1 ${pwMsg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+            <p className={`text-xs font-semibold inline-flex items-center gap-1 ${pwMsg.ok ? 'text-portal-green' : 'text-portal-red'}`}>
               {pwMsg.ok ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
               {pwMsg.text}
             </p>
@@ -186,7 +186,7 @@ export function AccountSettingsClient({ initialFullName, adminId }: Props) {
           type="button"
           onClick={signOut}
           disabled={signingOut}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-white text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-white text-portal-red ring-1 ring-rose-200 hover:bg-portal-red-lt transition-colors disabled:opacity-40"
         >
           {signingOut ? <RefreshCw size={12} className="animate-spin" /> : <LogOut size={12} />}
           {signingOut ? 'Signing out…' : 'Sign out'}

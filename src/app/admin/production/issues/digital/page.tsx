@@ -44,11 +44,11 @@ export default async function DigitalIssuesPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <Link href="/admin/production/issues" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+        <Link href="/admin/production/issues" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Issues
         </Link>
         <div className="flex items-center gap-2">
-          <BookOpen size={18} className="text-blue-600" />
+          <BookOpen size={18} className="text-portal-blue" />
           <h1 className="text-xl font-semibold text-gray-900">Digital Issues</h1>
         </div>
         <p className="text-sm text-gray-500 mt-1 max-w-2xl">

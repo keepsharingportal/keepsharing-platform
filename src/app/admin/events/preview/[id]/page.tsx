@@ -25,10 +25,10 @@ export const metadata: Metadata = { title: 'Event Preview — Admin' }
 export const dynamic  = 'force-dynamic'
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  pending:   { label: 'Pending Review', cls: 'bg-amber-100 text-amber-800 ring-amber-200' },
-  published: { label: 'Published',      cls: 'bg-emerald-100 text-emerald-800 ring-emerald-200' },
-  approved:  { label: 'Published',      cls: 'bg-emerald-100 text-emerald-800 ring-emerald-200' },
-  rejected:  { label: 'Rejected',       cls: 'bg-rose-100 text-rose-700 ring-rose-200' },
+  pending:   { label: 'Pending Review', cls: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  published: { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
+  approved:  { label: 'Published',      cls: 'bg-portal-green-lt text-portal-green ring-emerald-200' },
+  rejected:  { label: 'Rejected',       cls: 'bg-portal-red-lt text-portal-red ring-rose-200' },
   cancelled: { label: 'Cancelled',      cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
   archived:  { label: 'Trashed',        cls: 'bg-gray-100 text-gray-700 ring-gray-200' },
 }
@@ -99,10 +99,10 @@ export default async function EventPreviewPage({ params }: Props) {
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg">
       {/* Admin preview banner */}
-      <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center gap-2 text-xs">
-        <Eye size={13} className="text-amber-700 shrink-0" />
+      <div className="bg-portal-amber-lt border-b border-amber-200 px-6 py-2.5 flex items-center gap-2 text-xs">
+        <Eye size={13} className="text-portal-amber shrink-0" />
         <span className="font-bold text-amber-900">Preview mode</span>
-        <span className="text-amber-800">— this is how the event will look on the public site.</span>
+        <span className="text-portal-amber">— this is how the event will look on the public site.</span>
         <span className={`ml-auto inline-flex items-center px-2 py-0.5 rounded-full font-bold ring-1 ${badge.cls}`}>
           {badge.label}
         </span>
@@ -149,7 +149,7 @@ export default async function EventPreviewPage({ params }: Props) {
             </span>
           )}
           {isFree && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 font-bold text-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-green-lt text-portal-green ring-1 ring-emerald-200 font-bold text-xs">
               Free
             </span>
           )}

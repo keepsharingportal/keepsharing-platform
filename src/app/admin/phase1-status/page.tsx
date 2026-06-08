@@ -21,8 +21,8 @@ function StatusDot({ status }: { status: Status }) {
 }
 
 function StatCard({ label, value, sub, status }: { label: string; value: number | string; sub?: string; status: Status }) {
-  const bg = status === 'ok' ? 'bg-green-50 border-green-200' : status === 'warn' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'
-  const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-amber-700' : 'text-red-600'
+  const bg = status === 'ok' ? 'bg-green-50 border-green-200' : status === 'warn' ? 'bg-portal-amber-lt border-amber-200' : 'bg-red-50 border-red-200'
+  const txt = status === 'ok' ? 'text-green-700' : status === 'warn' ? 'text-portal-amber' : 'text-red-600'
   return (
     <div className={`rounded-xl border px-5 py-4 ${bg}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
@@ -145,7 +145,7 @@ export default async function Phase1StatusPage() {
       {/* Overall score */}
       <div className={`rounded-2xl border-2 p-6 flex items-center gap-4 ${
         overallStatus === 'ok' ? 'border-green-400 bg-green-50' :
-        overallStatus === 'warn' ? 'border-amber-400 bg-amber-50' :
+        overallStatus === 'warn' ? 'border-amber-400 bg-portal-amber-lt' :
         'border-red-300 bg-red-50'
       }`}>
         <StatusDot status={overallStatus} />
@@ -227,9 +227,9 @@ export default async function Phase1StatusPage() {
         <h2 className="text-lg font-bold mb-4">Pending Import Actions</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {(schoolBitsPending ?? 0) > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-5">
               <p className="font-bold text-amber-900 mb-1">{schoolBitsPending} School Bits articles pending</p>
-              <p className="text-sm text-amber-700 mb-3">Review and bulk-approve to make them live on School Zone.</p>
+              <p className="text-sm text-portal-amber mb-3">Review and bulk-approve to make them live on School Zone.</p>
               <Button asChild size="sm" className="rounded-full bg-amber-600 hover:bg-amber-700">
                 <Link href="/admin/articles/review">Open Review Queue</Link>
               </Button>

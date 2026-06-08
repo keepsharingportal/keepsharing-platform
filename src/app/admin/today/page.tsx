@@ -267,13 +267,13 @@ export default async function TodayPage() {
             </section>
 
             <section>
-              <SectionHeader icon={Inbox} label="Incoming" color="text-blue-500" />
+              <SectionHeader icon={Inbox} label="Incoming" color="text-portal-blue" />
               {incoming.length > 0 ? (
                 <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
                   {incoming.map(item => (
                     <div key={item.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium ring-1 ring-blue-100">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium ring-1 ring-portal-blue/20">
                           {item.type}
                         </span>
                         <span className="text-sm text-gray-700">{item.label}</span>
@@ -292,7 +292,7 @@ export default async function TodayPage() {
         </div>
 
         <section>
-          <SectionHeader icon={Activity} label="Distribution Portal — drivers.keepsharing.com" color="text-blue-500" />
+          <SectionHeader icon={Activity} label="Distribution Portal — drivers.keepsharing.com" color="text-portal-blue" />
           <DistributionWidget />
         </section>
       </div>

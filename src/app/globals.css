@@ -87,6 +87,159 @@
   --space-stack-section:  3rem;     /* space-y-12 — between major sections */
 }
 
+/* ============================================================
+   PORTAL DESIGN SYSTEM — admin UI component classes
+   ============================================================
+   Reusable component utilities that mirror portal.css. Every admin
+   page should compose these instead of restyling chrome by hand —
+   this is what makes the look consistent across menus. */
+
+/* ── Page chrome ─────────────────────────────────────────── */
+@utility portal-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--color-portal-card);
+  border-bottom: 1px solid var(--color-portal-border);
+  padding: 16px 24px;
+}
+@utility portal-page-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-portal-text);
+  line-height: 1.3;
+}
+@utility portal-page-subtitle {
+  font-size: 13px;
+  color: var(--color-portal-sub);
+  margin-top: 2px;
+}
+@utility portal-content-body {
+  padding: 22px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Filter / search bar (sits under page header) ───────── */
+@utility portal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--color-portal-card);
+  border-bottom: 1px solid var(--color-portal-border);
+  padding: 12px 24px;
+}
+
+/* ── Buttons (portal.css .btn-*) ────────────────────────── */
+@utility portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: all .15s;
+  border: none;
+  cursor: pointer;
+}
+@utility portal-btn-primary {
+  background: var(--color-portal-navy);
+  color: white;
+}
+@utility portal-btn-blue {
+  background: var(--color-portal-blue);
+  color: white;
+}
+@utility portal-btn-green {
+  background: #15803D;
+  color: white;
+}
+@utility portal-btn-red {
+  background: #DC2626;
+  color: white;
+}
+@utility portal-btn-amber {
+  background: #D97706;
+  color: white;
+}
+@utility portal-btn-ghost {
+  background: transparent;
+  color: var(--color-portal-sub);
+  border: 1.5px solid var(--color-portal-border-2);
+}
+@utility portal-btn-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+@utility portal-btn-xs {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+/* ── Tables (portal.css .data-table) ─────────────────────── */
+@utility portal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+@utility portal-th {
+  background: var(--color-portal-row-hover);
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-portal-sub);
+  border-bottom: 2px solid var(--color-portal-border);
+  font-weight: 600;
+}
+@utility portal-td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-portal-border);
+  vertical-align: middle;
+}
+
+/* ── Badges (portal.css .badge-*) ────────────────────────── */
+@utility portal-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+@utility portal-badge-blue  { background: var(--color-portal-blue-lt);  color: var(--color-portal-blue); }
+@utility portal-badge-green { background: var(--color-portal-green-lt); color: var(--color-portal-green); }
+@utility portal-badge-amber { background: var(--color-portal-amber-lt); color: var(--color-portal-amber); }
+@utility portal-badge-red   { background: var(--color-portal-red-lt);   color: var(--color-portal-red); }
+@utility portal-badge-gray  { background: var(--color-portal-bg);       color: var(--color-portal-sub); }
+
+/* ── Cards ───────────────────────────────────────────────── */
+@utility portal-card {
+  background: var(--color-portal-card);
+  border-radius: 8px;
+  border: 1px solid var(--color-portal-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* ── Inputs ──────────────────────────────────────────────── */
+@utility portal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--color-portal-border-2);
+  border-radius: 8px;
+  background: var(--color-portal-card);
+  color: var(--color-portal-text);
+  font-size: 13px;
+  transition: border-color .15s;
+}
+
 /* ── Container — max-width 1400px centered with responsive padding ── */
 @utility container {
   margin-inline: auto;

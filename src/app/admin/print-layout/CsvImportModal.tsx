@@ -359,11 +359,11 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
         {step === 'plan' && plan && counts && (
           <>
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-portal-green-lt text-portal-green border border-emerald-200 font-semibold">
                 {counts.matched} auto-matched
               </span>
               {counts.fuzzy > 0 && (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-portal-amber-lt text-portal-amber border border-amber-200 font-semibold">
                   {counts.fuzzy} fuzzy
                 </span>
               )}
@@ -380,10 +380,10 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
             </div>
 
             {reviewRows.length > 0 && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3">
                 <p className="text-xs font-bold text-amber-900 mb-2">
                   Review {reviewRows.length} row{reviewRows.length === 1 ? '' : 's'}
-                  <span className="font-normal ml-1 text-amber-700">— pick existing business or type a new one</span>
+                  <span className="font-normal ml-1 text-portal-amber">— pick existing business or type a new one</span>
                 </p>
                 <div className="space-y-2 max-h-72 overflow-y-auto">
                   {reviewRows.map(p => (
@@ -421,7 +421,7 @@ export function CsvImportModal({ issue, monthOptions, fmtIssue, advertisers, onC
                 {committing ? 'Importing…' : `Import to ${fmtIssue(targetMonth)}`}
               </button>
               {unresolvedNewCount > 0 && (
-                <span className="text-xs text-amber-700 inline-flex items-center gap-1">
+                <span className="text-xs text-portal-amber inline-flex items-center gap-1">
                   <AlertCircle size={12}/>
                   {unresolvedNewCount} no-match row{unresolvedNewCount === 1 ? '' : 's'} still need a business name or Skip
                 </span>
@@ -570,7 +570,7 @@ function ReviewRow({ planned, resolution, advertisers, onChange }: {
     <div className="rounded-lg border border-amber-100 bg-white p-2.5 text-xs">
       <div className="flex items-center justify-between gap-2">
         <p className="font-bold text-gray-900">{planned.input.business}</p>
-        <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700'}`}>
+        <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${planned.status === 'new' ? 'bg-sky-100 text-sky-700' : 'bg-portal-amber-lt text-portal-amber'}`}>
           {planned.status === 'new' ? 'No match' : 'Fuzzy'}
         </span>
       </div>

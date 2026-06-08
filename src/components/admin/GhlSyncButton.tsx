@@ -50,12 +50,12 @@ export function GhlSyncButton({ advertiserId }: Props) {
         {busy ? 'Syncing…' : 'Sync to GHL'}
       </button>
       {last && last.ok && (
-        <p className="text-[11px] text-emerald-700 font-semibold inline-flex items-center gap-1">
+        <p className="text-[11px] text-portal-green font-semibold inline-flex items-center gap-1">
           <CheckCircle2 size={11} /> {last.contactsSynced} contact{last.contactsSynced === 1 ? '' : 's'} synced
         </p>
       )}
       {last && !last.ok && (
-        <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2">
+        <div className="text-[11px] text-portal-amber bg-portal-amber-lt border border-amber-200 rounded p-2">
           <p className="font-bold inline-flex items-center gap-1 mb-1">
             <AlertTriangle size={11} /> Sync had errors
           </p>

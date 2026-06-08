@@ -74,7 +74,7 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
   return (
     <div className="space-y-3">
       {!adding ? (
-        <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90">
           <Plus size={12} /> Add resource
         </button>
       ) : (
@@ -113,7 +113,7 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                   Active (visible on the public map)
                 </label>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => save(r)} disabled={busy === r.id} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50">
+                  <button onClick={() => save(r)} disabled={busy === r.id} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
                     {busy === r.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                     Save
                   </button>
@@ -126,14 +126,14 @@ export function ResourcesEditor({ market, initial }: { market: string; initial: 
                   <p className="text-sm font-bold text-gray-900 truncate">
                     {r.name}
                     {!r.active && <span className="ml-2 text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Inactive</span>}
-                    {r.category && <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{r.category}</span>}
+                    {r.category && <span className="ml-2 text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">{r.category}</span>}
                   </p>
                   {r.description && <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">{r.description}</p>}
                   {r.address && <p className="text-[11px] text-gray-500 mt-0.5">{r.address}{r.city ? `, ${r.city}` : ''}</p>}
                   {(r.phone || r.email || r.website) && (
                     <p className="text-[11px] text-gray-700 mt-1">
                       {r.phone && <span className="mr-2">📞 {r.phone}</span>}
-                      {r.website && <a href={r.website} target="_blank" rel="noopener" className="text-blue-600 hover:underline mr-2">{r.website}</a>}
+                      {r.website && <a href={r.website} target="_blank" rel="noopener" className="text-portal-blue hover:underline mr-2">{r.website}</a>}
                     </p>
                   )}
                 </div>
@@ -178,7 +178,7 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 space-y-2">
+    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-3 space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-gray-900">New resource</p>
         <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
@@ -189,7 +189,7 @@ function AddResource({ market, onCreated, onCancel }: { market: string; onCreate
       </div>
       {err && <p className="text-xs text-red-600">{err}</p>}
       <div className="flex items-center gap-2">
-        <button onClick={submit} disabled={busy || !name.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50">
+        <button onClick={submit} disabled={busy || !name.trim()} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-portal-navy text-white disabled:opacity-50">
           {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
           Create
         </button>
@@ -202,7 +202,7 @@ function Field({ label, value, onChange, className }: { label: string; value: st
   return (
     <label className={`block ${className ?? ''}`}>
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+      <input value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
@@ -210,7 +210,7 @@ function FieldNum({ label, value, onChange }: { label: string; value: number; on
   return (
     <label className="block">
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <input type="number" step="any" value={value} onChange={e => onChange(parseFloat(e.target.value || '0'))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+      <input type="number" step="any" value={value} onChange={e => onChange(parseFloat(e.target.value || '0'))} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30" />
     </label>
   )
 }
@@ -218,7 +218,7 @@ function FieldSelect({ label, value, options, onChange }: { label: string; value
   return (
     <label className="block">
       <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</span>
-      <select value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+      <select value={value} onChange={e => onChange(e.target.value)} className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30">
         {options.map(o => <option key={o} value={o}>{o || '— none —'}</option>)}
       </select>
     </label>

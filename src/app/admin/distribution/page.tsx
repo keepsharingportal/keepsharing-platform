@@ -103,8 +103,8 @@ function freshnessDays(iso: string): number {
 
 function freshnessChip(days: number): { label: string; cls: string } {
   if (days <= 7)  return { label: 'Fresh',    cls: 'bg-green-50 text-green-700'  }
-  if (days <= 21) return { label: 'Recent',   cls: 'bg-blue-50 text-blue-700'   }
-  if (days <= 60) return { label: 'Aging',    cls: 'bg-amber-50 text-amber-700' }
+  if (days <= 21) return { label: 'Recent',   cls: 'bg-portal-blue-lt text-portal-blue'   }
+  if (days <= 60) return { label: 'Aging',    cls: 'bg-portal-amber-lt text-portal-amber' }
   return                 { label: 'Stale',    cls: 'bg-red-50 text-red-700'     }
 }
 
@@ -353,7 +353,7 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
             <span className="text-sm">{tc?.emoji ?? '📝'}</span>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel ?? item.submission_type}</span>
             <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
-            {!img && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">No image</span>}
+            {!img && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded font-semibold">No image</span>}
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${fc.cls}`}>{fc.label}</span>
           </div>
           <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-gray-900' : 'text-gray-400 italic'} truncate`}>
@@ -613,8 +613,8 @@ export default async function DistributionPage({
       {activeView === 'homepage' && (
         <div className="space-y-6">
           {/* Editorial note */}
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3">
-            <p className="text-xs text-blue-800 font-medium">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-2xl px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               💡 Assign content to homepage sections below. Changes are editorial assignments only — no auto-publishing. Homepage items should rotate every 1–3 weeks.
             </p>
           </div>
@@ -644,7 +644,7 @@ export default async function DistributionPage({
                   <span className="text-xs text-gray-400">({secItems.length} assigned)</span>
                   <div className="flex-1 h-px bg-gray-100" />
                   {secItems.length === 0 && (
-                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Empty</span>
+                    <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold">Empty</span>
                   )}
                 </div>
                 <div className="space-y-1.5">
@@ -742,8 +742,8 @@ export default async function DistributionPage({
       ══════════════════════════════════════════════════════════════════════ */}
       {activeView === 'newsletter' && (
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3">
-            <p className="text-xs text-blue-800 font-medium">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-2xl px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               📧 Assign content to newsletter sections and set ordering. Preview the lineup below. No ESP integration yet — use this to plan and copy content into your email tool.
             </p>
           </div>
@@ -783,7 +783,7 @@ export default async function DistributionPage({
                 <div>
                   <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wide mb-1.5">No Section Assigned</p>
                   {groups.newsletter.filter(i => !i.newsletter_section).map(item => (
-                    <div key={item.id} className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg mb-1">
+                    <div key={item.id} className="flex items-center gap-2 px-3 py-2 bg-portal-amber-lt rounded-lg mb-1">
                       <p className="text-xs font-semibold text-gray-800 flex-1 truncate">{displayTitle(item)}</p>
                     </div>
                   ))}
@@ -831,8 +831,8 @@ export default async function DistributionPage({
               {nlWarnings.map((w, i) => (
                 <div key={i} className={`flex items-start gap-3 px-4 py-3 rounded-xl border text-xs font-medium ${
                   w.level === 'error'   ? 'bg-red-50 border-red-200 text-red-800'
-                  : w.level === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800'
-                  : 'bg-blue-50 border-blue-100 text-blue-800'
+                  : w.level === 'warning' ? 'bg-portal-amber-lt border-amber-200 text-portal-amber'
+                  : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
                 }`}>
                   <span className="shrink-0 mt-0.5">{w.level === 'error' ? '✗' : w.level === 'warning' ? '⚠️' : 'ℹ️'}</span>
                   <span>{w.msg}</span>
@@ -897,7 +897,7 @@ export default async function DistributionPage({
                       <h3 className="text-xs font-bold text-gray-600">HTML</h3>
                       <p className="text-[11px] text-gray-400">Paste into GHL, Mailchimp, or Klaviyo HTML block</p>
                     </div>
-                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">Mobile-Friendly</span>
+                    <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-2 py-0.5 rounded font-semibold">Mobile-Friendly</span>
                   </div>
                   <div className="p-4">
                     <textarea
@@ -1063,7 +1063,7 @@ export default async function DistributionPage({
                           </span>
                         )}
                         {!item.destination_guide_slug && (
-                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">No guide selected</span>
+                          <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold">No guide selected</span>
                         )}
                       </div>
                     </div>
@@ -1114,8 +1114,8 @@ export default async function DistributionPage({
       ══════════════════════════════════════════════════════════════════════ */}
       {activeView === 'sponsors' && (
         <div className="space-y-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3">
-            <p className="text-xs text-amber-800 font-medium">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-3">
+            <p className="text-xs text-portal-amber font-medium">
               🤝 Editorial integrity first. Sponsor alignment is an opportunity signal — never auto-insert sponsors into content. All sponsor/content pairing requires editorial review.
             </p>
           </div>
@@ -1135,7 +1135,7 @@ export default async function DistributionPage({
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-gray-800">{sponsor.business_name}</p>
                         {sponsor.package_tier && (
-                          <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">{sponsor.package_tier}</span>
+                          <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold">{sponsor.package_tier}</span>
                         )}
                         {sponsor.sponsor_category_slug && (
                           <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold">{sponsor.sponsor_category_slug}</span>
@@ -1173,7 +1173,7 @@ export default async function DistributionPage({
                         {sponsor.sponsor_guide_slug && ` · ${guideName(sponsor.sponsor_guide_slug)}`}
                       </p>
                     </div>
-                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-semibold shrink-0">No match</span>
+                    <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded font-semibold shrink-0">No match</span>
                   </div>
                 ))}
               </div>
@@ -1238,8 +1238,8 @@ export default async function DistributionPage({
             ].filter(Boolean).map((alert, i) => {
               if (!alert) return null
               const cls = alert.severity === 'critical' ? 'bg-red-50 border-red-200 text-red-800'
-                        : alert.severity === 'warning'  ? 'bg-amber-50 border-amber-200 text-amber-800'
-                        : 'bg-blue-50 border-blue-100 text-blue-800'
+                        : alert.severity === 'warning'  ? 'bg-portal-amber-lt border-amber-200 text-portal-amber'
+                        : 'bg-portal-blue-lt border-portal-blue/20 text-portal-blue'
               return (
                 <Link key={i} href={alert.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium ${cls} hover:opacity-90 transition-opacity`}>

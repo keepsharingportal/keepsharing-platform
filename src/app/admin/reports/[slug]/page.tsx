@@ -69,7 +69,7 @@ function fmtPct(num: number, denom: number): string {
 function Badge({ kind }: { kind: 'measured' | 'estimated' | 'not_tracked' }) {
   const styles = {
     measured:    { wrap: 'bg-green-100 text-green-700',   label: 'Measured'        },
-    estimated:   { wrap: 'bg-amber-100 text-amber-700',   label: 'Estimated'       },
+    estimated:   { wrap: 'bg-portal-amber-lt text-portal-amber',   label: 'Estimated'       },
     not_tracked: { wrap: 'bg-gray-100  text-gray-500',    label: 'Not tracked yet' },
   }[kind]
   return (
@@ -195,11 +195,11 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Link href="/admin/reports" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/reports" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Reports
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-blue-600" />
+            <Activity className="h-5 w-5 text-portal-blue" />
             {adv.business_name}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -235,7 +235,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
             key={d}
             href={daysHref(d)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-              days === d ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+              days === d ? 'bg-portal-navy text-white' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
             }`}
           >
             Last {d}d
@@ -324,7 +324,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <MapPin size={14} className="text-blue-600" />
+              <MapPin size={14} className="text-portal-blue" />
               Ad Placements
             </h2>
             <p className="text-[11px] text-gray-400 mt-0.5">Per-spot performance in the last {days} days</p>
@@ -406,7 +406,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                   <p className="text-sm font-semibold text-gray-900 truncate">
                     {[l.lead_first_name, l.lead_last_name].filter(Boolean).join(' ') || 'Anonymous'}
                   </p>
-                  <p className="text-[11px] text-blue-600 truncate">{l.lead_email}</p>
+                  <p className="text-[11px] text-portal-blue truncate">{l.lead_email}</p>
                 </div>
                 <div className="min-w-0 text-xs text-gray-500">
                   {l.lead_phone && <p className="font-semibold text-gray-700">{l.lead_phone}</p>}
@@ -414,7 +414,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
                 </div>
                 <div className="min-w-0">
                   {l.utm_campaign || l.utm_source ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">
                       {l.utm_campaign ?? l.utm_source}
                     </span>
                   ) : (
@@ -434,7 +434,7 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pro
               <div key={l.id} className="px-4 py-3 grid grid-cols-1 md:grid-cols-[1.5fr_2fr_1.5fr_auto] gap-3 items-start bg-gray-50/30">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">{l.submitter_name || 'Anonymous'}</p>
-                  <p className="text-[11px] text-blue-600 truncate">{l.submitter_email}</p>
+                  <p className="text-[11px] text-portal-blue truncate">{l.submitter_email}</p>
                 </div>
                 <div className="min-w-0 text-xs text-gray-500">
                   {l.submitter_phone && <p className="font-semibold text-gray-700">{l.submitter_phone}</p>}

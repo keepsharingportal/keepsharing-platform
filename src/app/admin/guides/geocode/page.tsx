@@ -96,7 +96,7 @@ export default function GeocodePage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <MapPin size={16} className="text-blue-600" />
+            <MapPin size={16} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900">Summer Guide Geocoding</h1>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -110,7 +110,7 @@ export default function GeocodePage() {
           <button
             onClick={runAll}
             disabled={running || listings.length === 0}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 disabled:opacity-50 transition-colors"
           >
             {running ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
             {running ? `Geocoding… ${progress}%` : `Geocode All (${listings.length})`}
@@ -144,7 +144,7 @@ export default function GeocodePage() {
               <span>{progress}%</span>
             </div>
             <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div className="h-full bg-blue-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+              <div className="h-full bg-portal-navy rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
             <p className="text-xs text-gray-400 mt-2">
               Sending 1 request per 120ms to stay within Google&apos;s rate limits.
@@ -154,11 +154,11 @@ export default function GeocodePage() {
 
         {/* API key warning */}
         {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="text-sm font-semibold text-amber-800 mb-1">Google Maps API key not configured</div>
-            <p className="text-xs text-amber-700">
-              Add <code className="bg-amber-100 px-1 rounded">GOOGLE_MAPS_API_KEY</code> (server-side) or{' '}
-              <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to .env.local.
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-xl p-4">
+            <div className="text-sm font-semibold text-portal-amber mb-1">Google Maps API key not configured</div>
+            <p className="text-xs text-portal-amber">
+              Add <code className="bg-portal-amber-lt px-1 rounded">GOOGLE_MAPS_API_KEY</code> (server-side) or{' '}
+              <code className="bg-portal-amber-lt px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to .env.local.
               The geocoding API uses the server-side key for security.
             </p>
           </div>
@@ -199,7 +199,7 @@ export default function GeocodePage() {
                         <td className="px-4 py-2.5">
                           {!r && <span className="text-gray-400">Pending</span>}
                           {r?.status === 'running' && (
-                            <span className="flex items-center gap-1 text-blue-600">
+                            <span className="flex items-center gap-1 text-portal-blue">
                               <Loader2 size={11} className="animate-spin" /> Geocoding…
                             </span>
                           )}

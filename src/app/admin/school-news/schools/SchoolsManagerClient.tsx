@@ -213,7 +213,7 @@ function AddSchoolForm({
   }
 
   return (
-    <form onSubmit={submit} className="p-5 bg-blue-50 border-b border-blue-100 space-y-3">
+    <form onSubmit={submit} className="p-5 bg-portal-blue-lt border-b border-portal-blue/20 space-y-3">
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <FormField label="School name *">
         <input
@@ -261,7 +261,7 @@ function AddSchoolForm({
       </div>
 
       {nearMatches.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 text-xs text-amber-900">
+        <div className="bg-portal-amber-lt border border-amber-300 rounded-lg p-3 text-xs text-amber-900">
           <p className="font-bold flex items-center gap-1.5 mb-1">
             <AlertTriangle size={12} /> Similar school name{nearMatches.length === 1 ? '' : 's'} already in your list — possible duplicate?
           </p>
@@ -269,15 +269,15 @@ function AddSchoolForm({
             {nearMatches.map(m => (
               <li key={m.item.id}>
                 <span className="font-semibold">{m.item.name}</span>
-                <span className="text-amber-700"> · {AREA_LABELS[m.item.area]}{m.item.is_private ? ' · Private' : ''}</span>
+                <span className="text-portal-amber"> · {AREA_LABELS[m.item.area]}{m.item.is_private ? ' · Private' : ''}</span>
               </li>
             ))}
           </ul>
-          <p className="text-[11px] text-amber-700 mt-1">Click Cancel and use the existing one, or proceed if this is genuinely a different school.</p>
+          <p className="text-[11px] text-portal-amber mt-1">Click Cancel and use the existing one, or proceed if this is genuinely a different school.</p>
         </div>
       )}
 
-      {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
+      {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
         <button type="submit" disabled={busy || !form.name.trim()} className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
@@ -312,12 +312,12 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
   }
 
   return (
-    <form onSubmit={submit} className="p-5 bg-amber-50 border-b border-amber-100 space-y-3">
+    <form onSubmit={submit} className="p-5 bg-portal-amber-lt border-b border-amber-100 space-y-3">
       <div>
         <p className="text-sm font-bold text-amber-900 mb-1">Bulk import schools from CSV</p>
-        <p className="text-xs text-amber-800 leading-relaxed">
-          Required columns: <code className="bg-amber-100 px-1 rounded">name</code>, <code className="bg-amber-100 px-1 rounded">area</code> (montgomery / autauga / elmore / pike-road).
-          Optional: <code className="bg-amber-100 px-1 rounded">is_private</code> (yes/no), <code className="bg-amber-100 px-1 rounded">district</code>, <code className="bg-amber-100 px-1 rounded">grade_band</code>, <code className="bg-amber-100 px-1 rounded">contact_email</code>, <code className="bg-amber-100 px-1 rounded">facebook_url</code>, <code className="bg-amber-100 px-1 rounded">city</code>, <code className="bg-amber-100 px-1 rounded">address</code>.
+        <p className="text-xs text-portal-amber leading-relaxed">
+          Required columns: <code className="bg-portal-amber-lt px-1 rounded">name</code>, <code className="bg-portal-amber-lt px-1 rounded">area</code> (montgomery / autauga / elmore / pike-road).
+          Optional: <code className="bg-portal-amber-lt px-1 rounded">is_private</code> (yes/no), <code className="bg-portal-amber-lt px-1 rounded">district</code>, <code className="bg-portal-amber-lt px-1 rounded">grade_band</code>, <code className="bg-portal-amber-lt px-1 rounded">contact_email</code>, <code className="bg-portal-amber-lt px-1 rounded">facebook_url</code>, <code className="bg-portal-amber-lt px-1 rounded">city</code>, <code className="bg-portal-amber-lt px-1 rounded">address</code>.
           Existing schools (matched by name) get UPDATED.
         </p>
       </div>
@@ -332,7 +332,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
         <button
           type="button"
           onClick={() => setCsv(CSV_TEMPLATE)}
-          className="text-xs font-semibold text-amber-800 hover:text-amber-900"
+          className="text-xs font-semibold text-portal-amber hover:text-amber-900"
         >
           Paste template
         </button>
@@ -346,7 +346,7 @@ function BulkImportForm({ onCancel, onDone }: { onCancel: () => void; onDone: ()
       </div>
 
       {result && (
-        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-rose-50 border border-rose-200 text-rose-800'}`}>
+        <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${result.ok ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'}`}>
           <p>{result.msg}</p>
           {result.skipped && result.skipped.length > 0 && (
             <details className="mt-1">
@@ -414,7 +414,7 @@ function SchoolTableRow({
 
   if (editing) {
     return (
-      <tr className="border-t border-gray-100 bg-blue-50/40">
+      <tr className="border-t border-gray-100 bg-portal-blue-lt/40">
         <td className="px-4 py-2"><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inputCls} /></td>
         <td className="px-4 py-2">
           <select value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value as Area }))} className={inputCls}>
@@ -451,7 +451,7 @@ function SchoolTableRow({
       </td>
       <td className="px-4 py-2.5 text-xs text-gray-600">{AREA_LABELS[school.area]}</td>
       <td className="px-4 py-2.5 text-xs">
-        <span className={`px-2 py-0.5 rounded-full font-bold ${school.is_private ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>
+        <span className={`px-2 py-0.5 rounded-full font-bold ${school.is_private ? 'bg-purple-50 text-purple-700' : 'bg-portal-blue-lt text-portal-blue'}`}>
           {school.is_private ? 'Private' : 'Public'}
         </span>
       </td>
@@ -464,7 +464,7 @@ function SchoolTableRow({
               <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-xs text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50">
                 <Edit2 size={11} /> Edit
               </button>
-              <button type="button" onClick={archive} disabled={busy} className="inline-flex items-center gap-1 text-xs text-rose-600 border border-rose-200 rounded-lg px-2.5 py-1 hover:bg-rose-50 disabled:opacity-40">
+              <button type="button" onClick={archive} disabled={busy} className="inline-flex items-center gap-1 text-xs text-rose-600 border border-portal-red/30 rounded-lg px-2.5 py-1 hover:bg-portal-red-lt disabled:opacity-40">
                 <Trash2 size={11} /> Archive
               </button>
             </>

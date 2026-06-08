@@ -37,7 +37,7 @@ export default async function ArticleReviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/articles" className="text-sm text-blue-600 hover:text-blue-800">
+          <Link href="/articles" className="text-sm text-portal-blue hover:text-portal-blue">
             View live articles ↗
           </Link>
         </div>

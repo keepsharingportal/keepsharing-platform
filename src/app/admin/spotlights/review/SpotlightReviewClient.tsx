@@ -110,7 +110,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
           checked={allChecked}
           ref={el => { if (el) el.indeterminate = someChecked }}
           onChange={toggleAll}
-          className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+          className="w-4 h-4 rounded border-gray-300 text-portal-blue cursor-pointer"
           aria-label="Select all"
         />
         <span className="text-sm font-semibold text-gray-700">
@@ -130,7 +130,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <button
               onClick={() => runBulkAction([...selected], 'send-to-review')}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-amber-lt text-portal-amber border border-amber-200 rounded-lg hover:bg-portal-amber-lt disabled:opacity-50 transition-colors"
             >
               Needs Editing
             </button>
@@ -163,7 +163,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
             <article
               key={r.id}
               className={`flex flex-col bg-white rounded-xl border overflow-hidden transition-colors ${
-                isSelected ? 'border-blue-400 ring-1 ring-blue-200' : 'border-gray-200'
+                isSelected ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-gray-200'
               }`}
             >
               <div className="flex gap-3 p-3.5">
@@ -171,7 +171,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleOne(r.id)}
-                  className="w-4 h-4 mt-1 rounded border-gray-300 text-blue-600 cursor-pointer shrink-0"
+                  className="w-4 h-4 mt-1 rounded border-gray-300 text-portal-blue cursor-pointer shrink-0"
                   aria-label={`Select ${student}`}
                 />
 
@@ -196,7 +196,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                   <div className="flex items-start justify-between gap-2 mb-1 flex-wrap">
                     <h3 className="text-sm font-bold text-gray-900 leading-tight">{student}</h3>
                     {school && (
-                      <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-bold bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">
                         {school}
                       </span>
                     )}
@@ -227,7 +227,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Submitter</p>
                       <p className="text-xs text-gray-700">{r.submitter_name ?? '—'}</p>
-                      {r.submitter_email && <p className="text-[11px] text-blue-600 truncate">{r.submitter_email}</p>}
+                      {r.submitter_email && <p className="text-[11px] text-portal-blue truncate">{r.submitter_email}</p>}
                       {relationship && <p className="text-[11px] text-gray-500">{relationship}</p>}
                     </div>
                     <div>
@@ -236,7 +236,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                         <Link
                           href={r.print_image_url}
                           target="_blank"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                          className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline"
                         >
                           <Download size={11} /> Download high-res
                         </Link>
@@ -260,7 +260,7 @@ export function SpotlightReviewClient({ rows, status }: Props) {
                   {r.promoted_article_id && (
                     <Link
                       href={`/admin/articles/${r.promoted_article_id}/edit`}
-                      className="text-[11px] font-semibold text-blue-600 hover:underline inline-flex items-center gap-1"
+                      className="text-[11px] font-semibold text-portal-blue hover:underline inline-flex items-center gap-1"
                     >
                       Open article <ExternalLink size={10} />
                     </Link>

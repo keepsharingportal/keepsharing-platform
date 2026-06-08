@@ -38,7 +38,7 @@ export function DriversEditor({ market, initialDrivers, availableRoutes }: Props
       {!addOpen ? (
         <button
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
         >
           <Plus size={12} /> Add Driver
         </button>
@@ -62,7 +62,7 @@ export function DriversEditor({ market, initialDrivers, availableRoutes }: Props
       ) : (
         <ul className="space-y-2">
           {drivers.map(d => (
-            <li key={d.user_id} className={`rounded-xl border bg-white ${editing === d.user_id ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-200'}`}>
+            <li key={d.user_id} className={`rounded-xl border bg-white ${editing === d.user_id ? 'border-portal-border-2 ring-1 ring-portal-blue/20' : 'border-gray-200'}`}>
               {editing === d.user_id ? (
                 <EditRow
                   driver={d}
@@ -103,7 +103,7 @@ function DisplayRow({ driver, routes, onEdit }: { driver: Driver; routes: Array<
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-bold text-gray-900">{driver.full_name}</p>
           {!driver.active && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
-          {driver.can_view_all && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-semibold">View all</span>}
+          {driver.can_view_all && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">View all</span>}
         </div>
         <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><Mail size={10} /> {driver.email}</p>
         {driver.phone && <p className="text-xs text-gray-500">📞 {driver.phone}</p>}
@@ -167,7 +167,7 @@ function AddForm({ market, routes, onCancel, onCreated }: {
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-3">
+    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-gray-900">New driver</p>
         <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
@@ -186,7 +186,7 @@ function AddForm({ market, routes, onCancel, onCreated }: {
       <Field label="Notes" value={notes} onChange={setNotes} />
       {err && <p className="text-xs text-red-600">{err}</p>}
       <div className="flex items-center gap-2">
-        <button onClick={submit} disabled={busy || !name.trim() || !email.trim()} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={submit} disabled={busy || !name.trim() || !email.trim()} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50">
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Creating…' : 'Create Driver'}
         </button>
@@ -295,7 +295,7 @@ function EditRow({ driver, routes, onCancel, onSaved, onDeleted }: {
       </div>
       {err && <p className="text-xs text-red-600">{err}</p>}
       <div className="flex items-center gap-2">
-        <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50">
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Save
         </button>
         <button onClick={onCancel} className="px-3 py-1.5 text-xs font-semibold text-gray-600 rounded-lg hover:bg-gray-100">Cancel</button>
@@ -327,7 +327,7 @@ function RouteAssign({ routes, selected, setSelected }: {
               key={r.id}
               type="button"
               onClick={() => toggle(r.id)}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${on ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${on ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
             >
               {r.name}
             </button>
@@ -345,7 +345,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )

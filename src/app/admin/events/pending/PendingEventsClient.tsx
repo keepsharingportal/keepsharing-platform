@@ -151,7 +151,7 @@ export function PendingEventsClient({ events }: Props) {
                     </span>
                   )}
                   {dirty && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber">
                       Unsaved edits
                     </span>
                   )}
@@ -242,7 +242,7 @@ export function PendingEventsClient({ events }: Props) {
                           onClick={() => toggleTag(ev.id, current, t.slug)}
                           className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
                             active
-                              ? 'bg-blue-600 text-white border-blue-600'
+                              ? 'bg-portal-navy text-white border-blue-600'
                               : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                           }`}
                         >
@@ -313,7 +313,7 @@ export function PendingEventsClient({ events }: Props) {
                         type="checkbox"
                         checked={Boolean(v(ev,'is_free') ?? ev.is_free)}
                         onChange={e => patch(ev.id, 'is_free', e.target.checked)}
-                        className="w-4 h-4 rounded text-blue-600"
+                        className="w-4 h-4 rounded text-portal-blue"
                       />
                       Free event
                     </label>
@@ -328,7 +328,7 @@ export function PendingEventsClient({ events }: Props) {
                 {(ev.source_url || ev.discovery_notes || ev.email || ev.phone) && (
                   <div className="rounded-lg border border-gray-200 bg-white p-3 text-xs space-y-1">
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Submission context</p>
-                    {ev.source_url && <p><strong className="text-gray-600">Source URL:</strong> <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">{ev.source_url}</a></p>}
+                    {ev.source_url && <p><strong className="text-gray-600">Source URL:</strong> <a href={ev.source_url} target="_blank" rel="noreferrer" className="text-portal-blue hover:underline break-all">{ev.source_url}</a></p>}
                     {ev.email && <p><strong className="text-gray-600">Submitter email:</strong> {ev.email}</p>}
                     {ev.phone && <p><strong className="text-gray-600">Submitter phone:</strong> {ev.phone}</p>}
                     {ev.discovery_notes && <p className="whitespace-pre-wrap"><strong className="text-gray-600">Editor notes:</strong> {ev.discovery_notes}</p>}
@@ -349,7 +349,7 @@ export function PendingEventsClient({ events }: Props) {
                     type="button"
                     onClick={() => trash(ev.id)}
                     disabled={busyHere}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-rose-200 bg-white text-rose-700 rounded-lg hover:bg-rose-50 disabled:opacity-40 ml-auto"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-portal-red/30 bg-white text-portal-red rounded-lg hover:bg-portal-red-lt disabled:opacity-40 ml-auto"
                   >
                     <Trash2 size={11} /> Move to trash
                   </button>

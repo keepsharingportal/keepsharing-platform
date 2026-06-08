@@ -73,7 +73,7 @@ export default async function BloggersAdminPage() {
       <SectionHelp variant="info" title="Self-service login">
         Each blogger card shows whether she has portal access. Open a profile,
         add her email, and click <strong>Send Login Link</strong> — she&apos;ll get a
-        magic link that signs her into the <Link href="/blogger-portal" className="text-blue-600 hover:underline">Blogger Portal</Link> so she
+        magic link that signs her into the <Link href="/blogger-portal" className="text-portal-blue hover:underline">Blogger Portal</Link> so she
         can write posts herself.
       </SectionHelp>
 
@@ -126,7 +126,7 @@ export default async function BloggersAdminPage() {
                         <KeyRound size={8} /> Has Login
                       </span>
                     ) : b.email ? (
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                         <Key size={8} /> Invite Pending
                       </span>
                     ) : null}

@@ -26,7 +26,7 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; icon: string 
 }
 
 const ROLE_CONFIG: Record<KBRole, { label: string; color: string }> = {
-  publisher: { label: 'Publisher',  color: 'bg-blue-100 text-blue-700' },
+  publisher: { label: 'Publisher',  color: 'bg-portal-blue-lt text-portal-blue' },
   va:        { label: 'VA',         color: 'bg-green-100 text-green-700' },
   editor:    { label: 'Editor',     color: 'bg-purple-100 text-purple-700' },
   all:       { label: 'Everyone',   color: 'bg-gray-100 text-gray-600' },
@@ -39,12 +39,12 @@ function ArticleCard({ article, onClick }: { article: KBArticle; onClick: () => 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-white rounded-2xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all group"
+      className="w-full text-left bg-white rounded-2xl border border-gray-200 p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
     >
       <div className="flex items-start gap-3">
         <div className="text-xl shrink-0">{cfg.icon}</div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors leading-snug mb-1.5">
+          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-portal-blue transition-colors leading-snug mb-1.5">
             {article.title}
           </h3>
           <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-2.5">
@@ -80,7 +80,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
     <div className="flex-1 overflow-y-auto">
       {/* Back */}
       <button onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-blue-600 font-medium mb-5 hover:underline">
+        className="flex items-center gap-1.5 text-sm text-portal-blue font-medium mb-5 hover:underline">
         <ArrowLeft size={14} /> Back to articles
       </button>
 
@@ -107,12 +107,12 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
       {/* Steps */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-5">
         <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <BookOpen size={16} className="text-blue-600" /> Step-by-step instructions
+          <BookOpen size={16} className="text-portal-blue" /> Step-by-step instructions
         </h2>
         <ol className="space-y-5">
           {article.steps.map((step, i) => (
             <li key={i} className="flex gap-4">
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-7 h-7 rounded-full bg-portal-navy text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {i + 1}
               </div>
               <div className="flex-1 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
@@ -169,7 +169,7 @@ function ArticleDetail({ article, onBack }: { article: KBArticle; onBack: () => 
                 }}
                   className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
                   <span className="text-base">{rcfg.icon}</span>
-                  <span className="text-sm text-blue-700 hover:underline font-medium">{rel.title}</span>
+                  <span className="text-sm text-portal-blue hover:underline font-medium">{rel.title}</span>
                   <ChevronRight size={13} className="text-gray-300 ml-auto" />
                 </button>
               )
@@ -239,14 +239,14 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
           <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             <div className={cn(
               'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
-              msg.role === 'user' ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+              msg.role === 'user' ? 'bg-portal-navy text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'
             )}>
               {msg.content}
               {msg.articles && msg.articles.length > 0 && (
                 <div className="mt-2 space-y-1">
                   {msg.articles.map(a => (
                     <button key={a.id} onClick={() => onArticleSelect(a.id)}
-                      className="flex items-center gap-1 text-xs text-blue-700 bg-white/70 rounded-lg px-2 py-0.5 hover:bg-white transition-colors">
+                      className="flex items-center gap-1 text-xs text-portal-blue bg-white/70 rounded-lg px-2 py-0.5 hover:bg-white transition-colors">
                       <ExternalLink size={9} /> {a.title}
                     </button>
                   ))}
@@ -277,7 +277,7 @@ function InlineAIChat({ onArticleSelect }: { onArticleSelect: (id: string) => vo
           />
           <button onClick={send} disabled={!input.trim() || loading}
             className={cn('w-6 h-6 rounded-lg flex items-center justify-center transition-colors',
-              input.trim() ? 'bg-blue-600' : 'bg-gray-200')}>
+              input.trim() ? 'bg-portal-navy' : 'bg-gray-200')}>
             <Send size={11} className={input.trim() ? 'text-white' : 'text-gray-400'} />
           </button>
         </div>
@@ -362,13 +362,13 @@ export function HelpPage() {
             className={cn(
               'w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-colors mb-1',
               !activeCategory && !search
-                ? 'bg-blue-50 text-blue-700'
+                ? 'bg-portal-blue-lt text-portal-blue'
                 : 'text-gray-600 hover:bg-gray-50'
             )}
           >
             <span>All Articles</span>
             <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-semibold',
-              !activeCategory && !search ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500')}>
+              !activeCategory && !search ? 'bg-portal-navy text-white' : 'bg-gray-100 text-gray-500')}>
               {KB_ARTICLES.length}
             </span>
           </button>
@@ -441,7 +441,7 @@ export function HelpPage() {
                   <div className="text-4xl mb-3">🔍</div>
                   <div className="text-base font-semibold text-gray-700 mb-2">No articles found</div>
                   <p className="text-sm text-gray-500 mb-4">Try different keywords, or ask the AI assistant below.</p>
-                  <button onClick={() => setSearch('')} className="text-sm text-blue-600 hover:underline">
+                  <button onClick={() => setSearch('')} className="text-sm text-portal-blue hover:underline">
                     Clear search
                   </button>
                 </div>

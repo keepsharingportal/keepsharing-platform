@@ -46,7 +46,7 @@ export function ProposalRow({ id, gameType, payload, theme, model, createdAt }: 
           {theme && <span>theme: <em className="text-gray-600">{theme}</em></span>}
           <span>{new Date(createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
         </div>
-        {err && <p className="text-xs text-rose-700 font-semibold mt-2">{err}</p>}
+        {err && <p className="text-xs text-portal-red font-semibold mt-2">{err}</p>}
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
@@ -150,7 +150,7 @@ function FamilyConnectPreview({ p }: { p: any }) {
   const toneClass: Record<string, string> = {
     yellow: 'bg-yellow-100 text-yellow-900',
     green:  'bg-green-100 text-green-900',
-    blue:   'bg-blue-100 text-blue-900',
+    blue:   'bg-portal-blue-lt text-blue-900',
     purple: 'bg-purple-100 text-purple-900',
   }
   return (

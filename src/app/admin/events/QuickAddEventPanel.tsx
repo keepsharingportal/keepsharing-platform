@@ -217,12 +217,12 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
     <form
       onSubmit={submit}
-      className="bg-blue-50/40 border-b border-blue-100 px-6 py-5"
+      className="bg-portal-blue-lt/40 border-b border-portal-blue/20 px-6 py-5"
     >
       <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2">
@@ -243,7 +243,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
         {/* Image column */}
         <div>
           <p className={lbl}>Hero image</p>
-          <div className="aspect-[4/3] w-full rounded-lg overflow-hidden bg-white ring-1 ring-blue-200">
+          <div className="aspect-[4/3] w-full rounded-lg overflow-hidden bg-white ring-1 ring-portal-blue/30">
             {heroUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={heroUrl} alt="" className="w-full h-full object-cover" />
@@ -253,7 +253,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               </div>
             )}
           </div>
-          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-blue-300 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-blue-800">
+          <label className="mt-2 inline-flex items-center justify-center gap-1.5 w-full px-2 py-1.5 text-xs font-semibold border border-dashed border-portal-border-2 rounded-lg bg-white cursor-pointer hover:border-blue-500 text-portal-blue">
             {imageBusy ? <RefreshCw size={11} className="animate-spin" /> : <Camera size={11} />}
             {imageBusy ? 'Uploading…' : (heroUrl ? 'Replace image' : 'Upload image')}
             <input
@@ -426,9 +426,9 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               matches inline, and the operator can override with "Add anyway"
               if they're sure this is a different event. */}
           {duplicates.length > 0 && (
-            <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 p-3">
+            <div className="rounded-xl bg-portal-amber-lt ring-1 ring-amber-200 p-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle size={14} className="text-amber-700 shrink-0 mt-0.5" />
+                <AlertTriangle size={14} className="text-portal-amber shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-amber-900 mb-1">
                     Possible duplicate{duplicates.length > 1 ? 's' : ''} — {duplicates.length} match{duplicates.length > 1 ? 'es' : ''} in the next few days
@@ -473,7 +473,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
             </p>
           )}
 
-          {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
 
           <div className="flex items-center gap-2 pt-1">
             <button
@@ -487,7 +487,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950"
+              className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950"
             >
               Cancel
             </button>

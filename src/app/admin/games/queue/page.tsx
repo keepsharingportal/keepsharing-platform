@@ -45,10 +45,10 @@ export default async function ProposalQueuePage() {
       <div className="flex-1 overflow-y-auto">
       <main className="p-6 max-w-3xl mx-auto">
         <BackLink />
-        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="mt-4 rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Migration needed</p>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            Apply <code className="bg-amber-100 px-1 rounded">supabase/migrations/084_game_content_proposals.sql</code> in the Supabase SQL editor to enable the AI proposal queue.
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/084_game_content_proposals.sql</code> in the Supabase SQL editor to enable the AI proposal queue.
           </p>
         </div>
       </main>
@@ -175,7 +175,7 @@ export default async function ProposalQueuePage() {
                 </span>
                 <span className="flex items-center gap-3 shrink-0">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'
+                    r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-portal-red-lt text-portal-red'
                   }`}>{r.status}</span>
                   <span className="text-xs text-gray-400">{new Date(r.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 </span>

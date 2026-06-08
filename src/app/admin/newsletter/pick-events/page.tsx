@@ -455,7 +455,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
                         )}
                         <form action={removePick}>
                           <input type="hidden" name="id" value={pickRow.id} />
-                          <button type="submit" className="p-1 text-rose-500 hover:bg-rose-50 rounded" title="Remove from picks">
+                          <button type="submit" className="p-1 text-rose-500 hover:bg-portal-red-lt rounded" title="Remove from picks">
                             <X size={13} />
                           </button>
                         </form>
@@ -524,13 +524,13 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
       )}
 
       {picks.length > 0 && !newsletterIssuesAvailable && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Send history needs a database migration
           </p>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            Apply <code className="bg-amber-100 px-1 rounded">supabase/migrations/079_newsletter_issues.sql</code> in the Supabase SQL editor.
-            Once the <code className="bg-amber-100 px-1 rounded">newsletter_issues</code> table exists, the Send-via-GHL panel + send history will activate.
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/079_newsletter_issues.sql</code> in the Supabase SQL editor.
+            Once the <code className="bg-portal-amber-lt px-1 rounded">newsletter_issues</code> table exists, the Send-via-GHL panel + send history will activate.
             For now you can still use the Copy HTML button above.
           </p>
         </div>
@@ -575,8 +575,8 @@ function IssueLine({ issue }: { issue: {
 }}) {
   const statusBadge =
     issue.status === 'sent'   ? { Icon: CheckCircle2, cls: 'bg-green-100 text-green-800', label: 'Sent' } :
-    issue.status === 'queued' ? { Icon: Clock,        cls: 'bg-blue-100 text-blue-800',   label: 'Scheduled' } :
-    issue.status === 'failed' ? { Icon: AlertTriangle,cls: 'bg-rose-100 text-rose-800',   label: 'Failed' } :
+    issue.status === 'queued' ? { Icon: Clock,        cls: 'bg-portal-blue-lt text-portal-blue',   label: 'Scheduled' } :
+    issue.status === 'failed' ? { Icon: AlertTriangle,cls: 'bg-portal-red-lt text-portal-red',   label: 'Failed' } :
                                 { Icon: Clock,        cls: 'bg-gray-100 text-gray-700',   label: 'Pending' }
   const Icon = statusBadge.Icon
   const when = issue.scheduled_for
@@ -591,7 +591,7 @@ function IssueLine({ issue }: { issue: {
         <p className="text-sm font-semibold text-gray-900 truncate">{issue.subject}</p>
         <p className="text-[11px] text-gray-500">
           {issue.picks_count} pick(s) · to <strong className="text-gray-700">{issue.list_tag ?? '(no tag)'}</strong> · {when}
-          {issue.error_message && <span className="text-rose-700"> · {issue.error_message}</span>}
+          {issue.error_message && <span className="text-portal-red"> · {issue.error_message}</span>}
         </p>
       </div>
     </li>

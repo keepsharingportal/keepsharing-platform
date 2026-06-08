@@ -141,7 +141,7 @@ export function ArticleBulkActionsTable({
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
         <p className="text-gray-500 text-sm mb-3">No articles in this view.</p>
-        <Link href="/admin/articles/new" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+        <Link href="/admin/articles/new" className="text-sm font-semibold text-portal-blue hover:text-portal-blue">
           Write your first article →
         </Link>
       </div>
@@ -167,13 +167,13 @@ export function ArticleBulkActionsTable({
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
-          <span className="text-sm font-semibold text-blue-800 mr-1">
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-4 py-2.5 bg-portal-blue-lt border border-blue-200 rounded-xl">
+          <span className="text-sm font-semibold text-portal-blue mr-1">
             {selected.size} selected
           </span>
           <button
             onClick={toggleAll}
-            className="text-xs font-semibold text-blue-500 hover:text-blue-700 underline underline-offset-2"
+            className="text-xs font-semibold text-portal-blue hover:text-portal-blue underline underline-offset-2"
           >
             Deselect All
           </button>
@@ -206,7 +206,7 @@ export function ArticleBulkActionsTable({
             <button
               onClick={() => runBulkAction([...selected], 'trash')}
               disabled={busy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-rose-700 text-xs font-semibold rounded-lg hover:bg-rose-50 disabled:opacity-50 transition-colors border border-rose-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-portal-red text-xs font-semibold rounded-lg hover:bg-portal-red-lt disabled:opacity-50 transition-colors border border-portal-red/30"
             >
               <Trash2 size={12} />
               Move to Trash
@@ -235,7 +235,7 @@ export function ArticleBulkActionsTable({
               checked={allChecked}
               ref={el => { if (el) el.indeterminate = someChecked }}
               onChange={toggleAll}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+              className="w-4 h-4 rounded border-gray-300 text-portal-blue cursor-pointer"
               aria-label="Select all articles"
             />
           </div>
@@ -243,7 +243,7 @@ export function ArticleBulkActionsTable({
           <Link
             href={sortHref('title')}
             scroll={false}
-            className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-blue-600 inline-flex items-center gap-1"
+            className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-portal-blue inline-flex items-center gap-1"
             title="Sort by title A→Z"
           >
             Title
@@ -257,7 +257,7 @@ export function ArticleBulkActionsTable({
             href={sortHref('views')}
             scroll={false}
             className={`text-[11px] font-semibold uppercase tracking-wider hidden md:inline-flex items-center gap-1 ${
-              showViewsIndicator ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'
+              showViewsIndicator ? 'text-portal-blue' : 'text-gray-400 hover:text-portal-blue'
             }`}
             title="Sort by views (highest first)"
           >
@@ -269,7 +269,7 @@ export function ArticleBulkActionsTable({
             href={sortLocked ? '#' : sortHref(dateNextSort)}
             scroll={false}
             className={`text-[11px] font-semibold uppercase tracking-wider hidden xl:inline-flex items-center gap-1 ${
-              sortLocked ? 'opacity-40 pointer-events-none' : showDateIndicator ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'
+              sortLocked ? 'opacity-40 pointer-events-none' : showDateIndicator ? 'text-portal-blue' : 'text-gray-400 hover:text-portal-blue'
             }`}
             title={activeSort === 'newest' ? 'Sort oldest first' : 'Sort newest first'}
           >
@@ -296,13 +296,13 @@ export function ArticleBulkActionsTable({
                 : '—'
 
             const statusLabel = a.published ? 'Published' : st.label
-            const statusColor = a.published ? 'bg-emerald-100 text-emerald-700' : st.color
+            const statusColor = a.published ? 'bg-portal-green-lt text-portal-green' : st.color
 
             return (
               <div
                 key={a.id}
                 className={`grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-3 transition-colors ${
-                  isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  isSelected ? 'bg-portal-blue-lt' : 'hover:bg-gray-50'
                 }`}
               >
                 {/* Checkbox */}
@@ -311,7 +311,7 @@ export function ArticleBulkActionsTable({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleOne(a.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                    className="w-4 h-4 rounded border-gray-300 text-portal-blue cursor-pointer"
                     aria-label={`Select ${a.title}`}
                   />
                 </div>
@@ -369,7 +369,7 @@ export function ArticleBulkActionsTable({
                   )}
                   <Link
                     href={`/admin/articles/${a.id}/edit`}
-                    className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors whitespace-nowrap"
+                    className="px-2.5 py-1 text-xs font-semibold text-portal-blue hover:bg-portal-blue-lt rounded-lg transition-colors whitespace-nowrap"
                   >
                     Edit
                   </Link>

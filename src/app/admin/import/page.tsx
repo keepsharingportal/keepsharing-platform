@@ -11,7 +11,7 @@ export default function ImportPage() {
               Upload your Zoho CRM CSV export · Businesses and contacts are auto-created
             </p>
           </div>
-          <span className="text-xs px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 font-semibold">
+          <span className="text-xs px-3 py-1.5 rounded-full bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200 font-semibold">
             Run SQL schema in Supabase first
           </span>
         </div>

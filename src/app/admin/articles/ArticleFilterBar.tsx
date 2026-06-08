@@ -171,7 +171,7 @@ export function ArticleFilterBar({
       <p className="text-[11px] text-gray-400 px-1">
         {totalResults === 0 ? 'No articles match.' : `${totalResults.toLocaleString()} article${totalResults === 1 ? '' : 's'} match.`}
         {hasAnyFilter && totalResults === 0 && (
-          <button onClick={clearAll} className="ml-1 text-blue-600 hover:underline font-semibold">
+          <button onClick={clearAll} className="ml-1 text-portal-blue hover:underline font-semibold">
             Clear filters →
           </button>
         )}

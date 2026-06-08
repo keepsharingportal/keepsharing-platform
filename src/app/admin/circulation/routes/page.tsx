@@ -45,11 +45,11 @@ export default async function RoutesPage() {
       <div className="max-w-[1000px] mx-auto space-y-6">
 
         <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Distribution Routes
           </Link>
           <div className="flex items-center gap-2">
-            <Truck size={18} className="text-blue-600" />
+            <Truck size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Routes</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">
@@ -83,7 +83,7 @@ export default async function RoutesPage() {
           ) : (
             <ul className="space-y-2">
               {routes.map(r => (
-                <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3 flex items-center gap-3 hover:border-blue-300 transition-colors">
+                <li key={r.id} className="rounded-xl border border-gray-200 bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
                   <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
                       {r.name}

@@ -349,13 +349,13 @@ export function BusinessesTableClient({ rows, query }: Props) {
              (preview.short_links ?? 0) === 0 &&
              (preview.guide_listings ?? 0) === 0 &&
              (preview.proposals ?? 0) === 0 && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-800">
+              <div className="bg-portal-green-lt border border-emerald-200 rounded-lg p-3 text-xs text-portal-green">
                 Safe to delete — none of the selected rows have related activity.
               </div>
             )}
 
             {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 inline-flex items-center gap-2">
+              <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-xs text-portal-red inline-flex items-center gap-2">
                 <AlertTriangle size={12} /> {error}
               </div>
             )}
@@ -411,7 +411,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
                 return (
                   <label
                     key={r.id}
-                    className={`flex items-start gap-2 px-3 py-2 cursor-pointer ${isSurvivor ? 'bg-emerald-50/60' : 'hover:bg-gray-50'}`}
+                    className={`flex items-start gap-2 px-3 py-2 cursor-pointer ${isSurvivor ? 'bg-portal-green-lt/60' : 'hover:bg-gray-50'}`}
                   >
                     <input
                       type="radio"
@@ -461,7 +461,7 @@ export function BusinessesTableClient({ rows, query }: Props) {
             </div>
 
             {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 inline-flex items-center gap-2">
+              <div className="bg-portal-red-lt border border-portal-red/30 rounded-lg p-3 text-xs text-portal-red inline-flex items-center gap-2">
                 <AlertTriangle size={12} /> {error}
               </div>
             )}

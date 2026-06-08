@@ -231,9 +231,9 @@ export default async function AITasksPage({
       </div>
 
       {/* ── SAFETY BANNER ───────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-amber-50 border border-amber-200 rounded-2xl">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-portal-amber-lt border border-amber-200 rounded-2xl">
         <span className="text-lg shrink-0">⚠️</span>
-        <p className="text-sm text-amber-800 font-medium">
+        <p className="text-sm text-portal-amber font-medium">
           Human review required before any AI output is used.
           Approving a task does not publish, send, or post anything — it marks it as reviewed and ready for the next step.
         </p>
@@ -328,7 +328,7 @@ export default async function AITasksPage({
                             ↑ {task.priority}
                           </span>
                         )}
-                        <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-semibold border border-amber-200">
+                        <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded-full font-semibold border border-amber-200">
                           Review required
                         </span>
                       </div>

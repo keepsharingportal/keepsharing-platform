@@ -31,10 +31,10 @@ const TYPE_LABEL: Record<string, string> = {
   move:  'Move stop',
 }
 const TYPE_BADGE: Record<string, string> = {
-  edit:  'bg-blue-100 text-blue-800',
+  edit:  'bg-portal-blue-lt text-portal-blue',
   close: 'bg-red-100 text-red-800',
   new:   'bg-purple-100 text-purple-800',
-  qty:   'bg-amber-100 text-amber-800',
+  qty:   'bg-portal-amber-lt text-portal-amber',
   move:  'bg-indigo-100 text-indigo-800',
 }
 
@@ -83,7 +83,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
           <button
             key={s}
             onClick={() => gotoStatus(s)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border capitalize ${s === activeStatus ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
           >
             {s}
           </button>
@@ -143,7 +143,7 @@ export function ChangeRequestsEditor({ initial, activeStatus }: { initial: Chang
                     <button
                       onClick={() => patch(r.id, 'approve')}
                       disabled={busy !== null}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-emerald-200 text-portal-green hover:bg-portal-green-lt disabled:opacity-50"
                     >
                       {busy === `${r.id}-approve` ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                       Approve only

@@ -276,7 +276,7 @@ export default function SummerGuideImportPage() {
 
           {/* Unmapped columns warning */}
           {unmapped.length > 0 && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-400">
+            <div className="p-3 bg-portal-amber-lt0/10 border border-amber-500/30 rounded-xl text-xs text-amber-400">
               <span className="font-semibold">Columns not recognised (will be skipped):</span>{' '}
               {unmapped.join(', ')}
             </div>
@@ -310,8 +310,8 @@ export default function SummerGuideImportPage() {
                       <td className="px-4 py-2 text-white/60">{row.city ?? '—'}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          row.listing_tier === 'advertiser' ? 'bg-amber-500/20 text-amber-400' :
-                          row.listing_tier === 'enhanced'  ? 'bg-blue-500/20 text-blue-400' :
+                          row.listing_tier === 'advertiser' ? 'bg-portal-amber-lt0/20 text-amber-400' :
+                          row.listing_tier === 'enhanced'  ? 'bg-portal-blue-lt0/20 text-blue-400' :
                                                               'bg-white/8 text-white/40'
                         }`}>
                           {row.listing_tier ?? 'community'}
@@ -338,7 +338,7 @@ export default function SummerGuideImportPage() {
           <button
             onClick={runImport}
             disabled={importing}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
           >
             {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
             {importing ? 'Importing...' : `Import ${parsed.rows.length} records`}
@@ -384,7 +384,7 @@ export default function SummerGuideImportPage() {
                   <span className="text-xs text-white flex-1">{r.name}</span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                     r.status === 'ok'      ? 'bg-green-500/20 text-green-400' :
-                    r.status === 'updated' ? 'bg-blue-500/20 text-blue-400'  :
+                    r.status === 'updated' ? 'bg-portal-blue-lt0/20 text-blue-400'  :
                     r.status === 'skipped' ? 'bg-white/8 text-white/40'      :
                                              'bg-red-500/20 text-red-400'
                   }`}>
@@ -404,7 +404,7 @@ export default function SummerGuideImportPage() {
               Import another file
             </button>
             <a href="/summer-fun-guide" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-400 border border-blue-500/30 rounded-xl hover:bg-blue-500/10 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-400 border border-blue-500/30 rounded-xl hover:bg-portal-blue-lt0/10 transition-colors">
               <FileText size={14} />
               View Summer Fun Guide
             </a>

@@ -403,7 +403,7 @@ function LinkRow({ row, onRemoved }: { row: ShortLinkRow; onRemoved: (id: string
           <a href={goUrl} target="_blank" rel="noreferrer" title="Test" className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700">
             <ExternalLink size={14} />
           </a>
-          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-rose-50 text-gray-400 hover:text-rose-600 disabled:opacity-40">
+          <button onClick={remove} disabled={deleting} title="Delete" className="p-1.5 rounded-lg hover:bg-portal-red-lt text-gray-400 hover:text-rose-600 disabled:opacity-40">
             {deleting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </button>
         </div>
@@ -489,13 +489,13 @@ function EditRow({
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <div className="bg-blue-50/40 border-t border-blue-100 px-4 py-4">
+    <div className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
       <p className="text-xs font-bold text-blue-900 mb-3 inline-flex items-center gap-1.5">
         <Pencil size={12} /> Editing /go/{row.shortcode}
-        <span className="font-normal text-blue-700">— shortcode &amp; printed QR stay the same; just change where it points</span>
+        <span className="font-normal text-portal-blue">— shortcode &amp; printed QR stay the same; just change where it points</span>
       </p>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
@@ -517,13 +517,13 @@ function EditRow({
           </label>
         </div>
       </div>
-      {err && <p className="mt-2 text-xs text-rose-700 font-semibold">{err}</p>}
+      {err && <p className="mt-2 text-xs text-portal-red font-semibold">{err}</p>}
       <div className="mt-3 flex items-center gap-2">
         <button onClick={save} disabled={busy} className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40">
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save changes'}
         </button>
-        <button onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">Cancel</button>
       </div>
     </div>
   )
@@ -1126,7 +1126,7 @@ export function AddPanel({
               destination URL + label before this step opens.) */}
 
           {err && (
-            <p className="text-xs text-rose-700 font-semibold inline-flex items-center gap-1">
+            <p className="text-xs text-portal-red font-semibold inline-flex items-center gap-1">
               <AlertTriangle size={12} /> {err}
             </p>
           )}

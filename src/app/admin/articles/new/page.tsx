@@ -159,7 +159,7 @@ export default function NewArticlePage() {
       {/* Sticky header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
-          <Link href="/admin/articles" className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <Link href="/admin/articles" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1">
             <ArrowLeft size={13} /> Articles
           </Link>
           <h1 className="text-xl font-semibold text-gray-900">New Article</h1>
@@ -189,7 +189,7 @@ export default function NewArticlePage() {
           <button
             onClick={() => save('pending')}
             disabled={saving}
-            className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+            className="px-4 py-2 text-sm font-semibold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
           >
             Save for Review
           </button>
@@ -281,7 +281,7 @@ export default function NewArticlePage() {
             <div className="space-y-2">
               {[
                 { mode: 'draft' as SaveMode, label: 'Save Draft', desc: 'Not visible anywhere', color: 'border-gray-200 text-gray-700 hover:bg-gray-50' },
-                { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-amber-700 hover:bg-amber-50 bg-amber-50' },
+                { mode: 'pending' as SaveMode, label: 'Send to Review', desc: 'Goes to Review Queue', color: 'border-amber-200 text-portal-amber hover:bg-portal-amber-lt bg-portal-amber-lt' },
                 { mode: 'publish' as SaveMode, label: 'Publish Now', desc: 'Goes live immediately', color: 'border-green-200 text-green-700 hover:bg-green-50' },
               ].map(opt => (
                 <button
@@ -357,7 +357,7 @@ export default function NewArticlePage() {
           </div>
 
           {/* Where this article appears */}
-          <div className="bg-white rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+          <div className="bg-white rounded-xl border border-portal-blue/20 bg-portal-blue-lt/40 p-3">
             <SectionHelp variant="info" title="Where will this appear?">
               <strong>Section</strong> = which editorial column it belongs to.{' '}
               <strong>Guide</strong> = which Guide landing page it shows up on (if any).{' '}
@@ -399,7 +399,7 @@ export default function NewArticlePage() {
               const v      = columnToVerticalRowSlug(form.column_slug)
               const vLabel = v ? (VERTICAL_LABELS[v] ?? v) : null
               return (
-                <div className="mt-2 px-3 py-2 rounded-lg bg-blue-50/60 border border-blue-100 space-y-1">
+                <div className="mt-2 px-3 py-2 rounded-lg bg-portal-blue-lt/60 border border-portal-blue/20 space-y-1">
                   {col.description && (
                     <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
                   )}
@@ -524,7 +524,7 @@ export default function NewArticlePage() {
         <button onClick={() => save('draft')} disabled={saving} className="px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40">
           Save Draft
         </button>
-        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
+        <button onClick={() => save('pending')} disabled={saving} className="px-4 py-2 text-sm font-semibold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40">
           Send for Review
         </button>
         <button onClick={() => save('publish')} disabled={saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40">

@@ -103,7 +103,7 @@ export default async function AdRenewalsPage() {
             The cron runs nightly; nothing sends until a template is live.
           </p>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-xs text-amber-900 max-w-sm">
+        <div className="bg-portal-amber-lt border border-amber-200 rounded-lg px-4 py-2 text-xs text-amber-900 max-w-sm">
           <p className="font-bold flex items-center gap-1"><AlertTriangle size={12} /> Note</p>
           <p className="mt-0.5">Make sure your ad bookings have either <code>advertiser_email</code> on the placement
           or a linked advertiser_account with an email. Without one, the cron logs &quot;skipped: no-email&quot; and moves on.</p>
@@ -125,7 +125,7 @@ export default async function AdRenewalsPage() {
                 </span>
                 <span className="font-bold text-gray-900">{tpl.name}</span>
                 <span className="text-xs text-gray-500">· {windowLabel(tpl.days_before)}</span>
-                {tpl.notify_sales && <span className="text-[10px] uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded">CC sales rep</span>}
+                {tpl.notify_sales && <span className="text-[10px] uppercase tracking-wider text-portal-blue bg-portal-blue-lt px-2 py-0.5 rounded">CC sales rep</span>}
               </div>
               <span className="text-xs text-gray-400">edit ↓</span>
             </summary>

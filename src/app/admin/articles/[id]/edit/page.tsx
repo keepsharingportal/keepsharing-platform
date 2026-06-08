@@ -421,11 +421,11 @@ export default function ArticleEditPage({ params }: Props) {
       {/* ── Sticky top bar ── */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-3">
-          <Link href="/admin/articles/review" className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap">
+          <Link href="/admin/articles/review" className="text-sm text-portal-blue hover:text-portal-blue flex items-center gap-1 whitespace-nowrap">
             <ArrowLeft size={13} /> Review Queue
           </Link>
           <span className="text-gray-300">/</span>
-          <Link href="/admin/articles" className="text-sm text-blue-600 hover:text-blue-800 hidden sm:block">All Articles</Link>
+          <Link href="/admin/articles" className="text-sm text-portal-blue hover:text-portal-blue hidden sm:block">All Articles</Link>
           <h1 className="text-sm font-semibold text-gray-700 truncate max-w-xs hidden md:block">
             {form.title || 'Edit Article'}
           </h1>
@@ -469,7 +469,7 @@ export default function ArticleEditPage({ params }: Props) {
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="text-[11px] text-gray-400">URL:</span>
                   <input
-                    className="flex-1 text-[11px] text-gray-400 outline-none bg-transparent border-b border-transparent focus:border-blue-300 py-0.5"
+                    className="flex-1 text-[11px] text-gray-400 outline-none bg-transparent border-b border-transparent focus:border-portal-border-2 py-0.5"
                     value={form.slug}
                     onChange={e => setField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
                     placeholder="auto-generated"
@@ -482,7 +482,7 @@ export default function ArticleEditPage({ params }: Props) {
                    (that's the Card Hook field in the right sidebar). */}
               <div>
                 <textarea
-                  className="w-full text-base text-gray-600 outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-blue-300 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
+                  className="w-full text-base text-gray-600 outline-none placeholder:text-gray-300 border-0 border-b border-gray-100 focus:border-portal-border-2 bg-transparent resize-none py-1.5 leading-relaxed transition-colors"
                   rows={2}
                   value={form.subtitle}
                   onChange={e => setField('subtitle', e.target.value)}
@@ -500,7 +500,7 @@ export default function ArticleEditPage({ params }: Props) {
                       className={[
                         'px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors capitalize',
                         tab === t
-                          ? 'border-blue-600 text-blue-600'
+                          ? 'border-blue-600 text-portal-blue'
                           : 'border-transparent text-gray-400 hover:text-gray-700',
                       ].join(' ')}
                     >
@@ -608,7 +608,7 @@ export default function ArticleEditPage({ params }: Props) {
                   <span className="block text-xs font-normal text-gray-400 mt-0.5">Not visible to the public</span>
                 </button>
                 <button onClick={() => save('pending')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-amber-200 bg-amber-50 text-sm font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-40 transition-colors">
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-amber-200 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
                   Send to Review
                   <span className="block text-xs font-normal text-amber-600/70 mt-0.5">Adds to the review queue</span>
                 </button>
@@ -632,9 +632,9 @@ export default function ArticleEditPage({ params }: Props) {
             </div>
 
             {/* ── Danger zone — unpublish + move to trash ── */}
-            <div className="border border-rose-200 rounded-xl overflow-hidden">
-              <div className="bg-rose-50 px-3 py-2 border-b border-rose-100">
-                <p className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Danger Zone</p>
+            <div className="border border-portal-red/30 rounded-xl overflow-hidden">
+              <div className="bg-portal-red-lt px-3 py-2 border-b border-rose-100">
+                <p className="text-[11px] font-bold text-portal-red uppercase tracking-wider">Danger Zone</p>
               </div>
               <div className="p-3 space-y-2">
                 <button
@@ -679,7 +679,7 @@ export default function ArticleEditPage({ params }: Props) {
                       window.location.href = '/admin/articles'
                     } finally { setSaving(false) }
                   }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-rose-300 bg-white text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition-colors"
+                  className="w-full text-left px-3 py-2.5 rounded-lg border border-rose-300 bg-white text-sm font-semibold text-portal-red hover:bg-portal-red-lt disabled:opacity-40 transition-colors"
                 >
                   Move to Trash
                   <span className="block text-xs font-normal text-rose-500/80 mt-0.5">Restorable from /admin/articles/trash</span>
@@ -689,15 +689,15 @@ export default function ArticleEditPage({ params }: Props) {
 
             {/* ── Feature on Homepage ── */}
             <div className="border border-blue-200 rounded-xl overflow-hidden">
-              <div className="bg-blue-50 px-3 py-2 border-b border-blue-100">
-                <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Homepage</p>
+              <div className="bg-portal-blue-lt px-3 py-2 border-b border-portal-blue/20">
+                <p className="text-[11px] font-bold text-portal-blue uppercase tracking-wider">Homepage</p>
               </div>
-              <label className="flex items-start gap-3 p-3 cursor-pointer hover:bg-blue-50/60 transition-colors">
+              <label className="flex items-start gap-3 p-3 cursor-pointer hover:bg-portal-blue-lt/60 transition-colors">
                 <input
                   type="checkbox"
                   checked={isHomepageHero}
                   onChange={e => setIsHomepageHero(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 rounded text-blue-600 cursor-pointer"
+                  className="w-4 h-4 mt-0.5 rounded text-portal-blue cursor-pointer"
                 />
                 <div>
                   <p className="text-sm font-semibold text-gray-700 leading-tight">Feature on Homepage</p>
@@ -853,7 +853,7 @@ export default function ArticleEditPage({ params }: Props) {
                 const v        = columnToVerticalRowSlug(form.column_slug)
                 const vLabel   = v ? (VERTICAL_LABELS[v] ?? v) : null
                 return (
-                  <div className="mt-1.5 px-3 py-2 rounded-lg bg-blue-50/50 border border-blue-100 space-y-1">
+                  <div className="mt-1.5 px-3 py-2 rounded-lg bg-portal-blue-lt/50 border border-portal-blue/20 space-y-1">
                     {col.description && (
                       <p className="text-[12px] text-gray-700 leading-relaxed">{col.description}</p>
                     )}
@@ -878,7 +878,7 @@ export default function ArticleEditPage({ params }: Props) {
                 </select>
                 <p className="text-[11px] text-gray-400 mt-1">
                   Required for Mom Knows Best posts so they link to her profile.
-                  Manage bloggers at <a href="/admin/bloggers" className="text-blue-600 hover:underline">/admin/bloggers</a>.
+                  Manage bloggers at <a href="/admin/bloggers" className="text-portal-blue hover:underline">/admin/bloggers</a>.
                 </p>
               </div>
             )}

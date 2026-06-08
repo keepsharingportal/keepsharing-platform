@@ -60,7 +60,7 @@ export function DupClusterPanel({ cluster }: Props) {
     // Render a tiny success placeholder where the cluster used to be —
     // hides the now-stale rows until the editor refreshes.
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-900 inline-flex items-center gap-2">
+      <div className="bg-portal-green-lt border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-900 inline-flex items-center gap-2">
         <RefreshCw size={14} /> Merged. Refresh to recompute the duplicate clusters.
       </div>
     )
@@ -101,9 +101,9 @@ export function DupClusterPanel({ cluster }: Props) {
 
   return (
     <section className="bg-white rounded-2xl border border-amber-200 ring-1 ring-amber-100/40 overflow-hidden">
-      <header className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center justify-between flex-wrap gap-2">
+      <header className="px-5 py-3 bg-portal-amber-lt border-b border-amber-100 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <AlertTriangle size={14} className="text-amber-700" />
+          <AlertTriangle size={14} className="text-portal-amber" />
           <p className="text-sm font-bold text-amber-900">
             {cluster.members.length} likely duplicates
           </p>
@@ -142,7 +142,7 @@ export function DupClusterPanel({ cluster }: Props) {
         {cluster.members.map(m => {
           const isSurvivor = m.id === survivorId
           return (
-            <li key={m.id} className={`px-5 py-3 flex items-start gap-3 ${isSurvivor ? 'bg-emerald-50/60' : ''}`}>
+            <li key={m.id} className={`px-5 py-3 flex items-start gap-3 ${isSurvivor ? 'bg-portal-green-lt/60' : ''}`}>
               <label className="shrink-0 mt-1 cursor-pointer">
                 <input
                   type="radio"
@@ -184,7 +184,7 @@ export function DupClusterPanel({ cluster }: Props) {
       </ul>
 
       {err && (
-        <div className="px-5 py-3 bg-rose-50 border-t border-rose-200 text-xs text-rose-700 font-semibold">
+        <div className="px-5 py-3 bg-portal-red-lt border-t border-portal-red/30 text-xs text-portal-red font-semibold">
           Merge failed: {err}
         </div>
       )}

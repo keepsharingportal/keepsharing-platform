@@ -71,7 +71,7 @@ export function CirculationImporter({ market, regionName, pubLabels }: Props) {
         <button
           onClick={handleImport}
           disabled={!file || busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
           {busy ? 'Importing…' : 'Import JSON'}

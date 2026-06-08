@@ -40,18 +40,18 @@ export function NewRouteForm({ market }: { market: string }) {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Route name (e.g. Wetumpka / Millbrook)"
-          className="flex-1 min-w-[200px] rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="flex-1 min-w-[200px] rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
         <input
           value={city}
           onChange={e => setCity(e.target.value)}
           placeholder="City (optional)"
-          className="w-40 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="w-40 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
         <button
           onClick={handleAdd}
           disabled={busy || !name.trim()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
           Add Route

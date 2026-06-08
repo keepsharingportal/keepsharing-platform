@@ -108,10 +108,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_STYLE: Record<string, string> = {
   uploaded:     'bg-gray-100 text-gray-600',
-  needs_review: 'bg-amber-100 text-amber-700',
+  needs_review: 'bg-portal-amber-lt text-portal-amber',
   approved:     'bg-green-100 text-green-700',
   needs_graphic:'bg-orange-100 text-orange-700',
-  social_ready: 'bg-blue-100 text-blue-700',
+  social_ready: 'bg-portal-blue-lt text-portal-blue',
   print_ready:  'bg-purple-100 text-purple-700',
   archived:     'bg-gray-50 text-gray-400',
 }
@@ -410,7 +410,7 @@ export default async function AssetsPage({
             Creative operations hub — photos, graphics, logos, and all ecosystem assets.
           </p>
         </div>
-        <div className="text-xs text-gray-400 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 shrink-0">
+        <div className="text-xs text-gray-400 bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-2 shrink-0">
           📤 Upload via Supabase Storage, then register here
         </div>
       </div>
@@ -586,7 +586,7 @@ export default async function AssetsPage({
                         <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400 flex-wrap">
                           {asset.assigned_designer && <span>👤 {asset.assigned_designer}</span>}
                           {asset.canva_link && (
-                            <a href={asset.canva_link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Canva →</a>
+                            <a href={asset.canva_link} target="_blank" rel="noopener noreferrer" className="text-portal-blue hover:underline">Canva →</a>
                           )}
                           {asset.graphic_requested_at && (
                             <span>Requested {new Date(asset.graphic_requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -701,7 +701,7 @@ export default async function AssetsPage({
                             <span className="text-[10px] text-gray-400">{tc?.shortLabel ?? sub.submission_type}</span>
                             <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-semibold">{sub.target_publication.toUpperCase()}</span>
                             {sub.image_status && (
-                              <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold">{sub.image_status.replace(/_/g, ' ')}</span>
+                              <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-semibold">{sub.image_status.replace(/_/g, ' ')}</span>
                             )}
                           </div>
                         </div>

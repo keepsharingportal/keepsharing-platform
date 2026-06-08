@@ -19,10 +19,10 @@ const PIPELINE_STAGES: Array<{ stage: string; label: string; accent: string }> =
   { stage: 'lead',              label: 'Lead',              accent: 'bg-gray-100 text-gray-700'       },
   { stage: 'consultation',      label: 'Consultation',      accent: 'bg-sky-100 text-sky-800'         },
   { stage: 'proposal',          label: 'Proposal',          accent: 'bg-violet-100 text-violet-800'   },
-  { stage: 'onboarding',        label: 'Onboarding',        accent: 'bg-amber-100 text-amber-800'     },
-  { stage: 'active',            label: 'Active',            accent: 'bg-emerald-100 text-emerald-800' },
-  { stage: 'renewal',           label: 'Renewal',           accent: 'bg-amber-100 text-amber-800'     },
-  { stage: 'dormant',           label: 'Dormant',           accent: 'bg-rose-100 text-rose-700'       },
+  { stage: 'onboarding',        label: 'Onboarding',        accent: 'bg-portal-amber-lt text-portal-amber'     },
+  { stage: 'active',            label: 'Active',            accent: 'bg-portal-green-lt text-portal-green' },
+  { stage: 'renewal',           label: 'Renewal',           accent: 'bg-portal-amber-lt text-portal-amber'     },
+  { stage: 'dormant',           label: 'Dormant',           accent: 'bg-portal-red-lt text-portal-red'       },
 ]
 
 export const metadata: Metadata = { title: 'Pipeline — Admin' }
@@ -101,7 +101,7 @@ export default async function PipelinePage() {
                                                    '/admin/advertisers/duplicates'}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
                 tab === 'Pipeline'
-                  ? 'text-blue-600 border-blue-600'
+                  ? 'text-portal-blue border-blue-600'
                   : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}>
               {tab}

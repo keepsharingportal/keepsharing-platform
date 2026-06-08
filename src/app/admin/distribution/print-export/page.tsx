@@ -41,11 +41,11 @@ export default async function PrintExportPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
-        <Link href="/admin/distribution" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+        <Link href="/admin/distribution" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
           <ArrowLeft size={11} /> Distribution
         </Link>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Printer size={18} className="text-blue-600" /> Print Export
+          <Printer size={18} className="text-portal-blue" /> Print Export
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">Hand-off package for each issue: article manifest, image URLs, and print-readiness flags.</p>
       </div>
@@ -56,7 +56,7 @@ export default async function PrintExportPage() {
         {months.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center bg-white">
             <p className="text-sm text-gray-500">No issues with tagged articles yet.</p>
-            <Link href="/admin/production/issues" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-blue-600 hover:underline">
+            <Link href="/admin/production/issues" className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-portal-blue hover:underline">
               Open Issues <ArrowRight size={11} />
             </Link>
           </div>
@@ -69,8 +69,8 @@ export default async function PrintExportPage() {
               return (
                 <div key={m} className="rounded-xl border border-gray-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                      <Printer size={15} className="text-blue-600" />
+                    <div className="w-9 h-9 rounded-lg bg-portal-blue-lt flex items-center justify-center shrink-0">
+                      <Printer size={15} className="text-portal-blue" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{fmtMonth(m)}</p>
@@ -86,7 +86,7 @@ export default async function PrintExportPage() {
                     </Link>
                     <a
                       href={`/api/admin/articles/bulk?month=${m}&format=csv`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
                     >
                       <Download size={12} /> Manifest CSV
                     </a>

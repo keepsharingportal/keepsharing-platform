@@ -70,8 +70,8 @@ export function SectionHelp({
   children:  ReactNode
 }) {
   const styles = variant === 'tip'
-    ? { wrap: 'bg-amber-50/60 border-amber-200', icon: 'text-amber-600', heading: 'text-amber-900' }
-    : { wrap: 'bg-blue-50/60 border-blue-200',  icon: 'text-blue-600',  heading: 'text-blue-900' }
+    ? { wrap: 'bg-portal-amber-lt/60 border-amber-200', icon: 'text-amber-600', heading: 'text-amber-900' }
+    : { wrap: 'bg-portal-blue-lt/60 border-blue-200',  icon: 'text-portal-blue',  heading: 'text-blue-900' }
 
   const Icon = variant === 'tip' ? Lightbulb : Info
 

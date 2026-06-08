@@ -161,7 +161,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-bold text-gray-900 truncate">{issue.label}</p>
           {issue.is_current && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-portal-amber bg-portal-amber-lt rounded-full px-2 py-0.5">
               <Star size={9} fill="currentColor" /> Current
             </span>
           )}
@@ -172,7 +172,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
           href={issue.issuu_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 truncate max-w-full"
+          className="inline-flex items-center gap-1 text-[11px] text-portal-blue hover:underline mt-1 truncate max-w-full"
         >
           <ExternalLink size={10} /> <span className="truncate">{issue.issuu_url}</span>
         </a>
@@ -182,7 +182,7 @@ function IssueRow({ issue, onSetCurrent, onDelete, onSaved }: RowProps) {
         {!issue.is_current && (
           <button
             onClick={onSetCurrent}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-amber-500 text-white hover:bg-amber-600"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-portal-amber-lt0 text-white hover:bg-amber-600"
             title="Make this the current issue"
           >
             <Star size={11} /> Make Current
@@ -229,7 +229,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
       <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4">
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
         >
           <Plus size={12} /> Add Issue
         </button>
@@ -285,7 +285,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-3">
+    <div className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-gray-900">New Issue</p>
         <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -311,7 +311,7 @@ function AddIssueForm({ market, onCreated }: AddProps) {
         <button
           onClick={handleSubmit}
           disabled={busy || !label.trim() || !issuu.trim() || !month}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save Issue'}
@@ -396,7 +396,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
   }
 
   return (
-    <li className="rounded-xl border border-blue-200 bg-blue-50/40 p-4 space-y-3">
+    <li className="rounded-xl border border-blue-200 bg-portal-blue-lt/40 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-gray-900">Edit Issue</p>
         <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
@@ -418,7 +418,7 @@ function EditIssueForm({ issue, onCancel, onSaved }: EditProps) {
         <button
           onClick={handleSave}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           {busy ? 'Saving…' : 'Save Changes'}
@@ -444,7 +444,7 @@ function FieldText({ label, value, onChange, placeholder, className }: {
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )
@@ -461,7 +461,7 @@ function FieldEmbed({ value, onChange }: {
         onChange={e => onChange(e.target.value)}
         placeholder={'Paste either the publication URL (https://issuu.com/…) or Issuu\'s full <iframe …> embed code'}
         rows={3}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
       <p className="text-[11px] text-gray-500 mt-1 leading-snug">
         Paste whatever Issuu gives you — the publication URL, the embed <code className="px-1 bg-gray-100 rounded">src</code> URL,
@@ -482,7 +482,7 @@ function FieldDate({ label, value, onChange }: {
         type="date"
         value={value.slice(0, 10)}
         onChange={e => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
       />
     </label>
   )

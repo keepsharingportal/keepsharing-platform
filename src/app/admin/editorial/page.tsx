@@ -244,7 +244,7 @@ export default async function EditorialPage({
         <div className="bg-white border border-gray-100 rounded-2xl px-8 py-16 text-center">
           <div className="text-4xl mb-4">📋</div>
           <p className="text-gray-500 font-medium">No editorial items match the current filters.</p>
-          <Link href="/admin/editorial" className="text-sm text-blue-600 mt-2 inline-block hover:underline">Clear filters</Link>
+          <Link href="/admin/editorial" className="text-sm text-portal-blue mt-2 inline-block hover:underline">Clear filters</Link>
         </div>
       ) : (
         <div className="space-y-8">
@@ -295,7 +295,7 @@ export default async function EditorialPage({
                                 </span>
                               )}
                               {item.ai_draft_status === 'needs_info' && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber">
                                   Missing Info
                                 </span>
                               )}
@@ -329,7 +329,7 @@ export default async function EditorialPage({
                             {warns.length > 0 && (
                               <div className="flex gap-1.5 mt-2 flex-wrap">
                                 {warns.map(w => (
-                                  <span key={w} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                  <span key={w} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber border border-amber-200">
                                     ⚠ {w}
                                   </span>
                                 ))}

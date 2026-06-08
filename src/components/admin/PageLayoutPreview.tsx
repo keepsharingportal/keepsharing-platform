@@ -140,14 +140,14 @@ export function PageLayoutPreview({ placementSlug, surface, slotStatuses, onSlot
   function multiClasses(status: SlotStatus): string {
     if (status === 'live')     return 'border-green-600 bg-green-100'
     if (status === 'paused')   return 'border-gray-400 bg-gray-100'
-    if (status === 'sellable') return 'border-amber-400 bg-amber-50'
+    if (status === 'sellable') return 'border-amber-400 bg-portal-amber-lt'
     if (status === 'hidden')   return 'border-gray-300 bg-gray-50 opacity-50'
     return 'border-gray-300 bg-white'
   }
   function multiLabelClass(status: SlotStatus): string {
     if (status === 'live')     return 'text-green-800 font-bold'
     if (status === 'paused')   return 'text-gray-600'
-    if (status === 'sellable') return 'text-amber-700 font-semibold'
+    if (status === 'sellable') return 'text-portal-amber font-semibold'
     if (status === 'hidden')   return 'text-gray-500 line-through'
     return 'text-gray-400'
   }

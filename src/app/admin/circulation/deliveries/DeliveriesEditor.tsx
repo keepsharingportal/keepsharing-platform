@@ -47,9 +47,9 @@ function fmtMoney(n: number | null | undefined): string {
 
 const STATUS_BADGE: Record<string, string> = {
   draft:     'bg-gray-100 text-gray-700',
-  submitted: 'bg-blue-100 text-blue-800',
+  submitted: 'bg-portal-blue-lt text-portal-blue',
   reviewed:  'bg-indigo-100 text-indigo-800',
-  paid:      'bg-emerald-100 text-emerald-800',
+  paid:      'bg-portal-green-lt text-portal-green',
 }
 
 export function DeliveriesEditor({ initialDeliveries, stragglers, months, activeMonth }: Props) {
@@ -94,7 +94,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
           <button
             key={m}
             onClick={() => gotoMonth(m)}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'}`}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${m === activeMonth ? 'bg-portal-navy text-white border-blue-600' : 'bg-white border-gray-200 text-gray-700 hover:border-portal-border-2'}`}
           >
             {fmtShortMonth(m)}
           </button>
@@ -102,7 +102,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
         {!months.includes(activeMonth) && (
           <button
             onClick={() => gotoMonth(activeMonth)}
-            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-blue-600 text-white border-blue-600"
+            className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-portal-navy text-white border-blue-600"
           >
             {fmtShortMonth(activeMonth)}
           </button>
@@ -111,7 +111,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
 
       {/* Stragglers */}
       {stragglers.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 flex items-start gap-2">
+        <div className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3 text-sm text-amber-900 flex items-start gap-2">
           <AlertTriangle size={14} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Not yet submitted for {fmtMonth(activeMonth)}</p>
@@ -144,7 +144,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     {' · '}
                     Calc {fmtMoney(row.pay_calculated)}
                     {row.pay_final != null && row.pay_final !== row.pay_calculated && (
-                      <> {' · '} <span className="font-semibold text-emerald-700">Final {fmtMoney(row.pay_final)}</span></>
+                      <> {' · '} <span className="font-semibold text-portal-green">Final {fmtMoney(row.pay_final)}</span></>
                     )}
                     {row.submitted_at && <> {' · '} Submitted {new Date(row.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</>}
                     {row.paid_at && <> {' · '} Paid {new Date(row.paid_at).toLocaleDateString()}</>}
@@ -153,7 +153,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                     <p className="text-[11px] text-gray-700 mt-1 italic">📝 {row.driver_notes}</p>
                   )}
                   {row.adjustment_note && (
-                    <p className="text-[11px] text-amber-700 mt-0.5">⚖ {row.adjustment_note}</p>
+                    <p className="text-[11px] text-portal-amber mt-0.5">⚖ {row.adjustment_note}</p>
                   )}
                 </div>
 
@@ -177,7 +177,7 @@ export function DeliveriesEditor({ initialDeliveries, stragglers, months, active
                   {row.status === 'paid' && (
                     <button
                       onClick={() => action(row.id, { action: 'reopen' })}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-amber-200 text-amber-700 hover:bg-amber-50"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-amber-200 text-portal-amber hover:bg-portal-amber-lt"
                     >
                       <RotateCcw size={11} /> Reopen
                     </button>
@@ -253,7 +253,7 @@ function PayForm({ delivery, onCancel, onSaved }: {
           value={final}
           onChange={e => setFinal(e.target.value)}
           inputMode="decimal"
-          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
       </label>
       <label className="block sm:col-span-2">
@@ -262,7 +262,7 @@ function PayForm({ delivery, onCancel, onSaved }: {
           value={note}
           onChange={e => setNote(e.target.value)}
           placeholder="Fuel bonus, partial pay, etc."
-          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="mt-0.5 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
         />
       </label>
       {err && <p className="text-xs text-red-600 sm:col-span-3">{err}</p>}

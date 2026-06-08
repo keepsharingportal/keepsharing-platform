@@ -40,7 +40,7 @@ export function RunAllButton({ activeIcalCount }: { activeIcalCount: number }) {
         type="button"
         onClick={run}
         disabled={busy || pending || activeIcalCount === 0}
-        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-navy text-white rounded-lg hover:opacity-90 disabled:opacity-40"
         title={activeIcalCount === 0 ? 'No active iCal sources to run' : `Run ${activeIcalCount} iCal source(s) now`}
       >
         {busy ? <RefreshCw size={13} className="animate-spin" /> : <Download size={13} />}
@@ -59,7 +59,7 @@ export function RunAllButton({ activeIcalCount }: { activeIcalCount: number }) {
                 <li key={i}>
                   <strong>{r.source_name || '(unknown)'}:</strong> {r.inserted} new
                   {r.skipped_duplicate > 0 && <span className="opacity-70"> · {r.skipped_duplicate} dup</span>}
-                  {r.errors?.length > 0 && <span className="text-rose-700"> · {r.errors.length} error(s)</span>}
+                  {r.errors?.length > 0 && <span className="text-portal-red"> · {r.errors.length} error(s)</span>}
                 </li>
               ))}
             </ul>

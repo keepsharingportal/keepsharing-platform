@@ -30,9 +30,9 @@ async function fetchColumnCounts(): Promise<Record<string, number>> {
 }
 
 const VERTICAL_COLORS: Record<string, string> = {
-  'school-zone': 'bg-blue-50 text-blue-700 border-blue-200',
+  'school-zone': 'bg-portal-blue-lt text-portal-blue border-blue-200',
   'mom-life':    'bg-pink-50 text-pink-700 border-pink-200',
-  'family-fun':  'bg-amber-50 text-amber-700 border-amber-200',
+  'family-fun':  'bg-portal-amber-lt text-portal-amber border-amber-200',
   'health':      'bg-green-50 text-green-700 border-green-200',
   'summer':      'bg-orange-50 text-orange-700 border-orange-200',
   'general':     'bg-gray-50 text-gray-600 border-gray-200',
@@ -87,11 +87,11 @@ export default async function ColumnsAdminPage() {
                     <Link
                       key={col.slug}
                       href={`/admin/articles?filter=${col.slug}`}
-                      className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all group"
+                      className="bg-white rounded-xl border border-gray-200 p-4 hover:border-portal-border-2 hover:shadow-sm transition-all group"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-portal-blue transition-colors leading-tight">
                             {col.label}
                           </p>
                           <p className="text-[11px] text-gray-400 mt-0.5 font-mono">{col.slug}</p>

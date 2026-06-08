@@ -52,7 +52,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
         <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 inline-flex items-center gap-1.5">
           <Printer size={11} /> Print Placements
         </h2>
-        <p className="text-[10px] text-amber-700">
+        <p className="text-[10px] text-portal-amber">
           Apply migration 129 (print_ad_placements) in Supabase to enable print booking tracking on advertiser profiles.
         </p>
       </section>
@@ -104,7 +104,7 @@ export function AdvertiserPrintPlacements({ advertiserId, initial, tableMissing 
           {sorted.slice(0, 6).map(r => {
             const future = r.issue_month >= todayYM
             return (
-              <li key={r.id} className={`flex items-center gap-2 p-2 rounded-lg border border-gray-100 ${future ? 'bg-emerald-50/40' : ''}`}>
+              <li key={r.id} className={`flex items-center gap-2 p-2 rounded-lg border border-gray-100 ${future ? 'bg-portal-green-lt/40' : ''}`}>
                 <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${future ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
                   {fmtIssue(r.issue_month)}
                 </span>

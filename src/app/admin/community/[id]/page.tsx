@@ -321,9 +321,9 @@ export default async function SubmissionDetailPage({
 
   const SEV_CLS: Record<string, string> = {
     critical: 'bg-red-50 border-red-200 text-red-800',
-    warning:  'bg-amber-50 border-amber-200 text-amber-800',
+    warning:  'bg-portal-amber-lt border-amber-200 text-portal-amber',
     success:  'bg-green-50 border-green-200 text-green-800',
-    info:     'bg-blue-50 border-blue-100 text-blue-800',
+    info:     'bg-portal-blue-lt border-portal-blue/20 text-portal-blue',
   }
 
   // ── Draft state helpers ────────────────────────────────────────────────────
@@ -420,7 +420,7 @@ export default async function SubmissionDetailPage({
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800">{sub.submitter_name}</p>
-                <a href={`mailto:${sub.submitter_email}`} className="text-xs text-blue-600 hover:underline">
+                <a href={`mailto:${sub.submitter_email}`} className="text-xs text-portal-blue hover:underline">
                   {sub.submitter_email}
                 </a>
                 {sub.submitter_phone && (
@@ -480,7 +480,7 @@ export default async function SubmissionDetailPage({
                     <span className="text-xl">🖼️</span>
                     <div className="flex-1 min-w-0">
                       <a href={p.url} target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline truncate block">{p.url}</a>
+                        className="text-xs text-portal-blue hover:underline truncate block">{p.url}</a>
                       {p.caption && <p className="text-xs text-gray-400 mt-0.5">{p.caption}</p>}
                     </div>
                   </div>
@@ -490,9 +490,9 @@ export default async function SubmissionDetailPage({
               <div className="mt-3 space-y-2">
                 <p className="text-sm text-gray-400 italic">No photos received yet.</p>
                 {config.photoHint && (
-                  <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-amber-800 mb-1">Instructions for submitter:</p>
-                    <p className="text-xs text-amber-700">{config.photoHint}</p>
+                  <div className="bg-portal-amber-lt border border-amber-100 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-portal-amber mb-1">Instructions for submitter:</p>
+                    <p className="text-xs text-portal-amber">{config.photoHint}</p>
                   </div>
                 )}
               </div>
@@ -516,8 +516,8 @@ export default async function SubmissionDetailPage({
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     sub.ai_draft_status === 'ready'      ? 'bg-indigo-100 text-indigo-700'
                     : sub.ai_draft_status === 'edited'   ? 'bg-green-100 text-green-700'
-                    : sub.ai_draft_status === 'needs_info'? 'bg-amber-100 text-amber-700'
-                    : sub.ai_draft_status === 'generating'? 'bg-blue-100 text-blue-700'
+                    : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
+                    : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                     : sub.ai_draft_status === 'failed'   ? 'bg-red-100 text-red-700'
                     : 'bg-gray-100 text-gray-500'
                   }`}>
@@ -531,8 +531,8 @@ export default async function SubmissionDetailPage({
 
               {/* Warning — always visible when ready or edited */}
               {['ready', 'edited'].includes(sub.ai_draft_status) && (
-                <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100">
-                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-amber-100">
+                  <p className="text-xs text-portal-amber font-medium leading-relaxed">
                     ⚠️ AI-assisted draft. Verify all facts before publishing. Do not publish without human editorial approval.
                   </p>
                 </div>
@@ -710,7 +710,7 @@ export default async function SubmissionDetailPage({
                     </span>
                     <div className="flex-1 min-w-0">
                       <span className={`text-xs ${
-                        item.present ? 'text-gray-600' : item.required ? 'text-red-700 font-semibold' : 'text-amber-700'
+                        item.present ? 'text-gray-600' : item.required ? 'text-red-700 font-semibold' : 'text-portal-amber'
                       }`}>
                         {item.label}
                       </span>
@@ -823,7 +823,7 @@ export default async function SubmissionDetailPage({
                 </div>
                 <div className="flex gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.print ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-400'
+                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-gray-100 text-gray-400'
                   }`}>
                     {publishDest.print ? '✓ Print' : '— Print'}
                   </span>
@@ -836,7 +836,7 @@ export default async function SubmissionDetailPage({
                 <p className="text-xs text-gray-500 leading-relaxed">{publishDest.notes}</p>
                 {sub.published_url && (
                   <a href={sub.published_url} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline font-medium">
+                    className="text-xs text-portal-blue hover:underline font-medium">
                     View Published →
                   </a>
                 )}
@@ -852,8 +852,8 @@ export default async function SubmissionDetailPage({
                 sub.ai_draft_status === 'none'        ? 'bg-gray-100 text-gray-400'
                 : sub.ai_draft_status === 'ready'     ? 'bg-indigo-100 text-indigo-700'
                 : sub.ai_draft_status === 'edited'    ? 'bg-green-100 text-green-700'
-                : sub.ai_draft_status === 'needs_info'? 'bg-amber-100 text-amber-700'
-                : sub.ai_draft_status === 'generating'? 'bg-blue-100 text-blue-700'
+                : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
+                : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
                 : sub.ai_draft_status === 'failed'    ? 'bg-red-100 text-red-700'
                 : 'bg-gray-100 text-gray-500'
               }`}>
@@ -897,7 +897,7 @@ export default async function SubmissionDetailPage({
 
             {/* Generating indicator */}
             {sub.ai_draft_status === 'generating' && (
-              <p className="text-xs text-blue-600 text-center py-1 mb-2">Generating draft…</p>
+              <p className="text-xs text-portal-blue text-center py-1 mb-2">Generating draft…</p>
             )}
 
             {/* Future AI features */}

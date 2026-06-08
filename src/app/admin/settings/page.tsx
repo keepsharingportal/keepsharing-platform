@@ -14,15 +14,15 @@ const PUBLICATIONS = [
 ]
 
 const TEAM_MEMBERS = [
-  { name: 'Jason Watson',    email: 'jade31994@gmail.com',          role: 'Super Admin',  markets: 'All markets',            avatar: 'JW', color: 'bg-blue-600' },
-  { name: 'DeAnne Watson',   email: 'deanne@riverregionparents.com', role: 'Editor',       markets: 'River Region Parents',   avatar: 'DW', color: 'bg-rose-500' },
+  { name: 'Jason Watson',    email: 'jade31994@gmail.com',          role: 'Super Admin',  markets: 'All markets',            avatar: 'JW', color: 'bg-portal-navy' },
+  { name: 'DeAnne Watson',   email: 'deanne@riverregionparents.com', role: 'Editor',       markets: 'River Region Parents',   avatar: 'DW', color: 'bg-portal-red-lt0' },
   { name: 'VA (Content)',    email: 'va1@keepsharing.com',           role: 'VA — Content', markets: 'River Region Parents',   avatar: 'V1', color: 'bg-purple-500' },
   { name: 'VA (Advertisers)',email: 'va2@keepsharing.com',           role: 'VA — Ads',     markets: 'River Region Parents',   avatar: 'V2', color: 'bg-teal-500' },
   { name: 'Auburn Publisher',email: 'auburn@keepsharing.com',        role: 'Publisher',    markets: 'Auburn Opelika Parents', avatar: 'AP', color: 'bg-orange-500' },
   { name: 'Mobile Publisher',email: 'mobile@keepsharing.com',        role: 'Publisher',    markets: 'MBP, ESP, GPP',          avatar: 'MP', color: 'bg-indigo-500' },
 ]
 
-const inputCls = 'w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all font-mono'
+const inputCls = 'w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-portal-blue/20 transition-all font-mono'
 const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5'
 
 export default function SettingsPage() {
@@ -100,7 +100,7 @@ export default function SettingsPage() {
                 Find your API key: GHL → Settings → Business Profile → API Keys
               </p>
               <button onClick={() => handleSave('ghl')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                 {saved === 'ghl' ? <><Check size={13} /> Saved</> : <><Save size={13} /> Save Keys</>}
               </button>
             </div>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
                 Use {'{'}month{'}'} and {'{'}year{'}'} as placeholders in paths
               </p>
               <button onClick={() => handleSave('dropbox')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                 {saved === 'dropbox' ? <><Check size={13} /> Saved</> : <><Save size={13} /> Save Paths</>}
               </button>
             </div>
@@ -167,7 +167,7 @@ export default function SettingsPage() {
                   <span className="text-sm text-gray-700">{labels[key]}</span>
                   <button
                     onClick={() => setNotifications((p) => ({ ...p, [key]: !p[key] }))}
-                    className={`relative w-10 h-5.5 rounded-full transition-colors ${enabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    className={`relative w-10 h-5.5 rounded-full transition-colors ${enabled ? 'bg-portal-navy' : 'bg-gray-300'}`}
                     style={{ height: '22px', width: '40px' }}
                   >
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -177,7 +177,7 @@ export default function SettingsPage() {
             })}
             <div className="px-4 py-3 bg-gray-50 flex justify-end">
               <button onClick={() => handleSave('notifications')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                 {saved === 'notifications' ? <><Check size={13} /> Saved</> : <><Save size={13} /> Save Preferences</>}
               </button>
             </div>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                        member.role === 'Super Admin' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' :
+                        member.role === 'Super Admin' ? 'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30' :
                         member.role === 'Publisher'   ? 'bg-green-50 text-green-700 ring-1 ring-green-200' :
                         member.role === 'Editor'      ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' :
                         'bg-gray-50 text-gray-600 ring-1 ring-gray-200'
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-gray-900">Anthropic Claude API</div>
                 <div className="text-xs text-gray-500 mt-0.5">Powers Business Spotlight article generation</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.ANTHROPIC_API_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200'}`}>
                 {process.env.ANTHROPIC_API_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
@@ -272,22 +272,22 @@ export default function SettingsPage() {
                 <div className="text-sm font-medium text-gray-900">Stripe</div>
                 <div className="text-xs text-gray-500 mt-0.5">Birthday Spotlight payments</div>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${process.env.STRIPE_SECRET_KEY ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200'}`}>
                 {process.env.STRIPE_SECRET_KEY ? 'Connected' : 'Key needed'}
               </span>
             </div>
             <Link href="/admin/import" className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors group">
               <div>
-                <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">Import Zoho Data</div>
+                <div className="text-sm font-medium text-gray-900 group-hover:text-portal-blue transition-colors">Import Zoho Data</div>
                 <div className="text-xs text-gray-500 mt-0.5">Upload your Zoho CRM CSV export</div>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 font-medium">Action needed</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200 font-medium">Action needed</span>
             </Link>
             {/* Distribution Portal */}
             <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors group">
               <div>
-                <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                <div className="text-sm font-medium text-gray-900 group-hover:text-portal-blue transition-colors">
                   Distribution Portal
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
@@ -314,7 +314,7 @@ export default function SettingsPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div className="text-sm text-gray-600 leading-relaxed">
               The distribution portal at <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"
-                className="text-blue-600 hover:underline font-medium">drivers.keepsharing.com</a> is a separate application
+                className="text-portal-blue hover:underline font-medium">drivers.keepsharing.com</a> is a separate application
               that manages delivery routes, bundle counts, and driver assignments.
             </div>
             <div className="text-sm text-gray-600 leading-relaxed">
@@ -328,7 +328,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex gap-3">
               <a href="https://drivers.keepsharing.com" target="_blank" rel="noopener noreferrer"
-                className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors">
+                className="px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-xl hover:opacity-90 transition-colors">
                 Open Distribution Portal ↗
               </a>
               <Link href="/admin/today"

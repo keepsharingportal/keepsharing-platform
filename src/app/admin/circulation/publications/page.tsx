@@ -24,11 +24,11 @@ export default async function PublicationsPage() {
       <div className="max-w-[900px] mx-auto space-y-6">
 
         <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Distribution Routes
           </Link>
           <div className="flex items-center gap-2">
-            <BookOpen size={18} className="text-blue-600" />
+            <BookOpen size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Publications</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">Print run + holdback drive the budget bars on the overview. Website + Issuu URL surface on public maps and in driver emails.</p>

@@ -265,7 +265,7 @@ function OrgRow({
               {kindLabel(org.kind)}
             </span>
             {org.tags?.includes('preferred') && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 ring-1 ring-amber-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
                 Preferred
               </span>
             )}
@@ -300,7 +300,7 @@ function OrgRow({
               </a>
             )}
           </div>
-          {err && <p className="text-xs text-rose-700 font-semibold mt-1">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold mt-1">{err}</p>}
         </div>
 
         {/* Actions */}
@@ -334,7 +334,7 @@ function OrgRow({
           <button
             onClick={remove}
             disabled={busy !== null}
-            className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 disabled:opacity-40"
+            className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40"
             aria-label="Delete"
           >
             {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
@@ -430,10 +430,10 @@ function OrgForm({
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <form onSubmit={submit} className="bg-blue-50/40 border-t border-blue-100 px-4 py-4">
+    <form onSubmit={submit} className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
           <label className={lbl}>Name <span className="text-rose-600">*</span></label>
@@ -525,7 +525,7 @@ function OrgForm({
         </label>
       </div>
 
-      {err && <p className="text-xs text-rose-700 font-semibold mt-3">{err}</p>}
+      {err && <p className="text-xs text-portal-red font-semibold mt-3">{err}</p>}
 
       <div className="flex items-center gap-2 pt-3">
         <button
@@ -536,7 +536,7 @@ function OrgForm({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : (mode === 'create' ? 'Add organization' : 'Save changes')}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
           Cancel
         </button>
       </div>

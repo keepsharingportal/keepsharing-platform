@@ -231,7 +231,7 @@ export function GeneratePanel({ pendingCount }: Props) {
               type="button"
               onClick={runBulk}
               disabled={bulkBusy || busy}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold bg-portal-amber-lt0 text-white rounded-lg hover:bg-amber-600 disabled:opacity-40"
             >
               {bulkBusy ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
               {bulkBusy
@@ -253,7 +253,7 @@ export function GeneratePanel({ pendingCount }: Props) {
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-amber-500' : 'bg-green-500'}`}
+                className={`h-full ${bulkProgress.cancelled ? 'bg-gray-400' : bulkBusy ? 'bg-portal-amber-lt0' : 'bg-green-500'}`}
                 style={{ width: `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` }}
               />
             </div>
@@ -263,19 +263,19 @@ export function GeneratePanel({ pendingCount }: Props) {
                 {bulkProgress.failed.length > 0 && (
                   <>
                     {' '}·{' '}
-                    <strong className="text-rose-700">{bulkProgress.failed.length}</strong> failed
+                    <strong className="text-portal-red">{bulkProgress.failed.length}</strong> failed
                   </>
                 )}
               </span>
               {bulkBusy && (
-                <button type="button" onClick={cancelBulk} className="inline-flex items-center gap-1 text-gray-500 hover:text-rose-700">
+                <button type="button" onClick={cancelBulk} className="inline-flex items-center gap-1 text-gray-500 hover:text-portal-red">
                   <X size={11} /> Cancel
                 </button>
               )}
             </div>
             {bulkProgress.failed.length > 0 && !bulkBusy && (
               <details className="mt-2 text-[11px]">
-                <summary className="cursor-pointer text-rose-700 font-semibold">View {bulkProgress.failed.length} failure{bulkProgress.failed.length === 1 ? '' : 's'}</summary>
+                <summary className="cursor-pointer text-portal-red font-semibold">View {bulkProgress.failed.length} failure{bulkProgress.failed.length === 1 ? '' : 's'}</summary>
                 <ul className="mt-1 space-y-1 text-gray-600">
                   {bulkProgress.failed.map((f, i) => (
                     <li key={i}><strong>{f.combo}:</strong> {f.reason}</li>
@@ -321,7 +321,7 @@ export function GeneratePanel({ pendingCount }: Props) {
           <div className={`mt-3 rounded-lg p-3 border text-xs ${refillResult.ok ? 'bg-white border-emerald-200 text-gray-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
             {refillResult.ok ? (
               <>
-                <strong className="text-emerald-700">Done.</strong>{' '}
+                <strong className="text-portal-green">Done.</strong>{' '}
                 {refillResult.items_inserted ?? 0} item{(refillResult.items_inserted ?? 0) === 1 ? '' : 's'} added across{' '}
                 {refillResult.cells_run ?? 0} of {refillResult.cells_planned ?? 0} planned cells
                 {refillResult.estimated_cost !== undefined && (
@@ -331,7 +331,7 @@ export function GeneratePanel({ pendingCount }: Props) {
                   <span className="text-gray-500"> · {(refillResult.elapsed_ms / 1000).toFixed(1)}s</span>
                 )}
                 {(refillResult.cells_run ?? 0) < (refillResult.cells_planned ?? 0) && (
-                  <p className="mt-1 text-amber-700">Time or budget budget cut us short — re-run to keep filling the rest.</p>
+                  <p className="mt-1 text-portal-amber">Time or budget budget cut us short — re-run to keep filling the rest.</p>
                 )}
               </>
             ) : (
@@ -413,7 +413,7 @@ export function GeneratePanel({ pendingCount }: Props) {
         <div className={`mx-5 mb-5 rounded-lg px-3 py-2 text-xs font-semibold flex items-start gap-2 ${
           result.ok
             ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-rose-50 border border-rose-200 text-rose-800'
+            : 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
         }`}>
           {result.ok && <Check size={13} className="shrink-0 mt-0.5" />}
           <span>{result.msg}</span>

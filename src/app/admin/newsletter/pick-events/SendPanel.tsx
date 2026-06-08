@@ -74,16 +74,16 @@ export function SendPanel({
         <Send size={14} className="text-portal-blue" />
         <h2 className="text-sm font-bold text-gray-700">Send via GHL</h2>
         {!webhookConfigured && (
-          <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+          <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-portal-amber bg-portal-amber-lt px-2 py-0.5 rounded">
             Webhook not configured
           </span>
         )}
       </div>
 
       {!webhookConfigured && (
-        <div className="px-5 py-3 bg-amber-50 border-b border-amber-200">
+        <div className="px-5 py-3 bg-portal-amber-lt border-b border-amber-200">
           <p className="text-xs text-amber-900 leading-relaxed">
-            Set <code className="bg-amber-100 px-1 rounded">GHL_NEWSLETTER_WEBHOOK_URL</code> in <code className="bg-amber-100 px-1 rounded">.env.local</code> with the webhook URL from your GHL workflow trigger. Then restart the dev server.
+            Set <code className="bg-portal-amber-lt px-1 rounded">GHL_NEWSLETTER_WEBHOOK_URL</code> in <code className="bg-portal-amber-lt px-1 rounded">.env.local</code> with the webhook URL from your GHL workflow trigger. Then restart the dev server.
           </p>
         </div>
       )}
@@ -134,7 +134,7 @@ export function SendPanel({
           <div className={`rounded-lg border px-3 py-2 text-xs flex items-start gap-2 ${
             result.ok
               ? 'border-green-200 bg-green-50 text-green-800'
-              : 'border-rose-200 bg-rose-50 text-rose-800'
+              : 'border-portal-red/30 bg-portal-red-lt text-portal-red'
           }`}>
             {result.ok ? <CheckCircle2 size={13} className="mt-0.5 shrink-0" /> : <AlertTriangle size={13} className="mt-0.5 shrink-0" />}
             <span>{result.msg}</span>

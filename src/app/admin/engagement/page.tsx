@@ -85,10 +85,10 @@ const CAMPAIGN_TYPE_LABELS: Record<string, { label: string; color: string }> = {
 
 const CAMPAIGN_STATUS_STYLE: Record<string, string> = {
   idea:     'bg-gray-100 text-gray-600',
-  planned:  'bg-blue-100 text-blue-700',
+  planned:  'bg-portal-blue-lt text-portal-blue',
   active:   'bg-green-100 text-green-700',
   complete: 'bg-purple-100 text-purple-700',
-  paused:   'bg-amber-100 text-amber-700',
+  paused:   'bg-portal-amber-lt text-portal-amber',
 }
 
 // Email growth opportunity definitions (editorial, not live analytics)
@@ -465,9 +465,9 @@ export default async function EngagementPage({
               )}
 
               {dormantGuides > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
-                  <p className="text-xs font-bold text-amber-800 mb-1">📖 Guide Content Gaps</p>
-                  <p className="text-xs text-amber-700 leading-relaxed">
+                <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-4">
+                  <p className="text-xs font-bold text-portal-amber mb-1">📖 Guide Content Gaps</p>
+                  <p className="text-xs text-portal-amber leading-relaxed">
                     {dormantGuides} guide{dormantGuides !== 1 ? 's are' : ' is'} dormant or empty.
                     Active guides drive recurring readers — these need content attention.
                   </p>
@@ -575,8 +575,8 @@ export default async function EngagementPage({
       ════════════════════════════════════════════════════════════════════ */}
       {activeView === 'participation' && (
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3">
-            <p className="text-xs text-blue-800 font-medium">
+          <div className="bg-portal-blue-lt border border-portal-blue/20 rounded-2xl px-5 py-3">
+            <p className="text-xs text-portal-blue font-medium">
               🤝 Participation data is your most honest engagement signal. These families chose to contribute — they&apos;re your most engaged readers. Understand what&apos;s driving submissions and create more of it.
             </p>
           </div>
@@ -615,7 +615,7 @@ export default async function EngagementPage({
                       <div className="flex items-center gap-1.5 flex-wrap mb-1">
                         <p className="text-xs font-semibold text-gray-800">{tc?.label ?? type}</p>
                         {isHS      && <span className="text-[10px] bg-pink-100 text-pink-600 px-1 rounded font-bold">High share</span>}
-                        {isPartic  && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded font-bold">Participation</span>}
+                        {isPartic  && <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1 rounded font-bold">Participation</span>}
                         {sponsorCat && !isSponsored && <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">No sponsor</span>}
                         {sponsorCat && isSponsored  && <span className="text-[10px] bg-green-100 text-green-600 px-1 rounded font-bold">Sponsored</span>}
                       </div>
@@ -783,13 +783,13 @@ export default async function EngagementPage({
 
           {/* Underperforming sections */}
           {guideHealth.filter(g => g.status.label !== 'Active').length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-              <h2 className="text-xs font-bold text-amber-800 mb-3">🔧 Guides Needing Attention</h2>
+            <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl p-5">
+              <h2 className="text-xs font-bold text-portal-amber mb-3">🔧 Guides Needing Attention</h2>
               <div className="space-y-2">
                 {guideHealth.filter(g => g.status.label !== 'Active').slice(0, 5).map(g => (
                   <div key={g.slug} className="flex items-center gap-2">
                     <span>{g.emoji}</span>
-                    <p className="text-xs text-amber-800 flex-1">{g.name}</p>
+                    <p className="text-xs text-portal-amber flex-1">{g.name}</p>
                     <span className="text-[10px] font-semibold text-amber-600">
                       {g.count === 0 ? 'No articles' : `Last: ${g.days}d ago`}
                     </span>
@@ -835,7 +835,7 @@ export default async function EngagementPage({
                   <div className="shrink-0 mt-0.5">
                     <span className={`text-[10px] px-2 py-1 rounded font-bold ${
                       opp.urgency === 'high'   ? 'bg-green-100 text-green-700' :
-                      opp.urgency === 'medium' ? 'bg-blue-100 text-blue-700'  :
+                      opp.urgency === 'medium' ? 'bg-portal-blue-lt text-portal-blue'  :
                                                   'bg-gray-100 text-gray-600'
                     }`}>
                       {opp.urgency === 'high' ? '⚡ High value' : opp.urgency === 'medium' ? '📍 Medium' : '📌 Low'}

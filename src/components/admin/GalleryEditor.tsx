@@ -186,11 +186,11 @@ export function GalleryEditor({ value, onChange }: Props) {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+          className="w-full flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 hover:border-portal-border-2 hover:bg-portal-blue-lt/40 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <>
-              <RefreshCw size={16} className="text-blue-500 animate-spin" />
+              <RefreshCw size={16} className="text-portal-blue animate-spin" />
               <span className="text-xs font-semibold text-gray-600">
                 Uploading {progress ? `${progress.done} of ${progress.total}` : '…'}
               </span>

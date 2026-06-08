@@ -257,7 +257,7 @@ export default function AdminAdsPage() {
             </div>
             <p className="text-sm text-gray-500">
               Every ad slot on the site. <strong className="text-gray-700">On</strong> = paid ad rendering ·{' '}
-              <strong className="text-amber-700">Empty</strong> = sellable (showing sales placeholder) ·{' '}
+              <strong className="text-portal-amber">Empty</strong> = sellable (showing sales placeholder) ·{' '}
               <strong className="text-gray-600">Paused</strong> = booked but off ·{' '}
               <strong className="text-gray-500">Hidden</strong> = slot disabled site-wide.
             </p>
@@ -485,13 +485,13 @@ function SlotRowItem({
   const headBooking = row.bookings[0]
 
   const rowClass = `group border-b border-gray-100 last:border-0 ${
-    isEmpty  ? 'bg-amber-50/40 hover:bg-amber-50' :
+    isEmpty  ? 'bg-portal-amber-lt/40 hover:bg-portal-amber-lt' :
     isHidden ? 'bg-gray-50 hover:bg-gray-100 opacity-70' :
                'hover:bg-gray-50'
   }`
 
   const stickyCellClass = `px-4 py-3 text-right whitespace-nowrap sticky right-0 group-hover:bg-gray-50 shadow-[-6px_0_8px_-6px_rgba(0,0,0,0.12)] ${
-    isEmpty  ? 'bg-amber-50/40 group-hover:bg-amber-50' :
+    isEmpty  ? 'bg-portal-amber-lt/40 group-hover:bg-portal-amber-lt' :
     isHidden ? 'bg-gray-50 group-hover:bg-gray-100'    :
                'bg-white'
   }`
@@ -508,7 +508,7 @@ function SlotRowItem({
           legacy ads created before the Customer section existed). */}
       <td className="px-4 py-3 text-sm text-gray-900">
         {row.bookings.length === 0 ? (
-          <span className="text-amber-700 italic font-semibold text-xs">No advertiser</span>
+          <span className="text-portal-amber italic font-semibold text-xs">No advertiser</span>
         ) : row.bookings.length === 1 ? (
           <span className="font-semibold truncate block">
             {headBooking?.advertiser_accounts?.business_name
@@ -549,7 +549,7 @@ function SlotRowItem({
           <StatusPill status={row.status} />
         )}
         {isEmpty && (
-          <div className="text-[11px] text-amber-700 mt-1">Showing sales placeholder on the public site.</div>
+          <div className="text-[11px] text-portal-amber mt-1">Showing sales placeholder on the public site.</div>
         )}
         {isHidden && (
           <div className="text-[11px] text-gray-500 mt-1">Slot disabled. Nothing renders.</div>
@@ -591,7 +591,7 @@ function SlotRowItem({
         ) : isHidden ? (
           <button
             onClick={() => onToggleHidden(row.placement_type)}
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-900 inline-flex items-center gap-1"
+            className="text-xs font-bold text-portal-green hover:text-emerald-900 inline-flex items-center gap-1"
           >
             <Eye size={11} /> Show
           </button>
@@ -601,14 +601,14 @@ function SlotRowItem({
               <>
                 <Link
                   href={`/admin/ads/${headBooking.id}/edit`}
-                  className="font-semibold text-blue-600 hover:text-blue-800"
+                  className="font-semibold text-portal-blue hover:text-portal-blue"
                 >
                   Edit
                 </Link>
                 <span className="text-gray-300">·</span>
                 <button
                   onClick={() => onExpire(headBooking.id)}
-                  className="font-semibold text-amber-700 hover:text-amber-900"
+                  className="font-semibold text-portal-amber hover:text-amber-900"
                   title="Mark this ad as expired — moves it out of active ads but keeps it in the customer's history"
                 >
                   Mark expired
@@ -636,7 +636,7 @@ function SlotRowItem({
 function StatusPill({ status }: { status: SlotRow['status'] }) {
   const styles = {
     on:     'bg-green-600 text-white',
-    empty:  'bg-amber-500 text-white',
+    empty:  'bg-portal-amber-lt0 text-white',
     paused: 'bg-red-600 text-white',
     hidden: 'bg-gray-700 text-white',
   }[status]

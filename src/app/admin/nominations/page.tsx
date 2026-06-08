@@ -14,14 +14,14 @@ const TYPES: NominationType[] = ['cover-profile', 'mom-to-mom', 'teacher-of-mont
 
 const STATUS_BADGE: Record<NominationStatus, string> = {
   pending:             'bg-gray-50 text-gray-500 ring-gray-200',
-  selected:            'bg-blue-50 text-blue-700 ring-blue-200',
+  selected:            'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
   questions_generated: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
-  interview_scheduled: 'bg-amber-50 text-amber-700 ring-amber-200',
+  interview_scheduled: 'bg-portal-amber-lt text-portal-amber ring-amber-200',
   interviewed:         'bg-purple-50 text-purple-700 ring-purple-200',
   article_drafted:     'bg-teal-50 text-teal-700 ring-teal-200',
   photos_received:     'bg-orange-50 text-orange-700 ring-orange-200',
   approved:            'bg-green-50 text-green-700 ring-green-200',
-  published:           'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  published:           'bg-portal-green-lt text-portal-green ring-emerald-200',
 }
 
 const STEP_ICONS = [Clock, ThumbsUp, FileText, Mic, Mic, FileText, Camera, CheckCircle2, CheckCircle2]
@@ -47,7 +47,7 @@ function NominationCard({ nom, onSelect }: { nom: NominationRecord; onSelect: (n
         <div className="flex items-center gap-1">
           {STATUS_STEPS.slice(0, 5).map((step, i) => (
             <div key={i} className={cn('flex-1 h-1 rounded-full transition-colors',
-              i <= stepIdx ? 'bg-blue-500' : 'bg-gray-200')} />
+              i <= stepIdx ? 'bg-portal-blue-lt0' : 'bg-gray-200')} />
           ))}
         </div>
         <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400">
@@ -102,7 +102,7 @@ export default function NominationsPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">Nominations</h1>
           {totalPending > 0 && (
-            <span className="text-sm font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
+            <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full ring-1 ring-amber-200">
               {totalPending} pending
             </span>
           )}
@@ -123,14 +123,14 @@ export default function NominationsPage() {
             return (
               <button key={type} onClick={() => setActiveType(type)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeType === type ? 'text-blue-600 border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                  activeType === type ? 'text-portal-blue border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
                 }`}>
                 {cfg.label}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeType === type ? 'bg-blue-50 text-blue-700 ring-blue-200' : 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ring-1 ${activeType === type ? 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' : 'bg-gray-50 text-gray-500 ring-gray-200'}`}>
                   {count}
                 </span>
                 {pending > 0 && (
-                  <span className="text-[10px] w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold">
+                  <span className="text-[10px] w-4 h-4 rounded-full bg-portal-amber-lt0 text-white flex items-center justify-center font-bold">
                     {pending}
                   </span>
                 )}
@@ -191,7 +191,7 @@ export default function NominationsPage() {
               <div>
                 <div className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Nominated By</div>
                 <p className="text-gray-700">{selected.nominatorName}</p>
-                <p className="text-xs text-blue-600">{selected.nominatorEmail}</p>
+                <p className="text-xs text-portal-blue">{selected.nominatorEmail}</p>
               </div>
               {selected.subjectPhone && (
                 <div>
@@ -216,7 +216,7 @@ export default function NominationsPage() {
                     const Icon = STEP_ICONS[i]
                     return (
                       <div key={step.status} className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-blue-500' : 'bg-gray-200'}`}>
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-portal-blue-lt0' : 'bg-gray-200'}`}>
                           {done && <Icon size={9} className="text-white" />}
                         </div>
                         <span className={`text-xs ${done ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>{step.label}</span>
@@ -231,7 +231,7 @@ export default function NominationsPage() {
             {getStatusStep(selected.status) < STATUS_STEPS.length - 1 && (
               <div className="p-4 border-t border-gray-200">
                 <button onClick={() => advance(selected.id)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                   Advance to: {STATUS_STEPS[getStatusStep(selected.status) + 1]?.label}
                   <ChevronRight size={14} />
                 </button>

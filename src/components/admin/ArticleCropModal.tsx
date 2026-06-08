@@ -196,7 +196,7 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <Crop size={16} className="text-blue-600" />
+            <Crop size={16} className="text-portal-blue" />
             <h3 className="text-sm font-bold text-gray-800">
               Zoom &amp; adjust — {type === 'profile' ? 'Profile (1:1)' : 'Hero (16:9)'}
             </h3>
@@ -297,7 +297,7 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
               type="button"
               onClick={apply}
               disabled={applying || !imageReady || box.w === 0}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 disabled:opacity-50"
             >
               {applying
                 ? <><RefreshCw size={12} className="animate-spin" /> Cropping…</>

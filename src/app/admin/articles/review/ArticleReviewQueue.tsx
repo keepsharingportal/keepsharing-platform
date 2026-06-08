@@ -20,8 +20,8 @@ interface Article {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:   'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-  needs_edit:'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  pending:   'bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200',
+  needs_edit:'bg-portal-blue-lt text-portal-blue ring-1 ring-portal-blue/30',
   approved:  'bg-green-50 text-green-700 ring-1 ring-green-200',
   rejected:  'bg-red-50 text-red-600 ring-1 ring-red-200',
 }
@@ -87,7 +87,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
             href={articleHref(article)}
             target="_blank"
             onClick={e => e.stopPropagation()}
-            className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1.5 rounded text-gray-400 hover:text-portal-blue hover:bg-portal-blue-lt transition-colors"
             title="Preview"
           >
             <ExternalLink size={14} />
@@ -136,7 +136,7 @@ function ArticleCard({ article, onAction }: { article: Article; onAction: (id: s
                 <button
                   onClick={() => act('needs_edit')}
                   disabled={acting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-portal-navy text-white hover:opacity-90 disabled:opacity-50 transition-colors"
                 >
                   <AlertCircle size={13} /> Needs Edit
                 </button>

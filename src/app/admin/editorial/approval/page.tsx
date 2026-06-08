@@ -384,7 +384,7 @@ export default async function ApprovalPage({
                 <ApprovalBadge label="Newsletter" approved={item.approved_newsletter} color="#0284c7" />
                 <ApprovalBadge label="Social"     approved={item.approved_social}     color="#7c3aed" />
                 {item.needs_changes_note && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Changes Requested</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-portal-amber-lt text-portal-amber">Changes Requested</span>
                 )}
                 {item.social_planner_ready && (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">Planner Ready ✓</span>
@@ -405,10 +405,10 @@ export default async function ApprovalPage({
 
         {/* Changes requested banner */}
         {item.needs_changes_note && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
+          <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4">
             <p className="text-sm font-bold text-amber-900 mb-1">✎ Changes Requested</p>
-            <p className="text-sm text-amber-800 leading-relaxed whitespace-pre-wrap">{item.needs_changes_note}</p>
-            <Link href={`/admin/community/${item.id}/edit`} className="text-xs text-amber-700 hover:underline font-semibold mt-2 inline-block">
+            <p className="text-sm text-portal-amber leading-relaxed whitespace-pre-wrap">{item.needs_changes_note}</p>
+            <Link href={`/admin/community/${item.id}/edit`} className="text-xs text-portal-amber hover:underline font-semibold mt-2 inline-block">
               Edit Submission →
             </Link>
           </div>
@@ -539,7 +539,7 @@ export default async function ApprovalPage({
               <div className="space-y-2">
                 {[
                   { label: 'Approve for Website',    action: approveWeb,        approved: item.approved_web,        color: 'bg-green-600 hover:bg-green-700'  },
-                  { label: 'Approve for Newsletter', action: approveNewsletter, approved: item.approved_newsletter, color: 'bg-blue-600 hover:bg-blue-700'    },
+                  { label: 'Approve for Newsletter', action: approveNewsletter, approved: item.approved_newsletter, color: 'bg-portal-navy hover:opacity-90'    },
                   { label: 'Approve for Social',     action: approveSocial,     approved: item.approved_social,     color: 'bg-purple-600 hover:bg-purple-700'},
                 ].map(ch => (
                   ch.approved ? (
@@ -583,7 +583,7 @@ export default async function ApprovalPage({
                   className={iClsTA}
                 />
                 <button type="submit"
-                  className="w-full py-2 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors">
+                  className="w-full py-2 rounded-xl text-xs font-bold text-portal-amber bg-portal-amber-lt border border-amber-200 hover:bg-portal-amber-lt transition-colors">
                   ↩ Request Changes
                 </button>
               </form>
@@ -823,7 +823,7 @@ export default async function ApprovalPage({
         <div className="space-y-8">
           {[
             { label: 'Needs Editor Review',   items: groups.needsReview,  stageCls: 'text-gray-700',  desc: 'Approved drafts awaiting your review.' },
-            { label: 'Changes Requested',     items: groups.needsChanges, stageCls: 'text-amber-700', desc: 'Sent back for revisions.' },
+            { label: 'Changes Requested',     items: groups.needsChanges, stageCls: 'text-portal-amber', desc: 'Sent back for revisions.' },
             { label: 'Approved',              items: groups.approved,     stageCls: 'text-green-700', desc: 'Approved for at least one channel.' },
             { label: 'Ready for Planner',     items: groups.plannerReady, stageCls: 'text-purple-700',desc: 'Social copy complete and handed off.' },
             { label: 'Published / Promoted',  items: groups.published,    stageCls: 'text-gray-400',  desc: 'Live or promoted.' },
@@ -858,9 +858,9 @@ export default async function ApprovalPage({
                               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{tc?.shortLabel}</span>
                               <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-semibold">{item.target_publication.toUpperCase()}</span>
                               {item.needs_changes_note && (
-                                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Changes Needed</span>
+                                <span className="text-[10px] font-bold bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded">Changes Needed</span>
                               )}
-                              {!img && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-semibold">No image</span>}
+                              {!img && <span className="text-[10px] bg-portal-amber-lt text-portal-amber px-2 py-0.5 rounded font-semibold">No image</span>}
                             </div>
                             <p className={`text-sm font-semibold leading-snug ${item.working_title ? 'text-gray-900' : 'text-gray-400 italic'} truncate`}>
                               {title}

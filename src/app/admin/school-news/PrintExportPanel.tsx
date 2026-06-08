@@ -78,7 +78,7 @@ export function PrintExportPanel({ approvedCount }: Props) {
           />
         </label>
 
-        {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
+        {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
 
         <button
           type="button"

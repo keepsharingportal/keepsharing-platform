@@ -77,7 +77,7 @@ function CategoryFilter({
             onClick={() => toggle(cat)}
             className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
               selected.has(cat)
-                ? 'bg-blue-600 text-white'
+                ? 'bg-portal-navy text-white'
                 : 'bg-white/8 text-white/50 hover:bg-white/15'
             }`}
           >
@@ -103,7 +103,7 @@ function PreviewRow({ post, index }: { post: WpPost; index: number }) {
         <div className="text-[10px] text-white/30 truncate">{post.slug}</div>
       </td>
       <td className="px-4 py-2">
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold whitespace-nowrap">
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-portal-blue-lt0/20 text-blue-300 font-semibold whitespace-nowrap">
           {label}
         </span>
         {row.guide_slug && (
@@ -264,7 +264,7 @@ export default function WpImportPage() {
         {phase === 'upload' && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -345,7 +345,7 @@ export default function WpImportPage() {
                   <span className="font-bold text-gray-900">{filteredPosts.length}</span> posts will be imported
                 </span>
                 {selectedCats.size < parsed.categories.length && (
-                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded-full">
                     {parsed.posts.length - filteredPosts.length} filtered out
                   </span>
                 )}
@@ -409,7 +409,7 @@ export default function WpImportPage() {
             {filteredPosts.length > 0 && (
               <button
                 onClick={runImport}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 text-white text-sm font-bold rounded-xl transition-colors"
               >
                 <Upload size={15} />
                 Import {filteredPosts.length} article{filteredPosts.length !== 1 ? 's' : ''} as Pending Review
@@ -422,14 +422,14 @@ export default function WpImportPage() {
         {phase === 'importing' && (
           <div className="bg-white rounded-xl border border-gray-200 p-8">
             <div className="flex items-center gap-3 mb-5">
-              <RefreshCw size={18} className="text-blue-500 animate-spin" />
+              <RefreshCw size={18} className="text-portal-blue animate-spin" />
               <span className="text-sm font-semibold text-gray-700">
                 Importing… {progress.done} / {progress.total}
               </span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 mb-5">
               <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                className="bg-portal-blue-lt0 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
               />
             </div>
@@ -496,7 +496,7 @@ export default function WpImportPage() {
               </button>
               <a
                 href="/admin/articles/review"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt transition-colors"
               >
                 <ExternalLink size={14} />
                 Review imported articles
@@ -504,7 +504,7 @@ export default function WpImportPage() {
             </div>
 
             {totals.inserted > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+              <div className="bg-portal-amber-lt border border-amber-200 rounded-xl px-4 py-3 text-sm text-portal-amber">
                 <strong>{totals.inserted} articles</strong> imported as &ldquo;pending review.&rdquo;
                 Go to <a href="/admin/articles/review" className="underline">Article Review</a> to approve and publish.
                 Approved articles appear immediately on the homepage and guides.
@@ -535,7 +535,7 @@ export default function WpImportPage() {
                   <div key={wp} className="flex gap-2">
                     <span className="text-gray-400">{wp}</span>
                     <span className="text-gray-300">→</span>
-                    <span className="text-blue-600">{our}</span>
+                    <span className="text-portal-blue">{our}</span>
                   </div>
                 ))}
               </div>

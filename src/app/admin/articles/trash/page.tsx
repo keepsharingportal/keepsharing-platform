@@ -128,18 +128,18 @@ export default function TrashPage() {
 
       {msg && (
         <div className={`rounded-xl px-4 py-3 text-sm font-semibold border ${
-          msg.ok ? 'bg-green-50 border-green-200 text-green-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+          msg.ok ? 'bg-green-50 border-green-200 text-green-800' : 'bg-portal-red-lt border-portal-red/30 text-portal-red'
         }`}>
           {msg.text}
         </div>
       )}
 
       {migrationMissing && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Trash needs a database migration</p>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            Apply <code className="bg-amber-100 px-1 rounded">supabase/migrations/076_article_soft_delete.sql</code> in the Supabase SQL editor.
-            Once the <code className="bg-amber-100 px-1 rounded">deleted_at</code> column exists, the
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/076_article_soft_delete.sql</code> in the Supabase SQL editor.
+            Once the <code className="bg-portal-amber-lt px-1 rounded">deleted_at</code> column exists, the
             trash + restore + permanent-delete actions will be active.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function TrashPage() {
                     type="button"
                     disabled={busyId === a.id}
                     onClick={() => permanentDelete(a.id, a.title)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-portal-red/30 bg-white text-xs font-semibold text-portal-red hover:bg-portal-red-lt disabled:opacity-40"
                   >
                     <Trash2 size={12} /> Delete forever
                   </button>

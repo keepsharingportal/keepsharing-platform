@@ -79,7 +79,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
           </div>
           <Link
             href="/admin/articles/new"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors"
           >
             <Upload size={14} /> Upload via Editor
           </Link>
@@ -112,7 +112,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/admin/articles/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-portal-navy text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors"
             >
               <Upload size={13} /> Start Writing an Article
             </Link>
@@ -128,7 +128,7 @@ export default async function MediaLibraryPage({ searchParams }: PageProps) {
               return (
                 <div
                   key={asset.id}
-                  className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all"
+                  className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-portal-border-2 hover:shadow-md transition-all"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">

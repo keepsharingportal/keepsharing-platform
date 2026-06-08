@@ -255,7 +255,7 @@ export default function EventsImportPage() {
         {!parsed && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -294,7 +294,7 @@ export default function EventsImportPage() {
             </div>
 
             {unmapped.length > 0 && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+              <div className="p-3 bg-portal-amber-lt border border-amber-200 rounded-xl text-xs text-portal-amber">
                 <span className="font-semibold">Columns not recognised (will be skipped):</span> {unmapped.join(', ')}
               </div>
             )}
@@ -350,12 +350,12 @@ export default function EventsImportPage() {
             {importing && (
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <RefreshCw size={14} className="text-blue-500 animate-spin" />
+                  <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-gray-600">{progress.done} / {progress.total} events processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
-                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -365,7 +365,7 @@ export default function EventsImportPage() {
             <button
               onClick={runImport}
               disabled={importing}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold rounded-xl transition-colors"
             >
               {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
               {importing ? 'Importing…' : `Import ${parsed.rows.length} events`}
@@ -410,7 +410,7 @@ export default function EventsImportPage() {
                 Import another file
               </button>
               <a href="/calendar" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt">
                 <ExternalLink size={14} />
                 View event calendar
               </a>

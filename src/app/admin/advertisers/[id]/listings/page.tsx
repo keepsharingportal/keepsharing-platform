@@ -95,7 +95,7 @@ export default async function ListingsTab({ params }: Props) {
                         <span className="text-xs text-gray-600">{l.category}</span>
                       )}
                       <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
-                        tier === 'sponsor'    ? 'bg-amber-100 text-amber-800'   :
+                        tier === 'sponsor'    ? 'bg-portal-amber-lt text-portal-amber'   :
                         tier === 'premium'    ? 'bg-violet-100 text-violet-800' :
                                                 'bg-gray-100 text-gray-600'
                       }`}>

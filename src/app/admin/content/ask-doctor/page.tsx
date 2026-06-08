@@ -20,8 +20,8 @@ type Question = {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  pending:  { label: 'New',        color: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  reviewed: { label: 'Reviewed',   color: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  pending:  { label: 'New',        color: 'bg-portal-amber-lt text-portal-amber ring-amber-200' },
+  reviewed: { label: 'Reviewed',   color: 'bg-portal-blue-lt text-portal-blue ring-portal-blue/30' },
   selected: { label: 'Selected',   color: 'bg-purple-50 text-purple-700 ring-purple-200' },
   assigned: { label: 'Assigned',   color: 'bg-teal-50 text-teal-700 ring-teal-200' },
   answered: { label: 'Answered',   color: 'bg-green-50 text-green-700 ring-green-200' },
@@ -127,7 +127,7 @@ export default function AskDoctorAdminPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Stethoscope size={16} className="text-blue-600" />
+            <Stethoscope size={16} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900">Ask the Doctor — Queue</h1>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -145,8 +145,8 @@ export default function AskDoctorAdminPage() {
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {[
             { key: 'all',      label: 'Total',    count: total,            color: 'text-gray-700' },
-            { key: 'pending',  label: 'New',      count: counts.pending,   color: 'text-amber-700' },
-            { key: 'reviewed', label: 'Reviewed', count: counts.reviewed,  color: 'text-blue-700' },
+            { key: 'pending',  label: 'New',      count: counts.pending,   color: 'text-portal-amber' },
+            { key: 'reviewed', label: 'Reviewed', count: counts.reviewed,  color: 'text-portal-blue' },
             { key: 'selected', label: 'Selected', count: counts.selected,  color: 'text-purple-700' },
             { key: 'assigned', label: 'Assigned', count: counts.assigned,  color: 'text-teal-700' },
             { key: 'answered', label: 'Answered', count: counts.answered,  color: 'text-green-700' },
@@ -156,7 +156,7 @@ export default function AskDoctorAdminPage() {
               onClick={() => setFilter(s.key)}
               className={cn(
                 'bg-white rounded-xl border p-3 text-center transition-all',
-                filter === s.key ? 'border-blue-400 ring-1 ring-blue-200' : 'border-gray-200 hover:border-gray-300'
+                filter === s.key ? 'border-blue-400 ring-1 ring-portal-blue/30' : 'border-gray-200 hover:border-gray-300'
               )}
             >
               <div className={cn('text-2xl font-bold', s.color)}>{s.count ?? 0}</div>
@@ -166,20 +166,20 @@ export default function AskDoctorAdminPage() {
         </div>
 
         {/* Workflow guide */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-2">Monthly Workflow</div>
-          <div className="flex flex-wrap gap-2 items-center text-xs text-blue-700">
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">1. Review new questions</span>
+        <div className="bg-portal-blue-lt border border-blue-200 rounded-xl p-4">
+          <div className="text-xs font-bold text-portal-blue uppercase tracking-wide mb-2">Monthly Workflow</div>
+          <div className="flex flex-wrap gap-2 items-center text-xs text-portal-blue">
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">1. Review new questions</span>
             <span className="text-blue-400">→</span>
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">2. Select one for this month</span>
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">2. Select one for this month</span>
             <span className="text-blue-400">→</span>
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">3. Assign to doctor partner</span>
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">3. Assign to doctor partner</span>
             <span className="text-blue-400">→</span>
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">4. Doctor emails answer</span>
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">4. Doctor emails answer</span>
             <span className="text-blue-400">→</span>
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">5. AI formats Q&A article</span>
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">5. AI formats Q&A article</span>
             <span className="text-blue-400">→</span>
-            <span className="px-2 py-1 bg-blue-100 rounded-lg">6. Publishes in Boom Health dept</span>
+            <span className="px-2 py-1 bg-portal-blue-lt rounded-lg">6. Publishes in Boom Health dept</span>
           </div>
         </div>
 
@@ -201,8 +201,8 @@ export default function AskDoctorAdminPage() {
                       onClick={() => setExpanded(isOpen ? null : q.id)}
                     >
                       {/* Icon */}
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <Stethoscope size={14} className="text-blue-600" />
+                      <div className="w-8 h-8 rounded-full bg-portal-blue-lt flex items-center justify-center shrink-0 mt-0.5">
+                        <Stethoscope size={14} className="text-portal-blue" />
                       </div>
 
                       {/* Content */}
@@ -262,7 +262,7 @@ export default function AskDoctorAdminPage() {
                                 className={cn(
                                   'px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all',
                                   q.status === key
-                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    ? 'bg-portal-navy text-white border-blue-600'
                                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                 )}
                               >

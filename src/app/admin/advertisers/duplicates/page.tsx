@@ -215,8 +215,8 @@ function SummaryTile({ label, value, icon: Icon, tone }: {
   tone:  'good' | 'warn' | 'neutral'
 }) {
   const accent =
-    tone === 'good' ? 'text-emerald-700' :
-    tone === 'warn' ? 'text-amber-700'   :
+    tone === 'good' ? 'text-portal-green' :
+    tone === 'warn' ? 'text-portal-amber'   :
                       'text-gray-900'
   return (
     <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">

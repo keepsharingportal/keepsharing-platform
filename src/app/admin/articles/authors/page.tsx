@@ -84,7 +84,7 @@ export default async function AuthorsAdminPage() {
                 >
                   {/* Author name + initials */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-portal-blue-lt flex items-center justify-center text-portal-blue text-xs font-bold shrink-0">
                       {a.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
                     </div>
                     <span className="text-sm font-semibold text-gray-900 truncate">{a.name}</span>
@@ -99,7 +99,7 @@ export default async function AuthorsAdminPage() {
                   <div>
                     <Link
                       href={`/admin/articles?author=${encodeURIComponent(a.name)}`}
-                      className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors whitespace-nowrap"
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-portal-blue hover:bg-portal-blue-lt rounded-lg transition-colors whitespace-nowrap"
                       title={`View all articles by ${a.name}`}
                     >
                       <FileText size={12} />

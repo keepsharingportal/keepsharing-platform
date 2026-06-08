@@ -36,7 +36,7 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   editor:    'Editor',
 }
 const ROLE_BADGE: Record<AdminRole, string> = {
-  super:     'bg-amber-100 text-amber-800 ring-amber-200',
+  super:     'bg-portal-amber-lt text-portal-amber ring-amber-200',
   admin:     'bg-violet-100 text-violet-800 ring-violet-200',
   publisher: 'bg-sky-100 text-sky-800 ring-sky-200',
   editor:    'bg-gray-100 text-gray-700 ring-gray-200',
@@ -206,11 +206,11 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
 
 function StatChip({ label, count, accent }: { label: string; count: number; accent: 'amber' | 'violet' | 'sky' | 'gray' | 'rose' }) {
   const bg: Record<typeof accent, string> = {
-    amber:  'bg-amber-50 text-amber-800 ring-amber-200',
+    amber:  'bg-portal-amber-lt text-portal-amber ring-amber-200',
     violet: 'bg-violet-50 text-violet-800 ring-violet-200',
     sky:    'bg-sky-50 text-sky-800 ring-sky-200',
     gray:   'bg-gray-50 text-gray-700 ring-gray-200',
-    rose:   'bg-rose-50 text-rose-700 ring-rose-200',
+    rose:   'bg-portal-red-lt text-portal-red ring-rose-200',
   }
   return (
     <span className={`text-[11px] px-2 py-1 rounded-full font-semibold ring-1 ${bg[accent]} inline-flex items-center gap-1.5`}>
@@ -279,10 +279,10 @@ function InvitePanel({
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <form onSubmit={submit} className="bg-blue-50/40 border-b border-blue-100 px-6 py-5">
+    <form onSubmit={submit} className="bg-portal-blue-lt/40 border-b border-portal-blue/20 px-6 py-5">
       <h2 className="text-sm font-bold text-blue-900 inline-flex items-center gap-2 mb-4">
         <ShieldCheck size={14} /> Invite a new admin
       </h2>
@@ -319,7 +319,7 @@ function InvitePanel({
                   onClick={() => toggleMarket(m.slug)}
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
-                      ? 'bg-blue-600 text-white ring-blue-600'
+                      ? 'bg-portal-navy text-white ring-blue-600'
                       : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -335,7 +335,7 @@ function InvitePanel({
       )}
 
       {isCrossBrand && (
-        <p className="mt-3 text-xs text-blue-900 bg-blue-100/50 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+        <p className="mt-3 text-xs text-blue-900 bg-portal-blue-lt/50 rounded-lg px-3 py-2 inline-flex items-center gap-2">
           <ShieldCheck size={12} /> {ROLE_LABELS[role]}s have access to every brand.
         </p>
       )}
@@ -351,12 +351,12 @@ function InvitePanel({
       </label>
 
       {!roleDecision.allowed && (
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-rose-700 font-semibold bg-rose-50 ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
+        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
           <AlertTriangle size={11} /> {roleDecision.reason}
         </p>
       )}
       {err && (
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-rose-700 font-semibold bg-rose-50 ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
+        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-portal-red font-semibold bg-portal-red-lt ring-1 ring-rose-200 rounded-lg px-2.5 py-1">
           <AlertTriangle size={11} /> {err}
         </p>
       )}
@@ -370,7 +370,7 @@ function InvitePanel({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
           {busy ? 'Inviting…' : 'Create + invite'}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
           Cancel
         </button>
       </div>
@@ -460,17 +460,17 @@ function AdminRowItem({
               {ROLE_LABELS[row.role]}
             </span>
             {isSelf && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-green-lt text-portal-green ring-1 ring-emerald-200">
                 You
               </span>
             )}
             {row.status === 'suspended' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-rose-50 text-rose-700 ring-1 ring-rose-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-portal-red-lt text-portal-red ring-1 ring-rose-200">
                 Suspended
               </span>
             )}
             {!row.user_id && row.status === 'active' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
                 Invited · pending first login
               </span>
             )}
@@ -488,7 +488,7 @@ function AdminRowItem({
               <span className="font-semibold text-gray-700">{fmtDate(row.last_login_at)}</span>
             </span>
           </div>
-          {err && <p className="text-xs text-rose-700 font-semibold mt-1">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold mt-1">{err}</p>}
         </div>
 
         {/* Actions */}
@@ -500,7 +500,7 @@ function AdminRowItem({
                   onClick={resendInvite}
                   disabled={busy !== null}
                   title="Re-send sign-in link"
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-blue bg-portal-blue-lt border border-blue-200 rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
                 >
                   {busy === 'resend' ? <RefreshCw size={11} className="animate-spin" /> : <Send size={11} />}
                   Resend
@@ -520,7 +520,7 @@ function AdminRowItem({
                 <button
                   onClick={() => setStatus('active')}
                   disabled={busy !== null}
-                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 disabled:opacity-40"
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-green bg-portal-green-lt border border-emerald-200 rounded-lg hover:bg-portal-green-lt disabled:opacity-40"
                 >
                   {busy === 'restore' ? <RefreshCw size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
                   Restore
@@ -537,7 +537,7 @@ function AdminRowItem({
                 onClick={remove}
                 disabled={busy !== null || isSelf}
                 title={isSelf ? "You can't delete yourself" : 'Delete admin'}
-                className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 disabled:opacity-40 disabled:hover:text-gray-400 disabled:hover:bg-transparent"
+                className="p-1 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-portal-red-lt disabled:opacity-40 disabled:hover:text-gray-400 disabled:hover:bg-transparent"
               >
                 {busy === 'delete' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}
               </button>
@@ -638,17 +638,17 @@ function EditRowPanel({
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <div className="bg-blue-50/40 border-t border-blue-100 px-4 py-4">
+    <div className="bg-portal-blue-lt/40 border-t border-portal-blue/20 px-4 py-4">
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="md:col-span-2">
           <label className={lbl}>Full name</label>
           <input value={fullName} onChange={e => setFullName(e.target.value)} className={inp} />
         </div>
         <div>
-          <label className={lbl}>Role {roleLocked && <span className="font-medium text-blue-600 normal-case ml-1">(locked: self)</span>}</label>
+          <label className={lbl}>Role {roleLocked && <span className="font-medium text-portal-blue normal-case ml-1">(locked: self)</span>}</label>
           <div className="relative">
             <select
               value={role}
@@ -678,7 +678,7 @@ function EditRowPanel({
                   onClick={() => toggleMarket(m.slug)}
                   className={`text-xs px-3 py-1.5 rounded-full font-semibold ring-1 transition-colors ${
                     on
-                      ? 'bg-blue-600 text-white ring-blue-600'
+                      ? 'bg-portal-navy text-white ring-blue-600'
                       : 'bg-white text-gray-700 ring-gray-200 hover:bg-gray-50'
                   }`}
                   title={marketDisplayName(m.slug)}
@@ -702,7 +702,7 @@ function EditRowPanel({
         />
       </div>
 
-      {err && <p className="mt-3 text-xs text-rose-700 font-semibold">{err}</p>}
+      {err && <p className="mt-3 text-xs text-portal-red font-semibold">{err}</p>}
 
       <div className="mt-4 flex items-center gap-2">
         <button
@@ -713,7 +713,7 @@ function EditRowPanel({
           {busy ? <RefreshCw size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           {busy ? 'Saving…' : 'Save changes'}
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-blue-800 hover:text-blue-950">
+        <button type="button" onClick={onCancel} className="px-3 py-2 text-xs text-portal-blue hover:text-blue-950">
           Cancel
         </button>
       </div>
@@ -760,21 +760,21 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
   }
 
   const inp = 'w-full text-sm border border-blue-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 bg-white'
-  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-1'
+  const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
   return (
-    <div className="mt-4 pt-4 border-t border-blue-100">
+    <div className="mt-4 pt-4 border-t border-portal-blue/20">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-800 hover:text-blue-950"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-portal-blue hover:text-blue-950"
       >
         <KeyRound size={12} />
         Set or reset password
         <ChevronDown size={11} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {cannotReset && (
-        <p className="mt-2 text-[11px] text-amber-700 inline-flex items-center gap-1">
+        <p className="mt-2 text-[11px] text-portal-amber inline-flex items-center gap-1">
           <AlertTriangle size={11} /> Available once they sign in for the first time via magic link.
         </p>
       )}
@@ -812,7 +812,7 @@ function PasswordResetSection({ row }: { row: AdminUserRow }) {
               {busy ? 'Saving…' : 'Set password'}
             </button>
             {msg && (
-              <p className={`text-xs font-semibold inline-flex items-center gap-1 ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+              <p className={`text-xs font-semibold inline-flex items-center gap-1 ${msg.ok ? 'text-portal-green' : 'text-portal-red'}`}>
                 {msg.ok ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
                 {msg.text}
               </p>

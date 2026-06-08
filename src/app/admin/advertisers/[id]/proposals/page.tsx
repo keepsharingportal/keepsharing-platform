@@ -62,8 +62,8 @@ export default async function ProposalsTab({ params }: Props) {
     draft:    'bg-gray-100 text-gray-700',
     sent:     'bg-sky-100 text-sky-800',
     viewed:   'bg-violet-100 text-violet-800',
-    accepted: 'bg-emerald-100 text-emerald-800',
-    declined: 'bg-rose-100 text-rose-800',
+    accepted: 'bg-portal-green-lt text-portal-green',
+    declined: 'bg-portal-red-lt text-portal-red',
     expired:  'bg-gray-100 text-gray-400',
   }
 
@@ -110,7 +110,7 @@ export default async function ProposalsTab({ params }: Props) {
                         <span>Created {fmtDate(p.created_at)}</span>
                         {p.sent_at     && <span>Sent {fmtDate(p.sent_at)}</span>}
                         {p.viewed_at   && <span>Viewed {fmtDate(p.viewed_at)}</span>}
-                        {p.accepted_at && <span className="text-emerald-700 font-semibold">Accepted {fmtDate(p.accepted_at)}</span>}
+                        {p.accepted_at && <span className="text-portal-green font-semibold">Accepted {fmtDate(p.accepted_at)}</span>}
                       </div>
                     </div>
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${stageBadge[stage] ?? stageBadge.draft}`}>

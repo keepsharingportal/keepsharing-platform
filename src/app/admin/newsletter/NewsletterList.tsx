@@ -90,7 +90,7 @@ export function NewsletterList({ subscribers }: { subscribers: Subscriber[] }) {
                 <td className="px-4 py-2.5 text-gray-900 font-medium text-xs">{s.email}</td>
                 <td className="px-4 py-2.5 text-gray-600 text-xs">{s.first_name ?? '—'}</td>
                 <td className="px-4 py-2.5 text-xs">
-                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-portal-blue-lt text-portal-blue font-medium text-[11px]">
                     {s.source ?? '—'}
                   </span>
                 </td>

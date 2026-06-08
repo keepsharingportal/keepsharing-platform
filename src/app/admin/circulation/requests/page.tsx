@@ -37,11 +37,11 @@ export default async function LocationRequestsPage({ searchParams }: PageProps) 
       <div className="max-w-[1000px] mx-auto space-y-6">
 
         <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Distribution Routes
           </Link>
           <div className="flex items-center gap-2">
-            <Mail size={18} className="text-blue-600" />
+            <Mail size={18} className="text-portal-blue" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">Location Requests</h1>
           </div>
           <p className="text-sm text-gray-500 mt-1">

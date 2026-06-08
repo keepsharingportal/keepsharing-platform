@@ -139,7 +139,7 @@ export function NavToggleList({ catalog }: Props) {
   return (
     <div className="space-y-6">
       {err && (
-        <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-800 flex items-center gap-2">
+        <div className="rounded-xl bg-portal-red-lt border border-portal-red/30 px-4 py-3 text-sm font-semibold text-portal-red flex items-center gap-2">
           <AlertTriangle size={14} /> {err}
         </div>
       )}
@@ -230,7 +230,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
               type="button"
               onClick={() => onBulk(allKeys, false)}
               disabled={groupBusy || allVisible}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-green-lt text-portal-green ring-emerald-200 hover:bg-portal-green-lt disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <Eye size={11} />}
               Show all
@@ -239,7 +239,7 @@ function GroupCard({ group, rows, loading, busyKey, customs, onToggle, onBulk, o
               type="button"
               onClick={() => onBulk(allKeys, true)}
               disabled={groupBusy || allHidden}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ring-1 bg-portal-red-lt text-portal-red ring-rose-200 hover:bg-portal-red-lt disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {groupBusy ? <RefreshCw size={11} className="animate-spin" /> : <EyeOff size={11} />}
               Hide all
@@ -490,7 +490,7 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-gray-900 truncate">{labelDisplay}</p>
               {hasOverrides && (
-                <span className="inline-flex items-center text-[9px] font-bold text-amber-700 bg-amber-50 ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">
+                <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">
                   Edited
                 </span>
               )}
@@ -533,8 +533,8 @@ function Row({ item, row, busy, indent, onToggle, onPatch, onDelete }: RowProps)
             disabled={busy}
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${
               isHidden
-                ? 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100'
-                : 'bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100'
+                ? 'bg-portal-red-lt text-portal-red ring-rose-200 hover:bg-portal-red-lt'
+                : 'bg-portal-green-lt text-portal-green ring-emerald-200 hover:bg-portal-green-lt'
             }`}
           >
             {busy ? <RefreshCw size={11} className="animate-spin" /> : isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
@@ -566,7 +566,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
   }
 
   return (
-    <li className="px-5 py-3 flex items-start gap-4 bg-amber-50/30 rounded-md">
+    <li className="px-5 py-3 flex items-start gap-4 bg-portal-amber-lt/30 rounded-md">
       <div className="flex-1 min-w-0">
         {renaming ? (
           <div className="space-y-1.5">
@@ -594,7 +594,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
           <>
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-gray-900 truncate">{row.label_override}</p>
-              <span className="inline-flex items-center text-[9px] font-bold text-amber-700 bg-amber-100 ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">Custom</span>
+              <span className="inline-flex items-center text-[9px] font-bold text-portal-amber bg-portal-amber-lt ring-1 ring-amber-200 px-1.5 py-0.5 rounded-full">Custom</span>
             </div>
             <p className="text-[11px] text-gray-400 truncate mt-0.5 font-mono">
               {row.href_override}
@@ -620,7 +620,7 @@ function CustomRow({ row, busy, onPatch, onDelete }: CustomRowProps) {
           <button type="button" onClick={() => setRenaming(true)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-gray-400">
             <Edit3 size={10} /> Edit
           </button>
-          <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
+          <button type="button" onClick={() => onDelete(row.key)} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-white text-portal-red ring-1 ring-rose-200 hover:bg-portal-red-lt">
             <Trash2 size={10} /> Delete
           </button>
         </div>
@@ -668,9 +668,9 @@ function AddCustomItemForm({ parentKey, onClose, onAdded }: AddFormProps) {
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 px-3 py-3 space-y-2">
-      <p className="text-[10px] uppercase tracking-wide font-bold text-amber-800">Add a custom link</p>
-      {err && <p className="text-xs text-rose-700">{err}</p>}
+    <div className="mt-3 rounded-lg border border-amber-200 bg-portal-amber-lt/40 px-3 py-3 space-y-2">
+      <p className="text-[10px] uppercase tracking-wide font-bold text-portal-amber">Add a custom link</p>
+      {err && <p className="text-xs text-portal-red">{err}</p>}
       <div className="space-y-1.5">
         <input
           value={label}

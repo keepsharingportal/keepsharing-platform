@@ -101,7 +101,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
             type="button"
             onClick={runIngest}
             disabled={busy !== null || pending}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-blue-200 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 disabled:opacity-40"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-blue-200 bg-portal-blue-lt text-portal-blue rounded-lg hover:bg-portal-blue-lt disabled:opacity-40"
             title="Pull events from the saved iCal feed and add them to the pending queue"
           >
             {busy === 'ingest' ? <RefreshCw size={11} className="animate-spin" /> : <Download size={11} />}
@@ -120,7 +120,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
       </div>
 
       {err && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800 flex items-start gap-2">
+        <div className="rounded-lg border border-portal-red/30 bg-portal-red-lt px-3 py-2 text-xs text-portal-red flex items-start gap-2">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <span>{err}</span>
         </div>
@@ -128,7 +128,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {probe && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          probe.found ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-amber-50 text-amber-900'
+          probe.found ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             {probe.found
@@ -153,7 +153,7 @@ export function SourceActions({ sourceId, sourceName, eventsUrl, ingestionMethod
 
       {ingest && (
         <div className={`rounded-lg border px-3 py-2 text-xs ${
-          ingest.errors.length === 0 ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-amber-50 text-amber-900'
+          ingest.errors.length === 0 ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-portal-amber-lt text-amber-900'
         }`}>
           <p className="font-semibold flex items-center gap-1 mb-1">
             <CheckCircle2 size={12} /> Ingestion complete

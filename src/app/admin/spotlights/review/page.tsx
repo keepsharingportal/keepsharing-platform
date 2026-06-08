@@ -56,7 +56,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
         <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
           <div>
             <h1 className="text-xl font-semibold text-gray-900 inline-flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-blue-600" />
+              <GraduationCap className="h-5 w-5 text-portal-blue" />
               Student Spotlight Review
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">Bulk-approve incoming spotlights. Selected rows publish immediately.</p>
@@ -84,7 +84,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
                 key={t.key}
                 href={href}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  active ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-100'
+                  active ? 'bg-portal-navy text-white' : 'text-gray-500 hover:bg-gray-100'
                 }`}
               >
                 {t.label}{t.count != null ? ` (${t.count})` : ''}
@@ -107,7 +107,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
             <Link
               href="/submit/student-spotlight"
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-full hover:opacity-90 transition-colors"
             >
               Open public submit form →
             </Link>

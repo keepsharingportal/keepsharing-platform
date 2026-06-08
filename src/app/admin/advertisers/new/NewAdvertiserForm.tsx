@@ -87,7 +87,7 @@ export function NewAdvertiserForm({ existing }: Props) {
           className={inp}
         />
         {dupCandidates.length > 0 && (
-          <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs">
+          <div className="mt-2 rounded-lg bg-portal-amber-lt border border-amber-200 p-3 text-xs">
             <p className="font-bold text-amber-900 inline-flex items-center gap-1.5 mb-2">
               <AlertTriangle size={12} /> Looks similar to {dupCandidates.length === 1 ? 'this existing business' : 'these'}:
             </p>
@@ -96,7 +96,7 @@ export function NewAdvertiserForm({ existing }: Props) {
                 <li key={c.id} className="flex items-center justify-between gap-2">
                   <span className="text-amber-900 inline-flex items-center gap-1.5">
                     <Building2 size={11} /> {c.name}
-                    <span className="text-amber-700 font-mono text-[10px]">
+                    <span className="text-portal-amber font-mono text-[10px]">
                       ({Math.round(c.score * 100)}% match)
                     </span>
                   </span>
@@ -104,14 +104,14 @@ export function NewAdvertiserForm({ existing }: Props) {
                     href={`/admin/advertisers/${c.id}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[10px] font-bold text-amber-800 hover:underline inline-flex items-center gap-0.5"
+                    className="text-[10px] font-bold text-portal-amber hover:underline inline-flex items-center gap-0.5"
                   >
                     Open <ExternalLink size={10} />
                   </Link>
                 </li>
               ))}
             </ul>
-            <p className="text-[11px] text-amber-700 mt-2">
+            <p className="text-[11px] text-portal-amber mt-2">
               Pick an existing one to edit it, or keep typing if this is genuinely a new business.
             </p>
           </div>
@@ -156,7 +156,7 @@ export function NewAdvertiserForm({ existing }: Props) {
       </div>
 
       {err && (
-        <p className="text-sm text-rose-700 font-semibold inline-flex items-center gap-1.5">
+        <p className="text-sm text-portal-red font-semibold inline-flex items-center gap-1.5">
           <AlertTriangle size={13} /> {err}
         </p>
       )}

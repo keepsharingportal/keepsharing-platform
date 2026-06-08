@@ -48,23 +48,23 @@ export function GeocodeRunner({ market, missing, totalActive, history }: Props) 
             </p>
             <p className="text-[11px] text-gray-500 mt-0.5">{missing.length} stops missing coordinates</p>
           </div>
-          <p className={`text-3xl font-bold ${pctGeo === 100 ? 'text-emerald-600' : pctGeo > 50 ? 'text-blue-600' : 'text-amber-600'}`}>
+          <p className={`text-3xl font-bold ${pctGeo === 100 ? 'text-emerald-600' : pctGeo > 50 ? 'text-portal-blue' : 'text-amber-600'}`}>
             {pctGeo}%
           </p>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className={`h-full ${pctGeo === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${pctGeo}%` }} />
+          <div className={`h-full ${pctGeo === 100 ? 'bg-portal-green-lt0' : 'bg-portal-blue-lt0'}`} style={{ width: `${pctGeo}%` }} />
         </div>
         <button
           onClick={geocode}
           disabled={busy || missing.length === 0}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-portal-navy text-white rounded-md hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
           Geocode next 25 (≈30s)
         </button>
         {result && (
-          <p className={`text-xs font-semibold ${result.ok ? 'text-emerald-700' : 'text-red-600'} flex items-center gap-1`}>
+          <p className={`text-xs font-semibold ${result.ok ? 'text-portal-green' : 'text-red-600'} flex items-center gap-1`}>
             {result.ok ? <Check size={11} /> : <AlertTriangle size={11} />} {result.text}
           </p>
         )}

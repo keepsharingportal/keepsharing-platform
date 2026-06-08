@@ -100,11 +100,11 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
           <h2 className="text-sm font-bold text-gray-900 mb-2">Driver suggestions</h2>
           <ul className="space-y-2">
             {suggestions.map(s => (
-              <li key={s.id} className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <li key={s.id} className="rounded-xl border border-amber-200 bg-portal-amber-lt p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-bold text-amber-900">{s.driver_name} suggests a new order</p>
-                    <p className="text-[11px] text-amber-700">
+                    <p className="text-[11px] text-portal-amber">
                       {new Date(s.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                       {' · '}{s.suggestion.length} stops
                     </p>
@@ -144,7 +144,7 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">
                   {s.name}
-                  {s.is_pickup && <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">PICKUP</span>}
+                  {s.is_pickup && <span className="ml-2 text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded">PICKUP</span>}
                 </p>
                 {s.address && <p className="text-[11px] text-gray-500 truncate">{s.address}{s.city ? `, ${s.city}` : ''}</p>}
               </div>
@@ -161,9 +161,9 @@ export function ReorderEditor({ routeId, initialStops, snapshots, suggestions }:
             value={snapshotLabel}
             onChange={e => setSnapshotLabel(e.target.value)}
             placeholder="Snapshot label (optional)"
-            className="flex-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="flex-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-portal-blue/30"
           />
-          <button onClick={save} disabled={!dirty || busy !== null} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={save} disabled={!dirty || busy !== null} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-portal-navy text-white hover:opacity-90 disabled:opacity-50">
             {busy === 'save' ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             Save order
           </button>

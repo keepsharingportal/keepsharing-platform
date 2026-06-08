@@ -145,7 +145,7 @@ export function SchoolTypeahead({
                   <button
                     type="button"
                     onClick={() => pick(s)}
-                    className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b border-gray-50 last:border-b-0"
+                    className="w-full text-left px-3 py-2 hover:bg-portal-blue-lt text-sm border-b border-gray-50 last:border-b-0"
                   >
                     <span className="font-semibold text-gray-900">{s.name}</span>
                     <span className="text-[10px] text-gray-500 ml-2">{AREA_LABELS[s.area]}</span>
@@ -162,7 +162,7 @@ export function SchoolTypeahead({
             <button
               type="button"
               onClick={() => setAddingNew(true)}
-              className="w-full text-left px-3 py-2 border-t border-gray-200 bg-amber-50 hover:bg-amber-100 text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5"
+              className="w-full text-left px-3 py-2 border-t border-gray-200 bg-portal-amber-lt hover:bg-portal-amber-lt text-sm font-semibold text-amber-900 inline-flex items-center gap-1.5"
             >
               <Plus size={13} /> Add &ldquo;{toTitleCase(trimmed)}&rdquo; as new school
             </button>
@@ -234,7 +234,7 @@ function AddSchoolInline({
       </p>
 
       {dupeMatches.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded px-2 py-1.5 text-[11px] text-amber-900">
+        <div className="bg-portal-amber-lt border border-amber-200 rounded px-2 py-1.5 text-[11px] text-amber-900">
           <p className="font-bold flex items-center gap-1 mb-0.5">
             <AlertTriangle size={11} /> Similar school{dupeMatches.length === 1 ? '' : 's'} already in the list — did you mean one of these?
           </p>
@@ -244,7 +244,7 @@ function AddSchoolInline({
                 <button
                   type="button"
                   onClick={() => onCreated(m.item)}
-                  className="text-amber-700 hover:text-amber-900 hover:underline font-semibold"
+                  className="text-portal-amber hover:text-amber-900 hover:underline font-semibold"
                 >
                   Use existing: {m.item.name}
                 </button>
@@ -280,7 +280,7 @@ function AddSchoolInline({
           </select>
         </div>
 
-        {err && <p className="col-span-2 text-xs text-rose-700 font-semibold">{err}</p>}
+        {err && <p className="col-span-2 text-xs text-portal-red font-semibold">{err}</p>}
 
         <div className="col-span-2 flex justify-end gap-1.5 pt-1">
           <button type="button" onClick={onCancel} className="px-3 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900">Cancel</button>

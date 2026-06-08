@@ -159,10 +159,10 @@ export default async function SourcesAdminPage() {
       </div>
 
       {tableMissing && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1">Trusted sources need a database migration</p>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            Apply <code className="bg-amber-100 px-1 rounded">supabase/migrations/077_calendar_sources_and_workflow.sql</code> in the Supabase SQL editor.
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/077_calendar_sources_and_workflow.sql</code> in the Supabase SQL editor.
             Once that runs, the seeded source list will appear here and you can add more.
           </p>
         </div>
@@ -260,16 +260,16 @@ export default async function SourcesAdminPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-gray-900">{s.name}</p>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                          s.ingestion_method === 'ical'       ? 'bg-blue-100 text-blue-800'    :
+                          s.ingestion_method === 'ical'       ? 'bg-portal-blue-lt text-portal-blue'    :
                           s.ingestion_method === 'ai-extract' ? 'bg-purple-100 text-purple-800' :
                           s.ingestion_method === 'manual'     ? 'bg-gray-100 text-gray-700'    :
-                                                                'bg-amber-100 text-amber-800'
+                                                                'bg-portal-amber-lt text-portal-amber'
                         }`}>{s.ingestion_method}</span>
                         {!s.is_active && (
                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-500">Off</span>
                         )}
                       </div>
-                      <a href={s.events_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline font-mono break-all inline-flex items-center gap-1 mt-0.5">
+                      <a href={s.events_url} target="_blank" rel="noreferrer" className="text-xs text-portal-blue hover:underline font-mono break-all inline-flex items-center gap-1 mt-0.5">
                         {s.events_url} <ExternalLink size={10} />
                       </a>
                       <div className="text-[11px] text-gray-400 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
@@ -297,7 +297,7 @@ export default async function SourcesAdminPage() {
 
                   {s.ical_url && (
                     <p className="text-[11px] text-gray-400 mb-2">
-                      iCal feed: <a href={s.ical_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline font-mono break-all">{s.ical_url}</a>
+                      iCal feed: <a href={s.ical_url} target="_blank" rel="noreferrer" className="text-portal-blue hover:underline font-mono break-all">{s.ical_url}</a>
                     </p>
                   )}
 

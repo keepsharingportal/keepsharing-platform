@@ -64,12 +64,12 @@ export default async function VerticalsAdminPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <LayoutGrid className="h-5 w-5 text-blue-600" />
+          <LayoutGrid className="h-5 w-5 text-portal-blue" />
           Verticals
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
           Year-round content homes — School Zone, Mom Knows Best, and future verticals.
-          Different from <Link href="/admin/guides" className="text-blue-600 hover:underline">Guides</Link>, which are tied to monthly print issues.
+          Different from <Link href="/admin/guides" className="text-portal-blue hover:underline">Guides</Link>, which are tied to monthly print issues.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export default async function VerticalsAdminPage() {
               <Link
                 key={v.slug}
                 href={`/admin/verticals/${v.slug}/edit`}
-                className={`rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-blue-300 transition-all ${v.is_active ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
+                className={`rounded-xl border bg-white overflow-hidden hover:shadow-md hover:border-portal-border-2 transition-all ${v.is_active ? 'border-gray-200' : 'border-gray-200 opacity-70'}`}
               >
                 {/* Hero strip */}
                 <div className="relative aspect-[16/7] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
@@ -115,7 +115,7 @@ export default async function VerticalsAdminPage() {
                     </span>
                   )}
                   {!v.hero_image_url && (
-                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-portal-amber-lt0 text-white px-1.5 py-0.5 rounded">
                       <AlertCircle size={9} /> No hero
                     </span>
                   )}
@@ -123,7 +123,7 @@ export default async function VerticalsAdminPage() {
 
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="text-base font-bold text-gray-900 leading-tight group-hover:text-blue-700">
+                    <h3 className="text-base font-bold text-gray-900 leading-tight group-hover:text-portal-blue">
                       {v.display_name}
                     </h3>
                     <ChevronRight size={14} className="text-gray-300 shrink-0 mt-1" />
@@ -133,11 +133,11 @@ export default async function VerticalsAdminPage() {
                   )}
 
                   <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold">
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${sponsor ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${sponsor ? 'bg-portal-amber-lt text-portal-amber' : 'bg-gray-100 text-gray-500'}`}>
                       {sponsor ? `Sponsor: ${sponsor}` : 'Sponsor available'}
                     </span>
                     {v.primary_cta_label && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue">
                         CTA: {v.primary_cta_label}
                       </span>
                     )}

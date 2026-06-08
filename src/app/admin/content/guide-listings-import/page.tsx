@@ -250,7 +250,7 @@ export default function GuideListingsImportPage() {
                 onClick={() => setGuideType(g.slug)}
                 className={`text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   guideType === g.slug
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-portal-navy text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -264,7 +264,7 @@ export default function GuideListingsImportPage() {
         {!parsed && (
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer ${
-              dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
+              dragging ? 'border-blue-400 bg-portal-blue-lt' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'
             }`}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
@@ -309,7 +309,7 @@ export default function GuideListingsImportPage() {
             </div>
 
             {!guideType && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-semibold">
+              <div className="p-3 bg-portal-amber-lt border border-amber-200 rounded-xl text-sm text-portal-amber font-semibold">
                 Select which guide this is for before importing.
               </div>
             )}
@@ -347,8 +347,8 @@ export default function GuideListingsImportPage() {
                         </td>
                         <td className="px-4 py-2">
                           <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                            row.listing_tier === 'featured' ? 'bg-amber-100 text-amber-700' :
-                            row.listing_tier === 'enhanced' ? 'bg-blue-100 text-blue-700' :
+                            row.listing_tier === 'featured' ? 'bg-portal-amber-lt text-portal-amber' :
+                            row.listing_tier === 'enhanced' ? 'bg-portal-blue-lt text-portal-blue' :
                                                               'bg-gray-100 text-gray-500'
                           }`}>
                             {row.listing_tier as string ?? 'community'}
@@ -372,11 +372,11 @@ export default function GuideListingsImportPage() {
             {importing && (
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <RefreshCw size={14} className="text-blue-500 animate-spin" />
+                  <RefreshCw size={14} className="text-portal-blue animate-spin" />
                   <span className="text-sm text-gray-600">{progress.done} / {progress.total} listings processed</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full transition-all"
+                  <div className="bg-portal-blue-lt0 h-2 rounded-full transition-all"
                     style={{ width: `${progress.total > 0 ? (progress.done / progress.total) * 100 : 0}%` }} />
                 </div>
               </div>
@@ -385,7 +385,7 @@ export default function GuideListingsImportPage() {
             <button
               onClick={runImport}
               disabled={importing || !guideType}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm font-bold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-40 text-white text-sm font-bold rounded-xl transition-colors"
             >
               {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
               {importing
@@ -404,7 +404,7 @@ export default function GuideListingsImportPage() {
             <div className="grid grid-cols-4 gap-3">
               {[
                 { label: 'New',           value: totals.inserted, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
-                { label: 'Auto-linked',   value: totals.matched,  color: 'text-blue-600',  bg: 'bg-blue-50 border-blue-200'   },
+                { label: 'Auto-linked',   value: totals.matched,  color: 'text-portal-blue',  bg: 'bg-portal-blue-lt border-blue-200'   },
                 { label: 'Skipped',       value: totals.skipped,  color: 'text-gray-500',  bg: 'bg-gray-50 border-gray-200'   },
                 { label: 'Errors',   value: totals.errors,   color: 'text-red-600',   bg: 'bg-red-50 border-red-200'     },
               ].map(({ label, value, color, bg }) => (
@@ -421,7 +421,7 @@ export default function GuideListingsImportPage() {
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                       r.status === 'inserted' ? 'bg-green-100 text-green-700' :
-                      r.status === 'matched'  ? 'bg-blue-100 text-blue-700'  :
+                      r.status === 'matched'  ? 'bg-portal-blue-lt text-portal-blue'  :
                       r.status === 'skipped'  ? 'bg-gray-100 text-gray-500'  :
                                                 'bg-red-100 text-red-700'
                     }`}>{r.status}</span>
@@ -437,7 +437,7 @@ export default function GuideListingsImportPage() {
                 Import another guide CSV
               </button>
               <a href="/family-resource-guide" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-xl hover:bg-blue-50">
+                className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-xl hover:bg-portal-blue-lt">
                 <ExternalLink size={14} />
                 View {guideLabel}
               </a>
@@ -461,7 +461,7 @@ export default function GuideListingsImportPage() {
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-400">
               {FIELD_PATTERNS.map(({ field, patterns }) => (
                 <div key={field as string} className="flex gap-2">
-                  <span className="font-mono text-blue-500 shrink-0">{field as string}</span>
+                  <span className="font-mono text-portal-blue shrink-0">{field as string}</span>
                   <span className="text-gray-300">←</span>
                   <span>{patterns.slice(0, 3).join(', ')}</span>
                 </div>

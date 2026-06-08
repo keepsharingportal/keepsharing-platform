@@ -584,8 +584,8 @@ export default async function IntelligencePage({
 
   const PRIORITY_STYLE = {
     urgent: { bar: '#dc2626', bg: 'bg-red-50',   border: 'border-red-100',   label: 'bg-red-100 text-red-700'   },
-    high:   { bar: '#d97706', bg: 'bg-amber-50', border: 'border-amber-100', label: 'bg-amber-100 text-amber-700'},
-    medium: { bar: '#2563eb', bg: 'bg-blue-50',  border: 'border-blue-100',  label: 'bg-blue-100 text-blue-700' },
+    high:   { bar: '#d97706', bg: 'bg-portal-amber-lt', border: 'border-amber-100', label: 'bg-portal-amber-lt text-portal-amber'},
+    medium: { bar: '#2563eb', bg: 'bg-portal-blue-lt',  border: 'border-portal-blue/20',  label: 'bg-portal-blue-lt text-portal-blue' },
   }
 
   return (
@@ -761,11 +761,11 @@ export default async function IntelligencePage({
 
               {/* Renewal window */}
               {renewalSoon.length > 0 && (
-                <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
-                  <p className="text-xs text-amber-800 font-semibold">{renewalSoon.length} partner{renewalSoon.length !== 1 ? 's' : ''} renewing within 60 days</p>
+                <div className="bg-portal-amber-lt border border-amber-100 rounded-xl px-3 py-2.5">
+                  <p className="text-xs text-portal-amber font-semibold">{renewalSoon.length} partner{renewalSoon.length !== 1 ? 's' : ''} renewing within 60 days</p>
                   <div className="mt-1 space-y-0.5">
                     {renewalSoon.slice(0, 3).map(a => (
-                      <p key={a.id} className="text-[11px] text-amber-700 truncate">
+                      <p key={a.id} className="text-[11px] text-portal-amber truncate">
                         {a.business_name} — ends {a.contract_end_date}
                       </p>
                     ))}

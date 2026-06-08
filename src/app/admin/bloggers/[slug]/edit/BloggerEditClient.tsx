@@ -201,7 +201,7 @@ export function BloggerEditClient({ slug, publicPath, initial }: Props) {
                 form.has_login
                   ? 'bg-green-100 text-green-700'
                   : form.email
-                    ? 'bg-amber-100 text-amber-700'
+                    ? 'bg-portal-amber-lt text-portal-amber'
                     : 'bg-gray-100 text-gray-500'
               }`}
             >

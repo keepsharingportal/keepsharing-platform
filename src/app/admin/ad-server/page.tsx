@@ -14,13 +14,13 @@ import { cn } from '@/lib/utils'
 const PUBLICATIONS = ['RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
 
 const ZONE_COLORS: Record<string, string> = {
-  'header-leaderboard':   'bg-blue-50 text-blue-700 ring-blue-200',
+  'header-leaderboard':   'bg-portal-blue-lt text-portal-blue ring-portal-blue/30',
   'article-inline-top':   'bg-green-50 text-green-700 ring-green-200',
   'article-inline-mid':   'bg-teal-50 text-teal-700 ring-teal-200',
   'article-inline-bottom':'bg-purple-50 text-purple-700 ring-purple-200',
   'guide-sidebar':        'bg-orange-50 text-orange-700 ring-orange-200',
-  'email-banner':         'bg-rose-50 text-rose-700 ring-rose-200',
-  'event-sponsor':        'bg-amber-50 text-amber-700 ring-amber-200',
+  'email-banner':         'bg-portal-red-lt text-portal-red ring-rose-200',
+  'event-sponsor':        'bg-portal-amber-lt text-portal-amber ring-amber-200',
 }
 
 const TABS = ['Active Ads', 'Upload New', 'Analytics', 'Zones']
@@ -80,11 +80,11 @@ export default function AdServerPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Demo Data Warning Banner */}
-      <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center justify-between shrink-0">
-        <p className="text-xs font-semibold text-amber-800">
+      <div className="bg-portal-amber-lt border-b border-amber-200 px-6 py-2 flex items-center justify-between shrink-0">
+        <p className="text-xs font-semibold text-portal-amber">
           ⚠️ Demo Data — Numbers on this page are fabricated for UI development, not real tracking.
         </p>
-        <a href="/admin/ads" className="text-xs font-bold text-amber-700 hover:underline shrink-0">
+        <a href="/admin/ads" className="text-xs font-bold text-portal-amber hover:underline shrink-0">
           View real ad data at /admin/ads →
         </a>
       </div>
@@ -93,10 +93,10 @@ export default function AdServerPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-gray-900">Ad Server</h1>
-          <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full ring-1 ring-blue-200">
+          <span className="text-sm font-semibold text-portal-blue bg-portal-blue-lt px-2.5 py-0.5 rounded-full ring-1 ring-portal-blue/30">
             {ads.filter((a) => a.active).length} active
           </span>
-          <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded ring-1 ring-amber-200">Demo Data</span>
+          <span className="text-xs font-semibold text-amber-600 bg-portal-amber-lt px-2 py-0.5 rounded ring-1 ring-amber-200">Demo Data</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-gray-500">{totalImpressions.toLocaleString()} impressions</span>
@@ -113,7 +113,7 @@ export default function AdServerPage() {
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-blue-600 border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                activeTab === tab ? 'text-portal-blue border-blue-600' : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
               }`}
             >{tab}</button>
           ))}
@@ -137,7 +137,7 @@ export default function AdServerPage() {
             </select>
             <div className="ml-auto">
               <button onClick={() => setActiveTab('Upload New')}
-                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-colors">
                 <Plus size={14} /> Upload Ad
               </button>
             </div>
@@ -171,7 +171,7 @@ export default function AdServerPage() {
                             <Monitor size={12} />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{ad.businessName}</div>
+                            <div className="font-medium text-gray-900 group-hover:text-portal-blue transition-colors">{ad.businessName}</div>
                             <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{ad.destinationUrl}</div>
                           </div>
                         </div>
@@ -233,11 +233,11 @@ export default function AdServerPage() {
 
                 {/* Drop zone */}
                 <div onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors">
+                  className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center cursor-pointer hover:border-portal-border-2 hover:bg-portal-blue-lt transition-colors">
                   {uploadPreview ? (
                     <div className="flex flex-col items-center gap-2">
                       <img src={uploadPreview} alt="Preview" className="max-h-32 object-contain rounded" />
-                      <p className="text-xs text-blue-600 font-medium">{uploadForm.imageFile?.name}</p>
+                      <p className="text-xs text-portal-blue font-medium">{uploadForm.imageFile?.name}</p>
                     </div>
                   ) : (
                     <>
@@ -262,7 +262,7 @@ export default function AdServerPage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advertiser / Business Name</label>
                     <input type="text" required value={uploadForm.businessName}
                       onChange={(e) => setUploadForm((p) => ({ ...p, businessName: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-portal-blue/20" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ad Zone</label>
@@ -283,7 +283,7 @@ export default function AdServerPage() {
                     <input type="url" required value={uploadForm.destinationUrl}
                       onChange={(e) => setUploadForm((p) => ({ ...p, destinationUrl: e.target.value }))}
                       placeholder="https://advertiserwebsite.com"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-portal-blue/20" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Start Date</label>
@@ -300,7 +300,7 @@ export default function AdServerPage() {
                 </div>
 
                 <button type="submit" disabled={uploading}
-                  className="w-full py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60">
+                  className="w-full py-3 text-sm font-semibold text-white bg-portal-navy rounded-xl hover:opacity-90 transition-colors disabled:opacity-60">
                   {uploading ? 'Uploading…' : 'Upload Ad'}
                 </button>
               </form>

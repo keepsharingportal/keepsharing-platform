@@ -135,7 +135,7 @@ function AdminLoginInner() {
     return (
       <ShellCard>
         <div className="text-center">
-          <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-full bg-portal-green-lt flex items-center justify-center mx-auto mb-4">
             <Check size={24} className="text-emerald-600" strokeWidth={2.5} />
           </div>
           <h2 className="font-serif text-xl font-bold text-[#1a2744] mb-2">
@@ -230,7 +230,7 @@ function AdminLoginInner() {
           />
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3">
+            <div className="mt-4 flex items-start gap-2 text-xs text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg p-3">
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -277,7 +277,7 @@ function AdminLoginInner() {
           </p>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3">
+            <div className="mt-4 flex items-start gap-2 text-xs text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg p-3">
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -323,7 +323,7 @@ function AdminLoginInner() {
           </p>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3">
+            <div className="mt-4 flex items-start gap-2 text-xs text-portal-red bg-portal-red-lt border border-portal-red/30 rounded-lg p-3">
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>

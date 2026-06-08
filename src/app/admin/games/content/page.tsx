@@ -166,12 +166,12 @@ export default async function GamesContentPage({
       </div>
 
       {tableMissing && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+        <div className="rounded-xl border border-amber-300 bg-portal-amber-lt px-5 py-4">
           <p className="text-sm font-bold text-amber-900 mb-1 flex items-center gap-1.5">
             <AlertTriangle size={14} /> Brain Games tables not found
           </p>
-          <p className="text-sm text-amber-800">
-            Apply <code className="bg-amber-100 px-1 rounded">supabase/migrations/080_brain_games.sql</code> first.
+          <p className="text-sm text-portal-amber">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">supabase/migrations/080_brain_games.sql</code> first.
           </p>
         </div>
       )}
@@ -204,12 +204,12 @@ export default async function GamesContentPage({
 
           {/* ADD FORM (per game type) */}
           {game === 'word-search' ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="rounded-2xl border border-amber-200 bg-portal-amber-lt px-5 py-4">
               <p className="text-sm font-bold text-amber-900 mb-1">Word search is edited in Supabase directly</p>
-              <p className="text-sm text-amber-800 leading-relaxed">
+              <p className="text-sm text-portal-amber leading-relaxed">
                 Word search payloads include a flat letter grid + word list + column count. The grid is too complex
                 for an inline form right now — edit existing rows or add new ones via the Supabase dashboard
-                (<code className="bg-amber-100 px-1 rounded">game_content</code> table, <code className="bg-amber-100 px-1 rounded">payload</code> JSON column).
+                (<code className="bg-portal-amber-lt px-1 rounded">game_content</code> table, <code className="bg-portal-amber-lt px-1 rounded">payload</code> JSON column).
               </p>
             </div>
           ) : (
@@ -325,7 +325,7 @@ export default async function GamesContentPage({
                     const swatch =
                       tone === 'yellow' ? 'bg-yellow-400 text-gray-900' :
                       tone === 'green'  ? 'bg-green-500 text-white'     :
-                      tone === 'blue'   ? 'bg-blue-500 text-white'      :
+                      tone === 'blue'   ? 'bg-portal-blue-lt0 text-white'      :
                                           'bg-purple-500 text-white'
                     return (
                       <div key={tone} className="rounded-xl border border-gray-200 overflow-hidden">
@@ -382,7 +382,7 @@ export default async function GamesContentPage({
                       </form>
                       <form action={deleteContent}>
                         <input type="hidden" name="id" value={r.id} />
-                        <button type="submit" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-rose-700 hover:bg-rose-50">
+                        <button type="submit" className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-portal-red/30 bg-white text-portal-red hover:bg-portal-red-lt">
                           Delete
                         </button>
                       </form>

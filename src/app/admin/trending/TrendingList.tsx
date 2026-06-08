@@ -246,7 +246,7 @@ export function TrendingList(props: Props) {
                   {t.emoji && <span>{t.emoji}</span>}
                   <span className="font-medium">{t.label}</span>
                   {t.source === 'auto' && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 ml-0.5">auto</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-portal-amber-lt text-portal-amber ml-0.5">auto</span>
                   )}
                   {i < previewItems.length - 1 && <span className="text-portal-blue/30 ml-2">·</span>}
                 </span>
@@ -257,9 +257,9 @@ export function TrendingList(props: Props) {
       </section>
 
       {/* ── Help ───────────────────────────────────────────────────────── */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-sm leading-relaxed">
+      <div className="bg-portal-amber-lt border border-amber-200 rounded-2xl px-5 py-4 text-sm leading-relaxed">
         <p className="font-bold text-amber-900 mb-1">How the trending bar works</p>
-        <ul className="list-disc list-inside text-amber-800 space-y-0.5 text-xs">
+        <ul className="list-disc list-inside text-portal-amber space-y-0.5 text-xs">
           <li><strong>Pinned items below show first</strong> — these are your editorial picks (Best Of, guides, nominations, etc.).</li>
           <li><strong>Empty slots auto-fill with the top-visited pages from the last 7 days</strong>. So if you pin 2 items, the bar adds 2 hot pages from real reader traffic.</li>
           <li>Pin up to 4 items to lock the entire bar. Pin 0 and the bar is 100% data-driven.</li>
@@ -312,7 +312,7 @@ export function TrendingList(props: Props) {
                   onDragStart={canReorder && !isEditing ? () => onDragStart(idx) : undefined}
                   onDragOver={canReorder && !isEditing ? onDragOver : undefined}
                   onDrop={canReorder && !isEditing ? () => onDrop(idx) : undefined}
-                  className={`p-4 ${dragFrom === idx ? 'opacity-50 bg-blue-50' : ''} ${isSelected ? 'bg-blue-50/40' : ''}`}
+                  className={`p-4 ${dragFrom === idx ? 'opacity-50 bg-portal-blue-lt' : ''} ${isSelected ? 'bg-portal-blue-lt/40' : ''}`}
                 >
                   {!isEditing ? (
                     <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ export function TrendingList(props: Props) {
                             {status === 'live' && (
                               <form action={props.endNow}>
                                 <input type="hidden" name="id" value={item.id} />
-                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200 text-amber-700 hover:bg-amber-50">
+                                <button type="submit" className="text-xs font-semibold px-2.5 py-1 rounded-md border border-amber-200 text-portal-amber hover:bg-portal-amber-lt">
                                   End now
                                 </button>
                               </form>
@@ -413,7 +413,7 @@ export function TrendingList(props: Props) {
             <span className="text-white/30">·</span>
             <button onClick={() => runBulk('turn-off')} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn off</button>
             <button onClick={() => runBulk('turn-on')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Turn on</button>
-            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-400">End now</button>
+            <button onClick={() => runBulk('end-now')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-portal-amber-lt0 hover:bg-amber-400">End now</button>
             <button onClick={() => runBulk('archive')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-violet-600 hover:bg-violet-500">Archive</button>
             <button onClick={() => runBulk('restore')}  className="text-xs font-semibold px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20">Restore</button>
             <button onClick={() => runBulk('delete')}   className="text-xs font-semibold px-2.5 py-1 rounded-md bg-red-600 hover:bg-red-500">Delete</button>

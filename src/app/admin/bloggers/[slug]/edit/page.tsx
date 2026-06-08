@@ -40,7 +40,7 @@ export default async function BloggerEditPage({ params }: Props) {
     <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Link href="/admin/bloggers" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/bloggers" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> All Bloggers
           </Link>
           <h1 className="text-xl font-semibold text-gray-900">Edit {blogger.display_name}</h1>
@@ -79,7 +79,7 @@ export default async function BloggerEditPage({ params }: Props) {
           <h2 className="text-sm font-bold text-gray-900">Posts by {blogger.display_name.split(' ')[0]} ({posts?.length ?? 0})</h2>
           <Link
             href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`}
-            className="text-xs font-semibold text-blue-600 hover:underline"
+            className="text-xs font-semibold text-portal-blue hover:underline"
           >
             + New post
           </Link>
@@ -87,7 +87,7 @@ export default async function BloggerEditPage({ params }: Props) {
         {(!posts || posts.length === 0) ? (
           <div className="px-4 py-8 text-center text-sm text-gray-500">
             No posts yet.{' '}
-            <Link href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`} className="text-blue-600 hover:underline font-semibold">
+            <Link href={`/admin/articles/new?column_slug=mom-knows-best&author_blogger_id=${blogger.id}`} className="text-portal-blue hover:underline font-semibold">
               Write the first one →
             </Link>
           </div>
@@ -95,11 +95,11 @@ export default async function BloggerEditPage({ params }: Props) {
           <div className="divide-y divide-gray-100">
             {posts.map(p => (
               <div key={p.id} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                <Link href={`/admin/articles/${p.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-1 flex-1 min-w-0">
+                <Link href={`/admin/articles/${p.id}/edit`} className="text-sm font-semibold text-gray-900 hover:text-portal-blue line-clamp-1 flex-1 min-w-0">
                   {p.title}
                 </Link>
                 <div className="flex items-center gap-2 shrink-0">
-                  {!p.published && <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Draft</span>}
+                  {!p.published && <span className="text-[10px] font-bold uppercase bg-portal-amber-lt text-portal-amber px-1.5 py-0.5 rounded">Draft</span>}
                   {p.published_at && <span className="text-[11px] text-gray-500">{new Date(p.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
                 </div>
               </div>

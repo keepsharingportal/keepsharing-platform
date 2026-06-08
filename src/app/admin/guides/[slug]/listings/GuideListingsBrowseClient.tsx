@@ -44,7 +44,7 @@ interface Props {
 }
 
 const TIER_BADGE: Record<string, string> = {
-  featured:    'bg-amber-100 text-amber-800',
+  featured:    'bg-portal-amber-lt text-portal-amber',
   enhanced:    'bg-violet-100 text-violet-800',
   community:   'bg-gray-100 text-gray-600',
 }
@@ -218,7 +218,7 @@ export function GuideListingsBrowseClient(props: Props) {
       )}
 
       {error && (
-        <div className="bg-rose-50 border-b border-rose-200 px-6 py-2 text-sm text-rose-800 inline-flex items-center gap-2">
+        <div className="bg-portal-red-lt border-b border-portal-red/30 px-6 py-2 text-sm text-portal-red inline-flex items-center gap-2">
           <AlertTriangle size={13} /> {error}
         </div>
       )}
@@ -256,7 +256,7 @@ export function GuideListingsBrowseClient(props: Props) {
                 const isSelected = selected.has(r.id)
                 const tierKey = r.listing_tier ?? 'community'
                 return (
-                  <tr key={r.id} className={`border-b border-gray-100 ${isSelected ? 'bg-amber-50/60' : 'hover:bg-gray-50'}`}>
+                  <tr key={r.id} className={`border-b border-gray-100 ${isSelected ? 'bg-portal-amber-lt/60' : 'hover:bg-gray-50'}`}>
                     <td className="px-4 py-3 w-8">
                       <input
                         type="checkbox"

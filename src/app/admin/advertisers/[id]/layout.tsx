@@ -29,14 +29,14 @@ const TIER_BADGE: Record<string, string> = {
   'tier-1-found':    'bg-gray-100 text-gray-700 ring-gray-200',
   'tier-2-featured': 'bg-sky-100 text-sky-800 ring-sky-200',
   'tier-3-chosen':   'bg-violet-100 text-violet-800 ring-violet-200',
-  'tier-4-won':      'bg-amber-100 text-amber-800 ring-amber-200',
+  'tier-4-won':      'bg-portal-amber-lt text-portal-amber ring-amber-200',
 }
 const LIFECYCLE_BADGE: Record<string, string> = {
-  'active':      'bg-emerald-100 text-emerald-800 ring-emerald-200',
+  'active':      'bg-portal-green-lt text-portal-green ring-emerald-200',
   'onboarding':  'bg-sky-100 text-sky-800 ring-sky-200',
   'lead':        'bg-gray-100 text-gray-700 ring-gray-200',
-  'renewal':     'bg-amber-100 text-amber-800 ring-amber-200',
-  'dormant':     'bg-rose-100 text-rose-700 ring-rose-200',
+  'renewal':     'bg-portal-amber-lt text-portal-amber ring-amber-200',
+  'dormant':     'bg-portal-red-lt text-portal-red ring-rose-200',
 }
 
 interface Props {
@@ -116,7 +116,7 @@ export default async function AdvertiserLayout({ children, params }: Props) {
                     {lifecycle}
                   </span>
                   {loyaltyTier && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-50 text-amber-800 ring-1 ring-amber-200">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-portal-amber-lt text-portal-amber ring-1 ring-amber-200">
                       <Star size={8} className="inline mr-0.5" />{loyaltyTier}
                     </span>
                   )}

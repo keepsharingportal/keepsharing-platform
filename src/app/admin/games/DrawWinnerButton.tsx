@@ -128,7 +128,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
       </button>
 
       {eligibleCount > 0 && eligibleCount < 3 && (
-        <p className="text-xs text-amber-700 font-semibold">
+        <p className="text-xs text-portal-amber font-semibold">
           Only {eligibleCount} entr{eligibleCount === 1 ? 'y' : 'ies'} this week — drawing {wantCount} winner{wantCount === 1 ? '' : 's'} instead of 3.
         </p>
       )}
@@ -179,7 +179,7 @@ export function DrawWinnerButton({ scores, weekLabel, weekIso, existingWinners }
               <Check size={12} /> Saved. Will display on the public /games page.
             </p>
           )}
-          {err && <p className="text-xs text-rose-700 font-semibold">{err}</p>}
+          {err && <p className="text-xs text-portal-red font-semibold">{err}</p>}
         </div>
       )}
     </div>

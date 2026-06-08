@@ -51,7 +51,7 @@ export default async function IssuesPage() {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-1">
+          <Link href="/admin/production" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
             <ArrowLeft size={11} /> Production
           </Link>
           <h1 className="text-xl font-semibold text-gray-900">Issues</h1>
@@ -66,7 +66,7 @@ export default async function IssuesPage() {
           </Link>
           <Link
             href="/admin/articles/new"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:opacity-90"
           >
             <Plus size={12} /> New Article
           </Link>
@@ -94,7 +94,7 @@ export default async function IssuesPage() {
                     </div>
                     <Link
                       href={`/admin/articles?filter=month-${m}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-portal-blue hover:underline"
                     >
                       View articles <ArrowRight size={11} />
                     </Link>

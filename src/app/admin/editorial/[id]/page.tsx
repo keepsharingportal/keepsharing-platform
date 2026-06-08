@@ -344,7 +344,7 @@ export default async function EditorialDetailPage({
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{item.submitter_name}</p>
-                  <a href={`mailto:${item.submitter_email}`} className="text-xs text-blue-600 hover:underline">{item.submitter_email}</a>
+                  <a href={`mailto:${item.submitter_email}`} className="text-xs text-portal-blue hover:underline">{item.submitter_email}</a>
                 </div>
               </div>
               {/* Payload answers */}
@@ -378,7 +378,7 @@ export default async function EditorialDetailPage({
                   <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide">AI Draft</h2>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     item.ai_draft_status === 'ready'     ? 'bg-green-100 text-green-700'
-                    : item.ai_draft_status === 'needs_info' ? 'bg-amber-100 text-amber-700'
+                    : item.ai_draft_status === 'needs_info' ? 'bg-portal-amber-lt text-portal-amber'
                     : 'bg-red-100 text-red-700'
                   }`}>
                     {item.ai_draft_status === 'needs_info' ? 'Missing Info' : item.ai_draft_status}
@@ -389,8 +389,8 @@ export default async function EditorialDetailPage({
                 )}
               </div>
               {item.ai_draft_status === 'ready' && (
-                <div className="px-5 py-2.5 bg-amber-50 border-b border-amber-100">
-                  <p className="text-xs text-amber-800 font-medium">
+                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-amber-100">
+                  <p className="text-xs text-portal-amber font-medium">
                     ⚠️ Review carefully. Verify all facts before publishing. Human editorial approval required.
                   </p>
                 </div>
@@ -432,7 +432,7 @@ export default async function EditorialDetailPage({
           {item.editor_notes && (
             <Card title="Editor Notes">
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{item.editor_notes}</p>
-              <Link href={`/admin/community/${id}`} className="text-xs text-blue-600 hover:underline mt-2 inline-block">
+              <Link href={`/admin/community/${id}`} className="text-xs text-portal-blue hover:underline mt-2 inline-block">
                 Edit in submission view →
               </Link>
             </Card>
