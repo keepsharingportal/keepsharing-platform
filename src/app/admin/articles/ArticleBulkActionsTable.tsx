@@ -228,7 +228,7 @@ export function ArticleBulkActionsTable({
 
       <div className="bg-white rounded-lg border border-portal-border overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
+        <div className="grid grid-cols-[2rem_1.25rem_1fr_8rem_10rem_5rem_6rem_8rem] gap-x-6 items-center px-4 py-2 border-b border-portal-border bg-portal-bg">
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
@@ -239,7 +239,7 @@ export function ArticleBulkActionsTable({
               aria-label="Select all articles"
             />
           </div>
-          <div className="w-5" />
+          <div />
           <Link
             href={sortHref('title')}
             scroll={false}
@@ -295,13 +295,18 @@ export function ArticleBulkActionsTable({
                 ? new Date(a.source_issue_month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
                 : '—'
 
-            const statusLabel = a.published ? 'Published' : st.label
-            const statusColor = a.published ? 'bg-portal-green-lt text-portal-green' : st.color
+            // Publish/draft state is shown by the leading dot (green=published,
+            // orange=draft). The Status column is reserved for non-routine
+            // states that need attention — review/revision/imported.
+            const isDraft = !a.published && (a.editorial_review_status === 'draft' || !a.editorial_review_status)
+            const dotColor = a.published ? 'bg-portal-green' : isDraft ? 'bg-portal-amber' : 'bg-portal-border-2'
+            const dotTitle = a.published ? 'Published' : isDraft ? 'Draft' : st.label
+            const showStatusPill = !a.published && !isDraft
 
             return (
               <div
                 key={a.id}
-                className={`grid grid-cols-[2rem_1.5rem_1fr_auto_auto_auto_auto_auto] gap-x-3 items-center px-4 py-3 transition-colors ${
+                className={`grid grid-cols-[2rem_1.25rem_1fr_8rem_10rem_5rem_6rem_8rem] gap-x-6 items-center px-4 py-3 transition-colors ${
                   isSelected ? 'bg-portal-blue-lt' : 'hover:bg-portal-bg'
                 }`}
               >
@@ -316,25 +321,28 @@ export function ArticleBulkActionsTable({
                   />
                 </div>
 
-                {/* Image indicator */}
-                <div className="w-5 flex items-center justify-center">
-                  {a.hero_image_url
-                    ? <div className="w-2 h-2 rounded-full bg-portal-green" title="Has hero image" />
-                    : <span title="Missing hero image"><ImageOff size={12} className="text-portal-red" /></span>
-                  }
+                {/* Publish state dot */}
+                <div className="flex items-center justify-center">
+                  <div className={`w-3 h-3 rounded-full ${dotColor}`} title={dotTitle} />
                 </div>
 
-                {/* Title + slug */}
-                <div className="min-w-0">
+                {/* Title (with missing-image badge inline) */}
+                <div className="min-w-0 flex items-center gap-2">
                   <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
-                  <p className="text-[11px] text-portal-muted truncate mt-0.5">/{a.slug}</p>
+                  {!a.hero_image_url && (
+                    <span title="Missing hero image" className="shrink-0">
+                      <ImageOff size={12} className="text-portal-red" />
+                    </span>
+                  )}
                 </div>
 
-                {/* Status */}
+                {/* Status — only shown for non-routine states */}
                 <div className="hidden md:block">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${statusColor}`}>
-                    {statusLabel}
-                  </span>
+                  {showStatusPill && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${st.color}`}>
+                      {st.label}
+                    </span>
+                  )}
                 </div>
 
                 {/* Section */}
