@@ -114,7 +114,7 @@ export function AdminUsersClient({ initialRows, currentUser }: Props) {
           onClick={() => setInviteOpen(v => !v)}
           className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90"
         >
-          <Plus size={14} /> Invite Admin
+          <Plus size={14} /> Add User
         </button>
       </div>
 
@@ -324,13 +324,45 @@ function InvitePanel({
   const inp = 'w-full text-sm border border-portal-blue/30 rounded-lg px-3 py-2 outline-none focus:border-portal-blue bg-white'
   const lbl = 'block text-[10px] font-bold uppercase tracking-wider text-portal-blue mb-1'
 
+  // Role cards — visible tiles instead of a tiny dropdown. Editor is the
+  // right pick for VAs / contractors; the help text makes that explicit.
+  const ROLE_CARDS: Array<{ value: AdminRole; title: string; tagline: string; permissions: string[] }> = [
+    {
+      value:       'editor',
+      title:       'Editor',
+      tagline:     'Day-to-day content work — perfect for a VA or contractor.',
+      permissions: ['Articles · create, edit, publish', 'Events · all', 'Guide listings · add + edit', 'School Bits · approve', 'Cannot manage users or change settings'],
+    },
+    {
+      value:       'publisher',
+      title:       'Publisher',
+      tagline:     'Editor plus production + distribution areas.',
+      permissions: ['Everything an Editor can do', 'Print layout · access', 'Distribution + production queues', 'Cannot manage users or platform settings'],
+    },
+    {
+      value:       'admin',
+      title:       'Admin',
+      tagline:     'Cross-brand. Can manage Publishers + Editors.',
+      permissions: ['All content + production', 'Manage admin users (except other Admins)', 'Platform settings', 'Cross-brand visibility'],
+    },
+    {
+      value:       'super',
+      title:       'Super Admin',
+      tagline:     'Full control. Reserved for owners.',
+      permissions: ['Everything', 'Can manage other Admins + Super Admins', 'Use sparingly'],
+    },
+  ]
+  // Filter cards by what the current user is allowed to assign.
+  const visibleRoleCards = ROLE_CARDS.filter(c => canCreateAdminRole(currentUserRole, c.value).allowed)
+
   return (
     <form onSubmit={submit} className="bg-portal-bg border-b border-portal-border px-6 py-5">
       <h2 className="text-sm font-bold text-portal-navy inline-flex items-center gap-2 mb-4">
-        <ShieldCheck size={14} /> Invite a new admin
+        <ShieldCheck size={14} /> Add a new user
       </h2>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-        <div className="md:col-span-1">
+
+      <div className="grid sm:grid-cols-2 gap-3 mb-4">
+        <div>
           <label className={lbl}>Full name</label>
           <input value={fullName} onChange={e => setFullName(e.target.value)} className={inp} placeholder="Jane Smith" />
         </div>
@@ -338,14 +370,46 @@ function InvitePanel({
           <label className={lbl}>Email <span className="text-portal-red">*</span></label>
           <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inp} placeholder="jane@example.com" />
         </div>
-        <div>
-          <label className={lbl}>Role <span className="text-portal-red">*</span></label>
-          <select value={role} onChange={e => setRole(e.target.value as AdminRole)} className={`${inp} cursor-pointer`}>
-            {currentUserRole === 'super' && <option value="super">Super Admin</option>}
-            {currentUserRole === 'super' && <option value="admin">Admin</option>}
-            <option value="publisher">Publisher</option>
-            <option value="editor">Editor</option>
-          </select>
+      </div>
+
+      <div className="mb-4">
+        <label className={lbl}>Role <span className="text-portal-red">*</span></label>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {visibleRoleCards.map(card => {
+            const selected = role === card.value
+            return (
+              <button
+                key={card.value}
+                type="button"
+                onClick={() => setRole(card.value)}
+                className={`text-left px-4 py-3 rounded-lg border transition-colors ${
+                  selected
+                    ? 'border-portal-blue bg-white shadow-sm'
+                    : 'border-portal-border bg-white hover:border-portal-blue/40'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <p className={`text-sm font-bold ${selected ? 'text-portal-blue' : 'text-portal-text'}`}>
+                    {card.title}
+                  </p>
+                  {card.value === 'editor' && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-portal-green bg-portal-green-lt border border-portal-green/30 px-1.5 py-0.5 rounded-full">
+                      Recommended for VAs
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-portal-sub leading-snug mb-1.5">{card.tagline}</p>
+                <ul className="text-[11px] text-portal-text space-y-0.5">
+                  {card.permissions.map((p, i) => (
+                    <li key={i} className="flex items-start gap-1">
+                      <span className={selected ? 'text-portal-blue' : 'text-portal-muted'}>·</span>
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </button>
+            )
+          })}
         </div>
       </div>
 
