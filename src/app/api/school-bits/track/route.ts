@@ -18,6 +18,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export const runtime  = 'nodejs'
 export const dynamic  = 'force-dynamic'
@@ -32,6 +33,11 @@ function supabaseAdmin() {
 const ALLOWED_EVENTS = new Set(['view', 'click'])
 
 export async function POST(req: NextRequest) {
+  // Per-IP rate limit. 60 events/min covers any legit reader (a person
+  // can't actually view 60 bits/min); soft-drops bots silently.
+  const allowed = await checkRateLimit({ scope: 'school_bits.track', req, max: 60 })
+  if (!allowed) return new NextResponse(null, { status: 204 })
+
   // sendBeacon sends as text/plain by default; accept either JSON or text.
   let body: { id?: string; event?: string } | null = null
   try {

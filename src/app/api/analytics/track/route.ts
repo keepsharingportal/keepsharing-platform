@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -36,6 +37,9 @@ function sessionHash(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  const allowed = await checkRateLimit({ scope: 'analytics.track', req, max: 120 })
+  if (!allowed) return new NextResponse(null, { status: 204 })
+
   let body: TrackBody
   try {
     body = await req.json()

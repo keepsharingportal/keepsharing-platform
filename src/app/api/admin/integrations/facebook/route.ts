@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyAdAccount, MetaApiError } from '@/lib/integrations/facebook/client'
 import { revalidatePath } from 'next/cache'
+import { requireSettingsAccess } from '@/lib/admin/auth'
+import { recordAuditEvent } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,6 +24,8 @@ function supabaseAdmin() {
 }
 
 export async function GET() {
+  try { await requireSettingsAccess() }
+  catch (e) { if (e instanceof Response) return e; throw e }
   const supabase = supabaseAdmin()
   const { data, error } = await supabase
     .from('facebook_integrations')
@@ -41,6 +45,10 @@ interface ConnectBody {
 }
 
 export async function POST(req: NextRequest) {
+  let ctx
+  try { ctx = await requireSettingsAccess() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
   const body = await req.json().catch(() => null) as ConnectBody | null
   const token = body?.access_token?.trim()
   const rawId = body?.ad_account_id?.trim()
@@ -72,6 +80,13 @@ export async function POST(req: NextRequest) {
         last_sync_metric_count:   null,
       }, { onConflict: 'market' })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    await recordAuditEvent({
+      ctx, req,
+      action:       'integration.connected',
+      target_table: 'facebook_integrations',
+      target_id:    MARKET,
+      after:        { provider: 'facebook', ad_account_id: adAccountId, ad_account_name: acct.name },
+    })
     revalidatePath('/admin/integrations/facebook')
     return NextResponse.json({
       success: true,
@@ -85,7 +100,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  let ctx
+  try { ctx = await requireSettingsAccess() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
   const supabase = supabaseAdmin()
   // Soft-delete: deactivate + wipe token. Historical metrics + campaign
   // mirror rows stay so the advertiser report still renders past months
@@ -95,6 +114,13 @@ export async function DELETE() {
     .update({ is_active: false, access_token: '' })
     .eq('market', MARKET)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  await recordAuditEvent({
+    ctx, req,
+    action:       'integration.disconnected',
+    target_table: 'facebook_integrations',
+    target_id:    MARKET,
+    meta:         { provider: 'facebook' },
+  })
   revalidatePath('/admin/integrations/facebook')
   return NextResponse.json({ success: true })
 }

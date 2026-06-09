@@ -12,6 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/admin/auth'
+import { recordAuditEvent } from '@/lib/admin/audit'
 
 function supabaseAdmin() {
   return createClient(
@@ -43,6 +45,10 @@ const ACTION_UPDATES: Record<BulkAction, Record<string, unknown>> = {
 }
 
 export async function POST(req: NextRequest) {
+  let ctx
+  try { ctx = await requireAdmin() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
   try {
     const body = await req.json() as { articleIds?: unknown; action?: unknown }
 
@@ -75,6 +81,14 @@ export async function POST(req: NextRequest) {
       console.error('[bulk] Supabase error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await recordAuditEvent({
+      ctx, req,
+      action:       `article.${action}`,
+      target_table: 'guide_articles',
+      target_id:    `bulk:${(articleIds as string[]).length}`,
+      meta:         { article_ids: articleIds, count: count ?? (articleIds as string[]).length },
+    })
 
     revalidatePath('/')
     revalidatePath('/school-zone')

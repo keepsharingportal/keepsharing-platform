@@ -17,6 +17,7 @@ import { revalidatePath } from 'next/cache'
 import { requireSettingsAccess } from '@/lib/admin/auth'
 import { canCreateAdminRole } from '@/lib/admin/permissions'
 import { isKnownMarket } from '@/lib/markets'
+import { recordAuditEvent } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -126,6 +127,15 @@ export async function POST(req: NextRequest) {
       console.warn('[admin/users POST] invite send threw:', inviteError)
     }
   }
+
+  await recordAuditEvent({
+    ctx, req,
+    action:       'user.created',
+    target_table: 'admin_users',
+    target_id:    (insert.data as { id: string }).id,
+    after:        { email, role, allowed_markets: markets, full_name: body.full_name ?? null },
+    meta:         { invite_sent: inviteSent },
+  })
 
   revalidatePath('/admin/settings/users')
 

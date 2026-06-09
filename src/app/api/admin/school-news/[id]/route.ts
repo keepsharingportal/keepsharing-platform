@@ -23,6 +23,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/admin/auth'
+import { recordAuditEvent } from '@/lib/admin/audit'
 import {
   processAndUpload, supabaseAdminForImages, persistBitImages,
   recropFromOriginal, manualCropFromOriginal, origDimensions, isValidGravity,
@@ -60,6 +62,10 @@ interface JsonBody {
 }
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  let actorCtx
+  try { actorCtx = await requireAdmin() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
   const { id } = await ctx.params
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
@@ -155,6 +161,19 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     .update(patch)
     .eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Audit the meaningful state changes. By this point re-crop / manual-crop
+  // have already returned via their own handlers above, so body.action here
+  // is approve | reject | edit | reopen.
+  if (body.action) {
+    await recordAuditEvent({
+      ctx: actorCtx, req,
+      action:       `school_bit.${body.action}`,
+      target_table: 'school_bits',
+      target_id:    id,
+      after:        patch as Record<string, unknown>,
+    })
+  }
 
   revalidatePath('/admin/school-news')
   revalidatePath('/family-resource-guide')
@@ -281,13 +300,24 @@ async function handleReplaceImage(req: NextRequest, id: string) {
   }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  let actorCtx
+  try { actorCtx = await requireAdmin() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
   const { id } = await ctx.params
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const supabase = supabaseAdmin()
   const { error } = await supabase.from('school_bits').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await recordAuditEvent({
+    ctx: actorCtx, req,
+    action:       'school_bit.deleted',
+    target_table: 'school_bits',
+    target_id:    id,
+  })
 
   revalidatePath('/admin/school-news')
   return NextResponse.json({ success: true })

@@ -257,7 +257,9 @@ const NAV: NavItem[] = [
     settingsOnly: true,
     children: [
       // No "General" child — parent click already goes to /admin/settings.
-      { name: 'Admin Users', href: '/admin/settings/users' },
+      { name: 'Admin Users',      href: '/admin/settings/users' },
+      { name: 'Audit Log',        href: '/admin/settings/audit-log' },
+      { name: 'My Security (2FA)', href: '/admin/settings/security' },
     ],
   },
 ]

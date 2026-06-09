@@ -21,6 +21,7 @@ import {
   canManageAdminRow, canAssignRole, canDeleteSelf,
 } from '@/lib/admin/permissions'
 import { isKnownMarket } from '@/lib/markets'
+import { recordAuditEvent } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -59,10 +60,11 @@ export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: 
   const supabase = supabaseAdmin()
 
   // Load the target row so we can run permission checks against its CURRENT
-  // role, not what the caller is trying to set.
+  // role, not what the caller is trying to set. Pull every field that might
+  // change so the audit log captures a proper before-state diff.
   const target = await supabase
     .from('admin_users')
-    .select('id, role')
+    .select('id, email, role, full_name, allowed_markets, status, notes')
     .eq('id', id)
     .maybeSingle()
   if (target.error) return NextResponse.json({ error: target.error.message }, { status: 500 })
@@ -122,6 +124,21 @@ export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: 
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Distinguish role changes (high-value audit signal) from name/notes edits.
+  const isRoleChange   = 'role' in updates && updates.role !== (target.data as { role: AdminRole }).role
+  const isStatusChange = 'status' in updates
+  const action = isRoleChange   ? 'user.role_changed'
+              : isStatusChange ? 'user.status_changed'
+              : 'user.updated'
+  await recordAuditEvent({
+    ctx, req,
+    action,
+    target_table: 'admin_users',
+    target_id:    id,
+    before:       target.data as Record<string, unknown>,
+    after:        { ...(target.data as Record<string, unknown>), ...updates },
+  })
+
   revalidatePath('/admin/settings/users')
   return NextResponse.json({ success: true })
 }
@@ -137,7 +154,7 @@ export async function DELETE(_req: NextRequest, routeCtx: { params: Promise<{ id
   const supabase = supabaseAdmin()
   const target = await supabase
     .from('admin_users')
-    .select('id, role')
+    .select('id, email, role, full_name, allowed_markets, status, notes')
     .eq('id', id)
     .maybeSingle()
   if (target.error) return NextResponse.json({ error: target.error.message }, { status: 500 })
@@ -173,6 +190,14 @@ export async function DELETE(_req: NextRequest, routeCtx: { params: Promise<{ id
     .delete()
     .eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await recordAuditEvent({
+    ctx,
+    action:       'user.deleted',
+    target_table: 'admin_users',
+    target_id:    id,
+    before:       target.data as Record<string, unknown>,
+  })
 
   revalidatePath('/admin/settings/users')
   return NextResponse.json({ success: true })

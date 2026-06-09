@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 function admin() {
   return createClient(
@@ -17,6 +18,9 @@ function admin() {
 }
 
 export async function POST(req: NextRequest) {
+  const allowed = await checkRateLimit({ scope: 'article.view', req, max: 60 })
+  if (!allowed) return NextResponse.json({ ok: true })
+
   try {
     const body = await req.json().catch(() => ({})) as Record<string, unknown>
 

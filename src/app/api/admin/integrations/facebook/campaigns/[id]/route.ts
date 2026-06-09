@@ -12,6 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { requireSettingsAccess } from '@/lib/admin/auth'
+import { recordAuditEvent } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -22,8 +24,12 @@ function supabaseAdmin() {
   )
 }
 
-export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const { id } = await ctx.params
+export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: string }> }) {
+  let actorCtx
+  try { actorCtx = await requireSettingsAccess() }
+  catch (e) { if (e instanceof Response) return e; throw e }
+
+  const { id } = await routeCtx.params
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const body = await req.json().catch(() => null) as { advertiser_id?: string | null } | null
@@ -41,6 +47,14 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     .update(patch)
     .eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await recordAuditEvent({
+    ctx: actorCtx, req,
+    action:       'integration.campaign_remapped',
+    target_table: 'facebook_campaigns',
+    target_id:    id,
+    after:        patch,
+  })
 
   revalidatePath('/admin/integrations/facebook')
   return NextResponse.json({ success: true })

@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { DM_Sans, DM_Mono } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { MfaNudgeBanner } from '@/components/admin/MfaNudgeBanner'
 
 // Match the Distribution Portal (portal.css) so admin pages share a
 // consistent typographic feel. Only loaded on admin routes; the public
@@ -39,6 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden bg-portal-bg font-[family-name:var(--font-dm-sans)] text-portal-text">
         <AdminHeader />
+        <MfaNudgeBanner />
         {children}
       </main>
     </div>
