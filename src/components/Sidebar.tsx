@@ -12,7 +12,7 @@ import {
   GraduationCap, Printer, Map, Package, Calendar,
   Mail, Share2,
   Inbox, Upload, MapPin, Search, ClipboardList,
-  BarChart3, Navigation, Building2, UserCheck, Handshake,
+  BarChart3, Navigation, Building2, UserCheck, Handshake, Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
@@ -249,6 +249,7 @@ const NAV: NavItem[] = [
   { name: 'Geocode',         href: '/admin/guides/geocode',   icon: MapPin     },
   { name: 'QR Codes / Links', href: '/admin/content/short-links', icon: Share2  },
   { name: 'Word Search',     href: '/admin/content/word-search', icon: Search  },
+  { name: 'Integrations',    href: '/admin/integrations',     icon: Plug,      settingsOnly: true },
   {
     name: 'Settings',
     href: '/admin/settings',
