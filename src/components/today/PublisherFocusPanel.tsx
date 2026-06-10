@@ -17,22 +17,22 @@ const URGENCY: Record<HealthLevel, {
   number:    string
 }> = {
   red: {
-    border:    'border-l-red-400',
-    badge:     'bg-red-50 text-red-700 ring-1 ring-red-200',
+    border:    'border-l-portal-red',
+    badge:     'bg-portal-red-lt text-portal-red ring-1 ring-portal-red/30',
     badgeText: 'Urgent',
-    number:    'text-red-400',
+    number:    'text-portal-red',
   },
   amber: {
-    border:    'border-l-amber-400',
-    badge:     'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    border:    'border-l-portal-amber',
+    badge:     'bg-portal-amber-lt text-portal-amber ring-1 ring-portal-amber/30',
     badgeText: 'Today',
-    number:    'text-amber-400',
+    number:    'text-portal-amber',
   },
   green: {
-    border:    'border-l-green-400',
-    badge:     'bg-portal-green-lt text-green-700 ring-1 ring-green-200',
+    border:    'border-l-portal-green',
+    badge:     'bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30',
     badgeText: 'All clear',
-    number:    'text-green-400',
+    number:    'text-portal-green',
   },
 }
 
@@ -40,10 +40,10 @@ const URGENCY: Record<HealthLevel, {
 
 function AllClearPanel({ action }: { action: FocusAction }) {
   return (
-    <div className="bg-portal-green-lt border border-green-200 rounded-lg px-4 py-3.5 flex items-center gap-3">
-      <CheckCircle size={16} className="text-green-500 shrink-0" />
+    <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-3.5 flex items-center gap-3">
+      <CheckCircle size={16} className="text-portal-green shrink-0" />
       <div>
-        <p className="text-sm font-semibold text-green-800">{action.label}</p>
+        <p className="text-sm font-semibold text-portal-green">{action.label}</p>
         <p className="text-xs text-portal-green mt-0.5">{action.context}</p>
       </div>
     </div>
@@ -57,7 +57,7 @@ function ActionCard({ action, rank }: { action: FocusAction; rank: number }) {
   return (
     <Link href={action.href}>
       <div
-        className={`bg-white rounded-lg border border-gray-200 border-l-4 ${s.border} px-4 py-3 hover:shadow-md transition-all flex items-start justify-between gap-4 group`}
+        className={`bg-white rounded-lg border border-portal-border border-l-4 ${s.border} px-4 py-3 hover:shadow-md transition-all flex items-start justify-between gap-4 group`}
       >
         <div className="flex items-start gap-3 min-w-0">
           {/* Rank number */}
@@ -68,14 +68,14 @@ function ActionCard({ action, rank }: { action: FocusAction; rank: number }) {
           {/* Label + context */}
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-gray-900 leading-snug">
+              <span className="text-sm font-semibold text-portal-text leading-snug">
                 {action.label}
               </span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${s.badge}`}>
                 {s.badgeText}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+            <p className="text-xs text-portal-sub mt-0.5 leading-relaxed">
               {action.context}
             </p>
           </div>
@@ -84,7 +84,7 @@ function ActionCard({ action, rank }: { action: FocusAction; rank: number }) {
         {/* Arrow */}
         <ArrowRight
           size={14}
-          className="text-gray-300 group-hover:text-gray-500 transition-colors mt-0.5 shrink-0"
+          className="text-portal-border-2 group-hover:text-portal-sub transition-colors mt-0.5 shrink-0"
         />
       </div>
     </Link>
@@ -117,8 +117,8 @@ export function PublisherFocusPanel({ actions }: Props) {
 export function FocusHeader() {
   return (
     <div className="flex items-center gap-1.5 mb-2">
-      <Target size={13} className="text-gray-800" />
-      <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+      <Target size={13} className="text-portal-text" />
+      <span className="text-xs font-bold text-portal-text uppercase tracking-wider">
         Your Focus Today
       </span>
     </div>

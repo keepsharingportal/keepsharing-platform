@@ -16,22 +16,22 @@ const LEVEL: Record<HealthLevel, {
   overall: string
 }> = {
   green: {
-    dot:     'bg-portal-green-lt0',
-    pill:    'bg-portal-green-lt hover:bg-green-100 ring-1 ring-green-200',
-    label:   'text-green-700',
+    dot:     'bg-portal-green',
+    pill:    'bg-portal-green-lt hover:bg-portal-green-lt ring-1 ring-portal-green/30',
+    label:   'text-portal-green',
     overall: 'text-portal-green',
   },
   amber: {
-    dot:     'bg-amber-400',
-    pill:    'bg-amber-50 hover:bg-amber-100 ring-1 ring-amber-200',
-    label:   'text-amber-700',
-    overall: 'text-amber-600',
+    dot:     'bg-portal-amber',
+    pill:    'bg-portal-amber-lt hover:bg-portal-amber-lt ring-1 ring-portal-amber/30',
+    label:   'text-portal-amber',
+    overall: 'text-portal-amber',
   },
   red: {
-    dot:     'bg-red-500',
-    pill:    'bg-red-50 hover:bg-red-100 ring-1 ring-red-200',
-    label:   'text-red-700',
-    overall: 'text-red-600',
+    dot:     'bg-portal-red',
+    pill:    'bg-portal-red-lt hover:bg-portal-red-lt ring-1 ring-portal-red/30',
+    label:   'text-portal-red',
+    overall: 'text-portal-red',
   },
 }
 
@@ -87,9 +87,9 @@ export function EcosystemHealthBar({ health, showBusinessWidgets = true }: { hea
   ]
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+    <div className="bg-white rounded-lg border border-portal-border px-4 py-3">
       <div className="flex items-center justify-between mb-2.5">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-portal-muted uppercase tracking-widest">
           Ecosystem Health
         </span>
         <OverallSummary health={health} />

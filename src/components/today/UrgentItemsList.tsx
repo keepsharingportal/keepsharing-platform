@@ -33,10 +33,10 @@ export function UrgentItemsList({ items, urgency }: Props) {
     if (expandedId === id) setExpandedId(null)
   }
 
-  const borderColor = urgency === 'urgent' ? 'border-l-red-500' : 'border-l-amber-400'
+  const borderColor = urgency === 'urgent' ? 'border-l-red-500' : 'border-l-portal-amber'
   const badgeCls    = urgency === 'urgent'
-    ? 'bg-red-50 text-red-600 ring-1 ring-red-200'
-    : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'
+    ? 'bg-portal-red-lt text-portal-red ring-1 ring-portal-red/30'
+    : 'bg-portal-amber-lt text-portal-amber ring-1 ring-portal-amber/30'
 
   const handleCopy = (id: string | number, text: string) => {
     navigator.clipboard.writeText(text)
@@ -54,7 +54,7 @@ export function UrgentItemsList({ items, urgency }: Props) {
 
         return (
           <div key={item.id}
-            className={`bg-white rounded-lg border border-gray-200 border-l-4 ${borderColor} overflow-hidden hover:shadow-sm transition-shadow group`}
+            className={`bg-white rounded-lg border border-portal-border border-l-4 ${borderColor} overflow-hidden hover:shadow-sm transition-shadow group`}
           >
             {/* Item row */}
             <div
@@ -63,33 +63,33 @@ export function UrgentItemsList({ items, urgency }: Props) {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-gray-900">{item.name}</span>
+                  <span className="text-sm font-semibold text-portal-text">{item.name}</span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${badgeCls}`}>
                     {urgency === 'urgent' ? item.action : `${item.days}d`}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">{item.note}</p>
+                <p className="text-xs text-portal-sub mt-0.5">{item.note}</p>
                 <div className="flex items-center gap-3 mt-1.5">
                   <a href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors">
+                    className="flex items-center gap-1 text-xs text-portal-blue hover:text-portal-blue transition-colors">
                     <Phone size={11} /> {item.phone}
                   </a>
                   {item.email && (
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <span className="flex items-center gap-1 text-xs text-portal-muted">
                       <Mail size={11} /> {item.email}
                     </span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0 mt-0.5">
-                <span className="text-xs text-gray-400 mr-1">{isExpanded ? 'Close' : 'Draft email'}</span>
+                <span className="text-xs text-portal-muted mr-1">{isExpanded ? 'Close' : 'Draft email'}</span>
                 {isExpanded
-                  ? <ChevronUp size={15} className="text-gray-400" />
-                  : <ChevronDown size={15} className="text-gray-400" />
+                  ? <ChevronUp size={15} className="text-portal-muted" />
+                  : <ChevronDown size={15} className="text-portal-muted" />
                 }
                 <button
                   onClick={(e) => dismiss(item.id, e)}
-                  className="ml-1 p-1 rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+                  className="ml-1 p-1 rounded text-portal-border-2 hover:text-portal-sub hover:bg-portal-row-hover transition-colors opacity-0 group-hover:opacity-100"
                   title="Dismiss"
                 >
                   <X size={13} />
@@ -99,38 +99,38 @@ export function UrgentItemsList({ items, urgency }: Props) {
 
             {/* Expanded email draft */}
             {isExpanded && (
-              <div className="border-t border-gray-100 bg-gray-50 px-4 py-4">
+              <div className="border-t border-portal-border bg-portal-bg px-4 py-4">
                 {/* Subject line */}
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide w-14">Subject</span>
-                  <span className="text-xs text-gray-700 bg-white border border-gray-200 rounded px-2 py-1 flex-1">
+                  <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide w-14">Subject</span>
+                  <span className="text-xs text-portal-text bg-white border border-portal-border rounded px-2 py-1 flex-1">
                     {item.emailSubject}
                   </span>
                   <button
                     onClick={() => handleCopy(String(item.id) + '-subject', item.emailSubject)}
-                    className="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="p-1.5 rounded text-portal-muted hover:text-portal-sub hover:bg-portal-border-2 transition-colors"
                     title="Copy subject"
                   >
-                    {copied === String(item.id) + '-subject' ? <CheckCheck size={13} className="text-green-500" /> : <Copy size={13} />}
+                    {copied === String(item.id) + '-subject' ? <CheckCheck size={13} className="text-portal-green" /> : <Copy size={13} />}
                   </button>
                 </div>
 
                 {/* Draft body */}
                 <div className="flex items-start gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide w-14 mt-2">Body</span>
+                  <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide w-14 mt-2">Body</span>
                   <div className="flex-1">
                     <textarea
                       value={draft}
                       onChange={(e) => setEditedDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                      className="w-full text-xs text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-y min-h-[120px] font-mono leading-relaxed"
+                      className="w-full text-xs text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2.5 outline-none focus:border-portal-blue focus:ring-2 focus:ring-portal-blue/20 resize-y min-h-[120px] font-mono leading-relaxed"
                     />
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => handleCopy(item.id, draft)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                           copied === item.id
-                            ? 'bg-portal-green-lt text-green-700 ring-1 ring-green-200'
-                            : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                            ? 'bg-portal-green-lt text-portal-green ring-1 ring-portal-green/30'
+                            : 'bg-white border border-portal-border-2 text-portal-sub hover:bg-portal-bg'
                         }`}
                       >
                         {copied === item.id
@@ -142,21 +142,21 @@ export function UrgentItemsList({ items, urgency }: Props) {
                         href={`https://app.gohighlevel.com`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-portal-blue text-white hover:bg-portal-navy transition-colors"
                       >
                         <ExternalLink size={12} /> Open in GHL
                       </a>
                       {editedDrafts[item.id] && (
                         <button
                           onClick={() => setEditedDrafts((prev) => { const n = {...prev}; delete n[item.id]; return n })}
-                          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                          className="text-xs text-portal-muted hover:text-portal-sub transition-colors"
                         >
                           Reset draft
                         </button>
                       )}
                       <button
                         onClick={(e) => dismiss(item.id, e)}
-                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-portal-red transition-colors ml-auto"
+                        className="flex items-center gap-1 text-xs text-portal-muted hover:text-portal-red transition-colors ml-auto"
                       >
                         <X size={11} /> Dismiss
                       </button>

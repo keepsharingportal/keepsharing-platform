@@ -16,15 +16,15 @@ import { ROLE_LABELS, ROLE_STYLES, type OperatorRole } from '@/lib/operations/ro
 type PanelState = 'clear' | 'attention' | 'urgent'
 
 function panelBorder(state: PanelState): string {
-  if (state === 'urgent')    return 'border-l-4 border-l-red-400'
-  if (state === 'attention') return 'border-l-4 border-l-amber-400'
-  return 'border-l-4 border-l-green-400'
+  if (state === 'urgent')    return 'border-l-4 border-l-portal-red'
+  if (state === 'attention') return 'border-l-4 border-l-portal-amber'
+  return 'border-l-4 border-l-portal-green'
 }
 
 function StateIcon({ state }: { state: PanelState }) {
   if (state === 'urgent')    return <AlertTriangle size={13} className="text-portal-red" />
   if (state === 'attention') return <Clock size={13} className="text-portal-amber" />
-  return <CheckCircle size={13} className="text-green-500" />
+  return <CheckCircle size={13} className="text-portal-green" />
 }
 
 function RoleBadge({ role }: { role: OperatorRole }) {
@@ -42,11 +42,11 @@ interface MetricLineProps {
 }
 
 function MetricLine({ value, label, urgent }: MetricLineProps) {
-  const color = urgent && value > 0 ? 'text-red-600 font-bold' : value > 0 ? 'text-gray-900 font-semibold' : 'text-gray-400'
+  const color = urgent && value > 0 ? 'text-portal-red font-bold' : value > 0 ? 'text-portal-text font-semibold' : 'text-portal-muted'
   return (
     <div className="flex items-baseline gap-1.5">
       <span className={`text-2xl leading-none ${color}`}>{value}</span>
-      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs text-portal-sub">{label}</span>
     </div>
   )
 }
@@ -63,14 +63,14 @@ interface OpsCardProps {
 function OpsCard({ icon: Icon, label, role, href, state, children }: OpsCardProps) {
   return (
     <Link href={href} className="block group">
-      <div className={`bg-white rounded-lg border border-gray-200 ${panelBorder(state)} p-4 hover:shadow-md transition-all h-full`}>
+      <div className={`bg-white rounded-lg border border-portal-border ${panelBorder(state)} p-4 hover:shadow-md transition-all h-full`}>
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Icon size={15} className="text-gray-400" />
-            <span className="text-xs font-semibold text-gray-600">{label}</span>
+            <Icon size={15} className="text-portal-muted" />
+            <span className="text-xs font-semibold text-portal-sub">{label}</span>
           </div>
-          <ArrowRight size={13} className="text-gray-300 group-hover:text-gray-500 transition-colors mt-0.5" />
+          <ArrowRight size={13} className="text-portal-border-2 group-hover:text-portal-sub transition-colors mt-0.5" />
         </div>
 
         {/* Metrics */}
@@ -79,7 +79,7 @@ function OpsCard({ icon: Icon, label, role, href, state, children }: OpsCardProp
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-2 border-t border-portal-border">
           <RoleBadge role={role} />
           <StateIcon state={state} />
         </div>
@@ -115,7 +115,7 @@ function InboxPanel({ s }: { s: OpsSnapshot }) {
           {s.inboxNew > 0         && <MetricLine value={s.inboxNew}         label="new"          urgent={s.inboxOldestAgeHours > 48} />}
           {s.inboxNeedsReview > 0 && <MetricLine value={s.inboxNeedsReview} label="needs review" />}
           {s.inboxOldestAgeHours > 24 && (
-            <p className="text-[10px] text-amber-600">
+            <p className="text-[10px] text-portal-amber">
               Oldest: {Math.round(s.inboxOldestAgeHours)}h ago
             </p>
           )}
@@ -141,7 +141,7 @@ function EditorialPanel({ s }: { s: OpsSnapshot }) {
           {s.draftReady > 0  && <MetricLine value={s.draftReady} label="drafts ready to edit" />}
           {s.inEditing > 0   && <MetricLine value={s.inEditing}  label="in editing" />}
           {s.stalledEditorial > 0 && (
-            <p className="text-[10px] text-red-600 font-semibold">
+            <p className="text-[10px] text-portal-red font-semibold">
               {s.stalledEditorial} stalled — needs attention
             </p>
           )}
@@ -210,7 +210,7 @@ function SocialPanel({ s }: { s: OpsSnapshot }) {
         <>
           <MetricLine value={s.socialApprovedNotExported} label="ready to export" urgent={s.socialApprovedNotExported > 10} />
           {s.socialMissingAsset > 0 && (
-            <p className="text-[10px] text-amber-600">
+            <p className="text-[10px] text-portal-amber">
               {s.socialMissingAsset} missing image asset
             </p>
           )}
@@ -234,7 +234,7 @@ function NewsletterPanel({ s }: { s: OpsSnapshot }) {
         <>
           <MetricLine value={s.newsletterItems} label="items queued" />
           {s.newsletterQualityIssues > 0 && (
-            <p className="text-[10px] text-amber-600">
+            <p className="text-[10px] text-portal-amber">
               {s.newsletterQualityIssues} quality issue{s.newsletterQualityIssues > 1 ? 's' : ''} — incomplete sections
             </p>
           )}
@@ -259,12 +259,12 @@ const FF_PHASE_LABELS: Record<string, string> = {
 }
 
 const FF_PHASE_STYLES: Record<string, string> = {
-  planning:        'bg-gray-50 border-gray-200 text-gray-700',
-  nominations:     'bg-portal-green-lt border-green-200 text-green-800',
-  'finalist-review': 'bg-amber-50 border-amber-200 text-amber-800',
-  voting:          'bg-blue-50 border-blue-200 text-blue-800',
+  planning:        'bg-portal-bg border-portal-border text-portal-text',
+  nominations:     'bg-portal-green-lt border-portal-green/30 text-portal-green',
+  'finalist-review': 'bg-portal-amber-lt border-portal-amber/30 text-portal-amber',
+  voting:          'bg-portal-blue-lt border-portal-blue/30 text-portal-blue',
   announcing:      'bg-purple-50 border-purple-200 text-purple-800',
-  complete:        'bg-gray-50 border-gray-200 text-gray-600',
+  complete:        'bg-portal-bg border-portal-border text-portal-sub',
 }
 
 export function FfPhaseBanner({ phase, label, deadline }: { phase: string; label: string; deadline: string | null }) {
