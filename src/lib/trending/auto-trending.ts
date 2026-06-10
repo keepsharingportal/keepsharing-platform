@@ -77,17 +77,52 @@ export async function buildAutoTrendingItems(
 ): Promise<AutoTrendingItem[]> {
   // Filter out already-pinned paths and obvious non-content (homepage,
   // submit forms, thank-you pages). We don't want "/" itself in the bar.
-  // Also exclude advertiser/business listing pages — those live under
-  // /{guide-name}/listings/{slug} and can 404 mid-cycle when an
-  // advertiser is removed or their slug changes, leaving stale links
-  // in the bar.
+  //
+  // Advertiser/business listing pages are forbidden from the trending bar
+  // for two reasons:
+  //   1. They can 404 mid-cycle when an advertiser is removed or their
+  //      slug changes — stale links erode trust.
+  //   2. They give one advertiser undeserved promo airtime over others
+  //      who paid for placement.
+  //
+  // Listings show up under multiple URL shapes:
+  //   /{guide-slug}/listings/{slug}   — the canonical Next.js route
+  //   /guide/{guide-slug}/{slug}      — legacy / alternate shape
+  // Both get blocked by path filter below. As a defense-in-depth catch
+  // for any future URL shape we haven't anticipated, we ALSO look up
+  // every active advertiser slug and reject any path whose terminal
+  // segment matches one of them.
   const NON_CONTENT_EXACT = new Set(['/', '/thank-you'])
-  const NON_CONTENT_PREFIX = ['/submit', '/auth', '/login', '/maintenance']
-  const candidates = raw
+  const NON_CONTENT_PREFIX = ['/submit', '/auth', '/login', '/maintenance', '/guide/']
+  let candidates = raw
     .filter(r => !excludeLinks.has(r.path))
     .filter(r => !NON_CONTENT_EXACT.has(r.path))
     .filter(r => !NON_CONTENT_PREFIX.some(p => r.path.startsWith(p)))
     .filter(r => !r.path.includes('/listings/'))
+
+  // Advertiser-slug defense: pull all active advertiser slugs once and
+  // reject any candidate whose last path segment matches. The lookup is
+  // cheap (one batch query, tens to hundreds of rows) and runs only
+  // when there are candidates left to filter.
+  if (candidates.length > 0) {
+    try {
+      const { data: advRows } = await supabase
+        .from('advertiser_accounts')
+        .select('slug')
+        .not('slug', 'is', null)
+      const advSlugs = new Set<string>()
+      for (const row of (advRows ?? []) as Array<{ slug: string | null }>) {
+        if (row.slug) advSlugs.add(row.slug.toLowerCase())
+      }
+      candidates = candidates.filter(r => {
+        const lastSeg = r.path.replace(/\/$/, '').split('/').pop() ?? ''
+        return !advSlugs.has(lastSeg.toLowerCase())
+      })
+    } catch {
+      // If the slug lookup fails (e.g., RLS, table missing), fall through
+      // with the path-only filter rather than blanking the trending bar.
+    }
+  }
 
   if (candidates.length === 0) return []
 
