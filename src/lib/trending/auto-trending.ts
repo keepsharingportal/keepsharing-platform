@@ -11,8 +11,11 @@
 //   - Article paths under /columns/{col}/{slug} or /articles/{slug} are
 //     resolved against guide_articles in one batch lookup → article
 //     title becomes the label, emoji defaults to 🔥.
-//   - Anything else gets a humanized version of its last path segment
-//     ("read-this-now" → "Read This Now") with a 🔥 emoji.
+//   - Anything else gets DROPPED. We don't fall back to humanizing the
+//     last path segment because that produced vague entries like
+//     "Articles" (from /articles index) that look like nav labels rather
+//     than recommendations. To add a generic page to the bar, add it to
+//     LANDING_PAGES with a deliberate label + emoji.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -45,13 +48,6 @@ const LANDING_PAGES: Record<string, { emoji: string; label: string }> = {
   '/nominate':                { emoji: '🏆', label: 'Nominate Someone'          },
 }
 
-function humanize(slug: string): string {
-  return slug
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
-    .trim()
-}
-
 interface RawTrendingPath {
   path:         string
   unique_views: number
@@ -78,6 +74,11 @@ export async function buildAutoTrendingItems(
   // Filter out already-pinned paths and obvious non-content (homepage,
   // submit forms, thank-you pages). We don't want "/" itself in the bar.
   //
+  // Index pages (e.g. /articles, /columns) are also blocked — they're
+  // navigational landing surfaces, not promotable content. The trending
+  // bar should highlight specific things readers want, not labels they
+  // already see in the main nav.
+  //
   // Advertiser/business listing pages are forbidden from the trending bar
   // for two reasons:
   //   1. They can 404 mid-cycle when an advertiser is removed or their
@@ -92,7 +93,16 @@ export async function buildAutoTrendingItems(
   // for any future URL shape we haven't anticipated, we ALSO look up
   // every active advertiser slug and reject any path whose terminal
   // segment matches one of them.
-  const NON_CONTENT_EXACT = new Set(['/', '/thank-you'])
+  const NON_CONTENT_EXACT = new Set([
+    '/',
+    '/thank-you',
+    // Generic index pages — too vague to promote.
+    '/articles',
+    '/columns',
+    '/events',
+    '/spotlights',
+    '/best-of-results',
+  ])
   const NON_CONTENT_PREFIX = ['/submit', '/auth', '/login', '/maintenance', '/guide/']
   let candidates = raw
     .filter(r => !excludeLinks.has(r.path))
@@ -152,6 +162,13 @@ export async function buildAutoTrendingItems(
     }
   }
 
+  // Strict labeling — we only promote things we can label *well*. The
+  // previous humanize-the-last-segment fallback produced vague entries
+  // like "Articles" (from /articles) that looked like noise rather than
+  // recommendations. Now: if a path doesn't match a curated landing OR a
+  // published article slug, it's dropped. To get a generic page into the
+  // trending bar, add it to LANDING_PAGES above with a deliberate label
+  // + emoji.
   const out: AutoTrendingItem[] = []
   for (const c of candidates) {
     if (out.length >= limit) break
@@ -169,10 +186,9 @@ export async function buildAutoTrendingItems(
       if (!title) continue   // article was unpublished/trashed since the view — skip
       label = title
     } else {
-      // Fallback — humanize the last path segment.
-      const lastSeg = c.path.replace(/\/$/, '').split('/').pop() ?? ''
-      if (!lastSeg) continue
-      label = humanize(lastSeg)
+      // Not a curated landing and not a resolvable article — skip rather
+      // than promote a vague humanized slug.
+      continue
     }
 
     out.push({
