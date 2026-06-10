@@ -260,6 +260,17 @@ const NAV: NavItem[] = [
   { name: 'Geocode',         href: '/admin/guides/geocode',   icon: MapPin     },
   { name: 'QR Codes / Links', href: '/admin/content/short-links', icon: Share2  },
   { name: 'Word Search',     href: '/admin/content/word-search', icon: Search  },
+  {
+    name: 'Analytics',
+    href: '/admin/analytics',
+    icon: BarChart3,
+    settingsOnly: true,
+    children: [
+      { name: 'Top Pages',          href: '/admin/analytics/pages'    },
+      { name: 'Top Articles',       href: '/admin/analytics/articles' },
+      { name: 'School Engagement',  href: '/admin/school-news/schools/report' },
+    ],
+  },
   { name: 'Integrations',    href: '/admin/integrations',     icon: Plug,      settingsOnly: true },
   {
     name: 'Settings',

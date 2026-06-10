@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Link2, Copy, RefreshCw, ExternalLink, CheckCircle2, Eye, AlertTriangle,
+  Link2, Copy, RefreshCw, ExternalLink, CheckCircle2, Eye, AlertTriangle, Send,
 } from 'lucide-react'
 
 interface TokenInfo {
@@ -25,9 +25,10 @@ const SITE_BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.riverregionpa
 export function PublicReportLinkPanel({ advertiserId }: { advertiserId: string }) {
   const [info,        setInfo]        = useState<TokenInfo | null>(null)
   const [loading,     setLoading]     = useState(true)
-  const [busy,        setBusy]        = useState<'regen' | null>(null)
+  const [busy,        setBusy]        = useState<'regen' | 'send' | null>(null)
   const [copied,      setCopied]      = useState(false)
   const [err,         setErr]         = useState<string | null>(null)
+  const [sendMsg,     setSendMsg]     = useState<{ ok: boolean; text: string } | null>(null)
 
   async function load() {
     setLoading(true); setErr(null)
@@ -69,6 +70,20 @@ export function PublicReportLinkPanel({ advertiserId }: { advertiserId: string }
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     })
+  }
+
+  async function sendReport() {
+    if (!confirm('Send this report to the advertiser via GHL?\n\nWill email the link to the contact on file.')) return
+    setBusy('send'); setSendMsg(null); setErr(null)
+    try {
+      const res = await fetch(`/api/admin/advertisers/${advertiserId}/send-report`, { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setSendMsg({ ok: false, text: json?.error ?? `HTTP ${res.status}` })
+        return
+      }
+      setSendMsg({ ok: true, text: 'Sent to GHL — workflow will email the advertiser.' })
+    } finally { setBusy(null) }
   }
 
   const url        = info ? `${SITE_BASE}/r/${info.token}` : ''
@@ -118,6 +133,16 @@ export function PublicReportLinkPanel({ advertiserId }: { advertiserId: string }
             </a>
             <button
               type="button"
+              onClick={sendReport}
+              disabled={busy !== null}
+              title="Send the report via GoHighLevel — emails the link to the contact on file"
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-semibold text-white bg-portal-navy rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
+            >
+              {busy === 'send' ? <RefreshCw size={11} className="animate-spin" /> : <Send size={11} />}
+              {busy === 'send' ? 'Sending…' : 'Send via GHL'}
+            </button>
+            <button
+              type="button"
               onClick={regenerate}
               disabled={busy !== null}
               title="Revoke the current URL and mint a new one"
@@ -127,6 +152,17 @@ export function PublicReportLinkPanel({ advertiserId }: { advertiserId: string }
               Regenerate
             </button>
           </div>
+
+          {sendMsg && (
+            <p className={`text-[11px] font-semibold inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 ${
+              sendMsg.ok
+                ? 'text-portal-green bg-portal-green-lt border border-portal-green/30'
+                : 'text-portal-red   bg-portal-red-lt   border border-portal-red/30'
+            }`}>
+              {sendMsg.ok ? <CheckCircle2 size={11} /> : <AlertTriangle size={11} />}
+              {sendMsg.text}
+            </p>
+          )}
 
           <div className="flex items-center gap-3 pt-1 text-[11px] text-portal-sub">
             <span className="inline-flex items-center gap-1">
