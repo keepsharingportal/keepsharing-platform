@@ -25,6 +25,8 @@ type ChildItem = {
   accent?:     boolean
   /** Renders the link with target=_blank — used for previewing public maps. */
   external?:   boolean
+  /** Visible only to super admins (e.g. internal backlogs / dev tooling). */
+  superOnly?:  boolean
   /**
    * Key matched against the counts payload so we render a red badge.
    * Circulation badges come from /api/admin/circulation/counts;
@@ -42,8 +44,8 @@ type ParentBadgeKey = NonNullable<ChildItem['badgeKey']>
 
 type NavItem =
   | { section: string }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; settingsOnly?: boolean; badgeKey?: ParentBadgeKey }
-  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean; badgeKey?: ParentBadgeKey }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; settingsOnly?: boolean; superOnly?: boolean; badgeKey?: ParentBadgeKey }
+  | { name: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; children: ChildItem[]; settingsOnly?: boolean; superOnly?: boolean; badgeKey?: ParentBadgeKey }
 
 // ── Navigation structure ───────────────────────────────────────────────────
 // Organized around what the user actually does: write/publish content,
@@ -69,7 +71,16 @@ type NavItem =
 const NAV: NavItem[] = [
   // ── DASHBOARD ───────────────────────────────────────────────────────────
   { section: 'DASHBOARD' },
-  { name: 'Today', href: '/admin/today', icon: Zap },
+  {
+    name: 'Today',
+    href: '/admin/today',
+    icon: Zap,
+    children: [
+      // Master Backlog is internal/dev tooling — phase notes, integration
+      // stubs, things the publisher doesn't need to see. Super-only.
+      { name: 'Master Backlog', href: '/admin/today/master-backlog', superOnly: true },
+    ],
+  },
 
   // ── CONTENT ─────────────────────────────────────────────────────────────
   { section: 'CONTENT' },
@@ -413,6 +424,11 @@ export function Sidebar() {
           if ('settingsOnly' in item && item.settingsOnly && !isSettingsTier) {
             return null
           }
+          // superOnly entries hide for everyone but super-admin. Used for
+          // internal/dev tooling that even cross-brand Admins shouldn't see.
+          if ('superOnly' in item && item.superOnly && role !== 'super') {
+            return null
+          }
 
           // Group with children
           if ('children' in item) {
@@ -477,7 +493,12 @@ export function Sidebar() {
                   // string (e.g. /admin/events vs /admin/events?new=1
                   // vs /admin/events?tab=pending — previously all three
                   // lit up at once on /admin/events).
-                  const parsed = item.children.map(c => {
+                  // superOnly children are filtered here so non-super
+                  // admins don't even see them in expanded state.
+                  const visibleChildren = item.children.filter(c =>
+                    !(c.superOnly && role !== 'super')
+                  )
+                  const parsed = visibleChildren.map(c => {
                     const u = new URL(c.href, 'http://x')
                     return { child: c, path: u.pathname, query: u.searchParams.toString() }
                   })

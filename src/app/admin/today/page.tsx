@@ -10,7 +10,6 @@ import { DistributionWidget } from '@/components/distribution/DistributionWidget
 import { fillEmailTemplate } from '@/lib/email-templates'
 import { getOpsSnapshot } from '@/lib/queries/operations'
 import { deriveEcosystemHealth, deriveFocusActions } from '@/lib/queries/health'
-import { MasterTodoList } from '@/components/today/MasterTodoList'
 import { requireAdmin } from '@/lib/admin/auth'
 
 // ── Publication list (static config, data comes from DB) ─────────────────────
@@ -168,7 +167,6 @@ export default async function TodayPage() {
   const adminCtx = await requireAdmin().catch(() => null)
   if (adminCtx?.role === 'editor') redirect('/admin/articles')
 
-  const showMasterTodos     = adminCtx?.role === 'super'
   const showBusinessWidgets = adminCtx?.role === 'super' || adminCtx?.role === 'admin'
   // Cross-brand tiers see every market; publishers see only their assigned
   // markets. Publisher's allowedMarkets is the canonical list.
@@ -198,10 +196,8 @@ export default async function TodayPage() {
 
       <div className="p-6 space-y-6">
 
-        {/* Master backlog — super-admin only. Sits above the operational
-            sections because finishing those phase-1 items is the gating
-            work for unblocking everything else. */}
-        {showMasterTodos && <MasterTodoList />}
+        {/* Master Backlog now lives at /admin/today/master-backlog (super-only).
+            Kept off this page so the daily dashboard stays focused on ops. */}
 
         {/* Publisher Command Center — Focus + Health */}
         {focusActions && ecosystemHealth && (
