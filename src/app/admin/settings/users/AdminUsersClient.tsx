@@ -498,7 +498,7 @@ function AdminRowItem({
 }) {
   const isSelf  = row.id === currentUser.id
   const manage  = canManageAdminRow(currentUser.role, row.role, isSelf)
-  const [busy, setBusy] = useState<'suspend' | 'restore' | 'delete' | 'resend' | null>(null)
+  const [busy, setBusy] = useState<'suspend' | 'restore' | 'delete' | 'resend' | 'mfa' | null>(null)
   const [err,  setErr]  = useState<string | null>(null)
 
   async function patchRow(body: Record<string, unknown>): Promise<boolean> {
@@ -537,6 +537,23 @@ function AdminRowItem({
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
       onRemoved()
+    } finally { setBusy(null) }
+  }
+  async function resetMfa() {
+    if (!confirm(
+      `Reset 2FA for ${row.email}?\n\n` +
+      `Their authenticator app will be unlinked. Next time they sign in, ` +
+      `they'll be prompted to set up a new authenticator. Use this when ` +
+      `someone lost their phone.`
+    )) return
+    setBusy('mfa'); setErr(null)
+    try {
+      const res = await fetch(`/api/admin/users/${row.id}/mfa`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
+      if (json.reset_count === 0) {
+        setErr('No 2FA factors were set up on this account — nothing to reset.')
+      }
     } finally { setBusy(null) }
   }
 
@@ -637,6 +654,17 @@ function AdminRowItem({
               >
                 <Pencil size={11} /> Edit
               </button>
+              {row.user_id && !isSelf && (
+                <button
+                  onClick={resetMfa}
+                  disabled={busy !== null}
+                  title="Reset their 2FA — they'll re-enroll on next sign-in. Use if they lost their phone."
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1 text-portal-amber bg-portal-amber-lt border border-portal-amber/30 rounded-lg hover:bg-portal-amber-lt disabled:opacity-40"
+                >
+                  {busy === 'mfa' ? <RefreshCw size={11} className="animate-spin" /> : <Shield size={11} />}
+                  Reset 2FA
+                </button>
+              )}
               <button
                 onClick={remove}
                 disabled={busy !== null || isSelf}
