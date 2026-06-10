@@ -41,6 +41,7 @@ interface PatchBody {
   allowed_markets?: string[]
   notes?:           string | null
   status?:          'active' | 'suspended'
+  requires_mfa?:    boolean
 }
 
 export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: string }> }) {
@@ -108,6 +109,12 @@ export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: 
         }
         updates.allowed_markets = filtered
       }
+    }
+    // 2FA enforcement flag — toggling this is a privileged action (granting
+    // an exception bypasses the security policy), so it's gated to non-self
+    // and writeable by callers who can manage the target.
+    if (body.requires_mfa !== undefined) {
+      updates.requires_mfa = !!body.requires_mfa
     }
   }
 

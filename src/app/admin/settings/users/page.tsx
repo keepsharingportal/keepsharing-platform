@@ -27,6 +27,8 @@ export interface AdminUserRow {
   invited_at:      string | null
   invited_by:      string | null
   created_at:      string
+  requires_mfa:    boolean | null
+  mfa_enabled_at:  string | null
 }
 
 export default async function AdminUsersPage() {
@@ -41,7 +43,7 @@ export default async function AdminUsersPage() {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('admin_users')
-    .select('id, user_id, email, full_name, role, allowed_markets, status, notes, last_login_at, invited_at, invited_by, created_at')
+    .select('id, user_id, email, full_name, role, allowed_markets, status, notes, last_login_at, invited_at, invited_by, created_at, requires_mfa, mfa_enabled_at')
     .order('role',          { ascending: true })
     .order('created_at',    { ascending: false })
 

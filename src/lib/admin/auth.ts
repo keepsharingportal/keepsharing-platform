@@ -63,6 +63,11 @@ export interface AdminContext {
    */
   activeMarket:   string
   viewingAll:     boolean
+  /** Per-user 2FA enforcement flag (migration 140). Default TRUE — the gate
+   *  bounces this user to /admin/settings/security until they enroll a TOTP. */
+  requiresMfa:    boolean
+  /** When this admin verified their TOTP factor. NULL means not enrolled. */
+  mfaEnabledAt:   string | null
 }
 
 const ACTIVE_MARKET_COOKIE = 'rrp_active_market'
@@ -94,6 +99,8 @@ export const getAdminContext = cache(async (): Promise<AdminContext | null> => {
     role:            AdminRole
     allowed_markets: string[] | null
     status:          string
+    requires_mfa?:   boolean | null
+    mfa_enabled_at?: string | null
   }
 
   // Look up by user_id first; fall back to email so pre-provisioned rows
@@ -101,7 +108,7 @@ export const getAdminContext = cache(async (): Promise<AdminContext | null> => {
   let row: AdminRow | null = null
   const byId = await admin
     .from('admin_users')
-    .select('id, user_id, email, full_name, role, allowed_markets, status')
+    .select('id, user_id, email, full_name, role, allowed_markets, status, requires_mfa, mfa_enabled_at')
     .eq('user_id', user.id)
     .maybeSingle()
   if (byId.data) {
@@ -109,7 +116,7 @@ export const getAdminContext = cache(async (): Promise<AdminContext | null> => {
   } else {
     const byEmail = await admin
       .from('admin_users')
-      .select('id, user_id, email, full_name, role, allowed_markets, status')
+      .select('id, user_id, email, full_name, role, allowed_markets, status, requires_mfa, mfa_enabled_at')
       .ilike('email', user.email)
       .maybeSingle()
     if (byEmail.data) {
@@ -167,6 +174,8 @@ export const getAdminContext = cache(async (): Promise<AdminContext | null> => {
     allowedMarkets,
     activeMarket,
     viewingAll:    isCrossBrand && activeMarket === ALL_MARKETS_SLUG,
+    requiresMfa:   row.requires_mfa ?? true,
+    mfaEnabledAt:  row.mfa_enabled_at ?? null,
   }
 })
 

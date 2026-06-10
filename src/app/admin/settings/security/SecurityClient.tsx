@@ -22,6 +22,8 @@ interface EnrollResult {
 
 export function SecurityClient({ userEmail }: { userEmail: string }) {
   const supabase = createClient()
+  // Detect the gate redirect so we can show the firmer "you must do this" banner.
+  const isGated = typeof window !== 'undefined' && window.location.search.includes('gate=required')
 
   const [factors,      setFactors]      = useState<Factor[] | null>(null)
   const [loading,      setLoading]      = useState(true)
@@ -78,10 +80,22 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
         code:        code.trim(),
       })
       if (v.error) { setErr(v.error.message); return }
+      // Sync the denormalized stamp on admin_users so the enforcement gate
+      // recognizes this user as enrolled without a Supabase Auth roundtrip.
+      await fetch('/api/admin/me/mfa-status', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ enabled: true }),
+      }).catch(() => {})
       setMsg('Two-factor authentication enabled. From now on, sign-in will ask for a 6-digit code.')
       setEnrollData(null)
       setCode('')
       await loadFactors()
+      // If the user was bounced here by the gate, refresh now that the
+      // stamp is set so they're free to leave.
+      if (typeof window !== 'undefined' && window.location.search.includes('gate=required')) {
+        window.location.href = '/admin'
+      }
     } finally { setVerifying(false) }
   }
 
@@ -98,12 +112,38 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
     if (!confirm('Remove this 2FA method? Your account will go back to email-link only until you re-enroll.')) return
     const { error } = await supabase.auth.mfa.unenroll({ factorId })
     if (error) { setErr(error.message); return }
+    // Re-check whether ANY verified factor remains; clear the stamp only
+    // if this was the last one.
+    const list = await supabase.auth.mfa.listFactors()
+    const stillHasVerified = ([...(list.data?.totp ?? []), ...(list.data?.phone ?? [])] as Factor[])
+      .some(f => f.status === 'verified')
+    if (!stillHasVerified) {
+      await fetch('/api/admin/me/mfa-status', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ enabled: false }),
+      }).catch(() => {})
+    }
     setMsg('Two-factor method removed.')
     await loadFactors()
   }
 
   return (
     <div className="space-y-5">
+      {isGated && !hasTotp && (
+        <div className="rounded-lg border border-portal-red/40 bg-portal-red-lt/40 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="text-portal-red shrink-0 mt-0.5" size={20} />
+            <div>
+              <p className="text-sm font-bold text-portal-red mb-0.5">Two-factor authentication is required for this account</p>
+              <p className="text-xs text-portal-red leading-relaxed">
+                Set up an authenticator app below to continue. You won't be able to reach the rest of the admin until this is done.
+                If you don't have an authenticator app on your phone, download <strong>Authy</strong> (free, recommended) or <strong>1Password</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className={`rounded-lg border px-5 py-4 ${
         hasTotp
           ? 'bg-portal-green-lt/40 border-portal-green/30'

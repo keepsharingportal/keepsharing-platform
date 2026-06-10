@@ -700,12 +700,13 @@ function EditRowPanel({
   onCancel:        () => void
   onSaved:         (patch: Partial<AdminUserRow>) => void
 }) {
-  const [fullName, setFullName] = useState(row.full_name ?? '')
-  const [role,     setRole]     = useState<AdminRole>(row.role)
-  const [markets,  setMarkets]  = useState<Set<string>>(new Set(row.allowed_markets ?? []))
-  const [notes,    setNotes]    = useState(row.notes ?? '')
-  const [busy,     setBusy]     = useState(false)
-  const [err,      setErr]      = useState<string | null>(null)
+  const [fullName,     setFullName]     = useState(row.full_name ?? '')
+  const [role,         setRole]         = useState<AdminRole>(row.role)
+  const [markets,      setMarkets]      = useState<Set<string>>(new Set(row.allowed_markets ?? []))
+  const [notes,        setNotes]        = useState(row.notes ?? '')
+  const [requiresMfa,  setRequiresMfa]  = useState<boolean>(row.requires_mfa ?? true)
+  const [busy,         setBusy]         = useState(false)
+  const [err,          setErr]          = useState<string | null>(null)
 
   const isCrossBrand   = role === 'super' || role === 'admin'
   const roleDecision   = canAssignRole(currentUserRole, role)
@@ -738,6 +739,7 @@ function EditRowPanel({
       const payload: Record<string, unknown> = {
         full_name:       fullName.trim() || null,
         notes:           notes.trim() || null,
+        requires_mfa:    requiresMfa,
       }
       if (!roleLocked) payload.role = role
       payload.allowed_markets = isCrossBrand ? [] : Array.from(markets)
@@ -754,6 +756,7 @@ function EditRowPanel({
         role,
         allowed_markets:  isCrossBrand ? [] : Array.from(markets),
         notes:            notes.trim() || null,
+        requires_mfa:     requiresMfa,
       })
     } finally {
       setBusy(false)
@@ -823,6 +826,30 @@ function EditRowPanel({
           className={`${inp} resize-y text-xs`}
           placeholder="Optional notes for the staff directory (never shown publicly)."
         />
+      </div>
+
+      <div className="mt-3 rounded-lg border border-portal-border bg-portal-bg/60 px-4 py-3">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={requiresMfa}
+            onChange={e => setRequiresMfa(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-portal-border-2 text-portal-blue cursor-pointer"
+          />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-portal-text">Require 2FA for this user</p>
+            <p className="text-[11px] text-portal-sub mt-0.5 leading-relaxed">
+              When on, they can&apos;t reach any admin page until they&apos;ve enrolled an authenticator app.
+              Leave on for everyone unless there&apos;s a deliberate exception.
+              {row.mfa_enabled_at && (
+                <> <span className="text-portal-green font-semibold">Currently enrolled.</span></>
+              )}
+              {!row.mfa_enabled_at && requiresMfa && (
+                <> <span className="text-portal-amber font-semibold">Not yet enrolled — they&apos;ll be forced to set up on next sign-in.</span></>
+              )}
+            </p>
+          </div>
+        </label>
       </div>
 
       {err && <p className="mt-3 text-xs text-portal-red font-semibold">{err}</p>}

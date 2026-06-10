@@ -82,6 +82,12 @@ export async function DELETE(req: NextRequest, routeCtx: { params: Promise<{ id:
     }
   }
 
+  // Clear the denormalized stamp so the enforcement gate forces re-enrollment.
+  await supabase
+    .from('admin_users')
+    .update({ mfa_enabled_at: null })
+    .eq('id', id)
+
   await recordAuditEvent({
     ctx, req,
     action:       'user.mfa_reset',
