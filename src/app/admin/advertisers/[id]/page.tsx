@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { AdvertiserContactsPanel } from '@/components/admin/AdvertiserContactsPanel'
 import { GhlSyncButton } from '@/components/admin/GhlSyncButton'
+import { PublicReportLinkPanel } from '@/components/admin/PublicReportLinkPanel'
 import {
   Mail, Phone, Globe, Calendar, Megaphone, BookOpen, FileText, BarChart3, ArrowRight,
 } from 'lucide-react'
@@ -157,6 +158,8 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
           </p>
           <GhlSyncButton advertiserId={id} />
         </section>
+
+        <PublicReportLinkPanel advertiserId={id} />
       </div>
 
       {/* ── Right column ── deep-dive tiles */}
