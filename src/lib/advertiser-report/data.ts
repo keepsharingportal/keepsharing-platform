@@ -1,29 +1,23 @@
 // Advertiser monthly report — data aggregation.
 //
-// One function: loadAdvertiserReport(advertiserId, since, until). Returns
-// every number we render on the public report at /r/<token>. All sources
-// pulled in parallel; failures degrade gracefully (one missing pipeline
-// shouldn't blank the whole report).
+// Loads everything the public report at /r/<token> renders. Best-in-class
+// version pulls in parallel:
+//   - current-period totals from every signal source (taps, msgs, links,
+//     ads, Facebook campaigns)
+//   - prior-period totals over an equal-length window for period-over-
+//     period comparisons (the renewal-pitch numbers)
+//   - daily trend series for the line chart
+//   - per-source breakdown (which guide listing drove which contact)
+//   - active goals + computed progress %
+//   - auto-generated coaching insights (lines like "your CTR dropped —
+//     consider refreshing your creative")
 //
-// What we collect, by pipeline:
-//
-//   FIRST-PARTY (we own the data, real-time)
-//     - listing_contact_events     phone taps / mailto / website click-throughs
-//     - listing_messages           form-fill inquiries with advertiser_account_id
-//     - short_links + click_count  cumulative clicks on the advertiser's links
-//     - ad_events                  on-site ad impressions + clicks
-//
-//   THIRD-PARTY (ingested nightly via Meta Marketing API)
-//     - facebook_campaign_metrics_daily   spend / impressions / clicks / results
-//
-// What the report shows up top — the value strip:
-//   leads (form fills) + phone taps + total link clicks + QR scans
-// Those are the dollars-of-business-equivalent numbers.
-//
-// Impressions sit below as supporting detail. They tell us how much reach
-// the dollars bought; they don't lead the story.
+// Headline numbers are the dollars-of-business equivalents: leads,
+// phone taps, link clicks, scans. Impressions get a smaller detail
+// block below — they're context, not the headline.
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { computeChange, type PeriodChange } from '@/lib/admin/period-compare'
 
 export interface AdvertiserReportData {
   advertiser: {
@@ -38,30 +32,37 @@ export interface AdvertiserReportData {
     until: string         // 'YYYY-MM-DD'
     days:  number
   }
+  /** Prior period (same length, immediately before current). */
+  priorRange: {
+    since: string
+    until: string
+    days:  number
+  }
   /** Headline numbers — what the advertiser actually bought this period. */
   headline: {
-    phoneTaps:        number
-    websiteClicks:    number
-    emailOpens:       number
-    formInquiries:    number
-    shortLinkClicks:  number
-    facebookResults:  number      // leads / conversions / link clicks per FB campaign objective
+    phoneTaps:        PeriodChange
+    websiteClicks:    PeriodChange
+    emailOpens:       PeriodChange
+    formInquiries:    PeriodChange
+    shortLinkClicks:  number              // cumulative, not period-deltable
+    facebookResults:  PeriodChange
   }
   /** Reach — the impression / spend story. Supporting detail. */
   reach: {
     onSiteAdImpressions: number
     onSiteAdClicks:      number
     onSiteAdCtr:         number       // as percentage (e.g. 1.23 = 1.23%)
-    facebookSpend:       number       // dollars
-    facebookImpressions: number
+    facebookSpend:       PeriodChange   // dollars
+    facebookImpressions: PeriodChange
     facebookReach:       number
-    facebookClicks:      number
+    facebookClicks:      PeriodChange
     facebookCpc:         number | null
     facebookCtr:         number | null
   }
+  /** Daily totals for the line chart — date string + actions count. */
+  trend: Array<{ date: string; actions: number }>
   /** Per-source breakdowns, for the detail sections beneath the headline. */
   details: {
-    /** One row per listing where contact taps occurred. */
     listingTaps: Array<{
       source_listing_id: string | null
       source_path:       string | null
@@ -70,7 +71,6 @@ export interface AdvertiserReportData {
       website:           number
       total:             number
     }>
-    /** One row per inbound form fill. */
     inquiries: Array<{
       id:           string
       created_at:   string
@@ -78,7 +78,6 @@ export interface AdvertiserReportData {
       parent_email: string
       message:      string
     }>
-    /** One row per active short link, sorted by clicks desc. */
     shortLinks: Array<{
       id:           string
       shortcode:    string
@@ -87,7 +86,6 @@ export interface AdvertiserReportData {
       channel:      string | null
       click_count:  number
     }>
-    /** One row per Facebook campaign that had spend or activity in range. */
     facebookCampaigns: Array<{
       campaign_id:  string
       name:         string
@@ -101,16 +99,50 @@ export interface AdvertiserReportData {
       cost_per_result: number | null
     }>
   }
+  /** Goals set by admin — progress is computed from current totals. */
+  goals: Array<{
+    id:           string
+    metric:       string
+    target:       number
+    current:      number
+    pct:          number               // 0–100+
+    period_start: string
+    period_end:   string
+    notes:        string | null
+  }>
+  /** Auto-generated coaching lines. Each one a short, plain-language
+   *  insight the advertiser can act on. */
+  coaching: Array<{
+    tone: 'positive' | 'warning' | 'info'
+    text: string
+  }>
+}
+
+function isoTs(date: string, end = false) {
+  return end ? `${date}T23:59:59Z` : `${date}T00:00:00Z`
+}
+
+function priorWindow(since: string, until: string): { since: string; until: string; days: number } {
+  const sinceMs = new Date(`${since}T00:00:00Z`).getTime()
+  const untilMs = new Date(`${until}T00:00:00Z`).getTime()
+  const days = Math.max(1, Math.round((untilMs - sinceMs) / 86_400_000) + 1)
+  const priorEndMs   = sinceMs - 86_400_000
+  const priorStartMs = priorEndMs - (days - 1) * 86_400_000
+  return {
+    since: new Date(priorStartMs).toISOString().slice(0, 10),
+    until: new Date(priorEndMs).toISOString().slice(0, 10),
+    days,
+  }
 }
 
 export async function loadAdvertiserReport(
   advertiserId: string,
-  since:        string,                  // 'YYYY-MM-DD'
-  until:        string,                  // 'YYYY-MM-DD'
+  since:        string,
+  until:        string,
 ): Promise<AdvertiserReportData | null> {
   const supabase = createAdminClient()
+  const prior = priorWindow(since, until)
 
-  // ── Advertiser identity ─────────────────────────────────────────────────
   const advRes = await supabase
     .from('advertiser_accounts')
     .select('id, business_name, slug, contact_email, website_url')
@@ -119,91 +151,81 @@ export async function loadAdvertiserReport(
   if (advRes.error || !advRes.data) return null
   const advertiser = advRes.data as AdvertiserReportData['advertiser']
 
-  // Date-range bounds for timestamp columns. We pass YYYY-MM-DD strings to
-  // Postgres which it casts; the range is INCLUSIVE on both ends, with
-  // `until` extending to end-of-day so today's events count.
-  const sinceTs = `${since}T00:00:00Z`
-  const untilTs = `${until}T23:59:59Z`
-
-  // ── Pull every source in parallel ────────────────────────────────────────
+  // ── Pull current + prior windows for every source in parallel ──────────
   const [
-    contactEventsRes,
-    inquiriesRes,
+    curEventsRes, priEventsRes,
+    curMsgRes,    priMsgRes,
     shortLinksRes,
     adPlacementsRes,
     fbCampaignsRes,
+    goalsRes,
   ] = await Promise.all([
-    supabase
-      .from('listing_contact_events')
-      .select('event_type, source_listing_id, source_path')
+    supabase.from('listing_contact_events')
+      .select('event_type, source_listing_id, source_path, occurred_at')
       .eq('advertiser_id', advertiserId)
-      .gte('occurred_at', sinceTs)
-      .lte('occurred_at', untilTs)
-      .limit(10_000),
-    supabase
-      .from('listing_messages')
+      .gte('occurred_at', isoTs(since))
+      .lte('occurred_at', isoTs(until, true))
+      .limit(20_000),
+    supabase.from('listing_contact_events')
+      .select('event_type')
+      .eq('advertiser_id', advertiserId)
+      .gte('occurred_at', isoTs(prior.since))
+      .lte('occurred_at', isoTs(prior.until, true))
+      .limit(20_000),
+    supabase.from('listing_messages')
       .select('id, created_at, parent_name, parent_email, message')
       .eq('advertiser_account_id', advertiserId)
-      .gte('created_at', sinceTs)
-      .lte('created_at', untilTs)
+      .gte('created_at', isoTs(since))
+      .lte('created_at', isoTs(until, true))
       .order('created_at', { ascending: false })
       .limit(500),
-    supabase
-      .from('short_links')
+    supabase.from('listing_messages')
+      .select('id')
+      .eq('advertiser_account_id', advertiserId)
+      .gte('created_at', isoTs(prior.since))
+      .lte('created_at', isoTs(prior.until, true)),
+    supabase.from('short_links')
       .select('id, shortcode, destination, label, channel, click_count')
       .eq('advertiser_id', advertiserId)
       .eq('is_active', true)
       .order('click_count', { ascending: false })
       .limit(200),
-    supabase
-      .from('ad_placements')
+    supabase.from('ad_placements')
       .select('id, impression_count, click_count')
       .eq('advertiser_account_id', advertiserId),
-    supabase
-      .from('facebook_campaigns')
+    supabase.from('facebook_campaigns')
       .select('fb_campaign_id, name, objective, effective_status')
       .eq('advertiser_id', advertiserId),
+    supabase.from('advertiser_report_goals')
+      .select('*')
+      .eq('advertiser_id', advertiserId)
+      .eq('is_active', true),
   ])
 
-  // FB metrics come from a separate join — pull per-day rows for any
-  // campaign tied to this advertiser, summed in JS so we don't need a
-  // dedicated rollup view.
-  const fbCampaignIds = ((fbCampaignsRes.data ?? []) as Array<{ fb_campaign_id: string }>)
-    .map(c => c.fb_campaign_id)
-  const fbMetricsRes = fbCampaignIds.length > 0
-    ? await supabase
-        .from('facebook_campaign_metrics_daily')
-        .select('fb_campaign_id, day, spend, impressions, reach, clicks, link_clicks, results, cost_per_result')
-        .in('fb_campaign_id', fbCampaignIds)
-        .gte('day', since)
-        .lte('day', until)
-        .limit(10_000)
-    : { data: [] as Array<Record<string, unknown>>, error: null }
+  // ── Roll up listing contact events (current + prior) ───────────────────
+  type Ev = { event_type: string; source_listing_id: string | null; source_path: string | null; occurred_at: string }
+  const curEvents = (curEventsRes.data ?? []) as Ev[]
+  const priEvents = (priEventsRes.data ?? []) as Array<{ event_type: string }>
 
-  // ── Roll up listing contact events ──────────────────────────────────────
-  const taps = {
-    tel:     0,
-    mailto:  0,
-    website: 0,
+  const curTaps = { tel: 0, mailto: 0, website: 0 }
+  const priTaps = { tel: 0, mailto: 0, website: 0 }
+  for (const e of curEvents) {
+    if (e.event_type === 'tel')     curTaps.tel++
+    if (e.event_type === 'mailto')  curTaps.mailto++
+    if (e.event_type === 'website') curTaps.website++
   }
-  const listingTapMap = new Map<string, AdvertiserReportData['details']['listingTaps'][number]>()
-  for (const ev of (contactEventsRes.data ?? []) as Array<{ event_type: string; source_listing_id: string | null; source_path: string | null }>) {
-    if (ev.event_type === 'tel')     taps.tel++
-    if (ev.event_type === 'mailto')  taps.mailto++
-    if (ev.event_type === 'website') taps.website++
+  for (const e of priEvents) {
+    if (e.event_type === 'tel')     priTaps.tel++
+    if (e.event_type === 'mailto')  priTaps.mailto++
+    if (e.event_type === 'website') priTaps.website++
+  }
+
+  // Per-source listing breakdown.
+  const listingTapMap = new Map<string, { source_listing_id: string | null; source_path: string | null; tel: number; mailto: number; website: number; total: number }>()
+  for (const ev of curEvents) {
     const key = ev.source_listing_id ?? `path:${ev.source_path ?? '(unknown)'}`
     let row = listingTapMap.get(key)
-    if (!row) {
-      row = {
-        source_listing_id: ev.source_listing_id,
-        source_path:       ev.source_path,
-        tel:     0,
-        mailto:  0,
-        website: 0,
-        total:   0,
-      }
-      listingTapMap.set(key, row)
-    }
+    if (!row) { row = { source_listing_id: ev.source_listing_id, source_path: ev.source_path, tel: 0, mailto: 0, website: 0, total: 0 }; listingTapMap.set(key, row) }
     if (ev.event_type === 'tel')     row.tel++
     if (ev.event_type === 'mailto')  row.mailto++
     if (ev.event_type === 'website') row.website++
@@ -211,73 +233,72 @@ export async function loadAdvertiserReport(
   }
   const listingTaps = Array.from(listingTapMap.values()).sort((a, b) => b.total - a.total)
 
-  // ── Inquiries ──────────────────────────────────────────────────────────
-  const inquiries = (inquiriesRes.data ?? []) as AdvertiserReportData['details']['inquiries']
+  // Inquiries
+  const inquiries = (curMsgRes.data ?? []) as AdvertiserReportData['details']['inquiries']
+  const priInquiries = (priMsgRes.data ?? []) as Array<{ id: string }>
 
-  // ── Short links ─────────────────────────────────────────────────────────
-  // click_count is cumulative since the link was minted — we don't have
-  // per-day granularity yet, so the report column shows lifetime clicks
-  // alongside a footnote. Future migration adds a daily clicks table.
-  const shortLinks    = (shortLinksRes.data ?? []) as AdvertiserReportData['details']['shortLinks']
-  const shortLinkSum  = shortLinks.reduce((sum, l) => sum + (l.click_count ?? 0), 0)
+  // Short links — lifetime totals (no daily granularity yet; see backlog)
+  const shortLinks   = (shortLinksRes.data ?? []) as AdvertiserReportData['details']['shortLinks']
+  const shortLinkSum = shortLinks.reduce((sum, l) => sum + (l.click_count ?? 0), 0)
 
-  // ── On-site ad impressions/clicks ───────────────────────────────────────
-  // ad_placements.impression_count + click_count are cumulative columns
-  // (same caveat as short links). For per-period precision we'd need to
-  // query ad_events; this is good enough for v1 and matches what /admin/
-  // intelligence already shows.
+  // On-site ads (lifetime; same caveat)
   type AdRow = { impression_count: number | null; click_count: number | null }
   const adRows = (adPlacementsRes.data ?? []) as AdRow[]
   const adImpressions = adRows.reduce((s, p) => s + (p.impression_count ?? 0), 0)
   const adClicks      = adRows.reduce((s, p) => s + (p.click_count      ?? 0), 0)
 
-  // ── Facebook campaign rollup ────────────────────────────────────────────
-  type FbMetricsRow = {
-    fb_campaign_id: string
-    spend: number | null
-    impressions: number | null
-    reach: number | null
-    clicks: number | null
-    link_clicks: number | null
-    results: number | null
-    cost_per_result: number | null
+  // ── Facebook campaign + metrics ─────────────────────────────────────────
+  const fbCampaignIds = ((fbCampaignsRes.data ?? []) as Array<{ fb_campaign_id: string }>).map(c => c.fb_campaign_id)
+  const [curFbRes, priFbRes] = await Promise.all([
+    fbCampaignIds.length > 0
+      ? supabase.from('facebook_campaign_metrics_daily')
+          .select('fb_campaign_id, day, spend, impressions, reach, clicks, link_clicks, results, cost_per_result')
+          .in('fb_campaign_id', fbCampaignIds)
+          .gte('day', since).lte('day', until)
+          .limit(10_000)
+      : { data: [] as Array<Record<string, unknown>>, error: null },
+    fbCampaignIds.length > 0
+      ? supabase.from('facebook_campaign_metrics_daily')
+          .select('spend, impressions, clicks, results')
+          .in('fb_campaign_id', fbCampaignIds)
+          .gte('day', prior.since).lte('day', prior.until)
+          .limit(10_000)
+      : { data: [] as Array<Record<string, unknown>>, error: null },
+  ])
+  type FbDaily = { fb_campaign_id: string; day: string; spend: number | null; impressions: number | null; reach: number | null; clicks: number | null; link_clicks: number | null; results: number | null; cost_per_result: number | null }
+  const curFb = (curFbRes.data ?? []) as FbDaily[]
+  const priFb = (priFbRes.data ?? []) as Array<{ spend: number | null; impressions: number | null; clicks: number | null; results: number | null }>
+
+  const curFbTotals = { spend: 0, impressions: 0, reach: 0, clicks: 0, linkClicks: 0, results: 0 }
+  for (const m of curFb) {
+    curFbTotals.spend       += Number(m.spend       ?? 0)
+    curFbTotals.impressions += Number(m.impressions ?? 0)
+    curFbTotals.reach        = Math.max(curFbTotals.reach, Number(m.reach ?? 0))
+    curFbTotals.clicks      += Number(m.clicks      ?? 0)
+    curFbTotals.linkClicks  += Number(m.link_clicks ?? 0)
+    curFbTotals.results     += Number(m.results     ?? 0)
   }
-  const fbMetrics = (fbMetricsRes.data ?? []) as FbMetricsRow[]
-  const fbTotals = {
-    spend:       0,
-    impressions: 0,
-    reach:       0,
-    clicks:      0,
-    linkClicks:  0,
-    results:     0,
+  const priFbTotals = { spend: 0, impressions: 0, clicks: 0, results: 0 }
+  for (const m of priFb) {
+    priFbTotals.spend       += Number(m.spend       ?? 0)
+    priFbTotals.impressions += Number(m.impressions ?? 0)
+    priFbTotals.clicks      += Number(m.clicks      ?? 0)
+    priFbTotals.results     += Number(m.results     ?? 0)
   }
+
   const fbByCampaign = new Map<string, AdvertiserReportData['details']['facebookCampaigns'][number]>()
   const fbCampaignMeta = new Map<string, { name: string; objective: string | null; status: string | null }>()
   for (const c of (fbCampaignsRes.data ?? []) as Array<{ fb_campaign_id: string; name: string; objective: string | null; effective_status: string | null }>) {
     fbCampaignMeta.set(c.fb_campaign_id, { name: c.name, objective: c.objective, status: c.effective_status })
   }
-  for (const m of fbMetrics) {
-    fbTotals.spend       += Number(m.spend       ?? 0)
-    fbTotals.impressions += Number(m.impressions ?? 0)
-    fbTotals.reach        = Math.max(fbTotals.reach, Number(m.reach ?? 0))   // reach isn't summable across days
-    fbTotals.clicks      += Number(m.clicks      ?? 0)
-    fbTotals.linkClicks  += Number(m.link_clicks ?? 0)
-    fbTotals.results     += Number(m.results     ?? 0)
-
+  for (const m of curFb) {
     let row = fbByCampaign.get(m.fb_campaign_id)
     const meta = fbCampaignMeta.get(m.fb_campaign_id)
     if (!row) {
       row = {
-        campaign_id:    m.fb_campaign_id,
-        name:           meta?.name ?? '(unknown campaign)',
-        objective:      meta?.objective ?? null,
-        status:         meta?.status ?? null,
-        spend:          0,
-        impressions:    0,
-        clicks:         0,
-        link_clicks:    0,
-        results:        0,
-        cost_per_result: null,
+        campaign_id: m.fb_campaign_id, name: meta?.name ?? '(unknown campaign)',
+        objective: meta?.objective ?? null, status: meta?.status ?? null,
+        spend: 0, impressions: 0, clicks: 0, link_clicks: 0, results: 0, cost_per_result: null,
       }
       fbByCampaign.set(m.fb_campaign_id, row)
     }
@@ -290,50 +311,123 @@ export async function loadAdvertiserReport(
   for (const row of fbByCampaign.values()) {
     row.cost_per_result = row.results > 0 ? row.spend / row.results : null
   }
-  const facebookCampaigns = Array.from(fbByCampaign.values())
-    .sort((a, b) => b.spend - a.spend)
+  const facebookCampaigns = Array.from(fbByCampaign.values()).sort((a, b) => b.spend - a.spend)
 
-  // ── Date math + return ──────────────────────────────────────────────────
-  const days = Math.max(1, Math.round(
-    (new Date(`${until}T00:00:00Z`).getTime() - new Date(`${since}T00:00:00Z`).getTime()) / 86_400_000,
-  ) + 1)
+  // ── Daily trend series — total actions per day ─────────────────────────
+  const trendMap = new Map<string, number>()
+  for (const e of curEvents) {
+    const day = e.occurred_at.slice(0, 10)
+    trendMap.set(day, (trendMap.get(day) ?? 0) + 1)
+  }
+  for (const m of inquiries) {
+    const day = m.created_at.slice(0, 10)
+    trendMap.set(day, (trendMap.get(day) ?? 0) + 1)
+  }
+  const sinceMs = new Date(isoTs(since)).getTime()
+  const untilMs = new Date(isoTs(until)).getTime()
+  const trend: Array<{ date: string; actions: number }> = []
+  for (let t = sinceMs; t <= untilMs; t += 86_400_000) {
+    const day = new Date(t).toISOString().slice(0, 10)
+    trend.push({ date: day, actions: trendMap.get(day) ?? 0 })
+  }
 
+  // ── Goals: current progress per active goal in range ───────────────────
+  type GoalRow = { id: string; metric: string; target_value: number; period_start: string; period_end: string; notes: string | null }
+  const goalRows = (goalsRes.data ?? []) as GoalRow[]
+  function metricValue(metric: string): number {
+    switch (metric) {
+      case 'phone_taps':       return curTaps.tel
+      case 'website_clicks':   return curTaps.website
+      case 'email_opens':      return curTaps.mailto
+      case 'form_inquiries':   return inquiries.length
+      case 'short_link_clicks': return shortLinkSum
+      case 'facebook_results': return curFbTotals.results
+      case 'total_engagement': return curTaps.tel + curTaps.website + curTaps.mailto + inquiries.length + shortLinkSum + curFbTotals.results
+      default: return 0
+    }
+  }
+  const goals = goalRows.map(g => {
+    const current = metricValue(g.metric)
+    return {
+      id:           g.id,
+      metric:       g.metric,
+      target:       g.target_value,
+      current,
+      pct:          g.target_value > 0 ? (current / g.target_value) * 100 : 0,
+      period_start: g.period_start,
+      period_end:   g.period_end,
+      notes:        g.notes,
+    }
+  })
+
+  // ── Coaching insights — auto-generated, advertiser-facing language ────
+  const coaching: Array<{ tone: 'positive' | 'warning' | 'info'; text: string }> = []
+  const phoneCh = computeChange(curTaps.tel,     priTaps.tel)
+  const inqCh   = computeChange(inquiries.length, priInquiries.length)
+  const fbCh    = computeChange(curFbTotals.results, priFbTotals.results)
+  const fbSpendCh = computeChange(curFbTotals.spend, priFbTotals.spend)
+
+  if (phoneCh.pctChange !== null && phoneCh.pctChange > 25) {
+    coaching.push({ tone: 'positive', text: `Phone taps up ${phoneCh.pctChange.toFixed(0)}% vs the prior period — momentum is building.` })
+  } else if (phoneCh.pctChange !== null && phoneCh.pctChange < -25) {
+    coaching.push({ tone: 'warning', text: `Phone taps dropped ${Math.abs(phoneCh.pctChange).toFixed(0)}%. Consider refreshing your ad creative or moving up to Featured placement.` })
+  }
+  if (inqCh.pctChange !== null && inqCh.pctChange > 25) {
+    coaching.push({ tone: 'positive', text: `Inquiries up ${inqCh.pctChange.toFixed(0)}% — readers are reaching out at a higher rate.` })
+  }
+  if (fbCh.pctChange !== null && fbSpendCh.pctChange !== null) {
+    if (fbSpendCh.pctChange > 10 && fbCh.pctChange < 0) {
+      coaching.push({ tone: 'warning', text: `You spent more on Facebook but got fewer results. The audience or creative may need attention.` })
+    } else if (fbSpendCh.pctChange < -10 && fbCh.pctChange > 0) {
+      coaching.push({ tone: 'positive', text: `You got more results with less spend — your campaigns are improving efficiency.` })
+    }
+  }
+  if (shortLinkSum === 0 && curFbTotals.spend > 0) {
+    coaching.push({ tone: 'info', text: `No short-link clicks yet. Tag your Facebook ad URLs with a tracked short link to see exactly which campaign drives action.` })
+  }
+  if (curTaps.tel + curTaps.website + curTaps.mailto + inquiries.length === 0 && adImpressions > 0) {
+    coaching.push({ tone: 'warning', text: `Your ad has impressions but no engagement yet. Refreshing the headline or offer often jump-starts contact actions.` })
+  }
+  if (coaching.length === 0) {
+    coaching.push({ tone: 'info', text: `Activity is steady. Keep an eye on this dashboard — a refreshed creative or a new promo can shift the numbers fast.` })
+  }
+
+  // ── Compose ────────────────────────────────────────────────────────────
+  const days = Math.max(1, Math.round((untilMs - sinceMs) / 86_400_000) + 1)
   const onSiteAdCtr = adImpressions > 0 ? (adClicks / adImpressions) * 100 : 0
-  const fbCtr       = fbTotals.impressions > 0 ? (fbTotals.linkClicks / fbTotals.impressions) * 100 : null
-  const fbCpc       = fbTotals.linkClicks > 0 ? fbTotals.spend / fbTotals.linkClicks : null
+  const fbCtr = curFbTotals.impressions > 0 ? (curFbTotals.linkClicks / curFbTotals.impressions) * 100 : null
+  const fbCpc = curFbTotals.linkClicks > 0 ? curFbTotals.spend / curFbTotals.linkClicks : null
 
   return {
     advertiser,
     range: { since, until, days },
+    priorRange: prior,
     headline: {
-      phoneTaps:       taps.tel,
-      websiteClicks:   taps.website,
-      emailOpens:      taps.mailto,
-      formInquiries:   inquiries.length,
+      phoneTaps:       computeChange(curTaps.tel,        priTaps.tel),
+      websiteClicks:   computeChange(curTaps.website,    priTaps.website),
+      emailOpens:      computeChange(curTaps.mailto,     priTaps.mailto),
+      formInquiries:   computeChange(inquiries.length,   priInquiries.length),
       shortLinkClicks: shortLinkSum,
-      facebookResults: fbTotals.results,
+      facebookResults: computeChange(curFbTotals.results, priFbTotals.results),
     },
     reach: {
       onSiteAdImpressions: adImpressions,
       onSiteAdClicks:      adClicks,
       onSiteAdCtr,
-      facebookSpend:       fbTotals.spend,
-      facebookImpressions: fbTotals.impressions,
-      facebookReach:       fbTotals.reach,
-      facebookClicks:      fbTotals.clicks,
+      facebookSpend:       computeChange(Math.round(curFbTotals.spend * 100), Math.round(priFbTotals.spend * 100)),
+      facebookImpressions: computeChange(curFbTotals.impressions, priFbTotals.impressions),
+      facebookReach:       curFbTotals.reach,
+      facebookClicks:      computeChange(curFbTotals.clicks, priFbTotals.clicks),
       facebookCpc:         fbCpc,
       facebookCtr:         fbCtr,
     },
-    details: {
-      listingTaps,
-      inquiries,
-      shortLinks,
-      facebookCampaigns,
-    },
+    trend,
+    details: { listingTaps, inquiries, shortLinks, facebookCampaigns },
+    goals,
+    coaching,
   }
 }
 
-// Helpers for the date-range parser used by the page.
 export function defaultRange(): { since: string; until: string } {
   const until = new Date()
   const since = new Date(until); since.setUTCDate(since.getUTCDate() - 29)
