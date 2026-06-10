@@ -74,12 +74,14 @@ function OverallSummary({ health }: { health: EcosystemHealth }) {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export function EcosystemHealthBar({ health }: { health: EcosystemHealth }) {
+export function EcosystemHealthBar({ health, showBusinessWidgets = true }: { health: EcosystemHealth; showBusinessWidgets?: boolean }) {
+  // Partner (advertiser/sponsor) health is business-side data; hidden from
+  // non-admin tiers so it doesn't leak the existence of that signal.
   const areas: HealthArea[] = [
     health.editorial,
     health.community,
     health.newsletter,
-    health.partner,
+    ...(showBusinessWidgets ? [health.partner] : []),
     health.social,
     ...(health.familyFavs ? [health.familyFavs] : []),
   ]

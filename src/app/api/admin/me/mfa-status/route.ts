@@ -31,12 +31,27 @@ export async function POST(req: NextRequest) {
   try { ctx = await requireAdmin() }
   catch (e) { if (e instanceof Response) return e; throw e }
 
-  const body = await req.json().catch(() => null) as { enabled?: boolean } | null
+  const body = await req.json().catch(() => null) as { enabled?: boolean; mode?: string } | null
   if (!body || typeof body.enabled !== 'boolean') {
     return NextResponse.json({ error: 'enabled (boolean) required' }, { status: 400 })
   }
 
   const supabase = supabaseAdmin()
+
+  // Sync mode is the self-healing backfill from /admin/settings/security: only
+  // stamp if there isn't already one. Without this, every page load would push
+  // the "added" date forward.
+  if (body.mode === 'sync' && body.enabled) {
+    const { data: existing } = await supabase
+      .from('admin_users')
+      .select('mfa_enabled_at')
+      .eq('id', ctx.adminId)
+      .maybeSingle()
+    if ((existing as { mfa_enabled_at: string | null } | null)?.mfa_enabled_at) {
+      return NextResponse.json({ success: true, skipped: 'already_stamped' })
+    }
+  }
+
   const { error } = await supabase
     .from('admin_users')
     .update({
@@ -50,6 +65,7 @@ export async function POST(req: NextRequest) {
     action:       body.enabled ? 'user.mfa_enrolled' : 'user.mfa_removed',
     target_table: 'admin_users',
     target_id:    ctx.adminId,
+    meta:         body.mode ? { mode: body.mode } : null,
   })
 
   return NextResponse.json({ success: true })

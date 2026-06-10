@@ -1,4 +1,5 @@
 import { AlertCircle, Clock, Inbox, Activity, LayoutGrid } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
 import { UrgentItemsList, type UrgentItem } from '@/components/today/UrgentItemsList'
@@ -155,11 +156,26 @@ export default async function TodayPage() {
 
   const supabase = await createClient()
 
-  // Master backlog is super-admin only — it carries unfinished phase
-  // notes + Stripe/GHL plumbing items that publishers don't need to
-  // see. Falls back gracefully when the user isn't authenticated yet.
+  // Role-aware gating:
+  //   - Editors don't get the Today dashboard at all. Their daily work lives
+  //     in the article queue; bouncing them here means they land somewhere
+  //     useful instead of staring at an executive command center they can't
+  //     act on (and that would leak cross-brand + advertiser data).
+  //   - Publishers see Today but scoped to their allowed_markets and with
+  //     the business-side widgets (Master Backlog, Advertiser Alerts in Ops
+  //     Command, Partners pill) hidden.
+  //   - Super + Admin see everything as before.
   const adminCtx = await requireAdmin().catch(() => null)
-  const showMasterTodos = adminCtx?.role === 'super'
+  if (adminCtx?.role === 'editor') redirect('/admin/articles')
+
+  const showMasterTodos     = adminCtx?.role === 'super'
+  const showBusinessWidgets = adminCtx?.role === 'super' || adminCtx?.role === 'admin'
+  // Cross-brand tiers see every market; publishers see only their assigned
+  // markets. Publisher's allowedMarkets is the canonical list.
+  const isCrossBrand        = adminCtx?.role === 'super' || adminCtx?.role === 'admin'
+  const visiblePublications = isCrossBrand
+    ? PUBLICATIONS
+    : PUBLICATIONS.filter(p => (adminCtx?.allowedMarkets ?? []).includes(p.slug))
 
   const [marketStats, actionItems, incoming, opsSnapshot] = await Promise.all([
     getMarketPulse(),
@@ -174,7 +190,9 @@ export default async function TodayPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="bg-white border-b border-portal-border px-6 py-4">
-        <h1 className="text-xl font-semibold text-portal-text">Good morning, Jason.</h1>
+        <h1 className="text-xl font-semibold text-portal-text">
+          Good morning, {adminCtx?.fullName?.split(' ')[0] ?? adminCtx?.email?.split('@')[0] ?? 'there'}.
+        </h1>
         <p className="text-sm text-portal-sub mt-0.5">{today}</p>
       </div>
 
@@ -191,7 +209,7 @@ export default async function TodayPage() {
             <FocusHeader />
             <div className="space-y-3">
               <PublisherFocusPanel actions={focusActions} />
-              <EcosystemHealthBar health={ecosystemHealth} />
+              <EcosystemHealthBar health={ecosystemHealth} showBusinessWidgets={showBusinessWidgets} />
             </div>
           </section>
         )}
@@ -200,7 +218,7 @@ export default async function TodayPage() {
         <section>
           <SectionHeader icon={Activity} label="Market Pulse — This Month" color="text-portal-muted" />
           <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
-            {PUBLICATIONS.map(pub => {
+            {visiblePublications.map(pub => {
               const stats = marketStats[pub.abbrev]
               return (
                 <div key={pub.abbrev} className="bg-white rounded-lg border border-portal-border p-4 hover:shadow-sm transition-shadow">
@@ -244,7 +262,7 @@ export default async function TodayPage() {
         {opsSnapshot && (
           <section>
             <SectionHeader icon={LayoutGrid} label="Ops Command" color="text-portal-muted" />
-            <OpsCommandGrid snapshot={opsSnapshot} />
+            <OpsCommandGrid snapshot={opsSnapshot} showBusinessWidgets={showBusinessWidgets} />
           </section>
         )}
 

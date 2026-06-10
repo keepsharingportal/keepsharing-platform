@@ -321,15 +321,18 @@ export function AiTasksBar({ count }: { count: number }) {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export function OpsCommandGrid({ snapshot }: { snapshot: OpsSnapshot }) {
+export function OpsCommandGrid({ snapshot, showBusinessWidgets = true }: { snapshot: OpsSnapshot; showBusinessWidgets?: boolean }) {
   return (
     <div className="space-y-3">
-      {/* 6-panel grid */}
+      {/* 6-panel grid — Advertiser Alerts is business-side data (Jason's
+          channel for sponsor health, contract issues, etc.); hidden from
+          publisher / editor tiers so we don't leak the existence of that
+          surface. */}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
         <InboxPanel     s={snapshot} />
         <EditorialPanel s={snapshot} />
         <AssetsPanel    s={snapshot} />
-        <AdvertiserPanel s={snapshot} />
+        {showBusinessWidgets && <AdvertiserPanel s={snapshot} />}
         <SocialPanel    s={snapshot} />
         <NewsletterPanel s={snapshot} />
       </div>

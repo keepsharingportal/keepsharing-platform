@@ -43,6 +43,19 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
       const all = ([...(data?.totp ?? []), ...(data?.phone ?? [])] as Factor[])
         .sort((a, b) => (a.status === 'verified' ? -1 : 1))
       setFactors(all)
+      // Self-heal: if Supabase Auth says we have a verified factor but the
+      // admin_users.mfa_enabled_at stamp is missing (the gate's source of
+      // truth), write it now. This backfills users who had 2FA enrolled
+      // before migration 140 introduced the stamp column.
+      const hasVerified = all.some(f => f.status === 'verified')
+      if (hasVerified) {
+        // Fire-and-forget — server side handles idempotency.
+        fetch('/api/admin/me/mfa-status', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ enabled: true, mode: 'sync' }),
+        }).catch(() => {})
+      }
     } finally { setLoading(false) }
   }
 
