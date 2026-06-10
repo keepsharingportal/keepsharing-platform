@@ -1,126 +1,147 @@
 // ── /admin/analytics ────────────────────────────────────────────────────────
-// Index of first-party analytics surfaces. Plausible covers the marketing-
-// style stats (referrers, country, device, top external links) — these
-// reports lean into joins Plausible can't do natively: which articles
-// are getting read, which pages drive listing taps, etc.
+// Overview — the morning dashboard. Every number compares the current
+// period against the prior period of equal length, so you see momentum
+// not just snapshots.
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { BarChart3, FileText, Newspaper, ChevronRight, ExternalLink } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { parseRange } from '@/lib/admin/date-range'
+import { rangeToTs, withPriorPeriod, computeChange } from '@/lib/admin/period-compare'
+import { AdminDateRangeBar } from '@/components/admin/AdminDateRangeBar'
+import { StatWithChange } from '@/components/admin/StatWithChange'
+import { TopMovers } from './_components/TopMovers'
 
-export const metadata: Metadata = { title: 'Analytics — Admin' }
+export const metadata: Metadata = { title: 'Analytics Overview — Admin' }
 export const dynamic = 'force-dynamic'
 
-interface TileProps {
-  href:        string
-  icon:        React.ElementType
-  title:       string
-  description: string
-  stat?:       { label: string; value: string | number }
+interface PageProps {
+  searchParams: Promise<{ since?: string; until?: string }>
 }
 
-function Tile({ href, icon: Icon, title, description, stat }: TileProps) {
-  return (
-    <Link
-      href={href}
-      className="block bg-white border border-portal-border rounded-lg p-5 hover:shadow-md hover:border-portal-blue/40 transition-all group"
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 rounded-lg bg-portal-blue-lt flex items-center justify-center text-portal-blue">
-          <Icon size={18} />
-        </div>
-        <ChevronRight size={16} className="text-portal-border-2 group-hover:text-portal-blue transition-colors" />
-      </div>
-      <h2 className="text-sm font-bold text-portal-text mb-1">{title}</h2>
-      <p className="text-xs text-portal-sub leading-snug">{description}</p>
-      {stat && (
-        <p className="mt-3 pt-3 border-t border-portal-border text-[11px] text-portal-muted">
-          <span className="font-bold text-portal-text">{typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}</span>
-          {' '}{stat.label}
-        </p>
-      )}
-    </Link>
-  )
-}
-
-const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN
-
-export default async function AnalyticsIndexPage() {
+export default async function AnalyticsOverview({ searchParams }: PageProps) {
+  const current = parseRange(await searchParams)
+  const ranges  = withPriorPeriod(current)
   const supabase = createAdminClient()
 
-  // Quick stats for the header — last 30 days, since most reports default
-  // there. Catch errors so a missing migration on one source doesn't
-  // empty the whole page.
-  const since30 = new Date(); since30.setUTCDate(since30.getUTCDate() - 29)
-  const sinceIso = since30.toISOString()
+  const probe = await supabase.from('page_views').select('id').limit(1)
+  if (probe.error) {
+    return (
+      <div className="p-6 max-w-3xl">
+        <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-5 py-4">
+          <p className="text-sm font-bold text-portal-amber mb-1">Migrations needed</p>
+          <p className="text-sm text-portal-amber leading-relaxed">
+            Apply <code className="bg-portal-amber-lt px-1 rounded">118_page_views.sql</code> and <code className="bg-portal-amber-lt px-1 rounded">146_page_views_attribution.sql</code> to enable analytics.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
-  const [pageViews30, articleViews30] = await Promise.all([
-    supabase.from('page_views').select('id', { count: 'exact', head: true }).gte('viewed_at', sinceIso),
-    supabase.from('article_views').select('id', { count: 'exact', head: true }).gte('viewed_at', sinceIso),
+  // Pull current + prior windows in parallel. Each pulls just the columns
+  // we need for the aggregations — keeps the wire weight tight.
+  const [curRes, priRes, curArticleRes, priArticleRes, curTapsRes, priTapsRes, curMsgRes, priMsgRes] = await Promise.all([
+    supabase.from('page_views').select('session_hash, path, article_id', { count: 'exact' })
+      .gte('viewed_at', rangeToTs(ranges.current).sinceTs)
+      .lte('viewed_at', rangeToTs(ranges.current).untilTs)
+      .limit(100_000),
+    supabase.from('page_views').select('session_hash, path', { count: 'exact' })
+      .gte('viewed_at', rangeToTs(ranges.prior).sinceTs)
+      .lte('viewed_at', rangeToTs(ranges.prior).untilTs)
+      .limit(100_000),
+    supabase.from('article_views').select('article_id, session_id', { count: 'exact' })
+      .gte('viewed_at', rangeToTs(ranges.current).sinceTs)
+      .lte('viewed_at', rangeToTs(ranges.current).untilTs)
+      .limit(100_000),
+    supabase.from('article_views').select('article_id', { count: 'exact' })
+      .gte('viewed_at', rangeToTs(ranges.prior).sinceTs)
+      .lte('viewed_at', rangeToTs(ranges.prior).untilTs)
+      .limit(100_000),
+    supabase.from('listing_contact_events').select('id', { count: 'exact', head: true })
+      .gte('occurred_at', rangeToTs(ranges.current).sinceTs)
+      .lte('occurred_at', rangeToTs(ranges.current).untilTs),
+    supabase.from('listing_contact_events').select('id', { count: 'exact', head: true })
+      .gte('occurred_at', rangeToTs(ranges.prior).sinceTs)
+      .lte('occurred_at', rangeToTs(ranges.prior).untilTs),
+    supabase.from('listing_messages').select('id', { count: 'exact', head: true })
+      .gte('created_at', rangeToTs(ranges.current).sinceTs)
+      .lte('created_at', rangeToTs(ranges.current).untilTs),
+    supabase.from('listing_messages').select('id', { count: 'exact', head: true })
+      .gte('created_at', rangeToTs(ranges.prior).sinceTs)
+      .lte('created_at', rangeToTs(ranges.prior).untilTs),
   ])
 
+  // Roll up unique visitors per window.
+  const curRows = (curRes.data ?? []) as Array<{ session_hash: string; path: string; article_id: string | null }>
+  const priRows = (priRes.data ?? []) as Array<{ session_hash: string; path: string }>
+  const curArtRows = (curArticleRes.data ?? []) as Array<{ article_id: string; session_id: string }>
+
+  const curUnique  = new Set(curRows.map(r => r.session_hash)).size
+  const priUnique  = new Set(priRows.map(r => r.session_hash)).size
+  const curViews   = curRes.count ?? 0
+  const priViews   = priRes.count ?? 0
+  const curArticle = curArticleRes.count ?? 0
+  const priArticle = priArticleRes.count ?? 0
+  const curArticleReaders = new Set(curArtRows.map(r => r.session_id)).size
+  const curTaps    = curTapsRes.count   ?? 0
+  const priTaps    = priTapsRes.count   ?? 0
+  const curMsgs    = curMsgRes.count    ?? 0
+  const priMsgs    = priMsgRes.count    ?? 0
+
+  // Conversion rates — taps + messages relative to article readers (the
+  // population that engaged with content). Article readers is a better
+  // denominator than total visitors because bouncers couldn't convert.
+  const curConvRate = curArticleReaders > 0 ? ((curTaps + curMsgs) / curArticleReaders) * 100 : 0
+
   return (
-    <div className="flex-1 overflow-y-auto bg-portal-bg">
-      <div className="bg-white border-b border-portal-border px-6 py-4">
-        <h1 className="portal-page-title">Analytics</h1>
-        <p className="portal-page-subtitle">First-party reporting on the public site. Plausible covers marketing stats; these reports go deeper into our own data.</p>
+    <div className="p-6 max-w-6xl space-y-5">
+      <AdminDateRangeBar since={ranges.current.since} until={ranges.current.until} />
+
+      <p className="text-[11px] text-portal-muted">
+        Comparing <strong className="text-portal-text">{ranges.current.since} → {ranges.current.until}</strong>
+        {' '}against the prior <strong className="text-portal-text">{ranges.prior.since} → {ranges.prior.until}</strong> ({ranges.current.days} days).
+      </p>
+
+      {/* Hero row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatWithChange
+          label="Unique visitors"
+          value={curUnique}
+          change={computeChange(curUnique, priUnique)}
+          sublabel="Distinct daily sessions"
+        />
+        <StatWithChange
+          label="Page views"
+          value={curViews}
+          change={computeChange(curViews, priViews)}
+          sublabel="Total site-wide"
+        />
+        <StatWithChange
+          label="Article reads"
+          value={curArticle}
+          change={computeChange(curArticle, priArticle)}
+          sublabel="Editorial engagement"
+        />
+        <StatWithChange
+          label="Reader conversions"
+          value={`${curConvRate.toFixed(1)}%`}
+          change={computeChange(curTaps + curMsgs, priTaps + priMsgs)}
+          sublabel={`${(curTaps + curMsgs).toLocaleString()} taps + inquiries`}
+        />
       </div>
 
-      <div className="p-6 max-w-5xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Tile
-            href="/admin/analytics/pages"
-            icon={BarChart3}
-            title="Top pages"
-            description="Most-visited pages site-wide. Filterable by date range — see what readers are clicking the most this week, month, or quarter."
-            stat={{ label: 'page views · last 30 days', value: pageViews30.count ?? 0 }}
-          />
-          <Tile
-            href="/admin/analytics/articles"
-            icon={Newspaper}
-            title="Top articles"
-            description="Most-viewed published articles by section + column. Drives editorial decisions: what stories to commission more of."
-            stat={{ label: 'article views · last 30 days', value: articleViews30.count ?? 0 }}
-          />
-          <Tile
-            href="/admin/school-news/schools/report"
-            icon={FileText}
-            title="School engagement"
-            description="Per-school reader opens + clicks. Tells you which communities are most engaged and where outreach is needed."
-          />
-        </div>
+      {/* Top movers — articles that gained or lost the most week-over-week.
+          Computed client-side from the same rows we already loaded above
+          so we don't pay for an extra round-trip. */}
+      <TopMovers
+        currentRows={curArtRows}
+        priorWindowStart={rangeToTs(ranges.prior).sinceTs}
+        priorWindowEnd={rangeToTs(ranges.prior).untilTs}
+      />
 
-        {/* Plausible embed / link-out */}
-        <section className="mt-8">
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div>
-                <h2 className="text-sm font-bold text-portal-text">Plausible (marketing analytics)</h2>
-                <p className="text-xs text-portal-sub mt-1 leading-relaxed">
-                  Where readers came from, country/device breakdown, top external links, conversion funnels.
-                  Lives at plausible.io — the script is loaded site-wide.
-                </p>
-              </div>
-              {PLAUSIBLE_DOMAIN && (
-                <a
-                  href={`https://plausible.io/${encodeURIComponent(PLAUSIBLE_DOMAIN)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-portal-blue text-white rounded-lg hover:bg-portal-blue/90 shrink-0"
-                >
-                  Open Plausible <ExternalLink size={11} />
-                </a>
-              )}
-            </div>
-            {!PLAUSIBLE_DOMAIN && (
-              <p className="text-[11px] text-portal-amber bg-portal-amber-lt border border-portal-amber/30 rounded-lg px-2.5 py-1.5 inline-flex items-center gap-1">
-                Set <code className="font-mono">NEXT_PUBLIC_PLAUSIBLE_DOMAIN</code> in env to enable the Plausible link-out.
-              </p>
-            )}
-          </div>
-        </section>
-      </div>
+      <p className="text-[11px] text-portal-muted leading-relaxed">
+        <strong>Methodology.</strong> Visitors are deduped by daily-rolling session hash from page_views — a returning reader on day 2 counts as new on that day. Article reads come from a separate tracker with 30-day-stable localStorage session IDs, so article counts will look higher per reader than page counts.{' '}
+        <strong>About prior data:</strong> if the platform launched recently or this is your first month, prior-period numbers may be small and percent changes may show as <em>NEW</em> until the next full cycle.
+      </p>
     </div>
   )
 }

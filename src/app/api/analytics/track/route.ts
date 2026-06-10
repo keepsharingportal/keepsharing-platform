@@ -1,90 +1,45 @@
-// POST /api/analytics/track
+// LEGACY — /api/analytics/track
 //
-// First-party pageview tracking. The <ViewTracker /> client component
-// fires this once per pathname change. Dedup is done here (not in DB) so
-// we can use a simple "did this session view this path in the last 30
-// min?" probe — no clever expression indexes that Postgres won't allow.
+// The old page-tracking endpoint. EasyPrivacy (the default block list for
+// uBlock Origin, AdBlock Plus, Brave Shields, etc.) catches the
+// "/analytics/" and "/track" substrings in the path. Empirical comparison
+// against /api/track/article-view (which has a less-obvious path) showed
+// the old endpoint dropping ~75% of visits.
 //
-// Privacy: we hash (ip + day-bucket + user-agent) and store only the
-// truncated digest. The hash rolls over daily so we can't track anyone
-// across days even if we wanted to. No cookies set. No PII stored.
+// This file stays alive as a forwarder so anything that still hits the
+// old URL keeps working — but new fires from ViewTracker go to /api/x/v.
+// Once we're confident no legacy traffic is hitting this, the file can
+// be deleted entirely.
+//
+// IMPORTANT for future engineers: do NOT add the obvious word "analytics"
+// or "track" to any new public tracking endpoint URL. Use neutral paths
+// like /api/x/v or /api/p/h. Same reason: client-side ad blockers.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { checkRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
-interface TrackBody {
-  path?:       string
-  article_id?: string | null
-}
-
-// Routes we never count — admin/api/auth/etc would pollute the auto-
-// trending bar and don't represent real reader interest.
-const EXCLUDED_PREFIXES = ['/admin', '/api', '/auth', '/_next', '/login', '/signout', '/maintenance']
-
-function sessionHash(req: NextRequest): string {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? req.headers.get('x-real-ip')
-    ?? 'unknown'
-  const ua = req.headers.get('user-agent') ?? 'unknown'
-  // Day-bucket so the hash naturally rolls over at midnight UTC; we
-  // can't track anyone across days even if we wanted to.
-  const day = new Date().toISOString().slice(0, 10)
-  return createHash('sha256').update(`${ip}|${day}|${ua}`).digest('hex').slice(0, 32)
-}
-
 export async function POST(req: NextRequest) {
-  const allowed = await checkRateLimit({ scope: 'analytics.track', req, max: 120 })
-  if (!allowed) return new NextResponse(null, { status: 204 })
-
-  let body: TrackBody
+  // Forward the original body to the non-blocked endpoint. We construct
+  // an absolute URL so this works on Vercel's edge correctly.
+  const body = await req.text()
+  const origin = req.nextUrl.origin
   try {
-    body = await req.json()
+    const res = await fetch(`${origin}/api/x/v`, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward original client headers we care about so the new
+        // endpoint can still hash IP+UA and read Referer correctly.
+        'x-forwarded-for': req.headers.get('x-forwarded-for') ?? '',
+        'x-real-ip':       req.headers.get('x-real-ip') ?? '',
+        'user-agent':      req.headers.get('user-agent') ?? '',
+        'referer':         req.headers.get('referer') ?? '',
+      },
+      body,
+    })
+    return new NextResponse(null, { status: res.status })
   } catch {
-    return NextResponse.json({ ok: false }, { status: 400 })
+    return new NextResponse(null, { status: 204 })
   }
-
-  const path = (body.path ?? '').trim()
-  if (!path || !path.startsWith('/')) return NextResponse.json({ ok: false }, { status: 400 })
-  if (EXCLUDED_PREFIXES.some(p => path.startsWith(p))) return NextResponse.json({ ok: true, skipped: 'excluded' })
-
-  // Strip query strings & hash fragments — `?utm=...` and `#section`
-  // shouldn't fragment the trending count for what is the same page.
-  const cleanPath = path.split('?')[0].split('#')[0]
-
-  const hash = sessionHash(req)
-  const supabase = createAdminClient()
-
-  // 30-min dedup window. Index idx_page_views_session_path makes this
-  // a single-row index lookup.
-  const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
-  const { data: existing } = await supabase
-    .from('page_views')
-    .select('id')
-    .eq('session_hash', hash)
-    .eq('path', cleanPath)
-    .gte('viewed_at', cutoff)
-    .limit(1)
-    .maybeSingle()
-
-  if (existing) return NextResponse.json({ ok: true, deduped: true })
-
-  const { error } = await supabase.from('page_views').insert({
-    path:         cleanPath,
-    article_id:   body.article_id ?? null,
-    session_hash: hash,
-  })
-
-  if (error) {
-    // Don't blow up the page — pageview tracking is best-effort. Log so
-    // a Vercel observer can grep for it if the table is missing or RLS
-    // is misconfigured.
-    console.warn('[analytics] page_views insert failed:', error.message)
-    return NextResponse.json({ ok: false }, { status: 500 })
-  }
-
-  return NextResponse.json({ ok: true })
 }
