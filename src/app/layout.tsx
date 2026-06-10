@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Geist, Geist_Mono, Allura } from 'next/font/google'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
@@ -42,9 +43,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       </head>
       <body className="h-full">
-        {/* First-party pageview tracking — feeds the auto-trending bar.
-            Excludes /admin, /api, /auth client- and server-side. */}
-        <ViewTracker />
+        {/* First-party pageview tracking — feeds the auto-trending bar +
+            analytics surface. Wrapped in Suspense because it uses
+            useSearchParams() (to capture UTMs at the URL) which would
+            otherwise opt the whole tree out of static rendering. */}
+        <Suspense fallback={null}>
+          <ViewTracker />
+        </Suspense>
         {children}
       </body>
     </html>
