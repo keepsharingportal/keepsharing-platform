@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { MfaNudgeBanner } from '@/components/admin/MfaNudgeBanner'
 import { getAdminContext } from '@/lib/admin/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Match the Distribution Portal (portal.css) so admin pages share a
 // consistent typographic feel. Only loaded on admin routes; the public
@@ -50,11 +51,39 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // If the user is required to have 2FA and has not enrolled, bounce them
   // to /admin/settings/security where they can complete enrollment. The
   // page itself is in the exempt list so they aren't redirected in a loop.
+  //
+  // Server-side self-heal (important): when the stamp is missing, we
+  // double-check Supabase Auth for an existing verified TOTP factor before
+  // bouncing. Users who enrolled before migration 140 introduced the stamp
+  // have a verified factor in Supabase Auth but no admin_users.mfa_enabled_at.
+  // We backfill the stamp here so they're never bounced again — no need to
+  // rely on the client-side self-heal on /settings/security.
   const ctx = await getAdminContext()
+  let stampedNow = false
+  if (ctx && ctx.requiresMfa && !ctx.mfaEnabledAt) {
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase.auth.admin.mfa.listFactors({ userId: ctx.userId })
+      const hasVerified = (data?.factors ?? []).some(f => f.status === 'verified')
+      if (hasVerified) {
+        await supabase
+          .from('admin_users')
+          .update({ mfa_enabled_at: new Date().toISOString() })
+          .eq('id', ctx.adminId)
+        stampedNow = true
+      }
+    } catch (e) {
+      // Don't let an MFA-list failure black-hole the user from admin —
+      // log and fall through to the regular gate logic.
+      console.error('[mfa-gate] self-heal listFactors failed', e)
+    }
+  }
+
   if (
     ctx &&
     ctx.requiresMfa &&
     !ctx.mfaEnabledAt &&
+    !stampedNow &&
     !MFA_GATE_EXEMPT_PATHS.some(p => pathname.startsWith(p))
   ) {
     redirect('/admin/settings/security?gate=required')
