@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Phone, Globe, MapPin, Clock } from 'lucide-react'
 import type { GuideListing } from './types'
+import { TrackedContactLink } from '@/components/listings/TrackedContactLink'
 
 function fmt(phone: string): string {
   return phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
@@ -80,17 +81,25 @@ export function EnhancedListing({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           {listing.phone && (
-            <a href={`tel:${listing.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--fg-sky, #4a90d9)', textDecoration: 'none' }}>
+            <TrackedContactLink
+              advertiserId={listing.advertiser_id}
+              eventType="tel"
+              sourceListingId={listing.id}
+              href={`tel:${listing.phone}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--fg-sky, #4a90d9)', textDecoration: 'none' }}>
               <Phone size={11} /> {fmt(listing.phone)}
-            </a>
+            </TrackedContactLink>
           )}
           {listing.website && (
-            <a
+            <TrackedContactLink
+              advertiserId={listing.advertiser_id}
+              eventType="website"
+              sourceListingId={listing.id}
               href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
               target="_blank" rel="noopener noreferrer"
               style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: '#888', textDecoration: 'none' }}>
               <Globe size={10} /> Website
-            </a>
+            </TrackedContactLink>
           )}
           <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: 'var(--fg-sky, #4a90d9)', textDecoration: 'none' }}>
             Profile →

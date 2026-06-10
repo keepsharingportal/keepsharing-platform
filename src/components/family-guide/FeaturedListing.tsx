@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Phone, Globe, MapPin, Clock } from 'lucide-react'
 import type { GuideListing } from './types'
+import { TrackedContactLink } from '@/components/listings/TrackedContactLink'
 
 function fmt(phone: string): string {
   return phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
@@ -136,17 +137,25 @@ export function FeaturedListing({
           paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.06)',
         }}>
           {listing.phone && (
-            <a href={`tel:${listing.phone}`} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-              backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white',
-              textDecoration: 'none',
-            }}>
+            <TrackedContactLink
+              advertiserId={listing.advertiser_id}
+              eventType="tel"
+              sourceListingId={listing.id}
+              href={`tel:${listing.phone}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white',
+                textDecoration: 'none',
+              }}>
               <Phone size={13} /> {fmt(listing.phone)}
-            </a>
+            </TrackedContactLink>
           )}
           {listing.website && (
-            <a
+            <TrackedContactLink
+              advertiserId={listing.advertiser_id}
+              eventType="website"
+              sourceListingId={listing.id}
               href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -158,7 +167,7 @@ export function FeaturedListing({
                 textDecoration: 'none', backgroundColor: 'transparent',
               }}>
               <Globe size={13} /> Visit website
-            </a>
+            </TrackedContactLink>
           )}
           <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} style={{
             marginLeft: 'auto', fontSize: 12, fontWeight: 600,

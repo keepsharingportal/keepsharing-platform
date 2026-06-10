@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { ListingBadges } from '@/components/listings/ListingBadges'
 import { ListingMap } from '@/components/listings/ListingMap'
 import { ListingMessageForm } from '@/components/listings/ListingMessageForm'
+import { TrackedContactLink } from '@/components/listings/TrackedContactLink'
 import { SectionRenderer } from '@/components/listings/sections/SectionRenderer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -557,7 +558,9 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                   </div>
                 )}
                 {phone && (
-                  <a
+                  <TrackedContactLink
+                    advertiserId={acct.id}
+                    eventType="tel"
                     href={`tel:${phone.replace(/[^0-9]/g, '')}`}
                     className="flex items-center gap-4 text-base font-medium hover:text-primary transition-colors group"
                   >
@@ -565,10 +568,12 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                       <Phone className="h-5 w-5" />
                     </div>
                     {phone}
-                  </a>
+                  </TrackedContactLink>
                 )}
                 {website && (
-                  <a
+                  <TrackedContactLink
+                    advertiserId={acct.id}
+                    eventType="website"
                     href={website}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -578,10 +583,12 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                       <Globe className="h-5 w-5" />
                     </div>
                     <span className="truncate">{website.replace(/^https?:\/\//, '')}</span>
-                  </a>
+                  </TrackedContactLink>
                 )}
                 {email && (
-                  <a
+                  <TrackedContactLink
+                    advertiserId={acct.id}
+                    eventType="mailto"
                     href={`mailto:${email}`}
                     className="flex items-center gap-4 text-base font-medium hover:text-primary transition-colors group"
                   >
@@ -589,13 +596,21 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                       <Mail className="h-5 w-5" />
                     </div>
                     <span className="truncate">{email}</span>
-                  </a>
+                  </TrackedContactLink>
                 )}
                 {/* CTAs */}
                 <div className="space-y-2.5 pt-2 border-t border-border/50">
                   {website && (
                     <Button asChild className="w-full rounded-full mt-4">
-                      <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
+                      <TrackedContactLink
+                        advertiserId={acct.id}
+                        eventType="website"
+                        href={website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Visit Website
+                      </TrackedContactLink>
                     </Button>
                   )}
                   {showMessageForm && (

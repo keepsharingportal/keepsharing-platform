@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Phone, Globe } from 'lucide-react'
 import type { GuideListing } from './types'
+import { TrackedContactLink } from '@/components/listings/TrackedContactLink'
 
 function fmt(phone: string): string {
   return phone.replace(/[^\d]/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
@@ -23,17 +24,23 @@ export function FreeListing({
       </div>
       <div className="flex items-center gap-3 shrink-0">
         {listing.phone && (
-          <a
+          <TrackedContactLink
+            advertiserId={listing.advertiser_id}
+            eventType="tel"
+            sourceListingId={listing.id}
             href={`tel:${listing.phone}`}
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors whitespace-nowrap"
             title={fmt(listing.phone)}
           >
             <Phone size={11} />
             <span className="hidden sm:inline">{fmt(listing.phone)}</span>
-          </a>
+          </TrackedContactLink>
         )}
         {listing.website && (
-          <a
+          <TrackedContactLink
+            advertiserId={listing.advertiser_id}
+            eventType="website"
+            sourceListingId={listing.id}
             href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -41,7 +48,7 @@ export function FreeListing({
           >
             <Globe size={11} />
             <span className="hidden sm:inline">Website</span>
-          </a>
+          </TrackedContactLink>
         )}
         <Link
           href={`/${guideUrlSlug}/listings/${listing.slug}`}
