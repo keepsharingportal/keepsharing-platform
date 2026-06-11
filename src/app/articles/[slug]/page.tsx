@@ -19,6 +19,7 @@ import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { findArticleBySlug, articleHref } from '@/lib/articles/slug'
+import { loadBrandContext, articleCanonicalUrl } from '@/lib/brand-context'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -41,21 +42,37 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const { slug } = await params
   const supabase = getSupabase()
   // Tolerate legacy rows with non-canonical slugs (capitalization, spaces).
-  const data = await findArticleBySlug<{ title: string; excerpt: string | null }>(
+  const data = await findArticleBySlug<{ title: string; excerpt: string | null; brand_slug: string | null }>(
     supabase,
     slug,
-    'title, excerpt',
+    'title, excerpt, brand_slug',
   )
-  if (!data) return { title: 'Article — River Region Parents' }
+  const ctx = await loadBrandContext()
+  if (!data) return { title: `Article — ${ctx.market.displayName}` }
+
+  // Cross-publish SEO: when this article is being viewed on a syndicated
+  // brand's domain (e.g., ESP showing an article that originated at RRP),
+  // the canonical URL points back to the origin brand. Google attributes
+  // the ranking signal to the origin so duplicate-content penalties don't
+  // erode the platform's overall SEO.
+  const articleBrand = data.brand_slug ?? 'rrp'
+  const canonical = articleCanonicalUrl(
+    { brand_slug: articleBrand, slug },
+    ctx.slug,
+    `/articles/${slug}`,
+  )
+
   return {
-    title:       `${data.title} — River Region Parents`,
+    title:       `${data.title} — ${ctx.market.displayName}`,
     description: data.excerpt ?? undefined,
+    alternates: { canonical },
   }
 }
 
 export default async function ArticleFallbackPage({ params }: PageParams) {
   const { slug } = await params
   const supabase = getSupabase()
+  const brandCtx = await loadBrandContext()
 
   const [articleData, inlineAdRes] = await Promise.all([
     // Slug-tolerant lookup — finds the row even when the DB has a legacy
@@ -76,6 +93,20 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
 
   if (!articleData) {
     console.warn('[/articles/[slug]] no article found for slug:', slug)
+    notFound()
+  }
+
+  // Brand visibility check: an article shows on a brand's site if that
+  // brand is the origin OR appears in syndicated_to_brands. If neither,
+  // 404 — visitors of brand X shouldn't see articles that only belong to
+  // brand Y, even if they guess the URL.
+  const articleBrand        = (articleData as { brand_slug?: string }).brand_slug ?? 'rrp'
+  const articleSyndicatedTo = ((articleData as { syndicated_to_brands?: string[] }).syndicated_to_brands ?? [])
+  const visibleOnThisBrand  = articleBrand === brandCtx.slug || articleSyndicatedTo.includes(brandCtx.slug)
+  if (!visibleOnThisBrand) {
+    console.info('[/articles/[slug]] article exists but not syndicated to current brand', {
+      slug, articleBrand, currentBrand: brandCtx.slug,
+    })
     notFound()
   }
 
@@ -102,12 +133,16 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const guideSlug  = article.guide_slug  as string | null
 
   // Related content — priority: same column → same guide → recent school bits
+  // All "Related" picks are filtered by brand so cross-brand bleed-through
+  // doesn't surface RRP articles in an ESP "Related" rail.
+  const brandFilter = `brand_slug.eq.${brandCtx.slug},syndicated_to_brands.cs.{${brandCtx.slug}}`
   const relatedRes = await (async () => {
     if (columnSlug) {
       const { data } = await supabase.from('guide_articles')
         .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, guide_slug')
         .eq('column_slug', columnSlug)
         .eq('published', true)
+        .or(brandFilter)
         .neq('slug', slug)
         .order('published_at', { ascending: false })
         .limit(4)
@@ -118,6 +153,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
         .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, guide_slug')
         .eq('guide_slug', guideSlug)
         .eq('published', true)
+        .or(brandFilter)
         .neq('slug', slug)
         .order('published_at', { ascending: false })
         .limit(4)
@@ -128,6 +164,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
       .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, guide_slug')
       .eq('column_slug', 'school-bits')
       .eq('published', true)
+      .or(brandFilter)
       .neq('slug', slug)
       .order('published_at', { ascending: false })
       .limit(4)
@@ -140,6 +177,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const { data: trendingData } = await supabase.from('guide_articles')
     .select('id, title, slug, hero_image_url, column_slug, guide_slug, created_at')
     .eq('published', true)
+    .or(brandFilter)
     .neq('slug', slug)
     .order('created_at', { ascending: false })
     .limit(4)

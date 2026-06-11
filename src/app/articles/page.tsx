@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { SCHOOL_ZONE_COLUMN_SLUGS, columnLabel } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -59,12 +60,16 @@ function monthRange(key: string): { start: string; end: string } | null {
   return { start, end }
 }
 
-async function fetchArticles(section: SectionKey, month: MonthKey) {
+async function fetchArticles(section: SectionKey, month: MonthKey, brandSlug: string) {
   const supabase = getSupabase()
+  // Brand filter: show articles where this brand is the origin OR appears
+  // in syndicated_to_brands. The .or() expression uses PostgREST array-
+  // contains syntax — same shape used everywhere via articleBrandFilter().
   let query = supabase
     .from('guide_articles')
-    .select('id, title, slug, excerpt, hero_image_url, author_name, published_at, column_slug, guide_slug')
+    .select('id, title, slug, excerpt, hero_image_url, author_name, published_at, column_slug, guide_slug, brand_slug')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(36)
 
@@ -116,7 +121,8 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
   const activeSection = (SECTIONS.some(s => s.key === sParam) ? sParam : 'all') as SectionKey
   const activeMonth   = (ISSUE_MONTHS.some(m => m.key === mParam) ? mParam : 'all') as MonthKey
 
-  const articles = await fetchArticles(activeSection, activeMonth)
+  const brandCtx = await loadBrandContext()
+  const articles = await fetchArticles(activeSection, activeMonth, brandCtx.slug)
 
   const activeSectionLabel = SECTIONS.find(s => s.key === activeSection)?.label  ?? 'All Articles'
   const activeMonthLabel   = ISSUE_MONTHS.find(m => m.key === activeMonth)?.label ?? 'All Issues'

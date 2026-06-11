@@ -113,7 +113,7 @@ async function fetchArticles(opts: {
 
   let query = supabase
     .from('guide_articles')
-    .select('id, title, slug, published, editorial_review_status, import_status, column_slug, guide_slug, hero_image_url, published_at, source_issue_month, view_count, author_name', { count: 'exact' })
+    .select('id, title, slug, published, editorial_review_status, import_status, column_slug, guide_slug, hero_image_url, published_at, source_issue_month, view_count, author_name, brand_slug, syndicated_to_brands', { count: 'exact' })
   if (hasTrashColumn) {
     query = query.is('deleted_at', null)  // trashed articles only show in /admin/articles/trash
   }

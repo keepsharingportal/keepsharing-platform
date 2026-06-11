@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { COLUMNS, GUIDES, CONTENT_TOPICS, columnToVerticalRowSlug, columnsByVertical, findColumn } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
+import { MARKETS, siblingBrandsInFamily } from '@/lib/markets'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
 import { SpotlightSection } from '@/components/admin/SpotlightSection'
@@ -192,6 +193,13 @@ export default function ArticleEditPage({ params }: Props) {
   // article's primary home if any.
   const [topics, setTopics] = useState<string[]>([])
 
+  // Multi-brand attribution (migration 161). brand_slug = origin (SEO +
+  // canonical URL belong here). syndicated_to_brands = additional brands
+  // that publish this article with rel=canonical back to the origin.
+  const [brandSlug, setBrandSlug] = useState<string>('rrp')
+  const [syndicatedTo, setSyndicatedTo] = useState<string[]>([])
+  const [showCrossFamily, setShowCrossFamily] = useState(false)
+
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
     body: '', author_bio: '',  // author_bio = closing line that renders below the gallery
@@ -273,6 +281,8 @@ export default function ArticleEditPage({ params }: Props) {
         setBaseNotes(cleaned)
         setSchoolRegion(region)
         setTopics(Array.isArray(data.topics) ? data.topics as string[] : [])
+        setBrandSlug((data.brand_slug as string) ?? 'rrp')
+        setSyndicatedTo(Array.isArray(data.syndicated_to_brands) ? data.syndicated_to_brands as string[] : [])
         // Spotlight (Play Ball Athlete / Coach / Volunteer)
         setSpotlightType((data.spotlight_type as string | null) ?? '')
         const sd = data.spotlight_data
@@ -363,6 +373,8 @@ export default function ArticleEditPage({ params }: Props) {
       author_blogger_id:       form.author_blogger_id         || null,
       topics:                  topics.length > 0 ? topics : null,
       auto_post_to_social:     autoPostToSocial,
+      brand_slug:              brandSlug || 'rrp',
+      syndicated_to_brands:    syndicatedTo,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -735,6 +747,85 @@ export default function ArticleEditPage({ params }: Props) {
                   </p>
                 </div>
               </label>
+            </div>
+
+            {/* ── Brand attribution (multi-brand publishing) ── */}
+            <div className="bg-portal-blue-lt/40 border border-portal-blue/30 rounded-lg p-3 space-y-3">
+              <div>
+                <label className="block text-[11px] font-bold text-portal-blue uppercase tracking-wider mb-1.5">Brand (origin)</label>
+                <select
+                  className={sel}
+                  value={brandSlug}
+                  onChange={e => {
+                    setBrandSlug(e.target.value)
+                    // Drop any cross-brand syndication that just became
+                    // cross-family after the origin change, unless the
+                    // editor has the override expanded.
+                    if (!showCrossFamily) {
+                      const sameFamily = new Set(siblingBrandsInFamily(e.target.value).map(b => b.slug))
+                      setSyndicatedTo(prev => prev.filter(s => sameFamily.has(s)))
+                    }
+                  }}
+                >
+                  {MARKETS.map(m => (
+                    <option key={m.slug} value={m.slug}>{m.displayName} ({m.short})</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-portal-muted mt-1 leading-snug">
+                  The brand that owns this article. SEO + rel=canonical point here.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-baseline justify-between mb-1.5">
+                  <label className="block text-[11px] font-bold text-portal-blue uppercase tracking-wider">Cross-publish to</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCrossFamily(s => !s)}
+                    className="text-[10px] text-portal-blue hover:text-portal-blue-dk underline"
+                  >
+                    {showCrossFamily ? 'Show same family only' : 'Show all brands'}
+                  </button>
+                </div>
+                {(() => {
+                  const family = MARKETS.find(m => m.slug === brandSlug)?.family
+                  const candidates = showCrossFamily
+                    ? MARKETS.filter(m => m.slug !== brandSlug)
+                    : siblingBrandsInFamily(brandSlug)
+                  if (candidates.length === 0) {
+                    return <p className="text-[11px] text-portal-muted">No siblings in this brand&apos;s family.</p>
+                  }
+                  return (
+                    <div className="flex flex-wrap gap-1.5">
+                      {candidates.map(m => {
+                        const on = syndicatedTo.includes(m.slug)
+                        const crossFamily = m.family !== family
+                        return (
+                          <button
+                            key={m.slug}
+                            type="button"
+                            onClick={() => setSyndicatedTo(prev =>
+                              on ? prev.filter(s => s !== m.slug) : [...prev, m.slug]
+                            )}
+                            className={`text-[11px] font-bold px-2 py-1 rounded-full border transition-colors ${
+                              on
+                                ? 'bg-portal-blue text-white border-portal-blue'
+                                : 'bg-white text-portal-text border-portal-border hover:border-portal-blue'
+                            }`}
+                            title={crossFamily ? `Cross-family — ${m.family}` : `Same family — ${m.family}`}
+                          >
+                            {m.short}{crossFamily ? ' ⚠' : ''}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
+                <p className="text-[10px] text-portal-muted mt-1 leading-snug">
+                  Additional brands that show this article (with rel=canonical pointing to the origin).
+                  Cross-family picks are marked with ⚠ — usually a mistake unless you mean it.
+                </p>
+              </div>
             </div>
 
             {/* ── Author ── */}

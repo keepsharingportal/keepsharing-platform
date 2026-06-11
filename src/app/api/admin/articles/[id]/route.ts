@@ -47,6 +47,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'profile_image_orig_path',
       // Auto-post to social on publish (migration 157)
       'auto_post_to_social',
+      // Multi-brand attribution (migration 161)
+      'brand_slug',
+      'syndicated_to_brands',
     ]
 
     const update: Record<string, unknown> = {}

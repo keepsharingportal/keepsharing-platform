@@ -21,10 +21,33 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
+import { brandFromHost } from '@/lib/markets'
 
 const FIRST_TOUCH_COOKIE = 'rrp_first_touch'
 const COOKIE_MAX_AGE     = 60 * 60 * 24 * 30 // 30 days
 const LOGIN_PATH         = '/admin/login'
+// Dev override cookie: set rrp_brand_override='boom' (or any brand slug)
+// in your browser to preview a different brand from localhost without
+// editing /etc/hosts. Ignored in production.
+const BRAND_OVERRIDE_COOKIE = 'rrp_brand_override'
+
+/** Resolve the brand for this request. Order:
+ *    1. Dev cookie override (localhost / preview only)
+ *    2. Host header → brand mapping (production, separate domains)
+ *    3. Fallback to RRP (single-domain deploys, dev with no cookie)
+ *  The result is set as `x-brand-slug` on the forwarded request so
+ *  loadBrandContext() in server components can read it without
+ *  re-parsing the host.
+ */
+function resolveBrand(request: NextRequest): string {
+  const host = request.headers.get('host')
+  const isLocalish = !!host && (host.startsWith('localhost') || host.startsWith('127.') || host.endsWith('.vercel.app'))
+  if (isLocalish) {
+    const override = request.cookies.get(BRAND_OVERRIDE_COOKIE)?.value
+    if (override) return override
+  }
+  return brandFromHost(host) ?? 'rrp'
+}
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -52,8 +75,17 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // ── Brand resolution (public site) ─────────────────────────────────────
+  // Stamp x-brand-slug on the forwarded request so server components can
+  // read it via loadBrandContext() without re-parsing the host header.
+  // /api/admin routes are excluded above already; public APIs get the
+  // header too so they can filter by brand if needed.
+  const brandSlug = resolveBrand(request)
+  const forwardedHeaders = new Headers(request.headers)
+  forwardedHeaders.set('x-brand-slug', brandSlug)
+
   // ── UTM first-touch attribution (public site) ──────────────────────────
-  const response = NextResponse.next({ request })
+  const response = NextResponse.next({ request: { headers: forwardedHeaders } })
 
   const url          = request.nextUrl
   const utm_source   = url.searchParams.get('utm_source')

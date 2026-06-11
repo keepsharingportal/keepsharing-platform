@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { editorialStatusInfo, columnLabel, guideLabel } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
+import { marketShort } from '@/lib/markets'
 
 export type SortKey = 'newest' | 'oldest' | 'views' | 'title'
 
@@ -26,6 +27,8 @@ export interface ArticleRow {
   published_at: string | null
   source_issue_month: string | null
   view_count: number | null
+  brand_slug: string | null
+  syndicated_to_brands: string[] | null
 }
 
 interface Props {
@@ -326,8 +329,27 @@ export function ArticleBulkActionsTable({
                   <div className={`w-3 h-3 rounded-full ${dotColor}`} title={dotTitle} />
                 </div>
 
-                {/* Title (with missing-image badge inline) */}
+                {/* Title (with missing-image + brand badges inline) */}
                 <div className="min-w-0 flex items-center gap-2">
+                  {/* Brand badge — origin slug; tooltip lists syndicated brands
+                      if any. Hidden when the article is on the default brand
+                      AND not syndicated anywhere (most rows fit this — keeps
+                      the list visually quiet until multi-brand matters). */}
+                  {a.brand_slug && (a.brand_slug !== 'rrp' || (a.syndicated_to_brands?.length ?? 0) > 0) && (
+                    <span
+                      title={
+                        (a.syndicated_to_brands?.length ?? 0) > 0
+                          ? `${marketShort(a.brand_slug)} → ${a.syndicated_to_brands!.map(marketShort).join(', ')}`
+                          : marketShort(a.brand_slug)
+                      }
+                      className="text-[9px] font-bold uppercase tracking-wider shrink-0 px-1.5 py-0.5 rounded-full border border-portal-blue/30 bg-portal-blue-lt text-portal-blue"
+                    >
+                      {marketShort(a.brand_slug)}
+                      {(a.syndicated_to_brands?.length ?? 0) > 0 && (
+                        <span className="ml-0.5 opacity-70">+{a.syndicated_to_brands!.length}</span>
+                      )}
+                    </span>
+                  )}
                   <p className="text-sm font-semibold text-portal-text truncate">{a.title}</p>
                   {!a.hero_image_url && (
                     <span title="Missing hero image" className="shrink-0">
