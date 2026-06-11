@@ -108,6 +108,17 @@ const NAV: NavItem[] = [
   },
   { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },
   {
+    name: 'Directory',
+    href: '/admin/directory',
+    icon: Building2,
+    children: [
+      { name: 'Listings',     href: '/admin/directory'                },
+      { name: 'New listing',  href: '/admin/directory/new'             },
+      { name: 'Categories',   href: '/admin/directory/categories'      },
+      { name: 'Suggestions',  href: '/admin/directory/suggestions'     },
+    ],
+  },
+  {
     name: 'School Bits',
     href: '/admin/school-news',
     icon: GraduationCap,

@@ -565,7 +565,7 @@ export default async function HomePage() {
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                   <Badge className="bg-primary text-primary-foreground border-none mb-4 font-semibold">Mom to Mom</Badge>
                   <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                    Real stories from River Region moms
+                    Real stories from {brandCtx.market.regionLabel} moms
                   </h1>
                 </div>
               </div>
@@ -628,7 +628,7 @@ export default async function HomePage() {
                 }) : (
                   <div className="py-3 space-y-2.5">
                     {[
-                      { emoji: '🏆', label: 'Teacher of the Month',      desc: 'Nominate an outstanding River Region educator' },
+                      { emoji: '🏆', label: 'Teacher of the Month',      desc: `Nominate an outstanding ${brandCtx.market.regionLabel} educator` },
                       { emoji: '⭐', label: 'Student Achievement',        desc: 'Celebrate a student making a difference'        },
                       { emoji: '❤️', label: 'Grands are the Greatest', desc: 'Honor a grandparent who shapes your family'       },
                     ].map(item => (
@@ -843,7 +843,7 @@ export default async function HomePage() {
                   <Link href="/calendar/submit" className="group flex flex-col items-center justify-center text-center p-4 sm:p-6 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/3 hover:border-primary/40 hover:bg-primary/6 transition-all min-h-[100px]">
                     <CalendarDays className="h-7 w-7 text-primary/50 mb-2.5" />
                     <p className="font-bold text-sm text-foreground mb-1">Submit an Event</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">Share your upcoming event with River Region families</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Share your upcoming event with {brandCtx.market.regionLabel} families</p>
                   </Link>
                   <Link href="/calendar" className="group flex flex-col items-center justify-center text-center p-4 sm:p-6 rounded-2xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-sm transition-all min-h-[100px]">
                     <span className="text-2xl mb-2">📅</span>
@@ -955,7 +955,7 @@ export default async function HomePage() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center rounded-2xl border border-dashed border-border bg-muted/20">
                   <p className="text-muted-foreground text-sm mb-3 max-w-sm leading-relaxed">
-                    Articles from River Region moms, educators, and community members will appear here as they&apos;re published.
+                    Articles from {brandCtx.market.regionLabel} moms, educators, and community members will appear here as they&apos;re published.
                   </p>
                   <Button asChild variant="outline" size="sm" className="rounded-full">
                     <Link href="/articles">Browse All Articles</Link>
@@ -1019,7 +1019,7 @@ export default async function HomePage() {
               >
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest absolute top-4 right-6">Partner Opportunity</span>
                 <div className="flex-1 text-center md:text-left">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">River Region Parents</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">{brandCtx.market.displayName}</p>
                   <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                     Advertise to Thousands of Local Families
                   </h3>
@@ -1098,9 +1098,9 @@ export default async function HomePage() {
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 mt-2 group-hover:scale-105 transition-transform">
                   <Star className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-2 leading-tight">Reach River Region Families</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2 leading-tight">Reach {brandCtx.market.regionLabel} Families</h3>
                 <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-                  This premium sidebar placement reaches every River Region Parents visitor. One advertiser. Maximum visibility.
+                  This premium sidebar placement reaches every {brandCtx.market.displayName} visitor. One advertiser. Maximum visibility.
                 </p>
                 <span className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold group-hover:bg-primary/90 transition-colors shadow-sm">
                   Claim This Spot <ArrowRight className="h-3.5 w-3.5" />
@@ -1271,7 +1271,7 @@ export default async function HomePage() {
                   <CardTitle className="text-xl text-background">Feature Your Business</CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
-                  <p className="text-sm text-background/80 mb-4">The Business Spotlight reaches River Region families who are actively looking for local services.</p>
+                  <p className="text-sm text-background/80 mb-4">The Business Spotlight reaches {brandCtx.market.regionLabel} families who are actively looking for local services.</p>
                   <Link href="/advertise" className="flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors">
                     Learn about sponsorship <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>

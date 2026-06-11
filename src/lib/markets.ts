@@ -24,15 +24,19 @@ export interface MarketDef {
    *  generic per-brand subdomain pattern if you deploy on subdomains
    *  before owning the separate domains. */
   publicHost:  string
+  /** The geographic region phrase used in body copy: "Real stories from
+   *  <regionLabel> moms", "Reach <regionLabel> families". Lets each brand
+   *  refer to its readership without saying "River Region" everywhere. */
+  regionLabel: string
 }
 
 export const MARKETS: MarketDef[] = [
-  { slug: 'rrp',  short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'riverregionparents.com' },
-  { slug: 'boom', short: 'BOOM', displayName: 'River Region Boom',         city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregionboom.com' },
-  { slug: 'aop',  short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com' },
-  { slug: 'mbp',  short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com' },
-  { slug: 'esp',  short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com' },
-  { slug: 'gpp',  short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com' },
+  { slug: 'rrp',  short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'riverregionparents.com',     regionLabel: 'River Region' },
+  { slug: 'boom', short: 'BOOM', displayName: 'River Region Boom',         city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregionboom.com',        regionLabel: 'River Region' },
+  { slug: 'aop',  short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika' },
+  { slug: 'mbp',  short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay' },
+  { slug: 'esp',  short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore' },
+  { slug: 'gpp',  short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola' },
 ]
 
 export const ALL_MARKET_SLUGS: string[] = MARKETS.map(m => m.slug)
