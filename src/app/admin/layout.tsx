@@ -59,6 +59,7 @@ const MFA_GATE_EXEMPT_PATHS = [
   '/admin/logout',
   '/admin/settings/security',
   '/admin/auth/mfa-challenge',
+  '/admin/auth/recovery',
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

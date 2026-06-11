@@ -9,8 +9,11 @@
 //   - daily trend series for the line chart
 //   - per-source breakdown (which guide listing drove which contact)
 //   - active goals + computed progress %
-//   - auto-generated coaching insights (lines like "your CTR dropped —
-//     consider refreshing your creative")
+//   - rule-based coaching insights (lines like "your CTR dropped —
+//     consider refreshing your creative"). These are NOT AI-generated;
+//     they're triggered by deterministic threshold rules in
+//     buildCoachingInsights() further down so the language stays predictable
+//     and we don't pay AI tokens to restate what the deltas already show.
 //
 // Headline numbers are the dollars-of-business equivalents: leads,
 // phone taps, link clicks, scans. Impressions get a smaller detail

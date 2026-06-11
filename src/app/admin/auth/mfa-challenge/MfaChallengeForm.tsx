@@ -133,7 +133,11 @@ export function MfaChallengeForm() {
       </button>
 
       <p className="mt-4 text-[11px] text-center text-portal-muted">
-        Lost your device? Ask an admin to reset your 2FA at <strong>/admin/users</strong>.
+        Lost your device?{' '}
+        <a href={`/admin/auth/recovery?next=${encodeURIComponent(next)}`} className="text-portal-blue hover:underline">
+          Use a recovery code
+        </a>
+        {' '}or ask a super-admin to reset 2FA at <strong>/admin/users</strong>.
       </p>
     </form>
   )

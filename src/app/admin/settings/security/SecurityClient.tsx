@@ -33,6 +33,10 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
   const [verifying,    setVerifying]    = useState(false)
   const [err,          setErr]          = useState<string | null>(null)
   const [msg,          setMsg]          = useState<string | null>(null)
+  // Recovery codes shown ONCE after successful enrollment (migration 159).
+  // The plaintext never goes back to the server; we only store hashes.
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
+  const [regenerating,  setRegenerating]  = useState(false)
 
   async function loadFactors() {
     setLoading(true); setErr(null)
@@ -100,16 +104,41 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ enabled: true }),
       }).catch(() => {})
-      setMsg('Two-factor authentication enabled. From now on, sign-in will ask for a 6-digit code.')
+
+      // Generate recovery codes immediately. They appear ONCE; the user
+      // must save them before navigating away. Doing this synchronously
+      // here (instead of as a separate optional step) means every newly-
+      // enrolled user has a recovery path from day one — no "I forgot to
+      // generate them" failure mode.
+      try {
+        const res = await fetch('/api/admin/me/mfa-recovery-codes', { method: 'POST' })
+        if (res.ok) {
+          const j = await res.json() as { codes?: string[] }
+          if (j.codes?.length) setRecoveryCodes(j.codes)
+        }
+      } catch { /* recovery codes are a nice-to-have; don't block enrollment */ }
+
+      setMsg('Two-factor authentication enabled. Save your recovery codes below — they let you back in if you lose your device.')
       setEnrollData(null)
       setCode('')
       await loadFactors()
-      // If the user was bounced here by the gate, refresh now that the
-      // stamp is set so they're free to leave.
-      if (typeof window !== 'undefined' && window.location.search.includes('gate=required')) {
-        window.location.href = '/admin'
-      }
+      // Don't auto-redirect when there are recovery codes to show; the user
+      // needs to acknowledge them first.
     } finally { setVerifying(false) }
+  }
+
+  async function regenerateRecoveryCodes() {
+    setRegenerating(true); setErr(null); setMsg(null)
+    try {
+      const res = await fetch('/api/admin/me/mfa-recovery-codes', { method: 'POST' })
+      const j = await res.json().catch(() => ({})) as { codes?: string[]; error?: string }
+      if (!res.ok || !j.codes) {
+        setErr(j.error ?? `HTTP ${res.status}`)
+        return
+      }
+      setRecoveryCodes(j.codes)
+      setMsg('Generated a fresh batch. Any previous codes are now invalid.')
+    } finally { setRegenerating(false) }
   }
 
   async function cancelEnroll() {
@@ -178,6 +207,76 @@ export function SecurityClient({ userEmail }: { userEmail: string }) {
           </div>
         </div>
       </div>
+
+      {/* Recovery codes — shown ONCE per generation. */}
+      {recoveryCodes && (
+        <div className="bg-portal-amber-lt border-2 border-portal-amber rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <KeyRound size={14} className="text-portal-amber" />
+            <h2 className="text-sm font-bold text-portal-text">Recovery codes — save these now</h2>
+          </div>
+          <p className="text-xs text-portal-sub mb-3 leading-relaxed">
+            These codes work in place of your authenticator app if you lose your device. Save them somewhere safe (a password manager,
+            a printed copy in your desk). Each code works <strong>once</strong> and we won&apos;t show them again — closing this banner
+            without saving them means asking a super-admin to reset your 2FA if you lose your device.
+          </p>
+          <div className="grid grid-cols-2 gap-2 mb-3 font-mono text-sm">
+            {recoveryCodes.map(c => (
+              <div key={c} className="bg-white border border-portal-border rounded px-3 py-2 text-center tracking-widest">
+                {c}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard.writeText(recoveryCodes.join('\n'))
+                setMsg('Recovery codes copied to clipboard.')
+              }}
+              className="text-xs font-bold text-white bg-portal-amber hover:opacity-90 px-3 py-1.5 rounded-md"
+            >
+              Copy all to clipboard
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('Have you saved these somewhere safe? You won\'t see them again.')) {
+                  setRecoveryCodes(null)
+                  if (typeof window !== 'undefined' && window.location.search.includes('gate=required')) {
+                    window.location.href = '/admin'
+                  }
+                }
+              }}
+              className="text-xs font-bold text-portal-sub hover:text-portal-text"
+            >
+              I&apos;ve saved them — dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Regenerate recovery codes (for users with 2FA already enabled). */}
+      {hasTotp && !recoveryCodes && (
+        <div className="bg-white border border-portal-border rounded-lg p-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="text-sm font-bold text-portal-text">Recovery codes</h2>
+              <p className="text-xs text-portal-sub mt-1">
+                Single-use codes that let you back in if you lose your device. Generating a fresh batch invalidates any old codes.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={regenerateRecoveryCodes}
+              disabled={regenerating}
+              className="text-xs font-bold text-portal-blue hover:text-portal-blue-dk border border-portal-blue/30 bg-portal-blue-lt px-3 py-1.5 rounded-md disabled:opacity-50"
+            >
+              {regenerating ? 'Generating…' : 'Generate new codes'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Existing verified factors */}
       <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
