@@ -95,19 +95,21 @@ const ROADMAP: IntegrationRow[] = [
     id: 'stripe',
     name: 'Stripe',
     category: 'Revenue',
-    status: 'recommended',
+    status: 'available',
     icon: CreditCard,
-    unlocks: 'Self-serve advertiser checkout for "Claim This Spot" placeholders, Featured listing upgrades, sponsor renewals, donation flows.',
-    whyValuable: 'Already on the Phase 2 backlog. Eliminates manual invoicing, captures advertisers in the moment of intent, enables true recurring revenue. The single highest-leverage business automation we can add.',
+    href: '/admin/integrations/stripe',
+    unlocks: 'Centralized product catalog, subscription mirror, charge log, webhook heartbeat. Layers on top of the existing per-product flows (birthday spotlight, ad booking).',
+    whyValuable: 'Already on the Phase 2 backlog. Eliminates manual invoicing, captures advertisers in the moment of intent, enables true recurring revenue.',
   },
   {
     id: 'meta-suite',
     name: 'Meta Business Suite (Pages)',
     category: 'Social',
-    status: 'recommended',
+    status: 'available',
     icon: MessageCircle,
-    unlocks: 'Post directly to your Facebook Page + Instagram, see + reply to comments, schedule posts. Beyond just ads — actual Page management.',
-    whyValuable: 'You already have the Meta token connection. This adds the Page surface so your editorial team doesn\'t leave admin to engage with comments. Combined with AI for caption assist, it changes how social ops work.',
+    href: '/admin/integrations/meta-suite',
+    unlocks: 'Post directly to your Facebook Page + Instagram (cross-post), AI caption assist, comments inbox with one-click replies.',
+    whyValuable: 'Reuses the Meta token from Marketing. Combined with the AI integration, editorial doesn\'t leave admin to do social ops.',
   },
 
   // ── Tier 2 — Future consideration ────────────────────────────────────
@@ -255,6 +257,38 @@ export default async function IntegrationsIndexPage() {
   } catch {/* fall through */}
   const gbpEnvOk = gscEnvOk   // shared Google OAuth client
 
+  // Probe Stripe connection state (env-fallback supported).
+  let stripeReady     = false
+  let stripeConnected = false
+  let stripeMode      = ''
+  try {
+    const probe = await supabase.from('stripe_integrations').select('id').limit(1)
+    stripeReady = !probe.error
+    if (stripeReady) {
+      const { data } = await supabase
+        .from('stripe_integrations')
+        .select('is_active, is_test_mode, account_name, account_id')
+        .eq('is_active', true)
+        .maybeSingle()
+      const r = data as { is_active: boolean; is_test_mode: boolean; account_name: string | null; account_id: string | null } | null
+      stripeConnected = !!r?.is_active
+      stripeMode      = r ? (r.is_test_mode ? 'Test' : 'Live') : ''
+    }
+  } catch {/* fall through */}
+  const stripeEnvFallback = !stripeConnected && !!process.env.STRIPE_SECRET_KEY
+
+  // Probe Meta Business Suite (extends facebook_integrations with facebook_pages).
+  let metaSuiteReady = false
+  let metaPageCount  = 0
+  try {
+    const probe = await supabase.from('facebook_pages').select('id').limit(1)
+    metaSuiteReady = !probe.error
+    if (metaSuiteReady) {
+      const { count } = await supabase.from('facebook_pages').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      metaPageCount = count ?? 0
+    }
+  } catch {/* fall through */}
+
   // Splice live state back into the static roadmap.
   const enriched: IntegrationRow[] = ROADMAP.map(r => {
     if (r.id === 'facebook') {
@@ -294,6 +328,26 @@ export default async function IntegrationsIndexPage() {
                   : !gbpEnvOk    ? 'OAuth env vars missing — see setup page'
                   : gbpConnected ? `Connected — ${gbpName ?? 'location active'}`
                                  : 'Not connected — paste a refresh token to enable',
+      }
+    }
+    if (r.id === 'stripe') {
+      return {
+        ...r,
+        connected: stripeConnected || stripeEnvFallback,
+        subtitle:  !stripeReady        ? 'Migration 151 pending'
+                  : stripeConnected     ? `Connected — ${stripeMode} mode`
+                  : stripeEnvFallback   ? 'Env-var keys active — connect to enable products catalog'
+                                        : 'Not connected — paste API keys to enable',
+      }
+    }
+    if (r.id === 'meta-suite') {
+      return {
+        ...r,
+        connected: metaPageCount > 0,
+        subtitle:  !metaSuiteReady    ? 'Migration 152 pending'
+                  : !fbConnected       ? 'Connect Facebook Marketing first'
+                  : metaPageCount > 0  ? `${metaPageCount} Page${metaPageCount === 1 ? '' : 's'} connected`
+                                       : 'Marketing connected — re-auth with Page scopes + discover Pages',
       }
     }
     return r

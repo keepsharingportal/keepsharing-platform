@@ -1,11 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { onSelfServeBookingComplete, upsertContact, addTag, triggerWorkflow } from '@/lib/ghl'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2026-04-22.dahlia',
 })
+
+// ── Generic mirror handlers (migration 151) ─────────────────────────────────
+// Run alongside the legacy per-meta routing below so subscriptions, charges,
+// and the new generic stripe_checkout_sessions table stay in sync. All
+// migration-tolerant: a relation-does-not-exist error here is silently
+// swallowed so pre-151 environments don't see webhook 500s.
+
+async function mirrorCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+  const sr = createAdminClient()
+  try {
+    await sr.from('stripe_checkout_sessions')
+      .update({
+        status:         'completed',
+        completed_at:   new Date().toISOString(),
+        customer_email: session.customer_details?.email ?? null,
+        customer_name:  session.customer_details?.name  ?? null,
+      })
+      .eq('stripe_session_id', session.id)
+  } catch { /* pre-migration; ignore */ }
+}
+
+async function mirrorSubscription(sub: Stripe.Subscription): Promise<void> {
+  const sr = createAdminClient()
+  try {
+    const priceId = sub.items?.data?.[0]?.price?.id
+    let productId: string | null = null
+    if (priceId) {
+      const { data } = await sr.from('stripe_products').select('id').eq('stripe_price_id', priceId).maybeSingle()
+      productId = (data as { id: string } | null)?.id ?? null
+    }
+    const advertiserId = sub.metadata?.advertiser_account_id ?? null
+    // The 2026 SDK shifted current_period_* / cancel_at to a wider shape;
+    // read defensively via an indexed view so we work across versions.
+    const ext = sub as unknown as { current_period_start?: number; current_period_end?: number; cancel_at?: number | null }
+    await sr.from('stripe_subscriptions').upsert({
+      stripe_subscription_id: sub.id,
+      stripe_customer_id:     typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
+      advertiser_account_id:  advertiserId,
+      product_id:             productId,
+      status:                 sub.status,
+      current_period_start:   ext.current_period_start ? new Date(ext.current_period_start * 1000).toISOString().slice(0, 10) : null,
+      current_period_end:     ext.current_period_end   ? new Date(ext.current_period_end   * 1000).toISOString().slice(0, 10) : null,
+      cancel_at:              ext.cancel_at            ? new Date(ext.cancel_at            * 1000).toISOString().slice(0, 10) : null,
+      canceled_at:            sub.canceled_at          ? new Date(sub.canceled_at          * 1000).toISOString() : null,
+      updated_at:             new Date().toISOString(),
+    }, { onConflict: 'stripe_subscription_id' })
+  } catch { /* pre-migration; ignore */ }
+}
+
+async function mirrorCharge(charge: Stripe.Charge, status: string): Promise<void> {
+  const sr = createAdminClient()
+  try {
+    const advertiserId = (charge.metadata as Record<string, string> | null | undefined)?.advertiser_account_id ?? null
+    const ext = charge as unknown as { invoice?: string | { id: string } | null }
+    const invoiceId = typeof ext.invoice === 'string' ? ext.invoice : (ext.invoice?.id ?? null)
+    await sr.from('stripe_charges_log').upsert({
+      stripe_charge_id:      charge.id,
+      stripe_invoice_id:     invoiceId,
+      stripe_customer_id:    typeof charge.customer === 'string' ? charge.customer : (charge.customer?.id ?? ''),
+      advertiser_account_id: advertiserId,
+      amount_cents:          charge.amount ?? 0,
+      currency:              charge.currency ?? 'usd',
+      status,
+      description:           charge.description ?? null,
+      receipt_url:           charge.receipt_url ?? null,
+      occurred_at:           new Date().toISOString(),
+    }, { onConflict: 'stripe_charge_id' })
+  } catch { /* pre-migration; ignore */ }
+}
+
+async function stampLastWebhook(): Promise<void> {
+  const sr = createAdminClient()
+  try {
+    await sr.from('stripe_integrations').update({ last_webhook_at: new Date().toISOString() }).eq('is_active', true)
+  } catch { /* pre-migration; ignore */ }
+}
 
 function fmt$(cents: number) { return '$' + ((cents ?? 0) / 100).toFixed(0) }
 
@@ -20,6 +97,47 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: `Webhook signature failed: ${msg}` }, { status: 400 })
+  }
+
+  // Generic mirror (migration 151) — runs alongside the legacy handlers below
+  // so subscriptions, charges, and generic checkout sessions stay in sync.
+  // All migration-tolerant; pre-151 environments silently no-op.
+  await stampLastWebhook()
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await mirrorCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+        break
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+        await mirrorSubscription(event.data.object as Stripe.Subscription)
+        break
+      case 'charge.succeeded':
+        await mirrorCharge(event.data.object as Stripe.Charge, 'succeeded')
+        break
+      case 'charge.failed':
+        await mirrorCharge(event.data.object as Stripe.Charge, 'failed')
+        break
+      case 'charge.refunded':
+        await mirrorCharge(event.data.object as Stripe.Charge, 'refunded')
+        break
+      case 'invoice.payment_failed': {
+        const inv = event.data.object as unknown as { subscription?: string | { id: string } | null }
+        const sub = inv.subscription
+        if (sub) {
+          const subId = typeof sub === 'string' ? sub : sub.id
+          try {
+            await createAdminClient().from('stripe_subscriptions')
+              .update({ status: 'past_due', updated_at: new Date().toISOString() })
+              .eq('stripe_subscription_id', subId)
+          } catch { /* pre-migration */ }
+        }
+        break
+      }
+    }
+  } catch (e) {
+    console.error('[stripe-webhook] mirror handler error:', e instanceof Error ? e.message : String(e))
   }
 
   if (event.type === 'checkout.session.completed') {
