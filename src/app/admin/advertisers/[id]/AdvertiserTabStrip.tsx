@@ -7,7 +7,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Megaphone, BookOpen, BarChart3, FileText } from 'lucide-react'
+import { Home, Megaphone, BookOpen, BarChart3, FileText, MapPin } from 'lucide-react'
 
 interface Tab {
   href:    (id: string) => string
@@ -33,6 +33,7 @@ export function AdvertiserTabStrip({ id, counts }: {
     { href: () => `${base}/ads`,         match: p => p.startsWith(`${base}/ads`),      label: 'Ad Placements', icon: <Megaphone size={13} />, count: counts.ads },
     { href: () => `${base}/listings`,    match: p => p.startsWith(`${base}/listings`), label: 'Listings',  icon: <BookOpen size={13} />, count: counts.listings },
     { href: () => `${base}/analytics`,   match: p => p.startsWith(`${base}/analytics`),label: 'Analytics', icon: <BarChart3 size={13} /> },
+    { href: () => `${base}/gbp`,         match: p => p.startsWith(`${base}/gbp`),      label: 'Google Business', icon: <MapPin size={13} /> },
     { href: () => `${base}/proposals`,   match: p => p.startsWith(`${base}/proposals`),label: 'Proposals & Agreements', icon: <FileText size={13} />, count: counts.proposals },
   ]
 

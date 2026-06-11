@@ -60,10 +60,17 @@ export default async function GoogleBusinessPage() {
     if (probe.error && /relation .* does not exist/i.test(probe.error.message)) {
       migrated = false
     } else if (!probe.error) {
-      const { data: rowsData } = await sb
+      // Phase 1 row: the publisher's own GBP — advertiser_account_id IS NULL.
+      // Phase 2 admin lives under each advertiser's tab (see /admin/advertisers/[id]/gbp).
+      let rowsQ = sb
         .from('google_business_integrations')
         .select('*')
-        .maybeSingle()
+      // If migration 166 has landed, scope the publisher row by NULL advertiser.
+      // The probe failed only if the column doesn't exist; here we only land
+      // if probe.error was falsy — so we can safely .is() it. Defensive: if
+      // the column is missing the .is() call falls through with no rows.
+      rowsQ = rowsQ.is('advertiser_account_id', null)
+      const { data: rowsData } = await rowsQ.maybeSingle()
       row = (rowsData as GBPIntegrationRow | null) ?? null
 
       if (row) {
@@ -86,6 +93,38 @@ export default async function GoogleBusinessPage() {
       }
     }
   } catch { /* fall through */ }
+
+  // Phase 2 — count + list the advertisers with their own connected GBPs.
+  interface AdvertiserGBPSummary {
+    id: string; advertiser_id: string; advertiser_name: string;
+    location_name: string | null; is_active: boolean; last_sync_at: string | null
+  }
+  let advertiserGbps: AdvertiserGBPSummary[] = []
+  try {
+    const { data: phase2 } = await sb
+      .from('google_business_integrations')
+      .select(`
+        id, advertiser_account_id, location_name, is_active, last_sync_at,
+        advertiser:advertiser_account_id (id, business_name)
+      `)
+      .not('advertiser_account_id', 'is', null)
+      .order('last_sync_at', { ascending: false, nullsFirst: false })
+    advertiserGbps = ((phase2 ?? []) as Array<{
+      id: string; advertiser_account_id: string; location_name: string | null;
+      is_active: boolean; last_sync_at: string | null;
+      advertiser: { id: string; business_name: string } | { id: string; business_name: string }[] | null;
+    }>).map(r => {
+      const adv = Array.isArray(r.advertiser) ? r.advertiser[0] : r.advertiser
+      return {
+        id:              r.id,
+        advertiser_id:   adv?.id ?? r.advertiser_account_id,
+        advertiser_name: adv?.business_name ?? '(unknown)',
+        location_name:   r.location_name,
+        is_active:       r.is_active,
+        last_sync_at:    r.last_sync_at,
+      }
+    })
+  } catch { /* migration 166 not yet applied — leave empty */ }
 
   const oauthEnvOk = !!process.env.GOOGLE_OAUTH_CLIENT_ID && !!process.env.GOOGLE_OAUTH_CLIENT_SECRET
 
@@ -116,6 +155,46 @@ export default async function GoogleBusinessPage() {
 
         {migrated && oauthEnvOk && (
           <GBPClient row={row} insights={insights} posts={posts} />
+        )}
+
+        {/* Phase 2 — per-advertiser connected GBPs (migration 166).
+            Each advertiser's setup + post composer lives at
+            /admin/advertisers/[id]/gbp; this section is a roll-up so the
+            publisher can see at a glance which advertisers they're managing. */}
+        {migrated && advertiserGbps.length > 0 && (
+          <section className="bg-white border border-portal-border rounded-lg p-5">
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+              <div>
+                <h3 className="text-sm font-bold text-portal-text">Advertiser GBPs (Phase 2)</h3>
+                <p className="text-[11px] text-portal-muted">
+                  Per-advertiser connected GBPs. Manage each at the advertiser&apos;s GBP tab.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-portal-bg border border-portal-border px-1.5 py-0.5 rounded-full">
+                {advertiserGbps.length}
+              </span>
+            </div>
+            <ul className="divide-y divide-portal-border">
+              {advertiserGbps.map(a => (
+                <li key={a.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                  <div>
+                    <p className="text-sm font-bold text-portal-text">{a.advertiser_name}</p>
+                    <p className="text-[11px] text-portal-muted">
+                      {a.location_name ?? '(no location label)'}
+                      {' · '}
+                      {a.last_sync_at ? `last sync ${new Date(a.last_sync_at).toLocaleString()}` : 'never synced'}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/admin/advertisers/${a.advertiser_id}/gbp`}
+                    className="text-portal-blue hover:text-portal-blue-dk text-xs font-bold"
+                  >
+                    Open →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {!migrated && (

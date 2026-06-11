@@ -62,6 +62,9 @@ interface ConnectInput {
   accountResource:   string                       // "accounts/12345"
   locationResource:  string                       // "accounts/12345/locations/67890"
   locationName:      string                       // human-readable
+  /** When set, this is a Phase 2 (per-advertiser) connection rather
+   *  than RRP's own (Phase 1, advertiser_account_id NULL). */
+  advertiserAccountId?: string | null
 }
 
 export async function connectGBPAction(input: ConnectInput): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -73,24 +76,31 @@ export async function connectGBPAction(input: ConnectInput): Promise<{ ok: true 
   const { error } = await sr
     .from('google_business_integrations')
     .upsert({
-      account_id:    input.accountResource,
-      location_id:   input.locationResource,
-      location_name: input.locationName,
-      refresh_token: input.refreshToken,
-      is_active:     true,
-      connected_at:  new Date().toISOString(),
-      connected_by:  ctx.adminId,
+      account_id:           input.accountResource,
+      location_id:          input.locationResource,
+      location_name:        input.locationName,
+      refresh_token:        input.refreshToken,
+      advertiser_account_id: input.advertiserAccountId ?? null,
+      is_active:            true,
+      connected_at:         new Date().toISOString(),
+      connected_by:         ctx.adminId,
     }, { onConflict: 'account_id,location_id' })
   if (error) return { ok: false, error: error.message }
 
   await recordAuditEvent({
     ctx,
-    action:       'gbp.connected',
+    action:       input.advertiserAccountId ? 'gbp.advertiser_connected' : 'gbp.connected',
     target_table: 'google_business_integrations',
     target_id:    input.locationResource,
-    after:        { account_id: input.accountResource, location_id: input.locationResource, location_name: input.locationName },
+    after:        {
+      account_id:            input.accountResource,
+      location_id:           input.locationResource,
+      location_name:         input.locationName,
+      advertiser_account_id: input.advertiserAccountId ?? null,
+    },
   })
   revalidatePath('/admin/integrations/google-business')
+  if (input.advertiserAccountId) revalidatePath(`/admin/advertisers/${input.advertiserAccountId}/gbp`)
   revalidatePath('/admin/integrations')
   return { ok: true }
 }
@@ -125,21 +135,41 @@ interface PostInput {
   ctaActionType?: 'BOOK' | 'ORDER' | 'SHOP' | 'LEARN_MORE' | 'SIGN_UP' | 'CALL'
   ctaUrl?:        string
   mediaUrl?:      string
+  /** When set, post to this advertiser's GBP (Phase 2) instead of the
+   *  publisher's own (Phase 1). The integration row is resolved by
+   *  advertiser_account_id when this is provided. */
+  advertiserAccountId?: string | null
 }
 
 export async function postToGBPAction(input: PostInput): Promise<{ ok: true; postName: string } | { ok: false; error: string }> {
   const ctx = await requireAdmin()
   const sr = createAdminClient()
-  const { data: row } = await sr
+  // Resolve which integration row to post to:
+  //   - advertiserAccountId set → that advertiser's row
+  //   - advertiserAccountId NULL → the publisher's row (Phase 1; the
+  //     legacy "single active row" assumption)
+  let query = sr
     .from('google_business_integrations')
     .select('id, account_id, location_id, refresh_token, access_token, access_token_expires_at')
     .eq('is_active', true)
-    .maybeSingle()
+  if (input.advertiserAccountId) {
+    query = query.eq('advertiser_account_id', input.advertiserAccountId)
+  } else {
+    query = query.is('advertiser_account_id', null)
+  }
+  const { data: row } = await query.maybeSingle()
   const integration = row as null | {
     id: string; account_id: string; location_id: string; refresh_token: string;
     access_token: string | null; access_token_expires_at: string | null;
   }
-  if (!integration) return { ok: false, error: 'No active GBP integration. Connect one first.' }
+  if (!integration) {
+    return {
+      ok: false,
+      error: input.advertiserAccountId
+        ? 'No active GBP integration for this advertiser. Connect one first.'
+        : 'No active GBP integration. Connect one first.',
+    }
+  }
 
   if (!input.summary || input.summary.length < 10) {
     return { ok: false, error: 'Post summary must be at least 10 characters.' }
