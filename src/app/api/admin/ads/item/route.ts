@@ -24,7 +24,9 @@ const FULL_SELECT = `
   price_monthly, price_quarterly, price_annual,
   advertiser_email, sales_rep_email,
   accent_color, logo_url, sponsor_tagline,
-  creative_mode
+  creative_mode,
+  stripe_subscription_id, subscription_status, subscription_period_end,
+  renewal_token, renewal_token_created_at
 `
 
 const MIN_SELECT = `

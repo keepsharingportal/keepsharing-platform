@@ -62,6 +62,13 @@ interface AdRow {
   //   'composed' = platform formats eyebrow/headline/desc/CTA + image
   //   'image'    = full-bleed advertiser-supplied image, click goes to ad_link
   creative_mode:         'composed' | 'image'
+  // Phase 2 subscription tracking (migration 168). Populated by the Stripe
+  // webhook once the advertiser activates a recurring subscription.
+  stripe_subscription_id?:    string | null
+  subscription_status?:       string | null
+  subscription_period_end?:   string | null
+  renewal_token?:             string | null
+  renewal_token_created_at?:  string | null
 }
 
 const CONTEXT_SLUGS: Record<string, string[]> = {
@@ -670,6 +677,11 @@ export default function EditAdPage({ params }: { params: Promise<{ id: string }>
             />
           </Row>
         </Section>
+
+        {/* Phase 2 subscriptions (migration 168). Standalone panel so it
+            doesn't clutter the form when the placement has no subscription
+            and no renewal token yet. */}
+        <SubscriptionPanel ad={ad} onChange={partial => setAd(curr => curr ? { ...curr, ...partial } : curr)} />
 
       </div>
     </div>
@@ -1523,3 +1535,111 @@ function PreviewCta({ label, hasLink }: { label: string | null; hasLink: boolean
     </span>
   )
 }
+
+function SubscriptionPanel({ ad, onChange }: { ad: AdRow; onChange: (partial: Partial<AdRow>) => void }) {
+  const [pending, setPending] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const hasSubscription = !!ad.stripe_subscription_id
+  const renewalUrl = ad.renewal_token
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/renew/${ad.renewal_token}`
+    : null
+
+  async function generateLink() {
+    if (renewalUrl && !confirm('Generate a new renewal link? The existing link will stop working.')) return
+    setPending(true); setErr(null)
+    try {
+      const res = await fetch('/api/admin/ads/renewal-token', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: ad.id }),
+      })
+      const json = await res.json() as { ok?: boolean; token?: string; error?: string }
+      if (!res.ok || !json.ok || !json.token) { setErr(json.error ?? `HTTP ${res.status}`); return }
+      onChange({ renewal_token: json.token, renewal_token_created_at: new Date().toISOString() })
+    } finally { setPending(false) }
+  }
+
+  async function copyLink() {
+    if (!renewalUrl) return
+    await navigator.clipboard.writeText(renewalUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Section title='Subscription & renewal'
+             subtitle='Phase 2 — generate a per-placement renewal link the advertiser uses to start a recurring Stripe subscription.'>
+      {hasSubscription ? (
+        <div className='bg-portal-bg border border-portal-border rounded-lg p-4 space-y-2'>
+          <div className='flex items-center gap-2'>
+            <Check size={14} className='text-portal-green' />
+            <span className='text-sm font-bold text-portal-text'>Subscription active</span>
+            <span className='text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-white border border-portal-border px-1.5 py-0.5 rounded-full'>
+              {ad.subscription_status ?? 'unknown'}
+            </span>
+          </div>
+          <p className='text-xs text-portal-sub'>
+            Stripe subscription: <span className='font-mono text-portal-text'>{ad.stripe_subscription_id}</span>
+          </p>
+          {ad.subscription_period_end && (
+            <p className='text-xs text-portal-sub'>
+              Next renewal: <span className='font-bold text-portal-text'>{new Date(ad.subscription_period_end).toLocaleDateString()}</span>
+            </p>
+          )}
+          <p className='text-[11px] text-portal-muted'>
+            Status syncs via the Stripe webhook (invoice.payment_succeeded, customer.subscription.*). The placement&apos;s
+            end date extends automatically on each successful renewal.
+          </p>
+        </div>
+      ) : (
+        <div className='space-y-3'>
+          {renewalUrl ? (
+            <div className='bg-portal-bg border border-portal-border rounded-lg p-4 space-y-3'>
+              <div>
+                <p className='text-[11px] font-bold uppercase tracking-wider text-portal-sub'>Renewal link</p>
+                <p className='text-xs font-mono text-portal-text break-all mt-1'>{renewalUrl}</p>
+              </div>
+              <div className='flex items-center gap-2 flex-wrap'>
+                <button type='button' onClick={copyLink} className='inline-flex items-center gap-1.5 text-xs font-bold text-portal-blue hover:text-portal-blue-dk border border-portal-blue/30 bg-portal-blue-lt px-3 py-1.5 rounded-md'>
+                  {copied ? <Check size={11} /> : <Copy size={11} />} {copied ? 'Copied' : 'Copy link'}
+                </button>
+                <button type='button' onClick={generateLink} disabled={pending} className='text-xs font-bold text-portal-sub hover:text-portal-text border border-portal-border bg-white px-3 py-1.5 rounded-md disabled:opacity-50'>
+                  {pending ? 'Generating…' : 'Rotate link'}
+                </button>
+                <span className='text-[11px] text-portal-muted ml-auto'>
+                  Generated {ad.renewal_token_created_at ? new Date(ad.renewal_token_created_at).toLocaleDateString() : ''}
+                </span>
+              </div>
+              <p className='text-[11px] text-portal-muted'>
+                Email this to the advertiser. They&apos;ll be sent to a public renewal page that hands off to Stripe Checkout for the
+                subscription product you&apos;ve created on /admin/integrations/stripe (target_table=ad_placements, target_id={ad.id}).
+              </p>
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              <p className='text-xs text-portal-sub'>
+                No renewal link yet. Generate one to give the advertiser a self-serve subscribe URL.
+              </p>
+              <button type='button' onClick={generateLink} disabled={pending} className='inline-flex items-center gap-1.5 text-xs font-bold text-white bg-portal-blue hover:bg-portal-blue-dk px-3 py-1.5 rounded-md disabled:opacity-50'>
+                <Link2 size={11} /> {pending ? 'Generating…' : 'Generate renewal link'}
+              </button>
+            </div>
+          )}
+          {err && <p className='text-xs text-red-700'>{err}</p>}
+          <details className='bg-white border border-portal-border rounded-md p-3'>
+            <summary className='text-[11px] font-bold text-portal-blue cursor-pointer'>Setup checklist (one-time per placement)</summary>
+            <ol className='list-decimal pl-5 mt-2 space-y-1 text-[11px] text-portal-sub leading-relaxed'>
+              <li>Stripe must be connected at <a className='text-portal-blue hover:underline' href='/admin/integrations/stripe'>/admin/integrations/stripe</a>.</li>
+              <li>Create a recurring product there: kind=ad_placement, target_table=ad_placements, target_id={ad.id}, interval=month (or year).</li>
+              <li>Generate the renewal link with the button above + email it to the advertiser.</li>
+              <li>When they subscribe, the webhook stamps the placement automatically.</li>
+            </ol>
+          </details>
+        </div>
+      )}
+    </Section>
+  )
+}
+

@@ -62,6 +62,21 @@ async function mirrorCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         metadata:    { placement_id: local.target_id, session_id: session.id },
       }).then(() => undefined, () => undefined)
     }
+
+    // Placement renewal (Phase 2 subscriptions, migration 168). The
+    // customer.subscription.created event arrives separately and stamps
+    // stripe_subscription_id; here we just notify the VA so they can
+    // welcome the renewal and confirm creative is up to date.
+    if (local.source === 'placement_renewal' && local.target_table === 'ad_placements' && local.target_id) {
+      await sr.from('notifications').insert({
+        type:        'ad_placement_renewed',
+        title:       'Ad placement subscription activated',
+        body:        `${session.customer_details?.email ?? '(no email)'} activated a monthly subscription. Confirm creative + next-month layout.`,
+        urgency:     'incoming',
+        publication: 'RRP',
+        metadata:    { placement_id: local.target_id, session_id: session.id },
+      }).then(() => undefined, () => undefined)
+    }
   } catch { /* pre-migration; ignore */ }
 }
 
@@ -90,6 +105,32 @@ async function mirrorSubscription(sub: Stripe.Subscription): Promise<void> {
       canceled_at:            sub.canceled_at          ? new Date(sub.canceled_at          * 1000).toISOString() : null,
       updated_at:             new Date().toISOString(),
     }, { onConflict: 'stripe_subscription_id' })
+
+    // Placement subscription mirror (Phase 2, migration 168). When the
+    // subscription's metadata names a placement_id, write the live status
+    // + period end + Stripe subscription id back to ad_placements so the
+    // admin placement editor + the public /renew/<token> page can show
+    // the correct state without hitting Stripe directly.
+    const placementId = sub.metadata?.placement_id ?? null
+    if (placementId) {
+      try {
+        const updates: Record<string, unknown> = {
+          stripe_subscription_id:  sub.id,
+          subscription_status:     sub.status,
+          subscription_period_end: ext.current_period_end ? new Date(ext.current_period_end * 1000).toISOString().slice(0, 10) : null,
+        }
+        // On the initial activation, also flip is_active true + extend
+        // ends_at so the placement renders live until the subscription
+        // period ends.
+        if (sub.status === 'active' || sub.status === 'trialing') {
+          updates.is_active = true
+          if (ext.current_period_end) {
+            updates.ends_at = new Date(ext.current_period_end * 1000).toISOString()
+          }
+        }
+        await sr.from('ad_placements').update(updates).eq('id', placementId)
+      } catch { /* pre-migration; ignore */ }
+    }
   } catch { /* pre-migration; ignore */ }
 }
 
@@ -176,8 +217,43 @@ export async function POST(req: NextRequest) {
             await createAdminClient().from('stripe_subscriptions')
               .update({ status: 'past_due', updated_at: new Date().toISOString() })
               .eq('stripe_subscription_id', subId)
+            // Also mirror to ad_placements so the placement editor +
+            // public renewal page reflect the past_due state. The
+            // subscription stays attached but the publisher knows to
+            // reach out to the advertiser before the placement lapses.
+            await createAdminClient().from('ad_placements')
+              .update({ subscription_status: 'past_due' })
+              .eq('stripe_subscription_id', subId)
           } catch { /* pre-migration */ }
         }
+        break
+      }
+      // Placement subscription extensions on successful renewal. Each
+      // invoice.payment_succeeded for a recurring subscription bumps
+      // the placement's end date so it stays active for the new period.
+      // Phase 2 (migration 168).
+      case 'invoice.payment_succeeded': {
+        const inv = event.data.object as unknown as {
+          subscription?: string | { id: string } | null;
+          lines?: { data?: Array<{ period?: { end?: number } }> };
+          period_end?: number;
+        }
+        const sub = inv.subscription
+        if (!sub) break
+        const subId = typeof sub === 'string' ? sub : sub.id
+        // Stripe puts the new period end on the invoice line for
+        // subscription invoices. Fall back to the top-level period_end.
+        const periodEnd = inv.lines?.data?.[0]?.period?.end ?? inv.period_end ?? null
+        if (!periodEnd) break
+        try {
+          const isoDay = new Date(periodEnd * 1000).toISOString().slice(0, 10)
+          await createAdminClient().from('ad_placements').update({
+            subscription_status:     'active',
+            subscription_period_end: isoDay,
+            is_active:               true,
+            ends_at:                 new Date(periodEnd * 1000).toISOString(),
+          }).eq('stripe_subscription_id', subId)
+        } catch { /* pre-migration */ }
         break
       }
     }
