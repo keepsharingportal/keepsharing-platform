@@ -17,6 +17,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { DIFFICULTIES, ROUNDS_PER_SESSION, type Difficulty, type GameId } from './types'
 import { generateContent } from './ai-generator'
+import { isAIConfigured } from '@/lib/ai/client'
 
 const GAMES: GameId[] = ['scramble', 'emoji', 'math', 'trivia', 'memory', 'family-connect']
 
@@ -161,8 +162,12 @@ export async function planRefill(opts: { targetDays?: number } = {}): Promise<{
 }
 
 export async function runRefill(opts: RefillOptions = {}): Promise<RefillSummary> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY not configured')
+  // Pre-flight: check whether AI is configured at all (integration row OR
+  // env-var fallback). The actual generateContent() call below routes
+  // through the AI integration wrapper so usage tracking + budget caps
+  // apply uniformly.
+  if (!(await isAIConfigured())) {
+    throw new Error('AI not configured — connect a provider at /admin/integrations/ai or set ANTHROPIC_API_KEY in env')
   }
 
   const supabase = sb()

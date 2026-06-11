@@ -7,6 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
+import { requireAal2 } from '@/lib/admin/mfa-gate'
+import { recordAuditEvent } from '@/lib/admin/audit'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime  = 'nodejs'
@@ -76,7 +78,9 @@ const ALLOWED_FIELDS = new Set([
 ])
 
 export async function PATCH(req: NextRequest) {
-  await requireAdmin()
+  const ctx = await requireAdmin()
+  const gate = await requireAal2()
+  if (!gate.ok) return gate.response
   const body = await req.json().catch(() => ({})) as Record<string, unknown> & { id?: string }
   const { id, ...rest } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
@@ -94,6 +98,10 @@ export async function PATCH(req: NextRequest) {
   }
 
   const supabase = createAdminClient()
+  // Pre-snapshot for audit before/after.
+  const beforeSelect = Object.keys(updates).join(', ')
+  const { data: before } = await supabase
+    .from('ad_placements').select(beforeSelect).eq('id', id).maybeSingle()
   let { error } = await supabase.from('ad_placements').update(updates).eq('id', id)
 
   // Migration-tolerant: if a column doesn't exist yet (e.g. rotation_weight
@@ -108,10 +116,29 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: `Only un-applied column "${col}" was being updated.` }, { status: 400 })
       }
       ;({ error } = await supabase.from('ad_placements').update(updates).eq('id', id))
-      if (!error) return NextResponse.json({ ok: true, note: `Skipped ${col} — column missing (apply migration).` })
+      if (!error) {
+        await recordAuditEvent({
+          ctx, req,
+          action:        'ad_placement.updated',
+          target_table:  'ad_placements',
+          target_id:     id,
+          before:        (before as Record<string, unknown> | null) ?? null,
+          after:         updates,
+          meta:          { dropped_column: col },
+        })
+        return NextResponse.json({ ok: true, note: `Skipped ${col} — column missing (apply migration).` })
+      }
     }
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  await recordAuditEvent({
+    ctx, req,
+    action:        'ad_placement.updated',
+    target_table:  'ad_placements',
+    target_id:     id,
+    before:        (before as Record<string, unknown> | null) ?? null,
+    after:         updates,
+  })
   return NextResponse.json({ ok: true })
 }

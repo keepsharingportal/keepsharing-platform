@@ -7,7 +7,7 @@
 //
 // TODO: Requires ANTHROPIC_API_KEY in .env.local
 
-import Anthropic             from '@anthropic-ai/sdk'
+import { runAI }            from '@/lib/ai/client'
 import { createClient }      from '@supabase/supabase-js'
 
 // ── Supabase admin (same pattern as community-drafts.ts) ──────────────────────
@@ -215,29 +215,20 @@ export async function generatePromo(
     return
   }
 
-  // ── No API key guard ──────────────────────────────────────────────────────
-
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    console.error('[editorial-promo-ai] ANTHROPIC_API_KEY not configured')
-    return
-  }
-
-  // ── Call Claude ───────────────────────────────────────────────────────────
+  // ── Call AI via the central wrapper ───────────────────────────────────────
+  // Routes through runAI() so budget caps + per-provider rotation + usage
+  // tracking all apply. The 'caption' task kind picks the model configured
+  // for caption work in /admin/integrations/ai.
 
   try {
-    const client   = new Anthropic({ apiKey })
-    const prompt   = buildPrompt(channel, sub, pubName)
-
-    const response = await client.messages.create({
-      model:      'claude-sonnet-4-6',
-      max_tokens: 512,
-      messages:   [{ role: 'user', content: prompt }],
+    const prompt = buildPrompt(channel, sub, pubName)
+    const aiResponse = await runAI({
+      taskKind: 'caption',
+      caller:   `editorial-promo.${channel}`,
+      messages: [{ role: 'user', content: prompt }],
+      maxTokens: 512,
     })
-
-    const raw = response.content[0].type === 'text'
-      ? response.content[0].text.trim()
-      : ''
+    const raw = aiResponse.text.trim()
 
     // ── Write to the correct column ─────────────────────────────────────────
 

@@ -199,7 +199,10 @@ function SendInviteForm({ contributors, templates, onDone }: { contributors: Con
 }
 
 function ResponsesQueue({ responses }: { responses: ResponseRow[] }) {
-  const awaiting = responses.filter(r => r.status === 'awaiting_review' || r.status === 'drafted')
+  // Queue includes anything not yet acted on: awaiting_review (legacy), drafting
+  // (AI in flight), drafted (ready), draft_failed (needs retry). The card UI
+  // surfaces the right control per status.
+  const awaiting = responses.filter(r => ['awaiting_review', 'drafted', 'drafting', 'draft_failed'].includes(r.status))
   const reviewed = responses.filter(r => r.status === 'published' || r.status === 'rejected')
 
   return (
@@ -307,7 +310,25 @@ function ResponseCard({ response }: { response: ResponseRow }) {
         </div>
       )}
 
-      {draftError && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">AI draft failed: {draftError}</p>}
+      {draftError && (
+        <div className="space-y-2 mb-2">
+          <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">AI draft failed: {draftError}</p>
+          <RetryDraftButton responseId={response.id} />
+        </div>
+      )}
+
+      {/* Stuck-drafting fallback. If the response is still in 'drafting' >5
+          minutes after submission, the after() callback likely died before
+          finishing — let the admin retry. */}
+      {response.status === 'drafting' &&
+       (Date.now() - new Date(response.submitted_at).getTime()) > 5 * 60_000 && (
+        <div className="space-y-2 mb-2">
+          <p className="text-xs text-portal-amber bg-portal-amber-lt border border-portal-amber/30 rounded p-2">
+            Still drafting after 5 minutes — the background job probably stopped. Retry below.
+          </p>
+          <RetryDraftButton responseId={response.id} />
+        </div>
+      )}
 
       {ready && draft && (
         <div className="space-y-3">
@@ -463,5 +484,38 @@ function ContributorsTable({ contributors }: { contributors: ContributorRow[] })
         </tbody>
       </table>
     </section>
+  )
+}
+
+function RetryDraftButton({ responseId }: { responseId: string }) {
+  const [pending, setPending] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  async function retry() {
+    setPending(true); setMsg(null)
+    try {
+      const res = await fetch(`/api/admin/contributors/responses/${responseId}/retry-draft`, { method: 'POST' })
+      const json = await res.json() as { ok?: boolean; error?: string }
+      if (res.ok && json.ok) {
+        setMsg('Retrying — refresh in a minute.')
+      } else {
+        setMsg(`Error: ${json.error ?? `HTTP ${res.status}`}`)
+      }
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'Network error')
+    } finally {
+      setPending(false)
+    }
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={retry}
+        disabled={pending}
+        className="text-[11px] font-bold text-white bg-portal-blue hover:bg-portal-blue-dk px-2.5 py-1 rounded-md disabled:opacity-50"
+      >
+        {pending ? 'Retrying…' : 'Retry AI drafting'}
+      </button>
+      {msg && <span className="text-[11px] text-portal-sub">{msg}</span>}
+    </div>
   )
 }

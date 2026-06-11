@@ -37,11 +37,18 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pag
 
   const tokenRes = await supabase
     .from('advertiser_report_tokens')
-    .select('advertiser_id, is_active, view_count')
+    .select('advertiser_id, is_active, view_count, expires_at')
     .eq('token', token)
     .maybeSingle()
-  const tokenRow = tokenRes.data as { advertiser_id: string; is_active: boolean; view_count: number } | null
+  const tokenRow = tokenRes.data as { advertiser_id: string; is_active: boolean; view_count: number; expires_at: string | null } | null
   if (!tokenRow || !tokenRow.is_active) notFound()
+  // Token expiry (migration 158). NULL = no expiry. A leaked link can't
+  // outlive the configured window — by default 90 days — without a manual
+  // regenerate. Don't 404; show a "link expired" message so the advertiser
+  // knows to ask for a fresh one instead of assuming the URL was wrong.
+  if (tokenRow.expires_at && new Date(tokenRow.expires_at).getTime() < Date.now()) {
+    return <ExpiredReportPage />
+  }
 
   // Bump counters fire-and-forget so we don't block the render. Worst case
   // (a transient Supabase error here) we lose one view count — not fatal.
@@ -58,4 +65,18 @@ export default async function AdvertiserReportPage({ params, searchParams }: Pag
   if (!report) notFound()
 
   return <ReportShell data={report} />
+}
+
+function ExpiredReportPage() {
+  return (
+    <main className="min-h-screen bg-portal-bg flex items-center justify-center px-6">
+      <div className="max-w-md text-center">
+        <h1 className="font-serif text-2xl font-bold text-portal-text mb-3">This link has expired.</h1>
+        <p className="text-portal-sub leading-relaxed">
+          We rotate these links every few months so your data stays private. Reply to the email your report came from
+          and we&apos;ll send you a fresh URL.
+        </p>
+      </div>
+    </main>
+  )
 }

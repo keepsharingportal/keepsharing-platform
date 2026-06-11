@@ -37,18 +37,27 @@ function SectionHeader({ icon: Icon, label, color }: { icon: React.ElementType; 
 }
 
 // ── Data fetchers ─────────────────────────────────────────────────────────────
+//
+// All three fetchers below take an `allowedMarkets` arg. When null, the
+// caller is super/admin and queries return cross-market data. When an array
+// is passed, queries filter so the caller only sees data for their assigned
+// markets. UI-side hiding alone is not enough — the JSON returned to the
+// client must also be scoped, or a publisher inspecting the network tab can
+// see cross-market revenue + submissions.
 
-async function getMarketPulse() {
+async function getMarketPulse(allowedMarkets: string[] | null) {
   const supabase = await createClient()
   const thisMonth = new Date()
   thisMonth.setDate(1)
   const monthStr = thisMonth.toISOString().split('T')[0]
 
   try {
-    const { data: placements } = await supabase
+    let q = supabase
       .from('print_placements')
       .select('publication_slug, page_size_fraction, monthly_revenue')
       .eq('issue_month', monthStr)
+    if (allowedMarkets) q = q.in('publication_slug', allowedMarkets)
+    const { data: placements } = await q
 
     const stats: Record<string, { count: number; pages: number; revenue: number }> = {}
     for (const p of placements ?? []) {
@@ -65,16 +74,32 @@ async function getMarketPulse() {
   }
 }
 
-async function getActionItems(): Promise<{ urgent: UrgentItem[]; review: UrgentItem[] }> {
+async function getActionItems(allowedMarkets: string[] | null): Promise<{ urgent: UrgentItem[]; review: UrgentItem[] }> {
   const supabase = await createClient()
 
   try {
-    const { data } = await supabase
+    // Resolve allowed publication UUIDs once. Publishers see only items
+    // tied to their assigned markets; super/admin see all.
+    let allowedPublicationIds: string[] | null = null
+    if (allowedMarkets) {
+      const { data: pubs } = await supabase
+        .from('publications')
+        .select('id, slug')
+        .in('slug', allowedMarkets)
+      allowedPublicationIds = (pubs ?? []).map(p => p.id as string)
+      // Fail-closed: empty allowedMarkets must return zero items, not
+      // accidentally drop the filter.
+      if (allowedPublicationIds.length === 0) return { urgent: [], review: [] }
+    }
+
+    let q = supabase
       .from('action_items')
       .select('*')
       .eq('completed', false)
       .order('due_date', { ascending: true })
       .limit(20)
+    if (allowedPublicationIds) q = q.in('publication_id', allowedPublicationIds)
+    const { data } = await q
 
     const urgent: UrgentItem[] = []
     const review: UrgentItem[] = []
@@ -112,9 +137,15 @@ async function getActionItems(): Promise<{ urgent: UrgentItem[]; review: UrgentI
   }
 }
 
-async function getIncoming() {
+async function getIncoming(allowedMarkets: string[] | null) {
   const supabase = await createClient()
   const items: Array<{ id: string; type: string; label: string; time: string }> = []
+
+  // business_spotlight_submissions / nominations / birthday_spotlight_orders
+  // are RRP-only at the schema level. Until they're market-scoped, a publisher
+  // without RRP access should not see them. Cross-brand roles (super/admin)
+  // get them all; restricted publishers see them only if 'rrp' is in scope.
+  if (allowedMarkets && !allowedMarkets.includes('rrp')) return items
 
   function timeAgo(ts: string) {
     const diff = Date.now() - new Date(ts).getTime()
@@ -175,10 +206,16 @@ export default async function TodayPage() {
     ? PUBLICATIONS
     : PUBLICATIONS.filter(p => (adminCtx?.allowedMarkets ?? []).includes(p.slug))
 
+  // Scope filter for data fetchers: null = no filter (super/admin), array =
+  // restrict to those markets. The fetchers fail-closed on empty arrays.
+  const scopeMarkets: string[] | null = isCrossBrand
+    ? null
+    : (adminCtx?.allowedMarkets ?? [])
+
   const [marketStats, actionItems, incoming, opsSnapshot] = await Promise.all([
-    getMarketPulse(),
-    getActionItems(),
-    getIncoming(),
+    getMarketPulse(scopeMarkets),
+    getActionItems(scopeMarkets),
+    getIncoming(scopeMarkets),
     getOpsSnapshot(supabase).catch(() => null),
   ])
 

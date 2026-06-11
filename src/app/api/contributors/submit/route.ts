@@ -8,12 +8,17 @@
 //      generated draft when done. We deliberately do NOT block the
 //      submitter on the AI call — the form returns immediately.
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateContributorDraft, type QAQuestion } from '@/lib/contributors/draft'
 
 export const runtime     = 'nodejs'
-export const maxDuration = 30
+// Bumped from 30s to 120s so the AI drafting work scheduled via after()
+// has room to finish even on long-form generations (Sonnet 4.6 with
+// adaptive thinking can take 60-90s for a thorough draft). Below the
+// 30s ceiling, the Lambda would die mid-draft and the contributor
+// response would stay stuck at status='drafting' forever.
+export const maxDuration = 120
 
 function adminDb() {
   return createClient(
@@ -63,14 +68,18 @@ export async function POST(req: NextRequest) {
     completed_at: new Date().toISOString(),
   }).eq('id', invite.id)
 
-  // 2. Insert response row.
+  // 2. Insert response row. Status flips through:
+  //      drafting          → AI call in flight (set synchronously below)
+  //      drafted           → AI call succeeded, ready for editorial review
+  //      awaiting_review   → AI not configured / draft skipped
+  //      draft_failed      → AI call surfaced an error; admin can retry
   const { data: respRow } = await db
     .from('contributor_responses')
     .insert({
       invite_id:      invite.id,
       contributor_id: invite.contributor_id,
       responses,
-      status:         'awaiting_review',
+      status:         'drafting',
     })
     .select('id')
     .single()
@@ -90,9 +99,15 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 4. Fire AI drafting — DON'T await; the form returns now.
+  // 4. Schedule AI drafting via Next.js `after()`. Unlike a bare `void
+  //    async`, after() keeps the Lambda alive until the callback finishes
+  //    (up to the route's maxDuration). The previous void-async pattern
+  //    could die when the response was sent, leaving the response stuck at
+  //    status='drafting' forever with no error and no admin observability.
+  //    The response below tells the contributor "we got it" before the AI
+  //    call runs, so UX is unchanged.
   if (responseId) {
-    void (async () => {
+    after(async () => {
       try {
         const draft = await generateContributorDraft({
           brandSlug:        invite.brand_slug,
@@ -113,14 +128,17 @@ export async function POST(req: NextRequest) {
           status:                'drafted',
         }).eq('id', responseId)
       } catch (e) {
+        // Set status='draft_failed' so the admin queue surfaces this for
+        // retry instead of letting it sit in 'drafting' forever.
         await db.from('contributor_responses').update({
-          ai_draft:        { error: e instanceof Error ? e.message : String(e) },
+          ai_draft:              { error: e instanceof Error ? e.message : String(e) },
           ai_draft_generated_at: new Date().toISOString(),
-          ai_draft_caller: 'contributor.qa.draft',
+          ai_draft_caller:       'contributor.qa.draft',
+          status:                'draft_failed',
         }).eq('id', responseId)
         console.error('[contributors/submit] draft generation failed', e)
       }
-    })()
+    })
   }
 
   return NextResponse.json({ ok: true })

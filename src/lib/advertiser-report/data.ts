@@ -229,10 +229,17 @@ export async function loadAdvertiserReport(
     supabase.from('facebook_campaigns')
       .select('fb_campaign_id, name, objective, effective_status')
       .eq('advertiser_id', advertiserId),
+    // Filter goals to the current report window. Without this date scope a
+    // goal set for January 2025 still surfaces (and computes progress
+    // against) a June 2026 report. The right behavior: a goal is in-scope
+    // for the report iff its period overlaps the report's date range.
+    // period_start <= until AND period_end >= since gives us the overlap.
     supabase.from('advertiser_report_goals')
       .select('*')
       .eq('advertiser_id', advertiserId)
-      .eq('is_active', true),
+      .eq('is_active', true)
+      .lte('period_start', until)
+      .gte('period_end',   since),
     supabase.from('guide_listings')
       .select('id, business_name, guide_type_slug')
       .eq('advertiser_account_id', advertiserId)

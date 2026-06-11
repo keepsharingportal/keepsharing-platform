@@ -127,7 +127,11 @@
       "Bash(xargs grep -l \"ListingDetailPage\")",
       "Bash(bash scripts/portal-sweep-today.sh)",
       "Bash(bash scripts/portal-sweep-today-2.sh)",
-      "Bash(bash scripts/portal-sweep-today-3.sh)"
+      "Bash(bash scripts/portal-sweep-today-3.sh)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\jwats\\\\projects\\\\keepsharing-platform\\\\supabase\" -Directory)",
+      "Bash(ls /mnt/c/Users/jwats/projects/keepsharing-platform/supabase/migrations/ 2>/dev/null | grep -E '^[0-9]{10}' | tail -20)",
+      "Read(//mnt/c/Users/jwats/projects/keepsharing-platform/supabase/**)",
+      "Bash(xargs grep -l \"after\\\\|background\\\\|waitUntil\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\jwats\\OneDrive\\Desktop\\keepsharing-platform\\.next",

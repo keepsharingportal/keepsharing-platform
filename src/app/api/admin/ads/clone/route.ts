@@ -21,6 +21,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
+import { requireAal2 } from '@/lib/admin/mfa-gate'
+import { recordAuditEvent } from '@/lib/admin/audit'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -39,7 +41,9 @@ const CLONED_FIELDS = [
 ]
 
 export async function POST(req: NextRequest) {
-  await requireAdmin()
+  const ctx = await requireAdmin()
+  const gate = await requireAal2()
+  if (!gate.ok) return gate.response
   const { id } = await req.json().catch(() => ({})) as { id?: string }
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
@@ -92,5 +96,12 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
+  await recordAuditEvent({
+    ctx, req,
+    action:        'ad_placement.cloned',
+    target_table:  'ad_placements',
+    target_id:     created?.id ?? null,
+    meta:          { source_ad_id: id },
+  })
   return NextResponse.json({ ok: true, id: created?.id })
 }

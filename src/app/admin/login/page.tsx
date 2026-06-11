@@ -86,8 +86,16 @@ function AdminLoginInner() {
         setError(pwError.message || 'Sign-in failed')
         return
       }
-      // On success, force a full nav so the proxy + admin context resolve
-      // against the fresh session cookie.
+      // After successful password sign-in, the session is at AAL1. If the
+      // user has a verified TOTP factor, we MUST elevate to AAL2 before
+      // letting them into the admin. The challenge page handles that and
+      // redirects through to `next` on success.
+      const aalResult = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (aalResult.data?.nextLevel === 'aal2' && aalResult.data?.currentLevel === 'aal1') {
+        window.location.href = `/admin/auth/mfa-challenge?next=${encodeURIComponent(next)}`
+        return
+      }
+      // No MFA enrolled → go straight through.
       window.location.href = next
     } finally {
       setBusy(null)

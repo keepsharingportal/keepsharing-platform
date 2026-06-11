@@ -19,7 +19,10 @@ import { ClaimSpotButton } from './ClaimSpotButton'
 export const metadata: Metadata = { title: 'Claim this spot — RRP' }
 export const dynamic = 'force-dynamic'
 
-interface Props { params: Promise<{ placementId: string }> }
+interface Props {
+  params:       Promise<{ placementId: string }>
+  searchParams: Promise<{ success?: string; canceled?: string }>
+}
 
 function supabaseAdmin() {
   return createClient(
@@ -47,8 +50,9 @@ interface ProductRow {
   is_active:            boolean
 }
 
-export default async function ClaimSpotPage({ params }: Props) {
+export default async function ClaimSpotPage({ params, searchParams }: Props) {
   const { placementId } = await params
+  const { success: successFlag } = await searchParams
   const sb = supabaseAdmin()
 
   const { data: pData } = await sb
@@ -59,7 +63,18 @@ export default async function ClaimSpotPage({ params }: Props) {
   const placement = pData as PlacementRow | null
   if (!placement) notFound()
 
-  // Already claimed.
+  // Stripe redirects to ?success=1 immediately on payment, but the webhook
+  // that flips advertiser_account_id / claimed_at may be 1-5 seconds behind.
+  // When that race happens, the old code rendered "This spot is taken" right
+  // after the customer paid — which reads as a duplicate-charge anxiety
+  // moment. Now we explicitly handle the success case: if the URL says
+  // success and the DB hasn't caught up, we show a "Thanks, we're activating
+  // this" page that polls itself until the webhook lands.
+  if (successFlag) {
+    return <SuccessLanding placementId={placementId} alreadyClaimed={!!(placement.advertiser_account_id || placement.claimed_at)} />
+  }
+
+  // Already claimed (no success flag → this is someone else hitting the URL).
   if (placement.advertiser_account_id || placement.claimed_at) {
     return (
       <Shell>
@@ -134,5 +149,27 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen bg-portal-bg">
       <div className="max-w-2xl mx-auto px-6 py-12">{children}</div>
     </main>
+  )
+}
+
+import { ClaimSuccessPoller } from './ClaimSuccessPoller'
+
+function SuccessLanding({ placementId, alreadyClaimed }: { placementId: string; alreadyClaimed: boolean }) {
+  return (
+    <Shell>
+      <p className="text-[11px] uppercase tracking-widest text-portal-green font-bold mb-2">River Region Parents</p>
+      <h1 className="text-3xl sm:text-4xl font-bold text-portal-text leading-tight">Thanks — your payment came through.</h1>
+      <p className="text-portal-sub text-base mt-3 leading-relaxed">
+        We&apos;re activating your spot now. You&apos;ll see it live within a few minutes. We&apos;ll email you with next steps
+        on the creative and copy.
+      </p>
+      {/* Optimistic state for the race between Stripe's redirect and the
+          webhook. The poller refreshes every 3s for up to 30s; once the DB
+          shows claimed_at, the page is in a stable state. */}
+      {!alreadyClaimed && <ClaimSuccessPoller placementId={placementId} />}
+      <p className="mt-6 text-[11px] text-portal-muted">
+        Need help right now? <a href="mailto:hello@riverregionparents.com" className="text-portal-blue hover:underline">hello@riverregionparents.com</a>
+      </p>
+    </Shell>
   )
 }

@@ -196,11 +196,6 @@ export async function syncSearchConsole(trigger: string = 'cron'): Promise<GSCSy
       }
       totalPages += pageUpserts.length
 
-      // Retention sweep: drop rows older than 90 days.
-      const cutoff = new Date(); cutoff.setUTCDate(cutoff.getUTCDate() - 90)
-      await db.from('search_console_queries').delete().lt('day', ymd(cutoff))
-      await db.from('search_console_pages_daily').delete().lt('day', ymd(cutoff))
-
       // Stamp the integration row.
       await db.from('search_console_integrations').update({
         last_sync_at:          new Date().toISOString(),
@@ -210,6 +205,16 @@ export async function syncSearchConsole(trigger: string = 'cron'): Promise<GSCSy
         last_sync_page_count:  pageUpserts.length,
       }).eq('id', integration.id)
     }
+
+    // Retention sweep: drop rows older than 90 days. Runs once per sync
+    // (not per integration), and AFTER successful upserts so a transient
+    // sync failure can't leave the dataset empty.
+    const cutoff = new Date(); cutoff.setUTCDate(cutoff.getUTCDate() - 90)
+    const cutoffDay = ymd(cutoff)
+    const { error: qSweepErr } = await db.from('search_console_queries').delete().lt('day', cutoffDay)
+    if (qSweepErr) console.warn('[gsc/sync] query retention sweep failed:', qSweepErr.message)
+    const { error: pSweepErr } = await db.from('search_console_pages_daily').delete().lt('day', cutoffDay)
+    if (pSweepErr) console.warn('[gsc/sync] pages_daily retention sweep failed:', pSweepErr.message)
 
     const durationMs = Date.now() - start
     if (logId) await db.from('search_console_sync_log').update({

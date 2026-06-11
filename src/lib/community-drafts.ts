@@ -7,7 +7,7 @@
 // TODO: Set ANTHROPIC_API_KEY in your .env.local file
 //   ANTHROPIC_API_KEY=sk-ant-...
 
-import Anthropic                 from '@anthropic-ai/sdk'
+import { runAI }                from '@/lib/ai/client'
 import { createClient }          from '@supabase/supabase-js'
 import { getSubmissionType }     from './submissions'
 import type { SubmissionTypeConfig } from './submissions'
@@ -284,40 +284,26 @@ export async function generateCommunityDraft(submissionId: string): Promise<void
     return
   }
 
-  // ── No API key: write a clear configuration note ──────────────────────────
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    await supabase
-      .from('community_submissions')
-      .update({
-        ai_draft_content: '⚠️  AI draft generation is not configured.\n\nSet ANTHROPIC_API_KEY in your .env.local file to enable this feature.',
-        ai_draft_status:  'failed',
-        ai_prompt_used:   `${sub.submission_type}-v1-no_api_key`,
-      })
-      .eq('id', submissionId)
-    return
-  }
-
   // ── Mark as generating ────────────────────────────────────────────────────
   await supabase
     .from('community_submissions')
     .update({ ai_draft_status: 'generating' })
     .eq('id', submissionId)
 
-  // ── Call Claude ───────────────────────────────────────────────────────────
+  // ── Call AI via the central wrapper ───────────────────────────────────────
+  // runAI() handles the no-key case (throws AINotConfiguredError) which
+  // surfaces here as a 'failed' draft with the error message, instead of
+  // silently bypassing usage tracking + budget caps.
   try {
-    const client = new Anthropic({ apiKey })
     const prompt = buildPrompt(sub, config)
 
-    const response = await client.messages.create({
-      model:      'claude-sonnet-4-6',
-      max_tokens: 1024,
-      messages:   [{ role: 'user', content: prompt }],
+    const aiResponse = await runAI({
+      taskKind: 'drafting',
+      caller:   `community-drafts.${sub.submission_type}`,
+      messages: [{ role: 'user', content: prompt }],
+      maxTokens: 1024,
     })
-
-    const draft = response.content[0].type === 'text'
-      ? response.content[0].text.trim()
-      : ''
+    const draft = aiResponse.text.trim()
 
     await supabase
       .from('community_submissions')

@@ -3,10 +3,22 @@ import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { onSelfServeBookingComplete, upsertContact, addTag, triggerWorkflow } from '@/lib/ghl'
+import { loadStripe } from '@/lib/integrations/stripe/client'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
-  apiVersion: '2026-04-22.dahlia',
-})
+/** Resolve credentials per-request: integration row first (lets admin rotate
+ *  the signing secret via /admin/integrations/stripe without redeploy),
+ *  STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET env vars as fallback (legacy
+ *  + pre-migration safety). */
+async function resolveStripe(): Promise<{ stripe: Stripe; signingSecret: string } | null> {
+  const integration = await loadStripe()
+  const secretKey     = integration?.secret_key             ?? process.env.STRIPE_SECRET_KEY     ?? ''
+  const signingSecret = integration?.webhook_signing_secret ?? process.env.STRIPE_WEBHOOK_SECRET ?? ''
+  if (!secretKey || !signingSecret) return null
+  return {
+    stripe: new Stripe(secretKey, { apiVersion: '2026-04-22.dahlia' }),
+    signingSecret,
+  }
+}
 
 // ── Generic mirror handlers (migration 151) ─────────────────────────────────
 // Run alongside the legacy per-meta routing below so subscriptions, charges,
@@ -114,11 +126,19 @@ function fmt$(cents: number) { return '$' + ((cents ?? 0) / 100).toFixed(0) }
 export async function POST(req: NextRequest) {
   const body      = await req.text()
   const sig       = req.headers.get('stripe-signature') ?? ''
-  const secret    = process.env.STRIPE_WEBHOOK_SECRET ?? ''
+
+  // Resolve credentials per-request — integration row wins, env-var fallback.
+  // Rotating the signing secret in /admin/integrations/stripe takes effect on
+  // the next webhook without a redeploy.
+  const resolved = await resolveStripe()
+  if (!resolved) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
+  }
+  const { stripe, signingSecret } = resolved
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, secret)
+    event = stripe.webhooks.constructEvent(body, sig, signingSecret)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: `Webhook signature failed: ${msg}` }, { status: 400 })

@@ -110,7 +110,7 @@ async function loadOpportunityQueries(db: SupabaseClient): Promise<QueryRollup[]
   return filtered.slice(0, MAX_QUERIES_PER_BRAND)
 }
 
-function buildPrompt(brandFragment: string, queries: QueryRollup[], priorDismissals: Array<{ headline: string; reason: string }>): string {
+function buildPrompt(brandFragment: string, queries: QueryRollup[], priorDismissals: Array<{ headline: string; reason: string }>, existingArticles: Array<{ title: string; slug: string }>): string {
   const queryBlock = queries.map(q => {
     const ctr = (q.clicks / q.impressions) * 100
     const avgPos = q.positionAvg / Math.max(1, q.positionN)
@@ -119,6 +119,15 @@ function buildPrompt(brandFragment: string, queries: QueryRollup[], priorDismiss
 
   const dismissBlock = priorDismissals.length > 0
     ? `\n## PREVIOUSLY DISMISSED (don't suggest these again)\n${priorDismissals.map(d => `- ${d.headline} — dismissed because: ${d.reason}`).join('\n')}\n`
+    : ''
+
+  // Existing-article block: when a query is already served by a published
+  // article, the suggester should recommend a HEADLINE/SNIPPET REWRITE for
+  // that article — not "write a new article on this topic." Without this
+  // block the AI proposes content we already published, wasting editorial
+  // review time. Capped at 100 most-recent articles to keep token use sane.
+  const existingBlock = existingArticles.length > 0
+    ? `\n## ALREADY-PUBLISHED ARTICLES (do NOT propose a duplicate; if a query maps to one of these, propose a headline/snippet rewrite tied to that article)\n${existingArticles.map(a => `- "${a.title}" (slug: ${a.slug})`).join('\n')}\n`
     : ''
 
   return [
@@ -130,6 +139,7 @@ function buildPrompt(brandFragment: string, queries: QueryRollup[], priorDismiss
     '',
     queryBlock,
     dismissBlock,
+    existingBlock,
     '',
     '## TASK',
     'Generate 8-12 specific story ideas this brand should commission. For each, identify which queries it serves (cite them). Distinguish between:',
@@ -194,7 +204,19 @@ export async function runEditorialCalendar(brandSlug: string, trigger: string = 
     const priorDismissals = ((dismissData ?? []) as Array<{ working_headline: string; dismissed_reason: string | null }>)
       .map(d => ({ headline: d.working_headline, reason: d.dismissed_reason ?? '(no reason)' }))
 
-    const prompt = buildPrompt(brandFragment, queries, priorDismissals)
+    // Load recent published articles so the AI doesn't propose duplicates.
+    // 100 most-recent is enough for the AI to recognize topic overlap without
+    // blowing up the prompt; older articles are unlikely to compete for the
+    // current opportunity queries anyway.
+    const { data: existingData } = await db
+      .from('guide_articles')
+      .select('title, slug')
+      .eq('published', true)
+      .order('published_at', { ascending: false })
+      .limit(100)
+    const existingArticles = ((existingData ?? []) as Array<{ title: string; slug: string }>)
+
+    const prompt = buildPrompt(brandFragment, queries, priorDismissals, existingArticles)
     const response = await runAI({
       taskKind: 'coaching',                          // editorial strategy = "coaching" task — uses better model
       caller:   'editorial-calendar.suggest',

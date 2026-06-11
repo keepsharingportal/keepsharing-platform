@@ -58,21 +58,28 @@ export default async function AcquisitionPage({ searchParams }: PageProps) {
     )
   }
 
+  // Order ascending by viewed_at so the first row per session_hash is
+  // genuinely the FIRST touch in the window — the rollFirstTouch helper
+  // below relies on that ordering. Without it, "first touch" reduces to
+  // "whichever row Supabase happened to return first," which is unstable
+  // and was silently flipping channel attribution to last-touch.
   const [curRes, priRes] = await Promise.all([
     supabase.from('page_views')
-      .select('session_hash, referrer_host, utm_source, utm_medium, utm_campaign')
+      .select('session_hash, referrer_host, utm_source, utm_medium, utm_campaign, viewed_at')
       .gte('viewed_at', rangeToTs(ranges.current).sinceTs)
       .lte('viewed_at', rangeToTs(ranges.current).untilTs)
+      .order('viewed_at', { ascending: true })
       .limit(100_000),
     supabase.from('page_views')
-      .select('session_hash, referrer_host')
+      .select('session_hash, referrer_host, viewed_at')
       .gte('viewed_at', rangeToTs(ranges.prior).sinceTs)
       .lte('viewed_at', rangeToTs(ranges.prior).untilTs)
+      .order('viewed_at', { ascending: true })
       .limit(100_000),
   ])
 
-  type CurRow = { session_hash: string; referrer_host: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }
-  type PriRow = { session_hash: string; referrer_host: string | null }
+  type CurRow = { session_hash: string; referrer_host: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; viewed_at: string }
+  type PriRow = { session_hash: string; referrer_host: string | null; viewed_at: string }
   const curRows = (curRes.data ?? []) as CurRow[]
   const priRows = (priRes.data ?? []) as PriRow[]
 

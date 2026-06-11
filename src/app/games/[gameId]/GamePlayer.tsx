@@ -238,6 +238,9 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         rounds={items.map(i => i.payload as unknown as TriviaPayload)}
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
+        signatureTile={game.signature.tile}
       />
     )
   }
@@ -263,6 +266,9 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         difficulty={difficulty}
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
+        signatureTile={game.signature.tile}
       />
     )
   }
@@ -274,6 +280,9 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         board={board}
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
+        signatureTile={game.signature.tile}
       />
     )
   }
@@ -460,14 +469,19 @@ function GuessAndCheck({
 // ── Trivia ────────────────────────────────────────────────────────────────────
 
 function TriviaPlayer({
-  rounds, onCorrect, onFinish,
-}: { rounds: TriviaPayload[]; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void }) {
+  rounds, onCorrect, onFinish, signatureBg, signatureFg, signatureTile,
+}: { rounds: TriviaPayload[]; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void; signatureBg?: string; signatureFg?: string; signatureTile?: string }) {
   const [idx, setIdx]           = useState(0)
   const [attempts, setAttempts] = useState(0)
   const [picked, setPicked]     = useState<string | null>(null)
   const outcomesRef = useRef<('ok' | 'fail')[]>([])
   const current = rounds[idx]
   const maxAttempts = 2
+  // Signature theming for Trivia (commit 6591af9 added it for the other
+  // games but missed Trivia + Word Search + Memory; this fixes the parity
+  // gap. Falls back gracefully when props are undefined.)
+  const titleStyle = signatureBg ? { color: signatureBg } : undefined
+  const tileBgStyle = signatureTile ? { backgroundColor: signatureTile } : undefined
 
   function buildGrid(): string {
     return Array.from({ length: rounds.length }, (_, i) => {
@@ -506,7 +520,12 @@ function TriviaPlayer({
   return (
     <div className="rounded-3xl border border-border/60 bg-card shadow-sm">
       <div className="px-6 py-10 md:px-10 md:py-12 max-w-2xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 text-center">Parenting Trivia</h2>
+        <h2
+          className="text-2xl md:text-3xl font-bold mb-1 text-center"
+          style={{ ...titleStyle, fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          Parenting Trivia
+        </h2>
         <p className="text-sm text-muted-foreground mb-8 text-center">Test your knowledge!</p>
 
         <div className="bg-muted/40 border border-border/60 rounded-2xl px-6 py-6 mb-6">
@@ -517,15 +536,17 @@ function TriviaPlayer({
           {current.options.map(opt => {
             const isPicked      = picked === opt
             const isCorrectShow = picked && opt === current.a
+            const isWrong       = isPicked && !isCorrectShow
             return (
               <button
                 key={opt}
                 onClick={() => pick(opt)}
                 disabled={attempts >= maxAttempts || picked !== null}
+                style={isCorrectShow && signatureBg ? { borderColor: signatureBg, backgroundColor: signatureTile, color: signatureFg } : undefined}
                 className={`px-4 py-4 rounded-xl border-2 text-left text-base font-semibold transition-colors ${
-                  isCorrectShow ? 'border-green-500 bg-green-50 text-green-900' :
-                  isPicked      ? 'border-rose-400 bg-rose-50 text-rose-900' :
-                  'border-border bg-card hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50'
+                  isCorrectShow ? 'tile-pop'                                       :
+                  isWrong       ? 'border-rose-400 bg-rose-50 text-rose-900 tile-shake' :
+                                  'border-border bg-card hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50'
                 }`}
               >
                 {opt}
@@ -545,11 +566,15 @@ function TriviaPlayer({
 // ── Word Search ───────────────────────────────────────────────────────────────
 
 function WordSearchPlayer({
-  board, difficulty, onCorrect, onFinish,
-}: { board: WordSearchPayload; difficulty: Difficulty; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void }) {
+  board, difficulty, onCorrect, onFinish, signatureBg, signatureFg, signatureTile,
+}: { board: WordSearchPayload; difficulty: Difficulty; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void; signatureBg?: string; signatureFg?: string; signatureTile?: string }) {
   const [selected, setSelected] = useState<number[]>([])
   const [matched, setMatched]   = useState<Set<number>>(new Set())
   const [found, setFound]       = useState<Set<string>>(new Set())
+  // Used for matched-tile styling (kept inline so Tailwind doesn't need
+  // to generate arbitrary-hex utility classes at build time).
+  const matchedTileStyle = signatureTile ? { backgroundColor: signatureTile, color: signatureFg } : undefined
+  const titleStyle = signatureBg ? { color: signatureBg } : undefined
 
   function click(i: number) {
     if (matched.has(i)) return
@@ -583,7 +608,12 @@ function WordSearchPlayer({
   return (
     <div className="rounded-3xl border border-border/60 bg-card shadow-sm">
       <div className="px-4 py-8 md:px-10 md:py-12">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 text-center">Mom Brain Word Search</h2>
+        <h2
+          className="text-2xl md:text-3xl font-bold mb-1 text-center"
+          style={{ ...titleStyle, fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          Mom Brain Word Search
+        </h2>
         <p className="text-sm text-muted-foreground text-center mb-6 max-w-md mx-auto">
           Click letters in a row to spell each word, then click the last letter to lock it in.
         </p>
@@ -602,9 +632,10 @@ function WordSearchPlayer({
                   key={i}
                   onClick={() => click(i)}
                   disabled={isHit}
+                  style={isHit ? matchedTileStyle : undefined}
                   className={`${tileBase} rounded-md font-bold transition-colors ${
                     isHit
-                      ? 'bg-green-500 text-white shadow-inner'
+                      ? matchedTileStyle ? 'shadow-inner tile-pop' : 'bg-green-500 text-white shadow-inner tile-pop'
                       : isSel
                         ? 'bg-primary text-primary-foreground shadow-sm'
                         : 'bg-muted text-foreground hover:bg-muted/70'
@@ -650,14 +681,21 @@ function WordSearchPlayer({
 // ── Memory ────────────────────────────────────────────────────────────────────
 
 function MemoryPlayer({
-  board, onCorrect, onFinish,
-}: { board: MemoryPayload; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void }) {
+  board, onCorrect, onFinish, signatureBg, signatureFg, signatureTile,
+}: { board: MemoryPayload; onCorrect: () => void; onFinish: (opts?: { shareGrid?: string }) => void; signatureBg?: string; signatureFg?: string; signatureTile?: string }) {
   const deck = useMemo(() => {
     const pool = board.icons.slice(0, board.pairs)
     const cards = [...pool, ...pool]
     // Stable shuffle per session — Math.random is fine here since pairing is symmetric
     return cards.map(c => ({ c, k: Math.random() })).sort((a, b) => a.k - b.k).map(x => x.c)
   }, [board])
+  // Theming for Memory: title uses signature color; matched tiles use the
+  // signature tile color; face-down tiles use signature bg. Falls back when
+  // props are undefined so existing rendering still works during a partial
+  // migration.
+  const titleStyle = signatureBg ? { color: signatureBg } : undefined
+  const matchedStyle = signatureTile ? { backgroundColor: signatureTile, color: signatureFg, borderColor: signatureBg } : undefined
+  const faceDownStyle = signatureBg ? { backgroundColor: signatureBg, color: signatureFg } : undefined
 
   const [flipped, setFlipped] = useState<number[]>([])
   const [matched, setMatched] = useState<Set<number>>(new Set())
@@ -702,7 +740,12 @@ function MemoryPlayer({
   return (
     <div className="rounded-3xl border border-border/60 bg-card shadow-sm">
       <div className="px-4 py-8 md:px-10 md:py-12">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 text-center">Toddler Chaos Match</h2>
+        <h2
+          className="text-2xl md:text-3xl font-bold mb-1 text-center"
+          style={{ ...titleStyle, fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          Toddler Chaos Match
+        </h2>
         <p className="text-sm text-muted-foreground text-center mb-4">Find the matching pairs!</p>
 
         {/* Live moves counter — secondary measurable axis alongside time */}
@@ -712,18 +755,22 @@ function MemoryPlayer({
 
         <div className={`grid ${colsClass} gap-3 max-w-md md:max-w-lg mx-auto`}>
           {deck.map((card, i) => {
-            const show = flipped.includes(i) || matched.has(i)
+            const isMatched = matched.has(i)
+            const isFlipped = flipped.includes(i) || isMatched
             return (
               <button
                 key={i}
                 onClick={() => click(i)}
+                style={isMatched ? matchedStyle : isFlipped ? undefined : faceDownStyle}
                 className={`aspect-square rounded-2xl text-3xl md:text-4xl flex items-center justify-center transition-all ${
-                  show
-                    ? 'bg-primary/10 border-2 border-primary/40 shadow-inner'
-                    : 'bg-primary text-primary-foreground shadow-md hover:scale-105'
+                  isMatched
+                    ? 'border-2 shadow-inner tile-pop'
+                    : isFlipped
+                      ? 'bg-primary/10 border-2 border-primary/40 shadow-inner tile-flip-in'
+                      : faceDownStyle ? 'shadow-md hover:scale-105' : 'bg-primary text-primary-foreground shadow-md hover:scale-105'
                 }`}
               >
-                {show ? card : '?'}
+                {isFlipped ? card : '?'}
               </button>
             )
           })}

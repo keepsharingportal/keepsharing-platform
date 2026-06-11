@@ -80,8 +80,12 @@ async function resolveModel(req: AIRequest, integrations: IntegrationRow[]): Pro
   return fallback
 }
 
-/** Total spend (in cents) for a provider over the current calendar month. */
-async function monthSpentCents(db: SupabaseClient, provider: Provider): Promise<number> {
+/** Total spend (in cents) for a provider over the current calendar month.
+ *  Returns `{ ok: false }` on a read failure so the caller can decide
+ *  fail-open vs fail-closed semantics — silently substituting 0 here was
+ *  the bug: a transient DB outage during a high-volume run could blow
+ *  through the monthly budget undetected. */
+async function monthSpentCents(db: SupabaseClient, provider: Provider): Promise<{ ok: true; cents: number } | { ok: false; error: string }> {
   const since = new Date()
   since.setUTCDate(1)
   since.setUTCHours(0, 0, 0, 0)
@@ -91,12 +95,11 @@ async function monthSpentCents(db: SupabaseClient, provider: Provider): Promise<
     .eq('provider', provider)
     .gte('occurred_at', since.toISOString())
   if (error) {
-    // Don't block calls on a usage-log read failure — that would turn a
-    // logging problem into an outage.
     console.warn('[ai/client] monthSpentCents failed:', error.message)
-    return 0
+    return { ok: false, error: error.message }
   }
-  return (data ?? []).reduce((s: number, r: { cost_cents: number | string }) => s + Number(r.cost_cents ?? 0), 0)
+  const cents = (data ?? []).reduce((s: number, r: { cost_cents: number | string }) => s + Number(r.cost_cents ?? 0), 0)
+  return { ok: true, cents }
 }
 
 async function loadIntegrations(db: SupabaseClient): Promise<IntegrationRow[]> {
@@ -263,10 +266,16 @@ export async function runAI(req: AIRequest): Promise<AIResponse> {
   const { apiKey, budgetCents, fromIntegration } = resolveKey(model.provider, integrations)
 
   // Budget cap — only when the integration row owns the key (env-var fallback
-  // has no opinion on budgets).
+  // has no opinion on budgets). Fail-CLOSED on a usage-log read failure: if
+  // we can't compute spend, we can't trust the cap, and silently allowing
+  // the call lets a transient DB outage blow past the monthly budget
+  // undetected. The error message tells the operator exactly what to fix.
   if (fromIntegration && budgetCents !== null && budgetCents > 0) {
-    const spent = await monthSpentCents(db, model.provider)
-    if (spent >= budgetCents) throw new AIBudgetExceededError(spent, budgetCents)
+    const spend = await monthSpentCents(db, model.provider)
+    if (!spend.ok) {
+      throw new Error(`AI budget check unavailable (cannot read ai_usage_log): ${spend.error}. Failing closed to prevent over-spend.`)
+    }
+    if (spend.cents >= budgetCents) throw new AIBudgetExceededError(spend.cents, budgetCents)
   }
 
   const start = Date.now()
@@ -389,8 +398,11 @@ export async function assertBudgetAvailable(provider: Provider): Promise<void> {
   const integrations = await loadIntegrations(db)
   const row = integrations.find(r => r.provider === provider && r.is_active)
   if (!row || row.monthly_budget_cents <= 0) return
-  const spent = await monthSpentCents(db, provider)
-  if (spent >= row.monthly_budget_cents) throw new AIBudgetExceededError(spent, row.monthly_budget_cents)
+  const spend = await monthSpentCents(db, provider)
+  if (!spend.ok) {
+    throw new Error(`AI budget check unavailable (cannot read ai_usage_log): ${spend.error}. Failing closed to prevent over-spend.`)
+  }
+  if (spend.cents >= row.monthly_budget_cents) throw new AIBudgetExceededError(spend.cents, row.monthly_budget_cents)
 }
 
 /** True when at least one provider is connected (either via integration row
