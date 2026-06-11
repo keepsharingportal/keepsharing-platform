@@ -98,24 +98,46 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     market:           adv.market ?? 'rrp',
   }
 
+  // Retry with exponential backoff so a transient GHL outage doesn't
+  // silently lose the send. Most GHL hiccups resolve in seconds; three
+  // attempts with 1s / 3s / 9s spacing covers the realistic outage
+  // window without keeping the admin waiting forever. Total budget:
+  // ~30s including request timeouts. On final failure the send row stays
+  // status='failed' so the admin can click "Send via GHL" again manually
+  // — which is the right escape hatch when GHL is down for hours.
   let status: 'sent' | 'failed' = 'failed'
   let statusCode: number | null = null
   let errorMsg: string | null   = null
-  try {
-    const res = await fetch(WEBHOOK_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-      signal:  AbortSignal.timeout(10_000),
-    })
-    statusCode = res.status
-    if (res.ok) {
-      status = 'sent'
-    } else {
+  const attempts: Array<{ statusCode: number | null; error: string | null; backoffMs: number }> = []
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+        signal:  AbortSignal.timeout(10_000),
+      })
+      statusCode = res.status
+      if (res.ok) {
+        status = 'sent'
+        errorMsg = null
+        attempts.push({ statusCode, error: null, backoffMs: 0 })
+        break
+      }
+      // 4xx (other than 429) is a permanent failure — payload is wrong.
+      // Don't waste attempts retrying; surface the error now.
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+        errorMsg = `Webhook returned ${res.status} ${res.statusText} — payload rejected (no retry).`
+        attempts.push({ statusCode, error: errorMsg, backoffMs: 0 })
+        break
+      }
       errorMsg = `Webhook returned ${res.status} ${res.statusText}`
+    } catch (e) {
+      errorMsg = e instanceof Error ? e.message : String(e)
     }
-  } catch (e) {
-    errorMsg = e instanceof Error ? e.message : String(e)
+    const backoffMs = attempt === 1 ? 1_000 : attempt === 2 ? 3_000 : 0
+    attempts.push({ statusCode, error: errorMsg, backoffMs })
+    if (attempt < 3) await new Promise(r => setTimeout(r, backoffMs))
   }
 
   if (sendId) {
@@ -136,6 +158,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       recipient_email: adv.contact_email,
       status_code:    statusCode,
       error:          errorMsg,
+      attempts,
     },
   })
 

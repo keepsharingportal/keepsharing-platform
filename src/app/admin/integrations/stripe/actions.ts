@@ -106,6 +106,33 @@ export async function createStripeProductAction(input: CreateProductInput): Prom
   if (!stripe) return { ok: false, error: 'No active Stripe integration. Connect one first.' }
   if (input.priceCents <= 0) return { ok: false, error: 'Price must be greater than zero.' }
 
+  // Validate the target row actually exists before minting the Stripe
+  // product. Without this check, a typo'd UUID in target_id silently
+  // breaks the webhook side-effect (claim_spot can't activate a missing
+  // placement) and we'd only find out when a customer paid and got
+  // nothing. The same target_table / target_id pair powers the
+  // /claim/[id] public flow, so the validation is load-bearing.
+  if (input.targetTable && input.targetId) {
+    const allowedTables: Array<NonNullable<CreateProductInput['targetTable']>> = [
+      'ad_placements', 'advertiser_packages', 'calendar_events',
+    ]
+    if (!allowedTables.includes(input.targetTable)) {
+      return { ok: false, error: `Unsupported target_table: ${input.targetTable}` }
+    }
+    const { data: existing, error: lookupErr } = await sr
+      .from(input.targetTable)
+      .select('id')
+      .eq('id', input.targetId)
+      .maybeSingle()
+    if (lookupErr) return { ok: false, error: `Could not verify target: ${lookupErr.message}` }
+    if (!existing) {
+      return { ok: false, error: `No ${input.targetTable} row with id ${input.targetId}. Double-check the UUID — a typo here silently breaks the checkout webhook.` }
+    }
+  }
+  if (input.kind === 'ad_placement' && (!input.targetTable || !input.targetId)) {
+    return { ok: false, error: 'Ad-placement products require a target row so the webhook can activate the spot on checkout completion.' }
+  }
+
   // Create the product + price in Stripe.
   let productId: string, priceId: string
   try {
