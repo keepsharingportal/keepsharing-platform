@@ -104,6 +104,7 @@ const NAV: NavItem[] = [
       { name: 'Authors',         href: '/admin/articles/authors'               },
       { name: 'Contributors',    href: '/admin/contributors'                   },
       { name: 'Editorial Calendar', href: '/admin/editorial-calendar'           },
+      { name: 'Distribution Log',   href: '/admin/distribution-log'              },
     ],
   },
   { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },

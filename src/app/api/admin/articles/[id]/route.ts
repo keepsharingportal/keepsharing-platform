@@ -50,6 +50,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       // Multi-brand attribution (migration 161)
       'brand_slug',
       'syndicated_to_brands',
+      // Newsletter draft queue (migration 165)
+      'queue_newsletter_draft',
     ]
 
     const update: Record<string, unknown> = {}
@@ -99,10 +101,16 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // yet if migration 157 hasn't run.
     const { data: priorData } = await supabase
       .from('guide_articles')
-      .select('published, auto_post_to_social, auto_posted_at')
+      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at')
       .eq('id', id)
       .maybeSingle()
-    const prior = priorData as null | { published: boolean | null; auto_post_to_social: boolean | null; auto_posted_at: string | null }
+    const prior = priorData as null | {
+      published: boolean | null;
+      auto_post_to_social: boolean | null;
+      auto_posted_at: string | null;
+      queue_newsletter_draft: boolean | null;
+      newsletter_drafted_at: string | null;
+    }
 
     const { error } = await supabase.from('guide_articles').update(update).eq('id', id)
 
@@ -149,6 +157,23 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           await autoPostArticle(id)
         } catch (e) {
           console.error('[auto-post] background job failed', e)
+        }
+      })()
+    }
+
+    // Newsletter draft hook — mirrors the auto-post hook. Fires when the
+    // article transitions to published AND queue_newsletter_draft is on
+    // AND no draft has been recorded yet. Migration 165.
+    const wantNewsletter = 'queue_newsletter_draft' in update
+      ? !!update.queue_newsletter_draft
+      : (prior?.queue_newsletter_draft === true)
+    if (!wasPublished && nowPublished && wantNewsletter && !prior?.newsletter_drafted_at) {
+      void (async () => {
+        try {
+          const { generateAndLogNewsletterDraft } = await import('@/lib/distribution/newsletter-draft')
+          await generateAndLogNewsletterDraft(id)
+        } catch (e) {
+          console.error('[newsletter-draft] background job failed', e)
         }
       })()
     }

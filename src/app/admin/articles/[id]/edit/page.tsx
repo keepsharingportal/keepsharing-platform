@@ -187,6 +187,8 @@ export default function ArticleEditPage({ params }: Props) {
   const [isHomepageHero, setIsHomepageHero] = useState(false)
   const [autoPostToSocial, setAutoPostToSocial] = useState(false)
   const [autoPostedAt, setAutoPostedAt] = useState<string | null>(null)
+  const [queueNewsletter, setQueueNewsletter] = useState(false)
+  const [newsletterDraftedAt, setNewsletterDraftedAt] = useState<string | null>(null)
   // Cross-cutting topic tags — controls which "Across the Site" rows this
   // article surfaces in (FRG Real Talk, Special Needs themes, etc.).
   // Stored as text[] on the row. Independent from guide_slug, which is the
@@ -252,6 +254,8 @@ export default function ArticleEditPage({ params }: Props) {
         setIsHomepageHero(hero)
         setAutoPostToSocial(!!data.auto_post_to_social)
         setAutoPostedAt(data.auto_posted_at ?? null)
+        setQueueNewsletter(!!data.queue_newsletter_draft)
+        setNewsletterDraftedAt(data.newsletter_drafted_at ?? null)
 
         // Convert stored UTC published_at → local <input type="datetime-local"> format
         const publishedAtLocal = data.published_at
@@ -373,6 +377,7 @@ export default function ArticleEditPage({ params }: Props) {
       author_blogger_id:       form.author_blogger_id         || null,
       topics:                  topics.length > 0 ? topics : null,
       auto_post_to_social:     autoPostToSocial,
+      queue_newsletter_draft:  queueNewsletter,
       brand_slug:              brandSlug || 'rrp',
       syndicated_to_brands:    syndicatedTo,
     }
@@ -744,6 +749,23 @@ export default function ArticleEditPage({ params }: Props) {
                     {autoPostedAt
                       ? `Posted ${new Date(autoPostedAt).toLocaleString()}. Re-saving won't re-fire.`
                       : 'AI writes a caption using the brand voice + posts to your connected Page. IG cross-posts when a hero image is set.'}
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 p-3 cursor-pointer hover:bg-portal-blue-lt/60 transition-colors border-t border-portal-blue/20">
+                <input
+                  type="checkbox"
+                  checked={queueNewsletter}
+                  onChange={e => setQueueNewsletter(e.target.checked)}
+                  disabled={!!newsletterDraftedAt}
+                  className="w-4 h-4 mt-0.5 rounded text-portal-blue cursor-pointer disabled:opacity-50"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-portal-text leading-tight">Queue GHL newsletter draft on publish</p>
+                  <p className="text-xs text-portal-muted mt-0.5 leading-snug">
+                    {newsletterDraftedAt
+                      ? `Drafted ${new Date(newsletterDraftedAt).toLocaleString()}. View at /admin/distribution. Re-saving won't re-fire.`
+                      : 'AI writes a brand-voiced subject line + 150-250 word body + CTA. Editor copies into GHL or the brand newsletter workflow picks it up.'}
                   </p>
                 </div>
               </label>
