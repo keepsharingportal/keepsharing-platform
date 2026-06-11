@@ -75,10 +75,11 @@ const ROADMAP: IntegrationRow[] = [
     id: 'gbp',
     name: 'Google Business Profile',
     category: 'Local SEO',
-    status: 'recommended',
+    status: 'available',
     icon: MapPin,
-    unlocks: 'Post updates, view + respond to reviews, see local-search insights — for RRP\'s own GBP AND for advertisers who connect their profile to the platform.',
-    whyValuable: 'Huge upsell potential: let advertisers click "post my deal to my GBP" through your platform. Plus, RRP\'s own local discovery improves dramatically when you post regularly. Real revenue + real reach.',
+    href: '/admin/integrations/google-business',
+    unlocks: 'Post updates, view local-search insights, track call clicks + direction requests. Phase 1: RRP\'s own GBP. Phase 2 (deferred): per-advertiser GBP upsell.',
+    whyValuable: 'Phase 1 improves RRP\'s local discovery, which feeds Google search referrals. Phase 2 is a real advertiser upsell — "post to your GBP from your KeepSharing dashboard."',
   },
   {
     id: 'gsc',
@@ -235,6 +236,25 @@ export default async function IntegrationsIndexPage() {
   } catch {/* fall through */}
   const gscEnvOk = !!process.env.GOOGLE_OAUTH_CLIENT_ID && !!process.env.GOOGLE_OAUTH_CLIENT_SECRET
 
+  // Probe Google Business Profile connection state.
+  let gbpReady     = false
+  let gbpConnected = false
+  let gbpName: string | null = null
+  try {
+    const probe = await supabase.from('google_business_integrations').select('id').limit(1)
+    gbpReady = !probe.error
+    if (gbpReady) {
+      const { data } = await supabase
+        .from('google_business_integrations')
+        .select('location_name, is_active')
+        .maybeSingle()
+      const r = data as { location_name: string | null; is_active: boolean } | null
+      gbpConnected = !!r?.is_active
+      gbpName      = r?.location_name ?? null
+    }
+  } catch {/* fall through */}
+  const gbpEnvOk = gscEnvOk   // shared Google OAuth client
+
   // Splice live state back into the static roadmap.
   const enriched: IntegrationRow[] = ROADMAP.map(r => {
     if (r.id === 'facebook') {
@@ -263,6 +283,16 @@ export default async function IntegrationsIndexPage() {
         subtitle:  !gscReady    ? 'Migration 149 pending'
                   : !gscEnvOk    ? 'OAuth env vars missing — see setup page'
                   : gscConnected ? `Connected — ${gscProperty ?? 'property active'}`
+                                 : 'Not connected — paste a refresh token to enable',
+      }
+    }
+    if (r.id === 'gbp') {
+      return {
+        ...r,
+        connected: gbpConnected,
+        subtitle:  !gbpReady    ? 'Migration 150 pending'
+                  : !gbpEnvOk    ? 'OAuth env vars missing — see setup page'
+                  : gbpConnected ? `Connected — ${gbpName ?? 'location active'}`
                                  : 'Not connected — paste a refresh token to enable',
       }
     }
