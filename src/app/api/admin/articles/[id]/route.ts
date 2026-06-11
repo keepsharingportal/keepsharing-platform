@@ -52,6 +52,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'syndicated_to_brands',
       // Newsletter draft queue (migration 165)
       'queue_newsletter_draft',
+      // Print distribution (migration 167)
+      'queue_for_print',
+      'print_issue_month',
     ]
 
     const update: Record<string, unknown> = {}
@@ -101,7 +104,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // yet if migration 157 hasn't run.
     const { data: priorData } = await supabase
       .from('guide_articles')
-      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at')
+      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at, queue_for_print, print_queued_at')
       .eq('id', id)
       .maybeSingle()
     const prior = priorData as null | {
@@ -110,6 +113,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       auto_posted_at: string | null;
       queue_newsletter_draft: boolean | null;
       newsletter_drafted_at: string | null;
+      queue_for_print: boolean | null;
+      print_queued_at: string | null;
     }
 
     const { error } = await supabase.from('guide_articles').update(update).eq('id', id)
@@ -174,6 +179,21 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           await generateAndLogNewsletterDraft(id)
         } catch (e) {
           console.error('[newsletter-draft] background job failed', e)
+        }
+      })()
+    }
+
+    // Print queue hook — mirrors the others. Migration 167.
+    const wantPrint = 'queue_for_print' in update
+      ? !!update.queue_for_print
+      : (prior?.queue_for_print === true)
+    if (!wasPublished && nowPublished && wantPrint && !prior?.print_queued_at) {
+      void (async () => {
+        try {
+          const { queueArticleForPrint } = await import('@/lib/distribution/print-queue')
+          await queueArticleForPrint(id)
+        } catch (e) {
+          console.error('[print-queue] background job failed', e)
         }
       })()
     }

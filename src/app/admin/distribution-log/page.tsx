@@ -4,7 +4,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
-import { Send, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Send, ExternalLink, AlertCircle, CheckCircle2, Newspaper } from 'lucide-react'
 import { CopyDraftButton } from './CopyDraftButton'
 
 export const metadata: Metadata = { title: 'Distribution Log — Admin' }
@@ -58,13 +58,23 @@ export default async function DistributionLogPage() {
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg">
       <div className="bg-white border-b border-portal-border px-6 py-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Send size={16} className="text-portal-blue" />
-          <h1 className="portal-page-title">Distribution Log</h1>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Send size={16} className="text-portal-blue" />
+              <h1 className="portal-page-title">Distribution Log</h1>
+            </div>
+            <p className="portal-page-subtitle">
+              Newsletter drafts + social posts + print queue. Drafts are ready to copy into GHL.
+            </p>
+          </div>
+          <Link
+            href="/admin/distribution-log/print-queue"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-portal-blue hover:text-portal-blue-dk border border-portal-blue/30 bg-portal-blue-lt px-3 py-1.5 rounded-md"
+          >
+            <Newspaper size={12} /> Print queue
+          </Link>
         </div>
-        <p className="portal-page-subtitle">
-          Newsletter drafts + social posts + future channels. Drafts are ready to copy into GHL.
-        </p>
       </div>
 
       <div className="p-6 max-w-5xl">
