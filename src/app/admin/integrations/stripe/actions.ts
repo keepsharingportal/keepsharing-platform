@@ -88,7 +88,9 @@ interface CreateProductInput {
   displayDescription?: string
   priceCents:         number
   interval?:          'month' | 'year' | null
-  targetTable?:       string
+  /** When kind='ad_placement', this should be an ad_placements.id so the
+   *  webhook knows which spot to activate on checkout completion. */
+  targetTable?:       'ad_placements' | 'advertiser_packages' | 'calendar_events'
   targetId?:          string
 }
 

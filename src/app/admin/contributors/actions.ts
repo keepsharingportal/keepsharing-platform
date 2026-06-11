@@ -84,10 +84,9 @@ export async function sendInviteAction(input: SendInviteInput): Promise<{ ok: tr
   })
   if (error) return { ok: false, error: error.message }
 
-  await sr.from('contributors').update({ invites_sent: 1 }).eq('id', input.contributorId)
-  // Simple increment via a returned update would be nicer; this is sticky
-  // at 1 for first invite then later sends are skipped — fix via RPC.
-  // Leaving for migration follow-up; not load-bearing.
+  // Increment invites_sent atomically via RPC (migration 154).
+  await sr.rpc('bump_contributor_invite_sent', { contributor_id_in: input.contributorId })
+    .then(() => undefined, e => console.warn('[contributors] bump_invite_sent failed', e))
 
   await recordAuditEvent({
     ctx, action: 'contributor.invite_sent', target_table: 'contributor_invites', target_id: token,
@@ -119,6 +118,7 @@ interface PublishDraftInput {
   brandSlug:   string
   targetColumn?: string | null
   tags?:       string[]
+  pullQuote?:  string
 }
 
 export async function publishDraftAction(input: PublishDraftInput): Promise<{ ok: true; articleId: string } | { ok: false; error: string }> {
@@ -146,7 +146,11 @@ export async function publishDraftAction(input: PublishDraftInput): Promise<{ ok
     .slice(0, 80)
 
   // Insert into guide_articles as a pending draft.
-  const { data: artData, error: artErr } = await sr.from('guide_articles').insert({
+  // Map the AI-generated structure onto real columns:
+  //   pullQuote → pull_quotes (JSONB array)
+  //   tags      → topics      (text[])
+  // editorial_notes carries provenance, not the suggested data.
+  const insert: Record<string, unknown> = {
     title:           input.headline,
     subtitle:        input.deck,
     body:            input.body,
@@ -154,8 +158,11 @@ export async function publishDraftAction(input: PublishDraftInput): Promise<{ ok
     section:         input.targetColumn ?? null,
     status:          'pending',
     author_name:     contributor?.name ?? null,
-    editorial_notes: input.tags && input.tags.length > 0 ? `Suggested tags: ${input.tags.join(', ')}` : null,
-  }).select('id').single()
+    editorial_notes: `Drafted from contributor Q&A (response ${input.responseId}).`,
+  }
+  if (input.pullQuote) insert.pull_quotes = [input.pullQuote]
+  if (input.tags && input.tags.length > 0) insert.topics = input.tags
+  const { data: artData, error: artErr } = await sr.from('guide_articles').insert(insert).select('id').single()
   if (artErr) return { ok: false, error: artErr.message }
   const articleId = (artData as { id: string }).id
 

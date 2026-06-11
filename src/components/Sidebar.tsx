@@ -103,6 +103,7 @@ const NAV: NavItem[] = [
       { name: 'Column Branding', href: '/admin/column-branding',  accent: true },
       { name: 'Authors',         href: '/admin/articles/authors'               },
       { name: 'Contributors',    href: '/admin/contributors'                   },
+      { name: 'Editorial Calendar', href: '/admin/editorial-calendar'           },
     ],
   },
   { name: 'Mom Knows Best',    href: '/admin/bloggers',    icon: Users         },

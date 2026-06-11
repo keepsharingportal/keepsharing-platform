@@ -17,7 +17,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
 async function mirrorCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const sr = createAdminClient()
   try {
-    await sr.from('stripe_checkout_sessions')
+    // Mark the local session row complete + capture customer details.
+    const { data } = await sr.from('stripe_checkout_sessions')
       .update({
         status:         'completed',
         completed_at:   new Date().toISOString(),
@@ -25,6 +26,30 @@ async function mirrorCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         customer_name:  session.customer_details?.name  ?? null,
       })
       .eq('stripe_session_id', session.id)
+      .select('source, target_table, target_id')
+      .maybeSingle()
+    const local = data as null | { source: string; target_table: string | null; target_id: string | null }
+    if (!local) return
+
+    // Source-specific side effects.
+    if (local.source === 'claim_spot' && local.target_table === 'ad_placements' && local.target_id) {
+      await sr.from('ad_placements').update({
+        is_active:         true,
+        claimed_email:     session.customer_details?.email ?? null,
+        claimed_at:        new Date().toISOString(),
+        stripe_session_id: session.id,
+      }).eq('id', local.target_id)
+
+      // Notify VA queue.
+      await sr.from('notifications').insert({
+        type:        'ad_placement_claimed',
+        title:       'Ad spot claimed via Stripe',
+        body:        `${session.customer_details?.email ?? '(no email)'} claimed an open ad spot. Onboard them.`,
+        urgency:     'incoming',
+        publication: 'RRP',
+        metadata:    { placement_id: local.target_id, session_id: session.id },
+      }).then(() => undefined, () => undefined)
+    }
   } catch { /* pre-migration; ignore */ }
 }
 

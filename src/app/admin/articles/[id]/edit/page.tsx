@@ -184,6 +184,8 @@ export default function ArticleEditPage({ params }: Props) {
   const [baseNotes, setBaseNotes]           = useState('')
   const [schoolRegion, setSchoolRegion]     = useState('')
   const [isHomepageHero, setIsHomepageHero] = useState(false)
+  const [autoPostToSocial, setAutoPostToSocial] = useState(false)
+  const [autoPostedAt, setAutoPostedAt] = useState<string | null>(null)
   // Cross-cutting topic tags — controls which "Across the Site" rows this
   // article surfaces in (FRG Real Talk, Special Needs themes, etc.).
   // Stored as text[] on the row. Independent from guide_slug, which is the
@@ -240,6 +242,8 @@ export default function ArticleEditPage({ params }: Props) {
           .trim()
 
         setIsHomepageHero(hero)
+        setAutoPostToSocial(!!data.auto_post_to_social)
+        setAutoPostedAt(data.auto_posted_at ?? null)
 
         // Convert stored UTC published_at → local <input type="datetime-local"> format
         const publishedAtLocal = data.published_at
@@ -358,6 +362,7 @@ export default function ArticleEditPage({ params }: Props) {
       source_issue_month:      form.source_issue_month        || null,
       author_blogger_id:       form.author_blogger_id         || null,
       topics:                  topics.length > 0 ? topics : null,
+      auto_post_to_social:     autoPostToSocial,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -710,6 +715,23 @@ export default function ArticleEditPage({ params }: Props) {
                   <p className="text-sm font-semibold text-portal-text leading-tight">Feature on Homepage</p>
                   <p className="text-xs text-portal-muted mt-0.5 leading-snug">
                     Sets this as the homepage hero story. Only one article should be featured at a time.
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 p-3 cursor-pointer hover:bg-portal-blue-lt/60 transition-colors border-t border-portal-blue/20">
+                <input
+                  type="checkbox"
+                  checked={autoPostToSocial}
+                  onChange={e => setAutoPostToSocial(e.target.checked)}
+                  disabled={!!autoPostedAt}
+                  className="w-4 h-4 mt-0.5 rounded text-portal-blue cursor-pointer disabled:opacity-50"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-portal-text leading-tight">Auto-post to Facebook + Instagram on publish</p>
+                  <p className="text-xs text-portal-muted mt-0.5 leading-snug">
+                    {autoPostedAt
+                      ? `Posted ${new Date(autoPostedAt).toLocaleString()}. Re-saving won't re-fire.`
+                      : 'AI writes a caption using the brand voice + posts to your connected Page. IG cross-posts when a hero image is set.'}
                   </p>
                 </div>
               </label>

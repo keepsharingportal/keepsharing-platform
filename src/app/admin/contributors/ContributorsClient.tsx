@@ -8,6 +8,7 @@ import {
   createContributorAction, sendInviteAction, revokeInviteAction,
   publishDraftAction, rejectResponseAction,
 } from './actions'
+import { MARKETS } from '@/lib/markets'
 
 interface Props {
   contributors:  ContributorRow[]
@@ -172,7 +173,9 @@ function SendInviteForm({ contributors, templates, onDone }: { contributors: Con
         <div>
           <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Brand</label>
           <select value={brandSlug} onChange={e => setBrandSlug(e.target.value)} className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white">
-            <option value="rrp">River Region Parents</option>
+            {MARKETS.map(m => (
+              <option key={m.slug} value={m.slug}>{m.displayName}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -263,6 +266,7 @@ function ResponseCard({ response }: { response: ResponseRow }) {
         brandSlug:     invite?.brand_slug ?? 'rrp',
         targetColumn:  invite?.target_column ?? null,
         tags:          draft?.tagSuggestions ?? [],
+        pullQuote:     draft?.pullQuote ?? undefined,
       })
       if (!out.ok) setErr(out.error)
     })

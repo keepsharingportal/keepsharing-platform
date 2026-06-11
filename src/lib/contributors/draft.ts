@@ -2,10 +2,12 @@
 //
 // Calls runAI() with taskKind='qa' so it picks up the configured default
 // model (Sonnet 4.6 by default — best balance of voice quality + cost).
-// Returns a structured object the editor UI can render and one-click
-// publish to guide_articles.
+// Reads the per-brand voice from brand_voice (migration 154) so each brand
+// keeps its own tone. Returns a structured object the editor UI can render
+// and one-click publish to guide_articles.
 
 import { runAI } from '@/lib/ai/client'
+import { loadBrand, buildBrandPromptFragment } from '@/lib/brands'
 
 export interface QAQuestion {
   key:          string
@@ -45,7 +47,7 @@ export interface DraftArticle {
   reviewerNotes:   string
 }
 
-function buildPrompt(input: DraftInput): string {
+function buildPrompt(input: DraftInput, brandFragment: string): string {
   const responsesBlock = input.questions.map(q => {
     const a = input.responses[q.key] ?? ''
     if (!a.trim()) return null
@@ -57,15 +59,19 @@ function buildPrompt(input: DraftInput): string {
     : ''
 
   return [
-    `You are drafting an article for the ${input.brandSlug.toUpperCase()} editorial team.`,
+    `## BRAND CONTEXT`,
+    brandFragment,
+    '',
+    `## COMMISSION`,
     input.targetColumn ? `Target column / section: ${input.targetColumn}.` : '',
-    input.draftingBrief ? `Drafting brief:\n${input.draftingBrief}` : '',
+    input.draftingBrief ? `Template drafting brief: ${input.draftingBrief}` : '',
     `Contributor: ${input.contributorName}${input.contributorBio ? ` — ${input.contributorBio}` : ''}.`,
     expertise,
     input.ask ? `What the editorial team asked for:\n${input.ask}` : '',
     '',
-    `## Contributor's responses\n${responsesBlock}`,
+    `## CONTRIBUTOR'S RESPONSES\n${responsesBlock}`,
     '',
+    `## OUTPUT`,
     `Return STRICT JSON matching this shape exactly:`,
     `{`,
     `  "headline":      "string — primary headline, title case",`,
@@ -76,16 +82,20 @@ function buildPrompt(input: DraftInput): string {
     `  "pullQuote":     "string — ~25 words from the contributor's perspective",`,
     `  "reviewerNotes": "string — what you flagged for the editor's attention"`,
     `}`,
-    'Use the contributor\'s voice authentically. Do NOT fabricate facts not present in the responses. Output JSON only — no markdown wrapper, no commentary outside the object.',
+    'Use the contributor\'s voice authentically + the brand\'s voice rules. Do NOT fabricate facts not present in the responses. Output JSON only — no markdown wrapper, no commentary outside the object.',
   ].filter(Boolean).join('\n')
 }
 
 export async function generateContributorDraft(input: DraftInput): Promise<DraftArticle> {
-  const prompt = buildPrompt(input)
+  const brand = await loadBrand(input.brandSlug)
+  const brandFragment = brand
+    ? buildBrandPromptFragment(brand)
+    : `Brand: ${input.brandSlug.toUpperCase()} (no voice rules configured)`
+  const prompt = buildPrompt(input, brandFragment)
   const response = await runAI({
     taskKind: 'qa',
     caller:   'contributor.qa.draft',
-    systemPrompt: 'You are an editorial assistant for a family/parenting publication. You draft magazine-quality articles from contributor Q&A responses. Your output is JSON only.',
+    systemPrompt: 'You are an editorial assistant for a hyperlocal media publisher. You draft magazine-quality articles from contributor Q&A responses, matching the brand voice you are given. Your output is JSON only.',
     messages: [{ role: 'user', content: prompt }],
     maxTokens: 1800,
     adminId:  input.adminId ?? null,

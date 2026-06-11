@@ -267,6 +267,8 @@ function NewProductForm({ onDone }: { onDone: () => void }) {
   const [kind, setKind] = useState<StripeProductRow['kind']>('one_time')
   const [priceDollars, setPriceDollars] = useState('')
   const [interval, setInterval] = useState<'' | 'month' | 'year'>('')
+  const [targetTable, setTargetTable] = useState<'ad_placements' | 'advertiser_packages' | 'calendar_events' | ''>('')
+  const [targetId, setTargetId] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [pending, start] = useTransition()
 
@@ -275,6 +277,10 @@ function NewProductForm({ onDone }: { onDone: () => void }) {
     const priceCents = Math.round(parseFloat(priceDollars || '0') * 100)
     if (!Number.isFinite(priceCents) || priceCents <= 0) { setErr('Invalid price.'); return }
     if (!name.trim()) { setErr('Name required.'); return }
+    if (kind === 'ad_placement' && (!targetTable || !targetId.trim())) {
+      setErr('Ad placement products need a target row. Pick a table + paste the placement id.')
+      return
+    }
     start(async () => {
       const out = await createStripeProductAction({
         kind,
@@ -282,6 +288,8 @@ function NewProductForm({ onDone }: { onDone: () => void }) {
         displayDescription:  description.trim() || undefined,
         priceCents,
         interval:            interval || null,
+        targetTable:         targetTable || undefined,
+        targetId:            targetId.trim() || undefined,
       })
       if (!out.ok) setErr(out.error)
       else onDone()
@@ -320,6 +328,23 @@ function NewProductForm({ onDone }: { onDone: () => void }) {
         <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Description (optional)</label>
         <input value={description} onChange={e => setDescription(e.target.value)} className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white" />
       </div>
+      {(kind === 'ad_placement' || kind === 'featured_upgrade' || kind === 'event_listing') && (
+        <div className="grid grid-cols-[10rem_1fr] gap-3">
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Target table</label>
+            <select value={targetTable} onChange={e => setTargetTable(e.target.value as 'ad_placements' | 'advertiser_packages' | 'calendar_events' | '')} className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white">
+              <option value="">— pick —</option>
+              <option value="ad_placements">ad_placements</option>
+              <option value="advertiser_packages">advertiser_packages</option>
+              <option value="calendar_events">calendar_events</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Target id (UUID)</label>
+            <input value={targetId} onChange={e => setTargetId(e.target.value)} placeholder="paste the row UUID" className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white" />
+          </div>
+        </div>
+      )}
       {err && <p className="text-[11px] text-red-700">{err}</p>}
       <div className="flex gap-2">
         <button onClick={submit} disabled={pending} className="text-xs font-bold text-white bg-portal-blue hover:bg-portal-blue-dk px-3 py-1.5 rounded-md disabled:opacity-50">

@@ -45,6 +45,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'hero_image_orig_path',
       // Profile original path for re-crop (migration 101)
       'profile_image_orig_path',
+      // Auto-post to social on publish (migration 157)
+      'auto_post_to_social',
     ]
 
     const update: Record<string, unknown> = {}
@@ -88,6 +90,17 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     const supabase = supabaseAdmin()
+
+    // Pre-snapshot for publish-transition detection (auto-post hook below).
+    // Read defensively — old rows may not have the auto_post_to_social column
+    // yet if migration 157 hasn't run.
+    const { data: priorData } = await supabase
+      .from('guide_articles')
+      .select('published, auto_post_to_social, auto_posted_at')
+      .eq('id', id)
+      .maybeSingle()
+    const prior = priorData as null | { published: boolean | null; auto_post_to_social: boolean | null; auto_posted_at: string | null }
+
     const { error } = await supabase.from('guide_articles').update(update).eq('id', id)
 
     if (error) {
@@ -115,6 +128,26 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         revalidatePath(`/columns/${columnSlug}/${slug}`)
         revalidatePath(`/columns/${columnSlug}`)
       }
+    }
+
+    // Auto-post hook: if this PATCH transitioned the article from
+    // unpublished → published AND the auto_post_to_social flag is on AND
+    // we haven't already posted, fire the background job. Don't block the
+    // PATCH response — the editor sees "✓ Published" immediately.
+    const wasPublished  = prior?.published === true
+    const nowPublished  = 'published' in update ? !!update.published : wasPublished
+    const wantAutoPost  = 'auto_post_to_social' in update
+      ? !!update.auto_post_to_social
+      : (prior?.auto_post_to_social === true)
+    if (!wasPublished && nowPublished && wantAutoPost && !prior?.auto_posted_at) {
+      void (async () => {
+        try {
+          const { autoPostArticle } = await import('@/lib/integrations/meta-suite/auto-post')
+          await autoPostArticle(id)
+        } catch (e) {
+          console.error('[auto-post] background job failed', e)
+        }
+      })()
     }
 
     return NextResponse.json({ success: true })
