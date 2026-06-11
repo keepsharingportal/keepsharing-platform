@@ -65,7 +65,20 @@ export class MetaApiError extends Error {
   }
 }
 
-async function metaFetch<T>(path: string, params: Record<string, string>, token: string): Promise<T> {
+// Meta rate-limit error codes. See:
+// developers.facebook.com/docs/graph-api/overview/rate-limiting
+// 4   = app-level rate limit
+// 17  = user-level rate limit ('User request limit reached')
+// 32  = page-level rate limit
+// 613 = custom-level (ads, batch)
+// 80004 = ads-management rate limit
+const META_RATE_LIMIT_CODES = new Set([4, 17, 32, 613, 80000, 80001, 80002, 80003, 80004])
+
+function isRateLimit(e: unknown): boolean {
+  return e instanceof MetaApiError && !!e.code && META_RATE_LIMIT_CODES.has(e.code)
+}
+
+async function metaFetchOnce<T>(path: string, params: Record<string, string>, token: string): Promise<T> {
   const url = new URL(`${META_GRAPH}${path}`)
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
   url.searchParams.set('access_token', token)
@@ -89,6 +102,28 @@ async function metaFetch<T>(path: string, params: Record<string, string>, token:
     })
   }
   return body as unknown as T
+}
+
+/** Wrap metaFetchOnce with exponential backoff on Meta-side rate limits.
+ *  Non-rate-limit errors throw immediately (no point waiting on a bad
+ *  token or malformed query). Backoff schedule: 1s, 4s, 16s — three
+ *  retries, total ~21s ceiling. Per-call timeout policy lives upstream;
+ *  this just adds resilience to the transient throttle case. */
+async function metaFetch<T>(path: string, params: Record<string, string>, token: string): Promise<T> {
+  const backoffSchedule = [1_000, 4_000, 16_000]
+  let lastError: unknown
+  for (let attempt = 0; attempt < backoffSchedule.length + 1; attempt++) {
+    try {
+      return await metaFetchOnce<T>(path, params, token)
+    } catch (e) {
+      lastError = e
+      if (!isRateLimit(e) || attempt === backoffSchedule.length) throw e
+      const wait = backoffSchedule[attempt]
+      console.warn(`[meta-api] rate-limited (code=${(e as MetaApiError).code}), backing off ${wait}ms`)
+      await new Promise(r => setTimeout(r, wait))
+    }
+  }
+  throw lastError
 }
 
 // ── Verify a token + ad account ──────────────────────────────────────────

@@ -30,21 +30,44 @@ export default async function RealtimePage() {
   }
 
   const now = Date.now()
-  const since60m = new Date(now - 60   * 60_000).toISOString()
-  const since24h = new Date(now - 24 * 60 * 60_000).toISOString()
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60_000
+  const since60m   = new Date(now - 60   * 60_000).toISOString()
+  const since24h   = new Date(now - 24 * 60 * 60_000).toISOString()
+  // Same windows shifted back a week — gives "Wednesday 9am vs LAST
+  // Wednesday 9am" which controls for day-of-week + time-of-day pattern.
+  // Without this, "Real-time" only answers "what's happening" and never
+  // "is this better or worse than usual."
+  const last60mPriorStart = new Date(now - ONE_WEEK_MS - 60 * 60_000).toISOString()
+  const last60mPriorEnd   = new Date(now - ONE_WEEK_MS).toISOString()
+  const last24hPriorStart = new Date(now - ONE_WEEK_MS - 24 * 60 * 60_000).toISOString()
+  const last24hPriorEnd   = new Date(now - ONE_WEEK_MS).toISOString()
 
-  const [last60mRes, last24hRes] = await Promise.all([
+  const [last60mRes, last24hRes, prior60mRes, prior24hRes] = await Promise.all([
     supabase.from('page_views').select('path, session_hash, viewed_at')
       .gte('viewed_at', since60m)
       .limit(10_000),
     supabase.from('page_views').select('path, session_hash, viewed_at')
       .gte('viewed_at', since24h)
       .limit(50_000),
+    supabase.from('page_views').select('session_hash')
+      .gte('viewed_at', last60mPriorStart)
+      .lte('viewed_at', last60mPriorEnd)
+      .limit(10_000),
+    supabase.from('page_views').select('session_hash')
+      .gte('viewed_at', last24hPriorStart)
+      .lte('viewed_at', last24hPriorEnd)
+      .limit(50_000),
   ])
 
   type Row = { path: string; session_hash: string; viewed_at: string }
   const rows60 = (last60mRes.data ?? []) as Row[]
   const rows24 = (last24hRes.data ?? []) as Row[]
+  const prior60Rows = (prior60mRes.data ?? []) as Array<{ session_hash: string }>
+  const prior24Rows = (prior24hRes.data ?? []) as Array<{ session_hash: string }>
+  const prior60Unique = new Set(prior60Rows.map(r => r.session_hash)).size
+  const prior24Unique = new Set(prior24Rows.map(r => r.session_hash)).size
+  const prior60Views  = prior60Rows.length
+  const prior24Views  = prior24Rows.length
 
   function topPaths(rows: Row[], n: number) {
     const m = new Map<string, Set<string>>()
@@ -77,6 +100,24 @@ export default async function RealtimePage() {
   const buckets = Array.from({ length: 60 }, (_, i) => minuteBuckets.get(i) ?? 0)
   const maxBucket = Math.max(1, ...buckets)
 
+  /** Format a delta vs the same window 7 days ago. NEW = no prior data,
+   *  numeric = % change with sign. */
+  function formatVsLastWeek(current: number, prior: number): { label: string; tone: 'up' | 'down' | 'flat' | 'new' } {
+    if (prior === 0 && current === 0) return { label: 'no data', tone: 'flat' }
+    if (prior === 0) return { label: 'new', tone: 'new' }
+    const pct = ((current - prior) / prior) * 100
+    if (Math.abs(pct) < 3) return { label: 'flat vs last wk', tone: 'flat' }
+    const sign = pct > 0 ? '+' : ''
+    return { label: `${sign}${pct.toFixed(0)}% vs last wk`, tone: pct > 0 ? 'up' : 'down' }
+  }
+  const vs60mViews     = formatVsLastWeek(rows60.length,  prior60Views)
+  const vs60mUnique    = formatVsLastWeek(unique60,        prior60Unique)
+  const vs24hViews     = formatVsLastWeek(rows24.length,  prior24Views)
+  const vs24hUnique    = formatVsLastWeek(unique24,        prior24Unique)
+  function toneColor(t: 'up' | 'down' | 'flat' | 'new'): string {
+    return t === 'up' ? 'text-portal-green' : t === 'down' ? 'text-portal-red' : t === 'new' ? 'text-portal-blue' : 'text-portal-muted'
+  }
+
   return (
     <div className="p-6 max-w-6xl space-y-5">
       {/* Auto-refresh banner */}
@@ -92,9 +133,16 @@ export default async function RealtimePage() {
 
       {/* 60-minute pulse */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Last 60 minutes</h2>
-          <span className="text-sm font-bold text-portal-text tabular-nums">{rows60.length.toLocaleString()} views · {unique60.toLocaleString()} unique</span>
+          <div className="text-right">
+            <div className="text-sm font-bold text-portal-text tabular-nums">
+              {rows60.length.toLocaleString()} views <span className={`text-[11px] font-semibold ${toneColor(vs60mViews.tone)}`}>({vs60mViews.label})</span>
+            </div>
+            <div className="text-[11px] text-portal-sub">
+              {unique60.toLocaleString()} unique <span className={`${toneColor(vs60mUnique.tone)}`}>({vs60mUnique.label})</span>
+            </div>
+          </div>
         </div>
         <div className="bg-white border border-portal-border rounded-lg p-5">
           <div className="flex items-end justify-between gap-[2px] h-16">
@@ -142,9 +190,16 @@ export default async function RealtimePage() {
 
       {/* 24-hour top paths */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Last 24 hours</h2>
-          <span className="text-sm font-bold text-portal-text tabular-nums">{rows24.length.toLocaleString()} views · {unique24.toLocaleString()} unique</span>
+          <div className="text-right">
+            <div className="text-sm font-bold text-portal-text tabular-nums">
+              {rows24.length.toLocaleString()} views <span className={`text-[11px] font-semibold ${toneColor(vs24hViews.tone)}`}>({vs24hViews.label})</span>
+            </div>
+            <div className="text-[11px] text-portal-sub">
+              {unique24.toLocaleString()} unique <span className={`${toneColor(vs24hUnique.tone)}`}>({vs24hUnique.label})</span>
+            </div>
+          </div>
         </div>
         <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
           <div className="grid grid-cols-[2.5rem_1fr_5rem] gap-x-3 items-center px-4 py-2 border-b border-portal-border bg-portal-bg text-[11px] font-semibold text-portal-muted uppercase tracking-wider">
