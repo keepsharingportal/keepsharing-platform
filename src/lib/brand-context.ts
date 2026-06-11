@@ -9,7 +9,15 @@
 //
 // The function is cached() so multiple components in the same render
 // share one DB hit for the brand_voice row.
+//
+// IMPORTANT — server-only. This module imports next/headers, which means
+// it cannot appear in a client bundle. If you need to render brand chrome
+// inside a 'use client' page, the page's nearest server boundary should
+// call loadBrandContext() + chromeForBrand(), then pass the resulting
+// data as plain props down to the client components. NEVER import this
+// module from a file that ends up in a client compilation.
 
+import 'server-only'
 import { cache } from 'react'
 import { headers } from 'next/headers'
 import { MARKETS, type MarketDef, publicOriginForBrand } from './markets'

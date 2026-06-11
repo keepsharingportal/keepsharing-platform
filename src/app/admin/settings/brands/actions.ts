@@ -14,12 +14,32 @@ interface SaveBrandInput {
   formatDefault:    string
   siteUrl:          string
   ghlTag:           string
+  // Chrome (migration 162)
+  tagline:                  string
+  logoUrl:                  string
+  primaryColorHex:          string
+  accentColorHex:           string
+  contactEmail:             string
+  socialFacebook:           string
+  socialInstagram:          string
+  homepageRotationColumns:  string[]
 }
+
+// Reject hex colors that don't parse — typos here ripple into every
+// rendered page and CSS variables silently break. Accept #abc, #abcd,
+// #aabbcc, #aabbccdd.
+const HEX_RE = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 
 export async function saveBrandVoiceAction(input: SaveBrandInput): Promise<{ ok: true } | { ok: false; error: string }> {
   const ctx = await requireAdmin()
   if (!ALL_MARKET_SLUGS.includes(input.brandSlug)) {
     return { ok: false, error: `Unknown brand slug: ${input.brandSlug}` }
+  }
+  if (input.primaryColorHex && !HEX_RE.test(input.primaryColorHex)) {
+    return { ok: false, error: `Primary color "${input.primaryColorHex}" isn't a valid hex (e.g. #c4622d).` }
+  }
+  if (input.accentColorHex && !HEX_RE.test(input.accentColorHex)) {
+    return { ok: false, error: `Accent color "${input.accentColorHex}" isn't a valid hex.` }
   }
   const sr = createAdminClient()
   const { error } = await sr.from('brand_voice').upsert({
@@ -30,6 +50,14 @@ export async function saveBrandVoiceAction(input: SaveBrandInput): Promise<{ ok:
     format_default:    input.formatDefault.trim(),
     site_url:          input.siteUrl.trim() || null,
     ghl_tag:           input.ghlTag.trim() || null,
+    tagline:                  input.tagline.trim()             || null,
+    logo_url:                 input.logoUrl.trim()             || null,
+    primary_color_hex:        input.primaryColorHex.trim()      || null,
+    accent_color_hex:         input.accentColorHex.trim()       || null,
+    contact_email:            input.contactEmail.trim()         || null,
+    social_facebook:          input.socialFacebook.trim()       || null,
+    social_instagram:         input.socialInstagram.trim()      || null,
+    homepage_rotation_columns: input.homepageRotationColumns.length > 0 ? input.homepageRotationColumns : null,
     updated_at:        new Date().toISOString(),
     updated_by:        ctx.adminId,
   }, { onConflict: 'brand_slug' })

@@ -8,6 +8,7 @@ import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { SCHOOL_ZONE_COLUMN_SLUGS, columnLabel } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -122,6 +123,7 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
   const activeMonth   = (ISSUE_MONTHS.some(m => m.key === mParam) ? mParam : 'all') as MonthKey
 
   const brandCtx = await loadBrandContext()
+  const brandChrome = chromeForBrand(brandCtx.brand)
   const articles = await fetchArticles(activeSection, activeMonth, brandCtx.slug)
 
   const activeSectionLabel = SECTIONS.find(s => s.key === activeSection)?.label  ?? 'All Articles'
@@ -147,7 +149,7 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background public-page">
-      <Navigation />
+      <Navigation brandSlug={brandCtx.slug} chrome={brandChrome} />
 
       {/* ── Page header ── */}
       <div className="border-b border-border/40 bg-background">
@@ -343,7 +345,7 @@ export default async function ArticlesIndexPage({ searchParams }: PageProps) {
 
       </main>
 
-      <PublicFooter />
+      <PublicFooter brandSlug={brandCtx.slug} chrome={brandChrome} />
     </div>
   )
 }

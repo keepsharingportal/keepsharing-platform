@@ -21,16 +21,15 @@ import { BestOfBlock } from '@/components/homepage/BestOfBlock'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 import { ArticleCard, SectionHeader } from '@/components/theme'
 import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
-import type { Metadata } from 'next'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 
 export const revalidate = 600
 
-
-
-export const metadata: Metadata = {
-  title:       'River Region Parents — Local Family Guides & Events',
-  description: 'Local guides, community events, and family resources for the River Region. Schools, childcare, camps, health, and more.',
-}
+// Page-level metadata removed in migration 162 so the brand-aware
+// generateMetadata() in src/app/layout.tsx wins for every brand domain.
+// A reader on the BOOM domain now sees BOOM metadata in their browser
+// tab + share previews, not RRP boilerplate.
 
 function getSupabase() {
   return createClient(
@@ -80,11 +79,22 @@ function canonicalRotationKey(slug: string | null): string | null {
   return slug
 }
 
-async function getHomepageData() {
+async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
   const supabase = getSupabase()
   const today = new Date().toISOString().split('T')[0]
   const nowIso = new Date().toISOString()
   const currentMonth = new Date().getMonth() + 1   // 1-12 for featured-guide lookup
+  // PostgREST OR-expression for "this brand's articles": origin OR
+  // syndicated to. Shared filter helper so this stays consistent with
+  // /articles, article detail, related rails.
+  const brandFilter = articleBrandFilter(brandSlug)
+  // Rotation slugs: brand-configured override OR the RRP legacy defaults
+  // (with their historic alternate-spelling siblings to catch old rows).
+  const useDefaultRotation = rotationColumns.length === 0 ||
+    JSON.stringify(rotationColumns) === JSON.stringify(ROTATION_COLUMNS)
+  const rotationQuerySlugs = useDefaultRotation
+    ? ROTATION_QUERY_SLUGS
+    : rotationColumns
 
   const [
     trendingRes,
@@ -130,7 +140,8 @@ async function getHomepageData() {
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, profile_image_url, excerpt, column_slug, author_name, published_at')
       .eq('published', true)
-      .in('column_slug', ROTATION_QUERY_SLUGS)
+      .or(brandFilter)
+      .in('column_slug', rotationQuerySlugs)
       .order('published_at', { ascending: false, nullsFirst: false }),
     // Featured guide tile (top-right): which guide is featured this month?
     supabase.from('guide_configs')
@@ -148,6 +159,7 @@ async function getHomepageData() {
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, excerpt, guide_slug, column_slug, author_name, published_at, created_at')
       .eq('published', true)
+      .or(brandFilter)
       // Exclude every column that already has dedicated homepage real estate:
       //   - 4 rotation columns surface in the hero + Community Spotlights sidebar
       //     (legacy "-the-" slug variants in DB — include both forms so nothing slips through)
@@ -192,6 +204,7 @@ async function getHomepageData() {
     supabase.from('guide_articles')
       .select('id, slug, title, author_name, published_at, hero_image_url, profile_image_url, author_blogger_id')
       .eq('column_slug', 'mom-knows-best')
+      .or(brandFilter)
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
@@ -452,11 +465,18 @@ function fmtEventDate(d: string) {
 }
 
 export default async function HomePage() {
+  // Resolve the current brand from the request headers (set by proxy.ts)
+  // and feed its rotation column config into the homepage data fetcher.
+  // All article queries below are now scoped to articles where this brand
+  // is the origin OR the brand appears in syndicated_to_brands — readers
+  // on the BOOM domain see BOOM articles, ESP readers see ESP, etc.
+  const brandCtx = await loadBrandContext()
+  const brandChrome = chromeForBrand(brandCtx.brand)
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,
     inlineAd, sidebarAd, businessSpotlight, bottomAd, momKnowsPosts, bloggers,
     featuredCategories, magazineIssues,
-  } = await getHomepageData()
+  } = await getHomepageData(brandCtx.slug, brandChrome.homepageRotationColumns)
 
   const fallbackTrending = [
     { id: '1', label: 'Summer Camp Guide 2026',           href: '/summer-camp-guide',      emoji: '⛺' },
@@ -468,7 +488,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background public-page">
-      <Navigation />
+      <Navigation brandSlug={brandCtx.slug} chrome={brandChrome} />
 
       {/* Trending ticker */}
       <div className="bg-primary/10 border-b border-primary/20 py-2 overflow-hidden">
@@ -1265,7 +1285,7 @@ export default async function HomePage() {
         </div>
       </main>
 
-      <PublicFooter />
+      <PublicFooter brandSlug={brandCtx.slug} chrome={brandChrome} />
     </div>
   )
 }

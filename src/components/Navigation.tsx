@@ -13,13 +13,43 @@
 
 import { NavigationBar } from './NavigationBar'
 import { SiteTopBanner } from './SiteTopBanner'
+import { MARKETS } from '@/lib/markets'
+import type { BrandChrome } from '@/lib/brands'
 
-export async function Navigation() {
+interface NavigationProps {
+  /** When set, the navigation renders with this brand's chrome. When
+   *  omitted (the common path from client-tree pages that can't import
+   *  next/headers), the RRP defaults render. Server-component pages
+   *  that want brand-aware nav resolve loadBrandContext() themselves
+   *  and pass the chrome + slug down as a prop. */
+  brandSlug?: string
+  chrome?:    BrandChrome
+}
+
+export async function Navigation(props: NavigationProps = {}) {
+  const brandSlug = props.brandSlug ?? 'rrp'
+  const market    = MARKETS.find(m => m.slug === brandSlug) ?? MARKETS[0]
+  // Split the display name at the LAST space so the wordmark renders the
+  // last word in the primary color, matching the existing RRP "River
+  // Region [Parents]" treatment. Falls back to no split when single-word.
+  const lastSpace = market.displayName.lastIndexOf(' ')
+  const wordmarkBase   = lastSpace > 0 ? market.displayName.slice(0, lastSpace) + ' ' : market.displayName
+  const wordmarkAccent = lastSpace > 0 ? market.displayName.slice(lastSpace + 1) : ''
+  const tagline        = props.chrome?.tagline         ?? 'The Go-To Resource for River Region Families'
+  const logoUrl        = props.chrome?.logoUrl         ?? null
+  const primaryColor   = props.chrome?.primaryColorHex
+
   return (
     <>
       {/* Renders nothing when no advertiser is booked — by design. */}
       <SiteTopBanner />
-      <NavigationBar />
+      <NavigationBar
+        wordmarkBase={wordmarkBase}
+        wordmarkAccent={wordmarkAccent}
+        tagline={tagline}
+        logoUrl={logoUrl}
+        primaryColorHex={primaryColor}
+      />
     </>
   )
 }

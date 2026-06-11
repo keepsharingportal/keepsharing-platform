@@ -20,7 +20,25 @@ interface ApiOverride {
   sortOrder?:     number | null
 }
 
-export function NavigationBar() {
+interface NavigationBarProps {
+  /** First part of the wordmark, e.g. "River Region " (foreground color). */
+  wordmarkBase?:    string
+  /** Last word of the wordmark, e.g. "Parents" (primary color). */
+  wordmarkAccent?:  string
+  /** Tagline displayed under the wordmark on >= sm screens. */
+  tagline?:         string
+  /** Optional brand logo URL. When set, the wordmark is replaced with an img. */
+  logoUrl?:         string | null
+  /** Hex used for the accent half of the wordmark + any future brand chrome. */
+  primaryColorHex?: string
+}
+
+export function NavigationBar(props: NavigationBarProps = {}) {
+  const wordmarkBase   = props.wordmarkBase   ?? 'River Region '
+  const wordmarkAccent = props.wordmarkAccent ?? 'Parents'
+  const tagline        = props.tagline        ?? 'The Go-To Resource for River Region Families'
+  const logoUrl        = props.logoUrl        ?? null
+  const primaryColor   = props.primaryColorHex
   const [mobileOpen, setMobileOpen] = useState(false)
   const [guidesOpen, setGuidesOpen] = useState(false)
   const [localOpen,  setLocalOpen]  = useState(false)
@@ -114,12 +132,23 @@ export function NavigationBar() {
       <div className="container flex items-center justify-between py-5">
 
         <Link href="/" className="flex flex-col shrink-0 hover:opacity-90 transition-opacity font-sans">
-          <span className="text-2xl md:text-3xl font-black tracking-tight leading-none">
-            <span className="text-foreground">River Region </span>
-            <span className="text-primary">Parents</span>
-          </span>
+          {logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={logoUrl} alt={`${wordmarkBase}${wordmarkAccent}`} className="h-9 md:h-10 w-auto" />
+          ) : (
+            <span className="text-2xl md:text-3xl font-black tracking-tight leading-none">
+              <span className="text-foreground">{wordmarkBase}</span>
+              {wordmarkAccent && (
+                /* Inline style so any brand's hex flows through without
+                   Tailwind needing to generate arbitrary-value classes. */
+                <span style={primaryColor ? { color: primaryColor } : undefined} className={primaryColor ? '' : 'text-primary'}>
+                  {wordmarkAccent}
+                </span>
+              )}
+            </span>
+          )}
           <span className="text-xs md:text-sm font-medium text-muted-foreground tracking-wide mt-1 hidden sm:block">
-            The Go-To Resource for River Region Families
+            {tagline}
           </span>
         </Link>
 

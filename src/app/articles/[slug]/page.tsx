@@ -20,6 +20,7 @@ import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { findArticleBySlug, articleHref } from '@/lib/articles/slug'
 import { loadBrandContext, articleCanonicalUrl } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 import { GraduationCap, ArrowRight, Calendar, Heart } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -73,6 +74,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   const { slug } = await params
   const supabase = getSupabase()
   const brandCtx = await loadBrandContext()
+  const brandChrome = chromeForBrand(brandCtx.brand)
 
   const [articleData, inlineAdRes] = await Promise.all([
     // Slug-tolerant lookup — finds the row even when the DB has a legacy
@@ -241,7 +243,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   return (
     <div className="min-h-screen bg-background public-page">
       <ArticleViewBeacon articleId={article.id as string} />
-      <Navigation />
+      <Navigation brandSlug={brandCtx.slug} chrome={brandChrome} />
 
       {/* Breadcrumb trail — Home > Articles [> Column] > [Title]. The
           column hop is only included when the article belongs to a
@@ -576,7 +578,7 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
         </div>
       </main>
 
-      <PublicFooter />
+      <PublicFooter brandSlug={brandCtx.slug} chrome={brandChrome} />
     </div>
   )
 }

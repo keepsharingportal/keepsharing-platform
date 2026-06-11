@@ -3,6 +3,8 @@ import { Suspense } from 'react'
 import { Geist, Geist_Mono, Allura, Fraunces } from 'next/font/google'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
+import { loadBrandContext } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -16,13 +18,29 @@ const allura    = Allura({ variable: '--font-allura', weight: '400', subsets: ['
 // var so any component can reference --font-fraunces without re-importing.
 const fraunces  = Fraunces({ variable: '--font-fraunces', weight: ['600', '700', '900'], subsets: ['latin'], display: 'swap' })
 
-export const metadata: Metadata = {
-  title: 'River Region Parents — Family Guides & Events',
-  description: 'Local guides, community events, and family resources for River Region families.',
-  icons: {
-    icon: '/images/advertise/rrp-logo.png',
-    apple: '/images/advertise/rrp-logo.png',
-  },
+/** Brand-aware site metadata. The default title + description come from
+ *  the resolved brand (display name + tagline + audience summary), so a
+ *  reader landing on the BOOM domain sees BOOM metadata in their browser
+ *  tab + share previews, not RRP boilerplate. The favicon stays the legacy
+ *  RRP asset until brand-specific favicons are configured. */
+export async function generateMetadata(): Promise<Metadata> {
+  const ctx = await loadBrandContext()
+  const chrome = chromeForBrand(ctx.brand)
+  return {
+    title:       `${ctx.market.displayName} — Local Stories & Events`,
+    description: chrome.tagline,
+    icons: {
+      icon: '/images/advertise/rrp-logo.png',
+      apple: '/images/advertise/rrp-logo.png',
+    },
+    openGraph: {
+      siteName:    ctx.market.displayName,
+      type:        'website',
+      url:         ctx.publicOrigin,
+      title:       ctx.market.displayName,
+      description: chrome.tagline,
+    },
+  }
 }
 
 // Plausible: set NEXT_PUBLIC_PLAUSIBLE_DOMAIN (e.g. "riverregionparents.com")

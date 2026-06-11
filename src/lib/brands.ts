@@ -15,7 +15,50 @@ export interface BrandVoiceRow {
   format_default:   string
   site_url:         string | null
   ghl_tag:          string | null
+  // Chrome fields (migration 162) — optional so legacy environments work.
+  tagline:                   string | null
+  logo_url:                  string | null
+  primary_color_hex:         string | null
+  accent_color_hex:          string | null
+  contact_email:             string | null
+  social_facebook:           string | null
+  social_instagram:          string | null
+  homepage_rotation_columns: string[] | null
   updated_at:       string
+}
+
+/** Per-brand chrome with sensible defaults. Use this in render code instead
+ *  of reading brand.voice?.tagline yourself — the defaults are documented
+ *  here so a missing brand_voice row degrades to legible RRP-style chrome
+ *  rather than blank strings. */
+export interface BrandChrome {
+  tagline:          string
+  logoUrl:          string | null
+  primaryColorHex:  string
+  accentColorHex:   string
+  contactEmail:     string
+  socialFacebook:   string | null
+  socialInstagram:  string | null
+  /** Column slugs to feature in the homepage rotation block. */
+  homepageRotationColumns: string[]
+}
+
+const DEFAULT_PRIMARY = '#c4622d'   // RRP coral
+const DEFAULT_ACCENT  = '#1a2744'   // RRP navy
+const DEFAULT_ROTATION_COLUMNS = ['mom-to-mom', 'teacher-of-month', 'grands-greatest', 'play-ball']
+
+export function chromeForBrand(brand: Brand): BrandChrome {
+  const v = brand.voice
+  return {
+    tagline:                 v?.tagline                   ?? `${brand.displayName} — local stories, every month.`,
+    logoUrl:                 v?.logo_url                  ?? null,
+    primaryColorHex:         v?.primary_color_hex          ?? DEFAULT_PRIMARY,
+    accentColorHex:          v?.accent_color_hex           ?? DEFAULT_ACCENT,
+    contactEmail:            v?.contact_email              ?? 'hello@riverregionparents.com',
+    socialFacebook:          v?.social_facebook            ?? null,
+    socialInstagram:         v?.social_instagram           ?? null,
+    homepageRotationColumns: v?.homepage_rotation_columns ?? DEFAULT_ROTATION_COLUMNS,
+  }
 }
 
 export interface Brand {

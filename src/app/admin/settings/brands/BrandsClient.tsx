@@ -22,12 +22,26 @@ function BrandCard({ brand }: { brand: Brand }) {
   const [format, setFormat] = useState(brand.voice?.format_default ?? '')
   const [siteUrl, setSiteUrl] = useState(brand.voice?.site_url ?? '')
   const [ghlTag, setGhlTag] = useState(brand.voice?.ghl_tag ?? '')
+  // Chrome state (migration 162). Stored as strings; the server-side validator
+  // rejects bad hex codes before saving.
+  const [tagline,     setTagline]     = useState(brand.voice?.tagline                   ?? '')
+  const [logoUrl,     setLogoUrl]     = useState(brand.voice?.logo_url                  ?? '')
+  const [primary,     setPrimary]     = useState(brand.voice?.primary_color_hex         ?? '')
+  const [accent,      setAccent]      = useState(brand.voice?.accent_color_hex          ?? '')
+  const [contactEmail,setContactEmail]= useState(brand.voice?.contact_email             ?? '')
+  const [socialFb,    setSocialFb]    = useState(brand.voice?.social_facebook           ?? '')
+  const [socialIg,    setSocialIg]    = useState(brand.voice?.social_instagram          ?? '')
+  // Rotation columns: text area input, one slug per line. Editorial enters
+  // column slugs like "mom-to-mom" — easier than a multi-select for now,
+  // and matches how column_slug is used everywhere else.
+  const [rotationRaw, setRotationRaw] = useState((brand.voice?.homepage_rotation_columns ?? []).join('\n'))
   const [pending, start] = useTransition()
   const [msg, setMsg] = useState<string | null>(null)
 
   function save() {
     setMsg(null)
     start(async () => {
+      const rotationColumns = rotationRaw.split('\n').map(s => s.trim()).filter(Boolean)
       const out = await saveBrandVoiceAction({
         brandSlug:       brand.slug,
         audienceSummary: audience,
@@ -36,6 +50,14 @@ function BrandCard({ brand }: { brand: Brand }) {
         formatDefault:   format,
         siteUrl,
         ghlTag,
+        tagline,
+        logoUrl,
+        primaryColorHex: primary,
+        accentColorHex:  accent,
+        contactEmail,
+        socialFacebook:  socialFb,
+        socialInstagram: socialIg,
+        homepageRotationColumns: rotationColumns,
       })
       setMsg(out.ok ? 'Saved' : `Error: ${out.error}`)
       setTimeout(() => setMsg(null), 2500)
@@ -124,9 +146,109 @@ function BrandCard({ brand }: { brand: Brand }) {
               />
             </div>
           </div>
+
+          {/* ── Brand chrome (migration 162) ── */}
+          <div className="border-t border-portal-border pt-3 mt-3 space-y-3">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">Site chrome</h4>
+            <p className="text-[10px] text-portal-muted -mt-2">
+              Drives the brand&apos;s public navigation, footer, metadata, and homepage rotation.
+            </p>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Tagline</label>
+              <input
+                value={tagline}
+                onChange={e => setTagline(e.target.value)}
+                placeholder="Local family stories, straight to your inbox."
+                className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Logo URL</label>
+                <input
+                  type="url"
+                  value={logoUrl}
+                  onChange={e => setLogoUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Reader contact email</label>
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={e => setContactEmail(e.target.value)}
+                  placeholder="hello@..."
+                  className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Primary color (hex)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={primary}
+                    onChange={e => setPrimary(e.target.value)}
+                    placeholder="#c4622d"
+                    className="flex-1 text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                  />
+                  {primary && <div className="w-7 h-7 rounded border border-portal-border" style={{ backgroundColor: primary }} />}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Accent color (hex)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={accent}
+                    onChange={e => setAccent(e.target.value)}
+                    placeholder="#1a2744"
+                    className="flex-1 text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                  />
+                  {accent && <div className="w-7 h-7 rounded border border-portal-border" style={{ backgroundColor: accent }} />}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Facebook URL</label>
+                <input
+                  type="url"
+                  value={socialFb}
+                  onChange={e => setSocialFb(e.target.value)}
+                  placeholder="https://facebook.com/..."
+                  className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Instagram URL</label>
+                <input
+                  type="url"
+                  value={socialIg}
+                  onChange={e => setSocialIg(e.target.value)}
+                  placeholder="https://instagram.com/..."
+                  className="w-full text-xs px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">
+                Homepage rotation columns
+              </label>
+              <p className="text-[10px] text-portal-muted mb-1">
+                One column slug per line. These columns rotate in the homepage hero + Community Spotlights sidebar.
+                Leave blank to use the RRP defaults (mom-to-mom, teacher-of-month, grands-greatest, play-ball).
+              </p>
+              <textarea
+                rows={4}
+                value={rotationRaw}
+                onChange={e => setRotationRaw(e.target.value)}
+                placeholder="mom-to-mom&#10;teacher-of-month&#10;grands-greatest&#10;play-ball"
+                className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white resize-y"
+              />
+            </div>
+          </div>
+
           <div className="flex items-center gap-3 pt-1">
             <button onClick={save} disabled={pending} className="text-xs font-bold text-white bg-portal-blue hover:bg-portal-blue-dk px-3 py-1.5 rounded-md disabled:opacity-50 inline-flex items-center gap-1.5">
-              <Save size={11} /> {pending ? 'Saving…' : 'Save brand voice'}
+              <Save size={11} /> {pending ? 'Saving…' : 'Save brand'}
             </button>
             {msg && <span className="text-[11px] text-portal-sub">{msg}</span>}
           </div>
