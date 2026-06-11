@@ -121,14 +121,16 @@ async function recentScores(): Promise<TickerRow[]> {
 // Lucide icon + color pairing per game. Stays in the page (not types.ts)
 // since types.ts is shared with non-UI code (announce-render, etc.) and
 // shouldn't pull in React components.
-const GAME_ICONS: Record<GameId, { Icon: React.ElementType; bg: string; fg: string; ring: string }> = {
-  'family-connect': { Icon: Puzzle,     bg: 'bg-primary/10',    fg: 'text-primary',          ring: 'border-primary/20'    },
-  'trivia':         { Icon: Sparkles,   bg: 'bg-secondary/10',  fg: 'text-secondary',        ring: 'border-secondary/20'  },
-  'scramble':       { Icon: Grid3x3,    bg: 'bg-accent/15',     fg: 'text-accent-foreground', ring: 'border-accent/30'     },
-  'memory':         { Icon: Timer,      bg: 'bg-foreground/8',  fg: 'text-foreground',       ring: 'border-foreground/15' },
-  'emoji':          { Icon: Smile,      bg: 'bg-primary/10',    fg: 'text-primary',          ring: 'border-primary/20'    },
-  'math':           { Icon: Calculator, bg: 'bg-secondary/10',  fg: 'text-secondary',        ring: 'border-secondary/20'  },
-  'word-search':    { Icon: Brain,      bg: 'bg-primary/10',    fg: 'text-primary',          ring: 'border-primary/20'    },
+// Each game has its own icon component. Tints (bg/fg/ring) now come from
+// the per-game signature in GAMES[].signature — see types.ts.
+const GAME_ICONS: Record<GameId, { Icon: React.ElementType }> = {
+  'family-connect': { Icon: Puzzle     },
+  'trivia':         { Icon: Sparkles   },
+  'scramble':       { Icon: Grid3x3    },
+  'memory':         { Icon: Timer      },
+  'emoji':          { Icon: Smile      },
+  'math':           { Icon: Calculator },
+  'word-search':    { Icon: Brain      },
 }
 
 // Seed ticker content shown until real plays start logging. Mixed in with
@@ -259,23 +261,40 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
         {/* GAMES GRID — large icon-box cards matching the original AI Studio reference */}
         <section className="grid md:grid-cols-2 gap-5">
           {GAMES.map(g => {
-            const meta  = GAME_ICONS[g.id] ?? GAME_ICONS['family-connect']
-            const Icon  = meta.Icon
+            const meta = GAME_ICONS[g.id] ?? GAME_ICONS['family-connect']
+            const Icon = meta.Icon
             return (
               <Link
                 key={g.id}
                 href={`/games/${g.id}?diff=${difficulty}`}
-                className={`group block rounded-3xl border-2 ${meta.ring} bg-card hover:shadow-lg transition-all`}
+                className="group block rounded-2xl border bg-card hover:shadow-md transition-all overflow-hidden"
+                style={{ borderColor: `${g.signature.bg}30` }}
               >
-                <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left">
-                  <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 ${meta.bg} ${meta.fg} group-hover:scale-110 transition-transform`}>
+                {/* Top color stripe — the game's signature, instantly identifiable */}
+                <div className="h-2" style={{ backgroundColor: g.signature.bg }} />
+
+                <div className="p-6 md:p-7 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 text-center sm:text-left">
+                  {/* Icon block in signature tint, icon in signature bg */}
+                  <div
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    style={{ backgroundColor: g.signature.tile, color: g.signature.bg }}
+                  >
                     <Icon className="h-8 w-8" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-snug">{g.title}</h3>
+                    <h3
+                      className="text-2xl font-bold mb-2 leading-snug transition-colors"
+                      style={{ color: 'var(--color-foreground)', fontFamily: 'var(--font-fraunces, var(--font-fraunces-fallback, serif))' }}
+                    >
+                      {g.title}
+                    </h3>
                     <p className="text-muted-foreground leading-relaxed">{g.desc}</p>
-                    <span className="inline-flex items-center mt-4 text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                      Play Now <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                    <span
+                      className="inline-flex items-center mt-4 text-sm font-bold transition-colors"
+                      style={{ color: g.signature.bg }}
+                    >
+                      Play Now
+                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
                     </span>
                   </div>
                 </div>

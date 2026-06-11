@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { Geist, Geist_Mono, Allura } from 'next/font/google'
+import { Geist, Geist_Mono, Allura, Fraunces } from 'next/font/google'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
 import './globals.css'
@@ -11,6 +11,10 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 // Are the Greatest). Loaded once site-wide via CSS var so any column-brand
 // wordmark can reference --font-allura without re-importing.
 const allura    = Allura({ variable: '--font-allura', weight: '400', subsets: ['latin'], display: 'swap' })
+// Fraunces — editorial serif used for headings on the games surface and
+// in select feature/long-form contexts. Loaded once site-wide via CSS
+// var so any component can reference --font-fraunces without re-importing.
+const fraunces  = Fraunces({ variable: '--font-fraunces', weight: ['600', '700', '900'], subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'River Region Parents — Family Guides & Events',
@@ -30,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${allura.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${allura.variable} ${fraunces.variable} h-full antialiased`}
     >
       <head>
         {plausibleDomain && (

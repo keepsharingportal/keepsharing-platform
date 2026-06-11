@@ -28,22 +28,68 @@ export const DIFFICULTIES_DISPLAY_ORDER: Difficulty[] = ['challenging', 'brain-s
 // Default difficulty for fresh visitors — parents first.
 export const DEFAULT_DIFFICULTY: Difficulty = 'challenging'
 
-export interface GameDefinition {
-  id:    GameId
-  title: string
-  desc:  string
-  emoji: string
-  // Tailwind color tone — maps to our theme tokens
-  tone:  'primary' | 'secondary' | 'accent' | 'foreground'
+/**
+ * Per-game visual signature. Each game gets one saturated color that
+ * carries through the entire experience — tile on the hub, header bar
+ * during play, accent on correct-answer states, wins screen background.
+ * Pattern is borrowed from NYT Games (Wordle = green, Spelling Bee =
+ * yellow, Letter Boxed = coral) where the color IS the game's identity.
+ *
+ * `bg` is the saturated brand color (CSS-formatted, used in inline style
+ * for dynamic theming). `fg` is the text color that reads on top of it
+ * (almost always white, sometimes slate for very light bg). `tile` is
+ * the soft tint used as background of the hub tile so the tile isn't
+ * fully saturated — only the accent stripes + emoji burst are.
+ */
+export interface GameSignature {
+  /** Saturated brand color — header, primary CTA, wins-screen background. */
+  bg:   string
+  /** Text color that reads on `bg`. */
+  fg:   string
+  /** Soft tint for the hub tile background (about 8-12% of the saturated bg). */
+  tile: string
 }
 
+export interface GameDefinition {
+  id:        GameId
+  title:     string
+  desc:      string
+  emoji:     string
+  signature: GameSignature
+}
+
+// Color picks based on each game's personality:
+//   Family Connect → deep blue (puzzle/intellect, mirrors portal-blue)
+//   Parenting Trivia → coral/terra (warm, conversational)
+//   Lunchbox Scramble → teal (fresh, schoolyard-adjacent without childish)
+//   Toddler Chaos Match → amber/gold (energetic, race-against-time)
+//   Emoji Decode → purple (playful, breaks pattern — emoji is casual)
+//   Carpool Math → forest green (disciplined, "right answers exist")
 export const GAMES: GameDefinition[] = [
-  { id: 'family-connect', title: 'Family Connect',     desc: 'Group 16 words into 4 hidden themes. Four mistakes allowed.', emoji: '🧩', tone: 'primary'    },
-  { id: 'trivia',         title: 'Parenting Trivia',   desc: 'Test your local & parenting knowledge.',     emoji: '✨', tone: 'secondary'  },
-  { id: 'scramble',       title: 'Lunchbox Scramble',  desc: 'Unscramble the school-themed words.',        emoji: '🔤', tone: 'accent'     },
-  { id: 'memory',         title: 'Toddler Chaos Match',desc: 'Find the matching pairs before time runs out.', emoji: '⏱️', tone: 'foreground' },
-  { id: 'emoji',          title: 'Emoji Decode',       desc: 'Guess the parenting phrase from the emojis.', emoji: '🎯', tone: 'primary'    },
-  { id: 'math',           title: 'Carpool Math',       desc: 'Quick brain-teasers while waiting in line.', emoji: '🧮', tone: 'secondary'  },
+  { id: 'family-connect', title: 'Family Connect',
+    desc: 'Group 16 words into 4 hidden themes. Four mistakes allowed.',
+    emoji: '🧩',
+    signature: { bg: '#1A5FA8', fg: '#FFFFFF', tile: '#E8F0FA' } },
+  { id: 'trivia', title: 'Parenting Trivia',
+    desc: 'Test your local & parenting knowledge.',
+    emoji: '✨',
+    signature: { bg: '#C4622D', fg: '#FFFFFF', tile: '#FAEAE0' } },
+  { id: 'scramble', title: 'Lunchbox Scramble',
+    desc: 'Unscramble the school-themed words.',
+    emoji: '🔤',
+    signature: { bg: '#0F766E', fg: '#FFFFFF', tile: '#DEF1EE' } },
+  { id: 'memory', title: 'Toddler Chaos Match',
+    desc: 'Find the matching pairs before time runs out.',
+    emoji: '⏱️',
+    signature: { bg: '#D4A843', fg: '#1E3A5F', tile: '#FAF1DC' } },
+  { id: 'emoji', title: 'Emoji Decode',
+    desc: 'Guess the parenting phrase from the emojis.',
+    emoji: '🎯',
+    signature: { bg: '#7C3AED', fg: '#FFFFFF', tile: '#EDE3FB' } },
+  { id: 'math', title: 'Carpool Math',
+    desc: 'Quick brain-teasers while waiting in line.',
+    emoji: '🧮',
+    signature: { bg: '#15803D', fg: '#FFFFFF', tile: '#DEF0E2' } },
 ]
 
 export function gameById(id: string): GameDefinition | null {

@@ -187,10 +187,12 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         title="Lunchbox Scramble"
         intro="Unscramble the parenting words to win!"
         prompts={rounds.map(r => ({ display: r.scrambled, answer: r.answer }))}
-        displayClass="text-5xl md:text-7xl font-black tracking-widest text-primary"
+        displayClass="text-5xl md:text-7xl font-black tracking-widest"
         labelOfRound="Word"
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
       />
     )
   }
@@ -206,6 +208,8 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         labelOfRound="Puzzle"
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
       />
     )
   }
@@ -222,6 +226,8 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         caseSensitive
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
       />
     )
   }
@@ -243,6 +249,8 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         board={board}
         onCorrect={handleCorrect}
         onFinish={finish}
+        signatureBg={game.signature.bg}
+        signatureFg={game.signature.fg}
       />
     )
   }
@@ -284,11 +292,14 @@ interface GuessAndCheckProps {
   caseSensitive?:  boolean
   onCorrect:       () => void
   onFinish:        (opts?: { shareGrid?: string }) => void
+  /** Game's signature color — themes the prompt display + submit button. */
+  signatureBg?:    string
+  signatureFg?:    string
 }
 
 function GuessAndCheck({
   title, intro, prompts, displayClass, labelOfRound, caseSensitive,
-  onCorrect, onFinish,
+  onCorrect, onFinish, signatureBg, signatureFg,
 }: GuessAndCheckProps) {
   const [idx, setIdx]           = useState(0)
   const [guess, setGuess]       = useState('')
@@ -367,12 +378,28 @@ function GuessAndCheck({
   if (finished || !current) return null
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-card shadow-sm">
+    <div className="rounded-3xl border border-border/60 bg-card shadow-sm overflow-hidden">
+      {/* Signature color stripe at top of the playing surface — anchors
+          the game's identity at every moment of play. */}
+      {signatureBg && (
+        <div className="h-1.5" style={{ backgroundColor: signatureBg }} />
+      )}
       <div className="px-6 py-10 md:px-10 md:py-14 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1">{title}</h2>
+        <h2
+          className="text-2xl md:text-3xl font-bold text-foreground mb-1"
+          style={{ fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          {title}
+        </h2>
         <p className="text-sm text-muted-foreground mb-8">{intro}</p>
 
-        <div className={`${displayClass} mb-8 select-none`}>{current.display}</div>
+        <div
+          key={`${idx}-${attempts}-${error ? 'err' : 'ok'}`}
+          className={`${displayClass} mb-8 select-none ${error ? 'tile-shake' : ''}`}
+          style={signatureBg ? { color: signatureBg } : undefined}
+        >
+          {current.display}
+        </div>
 
         <form onSubmit={submit} className="max-w-sm mx-auto space-y-3">
           <input
@@ -405,7 +432,10 @@ function GuessAndCheck({
             <button
               type="submit"
               disabled={attempts >= maxAttempts || !guess.trim()}
-              className="flex-[2] inline-flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              className="flex-[2] inline-flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-opacity"
+              style={signatureBg
+                ? { backgroundColor: signatureBg, color: signatureFg ?? 'white' }
+                : undefined}
             >
               Submit Guess
             </button>
@@ -725,11 +755,13 @@ const TONE_STYLE: Record<FamilyConnectGroup['tone'], { tile: string; banner: str
 }
 
 function FamilyConnectPlayer({
-  board, onCorrect, onFinish,
+  board, onCorrect, onFinish, signatureBg, signatureFg,
 }: {
   board: FamilyConnectPayload
   onCorrect: () => void
   onFinish: (opts: { shareGrid: string }) => void
+  signatureBg?: string
+  signatureFg?: string
 }) {
   const MAX_MISTAKES = 4
 
@@ -847,9 +879,15 @@ function FamilyConnectPlayer({
   const solvedGroups   = solvedIdx.map(i => board.groups[i])
 
   return (
-    <div className="rounded-3xl border border-border/60 bg-card shadow-sm">
+    <div className="rounded-3xl border border-border/60 bg-card shadow-sm overflow-hidden">
+      {signatureBg && <div className="h-1.5" style={{ backgroundColor: signatureBg }} />}
       <div className="px-4 py-8 md:px-10 md:py-12">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-1 text-center">Family Connect</h2>
+        <h2
+          className="text-2xl md:text-3xl font-bold text-foreground mb-1 text-center"
+          style={{ fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          Family Connect
+        </h2>
         <p className="text-sm text-muted-foreground text-center mb-6 max-w-md mx-auto">
           Group the 16 words into 4 hidden categories of 4. You get 4 mistakes.
         </p>
@@ -867,7 +905,7 @@ function FamilyConnectPlayer({
         )}
 
         {/* Remaining 4×4 grid */}
-        <div key={shakeKey} className={`grid grid-cols-4 gap-2 max-w-2xl mx-auto ${shakeKey > 0 ? 'animate-[fc-shake_0.4s_ease-in-out]' : ''}`}>
+        <div key={shakeKey} className={`grid grid-cols-4 gap-2 max-w-2xl mx-auto ${shakeKey > 0 ? 'tile-shake' : ''}`}>
           {remainingWords.map(word => {
             const isSel = selected.includes(word)
             return (
@@ -875,10 +913,11 @@ function FamilyConnectPlayer({
                 key={word}
                 onClick={() => toggle(word)}
                 className={`aspect-square sm:aspect-[5/3] rounded-lg px-1 sm:px-2 text-[10px] sm:text-sm font-bold text-center break-words transition-colors ${
-                  isSel
-                    ? 'bg-foreground text-background shadow-inner'
-                    : 'bg-muted text-foreground hover:bg-muted/70'
+                  isSel ? 'shadow-inner tile-pop' : 'bg-muted text-foreground hover:bg-muted/70'
                 }`}
+                style={isSel && signatureBg
+                  ? { backgroundColor: signatureBg, color: signatureFg ?? 'white' }
+                  : undefined}
               >
                 {word}
               </button>
@@ -924,7 +963,10 @@ function FamilyConnectPlayer({
           <button
             onClick={submit}
             disabled={selected.length !== 4 || mistakes >= MAX_MISTAKES}
-            className="px-5 py-2 text-sm font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+            className="px-5 py-2 text-sm font-bold rounded-full hover:opacity-90 disabled:opacity-40 transition-opacity"
+            style={signatureBg
+              ? { backgroundColor: signatureBg, color: signatureFg ?? 'white' }
+              : { backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
           >
             Submit ({selected.length}/4)
           </button>
@@ -941,7 +983,6 @@ function FamilyConnectPlayer({
         </div>
       </div>
 
-      <style>{`@keyframes fc-shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }`}</style>
     </div>
   )
 }
@@ -1046,6 +1087,36 @@ function WinScreen({
   const [err, setErr]             = useState<string | null>(null)
   const [form, setForm]           = useState({ first_name: '', last_name: '', email: '', phone: '' })
 
+  // Confetti burst on first mount — paints with the game's signature color
+  // so each game's win moment feels like ITS color was the celebration.
+  // Skipped on prefers-reduced-motion.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    let cancelled = false
+    void import('canvas-confetti').then(mod => {
+      if (cancelled) return
+      const confetti = mod.default
+      const color = game.signature.bg
+      // Two complementary tones — the signature color + a softer
+      // off-white. Two bursts from the lower corners so it reads
+      // as a celebration not a spray bottle.
+      const common: import('canvas-confetti').Options = {
+        spread: 60, startVelocity: 45, ticks: 200,
+        colors: [color, '#FFFFFF', '#FFD580'],
+        zIndex: 9999,
+      }
+      confetti({ ...common, particleCount: 60, origin: { x: 0.15, y: 0.75 }, angle: 70 })
+      confetti({ ...common, particleCount: 60, origin: { x: 0.85, y: 0.75 }, angle: 110 })
+      // A small follow-up sprinkle from center for layered motion.
+      setTimeout(() => {
+        if (cancelled) return
+        confetti({ ...common, particleCount: 40, origin: { x: 0.5, y: 0.4 }, spread: 100, startVelocity: 35 })
+      }, 250)
+    }).catch(() => {/* fallback: no confetti, no crash */})
+    return () => { cancelled = true }
+  }, [game.signature.bg])
+
   function set<K extends keyof typeof form>(k: K, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
   async function submit(e: React.FormEvent) {
@@ -1081,13 +1152,24 @@ function WinScreen({
           games' CTA lets repeat players skip the drawing form without
           feeling pestered, which keeps them in the loop instead of
           dropping off. */}
-      <div className="bg-primary/5 px-6 pt-8 pb-5 md:pt-10 md:pb-6 text-center">
-        <div className="w-16 h-16 md:w-20 md:h-20 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md">
+      <div
+        className="px-6 pt-8 pb-5 md:pt-10 md:pb-6 text-center"
+        style={{ backgroundColor: game.signature.tile }}
+      >
+        <div
+          className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-md"
+          style={{ backgroundColor: game.signature.bg, color: game.signature.fg }}
+        >
           <Trophy className="h-7 w-7 md:h-9 md:w-9" />
         </div>
-        <h2 className="text-3xl md:text-4xl font-black text-foreground mb-1">Level Cleared!</h2>
+        <h2
+          className="text-3xl md:text-4xl font-black text-foreground mb-1"
+          style={{ fontFamily: 'var(--font-fraunces, serif)' }}
+        >
+          Level Cleared!
+        </h2>
         <p className="text-base text-muted-foreground">
-          Final Score: <strong className="text-primary text-2xl ml-1">{score}</strong>
+          Final Score: <strong className="text-2xl ml-1" style={{ color: game.signature.bg }}>{score}</strong>
         </p>
         <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-foreground text-background font-bold tabular-nums">
@@ -1127,7 +1209,8 @@ function WinScreen({
               <input type="tel"            value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="Phone (optional)" className={inputCls} />
               {err && <p className="text-sm font-semibold text-rose-700">{err}</p>}
               <button type="submit" disabled={busy}
-                className="w-full px-4 py-3 text-base font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                className="w-full px-4 py-3 text-base font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity"
+                style={{ backgroundColor: game.signature.bg, color: game.signature.fg }}>
                 {busy ? 'Submitting…' : 'Submit Score & Enter'}
               </button>
               {/* Secondary CTA — skip the form, head back to play
@@ -1166,7 +1249,8 @@ function WinScreen({
             />
 
             <a href={`/games?diff=${difficulty}#pick-level`}
-              className="inline-flex items-center gap-1.5 mt-5 px-5 py-3 text-sm font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+              className="inline-flex items-center gap-1.5 mt-5 px-5 py-3 text-sm font-bold rounded-full hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: game.signature.bg, color: game.signature.fg }}>
               Play another game <ChevronRight className="h-4 w-4" />
             </a>
           </div>
