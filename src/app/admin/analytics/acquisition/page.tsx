@@ -134,6 +134,39 @@ export default async function AcquisitionPage({ searchParams }: PageProps) {
   const directCur = curChannels.get('Direct') ?? 0
   const directPri = priChannels.get('Direct') ?? 0
 
+  // Google Search Console — Top organic queries (current period). Migration-
+  // tolerant: returns empty list when the table doesn't exist or no data
+  // has been synced yet.
+  const { sinceTs, untilTs } = rangeToTs(ranges.current)
+  const sinceDay = sinceTs.slice(0, 10)
+  const untilDay = untilTs.slice(0, 10)
+  interface GscQueryRollup { query: string; clicks: number; impressions: number; positionSum: number; positionN: number }
+  let topOrganicQueries: GscQueryRollup[] = []
+  let gscMigrated = true
+  try {
+    const probeGsc = await supabase.from('search_console_queries').select('id').limit(1)
+    if (probeGsc.error && /relation .* does not exist/i.test(probeGsc.error.message)) {
+      gscMigrated = false
+    } else if (!probeGsc.error) {
+      const { data: gscRows } = await supabase
+        .from('search_console_queries')
+        .select('query, clicks, impressions, position')
+        .gte('day', sinceDay)
+        .lte('day', untilDay)
+        .limit(100_000)
+      const m = new Map<string, GscQueryRollup>()
+      for (const r of (gscRows ?? []) as Array<{ query: string; clicks: number; impressions: number; position: number }>) {
+        const v = m.get(r.query) ?? { query: r.query, clicks: 0, impressions: 0, positionSum: 0, positionN: 0 }
+        v.clicks      += r.clicks
+        v.impressions += r.impressions
+        v.positionSum += r.position
+        v.positionN   += 1
+        m.set(r.query, v)
+      }
+      topOrganicQueries = Array.from(m.values()).sort((a, b) => b.clicks - a.clicks).slice(0, 25)
+    }
+  } catch { /* fall through */ }
+
   return (
     <div className="p-6 max-w-6xl space-y-5">
       <AdminDateRangeBar since={ranges.current.since} until={ranges.current.until} />
@@ -220,6 +253,49 @@ export default async function AcquisitionPage({ searchParams }: PageProps) {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Top organic queries (Google Search Console) */}
+      <section>
+        <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-3">Top organic queries (Google)</h2>
+        <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-[2.5rem_1fr_5rem_5rem_5rem] gap-x-4 items-center px-4 py-2 border-b border-portal-border bg-portal-bg text-[11px] font-semibold text-portal-muted uppercase tracking-wider">
+            <div>#</div>
+            <div>Query</div>
+            <div className="text-right">Clicks</div>
+            <div className="text-right">Impr.</div>
+            <div className="text-right">Avg pos.</div>
+          </div>
+          <div className="divide-y divide-portal-border">
+            {!gscMigrated ? (
+              <div className="px-4 py-8 text-center text-sm text-portal-muted">
+                <p>Search Console integration not enabled.</p>
+                <p className="mt-1 text-[11px]">Apply migration 149 + connect at <Link href="/admin/integrations/search-console" className="text-portal-blue hover:underline font-semibold">/admin/integrations/search-console</Link></p>
+              </div>
+            ) : topOrganicQueries.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-portal-muted">
+                <p>No GSC data yet for this range.</p>
+                <p className="mt-1 text-[11px]">Connect Search Console and run a sync at <Link href="/admin/integrations/search-console" className="text-portal-blue hover:underline font-semibold">/admin/integrations/search-console</Link></p>
+              </div>
+            ) : topOrganicQueries.map((q, i) => {
+              const avgPos = q.positionN > 0 ? q.positionSum / q.positionN : 0
+              return (
+                <div key={q.query} className="grid grid-cols-[2.5rem_1fr_5rem_5rem_5rem] gap-x-4 items-center px-4 py-2">
+                  <div className="text-sm font-bold text-portal-muted tabular-nums">{i + 1}</div>
+                  <div className="text-sm text-portal-text truncate" title={q.query}>{q.query}</div>
+                  <div className="text-right text-sm tabular-nums font-semibold text-portal-blue">{q.clicks.toLocaleString()}</div>
+                  <div className="text-right text-sm tabular-nums text-portal-sub">{q.impressions.toLocaleString()}</div>
+                  <div className="text-right text-sm tabular-nums text-portal-sub">{avgPos.toFixed(1)}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+        {gscMigrated && topOrganicQueries.length > 0 && (
+          <p className="text-[11px] text-portal-muted mt-2 leading-relaxed">
+            <strong>What to do with this.</strong> A query with high impressions but low clicks = headline/snippet problem (the title doesn&apos;t match what readers want). High position but low clicks = SERP feature is eating attention. Brand-new queries = topics worth commissioning around.
+          </p>
+        )}
       </section>
 
       {/* UTM campaign table */}

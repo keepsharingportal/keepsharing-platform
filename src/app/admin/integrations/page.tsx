@@ -84,8 +84,9 @@ const ROADMAP: IntegrationRow[] = [
     id: 'gsc',
     name: 'Google Search Console',
     category: 'Editorial',
-    status: 'recommended',
+    status: 'available',
     icon: Search,
+    href: '/admin/integrations/search-console',
     unlocks: 'Top search queries landing readers on each article, indexing health, sitemap status, mobile usability flags.',
     whyValuable: 'Editorial intelligence Plausible can\'t give. Tells you what to commission more of based on what people are actually searching for. Surfaces SEO issues before they tank traffic.',
   },
@@ -215,6 +216,25 @@ export default async function IntegrationsIndexPage() {
   } catch {/* fall through */}
   const aiEnvFallback = !aiAnyConnected && (!!process.env.ANTHROPIC_API_KEY || !!process.env.OPENAI_API_KEY)
 
+  // Probe Search Console connection state.
+  let gscReady     = false
+  let gscConnected = false
+  let gscProperty: string | null = null
+  try {
+    const probe = await supabase.from('search_console_integrations').select('id').limit(1)
+    gscReady = !probe.error
+    if (gscReady) {
+      const { data } = await supabase
+        .from('search_console_integrations')
+        .select('property_url, is_active')
+        .maybeSingle()
+      const r = data as { property_url: string; is_active: boolean } | null
+      gscConnected = !!r?.is_active
+      gscProperty  = r?.property_url ?? null
+    }
+  } catch {/* fall through */}
+  const gscEnvOk = !!process.env.GOOGLE_OAUTH_CLIENT_ID && !!process.env.GOOGLE_OAUTH_CLIENT_SECRET
+
   // Splice live state back into the static roadmap.
   const enriched: IntegrationRow[] = ROADMAP.map(r => {
     if (r.id === 'facebook') {
@@ -234,6 +254,16 @@ export default async function IntegrationsIndexPage() {
                   : aiAnyConnected     ? `Connected — ${aiProviders.join(' + ')}`
                   : aiEnvFallback      ? 'Env-var fallback active — connect to track usage + cap spend'
                                        : 'Not connected — paste a key to enable',
+      }
+    }
+    if (r.id === 'gsc') {
+      return {
+        ...r,
+        connected: gscConnected,
+        subtitle:  !gscReady    ? 'Migration 149 pending'
+                  : !gscEnvOk    ? 'OAuth env vars missing — see setup page'
+                  : gscConnected ? `Connected — ${gscProperty ?? 'property active'}`
+                                 : 'Not connected — paste a refresh token to enable',
       }
     }
     return r

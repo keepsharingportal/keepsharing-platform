@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Check, RefreshCw, Eye, ExternalLink,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Search as SearchIcon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
@@ -436,6 +436,13 @@ export default function ArticleEditPage({ params }: Props) {
               {saveMsg.text}
             </span>
           )}
+          <Link
+            href={`/admin/articles/${id}/insights`}
+            title="Search Console insights"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg"
+          >
+            <SearchIcon size={12} /> Insights
+          </Link>
           <button onClick={() => save('draft')} disabled={saving || loading}
             className="hidden sm:block px-3 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg disabled:opacity-40">
             Save Draft
