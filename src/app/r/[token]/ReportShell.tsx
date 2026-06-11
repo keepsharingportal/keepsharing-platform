@@ -100,6 +100,55 @@ export function ReportShell({ data }: { data: AdvertiserReportData }) {
         </div>
       </section>
 
+      {/* ── Per-listing breakdown (multi-listing advertisers only) ─────── */}
+      {data.perListing.length > 0 && (
+        <section className="max-w-5xl mx-auto px-6 py-6 border-t border-slate-200">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">By listing</h2>
+          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200 bg-slate-50">
+                  <th className="text-left py-2 px-4">Listing</th>
+                  <th className="text-right py-2 px-2">Phone</th>
+                  <th className="text-right py-2 px-2">Email</th>
+                  <th className="text-right py-2 px-2">Website</th>
+                  <th className="text-right py-2 px-4">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.perListing.map(l => (
+                  <tr key={l.listing_id} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 px-4">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{l.listing_name}</p>
+                      {l.guide_slug && <p className="text-[10px] uppercase tracking-wider text-slate-400">{l.guide_slug}</p>}
+                    </td>
+                    <td className="py-2 px-2 text-right tabular-nums">{l.tel}</td>
+                    <td className="py-2 px-2 text-right tabular-nums">{l.mailto}</td>
+                    <td className="py-2 px-2 text-right tabular-nums">{l.website}</td>
+                    <td className="py-2 px-4 text-right tabular-nums font-bold text-slate-900">{l.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* ── Year-over-year ────────────────────────────────────────────── */}
+      {data.yearOverYear.available && (
+        <section className="max-w-5xl mx-auto px-6 py-6 border-t border-slate-200">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">Year-over-year</h2>
+          <p className="text-[11px] text-slate-500 mb-3">
+            vs same period last year ({dateLabel(data.yearOverYear.range.since)} – {dateLabel(data.yearOverYear.range.until)})
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <YoyStat label="Phone taps"        current={data.yearOverYear.phoneTaps.current} yearAgo={data.yearOverYear.phoneTaps.yearAgo} />
+            <YoyStat label="Inquiries"         current={data.yearOverYear.inquiries.current} yearAgo={data.yearOverYear.inquiries.yearAgo} />
+            <YoyStat label="Facebook results"  current={data.yearOverYear.fbResults.current} yearAgo={data.yearOverYear.fbResults.yearAgo} />
+          </div>
+        </section>
+      )}
+
       {/* ── Detail tables ──────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-8 space-y-8 border-t border-slate-200">
 
@@ -271,6 +320,34 @@ function HeadlineStatStatic({ icon: Icon, label, value, sublabel, accent }: { ic
         {value.toLocaleString('en-US')}
       </div>
       {sublabel && <p className="text-[11px] text-slate-400 mt-2">{sublabel}</p>}
+    </div>
+  )
+}
+
+function YoyStat({ label, current, yearAgo }: { label: string; current: number; yearAgo: number | null }) {
+  let pctText = '—'
+  let pctTone = 'text-slate-400'
+  if (yearAgo === null) {
+    pctText = 'NEW'
+    pctTone = 'text-blue-700'
+  } else if (yearAgo > 0) {
+    const pct = ((current - yearAgo) / yearAgo) * 100
+    pctText = `${pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
+    pctTone = pct > 0 ? 'text-emerald-700' : pct < 0 ? 'text-rose-700' : 'text-slate-400'
+  } else if (current > 0) {
+    pctText = 'NEW'
+    pctTone = 'text-blue-700'
+  } else {
+    pctText = '0%'
+  }
+  return (
+    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="text-2xl font-bold tabular-nums text-slate-900 mt-1">{current.toLocaleString()}</p>
+      <p className="text-[11px] text-slate-500 mt-1">
+        Last year: <strong className="text-slate-700">{yearAgo === null ? 'no data' : yearAgo.toLocaleString()}</strong>
+      </p>
+      <p className={`text-[11px] font-semibold mt-1 ${pctTone}`}>{pctText}</p>
     </div>
   )
 }

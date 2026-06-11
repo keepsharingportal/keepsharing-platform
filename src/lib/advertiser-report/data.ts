@@ -116,6 +116,28 @@ export interface AdvertiserReportData {
     tone: 'positive' | 'warning' | 'info'
     text: string
   }>
+  /** Per-listing breakdown — only populated when the advertiser owns
+   *  multiple guide listings (otherwise the single listing's stats are
+   *  the whole report). */
+  perListing: Array<{
+    listing_id:    string
+    guide_slug:    string | null
+    listing_name:  string
+    tel:           number
+    mailto:        number
+    website:       number
+    total:         number
+  }>
+  /** Year-over-year comparison — same date range one year prior.
+   *  yearAgo will be null when no data exists from that window
+   *  (platform too young / advertiser too new). */
+  yearOverYear: {
+    range:     { since: string; until: string }
+    phoneTaps: { current: number; yearAgo: number | null }
+    inquiries: { current: number; yearAgo: number | null }
+    fbResults: { current: number; yearAgo: number | null }
+    available: boolean       // true when ANY metric had yearAgo data
+  }
 }
 
 function isoTs(date: string, end = false) {
@@ -135,13 +157,22 @@ function priorWindow(since: string, until: string): { since: string; until: stri
   }
 }
 
+function yearAgoRange(since: string, until: string): { since: string; until: string } {
+  function shift(d: string): string {
+    const ms  = new Date(`${d}T00:00:00Z`).getTime() - 365 * 86_400_000
+    return new Date(ms).toISOString().slice(0, 10)
+  }
+  return { since: shift(since), until: shift(until) }
+}
+
 export async function loadAdvertiserReport(
   advertiserId: string,
   since:        string,
   until:        string,
 ): Promise<AdvertiserReportData | null> {
   const supabase = createAdminClient()
-  const prior = priorWindow(since, until)
+  const prior     = priorWindow(since, until)
+  const yearAgo   = yearAgoRange(since, until)
 
   const advRes = await supabase
     .from('advertiser_accounts')
@@ -159,6 +190,8 @@ export async function loadAdvertiserReport(
     adPlacementsRes,
     fbCampaignsRes,
     goalsRes,
+    listingsRes,
+    yaTapsRes, yaMsgRes,
   ] = await Promise.all([
     supabase.from('listing_contact_events')
       .select('event_type, source_listing_id, source_path, occurred_at')
@@ -200,6 +233,21 @@ export async function loadAdvertiserReport(
       .select('*')
       .eq('advertiser_id', advertiserId)
       .eq('is_active', true),
+    supabase.from('guide_listings')
+      .select('id, business_name, guide_type_slug')
+      .eq('advertiser_account_id', advertiserId)
+      .limit(50),
+    supabase.from('listing_contact_events')
+      .select('event_type')
+      .eq('advertiser_id', advertiserId)
+      .gte('occurred_at', isoTs(yearAgo.since))
+      .lte('occurred_at', isoTs(yearAgo.until, true))
+      .limit(20_000),
+    supabase.from('listing_messages')
+      .select('id')
+      .eq('advertiser_account_id', advertiserId)
+      .gte('created_at', isoTs(yearAgo.since))
+      .lte('created_at', isoTs(yearAgo.until, true)),
   ])
 
   // ── Roll up listing contact events (current + prior) ───────────────────
@@ -392,6 +440,59 @@ export async function loadAdvertiserReport(
     coaching.push({ tone: 'info', text: `Activity is steady. Keep an eye on this dashboard — a refreshed creative or a new promo can shift the numbers fast.` })
   }
 
+  // ── Per-listing breakdown (multi-listing advertisers) ──────────────────
+  type ListingRow = { id: string; business_name: string; guide_type_slug: string | null }
+  const listings = (listingsRes.data ?? []) as ListingRow[]
+  const listingNameById = new Map<string, ListingRow>(listings.map(l => [l.id, l]))
+  type PerListing = AdvertiserReportData['perListing'][number]
+  let perListing: PerListing[] = []
+  if (listings.length > 1) {
+    const map = new Map<string, PerListing>()
+    for (const ev of curEvents) {
+      if (!ev.source_listing_id) continue
+      const meta = listingNameById.get(ev.source_listing_id)
+      if (!meta) continue
+      let row = map.get(ev.source_listing_id)
+      if (!row) {
+        row = {
+          listing_id:   ev.source_listing_id,
+          guide_slug:   meta.guide_type_slug,
+          listing_name: meta.business_name,
+          tel: 0, mailto: 0, website: 0, total: 0,
+        }
+        map.set(ev.source_listing_id, row)
+      }
+      if (ev.event_type === 'tel')     row.tel++
+      if (ev.event_type === 'mailto')  row.mailto++
+      if (ev.event_type === 'website') row.website++
+      row.total++
+    }
+    perListing = Array.from(map.values()).sort((a, b) => b.total - a.total)
+  }
+
+  // ── Year-over-year ─────────────────────────────────────────────────────
+  type YaTap = { event_type: string }
+  const yaTaps = (yaTapsRes.data ?? []) as YaTap[]
+  const yaMsg  = (yaMsgRes.data  ?? []) as Array<{ id: string }>
+  const yaTapsTel = yaTaps.filter(t => t.event_type === 'tel').length
+  const yaInq     = yaMsg.length
+  // FB results year-ago — we need the year-ago facebook metrics window too.
+  // Cheapest path: another query inline. Most advertisers won't have
+  // year-ago FB data, so we keep it as a fallback to 0 / null.
+  let yaFbResults = 0
+  let yaFbAvailable = false
+  if (fbCampaignIds.length > 0) {
+    const { data: yaFbRes } = await supabase
+      .from('facebook_campaign_metrics_daily')
+      .select('results')
+      .in('fb_campaign_id', fbCampaignIds)
+      .gte('day', yearAgo.since).lte('day', yearAgo.until)
+      .limit(10_000)
+    yaFbResults = ((yaFbRes ?? []) as Array<{ results: number | null }>).reduce((s, r) => s + Number(r.results ?? 0), 0)
+    if ((yaFbRes ?? []).length > 0) yaFbAvailable = true
+  }
+  const yoyAvailable = yaTaps.length > 0 || yaMsg.length > 0 || yaFbAvailable
+
   // ── Compose ────────────────────────────────────────────────────────────
   const days = Math.max(1, Math.round((untilMs - sinceMs) / 86_400_000) + 1)
   const onSiteAdCtr = adImpressions > 0 ? (adClicks / adImpressions) * 100 : 0
@@ -425,6 +526,14 @@ export async function loadAdvertiserReport(
     details: { listingTaps, inquiries, shortLinks, facebookCampaigns },
     goals,
     coaching,
+    perListing,
+    yearOverYear: {
+      range:     yearAgo,
+      phoneTaps: { current: curTaps.tel,        yearAgo: yaTaps.length > 0 ? yaTapsTel : null },
+      inquiries: { current: inquiries.length,   yearAgo: yaMsg.length  > 0 ? yaInq     : null },
+      fbResults: { current: curFbTotals.results, yearAgo: yaFbAvailable     ? yaFbResults : null },
+      available: yoyAvailable,
+    },
   }
 }
 
