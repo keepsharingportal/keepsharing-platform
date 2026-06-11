@@ -12,6 +12,9 @@ import { createClient } from '@supabase/supabase-js'
 import { MapPin, Phone, Mail, Globe, Clock, ArrowLeft, Star } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { FavoriteButton } from '@/components/reader/FavoriteButton'
+import { EngagementBeacon } from '@/components/reader/EngagementBeacon'
+import { EngagementNudge } from '@/components/reader/EngagementNudge'
 import { loadBrandContext } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
 
@@ -97,6 +100,8 @@ export default async function DirectoryListingPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background public-page">
+      <EngagementBeacon brandSlug={ctx.slug} kind="directory" />
+      <EngagementNudge brandSlug={ctx.slug} brandName={ctx.market.displayName} />
       <Navigation brandSlug={ctx.slug} chrome={chrome} />
 
       <article className="container py-8 max-w-4xl">
@@ -138,9 +143,19 @@ export default async function DirectoryListingPage({ params }: PageProps) {
               ))}
             </div>
           )}
-          <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight mb-2">
-            {listing.name}
-          </h1>
+          <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+            <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight">
+              {listing.name}
+            </h1>
+            <FavoriteButton
+              brandSlug={ctx.slug}
+              targetKind="directory_listing"
+              targetId={listing.id}
+              targetTitle={listing.name}
+              targetSlug={listing.slug}
+              targetUrl={`/directory/${listing.slug}`}
+            />
+          </div>
           {listing.summary && (
             <p className="text-base text-muted-foreground leading-relaxed">{listing.summary}</p>
           )}

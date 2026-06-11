@@ -35,6 +35,9 @@ function BrandCard({ brand }: { brand: Brand }) {
   // column slugs like "mom-to-mom" — easier than a multi-select for now,
   // and matches how column_slug is used everywhere else.
   const [rotationRaw, setRotationRaw] = useState((brand.voice?.homepage_rotation_columns ?? []).join('\n'))
+  const [ghlList,     setGhlList]     = useState(brand.voice?.ghl_newsletter_list_id ?? '')
+  const [ghlTagSub,   setGhlTagSub]   = useState(brand.voice?.ghl_subscriber_tag    ?? '')
+  const [ghlWorkflow, setGhlWorkflow] = useState(brand.voice?.ghl_welcome_workflow_id ?? '')
   const [pending, start] = useTransition()
   const [msg, setMsg] = useState<string | null>(null)
 
@@ -58,6 +61,9 @@ function BrandCard({ brand }: { brand: Brand }) {
         socialFacebook:  socialFb,
         socialInstagram: socialIg,
         homepageRotationColumns: rotationColumns,
+        ghlNewsletterListId: ghlList,
+        ghlSubscriberTag:    ghlTagSub,
+        ghlWelcomeWorkflowId: ghlWorkflow,
       })
       setMsg(out.ok ? 'Saved' : `Error: ${out.error}`)
       setTimeout(() => setMsg(null), 2500)
@@ -243,6 +249,44 @@ function BrandCard({ brand }: { brand: Brand }) {
                 placeholder="mom-to-mom&#10;teacher-of-month&#10;grands-greatest&#10;play-ball"
                 className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white resize-y"
               />
+            </div>
+          </div>
+
+          {/* ── GHL routing (migration 164) ── */}
+          <div className="border-t border-portal-border pt-3 mt-3 space-y-3">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">Newsletter routing (GHL)</h4>
+            <p className="text-[10px] text-portal-muted -mt-2">
+              When a reader on this brand&apos;s site subscribes, they&apos;ll land in the list / get the tag / trigger the workflow you set here.
+              Leave fields blank to fall back to the legacy single-brand defaults.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">List ID</label>
+                <input
+                  value={ghlList}
+                  onChange={e => setGhlList(e.target.value)}
+                  placeholder="list_xxx"
+                  className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Subscriber tag</label>
+                <input
+                  value={ghlTagSub}
+                  onChange={e => setGhlTagSub(e.target.value)}
+                  placeholder="rrp-newsletter-subscriber"
+                  className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Welcome workflow ID</label>
+                <input
+                  value={ghlWorkflow}
+                  onChange={e => setGhlWorkflow(e.target.value)}
+                  placeholder="wf_xxx (optional)"
+                  className="w-full text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+                />
+              </div>
             </div>
           </div>
 

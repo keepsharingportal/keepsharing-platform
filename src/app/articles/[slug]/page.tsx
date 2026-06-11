@@ -16,6 +16,9 @@ import { ArticleSidebar } from '@/components/articles/ArticleSidebar'
 import { InArticleAd } from '@/components/articles/InArticleAd'
 import { RelatedFromVertical } from '@/components/verticals/RelatedFromVertical'
 import { ArticleViewBeacon } from '@/components/tracking/ArticleViewBeacon'
+import { FavoriteButton } from '@/components/reader/FavoriteButton'
+import { EngagementBeacon } from '@/components/reader/EngagementBeacon'
+import { EngagementNudge } from '@/components/reader/EngagementNudge'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { columnLabel, guideLabel, verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { findArticleBySlug, articleHref } from '@/lib/articles/slug'
@@ -243,6 +246,8 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
   return (
     <div className="min-h-screen bg-background public-page">
       <ArticleViewBeacon articleId={article.id as string} />
+      <EngagementBeacon brandSlug={brandCtx.slug} kind="article" />
+      <EngagementNudge brandSlug={brandCtx.slug} brandName={brandCtx.market.displayName} />
       <Navigation brandSlug={brandCtx.slug} chrome={brandChrome} />
 
       {/* Breadcrumb trail — Home > Articles [> Column] > [Title]. The
@@ -275,12 +280,22 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
         {/* Meta row sits between the title and the hero: date · read · author
             on the left, share buttons on the right. Closes the gap that used
             to appear when the page-level author block collapsed to share-only. */}
-        <ArticleAuthorBlock
-          authorName={(article.author_name as string | null) ?? null}
-          publishedDate={publishedDate}
-          readTimeMinutes={readTimeMinutes}
-          shareUrl={shareUrl}
-        />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <ArticleAuthorBlock
+            authorName={(article.author_name as string | null) ?? null}
+            publishedDate={publishedDate}
+            readTimeMinutes={readTimeMinutes}
+            shareUrl={shareUrl}
+          />
+          <FavoriteButton
+            brandSlug={brandCtx.slug}
+            targetKind="article"
+            targetId={article.id as string}
+            targetTitle={article.title as string}
+            targetSlug={article.slug as string}
+            targetUrl={`/articles/${article.slug}`}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           <article className="lg:col-span-8">

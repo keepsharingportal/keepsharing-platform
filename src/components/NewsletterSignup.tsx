@@ -5,13 +5,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MessageCircle } from 'lucide-react'
+import { readDeviceToken } from '@/lib/reader/device-token'
 
 interface Props {
   variant?: 'sidebar' | 'inline'
   source?: string
+  /** When set, signup is brand-routed to this brand's GHL list / tag.
+   *  Defaults to RRP for backwards compat with pages that don't pass it. */
+  brandSlug?: string
 }
 
-export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: Props) {
+export function NewsletterSignup({ variant = 'sidebar', source = 'homepage', brandSlug = 'rrp' }: Props) {
   const [email, setEmail] = useState('')
   const [name,  setName]  = useState('')
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
@@ -25,10 +29,18 @@ export function NewsletterSignup({ variant = 'sidebar', source = 'homepage' }: P
       // the GHL contact's firstName. Empty string falls through as null
       // server-side so personalization tokens won't fire on those.
       const trimmedName = name.trim()
+      // Send the anonymous device token so the API can link any saved
+      // favorites + engagement counters this device collected to the
+      // new subscriber's email.
+      const deviceToken = readDeviceToken()
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source, first_name: trimmedName || undefined }),
+        body: JSON.stringify({
+          email, source, brand_slug: brandSlug,
+          first_name:   trimmedName || undefined,
+          device_token: deviceToken,
+        }),
       })
       if (!res.ok) throw new Error('Failed')
       setStatus('success')

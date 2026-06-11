@@ -24,6 +24,10 @@ export interface BrandVoiceRow {
   social_facebook:           string | null
   social_instagram:          string | null
   homepage_rotation_columns: string[] | null
+  // Per-brand GHL routing (migration 164).
+  ghl_newsletter_list_id:   string | null
+  ghl_subscriber_tag:       string | null
+  ghl_welcome_workflow_id:  string | null
   updated_at:       string
 }
 

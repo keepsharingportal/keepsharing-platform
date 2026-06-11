@@ -23,6 +23,10 @@ interface SaveBrandInput {
   socialFacebook:           string
   socialInstagram:          string
   homepageRotationColumns:  string[]
+  // GHL routing (migration 164)
+  ghlNewsletterListId:      string
+  ghlSubscriberTag:         string
+  ghlWelcomeWorkflowId:     string
 }
 
 // Reject hex colors that don't parse — typos here ripple into every
@@ -58,6 +62,9 @@ export async function saveBrandVoiceAction(input: SaveBrandInput): Promise<{ ok:
     social_facebook:          input.socialFacebook.trim()       || null,
     social_instagram:         input.socialInstagram.trim()      || null,
     homepage_rotation_columns: input.homepageRotationColumns.length > 0 ? input.homepageRotationColumns : null,
+    ghl_newsletter_list_id:    input.ghlNewsletterListId.trim()    || null,
+    ghl_subscriber_tag:        input.ghlSubscriberTag.trim()       || null,
+    ghl_welcome_workflow_id:   input.ghlWelcomeWorkflowId.trim()   || null,
     updated_at:        new Date().toISOString(),
     updated_by:        ctx.adminId,
   }, { onConflict: 'brand_slug' })
