@@ -1,5 +1,12 @@
-import Anthropic from '@anthropic-ai/sdk'
+// Submission auto-review — routed through the central AI client wrapper.
+//
+// Previously called Anthropic directly via the SDK and read ANTHROPIC_API_KEY
+// from env. Now flows through src/lib/ai/client.ts so usage shows up in the
+// dashboard, the monthly budget cap applies, and the task model can be
+// swapped per-task in /admin/integrations/ai.
+
 import { createClient } from '@supabase/supabase-js'
+import { runAI } from '@/lib/ai/client'
 
 function supabaseAdmin() {
   return createClient(
@@ -9,12 +16,6 @@ function supabaseAdmin() {
 }
 
 export async function reviewSubmission(submissionId: string): Promise<void> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    console.log('[ai-review] ANTHROPIC_API_KEY not configured — skipping AI review for', submissionId)
-    return
-  }
-
   const supabase = supabaseAdmin()
   const { data: submission } = await supabase
     .from('reader_submissions')
@@ -26,8 +27,6 @@ export async function reviewSubmission(submissionId: string): Promise<void> {
     console.error('[ai-review] submission not found:', submissionId)
     return
   }
-
-  const client = new Anthropic({ apiKey })
 
   const prompt = `You are reviewing a submission to River Region Parents' Mom Insiders content engine. The submitter is a local mom sharing her favorite places in the River Region (Montgomery, Prattville, Wetumpka, Pike Road, Millbrook, Eastchase, Alabama).
 
@@ -62,14 +61,13 @@ Submission to review (responses JSON):
 ${JSON.stringify(submission.submission_responses, null, 2)}`
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
+    const response = await runAI({
+      taskKind: 'classification',
+      caller:   'ai-review.submission',
       messages: [{ role: 'user', content: prompt }],
+      maxTokens: 600,
     })
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(response.text.trim())
 
     await supabase.from('reader_submissions').update({
       ai_score:                      parsed.score ?? null,

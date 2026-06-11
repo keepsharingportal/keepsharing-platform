@@ -65,8 +65,9 @@ const ROADMAP: IntegrationRow[] = [
     id: 'ai',
     name: 'AI (OpenAI + Anthropic)',
     category: 'Automation',
-    status: 'recommended',
+    status: 'available',
     icon: Sparkles,
+    href: '/admin/integrations/ai',
     unlocks: 'Centralized LLM keys for editorial drafting, brain-games content generation, coaching-insight generation on advertiser reports, social-caption assist.',
     whyValuable: 'You\'re already using AI in spots (games + insights). Centralizing makes it auditable + rotatable, removes hardcoded keys, and gives every team member access to the same models with usage tracking. Foundation for everything intelligent we build next.',
   },
@@ -195,6 +196,25 @@ export default async function IntegrationsIndexPage() {
     }
   } catch {/* fall through */}
 
+  // Probe AI connection state.
+  let aiReady       = false
+  let aiAnyConnected = false
+  let aiProviders: string[] = []
+  try {
+    const probe = await supabase.from('ai_integrations').select('id').limit(1)
+    aiReady = !probe.error
+    if (aiReady) {
+      const { data } = await supabase
+        .from('ai_integrations')
+        .select('provider, is_active')
+      const rows = (data ?? []) as Array<{ provider: string; is_active: boolean }>
+      const active = rows.filter(r => r.is_active)
+      aiAnyConnected = active.length > 0
+      aiProviders    = active.map(r => r.provider)
+    }
+  } catch {/* fall through */}
+  const aiEnvFallback = !aiAnyConnected && (!!process.env.ANTHROPIC_API_KEY || !!process.env.OPENAI_API_KEY)
+
   // Splice live state back into the static roadmap.
   const enriched: IntegrationRow[] = ROADMAP.map(r => {
     if (r.id === 'facebook') {
@@ -204,6 +224,16 @@ export default async function IntegrationsIndexPage() {
         subtitle:  !fbReady    ? 'Migration 137 pending'
                   : fbConnected ? `Connected — ${fbName ?? 'ad account active'}`
                                 : 'Not connected — paste a token to enable',
+      }
+    }
+    if (r.id === 'ai') {
+      return {
+        ...r,
+        connected: aiAnyConnected,
+        subtitle:  !aiReady           ? 'Migration 148 pending'
+                  : aiAnyConnected     ? `Connected — ${aiProviders.join(' + ')}`
+                  : aiEnvFallback      ? 'Env-var fallback active — connect to track usage + cap spend'
+                                       : 'Not connected — paste a key to enable',
       }
     }
     return r

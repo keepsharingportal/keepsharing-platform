@@ -12,6 +12,9 @@
 // games, three audiences, the connective tissue is always family/home life.
 
 import Anthropic from '@anthropic-ai/sdk'
+import {
+  assertBudgetAvailable, getProviderApiKey, logExternalAIUsage, resolveTaskModelId,
+} from '@/lib/ai/client'
 import type {
   GameId, Difficulty,
   ScramblePayload, EmojiPayload, MathPayload,
@@ -43,7 +46,19 @@ export async function generateContent(opts: {
 
   const cfg = GAME_CONFIG[game]
   if (!cfg) {
-    return { items: [], model_notes: null, model: MODEL, errors: [`Unsupported game: ${game}`] }
+    return { items: [], model_notes: null, model: 'unknown', errors: [`Unsupported game: ${game}`] }
+  }
+
+  // Resolve the model via the integration row (with FALLBACK_MODEL_BY_TASK['games']
+  // as the safety net). Honor budget cap before spinning up the call.
+  let model: string
+  let apiKey: string
+  try {
+    await assertBudgetAvailable('anthropic')
+    model  = await resolveTaskModelId('games', 'anthropic')
+    apiKey = await getProviderApiKey('anthropic')
+  } catch (e) {
+    return { items: [], model_notes: null, model: 'unknown', errors: [`AI not available: ${e instanceof Error ? e.message : String(e)}`] }
   }
 
   const system = [
@@ -75,14 +90,14 @@ export async function generateContent(opts: {
     },
   }
 
-  const client = new Anthropic()
+  const client = new Anthropic({ apiKey })
   // Family Connect needs more headroom — 7 puzzles × 16 words × 4 themed groups
   // plus adaptive thinking blows past 12K. Above 16K we stream to avoid HTTP
   // read timeouts (per Anthropic SDK guidance for Sonnet 4.6).
   const maxTokens = MAX_TOKENS_BY_GAME[game] ?? 12000
 
   const request = {
-    model:      MODEL,
+    model,
     max_tokens: maxTokens,
     thinking:   { type: 'adaptive' as const },
     output_config: {
@@ -92,6 +107,7 @@ export async function generateContent(opts: {
     messages: [{ role: 'user' as const, content: userPrompt }],
   }
 
+  const start = Date.now()
   try {
     const response = maxTokens > 16000
       ? await (async () => {
@@ -100,12 +116,23 @@ export async function generateContent(opts: {
         })()
       : await client.messages.create(request)
 
+    const durationMs = Date.now() - start
+    await logExternalAIUsage({
+      provider:         'anthropic',
+      model,
+      taskKind:         'games',
+      caller:           `games.generate.${game}`,
+      promptTokens:     response.usage?.input_tokens  ?? 0,
+      completionTokens: response.usage?.output_tokens ?? 0,
+      durationMs,
+    })
+
     const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')
     if (!textBlock) {
       const blockTypes = response.content.map(b => b.type).join(', ') || '(no blocks)'
       const reason = response.stop_reason ?? 'unknown'
       return {
-        items: [], model_notes: null, model: MODEL,
+        items: [], model_notes: null, model,
         errors: [`Claude returned no text block (stop_reason: ${reason}, blocks: [${blockTypes}]). Try a smaller batch count or rerun.`],
       }
     }
@@ -126,19 +153,30 @@ export async function generateContent(opts: {
         errors.push(`Dropped item: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
-    return { items, model_notes: parsed.model_notes ?? null, model: MODEL, errors }
+    return { items, model_notes: parsed.model_notes ?? null, model, errors }
   } catch (e) {
-    return { items: [], model_notes: null, model: MODEL, errors: [`Claude call failed: ${e instanceof Error ? e.message : String(e)}`] }
+    const durationMs = Date.now() - start
+    await logExternalAIUsage({
+      provider:         'anthropic',
+      model,
+      taskKind:         'games',
+      caller:           `games.generate.${game}`,
+      promptTokens:     0,
+      completionTokens: 0,
+      durationMs,
+      error:            e instanceof Error ? e.message.slice(0, 500) : String(e).slice(0, 500),
+    })
+    return { items: [], model_notes: null, model, errors: [`Claude call failed: ${e instanceof Error ? e.message : String(e)}`] }
   }
 }
 
 // ── Shared prompt fragments ───────────────────────────────────────────────────
 
-// Sonnet 4.6 — ~5× cheaper than Opus 4.7 ($3/$15 vs $15/$75 per 1M tokens) and
-// well-suited to pattern-driven creative writing (scrambles, emoji decodes,
-// trivia). Adaptive thinking is kept on so the harder games (Family Connect
-// wordplay, brain-squeezing math) still get reasoning when they need it.
-const MODEL = 'claude-sonnet-4-6'
+// Model is resolved from the integration row (with FALLBACK_MODEL_BY_TASK['games']
+// as the safety net). Sonnet 4.6 is the typical pick — ~5× cheaper than Opus
+// 4.8 and well-suited to pattern-driven creative writing. Adaptive thinking is
+// kept on so the harder games (Family Connect wordplay, brain-squeezing math)
+// still get reasoning when they need it.
 
 // Per-game max_tokens — most games are short, but Family Connect's payload
 // (16 words × 4 themed groups per item) plus adaptive thinking burns thousands
