@@ -51,10 +51,16 @@ const RRP_CHROME_FALLBACK: BrandChrome = {
   logoUrl:                 null,
   primaryColorHex:         '#c4622d',
   accentColorHex:          '#1a2744',
+  tertiaryColorHex:        '#f3bf24',
+  backgroundColorHex:      '#fbfaf8',
+  foregroundColorHex:      '#2b2420',
   contactEmail:            'hello@riverregionparents.com',
   socialFacebook:          null,
   socialInstagram:         null,
   homepageRotationColumns: [],
+  wordmarkEyebrow:         null,
+  wordmarkPrimary:         null,
+  wordmarkAccent:          null,
 }
 
 interface FooterLinkProps {

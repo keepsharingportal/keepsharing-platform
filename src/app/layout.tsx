@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { Geist, Geist_Mono, Allura, Fraunces } from 'next/font/google'
+import { Geist, Geist_Mono, Allura, Fraunces, Inter, Montserrat, Playfair_Display } from 'next/font/google'
 import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
 import { loadBrandContext } from '@/lib/brand-context'
@@ -17,6 +17,14 @@ const allura    = Allura({ variable: '--font-allura', weight: '400', subsets: ['
 // in select feature/long-form contexts. Loaded once site-wide via CSS
 // var so any component can reference --font-fraunces without re-importing.
 const fraunces  = Fraunces({ variable: '--font-fraunces', weight: ['600', '700', '900'], subsets: ['latin'], display: 'swap' })
+
+// 50+ template family fonts. Loaded site-wide as CSS variables and only
+// applied inside the .fifty-plus-page scope (see globals.css). Loading
+// site-wide costs ~3 small WOFF2 fetches; in exchange we get a single
+// root layout that serves both brand families without a route split.
+const inter      = Inter({            variable: '--font-inter',     subsets: ['latin'], display: 'swap' })
+const montserrat = Montserrat({       variable: '--font-montserrat', weight: ['600', '700', '800', '900'], subsets: ['latin'], display: 'swap' })
+const playfair   = Playfair_Display({ variable: '--font-playfair',  weight: ['400', '600', '700'],        subsets: ['latin'], display: 'swap' })
 
 /** Brand-aware site metadata. The default title + description come from
  *  the resolved brand (display name + tagline + audience summary), so a
@@ -52,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${allura.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${allura.variable} ${fraunces.variable} ${inter.variable} ${montserrat.variable} ${playfair.variable} h-full antialiased`}
     >
       <head>
         {plausibleDomain && (

@@ -23,6 +23,7 @@ import { ArticleCard, SectionHeader } from '@/components/theme'
 import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
 import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
+import { FiftyPlusHomePage } from '@/components/fifty-plus/HomePage'
 
 export const revalidate = 600
 
@@ -469,8 +470,17 @@ export default async function HomePage() {
   // and feed its rotation column config into the homepage data fetcher.
   // All article queries below are now scoped to articles where this brand
   // is the origin OR the brand appears in syndicated_to_brands — readers
-  // on the BOOM domain see BOOM articles, ESP readers see ESP, etc.
+  // on the rr50plus domain see rr50plus articles, ESP readers see ESP, etc.
   const brandCtx = await loadBrandContext()
+
+  // Brand-family split: fifty-plus brands (River Region 50+, and any
+  // future xx50plus brands) render an entirely separate template tree
+  // (navy + amber chrome, hero carousel, Local Tails, Weekly Poll). The
+  // parents implementation below is untouched.
+  if (brandCtx.market.family === 'fifty-plus') {
+    return <FiftyPlusHomePage brandCtx={brandCtx} />
+  }
+
   const brandChrome = chromeForBrand(brandCtx.brand)
   const {
     trending, mainFeature, featuredGuide, spotlights, events, articles,

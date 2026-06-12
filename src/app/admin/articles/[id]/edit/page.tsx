@@ -15,6 +15,7 @@ import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
 import { SpotlightSection } from '@/components/admin/SpotlightSection'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
+import { FeatureInHeroToggle } from '@/components/admin/FeatureInHeroToggle'
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
 import { TeacherOfMonthLayout } from '@/components/articles/templates/TeacherOfMonthLayout'
 import { ArticleBody } from '@/components/articles/ArticleBody'
@@ -885,6 +886,9 @@ export default function ArticleEditPage({ params }: Props) {
                 </p>
               </div>
             </div>
+
+            {/* ── Feature on 50+ home page slider (fifty-plus brands only) ── */}
+            <FeatureInHeroToggle articleId={id} brandSlug={brandSlug} />
 
             {/* ── Author ── */}
             <div>

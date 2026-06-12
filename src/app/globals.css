@@ -50,6 +50,11 @@
   --color-accent:            #f3bf24;   /* vibrant gold — was muted #d4a843 */
   --color-accent-foreground: #2b2420;
 
+  /* Tertiary token — used by the 50+ template family for highlight chips
+     (Escape & Explore, Local Tails). Parents brands don't use this. */
+  --color-tertiary:            #FAB320;
+  --color-tertiary-foreground: #0B1F37;
+
   --color-background:  #fbfaf8;          /* cooler cream — was warmer #faf8f5 */
   --color-foreground:  #2b2420;          /* warmer text — was darker #1f1b16 */
 
@@ -296,6 +301,51 @@ aside {
   font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
 }
+
+/* ── Fifty-Plus template scope ────────────────────────────────────────
+   River Region 50+ (and future xx50plus brands) use a navy + amber +
+   gold palette and a different typographic system (Montserrat display +
+   Inter body + Playfair Display serif). We override the design tokens
+   inside this single wrapper class so Tailwind utilities (bg-primary,
+   text-secondary, font-heading, etc.) automatically pick up the 50+
+   palette and fonts without touching any other surface. */
+.fifty-plus-page {
+  /* Color tokens — these override the public-page defaults inside the
+     50+ wrapper only. Sourced from the design system the publisher
+     established in the 50+ Vite project (index.css). */
+  --color-primary:              #0B1F37;   /* navy */
+  --color-primary-foreground:   #FAF7F1;   /* warm cream */
+  --color-secondary:            #D08826;   /* amber */
+  --color-secondary-foreground: #FFFFFF;
+  --color-tertiary:             #FAB320;   /* bright gold */
+  --color-tertiary-foreground:  #0B1F37;
+  --color-accent:               #2E94A6;   /* teal */
+  --color-accent-foreground:    #FFFFFF;
+  --color-background:           #FAF7F1;
+  --color-foreground:           #0B1F37;
+  --color-muted:                #F0EBE0;
+  --color-muted-foreground:     #6B6358;
+  --color-border:               #E5DFD2;
+  --color-card:                 #FFFFFF;
+  --color-card-foreground:      #0B1F37;
+  --color-ring:                 #D08826;
+
+  /* Font tokens — override sans to Inter; expose font-heading (Montserrat)
+     + font-serif-50 (Playfair Display) as named utilities below. */
+  --font-sans: var(--font-inter, system-ui, sans-serif);
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-inter, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Inside the 50+ scope, font-heading and font-serif-50 utilities pick
+   up Montserrat and Playfair Display via the loaded next/font vars. */
+.fifty-plus-page .font-heading { font-family: var(--font-montserrat), system-ui, sans-serif; }
+.fifty-plus-page .font-serif   { font-family: var(--font-playfair), Georgia, serif; }
+/* Reset back inside admin / non-50+ sub-surfaces nested inside (defensive). */
+.fifty-plus-page .public-page .font-serif { font-family: inherit; }
 
 /* ── Game tile animations ───────────────────────────────────────────────────
    Shared by every Brain Game so feedback animations feel consistent across
