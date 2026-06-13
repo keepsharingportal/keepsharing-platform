@@ -134,28 +134,61 @@ async function finishDriver(
     await client.from('circulation_driver_routes').insert(links)
   }
 
-  // Fire driver_welcome email — best-effort. Includes the login URL so
-  // they know where to go after the magic link.
+  // Fire driver_welcome email — best-effort. Sends them a real Supabase
+  // magic link so they're one tap away from being signed in, plus the
+  // login URL as a fallback after the link expires (Supabase magic links
+  // are valid for one hour).
+  //
+  // Base URL: prefers the dedicated drivers subdomain so the links land
+  // on the cleaner URL even when admin is being run from the vercel.app
+  // preview. Override via NEXT_PUBLIC_DRIVERS_URL if you want pre-launch
+  // tests to bounce back to the vercel URL instead.
   try {
-    const region   = regionForMarket(market)
-    const settings = await getSettings(market)
+    const region    = regionForMarket(market)
+    const settings  = await getSettings(market)
+    const brandName = region.name + ' Distribution'
+    const baseUrl   = process.env.NEXT_PUBLIC_DRIVERS_URL
+                   ?? process.env.NEXT_PUBLIC_SITE_URL
+                   ?? 'https://drivers.keepsharing.com'
+
     let routeList = ''
     if (Array.isArray(body.route_ids) && body.route_ids.length > 0) {
       const { data: routes } = await client.from('circulation_routes').select('name').in('id', body.route_ids)
       routeList = (routes ?? []).map(r => (r as { name: string }).name).join(', ')
     }
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+
+    // Generate the one-tap magic link. Supabase verifies the email and
+    // redirects through /auth/callback into the market's driver portal.
+    // If generation fails (provider down, user already signed in via
+    // another flow, etc.) we still send the welcome email — the driver
+    // can always request a fresh link from the login page.
+    let magicLink = `${baseUrl}/distribution/login`
+    try {
+      const { data: linkData } = await client.auth.admin.generateLink({
+        type:  'magiclink',
+        email: body.email!.trim(),
+        options: {
+          redirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(`/distribution/${market}/driver`)}`,
+        },
+      })
+      if (linkData?.properties?.action_link) {
+        magicLink = linkData.properties.action_link
+      }
+    } catch { /* fall through with login-page fallback */ }
+
     const rendered = await renderTemplate({
       market,
       key:     'driver_welcome',
       context: {
-        first_name:    (body.full_name ?? '').split(' ')[0] ?? '',
-        login_url:     `${baseUrl}/distribution/${market}/driver`,
-        driver_email:  body.email ?? '',
-        temp_password: '(use the magic link in this email)',
-        route_list:    routeList || '(none yet — ops will assign soon)',
+        first_name:   (body.full_name ?? '').split(' ')[0] ?? '',
+        brand_name:   brandName,
+        login_url:    `${baseUrl}/distribution/login`,
+        magic_link:   magicLink,
+        driver_email: body.email ?? '',
+        route_list:   routeList || '(none yet — ops will assign soon)',
+        ops_email:    settings.ops_email ?? '',
       },
-      brandName:  region.name + ' Distribution',
+      brandName,
       brandColor: '#1A5FA8',
     })
     if (rendered && body.email) {
