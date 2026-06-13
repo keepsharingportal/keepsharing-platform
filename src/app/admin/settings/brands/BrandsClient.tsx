@@ -5,15 +5,23 @@ import { Save, ChevronDown, ChevronRight, Sparkles } from 'lucide-react'
 import type { Brand } from '@/lib/brands'
 import { saveBrandVoiceAction } from './actions'
 
-export function BrandsClient({ brands }: { brands: Brand[] }) {
+interface EffectiveColors { primary: string; accent: string }
+
+export function BrandsClient({ brands, effectiveColors }: {
+  brands: Brand[]
+  /** Server-computed chrome (DB value OR fallback) per brand slug.
+   *  Lets the form prefill with what's actually rendering, even when
+   *  the DB column is null. */
+  effectiveColors: Record<string, EffectiveColors>
+}) {
   return (
     <div className="space-y-4">
-      {brands.map(b => <BrandCard key={b.slug} brand={b} />)}
+      {brands.map(b => <BrandCard key={b.slug} brand={b} effective={effectiveColors[b.slug]} />)}
     </div>
   )
 }
 
-function BrandCard({ brand }: { brand: Brand }) {
+function BrandCard({ brand, effective }: { brand: Brand; effective: EffectiveColors }) {
   const hasVoice = !!brand.voice
   const [expanded, setExpanded] = useState(!hasVoice)   // expand empty ones by default
   const [audience, setAudience] = useState(brand.voice?.audience_summary ?? '')
@@ -26,8 +34,11 @@ function BrandCard({ brand }: { brand: Brand }) {
   // rejects bad hex codes before saving.
   const [tagline,     setTagline]     = useState(brand.voice?.tagline                   ?? '')
   const [logoUrl,     setLogoUrl]     = useState(brand.voice?.logo_url                  ?? '')
-  const [primary,     setPrimary]     = useState(brand.voice?.primary_color_hex         ?? '')
-  const [accent,      setAccent]      = useState(brand.voice?.accent_color_hex          ?? '')
+  // Prefill from the effective chrome (DB value OR built-in fallback)
+  // so an editor sees the color that's actually rendering on the public
+  // site, not an empty field that masks the active default.
+  const [primary,     setPrimary]     = useState(brand.voice?.primary_color_hex         ?? effective.primary)
+  const [accent,      setAccent]      = useState(brand.voice?.accent_color_hex          ?? effective.accent)
   const [contactEmail,setContactEmail]= useState(brand.voice?.contact_email             ?? '')
   const [socialFb,    setSocialFb]    = useState(brand.voice?.social_facebook           ?? '')
   const [socialIg,    setSocialIg]    = useState(brand.voice?.social_instagram          ?? '')
