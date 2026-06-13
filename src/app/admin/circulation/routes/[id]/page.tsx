@@ -25,13 +25,28 @@ export default async function RouteStopsPage({ params }: PageProps) {
     .maybeSingle()
   if (!route) notFound()
 
+  // Pull the linked business name alongside so the editor can show a
+  // "Linked profile: X" badge per stop. The full edit experience for
+  // re-linking lives on /admin/businesses/[id] — this is just the
+  // breadcrumb so editors see at a glance which stops are wired up.
   const { data: stops } = await sb
     .from('circulation_stops')
-    .select('*')
+    .select('*, business:businesses!circulation_stops_business_id_fkey(id, name)')
     .eq('route_id', id)
     .order('sort_order', { ascending: true })
 
-  const initialStops = (stops ?? []) as Stop[]
+  type StopWithBiz = Stop & {
+    business_id?: string | null
+    business?:    { id: string; name: string } | { id: string; name: string }[] | null
+  }
+  const initialStops: Stop[] = ((stops ?? []) as unknown as StopWithBiz[]).map(s => {
+    const biz = Array.isArray(s.business) ? s.business[0] : s.business
+    return {
+      ...(s as Stop),
+      business_id:   s.business_id ?? null,
+      business_name: biz?.name      ?? null,
+    } as Stop
+  })
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">

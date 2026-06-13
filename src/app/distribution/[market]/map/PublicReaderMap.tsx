@@ -41,6 +41,10 @@ export interface ReaderStop {
   facebook:      string | null
   tiktok:        string | null
   logo_path:     string | null
+  /** One-line description / tagline pulled from the business profile.
+   *  Only rendered in the InfoWindow when present — most distribution
+   *  stops don't have one. */
+  description?:  string | null
 }
 export interface ReaderResource {
   id:           string
@@ -750,6 +754,11 @@ function StopInfoCard({ stop, brandColor }: { stop: ReaderStop; brandColor: stri
         {stop.name}
       </div>
       {fullAddress && <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>{fullAddress}</div>}
+      {stop.description && tier && (
+        <div style={{ fontSize: 11, color: '#64748B', marginTop: 6, fontStyle: 'italic', lineHeight: 1.3 }}>
+          {stop.description}
+        </div>
+      )}
 
       {tier === 'top' && (stop.website || stop.instagram || stop.facebook || stop.tiktok) && (
         <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 11 }}>

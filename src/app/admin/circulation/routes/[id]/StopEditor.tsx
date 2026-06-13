@@ -8,9 +8,10 @@
 // - Per-publication quantities edited inline as comma'd "pub:qty" pairs
 //   for terse density (e.g. "rrp:25, boom:10")
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, X, Check, Trash2, ArrowUp, ArrowDown, Loader2, MapPin, Star } from 'lucide-react'
+import { Plus, Pencil, X, Check, Trash2, ArrowUp, ArrowDown, Loader2, MapPin, Star, Building2 } from 'lucide-react'
 
 export interface Stop {
   id:                    string
@@ -39,6 +40,10 @@ export interface Stop {
   not_delivering:        boolean
   not_delivering_note:   string | null
   quantities:            Record<string, number> | null
+  // FK to the canonical businesses row + the joined name for the badge.
+  // Editing happens on /admin/businesses/[id]; this view is read-only.
+  business_id?:          string | null
+  business_name?:        string | null
 }
 
 interface Props {
@@ -261,6 +266,15 @@ function DisplayRow({ stop, idx, last, busyReorder, onEdit, onDelete, onUp, onDo
         <p className="text-xs text-portal-sub mt-0.5 truncate">
           {stop.address}{stop.city ? ` · ${stop.city}` : ''}
         </p>
+        {stop.business_id && stop.business_name && (
+          <Link
+            href={`/admin/businesses/${stop.business_id}`}
+            className="inline-flex items-center gap-1 text-[10px] text-portal-blue hover:underline mt-0.5"
+            title="Edit canonical business profile"
+          >
+            <Building2 size={9} /> {stop.business_name}
+          </Link>
+        )}
         {stop.quantities && Object.keys(stop.quantities).length > 0 && (
           <p className="text-[11px] text-portal-sub mt-0.5">
             {Object.entries(stop.quantities).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(' · ')}

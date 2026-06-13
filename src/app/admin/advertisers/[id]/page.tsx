@@ -13,7 +13,7 @@ import { GhlSyncButton } from '@/components/admin/GhlSyncButton'
 import { PublicReportLinkPanel } from '@/components/admin/PublicReportLinkPanel'
 import { AdvertiserGoalsPanel } from '@/components/admin/AdvertiserGoalsPanel'
 import {
-  Mail, Phone, Globe, Calendar, Megaphone, BookOpen, FileText, BarChart3, ArrowRight,
+  Mail, Phone, Globe, Calendar, Megaphone, BookOpen, FileText, BarChart3, ArrowRight, Building2,
 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Business — Admin' }
@@ -48,6 +48,20 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
   const contractEnd   = a.contract_end_date ? String(a.contract_end_date) : null
   const opsNotes      = a.ops_notes ? String(a.ops_notes) : null
   const sponsorGuide  = a.sponsor_guide_slug ? String(a.sponsor_guide_slug) : null
+  const businessId    = a.business_id ? String(a.business_id) : null
+
+  // Look up the canonical business profile name if the FK is set. Lets
+  // the overview panel show "Profile: River Region Ballet" with a
+  // jump-link to /admin/businesses/[id] for editing logo/socials.
+  let canonicalBusinessName: string | null = null
+  if (businessId) {
+    const { data: biz } = await supabase
+      .from('businesses')
+      .select('name')
+      .eq('id', businessId)
+      .maybeSingle()
+    canonicalBusinessName = (biz?.name as string | undefined) ?? null
+  }
 
   // Contacts (migration 128). Fallback to inline contact_* fields when
   // the table doesn't exist yet so the tab still renders something
@@ -135,6 +149,31 @@ export default async function AdvertiserOverviewPage({ params }: Props) {
             </a>
           </section>
         )}
+
+        <section className="bg-white rounded-lg border border-portal-border p-5 text-sm">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub mb-2">Business profile</h2>
+          {businessId ? (
+            <>
+              <Link
+                href={`/admin/businesses/${businessId}`}
+                className="flex items-center gap-1.5 text-portal-blue hover:underline"
+              >
+                <Building2 size={13} /> {canonicalBusinessName ?? 'View canonical profile'} <ArrowRight size={11} />
+              </Link>
+              <p className="text-[10px] text-portal-sub mt-1">
+                Logo, address, and socials shared with the public map and guide listings live here.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-[11px] text-portal-sub leading-snug">
+                No canonical business profile linked yet. Run the businesses backfill from{' '}
+                <Link href="/admin/businesses" className="text-portal-blue hover:underline">/admin/businesses</Link>{' '}
+                to auto-link or create one.
+              </p>
+            </>
+          )}
+        </section>
 
         <section className="bg-white rounded-lg border border-portal-border p-5 space-y-3 text-sm">
           <h2 className="text-xs font-bold uppercase tracking-wider text-portal-sub">Contract</h2>

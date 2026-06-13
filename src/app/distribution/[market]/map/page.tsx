@@ -59,12 +59,23 @@ export default async function PublicMapPage({ params }: PageProps) {
 
   const client = sb()
   const [stopsRes, resourcesRes] = await Promise.all([
+    // Pull stops + their canonical business profile (Phase 2 of the
+    // businesses-master rollout). When a stop is linked to a business
+    // we prefer that profile's name/address/socials/logo over the
+    // stop's own duplicated columns; the stop columns remain as a
+    // fallback for un-linked rows so the map still renders before the
+    // backfill walks everything.
     client.from('circulation_stops')
       .select(`
         id, name, address, city, zip, lat, lng,
-        is_advertiser, ad_level, advertiser_account_id,
+        is_advertiser, ad_level, advertiser_account_id, business_id,
         website, instagram, facebook, tiktok, logo_path,
-        quantities
+        quantities,
+        business:businesses!circulation_stops_business_id_fkey (
+          id, name, address, city, zip,
+          website, instagram, facebook, tiktok,
+          logo_path, description
+        )
       `)
       .eq('market', dbKey)
       .eq('active', true)
@@ -76,15 +87,25 @@ export default async function PublicMapPage({ params }: PageProps) {
       .eq('active', true),
   ])
 
+  type BizJoin = {
+    id: string; name: string;
+    address: string | null; city: string | null; zip: string | null;
+    website: string | null; instagram: string | null; facebook: string | null; tiktok: string | null;
+    logo_path: string | null; description: string | null;
+  }
   type RawStop = {
     id: string; name: string; address: string | null; city: string | null; zip: string | null;
     lat: number | null; lng: number | null;
     is_advertiser: boolean; ad_level: string | null; advertiser_account_id: string | null;
+    business_id: string | null;
     website: string | null; instagram: string | null; facebook: string | null; tiktok: string | null;
     logo_path: string | null;
     quantities: Record<string, number> | null;
+    // PostgREST returns embedded resources as an array even for single FK
+    // joins. Type accordingly and unwrap [0] below.
+    business: BizJoin[] | BizJoin | null;
   }
-  const rawStops = (stopsRes.data ?? []) as RawStop[]
+  const rawStops = (stopsRes.data ?? []) as unknown as RawStop[]
 
   // Filter to stops that actually carry THIS publication (quantity > 0
   // for at least one of the publication's slug aliases) AND have
@@ -108,25 +129,37 @@ export default async function PublicMapPage({ params }: PageProps) {
       }
       return false
     })
-    .map(s => ({
-      id:            s.id,
-      name:          s.name,
-      address:       s.address,
-      city:          s.city,
-      zip:           s.zip,
-      // Drop wildly-wrong coordinates here so the map still renders the
-      // stop in the list (so the editor can fix the geocode in admin),
-      // but it doesn't anchor the map bounds.
-      lat:           isPlausibleCoord(s.lat, s.lng) ? s.lat : null,
-      lng:           isPlausibleCoord(s.lat, s.lng) ? s.lng : null,
-      is_advertiser: !!s.is_advertiser,
-      ad_level:      (s.ad_level as ReaderStop['ad_level']) ?? null,
-      website:       s.website,
-      instagram:     s.instagram,
-      facebook:      s.facebook,
-      tiktok:        s.tiktok,
-      logo_path:     s.logo_path,
-    }))
+    .map(s => {
+      // Resolve canonical fields: prefer the linked business profile,
+      // fall back to the stop's own duplicated columns. Once the
+      // backfill has linked every stop and the admin has had a chance
+      // to review, we can drop the stop-level columns in migration 176.
+      const biz = Array.isArray(s.business) ? s.business[0] : s.business
+      const pick = <T,>(fromBiz: T | null | undefined, fromStop: T | null | undefined): T | null =>
+        (fromBiz ?? fromStop ?? null)
+      return {
+        id:            s.id,
+        name:          pick(biz?.name, s.name) ?? s.name,
+        address:       pick(biz?.address, s.address),
+        city:          pick(biz?.city, s.city),
+        zip:           pick(biz?.zip, s.zip),
+        // Drop wildly-wrong coordinates here so the map still renders the
+        // stop in the list (so the editor can fix the geocode in admin),
+        // but it doesn't anchor the map bounds. lat/lng stay on stops
+        // because they're delivery-specific (a business with multiple
+        // pickup spots needs distinct coords per stop).
+        lat:           isPlausibleCoord(s.lat, s.lng) ? s.lat : null,
+        lng:           isPlausibleCoord(s.lat, s.lng) ? s.lng : null,
+        is_advertiser: !!s.is_advertiser,
+        ad_level:      (s.ad_level as ReaderStop['ad_level']) ?? null,
+        website:       pick(biz?.website,   s.website),
+        instagram:     pick(biz?.instagram, s.instagram),
+        facebook:      pick(biz?.facebook,  s.facebook),
+        tiktok:        pick(biz?.tiktok,    s.tiktok),
+        logo_path:     pick(biz?.logo_path, s.logo_path),
+        description:   biz?.description ?? null,
+      }
+    })
 
   const resources: ReaderResource[] = ((resourcesRes.data ?? []) as ReaderResource[])
 
