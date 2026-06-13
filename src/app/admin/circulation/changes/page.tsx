@@ -1,68 +1,61 @@
-// /admin/circulation/changes — driver-flagged change request review.
+// /admin/circulation/changes — Change Requests.
 //
-// Drivers tap "Flag" on a stop during delivery (closed, wrong address, wrong
-// qty, add a new stop, other) and write a note. Each flag becomes a row in
-// circulation_change_requests with status='pending'. Admin reviews here,
-// approves (auto-applying simple changes like "close this stop") or rejects.
+// Port of admin/changes.php from the v3_FINAL portal source. Card-list
+// of driver-submitted change requests with Approve & apply / Reject
+// actions inline. Filter chips toggle pending vs all in the page header.
 
-import Link from 'next/link'
-import { ArrowLeft, GitPullRequest } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { ChangeRequestsEditor, type ChangeRequest } from './ChangeRequestsEditor'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { ChangesClient, type ChangeRequestRow } from './ChangesClient'
 
-export const metadata = { title: 'Change Requests — Distribution' }
+export const metadata = { title: 'Change Requests — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-interface PageProps { searchParams: Promise<{ status?: string }> }
+interface PageProps { searchParams: Promise<{ filter?: string }> }
 
-export default async function ChangeRequestsPage({ searchParams }: PageProps) {
+export default async function ChangesPage({ searchParams }: PageProps) {
   const sp     = await searchParams
-  const status = sp.status?.trim() || 'pending'
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
+  const filter = sp.filter === 'all' ? 'all' : 'pending'
 
   const sb = createAdminClient()
-  let requests: ChangeRequest[] = []
+  let rows: ChangeRequestRow[] = []
   try {
-    const { data } = await sb
-      .from('circulation_change_requests')
+    let q = sb.from('circulation_change_requests')
       .select(`
-        id, market, type, field_name, old_value, new_value, notes, status,
-        created_at, reviewed_at, stop_id, route_id, driver_id,
-        circulation_stops(name, address, city),
+        id, type, status, stop_id, route_id, driver_id, field_name,
+        old_value, new_value, notes, admin_note, created_at, reviewed_at,
+        circulation_stops(name),
         circulation_routes(name),
-        circulation_drivers(full_name, email)
+        circulation_drivers(full_name)
       `)
       .eq('market', dbKey)
-      .eq('status', status)
       .order('created_at', { ascending: false })
-    requests = (data ?? []) as unknown as ChangeRequest[]
+      .limit(200)
+    if (filter === 'pending') q = q.eq('status', 'pending')
+    const { data } = await q
+
+    type Joined = ChangeRequestRow & {
+      circulation_stops?:   { name?: string } | { name?: string }[] | null
+      circulation_routes?:  { name?: string } | { name?: string }[] | null
+      circulation_drivers?: { full_name?: string } | { full_name?: string }[] | null
+    }
+    rows = ((data ?? []) as unknown as Joined[]).map(r => {
+      const s  = Array.isArray(r.circulation_stops)   ? r.circulation_stops[0]   : r.circulation_stops
+      const ro = Array.isArray(r.circulation_routes)  ? r.circulation_routes[0]  : r.circulation_routes
+      const d  = Array.isArray(r.circulation_drivers) ? r.circulation_drivers[0] : r.circulation_drivers
+      return {
+        ...r,
+        stop_name:   s?.name ?? null,
+        route_name:  ro?.name ?? '(route)',
+        driver_name: d?.full_name ?? '(driver)',
+      }
+    })
   } catch { /* table missing */ }
 
-  return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1000px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Routes
-          </Link>
-          <div className="flex items-center gap-2">
-            <GitPullRequest size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Change Requests</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-        </div>
-
-        <ChangeRequestsEditor initial={requests} activeStatus={status} />
-      </div>
-    </div>
-  )
+  return <ChangesClient filter={filter} rows={rows} />
 }
