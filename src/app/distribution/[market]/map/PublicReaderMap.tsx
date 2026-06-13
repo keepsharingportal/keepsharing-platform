@@ -399,6 +399,7 @@ export function PublicReaderMap({ brand, market, stops, resources, brandColor: b
                         onPick={pickStop}
                         focusId={focusId}
                         brandColor={brandColor}
+                        accentColor={accentColor}
                       />
                     )}
                   </div>
@@ -542,13 +543,14 @@ export function PublicReaderMap({ brand, market, stops, resources, brandColor: b
 
 // ── Featured + alphabetical list ───────────────────────────────────────
 function FeaturedAndList({
-  stops, itemRefs, onPick, focusId, brandColor,
+  stops, itemRefs, onPick, focusId, brandColor, accentColor,
 }: {
   stops: ReaderStop[]
   itemRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>
   onPick: (id: string) => void
   focusId: string | null
   brandColor: string
+  accentColor: string
 }) {
   const featured = stops.filter(s => tierOf(s) !== null)
   const standard = stops.filter(s => tierOf(s) === null)
@@ -565,7 +567,9 @@ function FeaturedAndList({
             color: brandColor,
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            <span style={{ fontSize: 12 }}>★</span> Featured partners
+            {/* Heading star uses the accent (yellow) so it pops against
+                the brand-color text without piling more orange on. */}
+            <span style={{ fontSize: 12, color: accentColor }}>★</span> Featured partners
           </div>
           <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
             These businesses partner with us — make sure to visit them!
@@ -573,7 +577,7 @@ function FeaturedAndList({
         </div>
       )}
       {featured.map(s => (
-        <ListRow key={s.id} stop={s} brandColor={brandColor} onPick={onPick} focusId={focusId} setRef={el => { itemRefs.current[s.id] = el }} />
+        <ListRow key={s.id} stop={s} brandColor={brandColor} accentColor={accentColor} onPick={onPick} focusId={focusId} setRef={el => { itemRefs.current[s.id] = el }} />
       ))}
       {featured.length > 0 && standard.length > 0 && (
         <div style={{
@@ -588,7 +592,7 @@ function FeaturedAndList({
         </div>
       )}
       {standard.map(s => (
-        <ListRow key={s.id} stop={s} brandColor={brandColor} onPick={onPick} focusId={focusId} setRef={el => { itemRefs.current[s.id] = el }} />
+        <ListRow key={s.id} stop={s} brandColor={brandColor} accentColor={accentColor} onPick={onPick} focusId={focusId} setRef={el => { itemRefs.current[s.id] = el }} />
       ))}
     </div>
   )
@@ -604,10 +608,11 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 function ListRow({
-  stop, brandColor, onPick, focusId, setRef,
+  stop, brandColor, accentColor, onPick, focusId, setRef,
 }: {
   stop: ReaderStop
   brandColor: string
+  accentColor: string
   onPick: (id: string) => void
   focusId: string | null
   setRef: (el: HTMLDivElement | null) => void
@@ -663,10 +668,14 @@ function ListRow({
           <img src={stop.logo_path} alt="" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
         </div>
       ) : tier ? (
+        // Rail star for no-logo featured rows uses the accent (yellow)
+        // so it reads as a star, not another instance of the brand
+        // orange. Keeps the row visually anchored by the brand-color
+        // left rail + PARTNER pill while not piling orange on orange.
         <div style={{
           width: 36, height: 36, borderRadius: 8,
-          background: hexToRgba(brandColor, 0.12),
-          color: brandColor,
+          background: hexToRgba(accentColor, 0.18),
+          color: accentColor,
           flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 18, fontWeight: 800,
