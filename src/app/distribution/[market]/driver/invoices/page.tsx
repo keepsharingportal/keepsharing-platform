@@ -38,7 +38,7 @@ export default async function DriverInvoicesPage({ params }: PageProps) {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) {
     return <Centered>
-      <Link href={`/login?next=${encodeURIComponent(`/distribution/${market}/driver/invoices`)}`} className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold">Sign in</Link>
+      <Link href={`/distribution/login?next=${encodeURIComponent(`/distribution/${market}/driver/invoices`)}`} className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold">Sign in</Link>
     </Centered>
   }
 
@@ -62,6 +62,19 @@ export default async function DriverInvoicesPage({ params }: PageProps) {
   }
   const invoices = (rows as Row[] | null ?? [])
 
+  // Summary stats — legacy parity. Counts only finalized rows so a
+  // draft delivery in progress doesn't inflate the year-to-date totals.
+  let totalEarned    = 0
+  let totalStops     = 0
+  let countFinalized = 0
+  for (const r of invoices) {
+    if (r.status === 'submitted' || r.status === 'paid') {
+      totalEarned    += (r.pay_final ?? r.pay_calculated ?? 0)
+      totalStops     += r.stops_completed ?? 0
+      countFinalized += 1
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background public-page">
       <header className="border-b border-border bg-card">
@@ -78,6 +91,17 @@ export default async function DriverInvoicesPage({ params }: PageProps) {
         <h1 className="text-xl font-black flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" /> My delivery invoices
         </h1>
+
+        {/* Summary stats — legacy parity. Numbers count only finalized
+            rows (submitted/paid) so an in-progress delivery doesn't
+            inflate the year-to-date totals. */}
+        {invoices.length > 0 && (
+          <div className="grid grid-cols-3 gap-3 mb-2">
+            <SummaryCard label="Total earned" value={fmtMoney(totalEarned)} accent="text-emerald-600" />
+            <SummaryCard label="Total stops"  value={totalStops.toLocaleString()} />
+            <SummaryCard label="Deliveries"   value={countFinalized.toLocaleString()} />
+          </div>
+        )}
 
         {invoices.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-8 text-center bg-card">
@@ -107,6 +131,15 @@ export default async function DriverInvoicesPage({ params }: PageProps) {
           </ul>
         )}
       </main>
+    </div>
+  )
+}
+
+function SummaryCard({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3">
+      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">{label}</p>
+      <p className={`text-xl font-black tabular-nums mt-0.5 ${accent ?? 'text-foreground'}`}>{value}</p>
     </div>
   )
 }

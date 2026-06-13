@@ -51,6 +51,18 @@ function thisMonth(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
+// Minimal HTML escape for the inline driver-flag notification we send to
+// ops. Bigger surfaces use the templating layer; this one composes the
+// body in-route because it's a heads-up not a transactional template.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export async function GET(req: NextRequest) {
   const driver = await getDriver()
   if (!driver) return NextResponse.json({ error: 'Not a driver' }, { status: 403 })
@@ -221,14 +233,25 @@ export async function POST(req: NextRequest) {
   // ── default: update a single delivery_stop row ──────────────────────────
   if (!body.delivery_stop_id) return NextResponse.json({ error: 'delivery_stop_id required' }, { status: 400 })
 
-  // Verify ownership.
+  // Verify ownership + grab the joined identity we'll need if the driver
+  // is flagging a problem (we'll insert a change_request + notify ops).
   const { data: row, error: lookErr } = await sb
     .from('circulation_delivery_stops')
-    .select('id, delivery_id, circulation_deliveries(driver_id, status)')
+    .select('id, delivery_id, stop_id, flag, circulation_deliveries(driver_id, status, route_id, month), circulation_stops(name, market)')
     .eq('id', body.delivery_stop_id)
     .maybeSingle()
   if (lookErr || !row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  const parent = (row as { circulation_deliveries?: { driver_id?: string; status?: string } | null }).circulation_deliveries
+  type DsRow = {
+    id:                    string
+    delivery_id:           string
+    stop_id:               string
+    flag:                  string | null
+    circulation_deliveries?: { driver_id?: string; status?: string; route_id?: string; month?: string } | null
+    circulation_stops?:      { name?: string; market?: string } | null
+  }
+  const r       = row as DsRow
+  const parent  = r.circulation_deliveries
+  const stopRow = r.circulation_stops
   if (parent?.driver_id !== driver.user_id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   // Lock submitted deliveries — driver can read but can't toggle once submitted.
   if (parent.status && parent.status !== 'draft') {
@@ -251,6 +274,65 @@ export async function POST(req: NextRequest) {
 
   const { error } = await sb.from('circulation_delivery_stops').update(updates).eq('id', body.delivery_stop_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Flag → change request + ops notification ────────────────────────────
+  // When a driver TRANSITIONS a stop's flag from null → set, mirror it
+  // into circulation_change_requests so the admin review queue surfaces
+  // it (legacy parity). We don't insert on subsequent edits or on clear
+  // — the driver can amend their existing request via the admin queue
+  // instead of churning duplicates.
+  if (
+    body.flag !== undefined && body.flag !== null && body.flag !== '' &&
+    !r.flag &&
+    parent.route_id && stopRow?.market
+  ) {
+    // Map flag → change_request.type vocab (edit | close | new | qty | move).
+    const flagToType: Record<string, string> = {
+      closed:        'close',
+      wrong_address: 'edit',
+      wrong_qty:     'qty',
+      new_stop:      'new',
+      other:         'edit',
+    }
+    const reqType   = flagToType[body.flag] ?? 'edit'
+    const fieldName = body.flag === 'wrong_address' ? 'address'
+                    : body.flag === 'wrong_qty'    ? 'quantity'
+                    :                                null
+    try {
+      await sb.from('circulation_change_requests').insert({
+        market:    stopRow.market,
+        stop_id:   r.stop_id,
+        route_id:  parent.route_id,
+        driver_id: driver.user_id,
+        type:      reqType,
+        field_name: fieldName,
+        notes:     body.flag_note ?? null,
+      })
+    } catch { /* don't block driver on this */ }
+
+    // Notify ops. Plain inline body — admin sees the canonical detail
+    // in /admin/circulation/changes; this is just a heads-up so they
+    // know to look.
+    try {
+      const settings = await getSettings(stopRow.market)
+      const opsEmail = settings.ops_email
+      if (opsEmail) {
+        const flagLabel = ({ closed: 'Closed', wrong_address: 'Wrong address', wrong_qty: 'Wrong quantity', new_stop: 'Add a stop', other: 'Other' })[body.flag] ?? body.flag
+        const stopName  = stopRow.name ?? 'a stop'
+        const note      = body.flag_note ? `<p><strong>Driver note:</strong> ${escapeHtml(body.flag_note)}</p>` : ''
+        await enqueue({
+          market:          stopRow.market,
+          template_key:    'driver_flag',
+          to_email:        opsEmail,
+          to_name:         null,
+          subject:         `Driver flag — ${flagLabel}: ${stopName}`,
+          body_html:       `<p><strong>${driver.full_name}</strong> flagged <strong>${escapeHtml(stopName)}</strong> as <strong>${flagLabel}</strong>.</p>${note}<p><a href="${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/admin/circulation/changes">Review in admin</a></p>`,
+          reply_to:        null,
+          related_stop_id: r.stop_id,
+        })
+      }
+    } catch { /* swallow — driver action still succeeded */ }
+  }
 
   // When a driver flips a stop to checked=true, enqueue a stop_delivered
   // email to the contact (if there is one). Only on the transition into
