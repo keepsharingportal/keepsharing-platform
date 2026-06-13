@@ -34,7 +34,7 @@ type ChildItem = {
    * /api/admin/sidebar-counts.
    */
   badgeKey?:
-    | 'pending_changes' | 'pending_requests' | 'pending_deliveries'
+    | 'pending_changes' | 'pending_requests' | 'pending_deliveries' | 'pending_route_suggestions'
     | 'community_nominations' | 'school_bits_pending' | 'mom_insiders_pending'
 }
 
@@ -204,6 +204,7 @@ const NAV: NavItem[] = [
       { name: 'Users',             href: '/admin/circulation/drivers'                    },
       { name: 'Deliveries',        href: '/admin/circulation/deliveries', badgeKey: 'pending_deliveries' },
       { name: 'Changes',           href: '/admin/circulation/changes',    badgeKey: 'pending_changes'    },
+      { name: 'Route Suggestions', href: '/admin/circulation/route-suggestions', badgeKey: 'pending_route_suggestions' },
       { name: 'Publications',      href: '/admin/circulation/publications'               },
       { name: 'Resources',         href: '/admin/circulation/resources'                  },
       { name: 'Location Requests', href: '/admin/circulation/requests',   badgeKey: 'pending_requests'   },

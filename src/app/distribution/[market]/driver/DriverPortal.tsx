@@ -28,7 +28,7 @@ interface DeliveryStop {
 }
 
 interface ApiResponse {
-  driver:        { user_id: string; market: string; full_name: string }
+  driver:        { user_id: string; market: string; full_name: string; rate_per_stop?: number }
   month:         string
   routes:        Route[]
   stops:         Stop[]
@@ -321,6 +321,28 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
           </div>
         )}
       </main>
+
+      {/* Sticky bottom bar — running pay total. Legacy parity (`.earn-amt`
+          in run.php). Updates instantly via local state on every toggle,
+          then settles when the API echoes the authoritative count back.
+          Hidden once the delivery is submitted to keep the "this run is
+          locked" message dominant. */}
+      {view && !view.submitted && (data.driver.rate_per_stop ?? 0) > 0 && (
+        <div
+          className="fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border px-4 py-3 flex items-center justify-between"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Earned this run</p>
+            <p className="text-[10px] text-muted-foreground/70">
+              {view.done} of {view.total} stops · ${(data.driver.rate_per_stop ?? 0).toFixed(2)}/stop
+            </p>
+          </div>
+          <p className="text-2xl font-black text-emerald-600 tabular-nums">
+            ${(view.done * (data.driver.rate_per_stop ?? 0)).toFixed(2)}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -396,9 +418,21 @@ function StopRow({ stop, ds, pubKeys, locked, onToggle, onNotes, onLeftovers, on
             </a>
           )}
           {stop.quantities && Object.keys(stop.quantities).length > 0 && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {Object.entries(stop.quantities).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(' · ')}
-            </p>
+            /* Per-publication qty pills — same vocabulary as the public
+               map's tier badges so single-pub markets render one chip and
+               multi-pub markets (RRP+BOOM, etc.) render one per pub. The
+               legacy portal used solid-fill colored pills for the same
+               reason — at-a-glance hint at the moment of drop. */
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {Object.entries(stop.quantities)
+                .filter(([, v]) => v > 0)
+                .map(([k, v]) => (
+                  <span
+                    key={k}
+                    className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 uppercase"
+                  >{k} {v}</span>
+                ))}
+            </div>
           )}
           {stop.not_delivering && (
             <p className="text-[11px] text-amber-700 font-semibold mt-0.5">Not delivering this month</p>

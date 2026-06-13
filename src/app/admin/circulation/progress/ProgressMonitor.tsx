@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Check, MapPin, Package, MessageSquare, ChevronRight } from 'lucide-react'
+import { Check, MapPin, Package, MessageSquare, ChevronRight, RefreshCw, PauseCircle, PlayCircle } from 'lucide-react'
 
 export interface DeliveryProgressRow {
   id:               string
@@ -61,6 +62,23 @@ function fmtMoney(n: number | null | undefined): string {
 export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Props) {
   const router = useRouter()
   const params = useSearchParams()
+
+  // ── 30-second auto-refresh ─────────────────────────────────────────────
+  // Live monitoring is the WHOLE point of this page — when a driver
+  // taps a stop in the field, ops watching here should see it tick up
+  // within the cadence ops can tolerate. router.refresh() re-runs the
+  // server component without losing scroll position. Toggleable so a
+  // distracted ops manager doesn't burn bandwidth on a forgotten tab.
+  const [autoRefresh, setAutoRefresh]   = useState(true)
+  const [lastRefresh, setLastRefresh]   = useState<Date>(() => new Date())
+  useEffect(() => {
+    if (!autoRefresh) return
+    const t = setInterval(() => {
+      router.refresh()
+      setLastRefresh(new Date())
+    }, 30_000)
+    return () => clearInterval(t)
+  }, [autoRefresh, router])
 
   function gotoMonth(m: string) {
     const q = new URLSearchParams(params)
@@ -168,6 +186,28 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
 
   return (
     <div className="space-y-4">
+      {/* Auto-refresh toggle. Defaults ON because that's the page's whole
+          job; ops can pause it when stepping away. */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <button
+          onClick={() => { router.refresh(); setLastRefresh(new Date()) }}
+          className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-white border-portal-border text-portal-text hover:border-portal-border-2 inline-flex items-center gap-1.5"
+          title="Refresh now"
+        >
+          <RefreshCw size={11} /> Refresh
+        </button>
+        <div className="text-[11px] text-portal-sub inline-flex items-center gap-2">
+          <span>Last updated {lastRefresh.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' })}</span>
+          <button
+            onClick={() => setAutoRefresh(a => !a)}
+            className="inline-flex items-center gap-1 text-portal-blue hover:underline"
+            title={autoRefresh ? 'Pause 30-second auto-refresh' : 'Resume 30-second auto-refresh'}
+          >
+            {autoRefresh ? <><PauseCircle size={11} /> Auto-refresh on</> : <><PlayCircle size={11} /> Auto-refresh off</>}
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="text-xs text-portal-sub mr-1">Month:</span>
         {months.length === 0 && <span className="text-xs text-portal-muted italic">No deliveries yet</span>}

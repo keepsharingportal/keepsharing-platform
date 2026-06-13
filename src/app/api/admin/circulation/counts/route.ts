@@ -35,7 +35,14 @@ export async function GET() {
 
   try {
     const client = sb()
-    const [changes, requests, deliveries] = await Promise.all([
+    // route_suggestions has no market column — filter via routeIds in market.
+    const { data: routes } = await client
+      .from('circulation_routes')
+      .select('id')
+      .eq('market', dbKey)
+    const routeIds = ((routes ?? []) as Array<{ id: string }>).map(r => r.id)
+
+    const [changes, requests, deliveries, suggestions] = await Promise.all([
       client.from('circulation_change_requests')
         .select('id', { count: 'exact', head: true })
         .eq('market', dbKey)
@@ -48,13 +55,25 @@ export async function GET() {
         .select('id', { count: 'exact', head: true })
         .eq('market', dbKey)
         .eq('status', 'submitted'),
+      routeIds.length === 0
+        ? Promise.resolve({ count: 0 } as { count: number })
+        : client.from('circulation_route_suggestions')
+            .select('id', { count: 'exact', head: true })
+            .in('route_id', routeIds)
+            .eq('status', 'pending'),
     ])
     return NextResponse.json({
-      pending_changes:    changes.count    ?? 0,
-      pending_requests:   requests.count   ?? 0,
-      pending_deliveries: deliveries.count ?? 0,
+      pending_changes:            changes.count     ?? 0,
+      pending_requests:           requests.count    ?? 0,
+      pending_deliveries:         deliveries.count  ?? 0,
+      pending_route_suggestions:  suggestions.count ?? 0,
     })
   } catch {
-    return NextResponse.json({ pending_changes: 0, pending_requests: 0, pending_deliveries: 0 })
+    return NextResponse.json({
+      pending_changes:           0,
+      pending_requests:          0,
+      pending_deliveries:        0,
+      pending_route_suggestions: 0,
+    })
   }
 }
