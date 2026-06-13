@@ -1,277 +1,325 @@
-// /admin/circulation — Distribution Routes overview.
+// /admin/circulation — Distribution Portal dashboard.
 //
-// Top-level dashboard for the physical magazine distribution system. Surfaces
-// the totals that matter at a glance: how many routes, how many stops, how
-// many drivers, how many copies per publication. Drills down into Routes,
-// Drivers, Map, and (eventually) Deliveries and Email Center.
+// Verbatim port of the legacy PHP dashboard (admin/index.php from
+// _incoming/RRP_Portal_v3_FINAL/rrp_portal_v2). Uses the .portal-app
+// scoped class set in globals.css so .data-table / .budget-grid /
+// .budget-card / .stat-card / .card / .btn / .badge etc. all render
+// identically to the source.
+//
+// Layout (top to bottom):
+//   1. Page header — title + month label + "Preview driver view" button
+//   2. Optional pending-action alert strip
+//   3. 5-stat strip — Routes / Stops / Drivers / Changes / Invoices
+//   4. Per-publication budget bars (color-coded ok/warn/over)
+//   5. Two-column grid — Routes table + Recent invoices table
 
 import Link from 'next/link'
-import { Navigation, MapPin, Users, Truck, ArrowRight, Upload, Map as MapIcon, Receipt, AlertTriangle, Package, Mail, GitPullRequest } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
+import { regionForMarket } from '@/lib/circulation/regions'
 import { CirculationImporter } from './CirculationImporter'
 
-export const metadata = { title: 'Distribution Routes — Admin' }
+export const metadata = { title: 'Dashboard — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-interface StopRow { route_id: string; quantities: Record<string, number> | null; lat: number | null; lng: number | null; active: boolean }
-interface RouteRow { id: string; name: string; active: boolean }
-interface DriverRow { user_id: string; full_name: string; active: boolean }
+interface PubRow      { id: string; short_name: string; name: string; abbrev: string; color_hex: string; print_total: number; holdback: number; sort_order: number }
+interface RouteRow    { id: string; name: string; active: boolean }
+interface StopRow     { route_id: string; quantities: Record<string, number> | null; active: boolean; is_pickup?: boolean | null; not_delivering?: boolean | null }
+interface DriverRow   { user_id: string; active: boolean }
+interface DeliveryRow { id: string; month: string; driver_id: string; route_id: string; stops_completed: number | null; pay_calculated: number | null; status: string; submitted_at: string | null; driver_name?: string; route_name?: string }
 
-export default async function CirculationOverviewPage() {
+function fmtMoney(cents: number | null): string {
+  const dollars = (cents ?? 0) / 100
+  return dollars.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
+}
+
+function bundles(used: number): string {
+  // Source convention: "X bundles out" — 50 magazines per bundle.
+  const b = Math.round(used / 50)
+  return `${b} bundle${b === 1 ? '' : 's'}`
+}
+
+export default async function CirculationDashboard() {
   const ctx     = await requireAdmin()
-  // Distribution is region-scoped, not pub-scoped. Resolve whichever pub
-  // the admin is viewing to its region's primary slug.
   const market  = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region  = regionForMarket(market)
   const dbKey   = region.slug
   const sb      = createAdminClient()
 
-  let routes:  RouteRow[]  = []
-  let stops:   StopRow[]   = []
-  let drivers: DriverRow[] = []
+  let pubs:     PubRow[]     = []
+  let routes:   RouteRow[]   = []
+  let stops:    StopRow[]    = []
+  let drivers:  DriverRow[]  = []
+  let recentDel: DeliveryRow[] = []
   let tableMissing = false
 
-  // Pending counts + low performers (from the new deliveries flow)
   let pendingChanges  = 0
   let pendingRequests = 0
   let pendingInvoices = 0
-  interface LowPerf { stop_id: string; stop_name: string; route_name: string; leftovers: number; month: string }
-  let lowPerformers: LowPerf[] = []
 
   try {
-    const [rRes, sRes, dRes, cReqRes, lReqRes, invRes, lpRes] = await Promise.all([
-      sb.from('circulation_routes').select('id, name, active').eq('market', dbKey),
-      sb.from('circulation_stops').select('route_id, quantities, lat, lng, active').eq('market', dbKey),
-      sb.from('circulation_drivers').select('user_id, full_name, active').eq('market', dbKey),
+    const [pubsRes, routesRes, stopsRes, driversRes, cReqRes, lReqRes, invRes, delRes] = await Promise.all([
+      sb.from('circulation_publications').select('id, short_name, name, abbrev, color_hex, print_total, holdback, sort_order').order('sort_order'),
+      sb.from('circulation_routes').select('id, name, active').eq('market', dbKey).order('name'),
+      sb.from('circulation_stops').select('route_id, quantities, active, is_pickup, not_delivering').eq('market', dbKey),
+      sb.from('circulation_drivers').select('user_id, active').eq('market', dbKey),
       sb.from('circulation_change_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
       sb.from('circulation_location_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
       sb.from('circulation_deliveries').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'submitted'),
-      sb.from('circulation_delivery_stops')
-        .select('stop_id, leftovers, circulation_stops!inner(name, market, circulation_routes!inner(name)), circulation_deliveries!inner(month, market)')
-        .gt('leftovers', 0)
-        .order('leftovers', { ascending: false })
-        .limit(10),
+      sb.from('circulation_deliveries')
+        .select('id, month, driver_id, route_id, stops_completed, pay_calculated, status, submitted_at, circulation_routes(name)')
+        .eq('market', dbKey)
+        .order('submitted_at', { ascending: false, nullsFirst: false })
+        .limit(5),
     ])
-    if (rRes.error && /relation .* does not exist/i.test(rRes.error.message)) tableMissing = true
-    routes  = (rRes.data ?? []) as RouteRow[]
-    stops   = (sRes.data ?? []) as StopRow[]
-    drivers = (dRes.data ?? []) as DriverRow[]
+    if (pubsRes.error && /relation .* does not exist/i.test(pubsRes.error.message)) tableMissing = true
+    pubs    = (pubsRes.data ?? [])    as PubRow[]
+    routes  = ((routesRes.data ?? []) as RouteRow[]).filter(r => r.active)
+    stops   = (stopsRes.data ?? [])   as StopRow[]
+    drivers = (driversRes.data ?? []) as DriverRow[]
     pendingChanges  = cReqRes.count ?? 0
     pendingRequests = lReqRes.count ?? 0
     pendingInvoices = invRes.count  ?? 0
 
-    type LpRow = {
-      stop_id:   string
-      leftovers: number
-      circulation_stops?: { name?: string; market?: string; circulation_routes?: { name?: string } | null } | null
-      circulation_deliveries?: { month?: string; market?: string } | null
+    type DelJoin = DeliveryRow & { circulation_routes?: { name?: string } | null }
+    const rows = (delRes.data ?? []) as unknown as DelJoin[]
+    // Pull driver names in a second cheap roundtrip (the join makes the
+    // initial select brittle if circulation_drivers schema shifts).
+    const driverIds = Array.from(new Set(rows.map(r => r.driver_id))).filter(Boolean)
+    let driverNameMap = new Map<string, string>()
+    if (driverIds.length > 0) {
+      const { data: dnRows } = await sb.from('circulation_drivers')
+        .select('user_id, full_name')
+        .in('user_id', driverIds)
+      for (const d of (dnRows ?? []) as Array<{ user_id: string; full_name: string | null }>) {
+        if (d.full_name) driverNameMap.set(d.user_id, d.full_name)
+      }
     }
-    lowPerformers = (lpRes.data as LpRow[] | null ?? [])
-      .filter(r => r.circulation_stops?.market === dbKey)
-      .map(r => ({
-        stop_id:    r.stop_id,
-        stop_name:  r.circulation_stops?.name ?? '(stop)',
-        route_name: r.circulation_stops?.circulation_routes?.name ?? '(route)',
-        leftovers:  r.leftovers ?? 0,
-        month:      r.circulation_deliveries?.month ?? '',
-      }))
+    recentDel = rows.map(r => ({
+      ...r,
+      driver_name: driverNameMap.get(r.driver_id) ?? '(driver)',
+      route_name:  r.circulation_routes?.name ?? '(route)',
+    }))
   } catch { tableMissing = true }
 
-  // ── Aggregations ─────────────────────────────────────────────────────────
-  const activeStops    = stops.filter(s => s.active)
-  const geocoded       = stops.filter(s => s.lat != null && s.lng != null).length
-  const stopsByRoute   = new Map<string, number>()
+  // ── Aggregations matching admin/index.php ──────────────────────────────
+  const activeStops = stops.filter(s => s.active && !s.is_pickup && !s.not_delivering)
+  const totalStops  = stops.filter(s => s.active && !s.is_pickup).length
+  const stopsByRoute = new Map<string, number>()
   for (const s of activeStops) stopsByRoute.set(s.route_id, (stopsByRoute.get(s.route_id) ?? 0) + 1)
-  const totalsByPub: Record<string, number> = {}
+
+  // qty_map[route_id][pub_short] = sum of qtys for that pub on that route
+  const qtyMap = new Map<string, Map<string, number>>()
   for (const s of activeStops) {
+    const m = qtyMap.get(s.route_id) ?? new Map<string, number>()
     for (const [pub, qty] of Object.entries(s.quantities ?? {})) {
-      totalsByPub[pub] = (totalsByPub[pub] ?? 0) + (typeof qty === 'number' ? qty : 0)
+      m.set(pub, (m.get(pub) ?? 0) + (typeof qty === 'number' ? qty : 0))
     }
+    qtyMap.set(s.route_id, m)
   }
-  const pubKeys = Object.keys(totalsByPub).sort()
+
+  // Per-publication totals matching the source's pub_totals struct.
+  const pubTotals = new Map<string, { used: number; avail: number; remain: number; pct: number; status: 'ok' | 'warn' | 'over' }>()
+  for (const p of pubs) {
+    let used = 0
+    for (const r of routes) used += qtyMap.get(r.id)?.get(p.short_name) ?? 0
+    const avail  = p.print_total - p.holdback
+    const remain = avail - used
+    const pct    = avail > 0 ? Math.round((used / avail) * 1000) / 10 : 0
+    const status: 'ok' | 'warn' | 'over' = remain < 0 ? 'over' : (pct >= 95 ? 'warn' : 'ok')
+    pubTotals.set(p.id, { used, avail, remain, pct, status })
+  }
+
+  const driverCount = drivers.filter(d => d.active).length
+  const today       = new Date()
+  const monthLabel  = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1100px] mx-auto space-y-6">
+    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
 
-        <header className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Navigation size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Distribution Routes</h1>
-          </div>
-          <p className="text-sm text-portal-sub max-w-2xl">
-            Manage physical magazine delivery — routes, stops, drivers, and the public pickup-location maps.
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>
-            <span className="font-semibold text-portal-text">{publicationLabelsForRegion(region)}</span>
-          </p>
-        </header>
+      {/* ── Page header (matches layout.php page_header) ── */}
+      <div className="page-header">
+        <div>
+          <h1 className="ph-title">Dashboard</h1>
+        </div>
+        <div className="ph-actions">
+          <span className="text-muted mono">{monthLabel}</span>
+          <Link
+            href={`/distribution/${dbKey}/driver`}
+            target="_blank"
+            className="btn btn-ghost btn-sm"
+          >
+            <Eye size={14} /> Preview driver view
+          </Link>
+        </div>
+      </div>
+
+      <div className="content-body overflow-y-auto">
 
         {tableMissing && (
-          <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-4 text-sm text-portal-amber">
-            <p className="font-bold mb-1">Migration not applied yet</p>
-            <p>Run <code className="px-1 bg-portal-amber-lt rounded">supabase/migrations/113_circulation.sql</code> in Supabase Studio before using this section.</p>
+          <div className="alert alert-warning">
+            <strong>Migration 116 not applied.</strong> Run <code>supabase/migrations/116_circulation_phase_c.sql</code> to set up the distribution tables.
           </div>
         )}
 
-        {/* ── Headline metrics ───────────────────────────────────────────── */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricCard label="Routes"     value={routes.length}  href="/admin/circulation/routes" color="#2563eb" icon={Truck} />
-          <MetricCard label="Stops"      value={activeStops.length}  href="/admin/circulation/routes" color="#16a34a" icon={MapPin} />
-          <MetricCard label="Drivers"    value={drivers.filter(d => d.active).length} href="/admin/circulation/drivers" color="#9333ea" icon={Users} />
-          <MetricCard label="Geocoded"   value={`${geocoded}/${stops.length}`} href="/admin/circulation/map" color="#ea580c" icon={MapIcon} />
-        </section>
-
-        {/* ── Per-publication totals ─────────────────────────────────────── */}
-        {pubKeys.length > 0 && (
-          <section>
-            <AdminSectionHeader title="Copies per publication" description="Sum of per-stop quantities for active stops" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {pubKeys.map(p => (
-                <div key={p} className="rounded-lg border border-portal-border bg-white p-4">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-portal-muted">{p}</div>
-                  <div className="text-2xl font-bold text-portal-text mt-0.5">{totalsByPub[p].toLocaleString()}</div>
-                  <div className="text-[11px] text-portal-sub mt-0.5">copies</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Pending actions strip ─────────────────────────────────────── */}
-        {(pendingInvoices + pendingChanges + pendingRequests) > 0 && (
-          <section>
-            <AdminSectionHeader title="Needs your attention" description="Pending items across distribution" />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {pendingInvoices > 0 && (
-                <Link href="/admin/circulation/deliveries" className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt p-3 hover:border-portal-border-2 transition-colors flex items-center gap-3">
-                  <Receipt size={18} className="text-portal-blue shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-portal-navy">{pendingInvoices} invoice{pendingInvoices === 1 ? '' : 's'} to review</p>
-                    <p className="text-[11px] text-portal-blue">Drivers submitted, awaiting payment</p>
-                  </div>
-                </Link>
-              )}
+        {/* ── Pending-action alert ── */}
+        {(pendingChanges > 0 || pendingRequests > 0) && (
+          <div className="alert alert-warning flex items-center justify-between">
+            <span>
               {pendingChanges > 0 && (
-                <Link href="/admin/circulation/changes" className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 hover:border-portal-amber/40 transition-colors flex items-center gap-3">
-                  <GitPullRequest size={18} className="text-portal-amber shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-portal-amber">{pendingChanges} change request{pendingChanges === 1 ? '' : 's'}</p>
-                    <p className="text-[11px] text-portal-amber">Driver-submitted stop edits</p>
-                  </div>
-                </Link>
+                <>⚠ <strong>{pendingChanges}</strong> pending change request{pendingChanges > 1 ? 's' : ''}</>
               )}
+              {pendingChanges > 0 && pendingRequests > 0 && <> &nbsp;·&nbsp; </>}
               {pendingRequests > 0 && (
-                <Link href="/admin/circulation/requests" className="rounded-lg border border-portal-blue/30 bg-portal-blue-lt p-3 hover:border-purple-300 transition-colors flex items-center gap-3">
-                  <Mail size={18} className="text-portal-blue shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-portal-navy">{pendingRequests} location request{pendingRequests === 1 ? '' : 's'}</p>
-                    <p className="text-[11px] text-portal-blue">Businesses asking to be added</p>
-                  </div>
-                </Link>
+                <><strong>{pendingRequests}</strong> new location request{pendingRequests > 1 ? 's' : ''}</>
               )}
-            </div>
-          </section>
+            </span>
+            <Link href="/admin/circulation/changes" className="btn btn-amber btn-sm">Review →</Link>
+          </div>
         )}
 
-        {/* ── Low performers (high-leftover stops) ──────────────────────── */}
-        {lowPerformers.length > 0 && (
-          <section>
-            <AdminSectionHeader
-              title="Low performers"
-              description="Stops with high leftover counts — candidates for reducing quantities or removing"
-            />
-            <div className="rounded-lg border border-portal-border bg-white divide-y divide-portal-border">
-              {lowPerformers.map(lp => (
-                <div key={`${lp.stop_id}-${lp.month}`} className="p-3 flex items-center gap-3">
-                  <Package size={14} className="text-portal-amber shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-portal-text truncate">{lp.stop_name}</p>
-                    <p className="text-[11px] text-portal-sub truncate">{lp.route_name} · {lp.month}</p>
+        {/* ── 5-stat strip ── */}
+        <div className="stats-row">
+          {[
+            { label: 'Routes',   value: routes.length,   cls: '' },
+            { label: 'Stops',    value: totalStops,      cls: '' },
+            { label: 'Drivers',  value: driverCount,     cls: '' },
+            { label: 'Changes',  value: pendingChanges,  cls: pendingChanges  > 0 ? 'has-red'   : '' },
+            { label: 'Invoices', value: pendingInvoices, cls: pendingInvoices > 0 ? 'has-amber' : '' },
+          ].map(s => (
+            <div key={s.label} className="stat-card">
+              <div className={`stat-num ${s.cls}`}>{s.value}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Budget bars per publication ── */}
+        {pubs.length > 0 && (
+          <div className="budget-grid">
+            {pubs.map(p => {
+              const t = pubTotals.get(p.id)!
+              const barCls = t.status === 'over' ? 'bar-over'
+                : t.status === 'warn' ? 'bar-warn'
+                : `bar-${p.short_name.toLowerCase()}`
+              return (
+                <div key={p.id} className={`budget-card ${t.status}`}>
+                  <div className="budget-pub" style={{ color: p.color_hex }}>{p.name}</div>
+                  <div className="bar-track" style={{ marginTop: 8 }}>
+                    <div className={`bar-fill ${barCls}`} style={{ width: `${Math.min(t.pct, 100)}%` }} />
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-bold text-portal-amber">{lp.leftovers}</p>
-                    <p className="text-[10px] text-portal-muted uppercase tracking-wider">leftover</p>
+                  <div className="budget-nums">
+                    <span><strong className="mono">{t.used.toLocaleString()}</strong> / {t.avail.toLocaleString()} available</span>
+                    <span className={`budget-remain ${t.status}`}>
+                      {t.remain >= 0 ? '+' : ''}{t.remain.toLocaleString()} remaining ({t.pct}%)
+                    </span>
                   </div>
+                  <div className="budget-note">{bundles(t.used)} out · {p.holdback.toLocaleString()} held back</div>
                 </div>
-              ))}
-            </div>
-          </section>
+              )
+            })}
+          </div>
         )}
 
-        {/* ── Routes summary ─────────────────────────────────────────────── */}
-        <section>
-          <AdminSectionHeader
-            title="Routes"
-            count={routes.length}
-            description="Stop count per route (active stops only)"
-          />
-          {routes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
-              <p className="text-sm text-portal-sub">No routes yet.</p>
-              <p className="text-xs text-portal-muted mt-1">Import existing stops below, or add routes manually.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {routes.map(r => (
-                <Link
-                  key={r.id}
-                  href={`/admin/circulation/routes/${r.id}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-portal-text truncate">{r.name}</p>
-                    <p className="text-xs text-portal-sub mt-0.5">{stopsByRoute.get(r.id) ?? 0} active stops</p>
-                  </div>
-                  <ArrowRight size={14} className="text-portal-border-2 shrink-0" />
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+        {/* ── Routes + Recent invoices two-column grid ── */}
+        <div className="grid-2">
 
-        {/* ── Data importer ──────────────────────────────────────────────── */}
-        <section>
-          <AdminSectionHeader
-            title="Import from PHP portal"
-            description="Wipes + reloads stops for this market from a JSON export of the standalone drivers.keepsharing.com portal."
-          />
-          <CirculationImporter market={dbKey} regionName={region.name} pubLabels={publicationLabelsForRegion(region)} />
-        </section>
+          {/* Routes table */}
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">Routes</span>
+              <Link href="/admin/circulation/routes" className="btn btn-ghost btn-sm">Manage →</Link>
+            </div>
+            {routes.length === 0 ? (
+              <p className="text-muted text-sm">No routes yet. Import or add manually.</p>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>Stops</th>
+                    {pubs.map(p => <th key={p.id} style={{ textAlign: 'center' }}>{p.abbrev}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {routes.map(r => (
+                    <tr key={r.id}>
+                      <td>
+                        <Link href={`/admin/circulation/routes?id=${r.id}`}>{r.name}</Link>
+                      </td>
+                      <td className="mono">{stopsByRoute.get(r.id) ?? 0}</td>
+                      {pubs.map(p => {
+                        const q = qtyMap.get(r.id)?.get(p.short_name) ?? 0
+                        const short = p.short_name.toLowerCase()
+                        // 'rrp' badge for RRP, else the 'boom'-style amber badge.
+                        const badgeCls = short === 'rrp' ? 'badge-rrp' : 'badge-boom'
+                        return (
+                          <td key={p.id} className={`qty-cell qty-${short}`}>
+                            <span className={`badge ${badgeCls}`}>{q}</span>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
 
-        {/* ── Deferred features note ─────────────────────────────────────── */}
-        <section className="rounded-lg border border-portal-border bg-portal-bg p-4">
-          <p className="text-xs font-bold text-portal-sub mb-2 flex items-center gap-1.5">
-            <Upload size={12} /> Coming next
-          </p>
-          <ul className="text-xs text-portal-sub space-y-1 list-disc list-inside">
-            <li>Email Center — 8 templates with editable subject/body, per-route schedules, queue + manual sends</li>
-            <li>Live delivery progress monitor (real-time view of every active route)</li>
-            <li>Full Run combined view for drivers with multiple routes</li>
-            <li>Route reorder UI (drag-drop + driver suggestion approval + snapshots)</li>
-            <li>OpenStreetMap geocoding UI for stops missing lat/lng</li>
-            <li>Settings + publications admin pages</li>
-          </ul>
-        </section>
+          {/* Recent invoices */}
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">Recent invoices</span>
+              <Link href="/admin/circulation/deliveries" className="btn btn-ghost btn-sm">All →</Link>
+            </div>
+            {recentDel.length === 0 ? (
+              <p className="text-muted text-sm">No invoices yet.</p>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Driver</th>
+                    <th>Route</th>
+                    <th>Month</th>
+                    <th>Stops</th>
+                    <th>Pay</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentDel.map(d => {
+                    const bc = d.status === 'submitted' ? 'badge-amber'
+                      : d.status === 'paid' ? 'badge-green' : 'badge-gray'
+                    return (
+                      <tr key={d.id}>
+                        <td>{d.driver_name}</td>
+                        <td className="text-sub text-sm">{d.route_name}</td>
+                        <td className="mono text-sm">{d.month}</td>
+                        <td className="mono">{d.stops_completed ?? 0}</td>
+                        <td className="mono fw-700">{fmtMoney(d.pay_calculated)}</td>
+                        <td><span className={`badge ${bc}`}>{d.status[0].toUpperCase() + d.status.slice(1)}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* ── Importer (kept from prior build — needed for migration from
+             the legacy PHP portal). Hidden when there's existing data. ── */}
+        {routes.length === 0 && stops.length === 0 && (
+          <div className="card" style={{ marginTop: 18 }}>
+            <div className="card-header">
+              <span className="card-title">Import from PHP portal</span>
+            </div>
+            <CirculationImporter market={dbKey} regionName={region.name} pubLabels={region.publications.join(' + ').toUpperCase()} />
+          </div>
+        )}
+
       </div>
     </div>
-  )
-}
-
-function MetricCard({ label, value, href, color, icon: Icon }: {
-  label: string; value: string | number; href: string; color: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-}) {
-  return (
-    <Link href={href} className="rounded-lg border border-portal-border bg-white p-4 hover:border-portal-border-2 transition-colors block">
-      <div className="flex items-center justify-between mb-1.5">
-        <Icon size={14} className="text-portal-border-2" />
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
-      </div>
-      <div className="text-2xl font-bold text-portal-text">{value}</div>
-    </Link>
   )
 }
