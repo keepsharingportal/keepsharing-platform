@@ -1,69 +1,56 @@
-// /admin/circulation/drivers — manage delivery drivers per market.
+// /admin/circulation/drivers — Users (drivers).
+//
+// Port of admin/users.php from the v3_FINAL portal source, scoped to
+// the driver role. (admin / editor / bookkeeper / superadmin roles live
+// in /admin/users at the platform level and aren't surfaced here.) The
+// page renders a single user table with name + email + role + routes +
+// rate + active status, with Add/Edit user modal opened from the page
+// header. Mirrors the source layout 1:1 inside the portal-app chrome.
 
-import Link from 'next/link'
-import { ArrowLeft, Users } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { DriversEditor, type Driver } from './DriversEditor'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { UsersClient, type DriverRow } from './UsersClient'
 
-export const metadata = { title: 'Drivers — Distribution' }
+export const metadata = { title: 'Users — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-export default async function DriversPage() {
+export default async function UsersPage() {
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  let drivers: Driver[] = []
+  let drivers: DriverRow[] = []
   let routes: Array<{ id: string; name: string }> = []
   try {
     const [dRes, rRes, arRes] = await Promise.all([
-      sb.from('circulation_drivers').select('*').eq('market', dbKey).order('full_name'),
+      sb.from('circulation_drivers').select('user_id, full_name, email, phone, rate_per_stop, can_view_all, notes, active').eq('market', dbKey).order('full_name'),
       sb.from('circulation_routes').select('id, name').eq('market', dbKey).eq('active', true).order('sort_order').order('name'),
       sb.from('circulation_driver_routes').select('driver_id, route_id'),
     ])
-    const baseDrivers = (dRes.data ?? []) as Omit<Driver, 'route_ids'>[]
+    type Base = { user_id: string; full_name: string; email: string; phone: string | null; rate_per_stop: number; can_view_all: boolean; notes: string | null; active: boolean }
+    const baseDrivers = (dRes.data ?? []) as Base[]
+    routes = (rRes.data ?? []) as Array<{ id: string; name: string }>
+    const routeName = new Map(routes.map(r => [r.id, r.name]))
     const assigns = (arRes.data ?? []) as Array<{ driver_id: string; route_id: string }>
     const byDriver = new Map<string, string[]>()
     for (const a of assigns) {
       if (!byDriver.has(a.driver_id)) byDriver.set(a.driver_id, [])
       byDriver.get(a.driver_id)!.push(a.route_id)
     }
-    drivers = baseDrivers.map(d => ({ ...d, route_ids: byDriver.get(d.user_id) ?? [] }))
-    routes = (rRes.data ?? []) as Array<{ id: string; name: string }>
+    drivers = baseDrivers.map(d => {
+      const rids = byDriver.get(d.user_id) ?? []
+      return {
+        ...d,
+        route_ids:   rids,
+        route_names: rids.map(id => routeName.get(id) ?? '').filter(Boolean),
+      }
+    })
   } catch { /* table missing */ }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1000px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Routes
-          </Link>
-          <div className="flex items-center gap-2">
-            <Users size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Drivers</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-        </div>
-
-        <section>
-          <AdminSectionHeader
-            title="All drivers"
-            count={drivers.length}
-            description="Adding a driver mints a Supabase auth user. They sign in via magic link."
-          />
-          <DriversEditor market={dbKey} initialDrivers={drivers} availableRoutes={routes} />
-        </section>
-      </div>
-    </div>
+    <UsersClient market={dbKey} drivers={drivers} routes={routes} />
   )
 }
