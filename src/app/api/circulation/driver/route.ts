@@ -24,17 +24,26 @@ function admin() {
   )
 }
 
-async function getDriver(): Promise<{ user_id: string; market: string; can_view_all: boolean; full_name: string } | null> {
+async function getDriver(): Promise<{ user_id: string; market: string; can_view_all: boolean; full_name: string; rate_per_stop: number } | null> {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
+  // rate_per_stop drives the earnings display on the full-run portal —
+  // every legacy driver expects to see what they've earned so far.
   const { data } = await admin()
     .from('circulation_drivers')
-    .select('user_id, market, can_view_all, full_name')
+    .select('user_id, market, can_view_all, full_name, rate_per_stop')
     .eq('user_id', user.id)
     .eq('active', true)
     .maybeSingle()
-  return (data as { user_id: string; market: string; can_view_all: boolean; full_name: string } | null) ?? null
+  if (!data) return null
+  return {
+    user_id:       data.user_id as string,
+    market:        data.market as string,
+    can_view_all:  !!data.can_view_all,
+    full_name:     data.full_name as string,
+    rate_per_stop: Number(data.rate_per_stop ?? 0),
+  }
 }
 
 function thisMonth(): string {

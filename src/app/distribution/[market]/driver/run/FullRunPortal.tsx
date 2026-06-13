@@ -7,24 +7,34 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Check, ChevronDown, Loader2, MessageSquare, Send, AlertCircle, Navigation, ArrowLeft } from 'lucide-react'
+import { Check, ChevronDown, Loader2, MessageSquare, Send, AlertCircle, Navigation, ArrowLeft, Flag, X } from 'lucide-react'
 
 interface Stop {
   id: string; route_id: string; name: string; address: string | null; city: string | null;
   sort_order: number; quantities: Record<string, number> | null; not_delivering: boolean;
   is_pickup?: boolean;
 }
-interface DeliveryStop { id: string; delivery_id: string; stop_id: string; checked: boolean; driver_note: string | null; leftovers: number }
+interface DeliveryStop { id: string; delivery_id: string; stop_id: string; checked: boolean; driver_note: string | null; leftovers: number; flag?: string | null; flag_note?: string | null }
 interface Delivery { id: string; route_id: string; status?: string }
 interface Route { id: string; name: string }
 interface ApiResponse {
-  driver:        { user_id: string; market: string; full_name: string }
+  driver:        { user_id: string; market: string; full_name: string; rate_per_stop?: number }
   month:         string
   routes:        Route[]
   stops:         Stop[]
   deliveries:    Delivery[]
   deliveryStops: DeliveryStop[]
 }
+
+// Same vocabulary as the single-route DriverPortal so admins see one
+// consistent set of flag types in the change-request queue.
+const FLAGS = [
+  { key: 'closed',        label: 'Closed' },
+  { key: 'wrong_address', label: 'Wrong address' },
+  { key: 'wrong_qty',     label: 'Wrong quantity' },
+  { key: 'new_stop',      label: 'Add a stop' },
+  { key: 'other',         label: 'Other' },
+]
 
 export function FullRunPortal({ market, driverName }: { market: string; driverName: string }) {
   const [data, setData] = useState<ApiResponse | null>(null)
@@ -92,6 +102,15 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     }).catch(() => {})
   }
 
+  async function saveFlag(ds: DeliveryStop, flag: string | null, flagNote: string) {
+    updateLocally(ds.id, { flag, flag_note: flagNote })
+    await fetch('/api/circulation/driver', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ delivery_stop_id: ds.id, flag, flag_note: flagNote }),
+    }).catch(() => {})
+  }
+
   // Submit All
   const [submitOpen, setSubmitOpen] = useState(false)
   const [submitBusy, setSubmitBusy] = useState(false)
@@ -149,6 +168,13 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
             <div className="shrink-0 text-right">
               <p className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Done</p>
               <p className="text-sm font-bold text-primary">{view.doneAll}/{view.totalAll}</p>
+              {(data.driver.rate_per_stop ?? 0) > 0 && (
+                /* Earnings ticker — legacy parity. Drivers expect to see
+                   the running pay total at a glance during the run. */
+                <p className="text-xs font-bold text-emerald-600 tabular-nums">
+                  ${(view.doneAll * (data.driver.rate_per_stop ?? 0)).toFixed(2)}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -193,6 +219,7 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                     locked={section.submitted}
                     onToggle={() => toggleChecked(ds)}
                     onNote={(n) => saveNote(ds, n)}
+                    onFlag={(f, n) => saveFlag(ds, f, n)}
                   />
                 )
               })}
@@ -253,31 +280,81 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
   )
 }
 
-function FullRunStopRow({ stop, ds, locked, onToggle, onNote }: { stop: Stop; ds: DeliveryStop; locked: boolean; onToggle: () => void; onNote: (n: string) => void }) {
+function FullRunStopRow({ stop, ds, locked, onToggle, onNote, onFlag }: { stop: Stop; ds: DeliveryStop; locked: boolean; onToggle: () => void; onNote: (n: string) => void; onFlag: (flag: string | null, note: string) => void }) {
   const [open, setOpen] = useState(false)
   const [note, setNote] = useState(ds.driver_note ?? '')
+  const [flagOpen, setFlagOpen] = useState(false)
+  const [flagSel,  setFlagSel]  = useState<string | null>(ds.flag ?? null)
+  const [flagNote, setFlagNote] = useState(ds.flag_note ?? '')
+
+  // Visual state: pickup (blue), done (green), paused (amber), flagged (red).
+  // Mirrors the legacy run.php colour vocabulary so the visual scan stays
+  // identical across the two portals.
+  const cardClass = ds.checked        ? 'bg-green-50 border-green-200'
+                  : stop.is_pickup    ? 'bg-blue-50 border-blue-200'
+                  : stop.not_delivering ? 'bg-amber-50 border-amber-200'
+                  : ds.flag           ? 'bg-red-50 border-red-200'
+                                      : 'bg-card border-border'
+  const qtyEntries = stop.quantities ? Object.entries(stop.quantities).filter(([, v]) => v > 0) : []
+
   return (
-    <li className={`rounded-2xl border ${ds.checked ? 'bg-green-50 border-green-200' : stop.not_delivering ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}>
+    <li className={`rounded-2xl border ${cardClass}`}>
       <div className="flex items-center gap-3 p-3">
         <button
           onClick={onToggle}
-          disabled={stop.not_delivering || locked}
+          disabled={stop.not_delivering || stop.is_pickup || locked}
           className={`shrink-0 w-11 h-11 rounded-full border-2 flex items-center justify-center transition-colors ${
-            stop.not_delivering ? 'border-amber-300 bg-amber-100' :
-            ds.checked          ? 'border-green-600 bg-green-600' :
-                                  'border-gray-300 bg-white'
+            stop.is_pickup       ? 'border-blue-500 bg-blue-500' :
+            stop.not_delivering  ? 'border-amber-300 bg-amber-100' :
+            ds.checked           ? 'border-green-600 bg-green-600' :
+                                   'border-gray-300 bg-white'
           } ${locked ? 'opacity-60' : ''}`}
         >
-          {ds.checked && <Check className="h-5 w-5 text-white" strokeWidth={3} />}
+          {ds.checked    && <Check className="h-5 w-5 text-white" strokeWidth={3} />}
+          {stop.is_pickup && !ds.checked && <span className="text-white text-[10px] font-bold">PU</span>}
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-foreground leading-tight truncate">{stop.name}</p>
           {stop.address && <p className="text-xs text-muted-foreground truncate">{stop.address}{stop.city ? `, ${stop.city}` : ''}</p>}
+          {/* Per-publication quantity pills — drivers need this hint
+              in-the-field so they know how many to drop without
+              digging back into the stop detail. */}
+          {qtyEntries.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {qtyEntries.map(([k, v]) => (
+                <span
+                  key={k}
+                  className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 uppercase"
+                >{k} {v}</span>
+              ))}
+            </div>
+          )}
+          {/* Inline driver-note preview — matches legacy "stop-note" style. */}
+          {ds.driver_note && !open && (
+            <p className="text-[11px] text-blue-700 mt-1 italic truncate">
+              <MessageSquare className="inline h-2.5 w-2.5 mr-0.5" /> {ds.driver_note}
+            </p>
+          )}
+          {ds.flag && (
+            <p className="text-[10px] text-red-700 mt-1 font-bold uppercase tracking-wider">
+              <Flag className="inline h-2.5 w-2.5 mr-0.5" /> {FLAGS.find(f => f.key === ds.flag)?.label ?? ds.flag}
+            </p>
+          )}
         </div>
+        {!locked && (
+          <button
+            onClick={() => setFlagOpen(true)}
+            title="Flag a problem"
+            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${ds.flag ? 'text-red-600 bg-red-50' : 'text-muted-foreground hover:bg-muted'}`}
+          >
+            <Flag className="h-4 w-4" />
+          </button>
+        )}
         <button onClick={() => setOpen(o => !o)} className="shrink-0 w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center">
           <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
       </div>
+
       {open && (
         <div className="px-3 pb-3 border-t border-border/60 pt-3">
           <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
@@ -291,6 +368,57 @@ function FullRunStopRow({ stop, ds, locked, onToggle, onNote }: { stop: Stop; ds
             disabled={locked}
             className="mt-1 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-50"
           />
+        </div>
+      )}
+
+      {/* Flag sheet — modal-style picker. Same vocabulary as DriverPortal
+          so the change_requests admin queue sees one consistent set of
+          flag types regardless of which portal the driver used. */}
+      {flagOpen && (
+        <div
+          onClick={() => setFlagOpen(false)}
+          className="fixed inset-0 z-[110] bg-black/45 flex items-end justify-center"
+        >
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-t-2xl w-full max-w-[600px] p-5 pb-8 space-y-3">
+            <div className="w-9 h-1 bg-gray-200 rounded mx-auto" />
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-base">Flag: {stop.name}</p>
+              <button onClick={() => setFlagOpen(false)} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {FLAGS.map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setFlagSel(f.key)}
+                  className={`px-3 py-2.5 rounded-xl border-2 text-sm font-medium ${flagSel === f.key ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                >{f.label}</button>
+              ))}
+            </div>
+            <label className="block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Details (optional)</span>
+              <textarea
+                value={flagNote}
+                onChange={e => setFlagNote(e.target.value)}
+                rows={2}
+                className="mt-1 w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm"
+              />
+            </label>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => { onFlag(flagSel, flagNote); setFlagOpen(false) }}
+                disabled={!flagSel}
+                className="flex-1 px-3 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-50"
+              >Save flag</button>
+              {ds.flag && (
+                <button
+                  onClick={() => { setFlagSel(null); setFlagNote(''); onFlag(null, ''); setFlagOpen(false) }}
+                  className="px-3 py-3 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold"
+                >Clear</button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </li>

@@ -117,6 +117,17 @@ export default async function DriverDashboardPage({ params }: PageProps) {
 
   const anyActive = Array.from(stats.values()).some(s => !s.delivery || !['submitted', 'paid'].includes(s.delivery.status))
 
+  // Pending route-order suggestions count. Legacy dashboard surfaced
+  // this so drivers knew their reorder request was still in admin's
+  // queue. Without it, drivers re-submit thinking the first never
+  // landed.
+  const { count: pendingSugCount } = await admin
+    .from('circulation_route_suggestions')
+    .select('id', { count: 'exact', head: true })
+    .eq('driver_id', driver.user_id)
+    .eq('status', 'pending')
+  const pendingSuggestions = pendingSugCount ?? 0
+
   // Invoice history
   const { data: invData } = await admin
     .from('circulation_deliveries')
@@ -150,6 +161,18 @@ export default async function DriverDashboardPage({ params }: PageProps) {
           <StatCard label="Earnings"          value={`$${totalPay.toFixed(2)}`} color="#16A34A" />
           <StatCard label="Routes"            value={String(myRoutes.length)} color="#1E293B" />
         </div>
+
+        {pendingSuggestions > 0 && (
+          /* Pending reorder-suggestion banner — legacy parity. */
+          <div className="card mb-3" style={{ background: '#FEF3C7', border: '1px solid #FDE68A', padding: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>
+              {pendingSuggestions} reorder suggestion{pendingSuggestions === 1 ? '' : 's'} awaiting review
+            </div>
+            <div style={{ fontSize: 11, color: '#92400E', opacity: 0.7, marginTop: 2 }}>
+              Your distribution manager will respond soon.
+            </div>
+          </div>
+        )}
 
         {/* Full Run banner */}
         {myRoutes.length > 1 && anyActive && (
