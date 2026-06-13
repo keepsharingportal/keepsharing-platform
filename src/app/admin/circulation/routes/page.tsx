@@ -1,113 +1,102 @@
-// /admin/circulation/routes — list every route with stop count, drag a
-// new route into existence inline. Drill into a single route to manage
-// its stops.
+// /admin/circulation/routes — Routes & Stops, single-page combined view.
+//
+// Verbatim port of the legacy admin/routes.php from
+// _incoming/RRP_Portal_v3_FINAL/rrp_portal_v2. The page shows a 220px
+// sidebar list of all routes on the left and the selected route's
+// stops table on the right. Selection is via ?id=X URL param so deep
+// links + back/forward navigation stay clean.
+//
+// Server fetches all data + passes to RoutesStopsClient (Client island)
+// which owns interactivity: search filter, route switching (router.push),
+// new-route modal, rename-route modal, add/edit-stop modal.
+//
+// Per-pub quantity columns are dynamic — read from circulation_publications.
 
-import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Plus, Truck, Download, GripVertical } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { NewRouteForm } from './NewRouteForm'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { RoutesStopsClient } from './RoutesStopsClient'
 
-export const metadata = { title: 'Routes — Distribution' }
+export const metadata = { title: 'Routes & Stops — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-interface RouteRow { id: string; name: string; city: string | null; active: boolean; sort_order: number }
-interface StopCount { route_id: string }
+interface PageProps { searchParams: Promise<{ id?: string }> }
 
-export default async function RoutesPage() {
+interface PubRow   { id: string; short_name: string; name: string; abbrev: string; sort_order: number }
+interface RouteRow { id: string; name: string; city: string | null; active: boolean; sort_order: number }
+interface StopRow  {
+  id: string; route_id: string; sort_order: number; name: string;
+  address: string | null; city: string | null; zip: string | null;
+  notes: string | null; contact_name: string | null;
+  contact_phone: string | null; contact_email: string | null;
+  is_pickup: boolean; not_delivering: boolean; active: boolean;
+  is_featured: boolean; quantities: Record<string, number> | null;
+}
+
+function bundles(used: number): number { return Math.round(used / 50) }
+
+export default async function RoutesStopsPage({ searchParams }: PageProps) {
+  const sp     = await searchParams
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  let routes: RouteRow[] = []
-  let counts: Map<string, number> = new Map()
+  const [pubsRes, routesRes] = await Promise.all([
+    sb.from('circulation_publications').select('id, short_name, name, abbrev, sort_order').order('sort_order'),
+    sb.from('circulation_routes')
+      .select('id, name, city, active, sort_order')
+      .eq('market', dbKey)
+      .order('active', { ascending: false })
+      .order('sort_order')
+      .order('name'),
+  ])
+  const pubs   = (pubsRes.data ?? [])   as PubRow[]
+  const routes = (routesRes.data ?? []) as RouteRow[]
 
-  try {
-    const [rRes, sRes] = await Promise.all([
-      sb.from('circulation_routes')
-        .select('id, name, city, active, sort_order')
-        .eq('market', dbKey)
-        .order('sort_order', { ascending: true })
-        .order('name', { ascending: true }),
-      sb.from('circulation_stops').select('route_id').eq('market', dbKey).eq('active', true),
-    ])
-    routes = (rRes.data ?? []) as RouteRow[]
-    const stops = (sRes.data ?? []) as StopCount[]
-    for (const s of stops) counts.set(s.route_id, (counts.get(s.route_id) ?? 0) + 1)
-  } catch { /* table missing */ }
+  const requestedId = sp.id?.trim()
+  const currentRoute: RouteRow | null = requestedId
+    ? routes.find(r => r.id === requestedId) ?? null
+    : routes[0] ?? null
+
+  let stops: StopRow[] = []
+  if (currentRoute) {
+    const { data } = await sb
+      .from('circulation_stops')
+      .select(`
+        id, route_id, sort_order, name, address, city, zip, notes,
+        contact_name, contact_phone, contact_email,
+        is_pickup, not_delivering, active, is_featured, quantities
+      `)
+      .eq('market', dbKey)
+      .eq('route_id', currentRoute.id)
+      .order('sort_order')
+      .order('name')
+    stops = (data ?? []) as StopRow[]
+  }
+
+  // Header badges — active-stop count + total qty per publication.
+  const activeStops = stops.filter(s => s.active && !s.not_delivering && !s.is_pickup)
+  const pubTotals: Record<string, number>  = {}
+  const pubBundles: Record<string, number> = {}
+  for (const p of pubs) {
+    let t = 0
+    for (const s of activeStops) t += s.quantities?.[p.short_name] ?? 0
+    pubTotals[p.id]  = t
+    pubBundles[p.id] = bundles(t)
+  }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1000px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Routes
-          </Link>
-          <div className="flex items-center gap-2">
-            <Truck size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Routes</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-          <div className="mt-2 flex items-center gap-1.5">
-            <a
-              href={`/api/admin/circulation/export?market=${dbKey}&format=csv`}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
-            >
-              <Download size={11} /> Export CSV
-            </a>
-            <a
-              href={`/api/admin/circulation/export?market=${dbKey}&format=json`}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
-            >
-              <Download size={11} /> Export JSON
-            </a>
-          </div>
-        </div>
-
-        <NewRouteForm market={dbKey} />
-
-        <section>
-          <AdminSectionHeader title="All routes" count={routes.length} />
-          {routes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
-              <p className="text-sm text-portal-sub">No routes yet. Add one above or import from the PHP portal.</p>
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {routes.map(r => (
-                <li key={r.id} className="rounded-lg border border-portal-border bg-white p-3 flex items-center gap-3 hover:border-portal-border-2 transition-colors">
-                  <Link href={`/admin/circulation/routes/${r.id}`} className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-portal-text truncate flex items-center gap-2">
-                      {r.name}
-                      {!r.active && <span className="text-[10px] bg-portal-row-hover text-portal-sub px-1.5 py-0.5 rounded font-semibold">Inactive</span>}
-                    </p>
-                    <p className="text-xs text-portal-sub mt-0.5">
-                      {counts.get(r.id) ?? 0} stops {r.city ? ` · ${r.city}` : ''}
-                    </p>
-                  </Link>
-                  <Link
-                    href={`/admin/circulation/routes/${r.id}/reorder`}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md border border-portal-border text-portal-text hover:bg-portal-bg"
-                  >
-                    <GripVertical size={11} /> Reorder
-                  </Link>
-                  <Link href={`/admin/circulation/routes/${r.id}`} className="shrink-0 text-portal-border-2 hover:text-portal-sub">
-                    <ArrowRight size={14} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-    </div>
+    <RoutesStopsClient
+      market={dbKey}
+      pubs={pubs}
+      routes={routes}
+      currentRoute={currentRoute}
+      stops={stops}
+      activeStopsCount={activeStops.length}
+      pubTotals={pubTotals}
+      pubBundles={pubBundles}
+    />
   )
 }

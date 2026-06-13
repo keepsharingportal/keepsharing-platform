@@ -450,6 +450,46 @@
 .portal-app .fw-700 { font-weight: 700; }
 .portal-app .mono   { font-family: ui-monospace, 'DM Mono', monospace; }
 
+/* ── Forms (.fg / .form-row) ── */
+.portal-app .fg { margin-bottom: 14px; }
+.portal-app .fg label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-portal-sub);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+.portal-app .fg input,
+.portal-app .fg select,
+.portal-app .fg textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--color-portal-border-2);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-portal-text);
+  font-size: 14px;
+  transition: border-color .15s;
+  font-family: inherit;
+}
+.portal-app .fg input:focus,
+.portal-app .fg select:focus,
+.portal-app .fg textarea:focus { outline: none; border-color: var(--color-portal-blue); }
+.portal-app .fg textarea { resize: vertical; min-height: 80px; }
+.portal-app .fg .hint { font-size: 12px; color: var(--color-portal-muted); margin-top: 3px; }
+.portal-app .form-row   { display: grid; grid-template-columns: 1fr 1fr;     gap: 12px; }
+.portal-app .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ── Modal footer ── */
+.portal-app .modal-footer { display: flex; gap: 8px; margin-top: 18px; }
+
+/* ── Stop row states (.stop-row.inactive / .not-delivering / .pickup-row) ── */
+.portal-app .stop-row.inactive td       { opacity: .45; }
+.portal-app .stop-row.not-delivering td { background: #FFFBEB; }
+.portal-app .stop-row.pickup-row td     { background: var(--color-portal-navy-lt); font-weight: 600; }
+
 /* ── Mobile collapse: stats + budget grids stack ── */
 @media (max-width: 768px) {
   .portal-app .stats-row     { grid-template-columns: repeat(2, 1fr); }
