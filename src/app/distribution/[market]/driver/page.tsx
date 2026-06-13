@@ -84,7 +84,7 @@ function LoggedOut({ market }: { market: string }) {
       <h1 className="text-xl font-bold mb-2">{marketDisplayName(market)} Driver Portal</h1>
       <p className="text-sm text-gray-600 mb-5">Sign in to see your route and check off stops.</p>
       <Link
-        href={`/login?next=${encodeURIComponent(`/distribution/${market}/driver`)}`}
+        href={`/distribution/login?next=${encodeURIComponent(`/distribution/${market}/driver`)}`}
         className="inline-flex items-center gap-1.5 text-sm px-5 py-2.5 bg-primary text-primary-foreground rounded-full font-semibold"
       >
         Sign In
