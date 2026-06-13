@@ -1,14 +1,15 @@
-// /admin/circulation/resources — community resources directory (libraries,
-// parks, family services) shown as a secondary layer on the public map.
+// /admin/circulation/resources — Resources directory.
+//
+// Port of admin/resources.php from the v3_FINAL portal source. Tables
+// grouped by category, each row with Edit + Hide/Show actions. Add/Edit
+// modal opens from the page header.
 
-import Link from 'next/link'
-import { ArrowLeft, Library } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { ResourcesEditor, type Resource } from './ResourcesEditor'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { ResourcesClient, type ResourceRow } from './ResourcesClient'
 
-export const metadata = { title: 'Resources — Distribution' }
+export const metadata = { title: 'Resources Directory — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
 export default async function ResourcesPage() {
@@ -18,35 +19,17 @@ export default async function ResourcesPage() {
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  let resources: Resource[] = []
+  let resources: ResourceRow[] = []
   try {
-    const { data } = await sb.from('circulation_resources').select('*').eq('market', dbKey).order('sort_order').order('name')
-    resources = (data ?? []) as Resource[]
+    const { data } = await sb.from('circulation_resources')
+      .select('id, name, category, description, address, city, phone, email, website, active, sort_order, logo_path, photo_path')
+      .eq('market', dbKey)
+      .order('active', { ascending: false })
+      .order('category')
+      .order('sort_order')
+      .order('name')
+    resources = (data ?? []) as ResourceRow[]
   } catch { /* table missing */ }
 
-  return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1000px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Routes
-          </Link>
-          <div className="flex items-center gap-2">
-            <Library size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Community Resources</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-          <p className="text-xs text-portal-muted mt-1">
-            Surfaced on the public map as a secondary layer (libraries, parks, family services).
-          </p>
-        </div>
-
-        <ResourcesEditor market={dbKey} initial={resources} />
-      </div>
-    </div>
-  )
+  return <ResourcesClient resources={resources} />
 }
