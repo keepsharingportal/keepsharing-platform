@@ -245,8 +245,9 @@ const NAV: NavItem[] = [
     href: '/admin/advertisers',
     icon: Building2,
     children: [
-      { name: 'Pipeline',   href: '/admin/advertisers/pipeline'   },
-      { name: 'Duplicates', href: '/admin/advertisers/duplicates' },
+      { name: 'All profiles', href: '/admin/businesses'             },
+      { name: 'Pipeline',     href: '/admin/advertisers/pipeline'   },
+      { name: 'Duplicates',   href: '/admin/advertisers/duplicates' },
     ],
   },
   { name: 'Contacts',       href: '/admin/contacts',              icon: UserCheck },
