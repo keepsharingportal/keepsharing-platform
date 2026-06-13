@@ -2,7 +2,12 @@
 //
 // GET    /api/admin/circulation/geocode?market=rrp&dry=1
 //          → list stops missing coords (preview)
-// POST   /api/admin/circulation/geocode  body { market, limit?: number }
+// POST   /api/admin/circulation/geocode  body { market, limit?: number, stop_id? }
+//
+// Provider: Google Geocoding API (replaces Nominatim per the user's
+// Google Maps decision). Needs GOOGLE_MAPS_API_KEY in env. Falls back
+// to Nominatim only if the Google key is missing, so existing dev
+// environments without a key keep working.
 //          → geocode up to `limit` (default 25) stops via Nominatim,
 //            sleeping 1.1s between requests to respect Nominatim's
 //            1-request-per-second rate limit. Writes a row to
@@ -44,6 +49,38 @@ async function nominatim(query: string): Promise<{ lat: number; lng: number } | 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
     return { lat, lng }
   } catch { return null }
+}
+
+// Google Geocoding API — preferred provider. Materially more accurate
+// than Nominatim for strip-mall / business-name lookups. Needs
+// GOOGLE_MAPS_API_KEY in env; when missing we fall through to nominatim().
+async function googleGeocode(query: string): Promise<{ lat: number; lng: number } | null> {
+  const key = process.env.GOOGLE_MAPS_API_KEY
+  if (!key) return null
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?key=${key}&address=${encodeURIComponent(query)}`
+  try {
+    const r = await fetch(url)
+    if (!r.ok) return null
+    const j = await r.json() as {
+      status: string
+      results?: Array<{ geometry?: { location?: { lat: number; lng: number } } }>
+    }
+    if (j.status !== 'OK' || !j.results?.length) return null
+    const loc = j.results[0].geometry?.location
+    if (!loc) return null
+    if (!Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return null
+    return { lat: loc.lat, lng: loc.lng }
+  } catch { return null }
+}
+
+// Try Google first; fall back to OSM Nominatim so dev environments
+// without a Google key still work.
+async function geocode(query: string): Promise<{ lat: number; lng: number; provider: 'google' | 'osm' } | null> {
+  const g = await googleGeocode(query)
+  if (g) return { ...g, provider: 'google' }
+  const o = await nominatim(query)
+  if (o) return { ...o, provider: 'osm' }
+  return null
 }
 
 export async function GET(req: NextRequest) {
@@ -94,10 +131,10 @@ export async function POST(req: NextRequest) {
     const s = data as Stop | null
     if (!s) return NextResponse.json({ error: 'stop not found' }, { status: 404 })
     const query = [s.address, s.city, s.zip].filter(Boolean).join(', ') || s.name
-    const hit = await nominatim(query)
-    if (!hit) return NextResponse.json({ ok: false, message: 'Address could not be located on OpenStreetMap.' }, { status: 200 })
+    const hit = await geocode(query)
+    if (!hit) return NextResponse.json({ ok: false, message: 'Address could not be located.' }, { status: 200 })
     await client.from('circulation_stops').update({ lat: hit.lat, lng: hit.lng }).eq('id', s.id)
-    return NextResponse.json({ ok: true, lat: hit.lat, lng: hit.lng })
+    return NextResponse.json({ ok: true, lat: hit.lat, lng: hit.lng, provider: hit.provider })
   }
 
   const { data: missing } = await client
@@ -114,27 +151,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, geocoded: 0, failed: 0, message: 'Nothing to do — every active stop already has coords.' })
   }
 
-  // Open a run row.
+  // Open a run row. Provider is determined per-call (Google preferred, OSM
+  // fallback when the Google key is missing); we record the provider used
+  // for the FIRST successful hit so the run history surfaces the right
+  // label even if later hits fall back.
+  const providerLabel = process.env.GOOGLE_MAPS_API_KEY ? 'google' : 'osm'
   const { data: run } = await client
     .from('circulation_geocode_runs')
-    .insert({ market, provider: 'osm', requested_by: ctx.userId, stops_total: stops.length })
+    .insert({ market, provider: providerLabel, requested_by: ctx.userId, stops_total: stops.length })
     .select('id')
     .single()
   const runId = (run as { id: string } | null)?.id
 
   let success = 0
   let failed  = 0
+  // Google has no 1-req/sec floor (we're well within free-tier QPS), but we
+  // keep a small delay to stay courteous + give the fallback OSM hits room
+  // to breathe if Google ever flakes mid-batch.
+  const interReq = process.env.GOOGLE_MAPS_API_KEY ? 100 : 1100
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i]
     const query = [s.address, s.city, s.zip].filter(Boolean).join(', ') || s.name
-    const hit = await nominatim(query)
+    const hit = await geocode(query)
     if (hit) {
       await client.from('circulation_stops').update({ lat: hit.lat, lng: hit.lng }).eq('id', s.id)
       success++
     } else {
       failed++
     }
-    if (i < stops.length - 1) await new Promise(r => setTimeout(r, 1100))
+    if (i < stops.length - 1) await new Promise(r => setTimeout(r, interReq))
   }
 
   if (runId) {

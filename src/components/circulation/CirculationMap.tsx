@@ -1,23 +1,21 @@
 'use client'
 
-// Shared Leaflet map for the public pickup-location map AND the admin
-// "see all stops" map. Renders OpenStreetMap tiles (no API key needed),
-// drops a colored marker per stop, and pops a card with featured-advertiser
-// social links on click.
+// Shared Google Maps for the public pickup-location map AND the admin
+// "see all stops" map. Renders route-colored circle markers, a popup
+// info card with featured-advertiser social links on click, plus a
+// search box + per-route filter chip strip.
 //
 // Why a single component for both surfaces: 95% of the rendering is the
 // same — route-colored markers, advertiser badges, search by name. The
 // admin adds checked-state coloring (delivered vs not) which we expose
-// via the `markerState` prop. Public renders without it.
+// via the `colorFor` prop. Public renders without it.
 //
-// SSR caveat: Leaflet touches `window` on import, so this entire file is
-// client-only and is loaded via `dynamic(..., { ssr: false })` from the
-// pages that use it.
+// Provider switched from Leaflet → Google Maps. Needs
+// NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in env. Degrades to a clear helper
+// message when the key is missing rather than rendering blank.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import type { LatLngBoundsLiteral } from 'leaflet'
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
 
 export interface CirculationStop {
   id:            string
@@ -59,16 +57,13 @@ interface Props {
   height?:     string
 }
 
+const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+const GOOGLE_MAPS_ID  = process.env.NEXT_PUBLIC_GOOGLE_MAPS_ID ?? 'DEMO_MAP_ID'
+
 // Route colors — palette cycles through routes so each gets a distinct hue.
 const PALETTE = [
-  '#2563eb', // blue
-  '#16a34a', // green
-  '#ea580c', // orange
-  '#9333ea', // purple
-  '#0891b2', // cyan
-  '#dc2626', // red
-  '#ca8a04', // yellow
-  '#db2777', // pink
+  '#2563eb', '#16a34a', '#ea580c', '#9333ea',
+  '#0891b2', '#dc2626', '#ca8a04', '#db2777',
 ]
 function routeColor(routeId: string, routes: CirculationRoute[]): string {
   const idx = routes.findIndex(r => r.id === routeId)
@@ -76,14 +71,30 @@ function routeColor(routeId: string, routes: CirculationRoute[]): string {
   return PALETTE[idx % PALETTE.length]
 }
 
-// Auto-zoom to fit all visible markers on mount + when filter changes.
+function ColoredDot({ color, size }: { color: string; size: number }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: color, border: '2px solid white',
+      boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+      transform: 'translateY(-50%)',
+    }} />
+  )
+}
+
 function FitBounds({ stops }: { stops: CirculationStop[] }) {
   const map = useMap()
+  const lastSig = useRef('')
   useEffect(() => {
+    if (!map) return
     const valid = stops.filter(s => s.lat != null && s.lng != null)
     if (valid.length === 0) return
-    const bounds: LatLngBoundsLiteral = valid.map(s => [s.lat!, s.lng!])
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+    const sig = valid.map(s => `${s.id}:${s.lat!.toFixed(3)}:${s.lng!.toFixed(3)}`).join('|')
+    if (sig === lastSig.current) return
+    lastSig.current = sig
+    const bounds = new google.maps.LatLngBounds()
+    for (const s of valid) bounds.extend({ lat: s.lat!, lng: s.lng! })
+    map.fitBounds(bounds, 50)
   }, [stops, map])
   return null
 }
@@ -96,10 +107,10 @@ export function CirculationMap({
   showFilter = true,
   height     = '600px',
 }: Props) {
-  const [query,       setQuery]       = useState('')
-  const [enabledRoutes, setEnabledRoutes] = useState<Set<string> | null>(null) // null = all
+  const [query,         setQuery]         = useState('')
+  const [enabledRoutes, setEnabledRoutes] = useState<Set<string> | null>(null)
+  const [openId,        setOpenId]        = useState<string | null>(null)
 
-  // Markers visible after applying search + route filter
   const visible = useMemo(() => {
     return stops.filter(s => {
       if (s.lat == null || s.lng == null) return false
@@ -114,28 +125,24 @@ export function CirculationMap({
     })
   }, [stops, query, enabledRoutes])
 
-  // Compute an initial center. Cached on first render; FitBounds takes
-  // over after that.
-  const initialCenter = useMemo<[number, number]>(() => {
+  const initialCenter = useMemo(() => {
     const valid = stops.filter(s => s.lat != null && s.lng != null)
-    if (valid.length === 0) return [32.3668, -86.3000] // Montgomery, AL fallback
+    if (valid.length === 0) return { lat: 32.3668, lng: -86.3000 } // Montgomery fallback
     const lat = valid.reduce((a, s) => a + s.lat!, 0) / valid.length
     const lng = valid.reduce((a, s) => a + s.lng!, 0) / valid.length
-    return [lat, lng]
+    return { lat, lng }
   }, [stops])
 
   function toggleRoute(id: string) {
     setEnabledRoutes(prev => {
       const cur = prev ? new Set(prev) : new Set(routes.map(r => r.id))
       if (cur.has(id)) cur.delete(id); else cur.add(id)
-      // If toggled back to "every route", drop the filter object
       return cur.size === routes.length ? null : cur
     })
   }
 
   return (
     <div className="space-y-3">
-      {/* Toolbar */}
       {(showSearch || showFilter) && (
         <div className="flex flex-wrap items-center gap-2">
           {showSearch && (
@@ -172,40 +179,52 @@ export function CirculationMap({
       )}
 
       <div className="rounded-2xl overflow-hidden border border-gray-200" style={{ height }}>
-        <MapContainer
-          center={initialCenter}
-          zoom={12}
-          scrollWheelZoom
-          style={{ width: '100%', height: '100%' }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <FitBounds stops={visible} />
-          {visible.map(s => {
-            const color = colorFor?.(s) ?? routeColor(s.route_id, routes)
-            const isPlatinum = s.ad_level === 'platinum'
-            const isGold     = s.ad_level === 'gold'
-            return (
-              <CircleMarker
-                key={s.id}
-                center={[s.lat!, s.lng!]}
-                radius={isPlatinum ? 11 : isGold ? 9 : 7}
-                pathOptions={{
-                  color,
-                  fillColor: color,
-                  fillOpacity: 0.9,
-                  weight: isPlatinum ? 3 : 2,
-                }}
-              >
-                <Popup>
-                  <StopPopup stop={s} routes={routes} />
-                </Popup>
-              </CircleMarker>
-            )
-          })}
-        </MapContainer>
+        {!GOOGLE_MAPS_KEY ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            height: '100%', background: '#FEF3C7', color: '#92400E',
+            fontSize: 13, padding: 20, textAlign: 'center',
+          }}>
+            Set <code style={{ fontFamily: 'ui-monospace, monospace' }}>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in your deployment env to render the stop map.
+          </div>
+        ) : (
+          <APIProvider apiKey={GOOGLE_MAPS_KEY}>
+            <Map
+              mapId={GOOGLE_MAPS_ID}
+              defaultCenter={initialCenter}
+              defaultZoom={12}
+              gestureHandling="cooperative"
+              disableDefaultUI={false}
+              mapTypeControl={false}
+              streetViewControl={false}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <FitBounds stops={visible} />
+              {visible.map(s => {
+                const color = colorFor?.(s) ?? routeColor(s.route_id, routes)
+                const isPlatinum = s.ad_level === 'platinum'
+                const isGold     = s.ad_level === 'gold'
+                const size = isPlatinum ? 24 : isGold ? 18 : 14
+                const open = openId === s.id
+                return (
+                  <AdvancedMarker
+                    key={s.id}
+                    position={{ lat: s.lat!, lng: s.lng! }}
+                    title={s.name}
+                    onClick={() => setOpenId(open ? null : s.id)}
+                  >
+                    <ColoredDot color={color} size={size} />
+                    {open && (
+                      <InfoWindow position={{ lat: s.lat!, lng: s.lng! }} onCloseClick={() => setOpenId(null)}>
+                        <StopPopup stop={s} routes={routes} />
+                      </InfoWindow>
+                    )}
+                  </AdvancedMarker>
+                )
+              })}
+            </Map>
+          </APIProvider>
+        )}
       </div>
     </div>
   )
