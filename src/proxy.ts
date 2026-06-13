@@ -50,11 +50,63 @@ function resolveBrand(request: NextRequest): string {
 }
 
 export async function proxy(request: NextRequest) {
-  const path = request.nextUrl.pathname
+  const originalPath = request.nextUrl.pathname
+
+  // ── Host-based path rewrites ───────────────────────────────────────────
+  // Two custom subdomains route into specific subtrees of the app:
+  //   - app.keepsharing.com     → /admin/*  (editorial / CRM backend)
+  //   - drivers.keepsharing.com → /distribution/* (driver portal)
+  // The rewrite is transparent — URLs stay clean (no /admin prefix
+  // visible) and the browser address bar shows what the editor typed.
+  // For app.* we prefix every non-skipped path with /admin so
+  // app.keepsharing.com/businesses serves /admin/businesses. For
+  // drivers.* we just route the root + /login to /distribution/login;
+  // everything else passes through (so /distribution/rrp/driver/run
+  // still works for the deep-linked URL inside the portal).
+  const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
+  let path           = originalPath
+  let rewriteUrl: URL | null = null
+
+  // Paths the rewriter must NEVER touch — Next internals, API routes,
+  // OAuth callback, static favicon. Adding /distribution here lets a
+  // driver typing drivers.keepsharing.com/distribution/rrp/driver work
+  // even though their subdomain has a special-case root rewrite.
+  function isPassThrough(p: string): boolean {
+    return p.startsWith('/_next/')
+        || p.startsWith('/api/')
+        || p.startsWith('/auth/')
+        || p === '/favicon.ico'
+  }
+
+  if (host === 'app.keepsharing.com' && !isPassThrough(originalPath)) {
+    if (originalPath === '/') {
+      path       = '/admin'
+      rewriteUrl = request.nextUrl.clone(); rewriteUrl.pathname = '/admin'
+    } else if (!originalPath.startsWith('/admin')) {
+      path       = '/admin' + originalPath
+      rewriteUrl = request.nextUrl.clone(); rewriteUrl.pathname = path
+    }
+  } else if (host === 'drivers.keepsharing.com' && !isPassThrough(originalPath)) {
+    // Driver-friendly aliases for what legacy users typed. Everything
+    // else (including /distribution/rrp/driver/run deep links) flows
+    // through with the existing routing.
+    if (originalPath === '/' || originalPath === '/login' || originalPath === '/forgot-password') {
+      path       = '/distribution/login'
+      rewriteUrl = request.nextUrl.clone(); rewriteUrl.pathname = '/distribution/login'
+    }
+  }
 
   // ── Admin auth gating ──────────────────────────────────────────────────
   if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
-    return gateAdmin(request)
+    return gateAdmin(request, rewriteUrl)
+  }
+
+  // ── Public path: if a rewrite is queued, do it now ─────────────────────
+  // Skips the brand resolution / UTM tracking below — those exist for
+  // the brand-public sites (riverregionparents.com etc), not for
+  // drivers.keepsharing.com which is a portal, not a public site.
+  if (rewriteUrl) {
+    return NextResponse.rewrite(rewriteUrl)
   }
 
   // ── Maintenance mode check (public site only) ──────────────────────────
@@ -122,21 +174,32 @@ export async function proxy(request: NextRequest) {
 // Admin gating: refresh the Supabase auth cookie, then bounce unauthenticated
 // requests. Per Next.js 16 guidance this is deliberately optimistic — no DB
 // lookups, no admin_users checks. Those happen at the page/route layer.
-async function gateAdmin(request: NextRequest) {
-  const path = request.nextUrl.pathname
+//
+// `rewriteUrl` is set when proxy() decided to rewrite the request based on
+// the host (e.g. app.keepsharing.com/businesses → /admin/businesses).
+// We honor it on every NextResponse.next() return so the rewrite is
+// preserved through the cookie-refresh dance.
+async function gateAdmin(request: NextRequest, rewriteUrl: URL | null) {
+  const path = rewriteUrl?.pathname ?? request.nextUrl.pathname
 
   // Forward the pathname so the admin layout can branch its chrome —
   // /admin/login needs to render without the sidebar shell.
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-admin-pathname', path)
 
+  function passThroughResponse(): NextResponse {
+    return rewriteUrl
+      ? NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+      : NextResponse.next({ request: { headers: requestHeaders } })
+  }
+
   // /admin/login and the Supabase auth callback must be reachable without a
   // session, otherwise users can never sign in.
   if (path.startsWith(LOGIN_PATH) || path.startsWith('/auth/')) {
-    return NextResponse.next({ request: { headers: requestHeaders } })
+    return passThroughResponse()
   }
 
-  let res = NextResponse.next({ request: { headers: requestHeaders } })
+  let res = passThroughResponse()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -146,11 +209,13 @@ async function gateAdmin(request: NextRequest) {
         getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
           // Mirror cookie writes onto the outgoing response so refreshed
-          // tokens propagate back to the browser.
+          // tokens propagate back to the browser. Honors any active host
+          // rewrite so app.keepsharing.com/businesses still rewrites to
+          // /admin/businesses through the cookie-refresh cycle.
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           )
-          res = NextResponse.next({ request: { headers: requestHeaders } })
+          res = passThroughResponse()
           cookiesToSet.forEach(({ name, value, options }) =>
             res.cookies.set(name, value, options),
           )
@@ -170,7 +235,10 @@ async function gateAdmin(request: NextRequest) {
     }
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = LOGIN_PATH
-    loginUrl.searchParams.set('next', path + request.nextUrl.search)
+    // Use the ORIGINAL (un-rewritten) path so app.keepsharing.com/businesses
+    // sends users back to /businesses after login (which then rewrites
+    // back to /admin/businesses), preserving the clean URL bar.
+    loginUrl.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
 
