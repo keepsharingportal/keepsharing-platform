@@ -1,107 +1,89 @@
-// /admin/circulation/route-order — lists every route + jumps into its
-// drag-drop reorder page. Mirrors the PHP portal's "Route Order" menu
-// entry (which was a route picker leading to per-route ordering).
+// /admin/circulation/route-order — drag-to-reorder a route's stops.
+//
+// Verbatim port of admin/order.php from the v3_FINAL portal source. The
+// publisher's production version (per screenshot) extended the original
+// snapshot/version-history right column into a live route map with
+// numbered pins, with version history surfaced behind a top-right
+// button. Match the screenshot.
+//
+// Layout:
+//   - Page header: "Route Order" title + Version history button
+//   - Route tab strip (?route=X)
+//   - Two-column grid:
+//       LEFT  card: "Drag to reorder · or type a position number" with
+//                   draggable stop list + position inputs + Save button.
+//                   Publications Plus is always first and cannot be moved.
+//       RIGHT card: "Route map" with numbered red pins (Leaflet).
+//   - Version history opens a modal listing prior snapshots with Restore.
 
-import Link from 'next/link'
-import { ArrowLeft, GripVertical, ChevronRight, Clock } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { RouteOrderClient } from './RouteOrderClient'
 
-export const metadata = { title: 'Route Order — Distribution' }
+export const metadata = { title: 'Route Order — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-export default async function RouteOrderPage() {
+interface PageProps { searchParams: Promise<{ route?: string }> }
+
+interface RouteLite { id: string; name: string }
+interface StopLite  {
+  id: string; sort_order: number; name: string;
+  address: string | null; city: string | null;
+  is_pickup: boolean; not_delivering: boolean;
+  lat: number | null; lng: number | null;
+}
+interface SnapshotLite { id: string; label: string | null; created_at: string }
+
+export default async function RouteOrderPage({ searchParams }: PageProps) {
+  const sp     = await searchParams
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  interface RouteRow { id: string; name: string; city: string | null }
-  interface SuggCount { route_id: string }
-  let routes: RouteRow[] = []
-  let stopCounts: Map<string, number> = new Map()
-  let pendingByRoute: Map<string, number> = new Map()
+  const { data: routesData } = await sb
+    .from('circulation_routes')
+    .select('id, name')
+    .eq('market', dbKey)
+    .eq('active', true)
+    .order('sort_order')
+    .order('name')
+  const routes: RouteLite[] = (routesData ?? []) as RouteLite[]
 
-  try {
-    const [rRes, sRes, suggRes] = await Promise.all([
-      sb.from('circulation_routes')
-        .select('id, name, city')
-        .eq('market', dbKey)
-        .eq('active', true)
-        .order('sort_order')
-        .order('name'),
+  const requestedId = sp.route?.trim()
+  const currentRoute = requestedId
+    ? routes.find(r => r.id === requestedId) ?? routes[0] ?? null
+    : routes[0] ?? null
+
+  let stops: StopLite[]         = []
+  let snapshots: SnapshotLite[] = []
+
+  if (currentRoute) {
+    const [stopsRes, snapsRes] = await Promise.all([
       sb.from('circulation_stops')
-        .select('route_id')
+        .select('id, sort_order, name, address, city, is_pickup, not_delivering, lat, lng')
         .eq('market', dbKey)
-        .eq('active', true),
-      sb.from('circulation_route_suggestions')
-        .select('route_id')
-        .eq('status', 'pending'),
+        .eq('route_id', currentRoute.id)
+        .eq('active', true)
+        .order('sort_order'),
+      sb.from('circulation_route_snapshots')
+        .select('id, label, created_at')
+        .eq('route_id', currentRoute.id)
+        .order('created_at', { ascending: false })
+        .limit(20),
     ])
-    routes = (rRes.data ?? []) as RouteRow[]
-    for (const s of (sRes.data ?? []) as SuggCount[]) {
-      stopCounts.set(s.route_id, (stopCounts.get(s.route_id) ?? 0) + 1)
-    }
-    for (const s of (suggRes.data ?? []) as SuggCount[]) {
-      pendingByRoute.set(s.route_id, (pendingByRoute.get(s.route_id) ?? 0) + 1)
-    }
-  } catch { /* table missing */ }
+    stops     = (stopsRes.data ?? []) as StopLite[]
+    snapshots = (snapsRes.data ?? []) as SnapshotLite[]
+  }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[900px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Portal
-          </Link>
-          <div className="flex items-center gap-2">
-            <GripVertical size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Route Order</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-          <p className="text-xs text-portal-muted mt-1">Pick a route to drag-drop reorder its stops. Saving creates a snapshot you can restore.</p>
-        </div>
-
-        {routes.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-portal-border p-8 text-center bg-white">
-            <p className="text-sm text-portal-sub">No active routes in this region yet.</p>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {routes.map(r => {
-              const pending = pendingByRoute.get(r.id) ?? 0
-              return (
-                <li key={r.id}>
-                  <Link
-                    href={`/admin/circulation/routes/${r.id}/reorder`}
-                    className="flex items-center gap-3 rounded-lg border border-portal-border bg-white p-3 hover:border-portal-border-2 transition-colors"
-                  >
-                    <GripVertical size={14} className="text-portal-border-2 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-portal-text truncate">{r.name}</p>
-                      <p className="text-[11px] text-portal-sub mt-0.5">
-                        {stopCounts.get(r.id) ?? 0} stops{r.city ? ` · ${r.city}` : ''}
-                      </p>
-                    </div>
-                    {pending > 0 && (
-                      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-portal-amber-lt text-portal-amber text-[10px] font-bold uppercase tracking-wider">
-                        <Clock size={10} /> {pending} driver suggestion{pending === 1 ? '' : 's'}
-                      </span>
-                    )}
-                    <ChevronRight size={14} className="text-portal-border-2 shrink-0" />
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
+    <RouteOrderClient
+      routes={routes}
+      currentRoute={currentRoute}
+      stops={stops}
+      snapshots={snapshots}
+    />
   )
 }
