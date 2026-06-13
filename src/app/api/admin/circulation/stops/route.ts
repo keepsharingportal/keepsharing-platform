@@ -30,6 +30,9 @@ const FIELDS = [
   'website','instagram','facebook','tiktok',
   'lat','lng','active','not_delivering','not_delivering_note','quantities',
   'sort_order','route_id',
+  // Migration 172 — bridge to advertiser_accounts so monthly tier-assignment
+  // job can derive ad_level from actual active ad placements.
+  'advertiser_account_id',
 ] as const
 
 type StopUpdate = Partial<Record<typeof FIELDS[number], unknown>>
