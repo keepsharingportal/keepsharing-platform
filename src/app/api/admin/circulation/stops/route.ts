@@ -26,7 +26,7 @@ function sb() {
 const FIELDS = [
   'name','address','city','zip','notes',
   'contact_name','contact_phone','contact_email',
-  'is_pickup','is_advertiser','is_featured','ad_level',
+  'is_pickup','is_advertiser','is_featured','ad_level','logo_path',
   'website','instagram','facebook','tiktok',
   'lat','lng','active','not_delivering','not_delivering_note','quantities',
   'sort_order','route_id',

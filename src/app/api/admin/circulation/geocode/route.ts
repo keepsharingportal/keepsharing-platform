@@ -76,10 +76,29 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const ctx = await requireAdmin()
-  const body = await req.json().catch(() => null) as { market?: string; limit?: number } | null
+  const body = await req.json().catch(() => null) as { market?: string; limit?: number; stop_id?: string } | null
   const market = body?.market?.trim() || 'rrp'
   const limit  = Math.min(25, body?.limit ?? 25)
+  const stopId = body?.stop_id?.trim()
   const client = sb()
+
+  // Single-stop mode — wired to the Add/Edit Stop modal's "Verify address
+  // & map it" button. Forces a re-geocode even when lat/lng are already
+  // set, so admins can re-verify after editing the address.
+  if (stopId) {
+    const { data } = await client
+      .from('circulation_stops')
+      .select('id, name, address, city, zip')
+      .eq('id', stopId)
+      .maybeSingle()
+    const s = data as Stop | null
+    if (!s) return NextResponse.json({ error: 'stop not found' }, { status: 404 })
+    const query = [s.address, s.city, s.zip].filter(Boolean).join(', ') || s.name
+    const hit = await nominatim(query)
+    if (!hit) return NextResponse.json({ ok: false, message: 'Address could not be located on OpenStreetMap.' }, { status: 200 })
+    await client.from('circulation_stops').update({ lat: hit.lat, lng: hit.lng }).eq('id', s.id)
+    return NextResponse.json({ ok: true, lat: hit.lat, lng: hit.lng })
+  }
 
   const { data: missing } = await client
     .from('circulation_stops')

@@ -30,7 +30,12 @@ interface StopRow  {
   notes: string | null; contact_name: string | null;
   contact_phone: string | null; contact_email: string | null;
   is_pickup: boolean; not_delivering: boolean; active: boolean;
-  is_featured: boolean; quantities: Record<string, number> | null;
+  is_featured: boolean; is_advertiser: boolean;
+  ad_level: string | null; logo_path: string | null;
+  website: string | null; instagram: string | null;
+  facebook: string | null; tiktok: string | null;
+  lat: number | null; lng: number | null;
+  quantities: Record<string, number> | null;
 }
 
 function bundles(used: number): number { return Math.round(used / 50) }
@@ -67,7 +72,9 @@ export default async function RoutesStopsPage({ searchParams }: PageProps) {
       .select(`
         id, route_id, sort_order, name, address, city, zip, notes,
         contact_name, contact_phone, contact_email,
-        is_pickup, not_delivering, active, is_featured, quantities
+        is_pickup, not_delivering, active, is_featured, is_advertiser,
+        ad_level, logo_path, website, instagram, facebook, tiktok,
+        lat, lng, quantities
       `)
       .eq('market', dbKey)
       .eq('route_id', currentRoute.id)

@@ -21,7 +21,12 @@ interface StopRow  {
   notes: string | null; contact_name: string | null;
   contact_phone: string | null; contact_email: string | null;
   is_pickup: boolean; not_delivering: boolean; active: boolean;
-  is_featured: boolean; quantities: Record<string, number> | null;
+  is_featured: boolean; is_advertiser?: boolean;
+  ad_level?: string | null; logo_path?: string | null;
+  website?: string | null; instagram?: string | null;
+  facebook?: string | null; tiktok?: string | null;
+  lat?: number | null; lng?: number | null;
+  quantities: Record<string, number> | null;
 }
 
 interface Props {
@@ -385,26 +390,46 @@ function RouteModal({ title, market, existing, onClose, onSaved }: {
   )
 }
 
-// ── Stop modal (add + edit, key fields only — full social/logo edit
-//    lives on the route detail page) ─────────────────────────────────────
+// ── Stop modal (add + edit) ─────────────────────────────────────────────
+// Verbatim field match against admin/routes.php Edit Stop form: business
+// name + address + city + zip + sort order + Verify address & map it
+// button (single-stop geocode) + per-pub qty + driver notes + contact
+// name/phone/email + Ad Level (None/Gold/Platinum) + Advertiser /
+// Currently not delivering / Active checkboxes + logo upload + website
+// + Instagram + Facebook + TikTok.
 function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }: {
   title: string; routeId: string; market: string; pubs: PubRow[]; existing?: StopRow;
   onClose: () => void; onSaved: () => void
 }) {
-  const [name,      setName]      = useState(existing?.name ?? '')
-  const [address,   setAddress]   = useState(existing?.address ?? '')
-  const [city,      setCity]      = useState(existing?.city ?? 'Montgomery')
-  const [zip,       setZip]       = useState(existing?.zip ?? '')
-  const [sortOrder, setSortOrder] = useState<number>(existing?.sort_order ?? 0)
-  const [notes,     setNotes]     = useState(existing?.notes ?? '')
-  const [active,    setActive]    = useState(existing?.active ?? true)
-  const [notDel,    setNotDel]    = useState(existing?.not_delivering ?? false)
+  const [name,         setName]         = useState(existing?.name ?? '')
+  const [address,      setAddress]      = useState(existing?.address ?? '')
+  const [city,         setCity]         = useState(existing?.city ?? 'Montgomery')
+  const [zip,          setZip]          = useState(existing?.zip ?? '')
+  const [sortOrder,    setSortOrder]    = useState<number>(existing?.sort_order ?? 0)
+  const [notes,        setNotes]        = useState(existing?.notes ?? '')
+  const [active,       setActive]       = useState(existing?.active ?? true)
+  const [notDel,       setNotDel]       = useState(existing?.not_delivering ?? false)
+  const [contactName,  setContactName]  = useState(existing?.contact_name  ?? '')
+  const [contactPhone, setContactPhone] = useState(existing?.contact_phone ?? '')
+  const [contactEmail, setContactEmail] = useState(existing?.contact_email ?? '')
+  const [adLevel,      setAdLevel]      = useState<string>(existing?.ad_level ?? '')
+  const [isAdvertiser, setIsAdvertiser] = useState(existing?.is_advertiser ?? false)
+  const [website,      setWebsite]      = useState(existing?.website   ?? '')
+  const [instagram,    setInstagram]    = useState(existing?.instagram ?? '')
+  const [facebook,     setFacebook]     = useState(existing?.facebook  ?? '')
+  const [tiktok,       setTiktok]       = useState(existing?.tiktok    ?? '')
+  const [logoPath,     setLogoPath]     = useState<string | null>(existing?.logo_path ?? null)
   const initialQty: Record<string, number> = useMemo(() => {
     const o: Record<string, number> = {}
     for (const p of pubs) o[p.short_name] = existing?.quantities?.[p.short_name] ?? 0
     return o
   }, [pubs, existing])
   const [quantities, setQuantities] = useState<Record<string, number>>(initialQty)
+  // Live geo state — initialized from server, updated when "Verify address" runs.
+  const [lat, setLat] = useState<number | null>(existing?.lat ?? null)
+  const [lng, setLng] = useState<number | null>(existing?.lng ?? null)
+  const [verifying,   setVerifying]   = useState(false)
+  const [verifyMsg,   setVerifyMsg]   = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
 
@@ -419,12 +444,24 @@ function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }:
         route_id:        routeId,
         name:            name.trim(),
         address:         address.trim() || null,
-        city:            city.trim() || null,
-        zip:             zip.trim() || null,
+        city:            city.trim()    || null,
+        zip:             zip.trim()     || null,
         sort_order:      sortOrder,
-        notes:           notes.trim() || null,
+        notes:           notes.trim()   || null,
         active,
         not_delivering:  notDel,
+        contact_name:    contactName.trim()  || null,
+        contact_phone:   contactPhone.trim() || null,
+        contact_email:   contactEmail.trim() || null,
+        // Mirror the PHP source: ad_level !== '' implies is_featured = true.
+        ad_level:        adLevel || '',
+        is_featured:     adLevel !== '',
+        is_advertiser:   isAdvertiser,
+        logo_path:       logoPath,
+        website:         website.trim()   || null,
+        instagram:       instagram.trim() || null,
+        facebook:        facebook.trim()  || null,
+        tiktok:          tiktok.trim()    || null,
         quantities,
       }
       const res = await fetch('/api/admin/circulation/stops', {
@@ -457,6 +494,44 @@ function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }:
     } finally { setBusy(false) }
   }
 
+  // Verify address — single-stop geocode through the existing batch endpoint
+  // (extended to take stop_id). Only available when editing an existing
+  // stop (we need an id; for new stops the operator saves first then
+  // re-opens to verify).
+  async function verifyAddress() {
+    if (!existing) { setVerifyMsg('Save the stop first, then verify.'); return }
+    if (!address.trim()) { setVerifyMsg('Enter an address first.'); return }
+    setVerifying(true)
+    setVerifyMsg(null)
+    try {
+      // Persist current address fields before geocoding so OSM hits the
+      // address the editor just typed (not what was on the server).
+      await fetch('/api/admin/circulation/stops', {
+        method:  'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({
+          id: existing.id,
+          address: address.trim() || null,
+          city:    city.trim()    || null,
+          zip:     zip.trim()     || null,
+        }),
+      })
+      const res = await fetch('/api/admin/circulation/geocode', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ market, stop_id: existing.id }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || !j.ok) {
+        setVerifyMsg(j.message ?? j.error ?? 'Could not locate that address.')
+        return
+      }
+      setLat(j.lat)
+      setLng(j.lng)
+      setVerifyMsg(null)
+    } finally { setVerifying(false) }
+  }
+
   return (
     <ModalShell title={title} onClose={onClose}>
       <div className="fg">
@@ -483,7 +558,37 @@ function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }:
           <input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))} />
         </div>
       </div>
-      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: `repeat(${pubs.length}, 1fr)`, gap: 12 }}>
+
+      {/* Verify address & map status */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+        padding: '8px 10px', borderRadius: 8,
+        background: 'var(--color-portal-blue-lt)',
+        marginBottom: 14,
+      }}>
+        <button
+          type="button"
+          onClick={verifyAddress}
+          disabled={verifying || !existing}
+          className="btn btn-ghost btn-sm"
+        >
+          {verifying ? 'Verifying…' : '📍 Verify address & map it'}
+        </button>
+        {lat != null && lng != null && (
+          <span style={{ fontSize: 12, color: 'var(--color-portal-green)' }}>
+            ✓ Mapped ({lat.toFixed(4)}, {lng.toFixed(4)})
+          </span>
+        )}
+        {(lat == null || lng == null) && !verifyMsg && (
+          <span className="text-muted text-xs">Not yet geocoded.</span>
+        )}
+        {verifyMsg && (
+          <span style={{ fontSize: 12, color: 'var(--color-portal-red)' }}>{verifyMsg}</span>
+        )}
+      </div>
+
+      {/* Per-publication quantities */}
+      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, pubs.length)}, 1fr)`, gap: 12 }}>
         {pubs.map(p => (
           <div key={p.id} className="fg">
             <label>{p.name} qty</label>
@@ -496,25 +601,88 @@ function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }:
           </div>
         ))}
       </div>
+
       <div className="fg">
         <label>Driver notes</label>
         <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
       </div>
-      <div style={{ display: 'flex', gap: 16, paddingTop: 4 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 400, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }}>
-          <input type="checkbox" style={{ width: 'auto' }} checked={active} onChange={e => setActive(e.target.checked)} /> Active
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 400, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }}>
-          <input type="checkbox" style={{ width: 'auto' }} checked={notDel} onChange={e => setNotDel(e.target.checked)} /> Currently not delivering
-        </label>
+
+      <div className="fg">
+        <label>Contact name</label>
+        <input value={contactName} onChange={e => setContactName(e.target.value)} />
+      </div>
+      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="fg">
+          <label>Contact phone</label>
+          <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} />
+        </div>
+        <div className="fg">
+          <label>Contact email</label>
+          <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
+        </div>
       </div>
 
-      {existing && (
-        <p className="text-muted text-xs" style={{ marginTop: 8 }}>
-          Need to edit advertiser fields, social links, or upload a logo?{' '}
-          <Link href={`/admin/circulation/routes/${routeId}`} className="text-blue-600 underline">Open deep editor →</Link>
-        </p>
-      )}
+      {/* Ad level + flags */}
+      <div style={{ borderTop: '1px solid var(--color-portal-border)', paddingTop: 12, marginTop: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div className="fg">
+            <label>Ad level (map display)</label>
+            <select value={adLevel} onChange={e => setAdLevel(e.target.value)}>
+              <option value="">None — standard stop</option>
+              <option value="gold">Gold — larger pin, website link</option>
+              <option value="platinum">Platinum — logo, all social links, highlighted card</option>
+            </select>
+            <div className="hint">Gold = quarter page advertiser · Platinum = full page / premium</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 22 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 400, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }}>
+              <input type="checkbox" style={{ width: 'auto' }} checked={isAdvertiser} onChange={e => setIsAdvertiser(e.target.checked)} /> Advertiser (internal tag)
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 400, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }}>
+              <input type="checkbox" style={{ width: 'auto' }} checked={notDel} onChange={e => setNotDel(e.target.checked)} /> Currently not delivering
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 400, textTransform: 'none', letterSpacing: 0, cursor: 'pointer' }}>
+              <input type="checkbox" style={{ width: 'auto' }} checked={active} onChange={e => setActive(e.target.checked)} /> Active
+            </label>
+          </div>
+        </div>
+
+        {/* Logo upload — currently surfaces the path field for Gold/Platinum.
+            Inline asset upload from this modal is the one piece NOT yet
+            ported from the PHP source (PHP wrote to /uploads/logos/); for
+            now logo_path is editable as a URL and Supabase Storage upload
+            is the next add-on. */}
+        <div className="fg">
+          <label>Logo URL <span style={{ fontWeight: 400, color: 'var(--color-portal-muted)' }}>(Gold and Platinum advertisers)</span></label>
+          <input
+            value={logoPath ?? ''}
+            onChange={e => setLogoPath(e.target.value || null)}
+            placeholder="https:// or /uploads/logos/…"
+          />
+          <div className="hint">Paste a hosted image URL. Inline upload from this modal is coming next.</div>
+        </div>
+
+        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="fg">
+            <label>Website</label>
+            <input value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://" />
+          </div>
+          <div className="fg">
+            <label>Instagram</label>
+            <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@handle" />
+          </div>
+        </div>
+        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="fg">
+            <label>Facebook</label>
+            <input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="https://facebook.com/page" />
+          </div>
+          <div className="fg">
+            <label>TikTok</label>
+            <input value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@handle" />
+          </div>
+        </div>
+      </div>
 
       {err && <p className="text-sm" style={{ color: 'var(--color-portal-red)', marginTop: 8 }}>{err}</p>}
 
@@ -529,6 +697,19 @@ function StopModal({ title, routeId, market, pubs, existing, onClose, onSaved }:
           </button>
         )}
       </div>
+
+      {/* Change history placeholder — currently we don't have a per-stop
+          audit log (admin_audit_log records ad placements, not stops).
+          Surface as "No recorded changes" so the section exists where the
+          source has it, and we can wire to a real log next pass. */}
+      {existing && (
+        <div style={{ borderTop: '1px solid var(--color-portal-border)', paddingTop: 12, marginTop: 16 }}>
+          <div className="text-muted text-xs" style={{ textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>
+            Change history
+          </div>
+          <p className="text-muted text-sm">No recorded changes for this location yet.</p>
+        </div>
+      )}
     </ModalShell>
   )
 }
