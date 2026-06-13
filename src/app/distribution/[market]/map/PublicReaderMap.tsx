@@ -88,6 +88,10 @@ function tierRank(t: 'top' | 'middle' | 'bottom' | null): number {
 }
 
 // ── Marker pin ────────────────────────────────────────────────────────────
+// Sizes are tuned to be easily visible against Google's default POI icons
+// (~26px). Standard tier is intentionally large enough to read at any
+// zoom level — Google street labels and business icons grow with zoom,
+// so small markers visually shrink in comparison.
 function TierPin({ stop, brandColor }: { stop: ReaderStop; brandColor: string }) {
   const tier = tierOf(stop)
   if (tier === 'top') {
@@ -95,27 +99,27 @@ function TierPin({ stop, brandColor }: { stop: ReaderStop; brandColor: string })
     if (stop.logo_path) {
       return (
         <div style={{
-          width: 36, height: 36, borderRadius: '50%',
+          width: 44, height: 44, borderRadius: '50%',
           background: 'white',
           border: `3px solid ${brandColor}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,.25)',
+          boxShadow: '0 3px 10px rgba(0,0,0,.3)',
           overflow: 'hidden',
           transform: 'translateY(-50%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={stop.logo_path} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <img src={stop.logo_path} alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
         </div>
       )
     }
     return (
       <div style={{
-        width: 28, height: 28, borderRadius: '50%',
+        width: 36, height: 36, borderRadius: '50%',
         background: brandColor, color: 'white',
         border: '3px solid white',
-        boxShadow: '0 2px 8px rgba(0,0,0,.25)',
+        boxShadow: '0 3px 10px rgba(0,0,0,.3)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 16, fontWeight: 800,
+        fontSize: 20, fontWeight: 800,
         transform: 'translateY(-50%)',
       }}>★</div>
     )
@@ -123,12 +127,12 @@ function TierPin({ stop, brandColor }: { stop: ReaderStop; brandColor: string })
   if (tier === 'middle') {
     return (
       <div style={{
-        width: 20, height: 20, borderRadius: '50%',
+        width: 28, height: 28, borderRadius: '50%',
         background: brandColor, color: 'white',
-        border: '2px solid white',
-        boxShadow: '0 1px 4px rgba(0,0,0,.3)',
+        border: '2.5px solid white',
+        boxShadow: '0 2px 6px rgba(0,0,0,.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 11, fontWeight: 800,
+        fontSize: 14, fontWeight: 800,
         transform: 'translateY(-50%)',
       }}>★</div>
     )
@@ -136,21 +140,21 @@ function TierPin({ stop, brandColor }: { stop: ReaderStop; brandColor: string })
   if (tier === 'bottom') {
     return (
       <div style={{
-        width: 14, height: 14, borderRadius: '50%',
+        width: 22, height: 22, borderRadius: '50%',
         background: 'white',
-        border: `3px solid ${brandColor}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,.3)',
+        border: `4px solid ${brandColor}`,
+        boxShadow: '0 2px 5px rgba(0,0,0,.3)',
         transform: 'translateY(-50%)',
       }} />
     )
   }
-  // Standard: small navy dot
+  // Standard: solid navy dot, big enough to compete with Google's POI markers
   return (
     <div style={{
-      width: 10, height: 10, borderRadius: '50%',
+      width: 18, height: 18, borderRadius: '50%',
       background: '#1A5FA8',
-      border: '2px solid white',
-      boxShadow: '0 1px 2px rgba(0,0,0,.25)',
+      border: '2.5px solid white',
+      boxShadow: '0 2px 4px rgba(0,0,0,.3)',
       transform: 'translateY(-50%)',
     }} />
   )
