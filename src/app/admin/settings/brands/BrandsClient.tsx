@@ -190,28 +190,12 @@ function BrandCard({ brand }: { brand: Brand }) {
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Primary color (hex)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={primary}
-                    onChange={e => setPrimary(e.target.value)}
-                    placeholder="#c4622d"
-                    className="flex-1 text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
-                  />
-                  {primary && <div className="w-7 h-7 rounded border border-portal-border" style={{ backgroundColor: primary }} />}
-                </div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Primary color</label>
+                <ColorInput value={primary} onChange={setPrimary} placeholder="#c4622d" />
               </div>
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Accent color (hex)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={accent}
-                    onChange={e => setAccent(e.target.value)}
-                    placeholder="#1a2744"
-                    className="flex-1 text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
-                  />
-                  {accent && <div className="w-7 h-7 rounded border border-portal-border" style={{ backgroundColor: accent }} />}
-                </div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Accent color</label>
+                <ColorInput value={accent}  onChange={setAccent}  placeholder="#1a2744" />
               </div>
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Facebook URL</label>
@@ -298,6 +282,39 @@ function BrandCard({ brand }: { brand: Brand }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Color input — text field for typing/pasting hex + a clickable swatch
+// that opens the native color picker. The two stay in sync. Invalid
+// strings (e.g. while the user is mid-edit at "#c46") are left alone in
+// the text field but the picker falls back to a neutral grey so we
+// don't crash the <input type="color"> which only accepts strict
+// 7-char hex.
+function ColorInput({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  const validHex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#cccccc'
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 text-xs font-mono px-2 py-1.5 border border-portal-border rounded-md bg-white"
+      />
+      {/* Native color picker — click the swatch to open the OS picker.
+          Outputs lowercase 7-char hex; we write it back into the text
+          field so both stay synced. */}
+      <input
+        type="color"
+        value={validHex}
+        onChange={e => onChange(e.target.value)}
+        title="Pick a color"
+        className="w-9 h-9 rounded border border-portal-border bg-white cursor-pointer"
+        style={{ padding: 2 }}
+      />
     </div>
   )
 }
