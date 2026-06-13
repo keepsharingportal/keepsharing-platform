@@ -380,6 +380,21 @@ function StopRow({ stop, ds, pubKeys, locked, onToggle, onNotes, onLeftovers, on
               {stop.address}{stop.city ? `, ${stop.city}` : ''}
             </p>
           )}
+          {/* Get directions — opens Google Maps / Apple Maps on the
+              driver's phone with the address pre-filled. Critical for
+              the 'walking up to a stop I've never been to' moment. */}
+          {stop.address && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white hover:bg-blue-700"
+              style={{ textDecoration: 'none' }}
+            >
+              🧭 Get directions
+            </a>
+          )}
           {stop.quantities && Object.keys(stop.quantities).length > 0 && (
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {Object.entries(stop.quantities).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(' · ')}

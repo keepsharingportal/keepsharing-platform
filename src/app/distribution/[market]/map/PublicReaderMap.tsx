@@ -57,10 +57,14 @@ export interface ReaderResource {
 }
 
 interface Props {
-  brand:     string
-  market:    string
-  stops:     ReaderStop[]
-  resources: ReaderResource[]
+  brand:        string
+  market:       string
+  stops:        ReaderStop[]
+  resources:    ReaderResource[]
+  /** Brand primary color (hex). Drives CTA buttons + map markers. */
+  brandColor?:  string
+  /** Brand accent color (hex). Used for the "Featured Partner" highlight. */
+  accentColor?: string
 }
 
 const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
@@ -200,7 +204,7 @@ function RecenterTo({ center }: { center: { lat: number; lng: number; radius: nu
   return null
 }
 
-export function PublicReaderMap({ brand, market, stops, resources }: Props) {
+export function PublicReaderMap({ brand, market, stops, resources, brandColor: brandColorProp, accentColor: accentColorProp }: Props) {
   const [tab,      setTab]      = useState<'all' | 'featured' | 'resources'>('all')
   const [search,   setSearch]   = useState('')
   const [focusId,  setFocusId]  = useState<string | null>(null)
@@ -209,7 +213,10 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
   const listRef  = useRef<HTMLDivElement | null>(null)
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  const brandColor = '#1A5FA8'   // RRP blue — TODO: pull from brand chrome per market
+  // Brand colors flow in from the server (chromeForBrand). Fall back to RRP
+  // blue if unset so the map still renders for un-themed markets.
+  const brandColor  = brandColorProp  ?? '#1A5FA8'
+  const accentColor = accentColorProp ?? brandColor
 
   // Geocode the search input when it's a 5-digit ZIP. Result fits the map
   // around that area + filters stops to within ~10mi.
@@ -359,12 +366,12 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
                 />
               </div>
               <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-                <TabButton active={tab === 'all'}        onClick={() => setTab('all')}>All</TabButton>
-                <TabButton active={tab === 'featured'}   onClick={() => setTab('featured')}>
+                <TabButton active={tab === 'all'} onClick={() => setTab('all')} brandColor={brandColor}>All</TabButton>
+                <TabButton active={tab === 'featured'} onClick={() => setTab('featured')} brandColor={brandColor}>
                   ★ Featured {featuredCount > 0 && <span style={{ opacity: 0.7 }}>({featuredCount})</span>}
                 </TabButton>
                 {resources.length > 0 && (
-                  <TabButton active={tab === 'resources'} onClick={() => setTab('resources')}>
+                  <TabButton active={tab === 'resources'} onClick={() => setTab('resources')} brandColor={brandColor}>
                     Resources
                   </TabButton>
                 )}
@@ -544,15 +551,35 @@ function FeaturedAndList({
   return (
     <div>
       {featured.length > 0 && (
-        <div style={{ padding: '8px 12px 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.6px', color: '#64748B' }}>
-          ★ Featured partners
+        <div style={{
+          padding: '14px 14px 8px',
+          background: `linear-gradient(180deg, ${hexToRgba(brandColor, 0.06)} 0%, transparent 100%)`,
+        }}>
+          <div style={{
+            fontSize: 10, fontWeight: 800,
+            textTransform: 'uppercase', letterSpacing: '.8px',
+            color: brandColor,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span style={{ fontSize: 12 }}>★</span> Featured partners
+          </div>
+          <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
+            These businesses partner with us — make sure to visit them!
+          </div>
         </div>
       )}
       {featured.map(s => (
         <ListRow key={s.id} stop={s} brandColor={brandColor} onPick={onPick} focusId={focusId} setRef={el => { itemRefs.current[s.id] = el }} />
       ))}
       {featured.length > 0 && standard.length > 0 && (
-        <div style={{ padding: '12px 12px 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.6px', color: '#64748B', borderTop: '1px solid #F1F5F9' }}>
+        <div style={{
+          padding: '14px 14px 8px',
+          fontSize: 10, fontWeight: 800,
+          textTransform: 'uppercase', letterSpacing: '.6px',
+          color: '#64748B',
+          borderTop: '1px solid #F1F5F9',
+          background: '#F8FAFC',
+        }}>
           All locations
         </div>
       )}
@@ -561,6 +588,15 @@ function FeaturedAndList({
       ))}
     </div>
   )
+}
+
+// Convert hex (#RRGGBB) to rgba(r, g, b, a) for translucent backgrounds
+function hexToRgba(hex: string, alpha: number): string {
+  const m = hex.replace('#', '')
+  const r = parseInt(m.slice(0, 2), 16)
+  const g = parseInt(m.slice(2, 4), 16)
+  const b = parseInt(m.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 function ListRow({
@@ -574,35 +610,77 @@ function ListRow({
 }) {
   const tier = tierOf(stop)
   const isActive = focusId === stop.id
+  // Featured stops get a brand-tinted background, brand-color left rail,
+  // hover-lift, and the top-tier ones get a "Partner" tag for a final
+  // touch of polish. Standard stops stay quiet.
+  const featuredBg = tier
+    ? `linear-gradient(90deg, ${hexToRgba(brandColor, tier === 'top' ? 0.10 : tier === 'middle' ? 0.07 : 0.04)} 0%, white 65%)`
+    : 'transparent'
+  const railWidth = tier === 'top' ? 4 : tier === 'middle' ? 3 : tier === 'bottom' ? 2 : 0
   return (
     <div
       ref={setRef}
       onClick={() => onPick(stop.id)}
       style={{
-        padding: '10px 14px',
+        padding: '12px 14px',
         borderBottom: '1px solid #F1F5F9',
         cursor: 'pointer',
-        background: isActive ? '#EFF6FF' : tier ? '#FFFBEB' : 'transparent',
-        borderLeft: tier === 'top' ? `3px solid ${brandColor}` : tier === 'middle' ? `2px solid ${brandColor}` : 'none',
-        display: 'flex', alignItems: 'center', gap: 10,
+        background: isActive ? hexToRgba(brandColor, 0.15) : featuredBg,
+        borderLeft: railWidth ? `${railWidth}px solid ${brandColor}` : 'none',
+        display: 'flex', alignItems: 'flex-start', gap: 10,
+        transition: 'background 120ms ease, transform 120ms ease, box-shadow 120ms ease',
+      }}
+      onMouseEnter={e => {
+        if (tier) {
+          e.currentTarget.style.background = hexToRgba(brandColor, 0.18)
+          e.currentTarget.style.boxShadow  = 'inset 0 0 0 1px ' + hexToRgba(brandColor, 0.25)
+        }
+      }}
+      onMouseLeave={e => {
+        if (!isActive) {
+          e.currentTarget.style.background = featuredBg
+          e.currentTarget.style.boxShadow  = 'none'
+        }
       }}
     >
       {stop.logo_path && tier ? (
         <div style={{
-          width: 36, height: 36, borderRadius: 8,
-          background: 'white', border: `1px solid #E2E8F0`,
+          width: tier === 'top' ? 48 : 40,
+          height: tier === 'top' ? 48 : 40,
+          borderRadius: 10,
+          background: 'white',
+          border: `1.5px solid ${tier === 'top' ? brandColor : '#E2E8F0'}`,
           flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden',
+          boxShadow: tier === 'top' ? `0 2px 6px ${hexToRgba(brandColor, 0.2)}` : 'none',
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={stop.logo_path} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <img src={stop.logo_path} alt="" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
         </div>
+      ) : tier ? (
+        <div style={{
+          width: 36, height: 36, borderRadius: 8,
+          background: hexToRgba(brandColor, 0.12),
+          color: brandColor,
+          flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, fontWeight: 800,
+        }}>★</div>
       ) : null}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: tier ? 700 : 500, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 4 }}>
-          {tier && <span style={{ color: brandColor }}>★</span>}
-          {stop.name}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: tier ? 800 : 500, color: '#0F1F37' }}>
+            {stop.name}
+          </span>
+          {tier === 'top' && (
+            <span style={{
+              fontSize: 9, fontWeight: 800,
+              textTransform: 'uppercase', letterSpacing: '.5px',
+              padding: '1px 6px', borderRadius: 4,
+              background: brandColor, color: 'white',
+            }}>Partner</span>
+          )}
         </div>
         {stop.address && (
           <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
@@ -610,7 +688,7 @@ function ListRow({
           </div>
         )}
         {tier === 'top' && (stop.website || stop.instagram || stop.facebook || stop.tiktok) && (
-          <div style={{ marginTop: 4, display: 'flex', gap: 8, fontSize: 10 }}>
+          <div style={{ marginTop: 5, display: 'flex', gap: 10, fontSize: 11, fontWeight: 700 }}>
             {stop.website   && <a href={stop.website}   target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: brandColor }}>Website</a>}
             {stop.instagram && <a href={stop.instagram} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: brandColor }}>Instagram</a>}
             {stop.facebook  && <a href={stop.facebook}  target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: brandColor }}>Facebook</a>}
@@ -712,7 +790,7 @@ function StopInfoCard({ stop, brandColor }: { stop: ReaderStop; brandColor: stri
   )
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({ active, onClick, children, brandColor }: { active: boolean; onClick: () => void; children: React.ReactNode; brandColor: string }) {
   return (
     <button
       type="button"
@@ -720,9 +798,9 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       style={{
         padding: '5px 10px',
         fontSize: 11, fontWeight: 700,
-        background: active ? '#1A5FA8' : 'transparent',
+        background: active ? brandColor : 'transparent',
         color: active ? 'white' : '#64748B',
-        border: '1px solid ' + (active ? '#1A5FA8' : '#E2E8F0'),
+        border: '1px solid ' + (active ? brandColor : '#E2E8F0'),
         borderRadius: 6,
         cursor: 'pointer',
       }}

@@ -14,6 +14,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { ALL_MARKET_SLUGS, marketDisplayName } from '@/lib/markets'
 import { regionForMarket } from '@/lib/circulation/regions'
+import { loadBrand, chromeForBrand } from '@/lib/brands'
 import { PublicReaderMap, type ReaderStop, type ReaderResource } from './PublicReaderMap'
 
 export const dynamic    = 'force-dynamic'
@@ -129,12 +130,22 @@ export default async function PublicMapPage({ params }: PageProps) {
 
   const resources: ReaderResource[] = ((resourcesRes.data ?? []) as ReaderResource[])
 
+  // Pull this brand's chrome so the reader map renders in the brand's
+  // own colors (coral on RRP, navy + amber on 50+, etc.) — matching the
+  // brand pin + the "Request a pickup location" CTA in the header.
+  const brandObj    = await loadBrand(market === 'boom' ? 'rr50plus' : market)
+  const chrome      = brandObj ? chromeForBrand(brandObj) : null
+  const brandColor  = chrome?.primaryColorHex ?? '#1A5FA8'
+  const accentColor = chrome?.accentColorHex  ?? brandColor
+
   return (
     <PublicReaderMap
       brand={brand}
       market={market}
       stops={stops}
       resources={resources}
+      brandColor={brandColor}
+      accentColor={accentColor}
     />
   )
 }
