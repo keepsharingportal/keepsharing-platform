@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
   if (!driver) return NextResponse.json({ error: 'Not a driver' }, { status: 403 })
 
   const body = await req.json().catch(() => null) as {
-    action?:           'submit-delivery' | 'submit-all'
+    action?:           'submit-delivery' | 'submit-all' | 'suggest-route-order'
     delivery_id?:      string
     delivery_stop_id?: string
     checked?:          boolean
@@ -138,10 +138,46 @@ export async function POST(req: NextRequest) {
     flag_note?:        string | null
     driver_notes?:     string           // for submit-delivery: route-level invoice note
     month?:            string           // YYYY-MM for submit-all
+    route_id?:         string           // for suggest-route-order
+    stop_order?:       string[]         // for suggest-route-order — stop ids in suggested order
+    suggestion_note?:  string           // for suggest-route-order
   } | null
   if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
 
   const sb = admin()
+
+  // ── suggest-route-order: driver proposes a new stop order for a route ───
+  if (body.action === 'suggest-route-order') {
+    if (!body.route_id || !Array.isArray(body.stop_order) || body.stop_order.length === 0) {
+      return NextResponse.json({ error: 'route_id and stop_order[] required' }, { status: 400 })
+    }
+    // Verify the driver is assigned to this route.
+    const { data: assignRow } = await sb
+      .from('circulation_driver_routes')
+      .select('route_id')
+      .eq('driver_id', driver.user_id)
+      .eq('route_id', body.route_id)
+      .maybeSingle()
+    if (!assignRow) return NextResponse.json({ error: 'Not assigned to this route' }, { status: 403 })
+
+    // Supersede any pending suggestion the driver already has for this route.
+    await sb.from('circulation_route_suggestions')
+      .update({ status: 'superseded' })
+      .eq('route_id', body.route_id)
+      .eq('driver_id', driver.user_id)
+      .eq('status', 'pending')
+
+    const { data: inserted, error } = await sb.from('circulation_route_suggestions').insert({
+      route_id:   body.route_id,
+      driver_id:  driver.user_id,
+      stop_order: JSON.stringify(body.stop_order),
+      status:     'pending',
+      note:       body.suggestion_note ?? null,
+    }).select('id').single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    return NextResponse.json({ ok: true, suggestion_id: (inserted as { id: string } | null)?.id })
+  }
 
   // ── submit-delivery: driver finishes their route, fires invoice email ───
   if (body.action === 'submit-delivery') {
