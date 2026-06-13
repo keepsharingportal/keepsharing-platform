@@ -86,7 +86,18 @@ export default async function PublicMapPage({ params }: PageProps) {
   const rawStops = (stopsRes.data ?? []) as RawStop[]
 
   // Filter to stops that actually carry THIS publication (quantity > 0
-  // for at least one of the publication's slug aliases).
+  // for at least one of the publication's slug aliases) AND have
+  // plausible coordinates. We log + drop stops whose lat/lng are way
+  // outside the regional bounding box — a single bad geocode (Coosa
+  // County instead of Montgomery, etc.) was pulling fit-bounds far off
+  // the actual cluster and making the map look empty.
+  function isPlausibleCoord(lat: number | null, lng: number | null): boolean {
+    if (lat == null || lng == null) return false
+    // Generous Southeast US bounding box. Anything outside is almost
+    // certainly a geocoder mistake. Tighten per-region later if needed.
+    return lat >= 29 && lat <= 36 && lng >= -89 && lng <= -83
+  }
+
   const stops: ReaderStop[] = rawStops
     .filter(s => {
       if (!s.quantities) return false
@@ -97,19 +108,23 @@ export default async function PublicMapPage({ params }: PageProps) {
       return false
     })
     .map(s => ({
-      id:        s.id,
-      name:      s.name,
-      address:   s.address,
-      city:      s.city,
-      zip:       s.zip,
-      lat:       s.lat,
-      lng:       s.lng,
-      ad_level:  (s.ad_level as ReaderStop['ad_level']) ?? null,
-      website:   s.website,
-      instagram: s.instagram,
-      facebook:  s.facebook,
-      tiktok:    s.tiktok,
-      logo_path: s.logo_path,
+      id:            s.id,
+      name:          s.name,
+      address:       s.address,
+      city:          s.city,
+      zip:           s.zip,
+      // Drop wildly-wrong coordinates here so the map still renders the
+      // stop in the list (so the editor can fix the geocode in admin),
+      // but it doesn't anchor the map bounds.
+      lat:           isPlausibleCoord(s.lat, s.lng) ? s.lat : null,
+      lng:           isPlausibleCoord(s.lat, s.lng) ? s.lng : null,
+      is_advertiser: !!s.is_advertiser,
+      ad_level:      (s.ad_level as ReaderStop['ad_level']) ?? null,
+      website:       s.website,
+      instagram:     s.instagram,
+      facebook:      s.facebook,
+      tiktok:        s.tiktok,
+      logo_path:     s.logo_path,
     }))
 
   const resources: ReaderResource[] = ((resourcesRes.data ?? []) as ReaderResource[])

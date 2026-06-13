@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronDown, Loader2, MessageSquare, Flag, X, Navigation, Package, Send, AlertCircle } from 'lucide-react'
 
 interface Route { id: string; name: string; city: string | null }
-interface Stop  { id: string; route_id: string; name: string; address: string | null; city: string | null; zip: string | null; sort_order: number; quantities: Record<string, number> | null; not_delivering: boolean; is_pickup?: boolean }
+interface Stop  { id: string; route_id: string; name: string; address: string | null; city: string | null; zip: string | null; sort_order: number; quantities: Record<string, number> | null; not_delivering: boolean; is_pickup?: boolean; is_advertiser?: boolean; ad_level?: string | null }
 interface Delivery { id: string; route_id: string; status?: string }
 interface DeliveryStop {
   id:             string
@@ -361,7 +361,20 @@ function StopRow({ stop, ds, pubKeys, locked, onToggle, onNotes, onLeftovers, on
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-foreground leading-tight truncate">{stop.name}</p>
+          <p className="font-bold text-foreground leading-tight truncate flex items-center gap-1.5">
+            {stop.is_advertiser && (
+              <span
+                title="Advertiser — give them a big smile!"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 18, height: 18, borderRadius: 4,
+                  background: '#FEF3C7', color: '#92400E',
+                  fontSize: 11, fontWeight: 800, flexShrink: 0,
+                }}
+              >★</span>
+            )}
+            <span className="truncate">{stop.name}</span>
+          </p>
           {stop.address && (
             <p className="text-xs text-muted-foreground truncate">
               {stop.address}{stop.city ? `, ${stop.city}` : ''}

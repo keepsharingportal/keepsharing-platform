@@ -30,6 +30,11 @@ export interface ReaderStop {
   zip:           string | null
   lat:           number | null
   lng:           number | null
+  /** is_advertiser is the editor's "this is a paying partner" flag.
+   *  Always drives at least the bottom tier (small star/ring) so every
+   *  advertiser is visually distinct from a community listing. ad_level
+   *  upgrades the treatment further when they have a current active ad. */
+  is_advertiser: boolean
   ad_level:      'top' | 'middle' | 'bottom' | 'platinum' | 'gold' | null
   website:       string | null
   instagram:     string | null
@@ -62,13 +67,17 @@ const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 const GOOGLE_MAPS_ID  = process.env.NEXT_PUBLIC_GOOGLE_MAPS_ID ?? 'DEMO_MAP_ID'
 
 // Normalize ad_level so legacy values (gold/platinum) map to the new
-// four-tier system. ad_level=null = standard.
+// four-tier system. is_advertiser=true ALWAYS gives at least 'bottom'
+// so checking the "Advertiser" box in the stop editor is enough to
+// differentiate that location on the map. ad_level upgrades further
+// when their current ad spend justifies it (set by the monthly
+// recompute job).
 function tierOf(stop: ReaderStop): 'top' | 'middle' | 'bottom' | null {
   const v = stop.ad_level
-  if (!v) return null
   if (v === 'top' || v === 'platinum') return 'top'
   if (v === 'middle' || v === 'gold')  return 'middle'
   if (v === 'bottom')                  return 'bottom'
+  if (stop.is_advertiser)              return 'bottom'
   return null
 }
 function tierRank(t: 'top' | 'middle' | 'bottom' | null): number {
@@ -312,7 +321,7 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
         </div>
       </header>
 
-      <main className="container py-4" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <main className="container py-4 reader-map-main">
         <div style={{ marginBottom: 10 }}>
           <h1 className="text-2xl md:text-3xl font-black text-foreground">Pick up locations</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
@@ -320,15 +329,14 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
           </p>
         </div>
 
-        <div style={{
-          flex: 1, minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: '340px 1fr',
-          gap: 16,
-        }}>
+        {/* Desktop: side-by-side, map sticky on the right.
+            Mobile: stacked — map sticks to the top, list below scrolls under it.
+            Heights are constrained so the map doesn't grow tall and push
+            the list off-screen on desktop. */}
+        <div className="reader-map-grid">
 
           {/* ── Left column: search + tabs + list + A-Z ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, background: 'white', borderRadius: 12, border: '1px solid var(--color-border, #e5e5e5)', overflow: 'hidden' }}>
+          <div className="reader-map-list-pane" style={{ display: 'flex', flexDirection: 'column', background: 'white', borderRadius: 12, border: '1px solid var(--color-border, #e5e5e5)', overflow: 'hidden' }}>
             <div style={{ padding: 12, borderBottom: '1px solid #E5E7EB' }}>
               <div style={{ position: 'relative' }}>
                 <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#94A3B8' }} />
@@ -414,7 +422,7 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
           </div>
 
           {/* ── Right column: map ── */}
-          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+          <div className="reader-map-map-pane" style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
             {!GOOGLE_MAPS_KEY ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#FEF3C7', color: '#92400E', fontSize: 13, padding: 20, textAlign: 'center' }}>
                 Map is loading… (set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY).
@@ -468,6 +476,51 @@ export function PublicReaderMap({ brand, market, stops, resources }: Props) {
           </Link>
         </p>
       </main>
+
+      <style jsx global>{`
+        .reader-map-main {
+          display: flex;
+          flex-direction: column;
+        }
+        @media (min-width: 900px) {
+          .reader-map-main {
+            min-height: calc(100vh - 70px);
+          }
+          .reader-map-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+          }
+          .reader-map-list-pane {
+            max-height: calc(100vh - 200px);
+          }
+          .reader-map-map-pane {
+            position: sticky;
+            top: 16px;
+            height: calc(100vh - 200px);
+          }
+        }
+        @media (max-width: 899px) {
+          /* Mobile: map up top (sticky), list below */
+          .reader-map-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .reader-map-map-pane {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            height: 50vh;
+            min-height: 320px;
+          }
+          .reader-map-list-pane {
+            min-height: 50vh;
+          }
+        }
+      `}</style>
     </div>
   )
 }
