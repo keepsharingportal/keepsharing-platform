@@ -1,17 +1,16 @@
-// /admin/circulation/deliveries — monthly invoice review.
+// /admin/circulation/deliveries — Deliveries (monthly invoice review).
 //
-// Shows every delivery for the active month. Drafts are work-in-progress
-// (drivers still checking off stops); submitted/reviewed are ready for
-// pay; paid is closed. Adjustment + reopen actions are inline.
+// Port of admin/deliveries.php from the v3_FINAL portal source. Single
+// table per month with month chip selector at top, stragglers warning
+// banner ("Not yet submitted for…"), and Mark paid / Reopen actions.
+// Pay sheet modal supports manual amount adjustment + note.
 
-import Link from 'next/link'
-import { ArrowLeft, Receipt } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { DeliveriesEditor, type DeliveryRow } from './DeliveriesEditor'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { DeliveriesClient, type DeliveryRow } from './DeliveriesClient'
 
-export const metadata = { title: 'Deliveries — Distribution' }
+export const metadata = { title: 'Deliveries — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
 interface PageProps { searchParams: Promise<{ month?: string }> }
@@ -30,70 +29,65 @@ export default async function DeliveriesPage({ searchParams }: PageProps) {
   const month  = sp.month?.trim() || thisMonth()
 
   const sb = createAdminClient()
+
   let deliveries: DeliveryRow[] = []
   let stragglers: Array<{ user_id: string; full_name: string }> = []
   let months: string[] = []
+
   try {
-    const { data: rows } = await sb
-      .from('circulation_deliveries')
-      .select(`
-        id, route_id, driver_id, month, status,
-        stops_completed, pay_calculated, pay_final, adjustment_note,
-        driver_notes, submitted_at, reviewed_at, paid_at,
-        circulation_routes(name),
-        circulation_drivers(full_name, email, rate_per_stop)
-      `)
-      .eq('market', dbKey)
-      .eq('month', month)
-      .order('status',       { ascending: true })
-      .order('submitted_at', { ascending: false, nullsFirst: false })
-    deliveries = (rows ?? []) as unknown as DeliveryRow[]
+    const [delsRes, monthsRes, driversRes, monthDelsRes] = await Promise.all([
+      sb.from('circulation_deliveries')
+        .select(`
+          id, route_id, driver_id, month, status,
+          stops_completed, pay_calculated, pay_final, adjustment_note,
+          submitted_at, paid_at,
+          circulation_routes(name),
+          circulation_drivers(full_name)
+        `)
+        .eq('market', dbKey)
+        .eq('month', month)
+        .order('status', { ascending: true })
+        .order('submitted_at', { ascending: false, nullsFirst: false }),
+      sb.from('circulation_deliveries')
+        .select('month')
+        .eq('market', dbKey)
+        .order('month', { ascending: false })
+        .limit(200),
+      sb.from('circulation_drivers')
+        .select('user_id, full_name, active')
+        .eq('market', dbKey)
+        .eq('active', true),
+      sb.from('circulation_deliveries')
+        .select('driver_id, status')
+        .eq('market', dbKey)
+        .eq('month', month),
+    ])
 
-    const { data: monthRows } = await sb
-      .from('circulation_deliveries')
-      .select('month').eq('market', dbKey).order('month', { ascending: false })
-    months = Array.from(new Set((monthRows ?? []).map(r => r.month as string)))
-
-    // Stragglers: assigned drivers who haven't submitted yet.
-    const { data: assigned } = await sb
-      .from('circulation_driver_routes')
-      .select('driver_id, circulation_drivers!inner(user_id, full_name, market, active)')
-    type ARow = { driver_id: string; circulation_drivers?: { user_id: string; full_name: string; market: string; active: boolean } | null }
-    const all = (assigned as ARow[] | null ?? [])
-      .filter(a => a.circulation_drivers?.market === dbKey && a.circulation_drivers?.active)
-    const submittedIds = new Set(deliveries.filter(d => d.status !== 'draft').map(d => d.driver_id))
-    const unique = new Map<string, string>()
-    for (const a of all) {
-      if (!submittedIds.has(a.driver_id)) unique.set(a.driver_id, a.circulation_drivers?.full_name ?? '')
+    type Joined = DeliveryRow & {
+      circulation_routes?:  { name?: string } | { name?: string }[] | null
+      circulation_drivers?: { full_name?: string } | { full_name?: string }[] | null
     }
-    stragglers = Array.from(unique.entries()).map(([user_id, full_name]) => ({ user_id, full_name }))
+    deliveries = ((delsRes.data ?? []) as unknown as Joined[]).map(d => {
+      const r = Array.isArray(d.circulation_routes)  ? d.circulation_routes[0]  : d.circulation_routes
+      const dr = Array.isArray(d.circulation_drivers) ? d.circulation_drivers[0] : d.circulation_drivers
+      return { ...d, route_name: r?.name ?? '(route)', driver_name: dr?.full_name ?? '(driver)' }
+    })
+
+    months = Array.from(new Set(((monthsRes.data ?? []) as Array<{ month: string }>).map(r => r.month))).slice(0, 24)
+    if (!months.includes(month)) months = [month, ...months]
+
+    const allDrivers   = (driversRes.data   ?? []) as Array<{ user_id: string; full_name: string }>
+    const monthlyDels  = (monthDelsRes.data ?? []) as Array<{ driver_id: string; status: string }>
+    const submittedSet = new Set(monthlyDels.filter(d => d.status !== 'draft').map(d => d.driver_id))
+    stragglers = allDrivers.filter(d => !submittedSet.has(d.user_id))
   } catch { /* table missing */ }
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[1100px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Routes
-          </Link>
-          <div className="flex items-center gap-2">
-            <Receipt size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Deliveries / Invoices</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-        </div>
-
-        <DeliveriesEditor
-          initialDeliveries={deliveries}
-          stragglers={stragglers}
-          months={months}
-          activeMonth={month}
-        />
-      </div>
-    </div>
+    <DeliveriesClient
+      month={month}
+      months={months}
+      deliveries={deliveries}
+      stragglers={stragglers}
+    />
   )
 }
