@@ -1,9 +1,10 @@
 // /distribution/[market]/driver/map — Full-screen route map (Google).
 //
-// Port of driver/map.php from the v3_FINAL portal source. Uses the
-// shared CirculationMap component (Google Maps, route-colored markers
-// + popup info windows). Shows only the driver's assigned routes; if
-// ?route=X is set, filters to that one.
+// Port of driver/map.php from the v3_FINAL portal source. Server
+// component fetches the driver's assigned routes + stops; rendering
+// lives in DriverMapClient (Client Component) because Next.js 16
+// requires `next/dynamic` with `ssr: false` to live in a Client
+// Component, not a Server Component.
 
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -11,12 +12,7 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ALL_MARKET_SLUGS, marketDisplayName } from '@/lib/markets'
-import dynamicImport from 'next/dynamic'
-
-const CirculationMap = dynamicImport(
-  () => import('@/components/circulation/CirculationMap').then(m => m.CirculationMap),
-  { ssr: false, loading: () => <div style={{ height: 'calc(100vh - 56px)', background: '#F1F5F9' }} /> },
-)
+import { DriverMapClient } from './DriverMapClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +38,7 @@ export default async function DriverMapPage({ params, searchParams }: PageProps)
     .eq('user_id', user.id)
     .eq('market', market)
     .maybeSingle()
-  if (!driverRow || !driverRow.active) {
+  if (!driverRow || !(driverRow as { active: boolean }).active) {
     return (
       <div style={{ maxWidth: 480, margin: '40px auto', padding: 20, textAlign: 'center' }}>
         <p>You don&apos;t have driver access for {marketDisplayName(market)}.</p>
@@ -94,12 +90,10 @@ export default async function DriverMapPage({ params, searchParams }: PageProps)
       </div>
 
       <div style={{ flex: 1, minHeight: 0 }}>
-        <CirculationMap
+        <DriverMapClient
           stops={stops.map(s => ({ ...s, ad_level: s.ad_level ?? undefined }))}
           routes={routes}
-          showSearch={false}
           showFilter={routes.length > 1}
-          height="100%"
         />
       </div>
     </div>
