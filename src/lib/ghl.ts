@@ -12,8 +12,9 @@
  * locationId is sent in the request body for contact upsert, and in query strings for lookups.
  *
  * Env var naming:
- *   PIT tokens:   GHL_PIT_RRP, GHL_PIT_BOOM, GHL_PIT_AOP, GHL_PIT_MBP, GHL_PIT_ESP, GHL_PIT_GPP
- *   Location IDs: GHL_LOCATION_ID_RRP, GHL_LOCATION_ID_BOOM, … (same pattern)
+ *   PIT tokens:   GHL_PIT_RRP, GHL_PIT_RR50PLUS, GHL_PIT_AOP, GHL_PIT_MBP, GHL_PIT_ESP, GHL_PIT_GPP
+ *   Location IDs: GHL_LOCATION_ID_RRP, GHL_LOCATION_ID_RR50PLUS, … (same pattern)
+ *   (GHL_PIT_BOOM and GHL_LOCATION_ID_BOOM remain as legacy aliases.)
  */
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
@@ -24,13 +25,20 @@ const GHL_VERSION = '2021-07-28'
 // ── Location ID resolution ────────────────────────────────────────────────────
 
 const SLUG_TO_LOC_ENV: Record<string, string> = {
-  rrp:  'GHL_LOCATION_ID_RRP',
-  boom: 'GHL_LOCATION_ID_BOOM',
-  rrb:  'GHL_LOCATION_ID_BOOM',
-  aop:  'GHL_LOCATION_ID_AOP',
-  mbp:  'GHL_LOCATION_ID_MBP',
-  esp:  'GHL_LOCATION_ID_ESP',
-  gpp:  'GHL_LOCATION_ID_GPP',
+  rrp:      'GHL_LOCATION_ID_RRP',
+  // River Region 50+ (formerly BOOM, renamed in migration 169). The new
+  // slug 'rr50plus' resolves to its own dedicated env var; 'boom' and
+  // 'rrb' stay as legacy aliases so any pre-rename data still routes.
+  // Both can point at the same GHL location until the sub-account is
+  // forked, or the operator can set GHL_LOCATION_ID_RR50PLUS to a new
+  // sub-account when the rebrand is fully cut over.
+  rr50plus: 'GHL_LOCATION_ID_RR50PLUS',
+  boom:     'GHL_LOCATION_ID_BOOM',
+  rrb:      'GHL_LOCATION_ID_BOOM',
+  aop:      'GHL_LOCATION_ID_AOP',
+  mbp:      'GHL_LOCATION_ID_MBP',
+  esp:      'GHL_LOCATION_ID_ESP',
+  gpp:      'GHL_LOCATION_ID_GPP',
 }
 
 function resolveLocationId(publicationSlug: string): string | null {
@@ -43,13 +51,18 @@ function resolveLocationId(publicationSlug: string): string | null {
 // ── Sub-account PIT resolution ────────────────────────────────────────────────
 
 const SLUG_TO_PIT_ENV: Record<string, string> = {
-  rrp:  'GHL_PIT_RRP',
-  boom: 'GHL_PIT_BOOM',
-  rrb:  'GHL_PIT_BOOM',
-  aop:  'GHL_PIT_AOP',
-  mbp:  'GHL_PIT_MBP',
-  esp:  'GHL_PIT_ESP',
-  gpp:  'GHL_PIT_GPP',
+  rrp:      'GHL_PIT_RRP',
+  // See SLUG_TO_LOC_ENV above — same rename pattern. Set GHL_PIT_RR50PLUS
+  // when the new sub-account PIT is provisioned; falls back to NULL until
+  // then and the integration call cleanly errors instead of leaking BOOM's
+  // PIT under the rebrand slug.
+  rr50plus: 'GHL_PIT_RR50PLUS',
+  boom:     'GHL_PIT_BOOM',
+  rrb:      'GHL_PIT_BOOM',
+  aop:      'GHL_PIT_AOP',
+  mbp:      'GHL_PIT_MBP',
+  esp:      'GHL_PIT_ESP',
+  gpp:      'GHL_PIT_GPP',
 }
 
 function resolvePit(publicationSlug: string): string | null {
@@ -61,7 +74,10 @@ function resolvePit(publicationSlug: string): string | null {
 
 // Keep uppercase abbreviations working too (for legacy callers)
 const ABBREV_SLUG: Record<string, string> = {
-  RRP: 'rrp', RRB: 'boom', AOP: 'aop', MBP: 'mbp', ESP: 'esp', GPP: 'gpp',
+  RRP: 'rrp', RR50PLUS: 'rr50plus',
+  // Legacy aliases — BOOM was renamed to River Region 50+ in migration 169.
+  RRB: 'rr50plus', BOOM: 'rr50plus',
+  AOP: 'aop', MBP: 'mbp', ESP: 'esp', GPP: 'gpp',
 }
 export function getLocationId(publication: string): string {
   const slug = ABBREV_SLUG[publication.toUpperCase()] ?? publication.toLowerCase()
