@@ -54,6 +54,34 @@ const TIER_BADGE: Record<AdvertiserView['tier'], string> = {
   bottom: 'badge-gray',
 }
 
+function RecomputeTiersButton({ month }: { month: string }) {
+  const [busy, setBusy] = useState(false)
+  async function run() {
+    if (!confirm(`Recompute ad tiers for ${month}? Reads every linked advertiser's largest active print ad and writes the matching tier (top / middle / bottom / none) to their distribution stops.`)) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/circulation/recompute-tiers', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ issue_month: month }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { alert(j.error ?? 'Recompute failed.'); return }
+      const s = j.summary ?? {}
+      alert(
+        `Recompute complete:\n` +
+        `  Scanned ${j.scanned} linked stops\n` +
+        `  Updated ${j.updated} (top: ${s.to_top}, middle: ${s.to_middle}, bottom: ${s.to_bottom}, cleared: ${s.cleared})`
+      )
+    } finally { setBusy(false) }
+  }
+  return (
+    <button type="button" onClick={run} disabled={busy} className="btn btn-primary btn-sm">
+      {busy ? 'Recomputing…' : 'Recompute tiers'}
+    </button>
+  )
+}
+
 export function AdMatchClient({
   month, monthLabel, regionName,
   migrationsMissing, supportsArchive,
@@ -68,6 +96,7 @@ export function AdMatchClient({
           <div className="text-muted text-sm">{monthLabel} · {regionName}</div>
         </div>
         <div className="ph-actions">
+          <RecomputeTiersButton month={month} />
           <form method="get" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <label className="text-xs text-muted">Issue:</label>
             <input

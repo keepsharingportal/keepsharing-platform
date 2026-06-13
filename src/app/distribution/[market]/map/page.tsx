@@ -1,32 +1,31 @@
 // /distribution/[market]/map — public pickup-location map.
 //
-// Anyone can hit this — no auth needed. Shows every active stop in the
-// market on a Leaflet map with route filter chips, search, and featured
-// advertiser badges on the popups. Ports the PHP `public/_map_template.php`
-// layout into our Next.js + Supabase stack.
+// Anyone can hit this — no auth needed. The market slug in the URL is the
+// PUBLICATION the reader is looking for (rrp, rr50plus, aop, etc.). We
+// resolve that to the underlying region (a multi-publication area can
+// share one set of stops with different quantities per pub), then filter
+// the stops down to those that actually carry copies of this publication.
 //
-// URL pattern: /distribution/rrp/map, /distribution/boom/map, etc. The
-// market slug is validated against ALL_MARKET_SLUGS — unknown markets
-// 404. Each market gets the same template; the only difference is the
-// stops data + brand name.
+// Result: /distribution/rrp/map shows every stop carrying RRP, and
+// /distribution/rr50plus/map shows every stop carrying Boom/50+ —
+// possibly the same physical addresses, possibly different.
 
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { Navigation as NavIcon, ExternalLink, Mail } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import { ALL_MARKET_SLUGS, marketDisplayName } from '@/lib/markets'
-import { PublicMapClient } from './PublicMapClient'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { PublicReaderMap, type ReaderStop, type ReaderResource } from './PublicReaderMap'
 
-export const dynamic   = 'force-dynamic'
+export const dynamic    = 'force-dynamic'
 export const revalidate = 120
 
 interface PageProps { params: Promise<{ market: string }> }
 
 export async function generateMetadata({ params }: PageProps) {
   const { market } = await params
-  if (!ALL_MARKET_SLUGS.includes(market)) return {}
+  if (!ALL_MARKET_SLUGS.includes(market) && market !== 'boom') return {}
   return {
-    title: `Pick Up ${marketDisplayName(market)} — Locations Map`,
+    title:       `Pick up ${marketDisplayName(market)} — locations map`,
     description: `Find a free copy of ${marketDisplayName(market)} near you.`,
   }
 }
@@ -39,58 +38,88 @@ function sb() {
   )
 }
 
+// Build the list of publication keys to look for in quantities — accepts
+// both the new slug and any legacy alias for the same publication.
+function quantityKeysFor(publicationSlug: string): string[] {
+  if (publicationSlug === 'rr50plus' || publicationSlug === 'boom') return ['rr50plus', 'boom']
+  return [publicationSlug]
+}
+
 export default async function PublicMapPage({ params }: PageProps) {
   const { market } = await params
-  if (!ALL_MARKET_SLUGS.includes(market)) notFound()
+  if (!ALL_MARKET_SLUGS.includes(market) && market !== 'boom') notFound()
+
+  // market here is a PUBLICATION slug. Resolve to the region whose stops
+  // table contains the data.
+  const region        = regionForMarket(market)
+  const dbKey         = region.slug
+  const pubKeys       = quantityKeysFor(market)
+  const brand         = marketDisplayName(market)
 
   const client = sb()
-  const [routesRes, stopsRes] = await Promise.all([
-    client.from('circulation_routes').select('id, name').eq('market', market).eq('active', true),
+  const [stopsRes, resourcesRes] = await Promise.all([
     client.from('circulation_stops')
-      .select('id, route_id, name, address, city, zip, lat, lng, is_advertiser, is_featured, ad_level, website, instagram, facebook, tiktok, logo_path, quantities')
-      .eq('market', market)
+      .select(`
+        id, name, address, city, zip, lat, lng,
+        is_advertiser, ad_level, advertiser_account_id,
+        website, instagram, facebook, tiktok, logo_path,
+        quantities
+      `)
+      .eq('market', dbKey)
+      .eq('active', true)
+      .eq('not_delivering', false)
+      .eq('is_pickup', false),
+    client.from('circulation_resources')
+      .select('id, name, category, description, address, city, phone, email, website, logo_path, photo_path')
+      .eq('market', dbKey)
       .eq('active', true),
   ])
-  const routes = (routesRes.data ?? []) as Array<{ id: string; name: string }>
-  const stops  = (stopsRes.data ?? []) as Parameters<typeof PublicMapClient>[0]['stops']
 
-  const brand = marketDisplayName(market)
+  type RawStop = {
+    id: string; name: string; address: string | null; city: string | null; zip: string | null;
+    lat: number | null; lng: number | null;
+    is_advertiser: boolean; ad_level: string | null; advertiser_account_id: string | null;
+    website: string | null; instagram: string | null; facebook: string | null; tiktok: string | null;
+    logo_path: string | null;
+    quantities: Record<string, number> | null;
+  }
+  const rawStops = (stopsRes.data ?? []) as RawStop[]
+
+  // Filter to stops that actually carry THIS publication (quantity > 0
+  // for at least one of the publication's slug aliases).
+  const stops: ReaderStop[] = rawStops
+    .filter(s => {
+      if (!s.quantities) return false
+      for (const k of pubKeys) {
+        const q = s.quantities[k]
+        if (typeof q === 'number' && q > 0) return true
+      }
+      return false
+    })
+    .map(s => ({
+      id:        s.id,
+      name:      s.name,
+      address:   s.address,
+      city:      s.city,
+      zip:       s.zip,
+      lat:       s.lat,
+      lng:       s.lng,
+      ad_level:  (s.ad_level as ReaderStop['ad_level']) ?? null,
+      website:   s.website,
+      instagram: s.instagram,
+      facebook:  s.facebook,
+      tiktok:    s.tiktok,
+      logo_path: s.logo_path,
+    }))
+
+  const resources: ReaderResource[] = ((resourcesRes.data ?? []) as ReaderResource[])
 
   return (
-    <div className="min-h-screen bg-background public-page">
-      {/* Header strip — branded, simple. Links back to the main site. */}
-      <header className="border-b border-border bg-card">
-        <div className="container py-4 flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <NavIcon className="h-5 w-5 text-primary" />
-            <span className="text-lg font-black tracking-tight">{brand}</span>
-          </Link>
-          <Link
-            href={`/distribution/${market}/request`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Mail className="h-3.5 w-3.5" /> Request a Pickup Location
-          </Link>
-        </div>
-      </header>
-
-      <main className="container py-6 space-y-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-black text-foreground">Pick Up Locations</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            {stops.length} places across the {brand} area where you can grab a free copy. Filter by route or search by name.
-          </p>
-        </div>
-
-        <PublicMapClient stops={stops} routes={routes} />
-
-        <p className="text-xs text-muted-foreground">
-          Don&apos;t see your favorite spot?{' '}
-          <Link href={`/distribution/${market}/request`} className="text-primary hover:underline inline-flex items-center gap-1">
-            Suggest a location <ExternalLink className="h-3 w-3" />
-          </Link>
-        </p>
-      </main>
-    </div>
+    <PublicReaderMap
+      brand={brand}
+      market={market}
+      stops={stops}
+      resources={resources}
+    />
   )
 }

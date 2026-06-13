@@ -20,7 +20,9 @@ export interface CirculationRegion {
 }
 
 export const CIRCULATION_REGIONS: CirculationRegion[] = [
-  { slug: 'rrp',  name: 'River Region',  city: 'Montgomery', publications: ['rrp', 'boom'] },
+  // 'boom' kept as a publication alias so legacy data + URLs still resolve to the
+  // River Region. New brand identity is 'rr50plus' (migration 169).
+  { slug: 'rrp',  name: 'River Region',  city: 'Montgomery', publications: ['rrp', 'rr50plus', 'boom'] },
   { slug: 'aop',  name: 'Auburn-Opelika', city: 'Auburn',    publications: ['aop']         },
   { slug: 'mbp',  name: 'Mobile Bay',     city: 'Mobile',    publications: ['mbp']         },
   { slug: 'esp',  name: 'Eastern Shore',  city: 'Daphne',    publications: ['esp']         },
