@@ -41,15 +41,22 @@ export async function GET(req: NextRequest) {
   const url    = new URL(req.url)
   const market = url.searchParams.get('market')?.trim() || 'rrp'
   const format = url.searchParams.get('format')?.trim().toLowerCase() || 'csv'
+  // Optional per-route filter — mirrors the PHP source's `?route=X`
+  // single-route export. Accept either `route_id` (canonical) or `route`
+  // (PHP-style) for compat with any code that copies links from the
+  // legacy portal.
+  const routeId = url.searchParams.get('route_id')?.trim() || url.searchParams.get('route')?.trim() || null
 
   const client = sb()
+  const stopsQuery = client.from('circulation_stops')
+    .select('*')
+    .eq('market', market)
+    .order('route_id')
+    .order('sort_order')
+  if (routeId) stopsQuery.eq('route_id', routeId)
   const [routesRes, stopsRes] = await Promise.all([
     client.from('circulation_routes').select('id, name').eq('market', market),
-    client.from('circulation_stops')
-      .select('*')
-      .eq('market', market)
-      .order('route_id')
-      .order('sort_order'),
+    stopsQuery,
   ])
   const routeName = new Map<string, string>()
   for (const r of (routesRes.data ?? [])) routeName.set(r.id as string, r.name as string)

@@ -1,70 +1,87 @@
-// /admin/circulation/import — dedicated landing for the JSON importer.
+// /admin/circulation/import — Import & Export Stops.
 //
-// Same importer that lives at the bottom of the Dashboard, but surfaced
-// as its own sidebar item because it's a discrete operational task
-// (matches the PHP portal's Import Stops menu entry).
+// Verbatim port of admin/import.php from the v3_FINAL portal source.
+// Two-column grid (Export | Import) on top, per-route summary table
+// below. Per the source semantics, Import is an UPSERT not a wipe — the
+// existing Next.js endpoint matches by (market, route_id, sort_order,
+// name) so re-uploading updates without duplicating.
 
-import Link from 'next/link'
-import { ArrowLeft, Upload } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { regionForMarket, publicationLabelsForRegion } from '@/lib/circulation/regions'
-import { CirculationImporter } from '../CirculationImporter'
+import { regionForMarket } from '@/lib/circulation/regions'
+import { ImportExportClient } from './ImportExportClient'
 
-export const metadata = { title: 'Import Stops — Distribution' }
+export const metadata = { title: 'Import & Export Stops — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
 
-export default async function ImportPage() {
+interface PubRow   { id: string; short_name: string; abbrev: string; color_hex: string; sort_order: number }
+interface RouteRow { id: string; name: string; active: boolean; sort_order: number }
+interface StopAgg  { route_id: string; lat: number | null; quantities: Record<string, number> | null; is_pickup: boolean; active: boolean }
+
+export default async function ImportExportPage() {
   const ctx    = await requireAdmin()
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  // Pull current counts so the admin can see what they're about to overwrite.
-  let routeCount = 0
-  let stopCount  = 0
+  let pubs:   PubRow[]   = []
+  let routes: RouteRow[] = []
+  let stops:  StopAgg[]  = []
+
   try {
-    const [rRes, sRes] = await Promise.all([
-      sb.from('circulation_routes').select('id', { count: 'exact', head: true }).eq('market', dbKey),
-      sb.from('circulation_stops').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('active', true),
+    const [pubsRes, routesRes, stopsRes] = await Promise.all([
+      sb.from('circulation_publications').select('id, short_name, abbrev, color_hex, sort_order').order('sort_order'),
+      sb.from('circulation_routes')
+        .select('id, name, active, sort_order')
+        .eq('market', dbKey)
+        .eq('active', true)
+        .order('sort_order')
+        .order('name'),
+      sb.from('circulation_stops')
+        .select('route_id, lat, quantities, is_pickup, active')
+        .eq('market', dbKey)
+        .eq('active', true)
+        .eq('is_pickup', false),
     ])
-    routeCount = rRes.count ?? 0
-    stopCount  = sRes.count ?? 0
-  } catch { /* table missing */ }
+    pubs   = (pubsRes.data ?? [])   as PubRow[]
+    routes = (routesRes.data ?? []) as RouteRow[]
+    stops  = (stopsRes.data ?? [])  as StopAgg[]
+  } catch { /* tables missing */ }
+
+  // Per-route aggregates for the summary table.
+  const countByRoute    = new Map<string, number>()
+  const geoByRoute      = new Map<string, number>()
+  const pubTotalsByRoute = new Map<string, Map<string, number>>()
+  for (const s of stops) {
+    countByRoute.set(s.route_id, (countByRoute.get(s.route_id) ?? 0) + 1)
+    if (s.lat != null) geoByRoute.set(s.route_id, (geoByRoute.get(s.route_id) ?? 0) + 1)
+    const m = pubTotalsByRoute.get(s.route_id) ?? new Map<string, number>()
+    for (const [pub, qty] of Object.entries(s.quantities ?? {})) {
+      m.set(pub, (m.get(pub) ?? 0) + (typeof qty === 'number' ? qty : 0))
+    }
+    pubTotalsByRoute.set(s.route_id, m)
+  }
+
+  const totalStops = stops.length
+  const totalGeocoded = stops.filter(s => s.lat != null).length
+
+  const routesSummary = routes.map(r => ({
+    id:        r.id,
+    name:      r.name,
+    stopCount: countByRoute.get(r.id) ?? 0,
+    geocoded:  geoByRoute.get(r.id) ?? 0,
+    perPub:    Object.fromEntries(pubTotalsByRoute.get(r.id) ?? new Map<string, number>()),
+  }))
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16">
-      <div className="max-w-[900px] mx-auto space-y-6">
-
-        <div>
-          <Link href="/admin/circulation" className="inline-flex items-center gap-1 text-xs text-portal-blue hover:underline mb-1">
-            <ArrowLeft size={11} /> Distribution Portal
-          </Link>
-          <div className="flex items-center gap-2">
-            <Upload size={18} className="text-portal-blue" />
-            <h1 className="text-xl font-bold text-portal-text tracking-tight">Import Stops</h1>
-          </div>
-          <p className="text-sm text-portal-sub mt-1">
-            Region: <span className="font-semibold text-portal-text">{region.name}</span>
-            <span className="text-portal-muted"> · </span>{publicationLabelsForRegion(region)}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-portal-amber/30 bg-portal-amber-lt p-3 text-sm text-portal-amber">
-          <p className="font-bold mb-1">Heads-up — this is a replace, not a merge</p>
-          <p className="text-xs">
-            Currently in the system: <span className="font-bold">{routeCount} routes</span> · <span className="font-bold">{stopCount} active stops</span>.
-            Importing wipes every existing stop in this region and rebuilds from the file. Routes are matched by name (existing routes are kept).
-          </p>
-        </div>
-
-        <CirculationImporter
-          market={dbKey}
-          regionName={region.name}
-          pubLabels={publicationLabelsForRegion(region)}
-        />
-      </div>
-    </div>
+    <ImportExportClient
+      market={dbKey}
+      pubs={pubs}
+      routes={routes.map(r => ({ id: r.id, name: r.name }))}
+      routesSummary={routesSummary}
+      totalStops={totalStops}
+      totalGeocoded={totalGeocoded}
+    />
   )
 }
