@@ -112,6 +112,21 @@ export async function PATCH(req: NextRequest) {
   if (!body?.id) return NextResponse.json({ error: 'id required' }, { status: 400 })
   const updates: Record<string, unknown> = {}
   for (const f of FIELDS) if (body[f] !== undefined) updates[f] = body[f]
+
+  // Auto-set is_advertiser=true whenever the caller sets advertiser_account_id
+  // to a non-null value. This is the path the ad-match "Link" button takes —
+  // editorial expects linking a stop to an advertiser to AUTOMATICALLY mark
+  // it as an advertiser stop on the map + driver star. They shouldn't have
+  // to check the box separately.
+  if (updates.advertiser_account_id != null && updates.is_advertiser === undefined) {
+    updates.is_advertiser = true
+  }
+  // And vice-versa: if the caller is clearing the FK, drop is_advertiser
+  // back to false unless they explicitly set it.
+  if (updates.advertiser_account_id === null && updates.is_advertiser === undefined) {
+    updates.is_advertiser = false
+  }
+
   const { error } = await sb().from('circulation_stops').update(updates).eq('id', body.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
