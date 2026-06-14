@@ -185,6 +185,34 @@ export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props)
 
   return (
     <section>
+      {/* Prominent Submit-a-School-Bit CTA — sits above the magazine
+          block so school staff + parents see a clear submission path
+          before scrolling through bits. Same coral-strip pattern as
+          the Submit-an-Event CTA on /calendar so the two recurring
+          submission paths feel consistent across the site. */}
+      <Link
+        href="/school-bits/submit"
+        className="group mb-4 md:mb-6 flex items-center justify-between gap-4 bg-primary text-primary-foreground rounded-2xl px-5 py-4 md:px-6 md:py-5 shadow-sm hover:opacity-95 transition-opacity"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="hidden sm:flex h-10 w-10 shrink-0 rounded-xl bg-white/15 items-center justify-center">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-base md:text-lg font-bold leading-tight">
+              Got a school story to share? Submit a School Bit.
+            </p>
+            <p className="text-xs md:text-sm text-primary-foreground/85 leading-snug mt-0.5">
+              Free to submit — Purple Star awards, championship wins, science fair winners, community service stories.
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 inline-flex items-center gap-1.5 text-sm font-bold whitespace-nowrap">
+          Submit a School Bit
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </Link>
+
       {/* ── FEATURED + SIDEBAR (8/4 magazine block) ────────────────────────── */}
       <div className="grid lg:grid-cols-12 gap-4 md:gap-6">
 
@@ -325,7 +353,7 @@ export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props)
                 className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-primary text-primary-foreground rounded-full text-sm md:text-base font-bold hover:bg-primary/90 shadow-sm hover:shadow-md transition-all group"
               >
                 <Sparkles className="h-4 w-4" />
-                See the Latest School Bits
+                See All School Bits
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
@@ -366,6 +394,14 @@ function FeaturedCard({ bit, area, isPrivate }: { bit: BitForFeatured; area: Are
         <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full ${badgeClass} shadow-sm`}>
           <MapPin className="h-2.5 w-2.5" /> {badgeLabel}
         </span>
+      </div>
+
+      {/* SchoolBits wordmark in the top-right — mirrors the
+          treatment on every SupportingCard below so the hero card
+          visually ties to the rest of the section instead of
+          standing apart with only a locale badge. */}
+      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-md shadow-sm">
+        <SchoolBitsLogo size="sm" />
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">

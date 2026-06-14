@@ -13,6 +13,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { Camera, Sparkles, Mail } from 'lucide-react'
+import { SchoolBitsLogo } from '@/components/school-zone/SchoolBitsLogo'
 import { SubmitForm } from './SubmitForm'
 
 export const metadata: Metadata = {
@@ -73,16 +74,20 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-foreground) 1px, transparent 0)', backgroundSize: '24px 24px' }}
         />
         <div className="container relative z-10 py-12 md:py-16 text-center max-w-3xl">
-          <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground mb-5 shadow-sm">
-            <Sparkles className="h-4 w-4" />
-            School Bits
+          {/* SchoolBits wordmark logo sits above the title — same
+              treatment used on every supporting card in the rest of
+              the section, so the form reads as part of the brand
+              rather than a generic submission page. Replaces the
+              old green "School Bits" pill badge. */}
+          <div className="mb-5 flex justify-center">
+            <SchoolBitsLogo size="md" />
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-foreground mb-4 leading-tight">
             Share Your School&apos;s News
           </h1>
           <p className="text-lg md:text-xl text-foreground/80 leading-snug mb-2">
             Got a Purple Star award, a science fair winner, a band championship, or a community service story to celebrate?
-            Submit it here — we&apos;ll feature it on the site and consider it for the next print issue.
+            Submit it here — we&apos;ll feature it on the site and in the next print issue.
           </p>
         </div>
       </section>
@@ -130,12 +135,15 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
 
 function FootCard({ icon, title, body }: { icon: React.ReactNode; title: string; body: React.ReactNode }) {
   return (
-    <div className="bg-card border border-border/50 rounded-2xl p-5">
+    // min-w-0 + overflow-hidden on the card + break-words on the body
+    // text so long email addresses (editor@riverregionparents.com) wrap
+    // INSIDE the card instead of spilling over the right edge.
+    <div className="bg-card border border-border/50 rounded-2xl p-5 min-w-0 overflow-hidden">
       <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
         {icon}
       </div>
       <p className="font-bold text-foreground mb-1">{title}</p>
-      <p className="text-muted-foreground leading-relaxed text-[13px]">{body}</p>
+      <p className="text-muted-foreground leading-relaxed text-[13px] break-words">{body}</p>
     </div>
   )
 }
