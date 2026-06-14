@@ -18,6 +18,7 @@ import { SPONSOR_CATEGORIES } from '@/lib/sponsors/categories'
 import { AISectionFiller, type Candidate as AICandidate } from './AISectionFiller'
 import { AINewsletterSubjects } from './AINewsletterSubjects'
 import { AISocialCaption } from './AISocialCaption'
+import { NewsletterSaveDraft } from './NewsletterSaveDraft'
 
 export const metadata: Metadata = { title: 'Distribution — Admin' }
 
@@ -1049,9 +1050,20 @@ export default async function DistributionPage({
 
           {/* Export panel */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-portal-text">Newsletter Export</h2>
-              <span className="text-[11px] text-portal-muted">Select all and copy into your email tool</span>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-portal-text">Newsletter Export</h2>
+                <span className="text-[11px] text-portal-muted">Save the draft below so you don&apos;t lose it on browser close; copy the HTML/text into your ESP for now.</span>
+              </div>
+              <NewsletterSaveDraft
+                publication={filterPub ?? 'rrp'}
+                issueLabelHint={`${nlPubName} — ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
+                itemIds={groups.newsletter.map(i => i.id)}
+                subjectLine={nlSubjects[0] ?? ''}
+                bodyHtml={nlHtmlStr}
+                bodyPlainText={nlText}
+                bodyMobile={nlMobile}
+              />
             </div>
 
             {groups.newsletter.length === 0 ? (
