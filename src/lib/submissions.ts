@@ -55,6 +55,26 @@ export interface SubmissionTypeConfig {
    *  Omitted = treated as 'self' for backwards compatibility.
    */
   nomineeContact?: 'required' | 'self'
+  /**
+   * When nomineeContact === 'required', what's the relationship
+   * between the nominee (subject of the article) and the contact
+   * person we email?
+   *
+   *   'self'     (default) — nominee IS the contact. Form asks for
+   *                their first/last name + email + phone.
+   *
+   *   'guardian' — nominee is a minor (Play Ball player, Student
+   *                Spotlight kid). Form asks for the athlete/student's
+   *                name as the subject AND a separate parent/guardian
+   *                contact name + email + phone. Outreach emails greet
+   *                the parent.
+   *
+   *   'business' — nominee is a business (Parent Picks). Form asks
+   *                for the business name (from per-type fields) and
+   *                a separate "best contact at the business" name +
+   *                email + phone.
+   */
+  nomineeContactRole?: 'self' | 'guardian' | 'business'
   photoLabel?:    string         // label for the photo section
   photoRequired:  boolean
   photoHint?:     string
@@ -214,7 +234,8 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Coaches, parents, teammates, volunteers — anyone who knows a player, coach, or team supporter worth celebrating.',
     whatHappensNext: 'Selected nominees are featured with a profile and photo in the magazine and online.',
     estimatedTime: '3 minutes',
-    nomineeContact: 'required',
+    nomineeContact:     'required',
+    nomineeContactRole: 'guardian',  // athlete may be a minor — we email the parent
     photoLabel: 'Action or Portrait Photos',
     photoRequired: false,
     photoUpload:   true,
@@ -246,7 +267,8 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents, teachers, or family members who want to celebrate a student who deserves recognition.',
     whatHappensNext: "Selected students are featured online and may be included in the print magazine depending on the issue theme.",
     estimatedTime: '3 minutes',
-    nomineeContact: 'required',
+    nomineeContact:     'required',
+    nomineeContactRole: 'guardian',  // student is a minor — we email the parent
     photoLabel: "Student Photos",
     photoRequired: true,
     photoUpload:   true,
@@ -348,7 +370,8 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents who want to share a positive experience with a local business they recommend to other families.',
     whatHappensNext: 'Our editorial team reviews all picks. Featured businesses are included in the Parent Picks section of the magazine and our digital guides.',
     estimatedTime: '3 minutes',
-    nomineeContact: 'required',
+    nomineeContact:     'required',
+    nomineeContactRole: 'business',  // contact is someone at the business
     photoRequired: false,
     photoHint: 'A photo of the business, product, or your family\'s experience. Email to photos@riverregionparents.com.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],

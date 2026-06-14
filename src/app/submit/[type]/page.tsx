@@ -77,23 +77,56 @@ export default async function SubmitTypePage({
       redirect(`/submit/${type}?error=${encodeURIComponent('Please add your cell phone so we can follow up if needed.')}`)
     }
 
-    // Nominee contact — required on nomination types so editorial can
-    // reach the nominee directly without chasing it down via the
-    // nominator. Browser enforces required, but we re-validate here
-    // because anyone can POST around the browser.
+    // Nominee + contact capture — role-adaptive. Editorial needs a
+    // direct contact for outreach; what's collected depends on
+    // nomineeContactRole:
+    //   self     → first/last name of the nominee; nominee_email/phone
+    //              go to them directly
+    //   guardian → first/last of the kid (subject); contact_name +
+    //              email + phone go to the parent
+    //   business → contact_name + email + phone go to a contact at the
+    //              business; the business name itself comes from a
+    //              per-type form field (e.g. business_name)
+    // Server-side validation is the real gate — browser `required` is
+    // bypassable by anyone POSTing manually.
     const currentConfigForValidate = getSubmissionType(type)!
-    const nominee_first_name = (formData.get('nominee_first_name') as string) || ''
-    const nominee_last_name  = (formData.get('nominee_last_name')  as string) || ''
-    const nominee_email      = (formData.get('nominee_email')      as string) || ''
-    const nominee_phone      = (formData.get('nominee_phone')      as string) || ''
+    const nominee_first_name = (formData.get('nominee_first_name')   as string) || ''
+    const nominee_last_name  = (formData.get('nominee_last_name')    as string) || ''
+    const nominee_contact_name = (formData.get('nominee_contact_name') as string) || ''
+    const nominee_email      = (formData.get('nominee_email')        as string) || ''
+    const nominee_phone      = (formData.get('nominee_phone')        as string) || ''
+
+    let nominee_name: string | null = null
+    let contact_name: string | null = null
+
     if (currentConfigForValidate.nomineeContact === 'required') {
-      if (!nominee_first_name.trim() || !nominee_last_name.trim() || !nominee_email.trim() || !nominee_phone.trim()) {
-        redirect(`/submit/${type}?error=${encodeURIComponent('Please add the nominee\'s name, email, and phone — we need all of them so we can reach out about featuring them.')}`)
+      const role = currentConfigForValidate.nomineeContactRole ?? 'self'
+
+      if (role === 'self') {
+        if (!nominee_first_name.trim() || !nominee_last_name.trim() || !nominee_email.trim() || !nominee_phone.trim()) {
+          redirect(`/submit/${type}?error=${encodeURIComponent('Please add the nominee\'s name, email, and phone — we need all of them so we can reach out.')}`)
+        }
+        nominee_name = `${nominee_first_name.trim()} ${nominee_last_name.trim()}`.trim()
+        contact_name = null  // contact = nominee for self role
+      } else if (role === 'guardian') {
+        if (!nominee_first_name.trim() || !nominee_last_name.trim() ||
+            !nominee_contact_name.trim() || !nominee_email.trim() || !nominee_phone.trim()) {
+          redirect(`/submit/${type}?error=${encodeURIComponent('Please complete the athlete/student name AND the parent/guardian contact info — we need all of them.')}`)
+        }
+        nominee_name = `${nominee_first_name.trim()} ${nominee_last_name.trim()}`.trim()  // subject = the kid
+        contact_name = nominee_contact_name.trim()                                        // contact = the parent
+      } else if (role === 'business') {
+        if (!nominee_contact_name.trim() || !nominee_email.trim() || !nominee_phone.trim()) {
+          redirect(`/submit/${type}?error=${encodeURIComponent('Please add the best contact name at the business, email, and phone.')}`)
+        }
+        // For business role, nominee_name = the business name itself,
+        // pulled from the per-type field with coreField=related_business_name
+        // (e.g. parent-picks' "business_name" field). The handler's
+        // existing per-field loop populates related_business_name; we
+        // mirror it into nominee_name below.
+        contact_name = nominee_contact_name.trim()
       }
     }
-    const nominee_name = currentConfigForValidate.nomineeContact === 'required'
-      ? `${nominee_first_name.trim()} ${nominee_last_name.trim()}`.trim()
-      : null
 
     const payload: Record<string, string> = {}
     let related_person_name:   string | null = null
@@ -150,15 +183,25 @@ export default async function SubmitTypePage({
       }
     }
 
+    // For business role the subject IS the business — mirror the
+    // related_business_name (populated by the per-type field loop
+    // above when a field has coreField='related_business_name')
+    // into nominee_name. Falls back to NULL if the type didn't set
+    // such a field.
+    if (currentConfigForValidate.nomineeContactRole === 'business') {
+      nominee_name = related_business_name
+    }
+
     // Stash nominee contact in payload too so any existing report
     // queries / payload-key-walking detail UI still surface them
     // without DB-column lookups. The dedicated columns are the
     // authoritative source for the OutreachComposerPanel.
     if (currentConfigForValidate.nomineeContact === 'required') {
-      payload.nominee_first_name = nominee_first_name.trim()
-      payload.nominee_last_name  = nominee_last_name.trim()
-      payload.nominee_email      = nominee_email.trim()
-      payload.nominee_phone      = nominee_phone.trim()
+      if (nominee_first_name.trim())   payload.nominee_first_name   = nominee_first_name.trim()
+      if (nominee_last_name.trim())    payload.nominee_last_name    = nominee_last_name.trim()
+      if (contact_name)                payload.nominee_contact_name = contact_name
+      payload.nominee_email            = nominee_email.trim()
+      payload.nominee_phone            = nominee_phone.trim()
     }
 
     const { error: insertErr } = await supabase.from('community_submissions').insert({
@@ -168,14 +211,16 @@ export default async function SubmitTypePage({
       submitter_name,
       submitter_email,
       submitter_phone,
-      // Nominee identity columns — populated only when this type uses
-      // the nomination flow. Mom-to-mom previously left these null
-      // and forced the editor to dig nominee_email out of the payload
-      // JSONB; with the nominee-section enforced the OutreachComposer
-      // pre-fills the To: field directly on first render.
-      nominee_name:  nominee_name || null,
-      nominee_email: nominee_email.trim() || null,
-      nominee_phone: nominee_phone.trim() || null,
+      // Nominee identity columns. nominee_name = the SUBJECT of the
+      // article (kid, mom, teacher, business). nominee_contact_name =
+      // who-we-actually-email (parent for guardian; staff for biz).
+      // The OutreachComposerPanel + outreach API resolve {{contact_*}}
+      // to nominee_contact_name when present, falling back to
+      // nominee_name's first name when null (self-role nominations).
+      nominee_name:          nominee_name || null,
+      nominee_contact_name:  contact_name,
+      nominee_email:         nominee_email.trim() || null,
+      nominee_phone:         nominee_phone.trim() || null,
       related_person_name,
       related_business_name,
       related_school_name,
@@ -349,51 +394,96 @@ export default async function SubmitTypePage({
             </FormRow>
           </FormCard>
 
-          {/* Nominee contact — only on nomination types. Editorial
-              needs to reach the nominee directly to invite them to
-              the interview form; without this section the editor had
-              to chase contact info down through the nominator. */}
-          {config.nomineeContact === 'required' && (
-            <FormCard title="About the Person You're Nominating" accentColor={accentColor}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormRow label="Their First Name" required>
-                  <input name="nominee_first_name" type="text" required placeholder="Whitney" className={inputCls} />
-                </FormRow>
-                <FormRow label="Their Last Name" required>
-                  <input name="nominee_last_name" type="text" required placeholder="Cole" className={inputCls} />
-                </FormRow>
-              </div>
-              <FormRow
-                label="Their Email"
-                required
-                hint="So we can reach out to invite them to share their story."
-              >
-                <input name="nominee_email" type="email" required placeholder="whitney@example.com" className={inputCls} />
-              </FormRow>
-              <FormRow
-                label="Their Cell Phone"
-                required
-                hint="As a backup in case email bounces."
-              >
-                <input name="nominee_phone" type="tel" required placeholder="(334) 555-0142" className={inputCls} />
-              </FormRow>
-              {/* Privacy promise — directly under the contact ask so
-                  it's read in the same eyeblink as the cell field.
-                  Same accent color as the section so it doesn't read
-                  as a separate alert. */}
-              <div
-                className="rounded-2xl px-5 py-4 mt-1"
-                style={{ backgroundColor: `${accentColor}0d`, border: `1px solid ${accentColor}33` }}
-              >
-                <p className="text-sm font-bold text-foreground mb-1">Our promise on contact info</p>
-                <p className="text-sm text-foreground/80 leading-relaxed">
-                  We will never share, sell, or send marketing to your nominee&apos;s contact info.
-                  We use it <strong>only</strong> to reach out about featuring them — and only if they say yes.
-                  If they decline, we delete their contact info from our system.
+          {/* Nominee + contact capture — role-adaptive. Editorial needs
+              a direct contact for outreach; the right person varies by
+              type:
+                self     → adult nominee; their own contact
+                guardian → minor nominee (athlete/student); parent's contact
+                business → business nominee; best contact at the business */}
+          {config.nomineeContact === 'required' && (() => {
+            const role = config.nomineeContactRole ?? 'self'
+
+            // ── Self role ───────────────────────────────────────────
+            if (role === 'self') {
+              return (
+                <FormCard title="About the Person You're Nominating" accentColor={accentColor}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormRow label="Their First Name" required>
+                      <input name="nominee_first_name" type="text" required placeholder="Whitney" className={inputCls} />
+                    </FormRow>
+                    <FormRow label="Their Last Name" required>
+                      <input name="nominee_last_name" type="text" required placeholder="Cole" className={inputCls} />
+                    </FormRow>
+                  </div>
+                  <FormRow label="Their Email" required hint="So we can reach out to invite them to share their story.">
+                    <input name="nominee_email" type="email" required placeholder="whitney@example.com" className={inputCls} />
+                  </FormRow>
+                  <FormRow label="Their Cell Phone" required hint="As a backup in case email bounces.">
+                    <input name="nominee_phone" type="tel" required placeholder="(334) 555-0142" className={inputCls} />
+                  </FormRow>
+                  <PrivacyPromise accentColor={accentColor} subject="your nominee's" />
+                </FormCard>
+              )
+            }
+
+            // ── Guardian role (Play Ball, Student Spotlight) ────────
+            if (role === 'guardian') {
+              const subjectLabel = type === 'play-ball' ? 'Athlete' : 'Student'
+              return (
+                <FormCard title={`The ${subjectLabel} You're Nominating`} accentColor={accentColor}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormRow label={`${subjectLabel}'s First Name`} required>
+                      <input name="nominee_first_name" type="text" required placeholder="Marcus" className={inputCls} />
+                    </FormRow>
+                    <FormRow label={`${subjectLabel}'s Last Name`} required>
+                      <input name="nominee_last_name" type="text" required placeholder="Williams" className={inputCls} />
+                    </FormRow>
+                  </div>
+
+                  {/* Visual separator + the parent-contact block */}
+                  <div className="border-t border-border/50 pt-5 mt-3 space-y-4">
+                    <div>
+                      <p className="text-sm font-bold text-foreground mb-1">Parent / Guardian Contact</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        We reach out to the parent or guardian — never the {subjectLabel.toLowerCase()} directly.
+                        If the nominee is an adult coach or volunteer, just put their own info here.
+                      </p>
+                    </div>
+                    <FormRow label="Parent / Guardian Name" required hint="Full name of the person we'll email.">
+                      <input name="nominee_contact_name" type="text" required placeholder="Sarah Williams" className={inputCls} />
+                    </FormRow>
+                    <FormRow label="Parent / Guardian Email" required hint="Where the outreach email goes.">
+                      <input name="nominee_email" type="email" required placeholder="sarah@example.com" className={inputCls} />
+                    </FormRow>
+                    <FormRow label="Parent / Guardian Cell Phone" required hint="As a backup in case email bounces.">
+                      <input name="nominee_phone" type="tel" required placeholder="(334) 555-0142" className={inputCls} />
+                    </FormRow>
+                  </div>
+
+                  <PrivacyPromise accentColor={accentColor} subject="the parent's" />
+                </FormCard>
+              )
+            }
+
+            // ── Business role (Parent Picks) ─────────────────────────
+            return (
+              <FormCard title="Best Way to Reach the Business" accentColor={accentColor}>
+                <p className="text-xs text-muted-foreground leading-relaxed -mt-2">
+                  So our editorial team can verify the spotlight and follow up if we feature them.
                 </p>
-              </div>
-            </FormCard>
-          )}
+                <FormRow label="Best Contact Name at the Business" required hint="Who we should ask for — owner, manager, marketing, etc.">
+                  <input name="nominee_contact_name" type="text" required placeholder="Dr. Sarah Williams (Owner)" className={inputCls} />
+                </FormRow>
+                <FormRow label="Business Email" required>
+                  <input name="nominee_email" type="email" required placeholder="hello@riverregionpediatrics.com" className={inputCls} />
+                </FormRow>
+                <FormRow label="Business Phone" required>
+                  <input name="nominee_phone" type="tel" required placeholder="(334) 555-0177" className={inputCls} />
+                </FormRow>
+                <PrivacyPromise accentColor={accentColor} subject="the business's" />
+              </FormCard>
+            )
+          })()}
 
           <FormCard title={`${config.label} Details`} accentColor={accentColor}>
             {config.fields.map(field => (
@@ -488,6 +578,26 @@ function FormRow({ label, required, hint, children }: {
       </label>
       {children}
       {hint && <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">{hint}</p>}
+    </div>
+  )
+}
+
+/** Privacy promise block — sits inside the nominee-contact FormCard,
+ *  styled in the section's accent color so it reads as part of the
+ *  same ask rather than a separate alert. The `subject` text differs
+ *  by role so the language matches what the form is asking for. */
+function PrivacyPromise({ accentColor, subject }: { accentColor: string; subject: string }) {
+  return (
+    <div
+      className="rounded-2xl px-5 py-4 mt-1"
+      style={{ backgroundColor: `${accentColor}0d`, border: `1px solid ${accentColor}33` }}
+    >
+      <p className="text-sm font-bold text-foreground mb-1">Our promise on contact info</p>
+      <p className="text-sm text-foreground/80 leading-relaxed">
+        We will never share, sell, or send marketing to {subject} contact info.
+        We use it <strong>only</strong> to reach out about featuring them — and only if they say yes.
+        If they decline, we delete their contact info from our system.
+      </p>
     </div>
   )
 }

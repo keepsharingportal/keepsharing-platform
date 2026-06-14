@@ -237,13 +237,26 @@ function humanize(key: string): string {
  *  /outreach API — kept in sync manually. */
 function substituteTemplateClient(
   template: string | null,
-  ctx: { typeLabel: string; brandName: string; nomineeName: string; nominator: string; pitch: string },
+  ctx: {
+    typeLabel:   string
+    brandName:   string
+    contactName: string  // who-we-email
+    subjectName: string  // who-is-featured
+    nominator:   string
+    pitch:       string
+  },
 ): string | null {
   if (!template) return null
-  const nomineeFirst = ctx.nomineeName.split(' ')[0] || 'there'
+  const contactFirst = ctx.contactName.split(' ')[0] || 'there'
+  const subjectFirst = ctx.subjectName.split(' ')[0] || 'there'
   return template
-    .replace(/\{\{\s*nominee_first\s*\}\}/g,    nomineeFirst)
-    .replace(/\{\{\s*nominee_name\s*\}\}/g,     ctx.nomineeName)
+    .replace(/\{\{\s*contact_first\s*\}\}/g,    contactFirst)
+    .replace(/\{\{\s*contact_name\s*\}\}/g,     ctx.contactName)
+    .replace(/\{\{\s*subject_first\s*\}\}/g,    subjectFirst)
+    .replace(/\{\{\s*subject_name\s*\}\}/g,     ctx.subjectName)
+    // Legacy aliases (migration 182 templates may still use these).
+    .replace(/\{\{\s*nominee_first\s*\}\}/g,    contactFirst)
+    .replace(/\{\{\s*nominee_name\s*\}\}/g,     ctx.contactName)
     .replace(/\{\{\s*nominator_name\s*\}\}/g,   ctx.nominator || 'A community member')
     .replace(/\{\{\s*nomination_pitch\s*\}\}/g, ctx.pitch || '')
     .replace(/\{\{\s*brand_name\s*\}\}/g,       ctx.brandName)
@@ -321,20 +334,29 @@ export default async function SubmissionDetailPage({
     : sub.target_publication === 'rrp'    ? 'River Region Parents'
     : sub.target_publication === 'boom'   ? 'River Region 50+'
     : 'River Region Parents'
-  const nomineeName = (sub.related_person_name
-                   || sub.related_business_name
-                   || sub.related_school_name
-                   || (subAny.nominee_name as string | null)
-                   || sub.submitter_name
-                   || 'there') as string
+  // articleSubject = WHO is being featured. contactName = WHO we email
+  // (parent for guardian; staff for biz; same as subject for self).
+  // Named articleSubject (not subjectName) to avoid a shadowing
+  // collision with the existing subjectName() helper.
+  const articleSubject = ((subAny.nominee_name as string | null)
+                      || sub.related_person_name
+                      || sub.related_business_name
+                      || sub.related_school_name
+                      || sub.submitter_name
+                      || 'there') as string
+  const contactName = ((subAny.nominee_contact_name as string | null)?.trim()
+                    || articleSubject) as string
+  // Display name used by OutreachComposerPanel for the confirm copy
+  // — always the CONTACT person (who actually receives the email).
+  const nomineeName = contactName
   const initialOutreachSubject = substituteTemplateClient(
     tc?.outreach_email_subject ?? null,
-    { typeLabel, brandName: brandDisplayName, nomineeName, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
-  ) ?? `You were nominated for ${typeLabel} in ${brandDisplayName}!`
+    { typeLabel, brandName: brandDisplayName, contactName, subjectName: articleSubject, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
+  ) ?? `${articleSubject} was nominated for ${typeLabel} in ${brandDisplayName}`
   const initialOutreachBody = substituteTemplateClient(
     tc?.outreach_email_body ?? null,
-    { typeLabel, brandName: brandDisplayName, nomineeName, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
-  ) ?? `<p>Hi ${nomineeName.split(' ')[0]},</p><p>${sub.submitter_name ?? 'A community member'} nominated you for ${typeLabel} in ${brandDisplayName}. Reply if you're interested.</p>`
+    { typeLabel, brandName: brandDisplayName, contactName, subjectName: articleSubject, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
+  ) ?? `<p>Hi ${contactName.split(' ')[0]},</p><p>${sub.submitter_name ?? 'A community member'} nominated ${articleSubject} for ${typeLabel} in ${brandDisplayName}. Reply if you're interested.</p>`
   void isParentsBrand // reserved for future per-brand styling tweaks
 
   // ── Server actions ─────────────────────────────────────────────────────────

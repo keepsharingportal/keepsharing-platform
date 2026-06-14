@@ -31,20 +31,21 @@ export const maxDuration = 30
 interface RouteCtx { params: Promise<{ id: string }> }
 
 interface Sub {
-  id:                   string
-  submission_type:      string
-  target_publication:   string
-  nominee_email:        string | null
-  nominee_name:         string | null
-  submitter_name:       string | null
-  submitter_email:      string | null
-  related_person_name:  string | null
+  id:                    string
+  submission_type:       string
+  target_publication:    string
+  nominee_email:         string | null
+  nominee_name:          string | null
+  nominee_contact_name:  string | null
+  submitter_name:        string | null
+  submitter_email:       string | null
+  related_person_name:   string | null
   related_business_name: string | null
-  related_school_name:  string | null
-  excerpt:              string | null
-  working_title:        string | null
-  phase:                string | null
-  interview_token:      string | null
+  related_school_name:   string | null
+  excerpt:               string | null
+  working_title:         string | null
+  phase:                 string | null
+  interview_token:       string | null
 }
 
 interface TypeConfig {
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
   // Load the submission + per-type config in one round trip.
   const [{ data: subRow, error: subErr }, { data: cfgRow }] = await Promise.all([
     sb.from('community_submissions')
-      .select('id, submission_type, target_publication, nominee_email, nominee_name, submitter_name, submitter_email, related_person_name, related_business_name, related_school_name, excerpt, working_title, phase, interview_token')
+      .select('id, submission_type, target_publication, nominee_email, nominee_name, nominee_contact_name, submitter_name, submitter_email, related_person_name, related_business_name, related_school_name, excerpt, working_title, phase, interview_token')
       .eq('id', id)
       .maybeSingle(),
     sb.from('submission_type_columns')
@@ -100,12 +101,18 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
                     || sub.nominee_email?.trim()
                     || sub.submitter_email?.trim()
                     || null
-  const nomineeName  = sub.nominee_name?.trim()
-                    || sub.related_person_name?.trim()
-                    || sub.related_business_name?.trim()
-                    || sub.related_school_name?.trim()
-                    || sub.submitter_name?.trim()
-                    || 'there'
+  // Subject = WHO is being featured (kid, mom, business)
+  // Contact = WHO we email (parent for guardian; staff for biz;
+  //           same as subject for self-role nominations).
+  const subjectName = sub.nominee_name?.trim()
+                   || sub.related_person_name?.trim()
+                   || sub.related_business_name?.trim()
+                   || sub.related_school_name?.trim()
+                   || sub.submitter_name?.trim()
+                   || 'there'
+  const contactName = sub.nominee_contact_name?.trim() || subjectName
+  // Back-compat alias — older code paths still read nomineeName.
+  const nomineeName = contactName
   if (!nomineeEmail) {
     return NextResponse.json({
       error: 'No nominee email on file. Edit the submission and add one before sending outreach.',
@@ -126,10 +133,10 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
     // to the legacy hardcoded copy (kept as a last-ditch default so the
     // workflow doesn't break on a market that hasn't seeded templates).
     const subject = body.subject?.trim()
-      || substituteTemplate(cfg.outreach_email_subject, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
+      || substituteTemplate(cfg.outreach_email_subject, { typeLabel, brandName, nomineeName, contactName, subjectName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
       || `You were nominated for ${typeLabel} in ${brandName}!`
     const bodyHtml = body.body_html?.trim()
-      || substituteTemplate(cfg.outreach_email_body, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
+      || substituteTemplate(cfg.outreach_email_body, { typeLabel, brandName, nomineeName, contactName, subjectName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
       || `
 <p>Hi ${escapeHtml(nomineeName)},</p>
 <p><strong>${escapeHtml(sub.submitter_name ?? 'A community member')}</strong> nominated you to be featured in an upcoming <strong>${escapeHtml(typeLabel)}</strong> piece in ${escapeHtml(brandName)}.</p>
@@ -172,10 +179,10 @@ ${sub.excerpt ? `<blockquote style="border-left:3px solid #1A5FA8;padding:8px 14
     const interviewUrl = `${baseUrl}/interview/${token}`
 
     const subject = body.subject?.trim()
-      || substituteTemplate(cfg.interview_email_subject, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
+      || substituteTemplate(cfg.interview_email_subject, { typeLabel, brandName, nomineeName, contactName, subjectName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
       || `Your ${typeLabel} interview — ${brandName}`
     const bodyHtml = body.body_html?.trim()
-      || substituteTemplate(cfg.interview_email_body, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
+      || substituteTemplate(cfg.interview_email_body, { typeLabel, brandName, nomineeName, contactName, subjectName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
       || `
 <p>Hi ${escapeHtml(nomineeName)},</p>
 <p>Thanks for saying yes! Here's the interview form for your <strong>${escapeHtml(typeLabel)}</strong> feature in ${escapeHtml(brandName)}:</p>
@@ -224,23 +231,42 @@ function escapeHtml(s: string): string {
 
 /** Substitute {{variables}} in a per-type template against the live
  *  submission's data. Returns null if the template is null so the
- *  caller can fall through to the legacy hardcoded copy. */
+ *  caller can fall through to the legacy hardcoded copy.
+ *
+ *  Variables:
+ *    {{contact_first}} / {{contact_name}}   — who-we-email (parent for
+ *      guardian role; business contact for business role; same as
+ *      subject for self role).
+ *    {{subject_first}} / {{subject_name}}   — who-is-featured (kid,
+ *      mom, business). Used in greetings like "we'd love to feature
+ *      Marcus" while greeting the parent.
+ *    {{nominee_first}} / {{nominee_name}}   — legacy aliases that
+ *      resolve to contact_first / contact_name for backwards-compat
+ *      with migration-182-era templates. */
 function substituteTemplate(
   template: string | null | undefined,
   ctx: {
-    typeLabel:   string
-    brandName:   string
-    nomineeName: string
-    nominator:   string | null
-    pitch:       string | null
-    opsEmail:    string
+    typeLabel:     string
+    brandName:     string
+    nomineeName:   string  // back-compat alias for contactName
+    contactName:   string
+    subjectName:   string
+    nominator:     string | null
+    pitch:         string | null
+    opsEmail:      string
     interviewUrl?: string
   },
 ): string | null {
   if (!template) return null
-  const nomineeFirst = ctx.nomineeName.split(' ')[0] || 'there'
+  const contactFirst = (ctx.contactName.split(' ')[0] || 'there')
+  const subjectFirst = (ctx.subjectName.split(' ')[0] || 'there')
   return template
-    .replace(/\{\{\s*nominee_first\s*\}\}/g,    escapeHtml(nomineeFirst))
+    .replace(/\{\{\s*contact_first\s*\}\}/g,    escapeHtml(contactFirst))
+    .replace(/\{\{\s*contact_name\s*\}\}/g,     escapeHtml(ctx.contactName))
+    .replace(/\{\{\s*subject_first\s*\}\}/g,    escapeHtml(subjectFirst))
+    .replace(/\{\{\s*subject_name\s*\}\}/g,     escapeHtml(ctx.subjectName))
+    // Legacy aliases — resolve to contact for backwards-compat.
+    .replace(/\{\{\s*nominee_first\s*\}\}/g,    escapeHtml(contactFirst))
     .replace(/\{\{\s*nominee_name\s*\}\}/g,     escapeHtml(ctx.nomineeName))
     .replace(/\{\{\s*nominator_name\s*\}\}/g,   escapeHtml(ctx.nominator ?? 'A community member'))
     .replace(/\{\{\s*nomination_pitch\s*\}\}/g, escapeHtml(ctx.pitch ?? ''))
