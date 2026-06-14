@@ -9,6 +9,9 @@ import Link                      from 'next/link'
 import { createAdminClient }     from '@/lib/supabase/admin'
 import { generateCommunityDraft } from '@/lib/community-drafts'
 import { ApproveAndPublishPanel } from './ApproveAndPublishPanel'
+import { PhaseTracker }            from './PhaseTracker'
+import { NextActionPanel }         from './NextActionPanel'
+import type { Phase }              from '@/lib/submissions/phases'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
   type SubmissionStatus, type SubmissionTypeConfig, type SubmissionField,
@@ -226,6 +229,23 @@ export default async function SubmissionDetailPage({
   const nextStatus   = recommendedNext(sub.status, allComplete)
   const publishDest  = PUBLISH_DEST[sub.submission_type]
 
+  // ── Phase + type config from the new workflow tables (migrations 180+181)
+  // Both are optional — the page degrades cleanly if migrations haven't
+  // been applied yet (legacy environments just see no phase tracker).
+  const subAny = sub as unknown as Record<string, unknown>
+  const currentPhase = ((subAny.phase as Phase) ?? 'nominated') as Phase
+  const hasInterview = !!subAny.interview_submitted_at
+  const hasDraft     = !!subAny.ai_draft_content && String(subAny.ai_draft_content).trim().length > 0
+
+  const { data: typeConfig } = await supabase
+    .from('submission_type_columns')
+    .select('needs_outreach, article_format')
+    .eq('submission_type', sub.submission_type)
+    .maybeSingle()
+  const needsOutreach = typeConfig
+    ? ((typeConfig as { needs_outreach?: boolean }).needs_outreach ?? true)
+    : true
+
   // ── Server actions ─────────────────────────────────────────────────────────
 
   async function updateStatus(formData: FormData) {
@@ -397,6 +417,12 @@ export default async function SubmissionDetailPage({
           </div>
         </div>
       </div>
+
+      {/* ── PHASE TRACKER ────────────────────────────────────────────────── */}
+      {/* Where is this submission in the multi-actor workflow? The tracker
+          gives a visual at-a-glance + the right column's NextActionPanel
+          tells the editor exactly what to click next. */}
+      <PhaseTracker currentPhase={currentPhase} needsOutreach={needsOutreach} />
 
       {/* ── TWO-COLUMN BODY ──────────────────────────────────────────────── */}
       <div className="flex gap-6 items-start flex-wrap">
@@ -642,6 +668,17 @@ export default async function SubmissionDetailPage({
 
         {/* ── RIGHT COLUMN: Actions & Metadata ────────────────────────── */}
         <div className="w-80 shrink-0 space-y-4">
+
+          {/* Phase-aware next-action panel — primary CTA changes with
+              the workflow state (Accept nomination / Send outreach /
+              Start draft / Approve / Send to pool / Publish now). */}
+          <NextActionPanel
+            submissionId={sub.id}
+            currentPhase={currentPhase}
+            needsOutreach={needsOutreach}
+            hasInterview={hasInterview}
+            hasDraft={hasDraft}
+          />
 
           {/* Approve & Publish — the workflow that used to live on the
               deleted /admin/editorial/approval page. Channel approvals
