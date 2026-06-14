@@ -12,6 +12,7 @@ import { ApproveAndPublishPanel } from './ApproveAndPublishPanel'
 import { PhaseTracker }            from './PhaseTracker'
 import { NextActionPanel }         from './NextActionPanel'
 import { AIDraftPanel }            from './AIDraftPanel'
+import { OutreachComposerPanel }   from './OutreachComposerPanel'
 import type { Phase }              from '@/lib/submissions/phases'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
@@ -208,6 +209,26 @@ function humanize(key: string): string {
     .join(' ')
 }
 
+/** Page-side template substitution for the OutreachComposerPanel's
+ *  initial values. Mirror of the server-side version in the
+ *  /outreach API — kept in sync manually. */
+function substituteTemplateClient(
+  template: string | null,
+  ctx: { typeLabel: string; brandName: string; nomineeName: string; nominator: string; pitch: string },
+): string | null {
+  if (!template) return null
+  const nomineeFirst = ctx.nomineeName.split(' ')[0] || 'there'
+  return template
+    .replace(/\{\{\s*nominee_first\s*\}\}/g,    nomineeFirst)
+    .replace(/\{\{\s*nominee_name\s*\}\}/g,     ctx.nomineeName)
+    .replace(/\{\{\s*nominator_name\s*\}\}/g,   ctx.nominator || 'A community member')
+    .replace(/\{\{\s*nomination_pitch\s*\}\}/g, ctx.pitch || '')
+    .replace(/\{\{\s*brand_name\s*\}\}/g,       ctx.brandName)
+    .replace(/\{\{\s*type_label\s*\}\}/g,       ctx.typeLabel)
+    .replace(/\{\{\s*ops_email\s*\}\}/g,        '')
+    .replace(/\{\{\s*interview_url\s*\}\}/g,    '')
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SubmissionDetailPage({
@@ -251,15 +272,44 @@ export default async function SubmissionDetailPage({
 
   const { data: typeConfig } = await supabase
     .from('submission_type_columns')
-    .select('needs_outreach, article_format')
+    .select('needs_outreach, article_format, label, outreach_email_subject, outreach_email_body')
     .eq('submission_type', sub.submission_type)
     .maybeSingle()
-  const needsOutreach  = typeConfig
-    ? ((typeConfig as { needs_outreach?: boolean }).needs_outreach ?? true)
-    : true
-  const articleFormat  = typeConfig
-    ? ((typeConfig as { article_format?: string }).article_format ?? 'profile')
-    : 'profile'
+  type TypeCfgRow = {
+    needs_outreach?: boolean
+    article_format?: string
+    label?: string | null
+    outreach_email_subject?: string | null
+    outreach_email_body?:    string | null
+  }
+  const tc             = typeConfig as TypeCfgRow | null
+  const needsOutreach  = tc?.needs_outreach ?? true
+  const articleFormat  = tc?.article_format ?? 'profile'
+  const typeLabel      = tc?.label ?? sub.submission_type.replace(/-/g, ' ')
+
+  // Pre-substitute the outreach template with this submission's data
+  // so the OutreachComposerPanel can show a ready-to-edit preview.
+  const isParentsBrand = sub.target_publication !== 'rr50plus' && sub.target_publication !== 'boom'
+  const brandDisplayName =
+    sub.target_publication === 'rr50plus' ? 'River Region 50+'
+    : sub.target_publication === 'rrp'    ? 'River Region Parents'
+    : sub.target_publication === 'boom'   ? 'River Region 50+'
+    : 'River Region Parents'
+  const nomineeName = (sub.related_person_name
+                   || sub.related_business_name
+                   || sub.related_school_name
+                   || (subAny.nominee_name as string | null)
+                   || sub.submitter_name
+                   || 'there') as string
+  const initialOutreachSubject = substituteTemplateClient(
+    tc?.outreach_email_subject ?? null,
+    { typeLabel, brandName: brandDisplayName, nomineeName, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
+  ) ?? `You were nominated for ${typeLabel} in ${brandDisplayName}!`
+  const initialOutreachBody = substituteTemplateClient(
+    tc?.outreach_email_body ?? null,
+    { typeLabel, brandName: brandDisplayName, nomineeName, nominator: sub.submitter_name ?? '', pitch: ((subAny.excerpt as string | null) ?? '') },
+  ) ?? `<p>Hi ${nomineeName.split(' ')[0]},</p><p>${sub.submitter_name ?? 'A community member'} nominated you for ${typeLabel} in ${brandDisplayName}. Reply if you're interested.</p>`
+  void isParentsBrand // reserved for future per-brand styling tweaks
 
   // ── Server actions ─────────────────────────────────────────────────────────
 
@@ -768,16 +818,31 @@ export default async function SubmissionDetailPage({
         {/* ── RIGHT COLUMN: Actions & Metadata ────────────────────────── */}
         <div className="w-80 shrink-0 space-y-4">
 
-          {/* Phase-aware next-action panel — primary CTA changes with
-              the workflow state (Accept nomination / Send outreach /
-              Start draft / Approve / Send to pool / Publish now). */}
-          <NextActionPanel
-            submissionId={sub.id}
-            currentPhase={currentPhase}
-            needsOutreach={needsOutreach}
-            hasInterview={hasInterview}
-            hasDraft={hasDraft}
-          />
+          {/* At the nominated / nomination-accepted phases, the
+              editor's ONE job is to compose + send the outreach
+              email. Replace the generic NextActionPanel with a
+              proper email composer (subject + body editable,
+              pre-filled from the per-type template). All other
+              phases get the generic NextActionPanel. */}
+          {(currentPhase === 'nominated' || currentPhase === 'nomination-accepted') && needsOutreach ? (
+            <OutreachComposerPanel
+              submissionId={sub.id}
+              typeLabel={typeLabel}
+              nomineeName={nomineeName}
+              nomineeEmail={(subAny.nominee_email as string | null) ?? sub.submitter_email ?? ''}
+              initialSubject={initialOutreachSubject}
+              initialBody={initialOutreachBody}
+              isFirstSend={currentPhase === 'nominated'}
+            />
+          ) : (
+            <NextActionPanel
+              submissionId={sub.id}
+              currentPhase={currentPhase}
+              needsOutreach={needsOutreach}
+              hasInterview={hasInterview}
+              hasDraft={hasDraft}
+            />
+          )}
 
           {/* AI Draft only matters when we have something to draft
               FROM. Before interview-received the nominator's content

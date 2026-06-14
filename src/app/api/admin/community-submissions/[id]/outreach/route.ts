@@ -48,15 +48,26 @@ interface Sub {
 }
 
 interface TypeConfig {
-  needs_outreach:      boolean
-  article_format:      string
-  label:               string | null
+  needs_outreach:           boolean
+  article_format:           string
+  label:                    string | null
+  outreach_email_subject:   string | null
+  outreach_email_body:      string | null
+  interview_email_subject:  string | null
+  interview_email_body:     string | null
 }
 
 export async function POST(req: NextRequest, ctx: RouteCtx) {
   const adminCtx = await requireAdmin()
   const { id }   = await ctx.params
-  const body     = await req.json().catch(() => null) as { action?: 'outreach' | 'send-interview' } | null
+  const body     = await req.json().catch(() => null) as {
+    action?: 'outreach' | 'send-interview'
+    // Editor-supplied overrides from the composer panel. Fall back to
+    // the per-type template from submission_type_columns when omitted.
+    nominee_email?: string
+    subject?:       string
+    body_html?:     string
+  } | null
   if (!body?.action) return NextResponse.json({ error: 'action required' }, { status: 400 })
 
   const sb = createAdminClient()
@@ -68,18 +79,27 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
       .eq('id', id)
       .maybeSingle(),
     sb.from('submission_type_columns')
-      .select('needs_outreach, article_format, label')
+      .select('needs_outreach, article_format, label, outreach_email_subject, outreach_email_body, interview_email_subject, interview_email_body')
       .eq('submission_type', (await peekType(sb, id)))
       .maybeSingle(),
   ])
   if (subErr || !subRow) return NextResponse.json({ error: 'submission not found' }, { status: 404 })
   const sub = subRow as unknown as Sub
-  const cfg = (cfgRow as TypeConfig | null) ?? { needs_outreach: true, article_format: 'profile', label: null }
+  const cfg = (cfgRow as TypeConfig | null) ?? {
+    needs_outreach: true, article_format: 'profile', label: null,
+    outreach_email_subject: null, outreach_email_body: null,
+    interview_email_subject: null, interview_email_body: null,
+  }
 
   // Resolve nominee email — required for outreach. Falls back to the
   // submitter if no nominee email was captured (some types have
-  // nominator = nominee, e.g. mom-to-mom self-nominate).
-  const nomineeEmail = sub.nominee_email?.trim() || sub.submitter_email?.trim() || null
+  // nominator = nominee, e.g. mom-to-mom self-nominate). Editor's
+  // edits from the composer panel take precedence so they can fix
+  // a typo without leaving the page.
+  const nomineeEmail = body.nominee_email?.trim()
+                    || sub.nominee_email?.trim()
+                    || sub.submitter_email?.trim()
+                    || null
   const nomineeName  = sub.nominee_name?.trim()
                     || sub.related_person_name?.trim()
                     || sub.related_business_name?.trim()
@@ -100,15 +120,22 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
 
   // ── Action A: Initial outreach ──────────────────────────────────────────
   if (body.action === 'outreach') {
-    const subject = `You were nominated for ${typeLabel} in ${brandName}!`
-    const bodyHtml = `
+    // Editor's edited content wins. If they didn't override, fall back
+    // to the per-type template from submission_type_columns (substituted
+    // with the live nomination data). If THAT'S also missing, fall back
+    // to the legacy hardcoded copy (kept as a last-ditch default so the
+    // workflow doesn't break on a market that hasn't seeded templates).
+    const subject = body.subject?.trim()
+      || substituteTemplate(cfg.outreach_email_subject, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
+      || `You were nominated for ${typeLabel} in ${brandName}!`
+    const bodyHtml = body.body_html?.trim()
+      || substituteTemplate(cfg.outreach_email_body, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig })
+      || `
 <p>Hi ${escapeHtml(nomineeName)},</p>
-<p><strong>${escapeHtml(sub.submitter_name ?? 'A community member')}</strong> nominated you to be featured in an upcoming
-<strong>${escapeHtml(typeLabel)}</strong> piece in ${escapeHtml(brandName)}.</p>
+<p><strong>${escapeHtml(sub.submitter_name ?? 'A community member')}</strong> nominated you to be featured in an upcoming <strong>${escapeHtml(typeLabel)}</strong> piece in ${escapeHtml(brandName)}.</p>
 ${sub.excerpt ? `<blockquote style="border-left:3px solid #1A5FA8;padding:8px 14px;color:#475569;font-style:italic;margin:14px 0;">${escapeHtml(sub.excerpt)}</blockquote>` : ''}
-<p>If you'd like to be featured, just reply to this email and we'll send you a short interview form to fill out — no more than 10 minutes of your time. You'll get to share your story in your own words and upload a couple of photos.</p>
-<p>If now's not a good time, no worries at all — just reply with a "not right now" and we'll close it out.</p>
-<p>Thanks for considering!<br>The ${escapeHtml(brandName)} team${opsSig ? `<br><a href="mailto:${escapeHtml(opsSig)}">${escapeHtml(opsSig)}</a>` : ''}</p>`
+<p>If you'd like to be featured, just reply to this email and we'll send you a short interview form to fill out.</p>
+<p>Thanks!<br>The ${escapeHtml(brandName)} team</p>`
 
     await enqueue({
       market:            sub.target_publication ?? 'rrp',
@@ -144,17 +171,19 @@ ${sub.excerpt ? `<blockquote style="border-left:3px solid #1A5FA8;padding:8px 14
     const token = sub.interview_token ?? randomBytes(24).toString('base64url')
     const interviewUrl = `${baseUrl}/interview/${token}`
 
-    const subject = `Your ${typeLabel} interview — ${brandName}`
-    const bodyHtml = `
+    const subject = body.subject?.trim()
+      || substituteTemplate(cfg.interview_email_subject, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
+      || `Your ${typeLabel} interview — ${brandName}`
+    const bodyHtml = body.body_html?.trim()
+      || substituteTemplate(cfg.interview_email_body, { typeLabel, brandName, nomineeName, nominator: sub.submitter_name, pitch: sub.excerpt, opsEmail: opsSig, interviewUrl })
+      || `
 <p>Hi ${escapeHtml(nomineeName)},</p>
 <p>Thanks for saying yes! Here's the interview form for your <strong>${escapeHtml(typeLabel)}</strong> feature in ${escapeHtml(brandName)}:</p>
 <p style="margin:24px 0;text-align:center;">
   <a href="${interviewUrl}" style="display:inline-block;background:#1A5FA8;color:#fff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700;">Open your interview form →</a>
 </p>
-<p style="font-size:12px;color:#64748b;">Or paste this link: <a href="${interviewUrl}">${interviewUrl}</a></p>
-<p>The form takes about 10 minutes. You'll answer a handful of questions in your own words and upload 1-3 photos. Once you submit, our editorial team takes it from there.</p>
-<p>Questions? Just reply to this email.</p>
-<p>Thanks again!<br>The ${escapeHtml(brandName)} team</p>`
+<p>Questions? Just reply.</p>
+<p>— The ${escapeHtml(brandName)} team</p>`
 
     await enqueue({
       market:            sub.target_publication ?? 'rrp',
@@ -191,4 +220,32 @@ async function peekType(sb: ReturnType<typeof createAdminClient>, id: string): P
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+/** Substitute {{variables}} in a per-type template against the live
+ *  submission's data. Returns null if the template is null so the
+ *  caller can fall through to the legacy hardcoded copy. */
+function substituteTemplate(
+  template: string | null | undefined,
+  ctx: {
+    typeLabel:   string
+    brandName:   string
+    nomineeName: string
+    nominator:   string | null
+    pitch:       string | null
+    opsEmail:    string
+    interviewUrl?: string
+  },
+): string | null {
+  if (!template) return null
+  const nomineeFirst = ctx.nomineeName.split(' ')[0] || 'there'
+  return template
+    .replace(/\{\{\s*nominee_first\s*\}\}/g,    escapeHtml(nomineeFirst))
+    .replace(/\{\{\s*nominee_name\s*\}\}/g,     escapeHtml(ctx.nomineeName))
+    .replace(/\{\{\s*nominator_name\s*\}\}/g,   escapeHtml(ctx.nominator ?? 'A community member'))
+    .replace(/\{\{\s*nomination_pitch\s*\}\}/g, escapeHtml(ctx.pitch ?? ''))
+    .replace(/\{\{\s*brand_name\s*\}\}/g,       escapeHtml(ctx.brandName))
+    .replace(/\{\{\s*type_label\s*\}\}/g,       escapeHtml(ctx.typeLabel))
+    .replace(/\{\{\s*ops_email\s*\}\}/g,        escapeHtml(ctx.opsEmail))
+    .replace(/\{\{\s*interview_url\s*\}\}/g,    ctx.interviewUrl ?? '')
 }
