@@ -130,7 +130,10 @@ export async function POST(_req: NextRequest, ctx: RouteCtx) {
     auto_post_to_social:  !!sub.approved_social,
     queue_newsletter_draft: !!sub.approved_newsletter,
     import_status:        'community-submission',
-    source_issue_month:   sub.issue_month ?? null,
+    // source_issue_month wants a date (YYYY-MM-01). community_submissions
+    // stores it as a month NAME ('July'), which fails the date parse.
+    // Convert if we can; otherwise omit so the insert doesn't fail.
+    source_issue_month:   monthNameToFirstOfMonth(sub.issue_month, sub.issue_year),
   }
 
   const { data: created, error: insErr } = await sb
@@ -188,6 +191,17 @@ export async function POST(_req: NextRequest, ctx: RouteCtx) {
 }
 
 // ── helpers ──────────────────────────────────────────────────────────
+
+/** Convert ('July', 2026) → '2026-07-01' for the DATE column. Returns
+ *  null when the inputs can't be reduced to a valid month. */
+function monthNameToFirstOfMonth(monthName: string | null, year: number | null): string | null {
+  if (!monthName) return null
+  const months = ['january','february','march','april','may','june','july','august','september','october','november','december']
+  const idx = months.indexOf(monthName.trim().toLowerCase())
+  if (idx === -1) return null
+  const y = year && Number.isFinite(year) ? year : new Date().getFullYear()
+  return `${y}-${String(idx + 1).padStart(2, '0')}-01`
+}
 
 /** Map submission_type → human label, used for default title generation. */
 function labelFor(submissionType: string): string {
