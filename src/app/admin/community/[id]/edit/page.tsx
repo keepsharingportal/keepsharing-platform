@@ -14,6 +14,7 @@ import {
 } from '@/lib/submissions'
 
 export const metadata: Metadata = { title: 'Edit Submission — Admin' }
+export const dynamic = 'force-dynamic'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ export default async function EditSubmissionPage({
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="p-6 max-w-[800px] mx-auto space-y-6 pb-16">
+    <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[800px] mx-auto space-y-6 pb-16 w-full">
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>

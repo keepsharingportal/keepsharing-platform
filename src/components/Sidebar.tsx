@@ -148,7 +148,20 @@ const NAV: NavItem[] = [
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
   { name: 'Weekly Polls',      href: '/admin/polls',       icon: BarChart3 },
   { name: '50+ Hero Slots',    href: '/admin/homepage/hero', icon: Sparkles },
-  { name: 'Nominations',       href: '/admin/community',   icon: Heart, badgeKey: 'community_nominations' },
+  // Three views on the same community_submissions data — three jobs:
+  // intake triage, production pipeline, final approval + publish.
+  // The detail pages they open all read/write the same row.
+  {
+    name: 'Community Submissions',
+    href: '/admin/community',
+    icon: Heart,
+    badgeKey: 'community_nominations',
+    children: [
+      { name: 'Triage queue',     href: '/admin/community'           },
+      { name: 'Editorial pipeline', href: '/admin/editorial'         },
+      { name: 'Approval desk',    href: '/admin/editorial/approval' },
+    ],
+  },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
 

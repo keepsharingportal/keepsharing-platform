@@ -9,6 +9,7 @@ import { createClient }  from '@/lib/supabase/server'
 import { SUBMISSION_TYPES, STATUS_CONFIG, TYPE_COLORS } from '@/lib/submissions'
 
 export const metadata: Metadata = { title: 'Editorial Pipeline — Admin' }
+export const dynamic = 'force-dynamic'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ export default async function EditorialPage({
   }
 
   return (
-    <main className="p-6 max-w-[1100px] mx-auto space-y-6">
+    <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[1100px] mx-auto space-y-6 pb-16 w-full">
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">

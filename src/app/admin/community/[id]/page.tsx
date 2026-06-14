@@ -14,6 +14,9 @@ import {
 } from '@/lib/submissions'
 
 export const metadata: Metadata = { title: 'Submission Detail — Admin' }
+// Without force-dynamic, edits in /admin/community/[id]/edit don't show
+// when the user navigates back here — the page is cached.
+export const dynamic = 'force-dynamic'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -344,7 +347,7 @@ export default async function SubmissionDetailPage({
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="p-6 max-w-[1200px] mx-auto space-y-6">
+    <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[1200px] mx-auto space-y-6 pb-16 w-full">
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>
@@ -376,12 +379,21 @@ export default async function SubmissionDetailPage({
               <span className="font-medium text-portal-text">{sub.submitter_name}</span>
             </p>
           </div>
-          <Link
-            href={`/admin/community/${id}/edit`}
-            className="shrink-0 px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg transition-colors"
-          >
-            Edit Submission →
-          </Link>
+          <div className="shrink-0 flex gap-2">
+            <Link
+              href={`/admin/editorial/approval?id=${id}`}
+              className="px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-opacity"
+              title="Approve channels + publish to homepage"
+            >
+              Approve & Publish →
+            </Link>
+            <Link
+              href={`/admin/community/${id}/edit`}
+              className="px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg transition-colors"
+            >
+              Edit →
+            </Link>
+          </div>
         </div>
       </div>
 

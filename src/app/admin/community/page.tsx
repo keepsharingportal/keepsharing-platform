@@ -184,237 +184,186 @@ export default async function AdminCommunityPage({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[1100px] mx-auto space-y-6 w-full">
+    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
 
-      {/* ── HEADER ──────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Community Submissions</h1>
-          <p className="text-sm text-portal-sub mt-0.5">
-            Nominations, celebrations, school news, events, and feature applications from the community.
-          </p>
-        </div>
-        <Link
-          href="/submit"
-          target="_blank"
-          className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg transition-colors shrink-0 font-medium"
-        >
-          Public Gateway ↗
-        </Link>
-      </div>
-
-      {/* ── OPERATOR GUIDANCE ───────────────────────────────────────────── */}
-      {guidance.length > 0 && (
-        <div className="space-y-2">
-          {guidance.map((g, i) => (
-            <div
-              key={i}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${
-                g.critical
-                  ? 'bg-portal-red-lt border border-portal-red/30 text-portal-red'
-                  : 'bg-portal-blue-lt border border-portal-blue/20 text-portal-blue'
-              }`}
-            >
-              <span>{g.icon}</span>
-              <span>{g.msg}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── METRICS STRIP ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-6 gap-3">
-        {[
-          { label: 'Total',       val: total,      color: '#374151' },
-          { label: 'New',         val: newCount,   color: '#16a34a' },
-          { label: 'Needs Review',val: inReview,   color: '#2563eb' },
-          { label: 'In Progress', val: inProgress, color: '#7c3aed' },
-          { label: 'In Editing',  val: inEditing,  color: '#c4622d' },
-          { label: 'Published',   val: published,  color: '#64748b' },
-        ].map(m => (
-          <div key={m.label} className="bg-white border border-portal-border rounded-lg px-4 py-3">
-            <div className="text-2xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[11px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
+          <h1 className="ph-title">Community Submissions</h1>
+          <div className="text-muted text-sm">
+            Nominations, celebrations, school news, events, and feature applications. Triage here, deep-edit in the detail view, publish to homepage when ready.
           </div>
-        ))}
+        </div>
+        <div className="ph-actions">
+          <Link href="/admin/editorial" className="btn btn-ghost btn-sm">Editorial Pipeline →</Link>
+          <Link href="/admin/editorial/approval" className="btn btn-ghost btn-sm">Approval Desk →</Link>
+          <Link href="/submit" target="_blank" className="btn btn-blue btn-sm">Public Gateway ↗</Link>
+        </div>
       </div>
 
-      {/* ── FILTERS ─────────────────────────────────────────────────────── */}
-      <div className="space-y-2.5">
+      <div className="content-body overflow-y-auto">
 
-        {/* Status chips */}
-        <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide mr-1">Status:</span>
-          <Link
-            href={statusHref()}
-            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-              !filterStatus ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
-            }`}
-          >
-            All
-          </Link>
-          {statusChips.map(s => {
-            const sc    = STATUS_CONFIG[s]
-            const count = rows.filter(r => r.status === s).length
-            if (count === 0) return null
-            const active = filterStatus === s
-            return (
-              <Link
-                key={s}
-                href={statusHref(s)}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-                style={active
-                  ? { backgroundColor: sc.color, color: '#fff' }
-                  : { backgroundColor: '#f1f5f9', color: '#475569' }
-                }
-              >
-                {sc.label} ({count})
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Type chips */}
-        {typeCounts.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap items-center">
-            <span className="text-[11px] font-semibold text-portal-muted uppercase tracking-wide mr-1">Type:</span>
-            <Link
-              href={typeHref()}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                !filterType ? 'bg-portal-navy text-white' : 'bg-portal-row-hover text-portal-sub hover:bg-portal-border-2'
-              }`}
-            >
-              All
-            </Link>
-            {typeCounts.map(t => {
-              const active = filterType === t.type
-              return (
-                <Link
-                  key={t.type}
-                  href={typeHref(t.type)}
-                  className="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-                  style={active
-                    ? { backgroundColor: TYPE_COLORS[t.type] ?? '#374151', color: '#fff' }
-                    : { backgroundColor: '#f1f5f9', color: '#475569' }
-                  }
-                >
-                  {t.emoji} {t.shortLabel} ({t.count})
-                </Link>
-              )
-            })}
+        {/* Operator guidance banners */}
+        {guidance.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+            {guidance.map((g, i) => (
+              <div key={i} className={`alert ${g.critical ? 'alert-error' : 'alert-info'}`}>
+                <span style={{ marginRight: 6 }}>{g.icon}</span>{g.msg}
+              </div>
+            ))}
           </div>
         )}
-      </div>
 
-      {/* ── SUBMISSION LIST ──────────────────────────────────────────────── */}
-      {subs.length === 0 ? (
-        <div className="bg-white border border-portal-border rounded-lg px-8 py-16 text-center">
-          <div className="text-5xl mb-4">📭</div>
-          <p className="text-portal-sub font-medium">
-            {total === 0 ? 'No community submissions yet.' : 'No submissions match the current filters.'}
-          </p>
-          {total > 0 && (
-            <Link href="/admin/community" className="text-sm text-portal-blue mt-2 inline-block hover:underline">
-              Clear filters
-            </Link>
-          )}
+        {/* Stats — true portal stat cards */}
+        <div className="stats-row" style={{ marginBottom: 16 }}>
+          <Link href="/admin/community" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className="stat-num">{total}</div>
+            <div className="stat-label">Total</div>
+          </Link>
+          <Link href="/admin/community?status=new" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className={`stat-num ${newCount > 0 ? 'has-amber' : ''}`}>{newCount}</div>
+            <div className="stat-label">New</div>
+          </Link>
+          <Link href="/admin/community?status=needs-review" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className={`stat-num ${inReview > 0 ? 'has-amber' : ''}`}>{inReview}</div>
+            <div className="stat-label">Needs Review</div>
+          </Link>
+          <Link href="/admin/community?status=in-progress" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className="stat-num">{inProgress}</div>
+            <div className="stat-label">In Progress</div>
+          </Link>
+          <Link href="/admin/community?status=in-editing" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className="stat-num">{inEditing}</div>
+            <div className="stat-label">In Editing</div>
+          </Link>
+          <Link href="/admin/community?status=published" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className="stat-num">{published}</div>
+            <div className="stat-label">Published</div>
+          </Link>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {subs.map(sub => {
-            const tc      = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
-            const sc      = STATUS_CONFIG[sub.status]
-            const subject = subjectLine(sub)
-            const accent  = TYPE_COLORS[sub.submission_type] ?? '#374151'
-            const nextAct = sc?.nextActions ?? []
 
-            return (
-              <div
-                key={sub.id}
-                className="bg-white border border-portal-border rounded-lg overflow-hidden"
-                style={{ borderLeft: `4px solid ${accent}` }}
-              >
-                <div className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-4">
+        {/* Filters card */}
+        <div className="card" style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span className="text-muted text-xs fw-700" style={{ textTransform: 'uppercase', letterSpacing: '.5px' }}>Status:</span>
+              <FilterChip href={statusHref()} active={!filterStatus} label="All" />
+              {statusChips.map(s => {
+                const sc = STATUS_CONFIG[s]
+                const count = rows.filter(r => r.status === s).length
+                if (count === 0) return null
+                return (
+                  <FilterChip key={s} href={statusHref(s)} active={filterStatus === s} label={`${sc.label} (${count})`} />
+                )
+              })}
+            </div>
 
-                    {/* Left: type badge + subject + submitter */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="text-xl">{tc?.emoji ?? '📝'}</span>
-                        <span className="text-[11px] font-bold text-portal-muted uppercase tracking-wide">
+            {typeCounts.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span className="text-muted text-xs fw-700" style={{ textTransform: 'uppercase', letterSpacing: '.5px' }}>Type:</span>
+                <FilterChip href={typeHref()} active={!filterType} label="All" />
+                {typeCounts.map(t => (
+                  <FilterChip
+                    key={t.type}
+                    href={typeHref(t.type)}
+                    active={filterType === t.type}
+                    label={`${t.shortLabel} (${t.count})`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Submission list */}
+        {subs.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: 48 }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
+            <p className="fw-700">{total === 0 ? 'No community submissions yet.' : 'No submissions match the current filters.'}</p>
+            {total > 0 && (
+              <Link href="/admin/community" className="text-xs" style={{ color: 'var(--color-portal-blue)', marginTop: 8, display: 'inline-block' }}>
+                Clear filters
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {subs.map(sub => {
+              const tc      = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
+              const sc      = STATUS_CONFIG[sub.status]
+              const subject = subjectLine(sub)
+              const accent  = TYPE_COLORS[sub.submission_type] ?? 'var(--color-portal-border-2)'
+              const nextAct = sc?.nextActions ?? []
+
+              return (
+                <Link
+                  key={sub.id}
+                  href={`/admin/community/${sub.id}`}
+                  className="card"
+                  style={{
+                    borderLeft: `3px solid ${accent}`,
+                    textDecoration: 'none', color: 'inherit',
+                    transition: 'border-color .12s ease, background .12s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                        <span className="text-xs fw-700" style={{ color: 'var(--color-portal-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>
                           {tc?.shortLabel ?? sub.submission_type}
                         </span>
-                        <span
-                          className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                          style={{ backgroundColor: sc?.bg ?? '#f9fafb', color: sc?.color ?? '#374151' }}
-                        >
+                        <span className="badge" style={{ background: sc?.bg ?? 'var(--color-portal-bg)', color: sc?.color ?? 'var(--color-portal-text)' }}>
                           {sc?.label ?? sub.status}
                         </span>
                         {sub.internal_priority !== 'normal' && (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                            sub.internal_priority === 'urgent'
-                              ? 'bg-portal-red-lt text-portal-red'
-                              : sub.internal_priority === 'high'
-                              ? 'bg-portal-amber-lt text-portal-amber'
-                              : 'bg-portal-row-hover text-portal-sub'
-                          }`}>
+                          <span className={`badge ${sub.internal_priority === 'urgent' ? 'badge-red' : sub.internal_priority === 'high' ? 'badge-amber' : 'badge-gray'}`}>
                             ↑ {sub.internal_priority}
                           </span>
                         )}
                       </div>
-
                       {subject && (
-                        <p className="text-[15px] font-semibold text-portal-text leading-snug">{subject}</p>
+                        <div className="fw-700" style={{ fontSize: 15, color: 'var(--color-portal-text)', lineHeight: 1.3 }}>
+                          {subject}
+                        </div>
                       )}
-                      {sub.related_sport && (
-                        <p className="text-xs text-portal-muted mt-0.5">Sport: {sub.related_sport}</p>
-                      )}
-
-                      <p className="text-sm text-portal-sub mt-1.5">
-                        From{' '}
-                        <span className="font-semibold text-portal-text">{sub.submitter_name}</span>
+                      <div className="text-sub text-sm" style={{ marginTop: 4 }}>
+                        From <span className="fw-600">{sub.submitter_name}</span>
                         {' · '}
-                        <a href={`mailto:${sub.submitter_email}`} className="text-portal-blue hover:underline">
+                        <a href={`mailto:${sub.submitter_email}`} onClick={e => e.stopPropagation()} style={{ color: 'var(--color-portal-blue)' }}>
                           {sub.submitter_email}
                         </a>
-                        {sub.submitter_phone && (
-                          <span className="text-portal-muted ml-2">· {sub.submitter_phone}</span>
-                        )}
-                      </p>
-
+                        {sub.submitter_phone && <span className="text-muted"> · {sub.submitter_phone}</span>}
+                      </div>
                       {sub.editor_notes && (
-                        <p className="text-xs text-portal-amber bg-portal-amber-lt rounded-lg px-3 py-1.5 mt-2 border border-portal-amber/20 line-clamp-2">
+                        <div className="alert alert-warning" style={{ marginTop: 6, padding: '4px 8px', fontSize: 11 }}>
                           📝 {sub.editor_notes}
-                        </p>
+                        </div>
                       )}
-
                       {sub.assigned_to && (
-                        <p className="text-xs text-portal-muted mt-1.5">
-                          Assigned to: <span className="font-medium text-portal-sub">{sub.assigned_to}</span>
-                        </p>
+                        <div className="text-muted text-xs" style={{ marginTop: 4 }}>
+                          Assigned to: <span className="fw-600">{sub.assigned_to}</span>
+                        </div>
                       )}
                     </div>
-
-                    {/* Right: timestamp + view link */}
-                    <div className="shrink-0 text-right space-y-1.5">
-                      <p className="text-xs text-portal-muted font-medium">{timeAgo(sub.created_at)}</p>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <div className="text-muted text-xs">{timeAgo(sub.created_at)}</div>
                       {sub.editorial_deadline && (
-                        <p className="text-xs font-semibold text-portal-amber">
+                        <div className="text-xs fw-700" style={{ color: 'var(--color-portal-amber)', marginTop: 2 }}>
                           Due {shortDate(sub.editorial_deadline)}
-                        </p>
+                        </div>
                       )}
-                      <Link
-                        href={`/admin/community/${sub.id}`}
-                        className="block text-xs text-portal-blue hover:underline font-semibold"
-                      >
-                        View →
-                      </Link>
+                      <div className="text-xs fw-700" style={{ color: 'var(--color-portal-blue)', marginTop: 6 }}>Open →</div>
                     </div>
                   </div>
 
-                  {/* Quick actions */}
                   {nextAct.length > 0 && (
-                    <div className="flex gap-2 mt-3.5 pt-3 border-t border-gray-50 flex-wrap">
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        display: 'flex', gap: 6, flexWrap: 'wrap',
+                        marginTop: 12, paddingTop: 10,
+                        borderTop: '1px solid var(--color-portal-border)',
+                      }}
+                    >
                       {nextAct.map(action => {
                         const targetStatus = ACTION_STATUS[action]
                         if (!targetStatus) return null
@@ -423,14 +372,7 @@ export default async function AdminCommunityPage({
                           <form key={action} action={setStatus}>
                             <input type="hidden" name="id"     value={sub.id} />
                             <input type="hidden" name="status" value={targetStatus} />
-                            <button
-                              type="submit"
-                              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
-                                isBad
-                                  ? 'border-portal-red/30 text-portal-red hover:bg-portal-red-lt'
-                                  : 'border-portal-border text-portal-text hover:bg-portal-bg'
-                              }`}
-                            >
+                            <button type="submit" className={`btn ${isBad ? 'btn-red' : 'btn-ghost'} btn-xs`}>
                               {action}
                             </button>
                           </form>
@@ -438,19 +380,40 @@ export default async function AdminCommunityPage({
                       })}
                     </div>
                   )}
-                </div>
-              </div>
-            )
-          })}
+                </Link>
+              )
+            })}
 
-          {subs.length >= 100 && (
-            <p className="text-center text-xs text-portal-muted py-2">
-              Showing first 100 results. Use filters to narrow results.
-            </p>
-          )}
-        </div>
-      )}
+            {subs.length >= 100 && (
+              <p className="text-muted text-xs" style={{ textAlign: 'center', padding: 12 }}>
+                Showing first 100 results. Use filters to narrow.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
-    </main>
+// Compact filter chip — used in both status + type rows.
+function FilterChip({ href, active, label }: { href: string; active: boolean; label: string }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        padding: '4px 10px',
+        fontSize: 11,
+        fontWeight: 700,
+        borderRadius: 999,
+        background: active ? 'var(--color-portal-navy)' : 'white',
+        color: active ? 'white' : 'var(--color-portal-sub)',
+        border: `1px solid ${active ? 'var(--color-portal-navy)' : 'var(--color-portal-border)'}`,
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </Link>
   )
 }
