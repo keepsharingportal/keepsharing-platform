@@ -43,9 +43,15 @@ function getSupabase() {
 
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title: 'Family Resource Guide | River Region Parents',
-  description: 'The distilled essentials. River Region moms — local, new, or just trying to keep up — start here. Schools, pediatricians, parks, day trips, counselors, and more.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Family Resource Guide',
+    description: 'The distilled essentials for River Region families — schools, pediatricians, parks, day trips, counselors, summer camps, and more. Local. Real. Updated weekly.',
+    path:        '/family-resource-guide',
+    type:        'website',
+    keywords:    ['River Region', 'family resources', 'Montgomery', 'parenting guide'],
+  })
 }
 
 interface AccRow {

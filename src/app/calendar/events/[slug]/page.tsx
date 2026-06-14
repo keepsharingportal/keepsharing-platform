@@ -81,16 +81,22 @@ async function loadEventByParam<T>(
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const data = await loadEventByParam<{ title: string; description: string | null }>(
+  const data = await loadEventByParam<{
+    title: string; description: string | null; hero_image_url: string | null;
+  }>(
     getSupabase(),
     slug,
-    'title, description',
+    'title, description, hero_image_url',
   )
   if (!data) return { title: 'Event Not Found' }
-  return {
-    title:       `${data.title} | River Region Parents Calendar`,
-    description: data.description?.slice(0, 160) ?? undefined,
-  }
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       data.title,
+    description: data.description?.slice(0, 200) ?? `Family event in the River Region — ${data.title}.`,
+    path:        `/calendar/events/${slug}`,
+    image:       data.hero_image_url,
+    type:        'article',
+  })
 }
 
 function fmtLongDate(d: string): string {
@@ -180,8 +186,51 @@ export default async function EventDetailPage({ params }: Props) {
     ? `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}`
     : null
 
+  // ── Event JSON-LD + Breadcrumb structured data ────────────────────────
+  // schema.org/Event so Google can surface this in event-rich results
+  // (Knowledge Graph card, date/time/location in SERP). Breadcrumb LD
+  // mirrors the visible breadcrumb trail.
+  const { eventJsonLd, breadcrumbJsonLd, jsonLdScript } = await import('@/lib/seo/jsonld')
+  const { loadBrandContext: _loadBrand } = await import('@/lib/brand-context')
+  const _seoCtx = await _loadBrand()
+  const startIso = `${ev.start_date}${ev.start_time ? `T${ev.start_time}` : ''}`
+  const endIso   = ev.end_date
+    ? `${ev.end_date}${ev.end_time ? `T${ev.end_time}` : ''}`
+    : undefined
+  const eventLd = eventJsonLd({
+    name:            ev.title,
+    description:     ev.description ?? `Family event in the River Region — ${ev.title}.`,
+    url:             `${_seoCtx.publicOrigin}/calendar/events/${slug}`,
+    startDate:       startIso,
+    endDate:         endIso,
+    imageUrl:        ev.hero_image_url ?? null,
+    locationName:    ev.location_name ?? undefined,
+    locationAddress: ev.address ?? undefined,
+    locationCity:    ev.city ?? undefined,
+    locationState:   'AL',
+    isFree:          ev.is_free === true,
+    costText:        ev.cost_text ?? undefined,
+    organizerName:   ev.organizer_name ?? undefined,
+  })
+  const eventBreadcrumbLd = breadcrumbJsonLd(
+    [
+      { name: 'Home',     path: '/' },
+      { name: 'Calendar', path: '/calendar' },
+      { name: ev.title,   path: `/calendar/events/${slug}` },
+    ],
+    _seoCtx.publicOrigin,
+  )
+
   return (
     <div className="min-h-screen bg-background public-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(eventLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(eventBreadcrumbLd) }}
+      />
       <Navigation />
 
       {/* Breadcrumb trail — Home > Calendar > [Event Title]. Sits in a

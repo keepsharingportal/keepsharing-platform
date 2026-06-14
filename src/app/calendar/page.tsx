@@ -12,9 +12,15 @@ import type { Metadata } from 'next'
 
 export const revalidate = 900
 
-export const metadata: Metadata = {
-  title:       'Family Calendar | River Region Parents',
-  description: 'Events, festivals, workshops, and activities for River Region families — updated weekly.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Family Calendar',
+    description: 'Events, festivals, workshops, and activities for River Region families — updated weekly. Hosting an event? Submit it free and get on the calendar.',
+    path:        '/calendar',
+    type:        'website',
+    keywords:    ['River Region events', 'family events', 'Montgomery calendar', 'kids events'],
+  })
 }
 
 function getSupabase() {

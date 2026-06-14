@@ -56,6 +56,11 @@ import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { verticalForColumn, verticalHref, columnBadgeStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/metadata'
+import {
+  articleJsonLd, breadcrumbJsonLd, jsonLdScript,
+} from '@/lib/seo/jsonld'
+import { loadBrandContext } from '@/lib/brand-context'
 
 export const revalidate = 600
 
@@ -184,10 +189,32 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const { column, slug } = await params
   const data = await getArticleData(column, slug)
   if (!data) return { title: 'Article — River Region Parents' }
-  return {
-    title:       `${data.article.title} — River Region Parents`,
-    description: data.article.excerpt ?? undefined,
-  }
+
+  // Pull the hero image off the article so the Facebook / Twitter
+  // / LinkedIn share preview shows the article's own photo, not the
+  // generic site OG. Falls through to the route's opengraph-image
+  // when no hero is set on the article.
+  const heroImage = (data.article.hero_image_url as string | null)
+                 ?? (data.article.web_image_url  as string | null)
+                 ?? null
+
+  const description = (data.article.excerpt as string | null)
+                   ?? (data.article.dek as string | null)
+                   ?? `Read ${data.article.title} on River Region Parents.`
+
+  const brandLabel = data.column?.label ?? undefined
+
+  return buildPageMetadata({
+    title:         data.article.title as string,
+    description,
+    path:          `/columns/${column}/${slug}`,
+    image:         heroImage,
+    type:          'article',
+    publishedTime: (data.article.published_at as string | null) ?? undefined,
+    modifiedTime:  (data.article.updated_at   as string | null) ?? undefined,
+    authorName:    (data.article.author_name  as string | null) ?? undefined,
+    keywords:      brandLabel ? [brandLabel, 'River Region', 'Parenting'] : undefined,
+  })
 }
 
 export default async function ArticlePage({ params }: PageParams) {
@@ -448,8 +475,50 @@ export default async function ArticlePage({ params }: PageParams) {
     ? (getNominateCTA(column)?.href ?? '/submit/mom-to-mom')
     : ''
 
+  // ── JSON-LD: NewsArticle + BreadcrumbList ──────────────────────────────
+  // Two structured-data blobs per article so search engines can
+  // surface rich results (article cards, breadcrumb trails) without
+  // having to reverse-engineer our markup.
+  const seoCtx = await loadBrandContext()
+  const heroForLd = (article.hero_image_url as string | null)
+                 ?? (article.web_image_url  as string | null)
+                 ?? null
+  const articleUrl = `${seoCtx.publicOrigin}/columns/${column}/${slug}`
+  const articleLd = articleJsonLd({
+    title:        article.title as string,
+    description:  (article.excerpt as string | null) ?? '',
+    url:          articleUrl,
+    imageUrl:     heroForLd,
+    publishedAt:  (article.published_at as string | null) ?? undefined,
+    modifiedAt:   (article.updated_at   as string | null) ?? undefined,
+    authorName:   (article.author_name  as string | null) ?? undefined,
+    publisherName:    seoCtx.market.displayName,
+    publisherLogoUrl: `${seoCtx.publicOrigin}/images/advertise/rrp-logo.png`,
+    articleSection:   columnData?.label ?? undefined,
+    type:             'NewsArticle',
+  })
+  const breadcrumbsLd = breadcrumbJsonLd(
+    [
+      { name: 'Home',       path: '/' },
+      { name: categoryLabel,path: `/columns/${column}` },
+      { name: article.title as string, path: `/columns/${column}/${slug}` },
+    ],
+    seoCtx.publicOrigin,
+  )
+
   return (
     <div className="min-h-screen bg-background public-page">
+      {/* Per-article structured data — NewsArticle + BreadcrumbList.
+          Inline-rendered so crawlers see it without executing JS. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(articleLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbsLd) }}
+      />
+
       <Navigation />
 
       {/* Breadcrumb trail — Home > [Column Label] > [Article Title]. The

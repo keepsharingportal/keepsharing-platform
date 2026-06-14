@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react'
 import { gameById, DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty, type GameId } from '@/lib/games/types'
 import { dailyContent } from '@/lib/games/weekly'
 import { GamePlayer } from './GamePlayer'
+import { buildPageMetadata } from '@/lib/seo/metadata'
 
 interface PageProps {
   params:       Promise<{ gameId: string }>
@@ -21,10 +22,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { gameId } = await params
   const game = gameById(gameId)
   if (!game) return { title: 'Brain Games — River Region Parents' }
-  return {
-    title:       `${game.title} — Brain Games — River Region Parents`,
-    description: game.desc,
-  }
+  return buildPageMetadata({
+    title:       `${game.title} — Brain Games`,
+    description: `${game.desc} Play free, beat your best time, win one of three $10 prizes every week.`,
+    path:        `/games/${gameId}`,
+    type:        'website',
+    keywords:    [game.title, 'family games', 'brain games', 'River Region'],
+  })
 }
 
 function isValidDifficulty(s: string | undefined): s is Difficulty {

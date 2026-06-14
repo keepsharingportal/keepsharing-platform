@@ -17,10 +17,16 @@ import { GAMES, DIFFICULTIES, DEFAULT_DIFFICULTY, type Difficulty, type GameId }
 import { isoWeekString } from '@/lib/games/weekly'
 import { DifficultyChooser } from './DifficultyChooser'
 import { createClient } from '@supabase/supabase-js'
+import { buildPageMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title:       'Family Brain Games — River Region Parents',
-  description: 'New brain games every day. Play, submit your score, and win one of three $10 prizes every week.',
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata({
+    title:       'Family Brain Games',
+    description: 'New brain games every day — scramble, trivia, match, emoji decode, carpool math, and family connect. Play, submit your score, and win one of three $10 prizes every week.',
+    path:        '/games',
+    type:        'website',
+    keywords:    ['family games', 'brain games', 'trivia', 'word scramble', 'River Region'],
+  })
 }
 export const revalidate = 900
 
