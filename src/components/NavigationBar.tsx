@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import {
-  HEADER_GUIDES, HEADER_LOCAL, HEADER_TOP_LEVEL,
+  HEADER_GUIDES, HEADER_LOCAL, HEADER_CALENDAR, HEADER_TOP_LEVEL,
   mergeNavItems, type NavItem, type OverrideMap, type NavItemOverride,
 } from '@/lib/site-nav/items'
 
@@ -40,10 +40,12 @@ export function NavigationBar(props: NavigationBarProps = {}) {
   const logoUrl        = props.logoUrl        ?? null
   const primaryColor   = props.primaryColorHex
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [guidesOpen, setGuidesOpen] = useState(false)
-  const [localOpen,  setLocalOpen]  = useState(false)
-  const guidesCloseTimer = useRef<NodeJS.Timeout | null>(null)
-  const localCloseTimer  = useRef<NodeJS.Timeout | null>(null)
+  const [guidesOpen,   setGuidesOpen]   = useState(false)
+  const [localOpen,    setLocalOpen]    = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const guidesCloseTimer   = useRef<NodeJS.Timeout | null>(null)
+  const localCloseTimer    = useRef<NodeJS.Timeout | null>(null)
+  const calendarCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
 
   // Pull overrides + custom items from the public endpoint so editors
@@ -80,8 +82,9 @@ export function NavigationBar(props: NavigationBarProps = {}) {
 
   useEffect(() => {
     return () => {
-      if (guidesCloseTimer.current) clearTimeout(guidesCloseTimer.current)
-      if (localCloseTimer.current)  clearTimeout(localCloseTimer.current)
+      if (guidesCloseTimer.current)   clearTimeout(guidesCloseTimer.current)
+      if (localCloseTimer.current)    clearTimeout(localCloseTimer.current)
+      if (calendarCloseTimer.current) clearTimeout(calendarCloseTimer.current)
     }
   }, [])
 
@@ -96,6 +99,10 @@ export function NavigationBar(props: NavigationBarProps = {}) {
   )
   const local = useMemo(
     () => mergeNavItems(HEADER_LOCAL, overrides, customs.filter(c => c.parentKey === 'header.local.dropdown')),
+    [overrides, customs],
+  )
+  const calendar = useMemo(
+    () => mergeNavItems(HEADER_CALENDAR, overrides, customs.filter(c => c.parentKey === 'header.calendar.dropdown')),
     [overrides, customs],
   )
 
@@ -119,13 +126,16 @@ export function NavigationBar(props: NavigationBarProps = {}) {
   // .dropdown rows in the flat top-level loop — those have their own
   // dedicated dropdown UI above.
   function shouldRenderInFlat(item: NavItem) {
-    return item.key !== 'header.guides.dropdown' && item.key !== 'header.local.dropdown'
+    return item.key !== 'header.guides.dropdown'
+        && item.key !== 'header.local.dropdown'
+        && item.key !== 'header.calendar.dropdown'
   }
 
   // Find a top-level row by key (for the dropdown trigger labels —
   // honors any label override the admin set).
-  const guidesItem = topLevel.find(i => i.key === 'header.guides.dropdown')
-  const localItem  = topLevel.find(i => i.key === 'header.local.dropdown')
+  const guidesItem   = topLevel.find(i => i.key === 'header.guides.dropdown')
+  const localItem    = topLevel.find(i => i.key === 'header.local.dropdown')
+  const calendarItem = topLevel.find(i => i.key === 'header.calendar.dropdown')
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60 font-sans">
@@ -253,6 +263,49 @@ export function NavigationBar(props: NavigationBarProps = {}) {
                 </div>
               )
             }
+            if (item.key === 'header.calendar.dropdown') {
+              if (calendar.length === 0) return null
+              return (
+                <div
+                  key={item.key}
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (calendarCloseTimer.current) {
+                      clearTimeout(calendarCloseTimer.current)
+                      calendarCloseTimer.current = null
+                    }
+                    setCalendarOpen(true)
+                  }}
+                  onMouseLeave={() => {
+                    calendarCloseTimer.current = setTimeout(() => setCalendarOpen(false), 200)
+                  }}
+                >
+                  <button
+                    onClick={() => setCalendarOpen(o => !o)}
+                    className={`flex items-center gap-1 text-sm font-medium transition-colors cursor-pointer py-2 ${isActive('/calendar') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {item.label} <ChevronDown className={`h-3.5 w-3.5 transition-transform ${calendarOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {calendarOpen && (
+                    <>
+                      <div className="absolute top-full left-0 right-0 h-2" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-card border border-border rounded-2xl shadow-lg p-2 z-50">
+                        {calendar.map(c => (
+                          <Link
+                            key={c.key}
+                            {...linkProps(c, c.key)}
+                            onClick={() => setCalendarOpen(false)}
+                            className="block px-3 py-2 rounded-xl text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
+                          >
+                            {c.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            }
             if (item.key === 'header.get-listed') {
               return (
                 <Button key={item.key} asChild size="sm" className="rounded-full">
@@ -328,6 +381,30 @@ export function NavigationBar(props: NavigationBarProps = {}) {
                         className="block px-3 py-2 text-sm text-muted-foreground hover:text-primary rounded-lg"
                       >
                         {l.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            {calendarItem && calendar.length > 0 && (
+              <>
+                <button
+                  className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-foreground rounded-xl hover:bg-muted"
+                  onClick={() => setCalendarOpen(o => !o)}
+                >
+                  {calendarItem.label} <ChevronDown className={`h-4 w-4 transition-transform ${calendarOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {calendarOpen && (
+                  <div className="pl-4 flex flex-col gap-0.5">
+                    {calendar.map(c => (
+                      <Link
+                        key={c.key}
+                        {...linkProps(c, c.key)}
+                        onClick={() => { setMobileOpen(false); setCalendarOpen(false) }}
+                        className="block px-3 py-2 text-sm text-muted-foreground hover:text-primary rounded-lg"
+                      >
+                        {c.label}
                       </Link>
                     ))}
                   </div>

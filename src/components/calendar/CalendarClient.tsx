@@ -12,7 +12,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   MapPin, Clock, LayoutGrid, List, Search, ChevronRight,
-  Calendar as CalIcon, Download, X,
+  Calendar as CalIcon, Download, X, CalendarPlus, ArrowRight,
 } from 'lucide-react'
 import { EventCard } from '@/components/theme'
 import { EVENT_CATEGORIES, categoryLabel } from '@/lib/calendar-taxonomy'
@@ -444,6 +444,36 @@ export function CalendarClient({ initialEvents, topBannerAd, bottomBannerAd, inl
 
       {/* Events */}
       <main className="container py-8 space-y-12">
+        {/* Submit-an-Event CTA — sits at the very top of the events
+            area, above the sponsor banner, so event organizers see a
+            clear path to get listed without having to dig into the
+            footer or guess where to go. Coral primary background per
+            the site palette, with a sub-line explaining the timeline
+            so submitters aren't surprised when nothing shows up
+            instantly. */}
+        <Link
+          href="/calendar/submit"
+          className="group flex items-center justify-between gap-4 bg-primary text-primary-foreground rounded-2xl px-5 py-4 md:px-6 md:py-5 shadow-sm hover:opacity-95 transition-opacity"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="hidden sm:flex h-10 w-10 shrink-0 rounded-xl bg-white/15 items-center justify-center">
+              <CalendarPlus className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-base md:text-lg font-bold leading-tight">
+                Hosting a family event? Get it on this calendar.
+              </p>
+              <p className="text-xs md:text-sm text-primary-foreground/85 leading-snug mt-0.5">
+                Free to submit — most events go live within 2 business days.
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 inline-flex items-center gap-1.5 text-sm font-bold whitespace-nowrap">
+            Submit an Event
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </div>
+        </Link>
+
         {/* Top sponsor banner — reads from ad_placements if booked,
             otherwise renders the "Media Kit" placeholder. pb-6 / mb-8
             give the ad room to breathe AND the first event row a clear

@@ -58,6 +58,16 @@ export const HEADER_LOCAL: NavItem[] = [
   { key: 'header.local.mom-to-mom',       label: 'Mom to Mom',             href: '/columns/mom-to-mom',            parentKey: 'header.local.dropdown' },
 ]
 
+// "Calendar" dropdown — promoted from a flat link so submitters can
+// find the submission form from the top nav without scrolling to the
+// footer. Browse Calendar is the primary destination (active families
+// looking for what to do); Submit an Event is the secondary path
+// (organizers wanting to be listed).
+export const HEADER_CALENDAR: NavItem[] = [
+  { key: 'header.calendar.browse',  label: 'Browse Calendar',  href: '/calendar',        parentKey: 'header.calendar.dropdown' },
+  { key: 'header.calendar.submit',  label: 'Submit an Event',  href: '/calendar/submit', parentKey: 'header.calendar.dropdown' },
+]
+
 // Top-level items in the desktop header (right of the "Guides" dropdown).
 // Guides + Local each have their own children arrays; toggling the
 // .dropdown key hides the entire group.
@@ -68,10 +78,10 @@ export const HEADER_TOP_LEVEL: NavItem[] = [
   // (what's happening), Games (engagement), Articles (depth), Partner
   // (CTA). Guides + Summer Fun hidden until ready — restore by
   // uncommenting.
-  { key: 'header.local.dropdown',  label: 'Local Spotlights', href: '#local'                 },
-  { key: 'header.school-zone',     label: 'School Zone',      href: '/school-zone'           },
-  { key: 'header.calendar',        label: 'Calendar',         href: '/calendar'              },
-  { key: 'header.games',           label: 'Games & Prizes',   href: '/games'                 },
+  { key: 'header.local.dropdown',    label: 'Local Spotlights', href: '#local'                 },
+  { key: 'header.school-zone',       label: 'School Zone',      href: '/school-zone'           },
+  { key: 'header.calendar.dropdown', label: 'Calendar',         href: '#calendar'              },
+  { key: 'header.games',             label: 'Games & Prizes',   href: '/games'                 },
   { key: 'header.articles',        label: 'Articles',         href: '/articles'              },
   { key: 'header.partners',        label: 'Partner With Us',  href: '/partners'              },
   // Hidden during launch — restore when content is ready:
@@ -116,6 +126,7 @@ export const NAV_CATALOG: NavGroup[] = [
       ...HEADER_TOP_LEVEL,
       ...HEADER_GUIDES,
       ...HEADER_LOCAL,
+      ...HEADER_CALENDAR,
     ],
   },
   { groupLabel: 'Footer — Explore column', items: FOOTER_EXPLORE },
