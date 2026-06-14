@@ -175,11 +175,16 @@ const NAV: NavItem[] = [
   { name: 'Vertical Editor',  href: '/admin/verticals',         icon: LayoutGrid    },
   { name: 'Spotlight Review', href: '/admin/spotlights/review', icon: GraduationCap },
 
-  // ── DISTRIBUTION ────────────────────────────────────────────────────────
-  // Single entry — the page itself has tabs for Queue / Homepage /
-  // Newsletter / Social / Sponsors. Was 5 nav items pointing at one page.
-  { section: 'DISTRIBUTION' },
-  { name: 'Distribution', href: '/admin/distribution', icon: Send },
+  // ── CONTENT ─────────────────────────────────────────────────────────────
+  // Single entry — the page itself has tabs for Today (morning standup) /
+  // Queue / Homepage / Newsletter / Social / Guides / Sponsors / Health.
+  // Renamed from "Distribution" to "Content Deployment" once the page
+  // earned it (Phase A-D rebuild Jun 2026): real pipeline funnel, AI
+  // section filler, brand-voice subject lines, sponsor bulk-categorizer,
+  // social caption drafter, newsletter draft save. Now THE landing page
+  // for editors every morning.
+  { section: 'CONTENT' },
+  { name: 'Content Deployment', href: '/admin/distribution', icon: Send },
 
   // ── DISTRIBUTION ROUTES (physical magazine delivery) ──────────────────
   // Ported from the standalone PHP "Distribution Portal" that ran at

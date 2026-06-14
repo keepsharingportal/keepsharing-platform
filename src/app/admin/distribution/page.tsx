@@ -46,6 +46,7 @@ interface GuideArticleStat {
 // ── Static config ─────────────────────────────────────────────────────────────
 
 const VIEWS = [
+  { key: 'standup',    label: 'Today',      icon: '☕' },
   { key: 'queue',      label: 'Queue',      icon: '📋' },
   { key: 'homepage',   label: 'Homepage',   icon: '🏠' },
   { key: 'newsletter', label: 'Newsletter', icon: '📧' },
@@ -429,9 +430,9 @@ export default async function DistributionPage({
 }: {
   searchParams: Promise<{ view?: string; pub?: string }>
 }) {
-  const { view: rawView = 'queue', pub: rawPub } = await searchParams
+  const { view: rawView = 'standup', pub: rawPub } = await searchParams
   const filterPub = normalizePublication(rawPub) // validated publication slug or null
-  const activeView = (VIEWS.some(v => v.key === rawView) ? rawView : 'queue') as ViewKey
+  const activeView = (VIEWS.some(v => v.key === rawView) ? rawView : 'standup') as ViewKey
 
   const supabase = await createClient()
 
@@ -729,6 +730,236 @@ export default async function DistributionPage({
             </Link>
           ))}
         </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          VIEW: STANDUP (Today — editor morning landing)
+
+          Built for 8am Tuesday. Five panels in priority order:
+            1. What's due TODAY (homepage rotation, scheduled items)
+            2. Sponsor renewal risk (no aligned content recently)
+            3. Stale on the surface (homepage items aging out)
+            4. Newsletter readiness for the week
+            5. Pipeline at-a-glance (unblocked + bottlenecks)
+      ══════════════════════════════════════════════════════════════════════ */}
+      {activeView === 'standup' && (() => {
+        const today    = new Date()
+        const todayLbl = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+        const todayIso = today.toISOString().slice(0, 10)
+
+        // Items needing action TODAY: homepage with remove_on at/past today
+        const dueToday = groups.homepage.filter(i => i.homepage_remove_on && i.homepage_remove_on <= todayIso)
+        // Items scheduled to publish today (issue_month aligns, status='scheduled')
+        const scheduledToday = items.filter(i => i.status === 'scheduled')
+
+        // Sponsor risk: active sponsors with category set but no aligned content
+        const categorizedSponsors = sponsors.filter(s => s.sponsor_category_slug)
+        const uncategorizedActive = sponsors.filter(s => !s.sponsor_category_slug).length
+        const sponsorsAtRisk      = sponsorOpportunities.filter(o =>
+          o.sponsor.sponsor_category_slug && o.aligned.length === 0,
+        )
+        const sponsorCoverage = categorizedSponsors.length > 0
+          ? Math.round((categorizedSponsors.length - sponsorsAtRisk.length) / categorizedSponsors.length * 100)
+          : 0
+
+        // Newsletter readiness: how filled is each section
+        const newsletterReady = NEWSLETTER_SECTIONS.filter(sec =>
+          groups.newsletter.some(i => i.newsletter_section === sec.value),
+        ).length
+
+        // Pipeline at-a-glance — bottleneck stage = the largest pre-approval count
+        const bottleneckStage = pipelineStages
+          .filter(s => s.key !== 'approved' && s.key !== 'scheduled')
+          .map(s => ({ ...s, count: pipelineCounts.get(s.key) ?? 0 }))
+          .sort((a, b) => b.count - a.count)[0]
+
+        return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Headline */}
+          <div className="card" style={{ background: 'linear-gradient(135deg, #0F2640 0%, #1E3A5F 100%)', color: 'white', border: 'none' }}>
+            <div className="text-xs" style={{ color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+              {todayLbl}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>
+              Good morning. Here&apos;s what needs you today.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 16 }}>
+              <div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 800 }}>{dueToday.length + scheduledToday.length}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Due today</div>
+              </div>
+              <div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: sponsorsAtRisk.length > 0 ? '#FCA5A5' : '#4ADE80' }}>{sponsorsAtRisk.length}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Sponsor risks</div>
+              </div>
+              <div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: staleHomepage.length > 0 ? '#FCD34D' : '#4ADE80' }}>{staleHomepage.length}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Stale homepage</div>
+              </div>
+              <div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 800 }}>{newsletterReady}<span style={{ fontSize: 14, color: 'rgba(255,255,255,.5)' }}>/{NEWSLETTER_SECTIONS.length}</span></div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Newsletter slots filled</div>
+              </div>
+              <div>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 800, color: sponsorCoverage >= 80 ? '#4ADE80' : sponsorCoverage >= 50 ? '#FCD34D' : '#FCA5A5' }}>{sponsorCoverage}%</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Sponsor coverage</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Due today */}
+          {(dueToday.length > 0 || scheduledToday.length > 0) && (
+            <div className="card">
+              <div className="card-title">📌 Due today</div>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {dueToday.slice(0, 8).map(item => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'var(--color-portal-amber-lt)', borderRadius: 6 }}>
+                    <span className="badge badge-amber" style={{ fontSize: 9 }}>Homepage rotation due</span>
+                    <span className="text-sm fw-600" style={{ flex: 1, minWidth: 0 }}>{displayTitle(item)}</span>
+                    <Link href={`/admin/editorial/${item.id}`} className="text-xs" style={{ color: 'var(--color-portal-blue)' }}>Review →</Link>
+                  </div>
+                ))}
+                {scheduledToday.slice(0, 6).map(item => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: 'var(--color-portal-blue-lt)', borderRadius: 6 }}>
+                    <span className="badge badge-rrp" style={{ fontSize: 9 }}>Scheduled</span>
+                    <span className="text-sm fw-600" style={{ flex: 1, minWidth: 0 }}>{displayTitle(item)}</span>
+                    <Link href={`/admin/editorial/${item.id}`} className="text-xs" style={{ color: 'var(--color-portal-blue)' }}>Open →</Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sponsor risks */}
+          <div className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">🤝 Sponsor visibility risks</div>
+                <div className="text-muted text-xs">Active sponsors with no aligned content in the current queue. Renewal signal — surface a story for them this week.</div>
+              </div>
+              <Link href="/admin/distribution?view=sponsors" className="btn btn-ghost btn-xs">All sponsors →</Link>
+            </div>
+            {uncategorizedActive > 0 && (
+              <div className="alert alert-warning" style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <span><strong>{uncategorizedActive} sponsors still need a category.</strong> The matcher can&apos;t find content for them until they&apos;re classified.</span>
+                <Link href="/admin/distribution/sponsor-categorize" className="btn btn-primary btn-xs">Fix with AI →</Link>
+              </div>
+            )}
+            {sponsorsAtRisk.length === 0 && uncategorizedActive === 0 ? (
+              <div className="alert alert-success" style={{ marginTop: 10 }}>Every active sponsor has aligned content in the queue. 🎉</div>
+            ) : (
+              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                {sponsorsAtRisk.slice(0, 8).map(({ sponsor }) => (
+                  <div key={sponsor.id} style={{ padding: '10px 12px', background: 'white', border: '1px solid var(--color-portal-amber)', borderLeft: '3px solid var(--color-portal-amber)', borderRadius: 6 }}>
+                    <div className="fw-700 text-sm">{sponsor.business_name}</div>
+                    <div className="text-muted text-xs" style={{ marginTop: 2 }}>
+                      {sponsor.package_tier ?? '—'} · {sponsor.sponsor_category_slug ?? 'no category'}
+                    </div>
+                  </div>
+                ))}
+                {sponsorsAtRisk.length > 8 && (
+                  <Link href="/admin/distribution?view=sponsors" className="text-xs" style={{ alignSelf: 'center', color: 'var(--color-portal-blue)' }}>
+                    +{sponsorsAtRisk.length - 8} more →
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Stale homepage + Newsletter readiness — two columns */}
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-title">⏳ Aging on homepage</div>
+              <div className="text-muted text-xs">Items on the homepage longer than 21 days. Rotate to keep the front page feeling fresh.</div>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {staleHomepage.length === 0 && (
+                  <div className="alert alert-success">Nothing stale right now. 🎉</div>
+                )}
+                {staleHomepage.slice(0, 6).map(item => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: 'var(--color-portal-bg)', borderRadius: 6 }}>
+                    <span className="text-sm fw-600" style={{ flex: 1, minWidth: 0 }}>{displayTitle(item)}</span>
+                    <span className="badge badge-amber" style={{ fontSize: 9 }}>{freshnessDays(item.updated_at)}d</span>
+                  </div>
+                ))}
+                {staleHomepage.length > 6 && (
+                  <Link href="/admin/distribution?view=homepage" className="text-xs" style={{ alignSelf: 'flex-start', color: 'var(--color-portal-blue)' }}>+{staleHomepage.length - 6} more →</Link>
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">📧 Newsletter slots</div>
+              <div className="text-muted text-xs">Each section needs at least one item before the next send.</div>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {NEWSLETTER_SECTIONS.map(sec => {
+                  const n = groups.newsletter.filter(i => i.newsletter_section === sec.value).length
+                  return (
+                    <div key={sec.value} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: 'var(--color-portal-bg)', borderRadius: 6 }}>
+                      <span className="text-sm fw-600" style={{ flex: 1, minWidth: 0 }}>{sec.label}</span>
+                      <span className={`badge ${n === 0 ? 'badge-amber' : 'badge-green'}`} style={{ fontSize: 9 }}>
+                        {n === 0 ? 'Empty' : `${n} item${n === 1 ? '' : 's'}`}
+                      </span>
+                    </div>
+                  )
+                })}
+                <Link href="/admin/distribution?view=newsletter" className="text-xs" style={{ alignSelf: 'flex-start', color: 'var(--color-portal-blue)', marginTop: 4 }}>Build newsletter →</Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Pipeline at-a-glance */}
+          {pipelineTotal > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <div>
+                  <div className="card-title">🔍 Pipeline pulse</div>
+                  <div className="text-muted text-xs">
+                    {items.length} ready to deploy · {pipelineTotal - items.length} earlier in the pipeline
+                    {bottleneckStage && bottleneckStage.count > 0 && (
+                      <> · biggest stage: <strong>{bottleneckStage.label}</strong> ({bottleneckStage.count})</>
+                    )}
+                  </div>
+                </div>
+                <Link href="/admin/editorial/approval" className="btn btn-blue btn-xs">Approval Desk →</Link>
+              </div>
+            </div>
+          )}
+
+          {/* Quick-start CTAs */}
+          <div className="card" style={{ background: 'var(--color-portal-bg)' }}>
+            <div className="card-title">⚡ Quick actions</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+              {uncategorizedActive > 0 && (
+                <Link href="/admin/distribution/sponsor-categorize" className="btn btn-primary btn-sm">
+                  Categorize {uncategorizedActive} sponsors with AI
+                </Link>
+              )}
+              {groups.newsletter.length > 0 && (
+                <Link href="/admin/distribution?view=newsletter" className="btn btn-blue btn-sm">
+                  Finish this week&apos;s newsletter ({groups.newsletter.length})
+                </Link>
+              )}
+              {groups.homepage.length === 0 && items.length > 0 && (
+                <Link href="/admin/distribution?view=homepage" className="btn btn-blue btn-sm">
+                  Fill the homepage ({items.length} candidates)
+                </Link>
+              )}
+              {(pipelineCounts.get('new') ?? 0) + (pipelineCounts.get('needs-review') ?? 0) > 0 && (
+                <Link href="/admin/editorial/approval" className="btn btn-amber btn-sm">
+                  Triage {(pipelineCounts.get('new') ?? 0) + (pipelineCounts.get('needs-review') ?? 0)} new submissions
+                </Link>
+              )}
+              {groups.socialHigh.length > 0 && (
+                <Link href="/admin/distribution?view=social" className="btn btn-ghost btn-sm">
+                  Draft captions for {groups.socialHigh.length} high-share items
+                </Link>
+              )}
+            </div>
+          </div>
+
+        </div>
+        )
+      })()}
 
       {/* ══════════════════════════════════════════════════════════════════════
           VIEW: QUEUE (default)
