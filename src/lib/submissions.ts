@@ -37,6 +37,24 @@ export interface SubmissionTypeConfig {
   whoShouldUse:   string         // "Parents, students, and school colleagues"
   whatHappensNext:string         // "Our editorial team reviews all nominations..."
   estimatedTime:  string         // "3 minutes"
+  /**
+   * Does this submission have a DISTINCT nominee, or is the submitter
+   * also the subject?
+   *
+   *   'required' → someone nominating someone else. The form renders
+   *                a dedicated nominee-contact section (first/last
+   *                name + email + phone, ALL required) so editorial
+   *                can reach the nominee without chasing the
+   *                nominator. Privacy promise lives below the section.
+   *
+   *   'self'     → the submitter IS the subject (boom apply-yourself,
+   *                school news from the school, event from the org,
+   *                parent submitting their own child's birthday).
+   *                Only the "About You" section renders.
+   *
+   *  Omitted = treated as 'self' for backwards compatibility.
+   */
+  nomineeContact?: 'required' | 'self'
   photoLabel?:    string         // label for the photo section
   photoRequired:  boolean
   photoHint?:     string
@@ -112,6 +130,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents, students, school colleagues, or anyone who knows an outstanding teacher.',
     whatHappensNext: 'Our editorial team reviews all nominations and selects one teacher per month. The selected teacher is featured in the print magazine and online.',
     estimatedTime: '3 minutes',
+    nomineeContact: 'required',
     photoLabel: "Teacher Photos",
     photoRequired: false,
     photoUpload:   true,
@@ -128,27 +147,34 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
   },
 
   // ── 2. MOM-TO-MOM ────────────────────────────────────────────────────────
+  // Nomination flow (not self-application). You nominate a mom; we
+  // reach out to her with the interview form (Phase 5) where SHE
+  // answers her own personal questions. The fields below are what we
+  // need from YOU (the nominator) — who she is, why she's worth
+  // featuring, and a heads-up about anything we should know before
+  // contacting her.
   {
     type: 'mom-to-mom',
-    label: 'Mom to Mom', shortLabel: 'Mom Feature', emoji: '💛',
-    group: 'Be Featured or Interviewed', groupSlug: 'feature',
-    headline: 'Be Part of the Mom to Mom Column',
-    description: 'Mom to Mom is a monthly profile celebrating real River Region moms — their stories, wisdom, and love for this community. Apply to be featured.',
-    whoShouldUse: 'River Region moms who have a story worth sharing — about motherhood, career, community, or local life.',
-    whatHappensNext: 'Our editorial team reviews applications and reaches out for a short interview. Featured moms appear in print and online.',
-    estimatedTime: '5 minutes',
-    photoLabel: 'Your Photos',
+    label: 'Mom to Mom', shortLabel: 'Mom Nomination', emoji: '💛',
+    group: 'Nominate Someone', groupSlug: 'nominate',
+    headline: 'Nominate a River Region Mom for Mom to Mom',
+    description: 'Mom to Mom is a monthly profile celebrating real River Region moms — their stories, wisdom, and love for this community. Know a mom whose story deserves to be heard? Nominate her here.',
+    whoShouldUse: 'Friends, family, neighbors, co-workers — anyone who knows a River Region mom worth featuring.',
+    whatHappensNext: 'Our editorial team reviews nominations and reaches out to the nominee with a short interview form. If she accepts, we feature her in print and online.',
+    estimatedTime: '3 minutes',
+    nomineeContact: 'required',
+    photoLabel: 'Photos of Her (optional)',
     photoRequired: false,
     photoUpload:   true,
     photoMaxCount: 4,
-    photoHint: 'Add up to 4 photos — yourself, with your kids, with your family, doing what you love. Casual, real, confident. We\'ll save high-res copies for print and web-optimized copies for the website.',
+    photoHint: 'Add up to 4 photos if you have them — with her kids, with her family, doing what she loves. We will also ask her for her own photos when we reach out.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
     fields: [
-      { id: 'neighborhood',    label: 'Neighborhood or City',    type: 'text',     required: true,  placeholder: 'Montgomery, AL' },
-      { id: 'kids_ages',       label: 'Number of kids and ages', type: 'text',     required: true,  placeholder: 'Two kids — ages 4 and 8' },
-      { id: 'day_job_passion', label: 'Your occupation or passion', type: 'textarea', required: true, rows: 3, placeholder: 'Tell us what you do — day job, passion project, volunteer work, or anything that defines your time outside of parenting.' },
-      { id: 'motherhood_wisdom',label: 'What do you wish someone had told you about motherhood?', type: 'textarea', required: true, rows: 4, placeholder: 'Be real. Be honest. The best answers are the ones that other moms will read and say "me too."' },
-      { id: 'fav_rrp_spot',    label: 'Your favorite River Region family spot',  type: 'textarea', required: false, rows: 2, placeholder: 'A restaurant, park, neighborhood, activity — anywhere you love bringing your family.' },
+      { id: 'your_relationship', label: 'Your relationship to her',  type: 'select',   required: true,  options: ['Close friend','Family member','Neighbor','Co-worker','Met through our kids','Other'] },
+      { id: 'neighborhood',      label: 'Her neighborhood or city',  type: 'text',     required: true,  placeholder: 'Montgomery, AL' },
+      { id: 'kids_ages',         label: 'Her kids — number and ages (if you know)', type: 'text', required: false, placeholder: 'Two kids — ages 4 and 8' },
+      { id: 'why_nominate',      label: 'Why are you nominating her?', type: 'textarea', required: true, rows: 5, placeholder: 'Why should River Region Parents readers hear her story? What makes her stand out? Be specific — moments, examples, the way she shows up for her family or community.' },
+      { id: 'good_to_know',      label: 'Anything we should know before reaching out?', type: 'textarea', required: false, rows: 3, placeholder: 'Timing constraints, sensitive topics to handle with care, the best way to approach her — whatever helps us reach out thoughtfully.' },
     ],
   },
 
@@ -162,6 +188,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Grandchildren, parents, or family members who want to celebrate a remarkable grandparent.',
     whatHappensNext: 'Selected grandparents are featured in the magazine with a profile and photo — a keepsake for the whole family.',
     estimatedTime: '4 minutes',
+    nomineeContact: 'required',
     photoLabel: "Grandparent Photos",
     photoRequired: false,
     photoUpload:   true,
@@ -187,6 +214,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Coaches, parents, teammates, volunteers — anyone who knows a player, coach, or team supporter worth celebrating.',
     whatHappensNext: 'Selected nominees are featured with a profile and photo in the magazine and online.',
     estimatedTime: '3 minutes',
+    nomineeContact: 'required',
     photoLabel: 'Action or Portrait Photos',
     photoRequired: false,
     photoUpload:   true,
@@ -218,6 +246,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents, teachers, or family members who want to celebrate a student who deserves recognition.',
     whatHappensNext: "Selected students are featured online and may be included in the print magazine depending on the issue theme.",
     estimatedTime: '3 minutes',
+    nomineeContact: 'required',
     photoLabel: "Student Photos",
     photoRequired: true,
     photoUpload:   true,
@@ -245,6 +274,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'School administrators, teachers, PTA members, or parents with news from a River Region school.',
     whatHappensNext: 'Our editorial team reviews submissions and includes appropriate items in the School Bits section of the magazine and website.',
     estimatedTime: '2 minutes',
+    nomineeContact: 'self',  // school staff submitting their school's news
     photoRequired: false,
     photoHint: 'Include a school event photo if available. Email to photos@riverregionparents.com with the school name.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
@@ -268,6 +298,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents or guardians celebrating a child\'s birthday.',
     whatHappensNext: "We include birthday shoutouts in the print magazine and online. Submissions are accepted on a rolling basis based on available space.",
     estimatedTime: '2 minutes',
+    nomineeContact: 'self',  // parent IS the legal contact for the minor child
     photoLabel: "Child's Birthday Photo",
     photoRequired: true,
     photoHint: 'A cute photo of the birthday child — party, portrait, or candid. Email to photos@riverregionparents.com with the child\'s name and birthday date.',
@@ -291,6 +322,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Event organizers, nonprofits, schools, businesses, or anyone hosting a family-friendly event in the River Region.',
     whatHappensNext: 'Our team reviews submissions and adds qualifying events to the online calendar and considers them for print listings.',
     estimatedTime: '3 minutes',
+    nomineeContact: 'self',  // organizer submitting their own event
     photoRequired: false,
     photoHint: 'An event flyer or photo. Email to photos@riverregionparents.com with the event name.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
@@ -316,6 +348,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Parents who want to share a positive experience with a local business they recommend to other families.',
     whatHappensNext: 'Our editorial team reviews all picks. Featured businesses are included in the Parent Picks section of the magazine and our digital guides.',
     estimatedTime: '3 minutes',
+    nomineeContact: 'required',
     photoRequired: false,
     photoHint: 'A photo of the business, product, or your family\'s experience. Email to photos@riverregionparents.com.',
     publications: ['rrp', 'mbp', 'aop', 'esp', 'gpp'],
@@ -338,6 +371,7 @@ export const SUBMISSION_TYPES: SubmissionTypeConfig[] = [
     whoShouldUse: 'Entrepreneurs, community leaders, professionals, and change-makers in the River Region.',
     whatHappensNext: 'Our editorial team reviews applications and reaches out to schedule a profile interview. Selected profiles appear in River Region Boom magazine.',
     estimatedTime: '5 minutes',
+    nomineeContact: 'self',  // apply yourself
     photoLabel: 'Your Professional / Lifestyle Photo',
     photoRequired: false,
     photoHint: 'A confident, authentic photo of yourself — professional portrait, at work, or in your element. Email to photos@riverregionparents.com.',

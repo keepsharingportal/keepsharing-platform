@@ -68,7 +68,32 @@ export default async function SubmitTypePage({
 
     const submitter_name  = (formData.get('submitter_name')  as string) || ''
     const submitter_email = (formData.get('submitter_email') as string) || ''
-    const submitter_phone = (formData.get('submitter_phone') as string) || null
+    const submitter_phone = (formData.get('submitter_phone') as string) || ''
+
+    // Submitter phone is now ALWAYS required so editorial can reach
+    // the nominator if the nominee outreach needs follow-up context.
+    // Browser-side `required` is bypassable; this is the real gate.
+    if (!submitter_phone.trim()) {
+      redirect(`/submit/${type}?error=${encodeURIComponent('Please add your cell phone so we can follow up if needed.')}`)
+    }
+
+    // Nominee contact — required on nomination types so editorial can
+    // reach the nominee directly without chasing it down via the
+    // nominator. Browser enforces required, but we re-validate here
+    // because anyone can POST around the browser.
+    const currentConfigForValidate = getSubmissionType(type)!
+    const nominee_first_name = (formData.get('nominee_first_name') as string) || ''
+    const nominee_last_name  = (formData.get('nominee_last_name')  as string) || ''
+    const nominee_email      = (formData.get('nominee_email')      as string) || ''
+    const nominee_phone      = (formData.get('nominee_phone')      as string) || ''
+    if (currentConfigForValidate.nomineeContact === 'required') {
+      if (!nominee_first_name.trim() || !nominee_last_name.trim() || !nominee_email.trim() || !nominee_phone.trim()) {
+        redirect(`/submit/${type}?error=${encodeURIComponent('Please add the nominee\'s name, email, and phone — we need all of them so we can reach out about featuring them.')}`)
+      }
+    }
+    const nominee_name = currentConfigForValidate.nomineeContact === 'required'
+      ? `${nominee_first_name.trim()} ${nominee_last_name.trim()}`.trim()
+      : null
 
     const payload: Record<string, string> = {}
     let related_person_name:   string | null = null
@@ -125,6 +150,17 @@ export default async function SubmitTypePage({
       }
     }
 
+    // Stash nominee contact in payload too so any existing report
+    // queries / payload-key-walking detail UI still surface them
+    // without DB-column lookups. The dedicated columns are the
+    // authoritative source for the OutreachComposerPanel.
+    if (currentConfigForValidate.nomineeContact === 'required') {
+      payload.nominee_first_name = nominee_first_name.trim()
+      payload.nominee_last_name  = nominee_last_name.trim()
+      payload.nominee_email      = nominee_email.trim()
+      payload.nominee_phone      = nominee_phone.trim()
+    }
+
     const { error: insertErr } = await supabase.from('community_submissions').insert({
       submission_type:       type,
       target_publication:    'rrp',
@@ -132,6 +168,14 @@ export default async function SubmitTypePage({
       submitter_name,
       submitter_email,
       submitter_phone,
+      // Nominee identity columns — populated only when this type uses
+      // the nomination flow. Mom-to-mom previously left these null
+      // and forced the editor to dig nominee_email out of the payload
+      // JSONB; with the nominee-section enforced the OutreachComposer
+      // pre-fills the To: field directly on first render.
+      nominee_name:  nominee_name || null,
+      nominee_email: nominee_email.trim() || null,
+      nominee_phone: nominee_phone.trim() || null,
       related_person_name,
       related_business_name,
       related_school_name,
@@ -293,17 +337,63 @@ export default async function SubmitTypePage({
 
         <form action={submitForm} encType="multipart/form-data" className="flex flex-col gap-6">
 
-          <FormCard title="About You">
+          <FormCard title={config.nomineeContact === 'required' ? 'About You (the nominator)' : 'About You'}>
             <FormRow label="Your Name" required>
               <input name="submitter_name" type="text" required placeholder="Jane Smith" className={inputCls} />
             </FormRow>
             <FormRow label="Your Email" required hint="We'll only contact you about this submission.">
               <input name="submitter_email" type="email" required placeholder="jane@example.com" className={inputCls} />
             </FormRow>
-            <FormRow label="Your Phone (optional)">
-              <input name="submitter_phone" type="tel" placeholder="(334) 555-0100" className={inputCls} />
+            <FormRow label="Your Cell Phone" required hint="In case we need to follow up — we'll never share it or send marketing.">
+              <input name="submitter_phone" type="tel" required placeholder="(334) 555-0100" className={inputCls} />
             </FormRow>
           </FormCard>
+
+          {/* Nominee contact — only on nomination types. Editorial
+              needs to reach the nominee directly to invite them to
+              the interview form; without this section the editor had
+              to chase contact info down through the nominator. */}
+          {config.nomineeContact === 'required' && (
+            <FormCard title="About the Person You're Nominating" accentColor={accentColor}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormRow label="Their First Name" required>
+                  <input name="nominee_first_name" type="text" required placeholder="Whitney" className={inputCls} />
+                </FormRow>
+                <FormRow label="Their Last Name" required>
+                  <input name="nominee_last_name" type="text" required placeholder="Cole" className={inputCls} />
+                </FormRow>
+              </div>
+              <FormRow
+                label="Their Email"
+                required
+                hint="So we can reach out to invite them to share their story."
+              >
+                <input name="nominee_email" type="email" required placeholder="whitney@example.com" className={inputCls} />
+              </FormRow>
+              <FormRow
+                label="Their Cell Phone"
+                required
+                hint="As a backup in case email bounces."
+              >
+                <input name="nominee_phone" type="tel" required placeholder="(334) 555-0142" className={inputCls} />
+              </FormRow>
+              {/* Privacy promise — directly under the contact ask so
+                  it's read in the same eyeblink as the cell field.
+                  Same accent color as the section so it doesn't read
+                  as a separate alert. */}
+              <div
+                className="rounded-2xl px-5 py-4 mt-1"
+                style={{ backgroundColor: `${accentColor}0d`, border: `1px solid ${accentColor}33` }}
+              >
+                <p className="text-sm font-bold text-foreground mb-1">Our promise on contact info</p>
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  We will never share, sell, or send marketing to your nominee&apos;s contact info.
+                  We use it <strong>only</strong> to reach out about featuring them — and only if they say yes.
+                  If they decline, we delete their contact info from our system.
+                </p>
+              </div>
+            </FormCard>
+          )}
 
           <FormCard title={`${config.label} Details`} accentColor={accentColor}>
             {config.fields.map(field => (
