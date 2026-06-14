@@ -11,6 +11,7 @@ import { generateCommunityDraft } from '@/lib/community-drafts'
 import { ApproveAndPublishPanel } from './ApproveAndPublishPanel'
 import { PhaseTracker }            from './PhaseTracker'
 import { NextActionPanel }         from './NextActionPanel'
+import { AIDraftPanel }            from './AIDraftPanel'
 import type { Phase }              from '@/lib/submissions/phases'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
@@ -242,9 +243,12 @@ export default async function SubmissionDetailPage({
     .select('needs_outreach, article_format')
     .eq('submission_type', sub.submission_type)
     .maybeSingle()
-  const needsOutreach = typeConfig
+  const needsOutreach  = typeConfig
     ? ((typeConfig as { needs_outreach?: boolean }).needs_outreach ?? true)
     : true
+  const articleFormat  = typeConfig
+    ? ((typeConfig as { article_format?: string }).article_format ?? 'profile')
+    : 'profile'
 
   // ── Server actions ─────────────────────────────────────────────────────────
 
@@ -678,6 +682,19 @@ export default async function SubmissionDetailPage({
             needsOutreach={needsOutreach}
             hasInterview={hasInterview}
             hasDraft={hasDraft}
+          />
+
+          {/* Inline AI drafting — primary CTA right here so editors
+              don't have to scroll to the bottom of the page to find
+              the AI helpers. Drafts from nomination + interview using
+              the per-type article_format (Q&A / profile / write-up /
+              news-brief / photo-caption / roundup). */}
+          <AIDraftPanel
+            submissionId={sub.id}
+            hasInterview={hasInterview}
+            hasDraft={hasDraft}
+            articleFormat={articleFormat}
+            currentDraftLen={(subAny.ai_draft_content as string | null)?.length ?? 0}
           />
 
           {/* Approve & Publish — the workflow that used to live on the
