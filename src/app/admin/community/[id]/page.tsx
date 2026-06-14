@@ -199,6 +199,28 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+/** Map legacy SubmissionStatus → portal badge class. Replaces the
+ *  inline-styled STATUS_CONFIG colors (which painted the pill purple
+ *  / orange — outside the portal vocabulary) with the tokenized
+ *  badge classes from globals.css. */
+function statusBadgeClass(status: SubmissionStatus): string {
+  switch (status) {
+    case 'new':            return 'badge-green'
+    case 'needs-review':   return 'badge-rrp'
+    case 'awaiting-info':  return 'badge-amber'
+    case 'in-progress':    return 'badge-rrp'
+    case 'in-editing':     return 'badge-amber'
+    case 'ready-for-ai':   return 'badge-rrp'
+    case 'ai-draft-ready': return 'badge-rrp'
+    case 'approved':       return 'badge-green'
+    case 'scheduled':      return 'badge-amber'
+    case 'published':      return 'badge-gray'
+    case 'rejected':       return 'badge-red'
+    case 'archived':       return 'badge-gray'
+    default:               return 'badge-gray'
+  }
+}
+
 /** Convert a snake_case_key into a human-readable label. Used to
  *  render interview Q&A when the live submission_type_columns config
  *  isn't loaded on this page (cheap fallback — for the canonical
@@ -441,23 +463,24 @@ export default async function SubmissionDetailPage({
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div>
-        <Link href="/admin/community" className="text-sm text-portal-muted hover:text-portal-text font-medium transition-colors">
+        <Link href="/admin/community" className="text-sm text-portal-sub hover:text-portal-text font-medium transition-colors">
           ← Community Submissions
         </Link>
         <div className="mt-4 flex items-start gap-4 flex-wrap">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{config.emoji}</span>
-              <span className="text-xs font-bold text-portal-muted uppercase tracking-wide">{config.label}</span>
-              <span
-                className="px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                style={{ backgroundColor: sc?.bg ?? '#f9fafb', color: sc?.color ?? '#374151' }}
-              >
+              <span className="text-xs font-bold text-portal-sub uppercase tracking-wide">{config.label}</span>
+              {/* Status badge — uses portal badge classes mapped from
+                  the legacy status string. Previously rendered with
+                  inline-styled STATUS_CONFIG.bg/color which painted
+                  it purple/orange — outside the portal vocabulary. */}
+              <span className={`badge ${statusBadgeClass(sub.status)}`}>
                 {sc?.label ?? sub.status}
               </span>
               {sub.internal_priority !== 'normal' && (
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  sub.internal_priority === 'urgent' ? 'bg-portal-red-lt text-portal-red' : 'bg-portal-amber-lt text-portal-amber'
+                <span className={`badge ${
+                  sub.internal_priority === 'urgent' ? 'badge-red' : 'badge-amber'
                 }`}>
                   ↑ {sub.internal_priority}
                 </span>
@@ -470,12 +493,9 @@ export default async function SubmissionDetailPage({
             </p>
           </div>
           <div className="shrink-0 flex gap-2 items-center">
-            {/* Approve & Publish moved into the right-column panel.
-               Edit-raw-fields stays as a secondary text link only —
-               that subpage is for typo fixes, not the main workflow. */}
             <Link
               href={`/admin/community/${id}/edit`}
-              className="text-xs text-portal-muted hover:text-portal-text underline"
+              className="text-xs text-portal-sub hover:text-portal-text underline"
             >
               Edit raw fields
             </Link>
@@ -528,7 +548,7 @@ export default async function SubmissionDetailPage({
               expand when you actually need the routing details. */}
           <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary
-              className="px-5 py-3 text-xs font-bold text-portal-muted cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
+              className="px-5 py-3 text-xs font-bold text-portal-sub cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
               style={{ listStyle: 'none' }}
             >
               ▸ Routing &amp; targeting · {sub.target_publication?.toUpperCase() ?? '—'} · {sub.issue_month ?? 'no month set'}
@@ -544,7 +564,7 @@ export default async function SubmissionDetailPage({
                   { label: 'Assigned',    val: sub.assigned_to   ?? 'Unassigned'      },
                 ].map(({ label, val }) => (
                   <div key={label}>
-                    <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">{label}</p>
+                    <p className="text-[10px] font-semibold text-portal-sub uppercase tracking-wide">{label}</p>
                     <p className="text-sm font-medium text-portal-text mt-0.5 truncate">{val}</p>
                   </div>
                 ))}
@@ -554,7 +574,7 @@ export default async function SubmissionDetailPage({
 
           {/* Submitter */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Submitter</h2>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-3">Submitter</h2>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-portal-row-hover flex items-center justify-center text-base font-bold text-portal-sub shrink-0">
                 {sub.submitter_name.charAt(0).toUpperCase()}
@@ -565,7 +585,7 @@ export default async function SubmissionDetailPage({
                   {sub.submitter_email}
                 </a>
                 {sub.submitter_phone && (
-                  <p className="text-xs text-portal-muted mt-0.5">{sub.submitter_phone}</p>
+                  <p className="text-xs text-portal-sub mt-0.5">{sub.submitter_phone}</p>
                 )}
               </div>
             </div>
@@ -607,8 +627,8 @@ export default async function SubmissionDetailPage({
                 if (entries.length === 0) {
                   return (
                     <>
-                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominator&apos;s Submission</h2>
-                      <p className="text-sm text-portal-muted italic">
+                      <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-2">Nominator&apos;s Submission</h2>
+                      <p className="text-sm text-portal-sub italic">
                         The nominator submitted only the basics — see Submitter above.
                       </p>
                     </>
@@ -618,8 +638,8 @@ export default async function SubmissionDetailPage({
                 return (
                   <>
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Nominator&apos;s Submission</h2>
-                      <span className="text-[10px] text-portal-muted">
+                      <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Nominator&apos;s Submission</h2>
+                      <span className="text-[10px] text-portal-sub">
                         {entries.length} field{entries.length === 1 ? '' : 's'} answered
                       </span>
                     </div>
@@ -710,12 +730,12 @@ export default async function SubmissionDetailPage({
 
           {/* Photos */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">
               {config.photoLabel ?? 'Photos'}
               {config.photoRequired
                 ? <span className="text-portal-red font-normal ml-1">(Required)</span>
                 : config.photoHint
-                ? <span className="text-portal-muted font-normal ml-1">(Optional)</span>
+                ? <span className="text-portal-sub font-normal ml-1">(Optional)</span>
                 : null}
             </h2>
 
@@ -727,18 +747,18 @@ export default async function SubmissionDetailPage({
                     <div className="flex-1 min-w-0">
                       <a href={p.url} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-portal-blue hover:underline truncate block">{p.url}</a>
-                      {p.caption && <p className="text-xs text-portal-muted mt-0.5">{p.caption}</p>}
+                      {p.caption && <p className="text-xs text-portal-sub mt-0.5">{p.caption}</p>}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="mt-3 space-y-2">
-                <p className="text-sm text-portal-muted italic">No photos received yet.</p>
+                <p className="text-sm text-portal-sub italic">No photos received yet.</p>
                 {config.photoHint && (
-                  <div className="bg-portal-amber-lt border border-portal-amber/20 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-portal-amber mb-1">Instructions for submitter:</p>
-                    <p className="text-xs text-portal-amber">{config.photoHint}</p>
+                  <div className="alert alert-warning" style={{ fontSize: 12 }}>
+                    <strong className="block mb-1">Instructions for submitter:</strong>
+                    {config.photoHint}
                   </div>
                 )}
               </div>
@@ -747,40 +767,32 @@ export default async function SubmissionDetailPage({
 
           {/* AI Draft — editable when ready or edited */}
           {sub.ai_draft_content && (
-            <div className={`bg-white rounded-lg overflow-hidden border ${
-              sub.ai_draft_status === 'edited'     ? 'border-portal-green/30'
-              : sub.ai_draft_status === 'ready'    ? 'border-indigo-200'
-              : sub.ai_draft_status === 'needs_info'? 'border-portal-amber/30'
-              : sub.ai_draft_status === 'failed'   ? 'border-portal-red/30'
-              : 'border-portal-border'
-            }`}>
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
 
               {/* Header */}
-              <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-portal-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Draft</h2>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    sub.ai_draft_status === 'ready'      ? 'bg-portal-blue-lt text-portal-blue'
-                    : sub.ai_draft_status === 'edited'   ? 'bg-portal-green-lt text-portal-green'
-                    : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
-                    : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
-                    : sub.ai_draft_status === 'failed'   ? 'bg-portal-red-lt text-portal-red'
-                    : 'bg-portal-row-hover text-portal-sub'
+                  <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">AI Draft</h2>
+                  <span className={`badge ${
+                    sub.ai_draft_status === 'ready'       ? 'badge-rrp'
+                    : sub.ai_draft_status === 'edited'    ? 'badge-green'
+                    : sub.ai_draft_status === 'needs_info'? 'badge-amber'
+                    : sub.ai_draft_status === 'generating'? 'badge-rrp'
+                    : sub.ai_draft_status === 'failed'    ? 'badge-red'
+                    : 'badge-gray'
                   }`}>
                     {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
                   </span>
                 </div>
                 {sub.ai_prompt_used && (
-                  <span className="text-[10px] text-portal-muted font-mono">{sub.ai_prompt_used}</span>
+                  <span className="text-[10px] text-portal-sub font-mono">{sub.ai_prompt_used}</span>
                 )}
               </div>
 
               {/* Warning — always visible when ready or edited */}
               {['ready', 'edited'].includes(sub.ai_draft_status) && (
-                <div className="px-5 py-2.5 bg-portal-amber-lt border-b border-portal-amber/20">
-                  <p className="text-xs text-portal-amber font-medium leading-relaxed">
-                    ⚠️ AI-assisted draft. Verify all facts before publishing. Do not publish without human editorial approval.
-                  </p>
+                <div className="px-5 py-2.5 alert alert-warning" style={{ borderRadius: 0, fontSize: 12, margin: 0 }}>
+                  AI-assisted draft. Verify all facts before publishing. Do not publish without human editorial approval.
                 </div>
               )}
 
@@ -790,40 +802,35 @@ export default async function SubmissionDetailPage({
                   <div className="px-5 pt-4 pb-3">
                     <label className="block text-xs font-semibold text-portal-sub mb-1">
                       Edit Draft
-                      <span className="ml-2 font-normal text-portal-muted">— not published</span>
+                      <span className="ml-2 font-normal text-portal-sub">— not published</span>
                     </label>
-                    <p className="text-[11px] text-portal-muted mb-2.5 leading-relaxed">
+                    <p className="text-[11px] text-portal-sub mb-2.5 leading-relaxed">
                       Edit for accuracy, tone, and local voice before approval. Changes are saved as a draft only.
                     </p>
                     <textarea
                       name="draft_content"
                       defaultValue={sub.ai_draft_content}
                       rows={14}
-                      className="w-full text-sm border border-portal-border rounded-lg px-3.5 py-3 resize-vertical outline-none focus:border-indigo-300 transition-colors leading-relaxed text-portal-text"
+                      className="w-full text-sm border border-portal-border rounded-lg px-3.5 py-3 resize-vertical outline-none focus:border-portal-blue transition-colors leading-relaxed text-portal-text"
                     />
                   </div>
-                  <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
+                  <div className="px-5 pb-4 flex items-center justify-between border-t border-portal-border pt-3">
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-portal-navy text-white text-xs font-bold rounded-lg hover:bg-portal-navy transition-colors"
+                      className="px-5 py-2 bg-portal-navy text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity"
                     >
                       Save Edited Draft
                     </button>
-                    <p className="text-[10px] text-portal-muted">Last updated {fmtDate(sub.updated_at)}</p>
+                    <p className="text-[10px] text-portal-sub">Last updated {fmtDate(sub.updated_at)}</p>
                   </div>
                 </form>
               ) : (
                 /* Read-only for needs_info / failed / generating */
                 <div className="px-5 py-5">
                   <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{sub.ai_draft_content}</p>
-                  <p className="text-[10px] text-portal-muted mt-4">AI assist only — human approval required</p>
+                  <p className="text-[10px] text-portal-sub mt-4">AI assist only — human approval required</p>
                 </div>
               )}
-
-              {/* The legacy "Mark Ready for Editorial Pipeline" button
-                  was removed — the right-column NextActionPanel now
-                  drives every phase transition. Eliminates the
-                  two-buttons-doing-similar-things confusion. */}
             </div>
           )}
 
@@ -921,27 +928,35 @@ export default async function SubmissionDetailPage({
               ]
               const articleId = a.promoted_to_article_id as string | null
               return (
-                <div className="card">
-                  <div className="card-title" style={{ marginBottom: 4 }}>Channel approvals (locked)</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                    {chips.map(c => (
-                      <span
-                        key={c.label}
-                        className={`badge ${c.on ? 'badge-green' : 'badge-gray'}`}
-                      >
-                        {c.on ? '✓' : '—'} {c.label}
-                      </span>
-                    ))}
+                <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+                  <div style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid var(--color-portal-border)',
+                    background: 'var(--color-portal-bg)',
+                  }}>
+                    <div className="fw-700 text-portal-text" style={{ fontSize: 13 }}>Channel approvals (locked)</div>
                   </div>
-                  {articleId && (
-                    <a
-                      href={`/admin/articles/${articleId}/edit`}
-                      className="text-xs"
-                      style={{ display: 'block', marginTop: 10, color: 'var(--color-portal-blue)', fontWeight: 600 }}
-                    >
-                      Edit published article →
-                    </a>
-                  )}
+                  <div style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {chips.map(c => (
+                        <span
+                          key={c.label}
+                          className={`badge ${c.on ? 'badge-green' : 'badge-gray'}`}
+                        >
+                          {c.on ? '✓' : '—'} {c.label}
+                        </span>
+                      ))}
+                    </div>
+                    {articleId && (
+                      <a
+                        href={`/admin/articles/${articleId}/edit`}
+                        className="text-xs text-portal-blue fw-700"
+                        style={{ display: 'block', marginTop: 12 }}
+                      >
+                        Edit published article →
+                      </a>
+                    )}
+                  </div>
                 </div>
               )
             }
@@ -987,12 +1002,12 @@ export default async function SubmissionDetailPage({
               right column shows just the 4 action cards above. */}
           <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <summary
-              className="px-5 py-3 text-xs font-bold text-portal-muted cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
+              className="px-5 py-3 text-xs font-bold text-portal-sub cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
               style={{ listStyle: 'none' }}
             >
               ▸ Assignment &amp; destination
               {sub.assigned_to && <span className="text-portal-text normal-case ml-2">· {sub.assigned_to}</span>}
-              {publishDest && <span className="text-portal-muted normal-case ml-2">· {publishDest.destination}</span>}
+              {publishDest && <span className="text-portal-sub normal-case ml-2">· {publishDest.destination}</span>}
             </summary>
             <div className="px-5 pb-4 pt-1 space-y-4">
 
@@ -1048,7 +1063,7 @@ export default async function SubmissionDetailPage({
                 >
                   Save assignment
                 </button>
-                <p className="text-[10px] text-portal-muted">
+                <p className="text-[11px] text-portal-sub">
                   Tip: for final scheduling, use{' '}
                   <a href="/admin/pending" className="text-portal-blue hover:underline">Pending Pool</a>{' '}
                   — this assignment form is for editorial planning notes only.
@@ -1062,14 +1077,14 @@ export default async function SubmissionDetailPage({
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-[10px] font-semibold text-portal-muted uppercase">Destination</p>
-                      <p className="text-sm font-semibold text-portal-text">{publishDest.destination} <span className="text-portal-muted font-normal">· {publishDest.section}</span></p>
+                      <p className="text-[10px] font-semibold text-portal-sub uppercase">Destination</p>
+                      <p className="text-sm font-semibold text-portal-text">{publishDest.destination} <span className="text-portal-sub font-normal">· {publishDest.section}</span></p>
                     </div>
                     <div className="flex gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-row-hover text-portal-muted'}`}>
+                      <span className={`badge ${publishDest.print ? 'badge-rrp' : 'badge-gray'}`}>
                         {publishDest.print ? '✓ Print' : '— Print'}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-row-hover text-portal-muted'}`}>
+                      <span className={`badge ${publishDest.digital ? 'badge-green' : 'badge-gray'}`}>
                         {publishDest.digital ? '✓ Digital' : '— Digital'}
                       </span>
                     </div>
