@@ -17,6 +17,7 @@ import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { SPONSOR_CATEGORIES } from '@/lib/sponsors/categories'
 import { AISectionFiller, type Candidate as AICandidate } from './AISectionFiller'
 import { AINewsletterSubjects } from './AINewsletterSubjects'
+import { AISocialCaption } from './AISocialCaption'
 
 export const metadata: Metadata = { title: 'Distribution — Admin' }
 
@@ -1163,29 +1164,32 @@ export default async function DistributionPage({
               {groups.socialHigh.slice(0, 10).map(item => {
                 const tc = SUBMISSION_TYPES.find(t => t.type === item.submission_type)
                 return (
-                  <div key={item.id} className="flex items-center gap-3 bg-white border border-portal-border rounded-lg px-4 py-3" style={{ borderLeft: `3px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span>{tc?.emoji}</span>
-                        <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
-                        <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">High Share</span>
-                        {item.social_queue && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold">In Queue</span>}
+                  <div key={item.id} className="flex flex-col gap-2 bg-white border border-portal-border rounded-lg px-4 py-3" style={{ borderLeft: `3px solid ${TYPE_COLORS[item.submission_type] ?? '#374151'}` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span>{tc?.emoji}</span>
+                          <span className="text-[10px] font-bold text-portal-muted uppercase tracking-wide">{tc?.shortLabel}</span>
+                          <span className="text-[10px] bg-portal-blue-lt text-portal-blue px-1.5 py-0.5 rounded font-bold">High Share</span>
+                          {item.social_queue && <span className="text-[10px] bg-portal-green-lt text-portal-green px-1.5 py-0.5 rounded font-bold">In Queue</span>}
+                        </div>
+                        <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
                       </div>
-                      <p className="text-sm font-semibold text-portal-text truncate">{displayTitle(item)}</p>
-                    </div>
-                    <div className="shrink-0 flex gap-2">
-                      <form action={updateSocialPriority}>
-                        <input type="hidden" name="id" value={item.id} />
-                        <input type="hidden" name="v"  value="social" />
-                        <select name="social_priority" defaultValue={item.social_priority || 'normal'}
-                          className="text-xs border border-portal-border rounded-lg px-2 py-1.5 outline-none">
-                          <option value="low">Low</option>
-                          <option value="normal">Normal</option>
-                          <option value="high">High Priority</option>
-                        </select>
-                        <button type="submit" className="text-xs px-3 py-1.5 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy ml-1.5">Set</button>
-                      </form>
-                      <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-blue hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
+                      <div className="shrink-0 flex gap-2 items-center">
+                        <AISocialCaption publication={filterPub ?? item.target_publication ?? 'rrp'} submissionId={item.id} />
+                        <form action={updateSocialPriority}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <input type="hidden" name="v"  value="social" />
+                          <select name="social_priority" defaultValue={item.social_priority || 'normal'}
+                            className="text-xs border border-portal-border rounded-lg px-2 py-1.5 outline-none">
+                            <option value="low">Low</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">High Priority</option>
+                          </select>
+                          <button type="submit" className="text-xs px-3 py-1.5 bg-portal-blue text-white rounded-lg font-semibold hover:bg-portal-navy ml-1.5">Set</button>
+                        </form>
+                        <Link href={`/admin/editorial/${item.id}`} className="text-xs text-portal-blue hover:underline px-2 py-1.5 font-semibold">Edit →</Link>
+                      </div>
                     </div>
                   </div>
                 )
