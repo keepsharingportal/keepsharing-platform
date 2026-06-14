@@ -1,199 +1,213 @@
-'use client'
+// /admin/social — real Meta Suite audit log.
+//
+// Was previously a mock page (imported MOCK_SOCIAL_POSTS, all client
+// state). Replaced with a server-rendered read of facebook_page_posts
+// joined to facebook_pages so editors see EVERY actual post that went
+// out via Meta Suite auto-post, with status, error trail, and engagement
+// numbers.
+//
+// Scheduling/queueing of FUTURE posts is intentionally not built here —
+// the Content Deployment page handles editor-controlled social via the
+// 'Draft captions' button + the social-export workflow. This page is
+// strictly the audit / what-went-out / what-broke view.
 
-import { useState } from 'react'
-import { Share2, MessageCircle, CheckCircle2, Edit3, X, Calendar, Filter, ExternalLink } from 'lucide-react'
-import { MOCK_SOCIAL_POSTS, getSocialStats, type SocialPost, type SocialStatus } from '@/lib/mock-social'
-import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { ExternalLink, MessageCircle, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { requireAdmin } from '@/lib/admin/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
 
-const STATUS_CONFIG: Record<SocialStatus, { label: string; cls: string }> = {
-  draft:    { label: 'Draft',    cls: 'bg-portal-bg text-portal-sub border-portal-border' },
-  pending:  { label: 'Pending',  cls: 'bg-portal-amber-lt text-portal-amber border-portal-amber/30' },
-  approved: { label: 'Approved', cls: 'bg-portal-blue-lt text-portal-blue border-portal-blue/30' },
-  posted:   { label: 'Posted',   cls: 'bg-portal-green-lt text-portal-green border-portal-green/30' },
+export const metadata = { title: 'Social posts — Admin' }
+export const dynamic  = 'force-dynamic'
+
+interface PostRow {
+  id:             string
+  page_id:        string
+  fb_post_id:     string | null
+  message:        string
+  link:           string | null
+  media_url:      string | null
+  also_to_instagram: boolean
+  ig_media_id:    string | null
+  status:         string
+  error:          string | null
+  created_at:     string
+  published_at:   string | null
+  like_count:     number | null
+  comment_count:  number | null
+  share_count:    number | null
+  facebook_pages?: { page_name: string | null; market: string | null } | { page_name: string | null; market: string | null }[] | null
 }
 
-const PLATFORM_ICON = {
-  instagram: Share2,
-  facebook:  MessageCircle,
-  both:      Share2,
+const STATUS_BADGE: Record<string, string> = {
+  pending: 'badge-amber',
+  live:    'badge-green',
+  error:   'badge-red',
 }
 
-const PLATFORM_COLOR = {
-  instagram: 'text-portal-red',
-  facebook:  'text-portal-blue',
-  both:      'text-portal-blue',
-}
+export default async function SocialPostsPage() {
+  await requireAdmin()
+  const sb = createAdminClient()
 
-const PUBS = ['All', 'RRP', 'MBP', 'AOP', 'ESP', 'GPP', 'RRB']
-const TABS = ['All', 'Pending', 'Draft', 'Approved', 'Posted']
+  // Read the actual audit log. If the table doesn't exist yet (pre
+  // migration 152) we degrade to an empty list rather than 500ing.
+  let posts: PostRow[] = []
+  let tableMissing = false
+  try {
+    const { data, error } = await sb
+      .from('facebook_page_posts')
+      .select(`
+        id, page_id, fb_post_id, message, link, media_url,
+        also_to_instagram, ig_media_id, status, error,
+        created_at, published_at, like_count, comment_count, share_count,
+        facebook_pages(page_name, market)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(60)
+    if (error && /relation .* does not exist/i.test(error.message)) {
+      tableMissing = true
+    } else if (!error) {
+      posts = (data ?? []) as unknown as PostRow[]
+    }
+  } catch { tableMissing = true }
 
-export default function SocialQueuePage() {
-  const [posts, setPosts]         = useState<SocialPost[]>(MOCK_SOCIAL_POSTS)
-  const [activeTab, setActiveTab] = useState('All')
-  const [pubFilter, setPubFilter] = useState('All')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editCaption, setEditCaption] = useState('')
-
-  const stats = getSocialStats()
-
-  const filtered = posts.filter((p) => {
-    const tabMatch = activeTab === 'All' || p.status === activeTab.toLowerCase()
-    const pubMatch = pubFilter === 'All' || p.publication === pubFilter
-    return tabMatch && pubMatch
-  })
-
-  const statusCount = (s: SocialStatus) => posts.filter((p) => p.status === s).length
-
-  const approve = (id: string) =>
-    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, status: 'approved' as SocialStatus } : p))
-
-  const reject = (id: string) =>
-    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, status: 'draft' as SocialStatus } : p))
-
-  const saveEdit = (id: string) => {
-    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, caption: editCaption } : p))
-    setEditingId(null)
-  }
-
-  const formatScheduled = (dt: string) =>
-    new Date(dt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  // Aggregate stats — counts at a glance so an editor checking in knows
+  // whether anything broke overnight.
+  const stats = posts.reduce((acc, p) => {
+    if (p.status === 'live')    acc.live += 1
+    if (p.status === 'pending') acc.pending += 1
+    if (p.status === 'error')   acc.error += 1
+    return acc
+  }, { live: 0, pending: 0, error: 0 })
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Header */}
-      <div className="bg-white border-b border-portal-border px-6 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-portal-text">Social Queue</h1>
-          <span className="text-sm font-semibold text-portal-amber bg-portal-amber-lt px-2.5 py-0.5 rounded-full border border-portal-amber/30">
-            {statusCount('pending')} pending approval
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-portal-sub">All publications</span>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-portal-bg border border-portal-border rounded-lg text-portal-sub">
-            <span className="font-semibold text-portal-green">{statusCount('posted')}</span>
-            <span>posted</span>
-            <span className="text-portal-border-2">·</span>
-            <span className="font-semibold text-portal-blue">{statusCount('approved')}</span>
-            <span>approved</span>
-            <span className="text-portal-border-2">·</span>
-            <span className="font-semibold text-portal-amber">{statusCount('pending')}</span>
-            <span>pending</span>
+    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
+      <div className="page-header">
+        <div>
+          <h1 className="ph-title">Social posts</h1>
+          <div className="text-muted text-sm">
+            Audit log of every post Meta Suite has dispatched on your behalf. Read-only.
+            To draft NEW captions, use the &lsquo;Draft captions&rsquo; button on{' '}
+            <Link href="/admin/distribution?view=social" style={{ color: 'var(--color-portal-blue)' }}>Content Deployment → Social</Link>.
           </div>
         </div>
-      </div>
-
-      {/* Tabs + filter */}
-      <div className="bg-white border-b border-portal-border px-6 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-1">
-          {TABS.map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === tab ? 'text-portal-blue border-portal-blue' : 'text-portal-sub hover:text-portal-text border-transparent hover:border-portal-border-2'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <select value={pubFilter} onChange={(e) => setPubFilter(e.target.value)}
-            className="text-sm text-portal-text border border-portal-border-2 rounded-lg px-3 py-1.5 outline-none focus:border-portal-blue">
-            {PUBS.map((p) => <option key={p} value={p}>{p === 'All' ? 'All Publications' : p}</option>)}
-          </select>
+        <div className="ph-actions">
+          <Link href="/admin/integrations/facebook" className="btn btn-ghost btn-sm">Meta Suite settings →</Link>
         </div>
       </div>
 
-      {/* Post cards */}
-      <div className="flex-1 overflow-y-auto bg-portal-bg p-4">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {filtered.map((post) => {
-            const PlatIcon = PLATFORM_ICON[post.platform]
-            const platColor = PLATFORM_COLOR[post.platform]
-            return (
-              <div key={post.id} className="bg-white rounded-lg border border-portal-border overflow-hidden hover:shadow-sm transition-shadow">
-                {/* Card header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-portal-border">
-                  <div className="flex items-center gap-2">
-                    <PlatIcon size={16} className={platColor} />
-                    <span className="text-xs font-bold text-portal-sub">{post.publication}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium border ${STATUS_CONFIG[post.status].cls}`}>
-                      {STATUS_CONFIG[post.status].label}
-                    </span>
-                    {post.generatedBy === 'claude' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-portal-blue-lt text-portal-blue font-semibold">AI</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-portal-muted">
-                    <Calendar size={11} />
-                    {formatScheduled(post.scheduledAt)}
-                  </div>
-                </div>
+      <div className="content-body overflow-y-auto">
+        {tableMissing && (
+          <div className="alert alert-warning mb-4">
+            <strong>Meta Suite not migrated yet.</strong> The <code>facebook_page_posts</code> table
+            from migration 152 isn&apos;t in the database. Apply it in Supabase Studio to start seeing posts here.
+          </div>
+        )}
 
-                {/* Caption */}
-                <div className="px-4 py-4">
-                  {editingId === post.id ? (
-                    <div className="space-y-2">
-                      <textarea value={editCaption} onChange={(e) => setEditCaption(e.target.value)}
-                        className="w-full text-sm text-portal-text border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue resize-y min-h-[100px]" />
-                      <div className="flex gap-2">
-                        <button onClick={() => saveEdit(post.id)} className="text-xs px-3 py-1.5 bg-portal-navy text-white rounded-lg font-medium">Save</button>
-                        <button onClick={() => setEditingId(null)} className="text-xs px-3 py-1.5 text-portal-sub">Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm text-portal-text whitespace-pre-line leading-relaxed">{post.caption}</p>
-                      <p className="text-xs text-portal-blue mt-2">{post.hashtags}</p>
-                    </>
-                  )}
-                </div>
-
-                {/* Posted stats */}
-                {post.status === 'posted' && post.reach && (
-                  <div className="px-4 pb-3 flex items-center gap-4 text-xs text-portal-sub">
-                    <span>Reach: <span className="font-semibold text-portal-text">{post.reach.toLocaleString()}</span></span>
-                    <span>Engagements: <span className="font-semibold text-portal-text">{post.engagements?.toLocaleString()}</span></span>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {(post.status === 'pending' || post.status === 'draft') && (
-                  <div className="flex items-center gap-2 px-4 py-3 bg-portal-bg border-t border-portal-border">
-                    <button onClick={() => { setEditingId(post.id); setEditCaption(post.caption) }}
-                      className="flex items-center gap-1 text-xs px-3 py-1.5 text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
-                      <Edit3 size={11} /> Edit
-                    </button>
-                    <button onClick={() => approve(post.id)}
-                      className="flex items-center gap-1 text-xs px-3 py-1.5 font-semibold text-portal-green bg-portal-green-lt border border-portal-green/30 rounded-lg hover:bg-portal-green-lt">
-                      <CheckCircle2 size={11} /> Approve → GHL
-                    </button>
-                    <button onClick={() => reject(post.id)}
-                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 text-portal-red hover:opacity-80 transition-opacity">
-                      <X size={11} /> Reject
-                    </button>
-                  </div>
-                )}
-                {post.status === 'approved' && (
-                  <div className="px-4 py-2.5 bg-portal-blue-lt border-t border-portal-blue/20 flex items-center justify-between">
-                    <span className="text-xs text-portal-blue font-medium">✓ Ready for GHL Social Planner</span>
-                    <a href="https://app.gohighlevel.com" target="_blank"
-                      className="flex items-center gap-1 text-xs text-portal-blue hover:text-portal-blue">
-                      Open GHL <ExternalLink size={10} />
-                    </a>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-
-          {filtered.length === 0 && (
-            <div className="col-span-2 flex flex-col items-center justify-center h-48 text-portal-muted">
-              <Share2 size={32} className="mb-2 opacity-30" />
-              <p className="text-sm">No posts in this view</p>
-            </div>
-          )}
+        <div className="stats-row" style={{ marginBottom: 18 }}>
+          <div className="stat-card">
+            <div className="stat-num">{posts.length}</div>
+            <div className="stat-label">Recent posts</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-num" style={{ color: 'var(--color-portal-green)' }}>{stats.live}</div>
+            <div className="stat-label">Live</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-num has-amber">{stats.pending}</div>
+            <div className="stat-label">Pending</div>
+          </div>
+          <div className="stat-card">
+            <div className={`stat-num ${stats.error > 0 ? 'has-red' : ''}`}>{stats.error}</div>
+            <div className="stat-label">Errors</div>
+          </div>
         </div>
+
+        {posts.length === 0 && !tableMissing && (
+          <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+            <MessageCircle size={28} color="var(--color-portal-muted)" style={{ marginBottom: 8 }} />
+            <p className="fw-700">No posts yet.</p>
+            <p className="text-muted text-xs" style={{ marginTop: 4 }}>
+              Posts appear here automatically when a guide article is published
+              with <code>auto_post_to_social=true</code>. The publish-to-article
+              bridge sets that flag when an editor approves Social on the
+              submission.
+            </p>
+          </div>
+        )}
+
+        {posts.length > 0 && (
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Posted</th>
+                  <th>Page</th>
+                  <th>Message</th>
+                  <th style={{ textAlign: 'center' }}>Status</th>
+                  <th style={{ textAlign: 'right' }}>Engagement</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map(p => {
+                  const page = Array.isArray(p.facebook_pages) ? p.facebook_pages[0] : p.facebook_pages
+                  const sentAt = p.published_at ?? p.created_at
+                  const eng = (p.like_count ?? 0) + (p.comment_count ?? 0) + (p.share_count ?? 0)
+                  return (
+                    <tr key={p.id}>
+                      <td className="text-sub text-xs" style={{ whiteSpace: 'nowrap' }}>
+                        {new Date(sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </td>
+                      <td>
+                        <div className="fw-700 text-sm">{page?.page_name ?? '—'}</div>
+                        <div className="text-muted text-xs">{(page?.market ?? '').toUpperCase()}</div>
+                      </td>
+                      <td>
+                        <div className="text-sm" style={{ maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {p.message}
+                        </div>
+                        {p.also_to_instagram && <span className="badge badge-blue" style={{ fontSize: 9, marginTop: 2 }}>+ IG</span>}
+                        {p.error && (
+                          <div className="text-xs" style={{ color: 'var(--color-portal-red)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <AlertTriangle size={10} /> {p.error}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={`badge ${STATUS_BADGE[p.status] ?? 'badge-gray'}`}>
+                          {p.status === 'live' && <CheckCircle2 size={9} style={{ display: 'inline', verticalAlign: -1 }} />}
+                          {' '}{p.status}
+                        </span>
+                      </td>
+                      <td className="mono text-xs" style={{ textAlign: 'right' }}>
+                        {eng === 0 ? '—' : `${eng.toLocaleString()} 👍`}
+                      </td>
+                      <td>
+                        {p.fb_post_id && (
+                          <a
+                            href={`https://www.facebook.com/${p.fb_post_id.replace('_', '/posts/')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-ghost btn-xs"
+                            title="Open post on Facebook"
+                          >
+                            <ExternalLink size={10} />
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {posts.length === 60 && (
+          <p className="text-muted text-xs" style={{ marginTop: 10, textAlign: 'center' }}>
+            Showing 60 most recent. Full history is in <code>facebook_page_posts</code>.
+          </p>
+        )}
       </div>
     </div>
   )

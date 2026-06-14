@@ -10,6 +10,7 @@ import Link                   from 'next/link'
 import { createClient }       from '@/lib/supabase/server'
 import { generatePromo }      from '@/lib/editorial-promo-ai'
 import { SUBMISSION_TYPES, TYPE_COLORS } from '@/lib/submissions'
+import { PublishToHomepageButton } from './PublishToHomepageButton'
 
 export const metadata: Metadata = { title: 'Editor Review Desk — Admin' }
 
@@ -35,6 +36,8 @@ interface QueueItem {
   feature_image_url:     string | null
   photo_urls:            Array<{ url: string }>
   created_at:            string
+  // bridge lineage — set by /api/admin/community-submissions/[id]/publish-to-article
+  promoted_to_article_id: string | null
 }
 
 interface ApprovalItem extends QueueItem {
@@ -160,16 +163,11 @@ async function requestChanges(formData: FormData) {
   redirect(`/admin/editorial/approval?id=${id}`)
 }
 
-async function markPublished(formData: FormData) {
-  'use server'
-  const supabase = await createClient()
-  const id       = formData.get('item_id') as string
-  await supabase.from('community_submissions').update({
-    status:             'published',
-    needs_changes_note: null,
-  }).eq('id', id)
-  redirect(`/admin/editorial/approval?id=${id}`)
-}
+// markPublished was replaced by the publish-to-article bridge — the new
+// PublishToHomepageButton calls /api/admin/community-submissions/[id]/
+// publish-to-article, which inserts a real guide_articles row AND sets
+// status='published' atomically. Removed to avoid two divergent ways
+// to flip status that would confuse the audit trail.
 
 async function markPlannerReady(formData: FormData) {
   'use server'
@@ -295,6 +293,9 @@ export default async function ApprovalPage({
     'approved_web','approved_newsletter','approved_social',
     'needs_changes_note','social_planner_ready',
     'feature_image_url','photo_urls','created_at',
+    // Bridge lineage — drives the Publish-to-homepage button vs the
+    // "Already published →" link in the channel approvals card.
+    'promoted_to_article_id',
   ].join(', ')
 
   const { data: rawQueue } = await supabase
@@ -559,16 +560,18 @@ export default async function ApprovalPage({
                 ))}
               </div>
 
-              {/* Mark published */}
-              {(item.approved_web || stage === 'approved') && item.status !== 'published' && (
-                <form action={markPublished} className="mt-3 pt-3 border-t border-gray-50">
-                  <input type="hidden" name="item_id" value={item.id} />
-                  <button type="submit"
-                    className="w-full py-2 rounded-lg text-xs font-bold border border-portal-border text-portal-text hover:bg-portal-bg transition-colors">
-                    Mark as Published
-                  </button>
-                </form>
-              )}
+              {/* Publish to homepage — the bridge to guide_articles. The
+                  old "Mark as Published" button only flipped status; it
+                  didn't make the article appear on the homepage because
+                  community_submissions and guide_articles were parallel
+                  systems. The bridge fixes that. */}
+              <PublishToHomepageButton
+                submissionId={item.id}
+                approvedWeb={!!item.approved_web}
+                approvedSocial={!!item.approved_social}
+                alreadyPromoted={!!item.promoted_to_article_id}
+                articleId={item.promoted_to_article_id ?? null}
+              />
             </div>
 
             {/* Request Changes */}

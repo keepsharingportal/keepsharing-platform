@@ -79,6 +79,9 @@ export interface SubmissionRow {
   image_status:               string | null  // image_ready | needs_photo | needs_canva_graphic | use_existing_image | no_image_needed
   exported_to_social_planner: boolean
   social_promoted_at:         string | null
+  // bridge lineage (migration 178) — set when the publish-to-article
+  // bridge has promoted this submission into a guide_articles row.
+  promoted_to_article_id:     string | null
   created_at:                 string
   updated_at:                 string
 }

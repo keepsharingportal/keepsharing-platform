@@ -40,8 +40,11 @@ export const SUBMISSION_DISTRIBUTION_COLS = [
   'homepage_feature', 'homepage_section', 'homepage_priority', 'homepage_remove_on',
   'newsletter_include', 'newsletter_section', 'newsletter_order',
   'social_queue', 'social_priority',
-  'approved_newsletter', 'newsletter_teaser', 'published_url', 'social_link',
+  'approved_web', 'approved_social', 'approved_newsletter',
+  'newsletter_teaser', 'published_url', 'social_link',
   'feature_image_url', 'photo_urls', 'assigned_to', 'created_at', 'updated_at',
+  // Bridge lineage — drives the "Already published →" indicator on cards.
+  'promoted_to_article_id',
 ].join(', ')
 
 /** Columns needed by the social export page */

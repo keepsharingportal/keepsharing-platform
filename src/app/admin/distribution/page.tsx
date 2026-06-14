@@ -407,11 +407,21 @@ function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean
             {item.newsletter_include && <span title="Newsletter">📧</span>}
             {item.social_queue      && <span title="Social">📱</span>}
           </div>
+          {item.promoted_to_article_id ? (
+            <Link
+              href={`/admin/articles/${item.promoted_to_article_id}/edit`}
+              className="text-[10px] font-bold"
+              style={{ color: 'var(--color-portal-green)' }}
+              title="Already promoted to a guide_articles row"
+            >
+              ✓ Published →
+            </Link>
+          ) : null}
           <Link
-            href={`/admin/editorial/${item.id}`}
+            href={`/admin/editorial/approval?id=${item.id}`}
             className="text-[11px] font-bold text-portal-blue hover:underline"
           >
-            Review →
+            {item.promoted_to_article_id ? 'Edit →' : item.approved_web ? 'Publish →' : 'Review →'}
           </Link>
         </div>
       </div>
