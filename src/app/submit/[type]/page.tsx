@@ -7,13 +7,29 @@ import type { Metadata }       from 'next'
 import type { ReactNode }      from 'react'
 import { redirect, notFound }  from 'next/navigation'
 import Link                    from 'next/link'
-import { ArrowLeft, ArrowRight, Camera, Clock, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Clock, Users, Heart } from 'lucide-react'
 import { createAdminClient }   from '@/lib/supabase/admin'
 import {
   SUBMISSION_TYPES, getSubmissionType, TYPE_COLORS,
   type SubmissionField,
 } from '@/lib/submissions'
+import { getColumnBrand, type ColumnBrand } from '@/lib/articles/column-brand'
+import { getColumnBranding } from '@/lib/column-branding'
 import { uploadSubmissionPhoto } from '@/lib/submissions-photo'
+
+// ── Submission-type → editorial column slug ──────────────────────────────────
+// Each row that maps to a real on-site editorial column gets its brand
+// identity carried into the nomination form (eyebrow wordmark + primary
+// color throughout). Types that aren't a recurring column (events,
+// birthdays, parent-picks) fall through to the generic site treatment
+// via DEFAULT_BRAND.
+const SUBMISSION_TYPE_TO_COLUMN: Record<string, string> = {
+  'play-ball':               'play-ball',
+  'mom-to-mom':              'mom-to-mom',
+  'grands-are-the-greatest': 'grands-greatest',
+  'teacher-of-the-month':    'teacher-of-month',
+  'school-news':             'school-bits',
+}
 
 // ── Static params ─────────────────────────────────────────────────────────────
 
@@ -52,7 +68,25 @@ export default async function SubmitTypePage({
   const config = getSubmissionType(type)
   if (!config || config.externalUrl) notFound()
 
-  const accentColor = TYPE_COLORS[type] ?? '#ef6442'
+  // Resolve the column brand for this submission type. Types tied to a
+  // real on-site column inherit that column's identity (Play Ball =
+  // navy + gold, Mom to Mom = rose, Grands = purple wordmark, Teacher =
+  // apple-red, School News = deep blue). Types without a column get the
+  // DEFAULT_BRAND which is site coral — still better than the prior
+  // generic "Be Featured or Interviewed" eyebrow treatment.
+  const columnSlug = SUBMISSION_TYPE_TO_COLUMN[type] ?? null
+  const brand      = getColumnBrand(columnSlug)
+  // DB logo override (when an editor uploaded a real wordmark image
+  // through /admin/column-branding). Falls back to the code default
+  // wordmarkImage path when set on the brand. Both render the same way.
+  const dbBranding   = columnSlug ? await getColumnBranding(createAdminClient(), columnSlug) : null
+  const logoUrl      = dbBranding?.logo_url ?? brand.wordmarkImage ?? null
+  // Accent color used throughout the form (FormCard top border, photo
+  // upload card border, submit button bg). Prefer the column primary
+  // when we have a real brand; fall back to the per-type TYPE_COLORS
+  // for types without an on-site column.
+  const hasRealBrand = !!columnSlug
+  const accentColor  = hasRealBrand ? brand.primary : (TYPE_COLORS[type] ?? '#ef6442')
 
   // ── Server action ──────────────────────────────────────────────────────────
 
@@ -270,8 +304,37 @@ export default async function SubmitTypePage({
   if (submitted === 'true') {
     return (
       <main className="container py-12 md:py-16">
-        <div className="max-w-xl mx-auto bg-card rounded-3xl border border-border/50 shadow-sm p-8 md:p-10 text-center">
-          <div className="text-6xl mb-5" aria-hidden="true">{config.emoji}</div>
+        <div
+          className="max-w-xl mx-auto bg-card rounded-3xl border shadow-sm p-8 md:p-10 text-center"
+          style={hasRealBrand ? { borderTop: `4px solid ${brand.primary}` } : { borderColor: 'hsl(var(--border) / 0.5)' }}
+        >
+          {/* Column-branded confirmation header — wordmark image when
+              available, CSS wordmark for Grands, colored pill for the
+              rest. Falls back to the type emoji when no column is
+              mapped. */}
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={brand.label} className="h-14 md:h-16 mx-auto mb-5 w-auto" />
+          ) : brand.wordmark ? (
+            <div className="flex items-center justify-center gap-3 mb-5">
+              {brand.wordmark.showHeart && (
+                <Heart className="w-6 h-6" style={{ color: brand.wordmark.scriptColor ?? brand.primary, fill: (brand.wordmark.scriptColor ?? brand.primary) + '20' }} />
+              )}
+              <h2 className="flex items-baseline gap-2 leading-none">
+                <span className="text-4xl md:text-5xl" style={{ color: brand.wordmark.scriptColor ?? brand.primary, fontFamily: 'var(--font-allura), cursive', lineHeight: 1 }}>{brand.wordmark.script}</span>
+                <span className="font-black uppercase tracking-tight text-lg md:text-xl" style={{ color: brand.wordmark.tailColor ?? 'inherit' }}>{brand.wordmark.tail}</span>
+              </h2>
+            </div>
+          ) : hasRealBrand ? (
+            <div
+              className="inline-flex items-center gap-2 text-white px-3 py-1.5 rounded text-[10px] md:text-xs font-black uppercase tracking-[0.16em] shadow-sm mb-5"
+              style={{ backgroundColor: brand.primary }}
+            >
+              {brand.label.toUpperCase()}
+            </div>
+          ) : (
+            <div className="text-6xl mb-5" aria-hidden="true">{config.emoji}</div>
+          )}
           <h1 className="text-3xl md:text-4xl font-black text-foreground leading-tight mb-3">
             Thank You!
           </h1>
@@ -322,31 +385,24 @@ export default async function SubmitTypePage({
   return (
     <main className="container py-8 space-y-8">
 
-      {/* ── HERO — homepage-style rounded-3xl card with gradient ─────────── */}
-      <section
-        className="rounded-3xl border border-border/50 shadow-sm overflow-hidden bg-gradient-to-br from-primary/8 via-background to-secondary/6"
-      >
-        <div className="px-6 md:px-10 py-10 md:py-14">
-          <Link
-            href="/submit"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mb-5"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> All Submission Types
-          </Link>
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-3" style={{ color: accentColor }}>
-              <span className="text-base leading-none" aria-hidden="true">{config.emoji}</span>
-              {config.group}
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black text-foreground leading-tight mb-4">
-              {config.headline}
-            </h1>
-            <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
-              {config.description}
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* ── HERO — column-branded ───────────────────────────────────────────
+          When the type maps to a real on-site editorial column, render
+          the column's identity:
+            - Wordmark image / CSS wordmark (Grands cursive) / colored
+              pill bearing the column label
+            - softBg tint for columns using the 'soft' style (Mom,
+              Grands, Teacher); a primary-tinted gradient otherwise
+            - Column tagline (when set) sits above the type-specific
+              description so the column identity reads first.
+          Types without a column (events, birthday, parent-picks,
+          boom-profile) fall back to the prior generic peach gradient
+          treatment. */}
+      <BrandedHero
+        brand={brand}
+        hasRealBrand={hasRealBrand}
+        logoUrl={logoUrl}
+        config={config}
+      />
 
       {/* ── META STRIP (Who / Time) ──────────────────────────────────────── */}
       <section className="grid sm:grid-cols-2 gap-4">
@@ -555,6 +611,140 @@ export default async function SubmitTypePage({
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+// ── BrandedHero ──────────────────────────────────────────────────────────────
+// Top hero for the submission form. Carries the on-site editorial column's
+// identity into the nomination flow:
+//
+//   - effectiveLogoUrl (uploaded wordmark or code-default) → big image
+//   - brand.wordmark (CSS-rendered cursive + sans, e.g. Grands)         → script wordmark
+//   - hasRealBrand & no wordmark / image (Play Ball, Mom, Teacher,
+//     School Bits)                                                      → colored pill in brand.primary
+//   - else (events, birthday, parent-picks, boom-profile)               → legacy emoji + group pill
+//
+// Background tint follows the column's style:
+//   - 'soft' columns (Mom, Grands, Teacher) use the column's pre-tuned
+//     softBg + softBorder — same surface treatment the article page uses
+//   - other columns get a primary@8% gradient
+//   - non-column types get the legacy peach gradient
+function BrandedHero({
+  brand, hasRealBrand, logoUrl, config,
+}: {
+  brand:        ColumnBrand
+  hasRealBrand: boolean
+  logoUrl:      string | null
+  config:       ReturnType<typeof getSubmissionType> & object  // narrow non-null
+}) {
+  // ── Hero background style — driven by the brand's style flag.
+  let containerStyle: React.CSSProperties | undefined
+  let containerClass = 'rounded-3xl border border-border/50 shadow-sm overflow-hidden'
+  if (hasRealBrand && brand.softBg) {
+    containerStyle = { background: brand.softBg, borderColor: brand.softBorder ?? undefined }
+  } else if (hasRealBrand) {
+    // Soft tint from the column's primary so the header reads as
+    // "this column" without overpowering the form below.
+    containerStyle = { background: `linear-gradient(135deg, ${brand.primary}14 0%, #ffffff 70%)` }
+  } else {
+    // Legacy site treatment for non-column types.
+    containerClass += ' bg-gradient-to-br from-primary/8 via-background to-secondary/6'
+  }
+
+  // ── Eyebrow — branded wordmark when available, branded pill
+  // otherwise, generic emoji + group as the final fallback.
+  function Eyebrow() {
+    if (logoUrl) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={brand.label}
+          className="h-16 md:h-20 lg:h-24 w-auto max-w-full mb-2"
+        />
+      )
+    }
+    if (brand.wordmark) {
+      const wm = brand.wordmark
+      return (
+        <div className="flex items-center gap-3 md:gap-4 mb-4">
+          {wm.showHeart && (
+            <Heart
+              className="w-7 h-7 md:w-9 md:h-9 shrink-0"
+              style={{
+                color: wm.scriptColor ?? brand.primary,
+                fill:  (wm.scriptColor ?? brand.primary) + '20',
+              }}
+            />
+          )}
+          <h2 className="flex items-baseline gap-2 md:gap-3 leading-none">
+            <span
+              className="text-5xl md:text-6xl"
+              style={{
+                color: wm.scriptColor ?? brand.primary,
+                fontFamily: 'var(--font-allura), cursive',
+                lineHeight: 1,
+              }}
+            >
+              {wm.script}
+            </span>
+            <span
+              className="font-black uppercase tracking-tight text-xl md:text-2xl"
+              style={{ color: wm.tailColor ?? 'inherit' }}
+            >
+              {wm.tail}
+            </span>
+          </h2>
+        </div>
+      )
+    }
+    if (hasRealBrand) {
+      return (
+        <div
+          className="inline-flex items-center gap-2 text-white px-4 py-2 rounded text-[11px] md:text-xs font-black uppercase tracking-[0.16em] shadow-sm mb-4"
+          style={{ backgroundColor: brand.primary }}
+        >
+          {brand.label.toUpperCase()}
+        </div>
+      )
+    }
+    // Legacy fallback — non-column types (events, birthday, etc.)
+    return (
+      <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-3" style={{ color: brand.primary }}>
+        <span className="text-base leading-none" aria-hidden="true">{config.emoji}</span>
+        {config.group}
+      </div>
+    )
+  }
+
+  return (
+    <section className={containerClass} style={containerStyle}>
+      <div className="px-6 md:px-10 py-10 md:py-14">
+        <Link
+          href="/submit"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mb-5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> All Submission Types
+        </Link>
+        <div className="max-w-3xl">
+          <Eyebrow />
+          <h1 className="text-3xl md:text-5xl font-black text-foreground leading-tight mb-4">
+            {config.headline}
+          </h1>
+          {/* Column tagline — only renders when the brand has one
+              (currently Grands). Sits ABOVE the type description so
+              the column identity reads first. */}
+          {brand.tagline && (
+            <p className="text-base md:text-lg italic text-foreground/80 leading-relaxed max-w-2xl mb-3">
+              {brand.tagline}
+            </p>
+          )}
+          <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
+            {config.description}
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function FormCard({ title, accentColor, children }: { title: string; accentColor?: string; children: ReactNode }) {
   return (
