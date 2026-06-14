@@ -14,6 +14,7 @@ import type { SubmissionRow } from '@/types/db'
 import { normalizePublication, PUBLICATION_NAMES } from '@/lib/queries/publications'
 import { SUBMISSION_DISTRIBUTION_COLS } from '@/lib/queries/submissions'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
+import { SPONSOR_CATEGORIES } from '@/lib/sponsors/categories'
 
 export const metadata: Metadata = { title: 'Distribution — Admin' }
 
@@ -522,12 +523,23 @@ export default async function DistributionPage({
   const healthPct     = Math.round((routed / total) * 100)
 
   // ── Sponsor alignment ─────────────────────────────────────────────────────
-
-  // For each sponsor, find content items that editorially align with their category
+  //
+  // For each sponsor, find content items that editorially align with
+  // their category. Two-source match:
+  //   1. Legacy TYPE_CATEGORY map (this file) — submission_type → category_slug
+  //   2. New SPONSOR_CATEGORIES taxonomy — each category lists which
+  //      submission types align with it (alignedSubmissionTypes)
+  // Plus a direct guide-slug match for sponsors targeting a specific guide.
   const sponsorOpportunities = sponsors.map(sp => {
     const aligned = items.filter(i => {
-      const cat = TYPE_CATEGORY[i.submission_type]
-      return cat === sp.sponsor_category_slug || i.destination_guide_slug === sp.sponsor_guide_slug
+      if (sp.sponsor_guide_slug && i.destination_guide_slug === sp.sponsor_guide_slug) return true
+      if (!sp.sponsor_category_slug) return false
+      // Legacy map
+      if (TYPE_CATEGORY[i.submission_type] === sp.sponsor_category_slug) return true
+      // New taxonomy
+      const taxonomyEntry = SPONSOR_CATEGORIES.find(c => c.slug === sp.sponsor_category_slug)
+      if (taxonomyEntry?.alignedSubmissionTypes?.includes(i.submission_type)) return true
+      return false
     })
     return { sponsor: sp, aligned }
   }).sort((a, b) => b.aligned.length - a.aligned.length)
@@ -1198,6 +1210,22 @@ export default async function DistributionPage({
               🤝 Editorial integrity first. Sponsor alignment is an opportunity signal — never auto-insert sponsors into content. All sponsor/content pairing requires editorial review.
             </p>
           </div>
+
+          {/* Uncategorized sponsors CTA — alignment matcher can't fire
+              until every sponsor has a sponsor_category_slug. Surfacing
+              the count here means editors fix it in one focused session
+              instead of one-at-a-time in the CRM. */}
+          {sponsors.filter(s => !s.sponsor_category_slug).length > 0 && (
+            <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <strong>{sponsors.filter(s => !s.sponsor_category_slug).length} active sponsors have no category.</strong>{' '}
+                The alignment matcher can&apos;t suggest content for them until they&apos;re categorized.
+              </div>
+              <Link href="/admin/distribution/sponsor-categorize" className="btn btn-primary btn-sm">
+                Categorize with AI →
+              </Link>
+            </div>
+          )}
 
           {/* Sponsor opportunities — strong alignment */}
           <div>
