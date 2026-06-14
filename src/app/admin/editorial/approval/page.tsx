@@ -13,6 +13,9 @@ import { SUBMISSION_TYPES, TYPE_COLORS } from '@/lib/submissions'
 import { PublishToHomepageButton } from './PublishToHomepageButton'
 
 export const metadata: Metadata = { title: 'Editor Review Desk — Admin' }
+// Without force-dynamic, Next.js caches the page on first build. New
+// community_submissions added to the DB don't show until next deploy.
+export const dynamic = 'force-dynamic'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -369,7 +372,10 @@ export default async function ApprovalPage({
       : ''
 
     return (
-      <main className="p-6 max-w-[1260px] mx-auto space-y-6 pb-16">
+      // flex-1 min-h-0 overflow-y-auto = scroll context for the admin
+      // layout's overflow-hidden main wrapper. Without this the page
+      // content gets clipped at the viewport without a scrollbar.
+      <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[1260px] mx-auto space-y-6 pb-16 w-full">
 
         {/* Header */}
         <div>
@@ -782,7 +788,7 @@ export default async function ApprovalPage({
   // ══════════════════════════════════════════════════════════════════════════
 
   return (
-    <main className="p-6 max-w-[900px] mx-auto space-y-6 pb-16">
+    <main className="flex-1 min-h-0 overflow-y-auto p-6 max-w-[900px] mx-auto space-y-6 pb-16 w-full">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
