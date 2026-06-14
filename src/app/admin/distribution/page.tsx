@@ -15,6 +15,8 @@ import { normalizePublication, PUBLICATION_NAMES } from '@/lib/queries/publicati
 import { SUBMISSION_DISTRIBUTION_COLS } from '@/lib/queries/submissions'
 import { AdminSectionHeader } from '@/components/admin/AdminSectionHeader'
 import { SPONSOR_CATEGORIES } from '@/lib/sponsors/categories'
+import { AISectionFiller, type Candidate as AICandidate } from './AISectionFiller'
+import { AINewsletterSubjects } from './AINewsletterSubjects'
 
 export const metadata: Metadata = { title: 'Distribution — Admin' }
 
@@ -333,6 +335,30 @@ async function updateSocialPriority(formData: FormData) {
   redirect(`/admin/distribution?view=${v}`)
 }
 
+// Apply an AI-suggested lineup pick. Sets the surface flag + section in
+// one shot so the editor goes from "Suggested" ghost card to assigned
+// piece with one click. Surface is `homepage` or `newsletter`.
+async function applyAISuggestion(formData: FormData) {
+  'use server'
+  const supabase = await createClient()
+  const id       = formData.get('id')      as string
+  const surface  = (formData.get('surface') as 'homepage' | 'newsletter') ?? 'homepage'
+  const section  = (formData.get('section') as string) || ''
+  const v        = (formData.get('v') as string) || surface
+
+  const update: Record<string, unknown> = {}
+  if (surface === 'homepage') {
+    update.homepage_feature  = true
+    update.homepage_section  = section || null
+    update.homepage_priority = 5
+  } else {
+    update.newsletter_include = true
+    update.newsletter_section = section || null
+  }
+  await supabase.from('community_submissions').update(update).eq('id', id)
+  redirect(`/admin/distribution?view=${v}`)
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function DistCard({ item, compact = false }: { item: DistItem; compact?: boolean }) {
@@ -516,6 +542,31 @@ export default async function DistributionPage({
   const missingImages    = items.filter(i => !hasImage(i))
   const noDestination    = items.filter(i => !i.destination_section)
   const noTitle          = items.filter(i => !i.working_title)
+
+  // ── AI candidates for the section filler ────────────────────────────────
+  // Pool of items NOT YET on homepage that the AI can pick from when
+  // suggesting fills. Same for newsletter. We cap the title length and
+  // strip noise so the prompt stays focused.
+  const aiHomepageCandidates: AICandidate[] = items
+    .filter(i => !i.homepage_feature)
+    .slice(0, 60)
+    .map(i => ({
+      id:    i.id,
+      title: displayTitle(i),
+      type:  i.submission_type,
+      blurb: (i.excerpt ?? '').slice(0, 180) || undefined,
+      freshness_days: freshnessDays(i.updated_at),
+    }))
+  const aiNewsletterCandidates: AICandidate[] = items
+    .filter(i => !i.newsletter_include)
+    .slice(0, 60)
+    .map(i => ({
+      id:    i.id,
+      title: displayTitle(i),
+      type:  i.submission_type,
+      blurb: (i.newsletter_teaser ?? i.excerpt ?? '').slice(0, 180) || undefined,
+      freshness_days: freshnessDays(i.updated_at),
+    }))
 
   // Health score (0–100)
   const total         = items.length || 1
@@ -793,7 +844,18 @@ export default async function DistributionPage({
                     </div>
                   ))}
                   {secItems.length === 0 && (
-                    <p className="text-xs text-portal-border-2 italic px-4 py-2">No content assigned to this section.</p>
+                    <>
+                      <p className="text-xs text-portal-border-2 italic px-4 py-2">No content assigned to this section.</p>
+                      <AISectionFiller
+                        publication={filterPub ?? 'rrp'}
+                        surface="homepage"
+                        section={sec.value}
+                        sectionLabel={sec.label}
+                        candidates={aiHomepageCandidates}
+                        targetCount={3}
+                        view="homepage"
+                      />
+                    </>
                   )}
                 </div>
               </div>
@@ -887,7 +949,20 @@ export default async function DistributionPage({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-portal-border-2 italic px-3">Empty — assign content below</p>
+                      <>
+                        <p className="text-xs text-portal-border-2 italic px-3">Empty — assign content below</p>
+                        <div style={{ padding: '0 12px' }}>
+                          <AISectionFiller
+                            publication={filterPub ?? 'rrp'}
+                            surface="newsletter"
+                            section={sec.value}
+                            sectionLabel={sec.label}
+                            candidates={aiNewsletterCandidates}
+                            targetCount={sec.value === 'lead' ? 1 : 2}
+                            view="newsletter"
+                          />
+                        </div>
+                      </>
                     )}
                   </div>
                 )
@@ -954,19 +1029,20 @@ export default async function DistributionPage({
             </div>
           )}
 
-          {/* Suggested subject lines */}
+          {/* Subject line suggestions — starts with templated picks
+              (free, instant) and offers a one-click upgrade to AI-
+              generated brand-voice-aware subjects from Claude. */}
           {groups.newsletter.length > 0 && (
-            <div className="bg-white border border-portal-border rounded-lg p-5">
-              <h2 className="text-sm font-bold text-portal-text mb-1">Suggested Subject Lines</h2>
-              <p className="text-[11px] text-portal-muted mb-3">Based on your current lineup. Choose one, mix, or write your own.</p>
-              <div className="space-y-1.5">
-                {nlSubjects.map((s, i) => (
-                  <div key={i} className="flex items-center gap-3 px-3 py-2 bg-portal-bg rounded-lg">
-                    <span className="text-[11px] font-bold text-portal-border-2 w-4 shrink-0">{i + 1}</span>
-                    <p className="text-xs text-portal-text flex-1 font-medium">{s}</p>
-                  </div>
-                ))}
-              </div>
+            <div className="card">
+              <AINewsletterSubjects
+                publication={filterPub ?? 'rrp'}
+                items={groups.newsletter.slice(0, 30).map(i => ({
+                  title: displayTitle(i),
+                  type:  i.submission_type,
+                  blurb: (i.newsletter_teaser ?? i.excerpt ?? '').slice(0, 200) || undefined,
+                }))}
+                initialSubjects={nlSubjects}
+              />
             </div>
           )}
 
