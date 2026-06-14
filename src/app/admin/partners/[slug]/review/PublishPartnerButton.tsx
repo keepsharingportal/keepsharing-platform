@@ -32,7 +32,7 @@ export function PublishPartnerButton({ accountId, slug, currentStatus }: { accou
   return (
     <button onClick={publish} disabled={publishing} style={{
       padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700,
-      backgroundColor: '#c4622d', color: 'white', border: 'none', cursor: publishing ? 'not-allowed' : 'pointer',
+      backgroundColor: '#ef6442', color: 'white', border: 'none', cursor: publishing ? 'not-allowed' : 'pointer',
       display: 'flex', alignItems: 'center', gap: 6,
     }}>
       {publishing ? <><RefreshCw size={13} className="animate-spin" /> Publishing…</> : 'Publish Page →'}

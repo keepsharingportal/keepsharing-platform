@@ -58,11 +58,11 @@ export function InlineSubmissionWidget({ contextQuestion, contextPlaceholder, so
   if (!expanded) return (
     <div style={{ marginTop: 32, padding: '18px 20px', borderRadius: 14, border: '1px dashed rgba(196,98,45,0.25)', backgroundColor: 'rgba(196,98,45,0.04)', cursor: 'pointer' }} onClick={() => setExpanded(true)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <MessageSquare size={18} color="#c4622d" />
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#c4622d', flex: 1 }}>
+        <MessageSquare size={18} color="#ef6442" />
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#ef6442', flex: 1 }}>
           {contextQuestion}
         </p>
-        <span style={{ fontSize: 12, color: '#c4622d', fontWeight: 700, flexShrink: 0 }}>Share →</span>
+        <span style={{ fontSize: 12, color: '#ef6442', fontWeight: 700, flexShrink: 0 }}>Share →</span>
       </div>
     </div>
   )
@@ -88,7 +88,7 @@ export function InlineSubmissionWidget({ contextQuestion, contextPlaceholder, so
           <button type="button" onClick={() => setExpanded(false)} style={{ padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: '1px solid rgba(0,0,0,0.12)', backgroundColor: 'white', color: '#666', cursor: 'pointer' }}>
             Cancel
           </button>
-          <button type="submit" disabled={submitting} style={{ flex: 1, padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 800, backgroundColor: '#c4622d', color: 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <button type="submit" disabled={submitting} style={{ flex: 1, padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 800, backgroundColor: '#ef6442', color: 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             {submitting ? <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Sharing…</> : 'Share my pick →'}
           </button>
         </div>

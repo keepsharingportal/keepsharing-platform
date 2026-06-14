@@ -336,7 +336,7 @@ export default async function PerformancePage({ params, searchParams }: Props) {
                 label:    'Ad Impressions',
                 sub:      activePlacements.length > 0 ? `${ctr}% click rate` : 'No active placements',
                 trust:    activePlacements.length > 0 ? 'measured' as const : 'unavailable' as const,
-                color:    '#c4622d',
+                color:    '#ef6442',
                 noZero:   false,
               },
             ].map(({ value, label, sub, trust, color }) => (

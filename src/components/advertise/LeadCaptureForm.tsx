@@ -153,8 +153,8 @@ export function LeadCaptureForm({ sourcePage = '/advertise' }: { sourcePage?: st
           {INTEREST_OPTIONS.map(opt => (
             <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, color: '#333' }}>
               <div style={{
-                width: 20, height: 20, borderRadius: 5, border: `2px solid ${form.interests.includes(opt.id) ? '#c4622d' : 'rgba(0,0,0,0.2)'}`,
-                backgroundColor: form.interests.includes(opt.id) ? '#c4622d' : 'white',
+                width: 20, height: 20, borderRadius: 5, border: `2px solid ${form.interests.includes(opt.id) ? '#ef6442' : 'rgba(0,0,0,0.2)'}`,
+                backgroundColor: form.interests.includes(opt.id) ? '#ef6442' : 'white',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }} onClick={() => toggleInterest(opt.id)}>
                 {form.interests.includes(opt.id) && <Check size={12} color="white" strokeWidth={3} />}
@@ -175,11 +175,11 @@ export function LeadCaptureForm({ sourcePage = '/advertise' }: { sourcePage?: st
         />
       </div>
 
-      {err && <p style={{ fontSize: 13, color: '#c4622d', fontWeight: 600 }}>{err}</p>}
+      {err && <p style={{ fontSize: 13, color: '#ef6442', fontWeight: 600 }}>{err}</p>}
 
       <button type="submit" disabled={submitting} style={{
         padding: '15px 24px', borderRadius: 12, fontSize: 15, fontWeight: 800,
-        backgroundColor: submitting ? '#ddd' : '#c4622d',
+        backgroundColor: submitting ? '#ddd' : '#ef6442',
         color: submitting ? '#888' : 'white',
         border: 'none', cursor: submitting ? 'not-allowed' : 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

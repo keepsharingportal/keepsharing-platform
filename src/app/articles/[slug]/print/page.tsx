@@ -73,7 +73,7 @@ export default async function PrintArticleView({ params }: Props) {
         .print-view .deck { font-size: 18px; font-style: italic; color: #444; line-height: 1.4; margin: 0 0 24px; }
         .print-view .byline { font-size: 13px; color: #666; margin-bottom: 32px; font-style: italic; }
         .print-view .body p { margin: 0 0 16px; font-size: 15px; }
-        .print-view .pull-quote { border-left: 4px solid #c4622d; padding: 8px 0 8px 18px; margin: 24px 0; font-size: 20px; font-style: italic; color: #1a2744; }
+        .print-view .pull-quote { border-left: 4px solid #ef6442; padding: 8px 0 8px 18px; margin: 24px 0; font-size: 20px; font-style: italic; color: #1a2744; }
         .print-view .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #777; }
         .print-view .footer code { font-family: 'Courier New', monospace; font-size: 11px; }
         @media print {

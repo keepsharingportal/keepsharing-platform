@@ -143,7 +143,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
   ])
   const [notes, setNotes] = useState('')
   const [brandPrimary, setBrandPrimary] = useState('#1a2744')
-  const [brandAccent, setBrandAccent] = useState('#c4622d')
+  const [brandAccent, setBrandAccent] = useState('#ef6442')
 
   const inp = 'w-full px-3.5 py-3 text-sm rounded-lg border border-gray-200 outline-none focus:border-[#4a90d9] transition-all bg-white'
 
@@ -263,7 +263,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 1 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 1 of 13 · {SECTION_TIMES[1]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 1 of 13 · {SECTION_TIMES[1]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>Let&apos;s confirm your basics</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>These were filled in from your initial conversation with Jason. Update anything that&apos;s changed.</p>
             </div>
@@ -293,7 +293,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 2 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 2 of 13 · {SECTION_TIMES[2]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 2 of 13 · {SECTION_TIMES[2]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>What kind of page are we building?</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>Pick the page type that matches your goal. This controls the layout, sections, and the questions you&apos;ll answer. You can always change this later.</p>
             </div>
@@ -329,7 +329,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 3 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 3 of 13 · {SECTION_TIMES[3]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 3 of 13 · {SECTION_TIMES[3]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>Pick your color scheme</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>Each scheme is professionally designed to feel right for a specific type of business. Pick the one that fits your brand best — buttons, accents, and backgrounds will all use it.</p>
             </div>
@@ -372,7 +372,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 4 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 4 of 13 · {SECTION_TIMES[4]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 4 of 13 · {SECTION_TIMES[4]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>Let&apos;s pull what we can from your website</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>We can auto-fill several sections from your existing website. This saves time and makes sure we capture your voice.</p>
             </div>
@@ -399,7 +399,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 5 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 5 of 13 · {SECTION_TIMES[5]} — The most important section</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 5 of 13 · {SECTION_TIMES[5]} — The most important section</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>
                 {templateSlug === 'giveaway' ? 'Your giveaway details' : templateSlug === 'lead-magnet' ? 'Your free resource' : "What's your offer?"}
               </h2>
@@ -462,7 +462,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 6 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 6 of 13 · {SECTION_TIMES[6]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 6 of 13 · {SECTION_TIMES[6]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>Your story</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>Parents choose businesses they connect with. This is where they connect with you.</p>
             </div>
@@ -487,7 +487,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {[7, 8, 9, 10, 11, 12].includes(currentSection) && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section {currentSection} of 13 · {SECTION_TIMES[currentSection as Section]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section {currentSection} of 13 · {SECTION_TIMES[currentSection as Section]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>{SECTION_LABELS[currentSection as Section]}</h2>
             </div>
 
@@ -556,7 +556,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
         {currentSection === 13 && (
           <div>
             <div style={{ marginBottom: 28 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c4622d', marginBottom: 6 }}>Section 13 of 13 · {SECTION_TIMES[13]}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef6442', marginBottom: 6 }}>Section 13 of 13 · {SECTION_TIMES[13]}</p>
               <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: '#1a2744', marginBottom: 8 }}>Ready to submit?</h2>
               <p style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>Jason will review everything, make any final edits, and send you the live URL within 48 hours. Once live, any changes can be made via a quick email or call.</p>
             </div>
@@ -599,7 +599,7 @@ export function OnboardingForm({ token, accountId, accountSlug, businessName, co
               Continue <ChevronRight size={14} />
             </button>
           ) : (
-            <button onClick={submitOnboarding} style={{ padding: '12px 28px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: '#c4622d', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={submitOnboarding} style={{ padding: '12px 28px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: '#ef6442', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               Submit for Review <ArrowRight size={15} />
             </button>
           )}

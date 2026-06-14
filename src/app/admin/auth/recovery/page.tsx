@@ -17,7 +17,7 @@ export default function MfaRecoveryPage() {
           <div className="font-serif text-xl font-bold text-[#1a2744] mb-1">
             River Region <span className="text-[#4a90d9]">Parents</span>
           </div>
-          <div className="text-xs font-semibold tracking-widest uppercase text-[#c4622d]">
+          <div className="text-xs font-semibold tracking-widest uppercase text-[#ef6442]">
             Admin · 2FA Recovery
           </div>
         </div>

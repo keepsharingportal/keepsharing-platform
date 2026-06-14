@@ -152,7 +152,7 @@ export function PartnerDashboard({ account, initialLeads, token }: { account: Ac
             <p style={{ fontSize: 17, fontWeight: 700, color: 'white' }}>{account.business_name}</p>
           </div>
           {overdueLeads.length > 0 && (
-            <div style={{ fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 20, backgroundColor: '#c4622d', color: 'white' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 20, backgroundColor: '#ef6442', color: 'white' }}>
               {overdueLeads.length} lead{overdueLeads.length > 1 ? 's' : ''} need follow-up
             </div>
           )}
@@ -177,7 +177,7 @@ export function PartnerDashboard({ account, initialLeads, token }: { account: Ac
           {/* Performance report link */}
           <a
             href={`/partners/${account.slug}/performance`}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#c4622d', textDecoration: 'none', borderBottom: '2px solid transparent', marginLeft: 'auto' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#ef6442', textDecoration: 'none', borderBottom: '2px solid transparent', marginLeft: 'auto' }}
           >
             View Full Report →
           </a>
@@ -268,7 +268,7 @@ export function PartnerDashboard({ account, initialLeads, token }: { account: Ac
                 {[
                   { label: 'Submitted', count: leads.length, color: '#4a90d9' },
                   { label: 'Contacted', count: leads.filter(l => l.partner_last_action_at).length, color: '#5a8a6a' },
-                  { label: 'Converted', count: convertedLeads.length, color: '#c4622d' },
+                  { label: 'Converted', count: convertedLeads.length, color: '#ef6442' },
                 ].map(s => (
                   <div key={s.label} style={{ marginBottom: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>

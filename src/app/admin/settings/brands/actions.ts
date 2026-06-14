@@ -40,7 +40,7 @@ export async function saveBrandVoiceAction(input: SaveBrandInput): Promise<{ ok:
     return { ok: false, error: `Unknown brand slug: ${input.brandSlug}` }
   }
   if (input.primaryColorHex && !HEX_RE.test(input.primaryColorHex)) {
-    return { ok: false, error: `Primary color "${input.primaryColorHex}" isn't a valid hex (e.g. #c4622d).` }
+    return { ok: false, error: `Primary color "${input.primaryColorHex}" isn't a valid hex (e.g. #ef6442).` }
   }
   if (input.accentColorHex && !HEX_RE.test(input.accentColorHex)) {
     return { ok: false, error: `Accent color "${input.accentColorHex}" isn't a valid hex.` }

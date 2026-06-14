@@ -49,7 +49,7 @@ const DEFAULT_BRAND_SLUG = 'rrp'
 const RRP_CHROME_FALLBACK: BrandChrome = {
   tagline:                 'The Go-To Resource for River Region Families',
   logoUrl:                 null,
-  primaryColorHex:         '#c4622d',
+  primaryColorHex:         '#ef6442',
   accentColorHex:          '#1a2744',
   tertiaryColorHex:        '#f3bf24',
   backgroundColorHex:      '#fbfaf8',

@@ -131,7 +131,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   guide:            '#16a34a',
   print:            '#92400e',
   event:            '#0891b2',
-  school:           '#c4622d',
+  school:           '#ef6442',
   'family-favorites':'#d97706',
 }
 

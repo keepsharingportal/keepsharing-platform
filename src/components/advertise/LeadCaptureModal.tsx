@@ -43,7 +43,7 @@ export function LeadCaptureModal({ isOpen, onClose, initialTier, sourcePage }: P
   if (!isOpen) return null
 
   const inp = (extra?: string) =>
-    `w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-[#c4622d] transition-all bg-white ${extra ?? ''}`
+    `w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-[#ef6442] transition-all bg-white ${extra ?? ''}`
 
   async function submitStep1() {
     if (!email) return
@@ -111,7 +111,7 @@ export function LeadCaptureModal({ isOpen, onClose, initialTier, sourcePage }: P
         {/* ── Step 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
           <div>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-terra, #ef6442)', marginBottom: 8 }}>
               Let&apos;s talk
             </p>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 26, fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 8, lineHeight: 1.2 }}>
@@ -148,7 +148,7 @@ export function LeadCaptureModal({ isOpen, onClose, initialTier, sourcePage }: P
                 disabled={saving || !email}
                 style={{
                   padding: '13px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                  backgroundColor: !email || saving ? '#ccc' : 'var(--fg-terra, #c4622d)',
+                  backgroundColor: !email || saving ? '#ccc' : 'var(--fg-terra, #ef6442)',
                   color: 'white', border: 'none', cursor: email && !saving ? 'pointer' : 'not-allowed',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}>
@@ -201,7 +201,7 @@ export function LeadCaptureModal({ isOpen, onClose, initialTier, sourcePage }: P
                 disabled={saving || !bizName}
                 style={{
                   padding: '13px 20px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                  backgroundColor: !bizName || saving ? '#ccc' : 'var(--fg-terra, #c4622d)',
+                  backgroundColor: !bizName || saving ? '#ccc' : 'var(--fg-terra, #ef6442)',
                   color: 'white', border: 'none', cursor: bizName && !saving ? 'pointer' : 'not-allowed',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}>

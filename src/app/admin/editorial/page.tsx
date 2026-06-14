@@ -49,7 +49,7 @@ interface StageConfig {
 const STAGES: StageConfig[] = [
   { key: 'awaiting-draft', label: 'Awaiting Draft',     color: '#6b7280', description: 'Needs AI draft or editorial start.' },
   { key: 'draft-ready',    label: 'Draft Ready',        color: '#6366f1', description: 'AI draft generated — needs editorial review.' },
-  { key: 'in-editing',     label: 'In Editing',         color: '#c4622d', description: 'Editor actively working on this content.' },
+  { key: 'in-editing',     label: 'In Editing',         color: '#ef6442', description: 'Editor actively working on this content.' },
   { key: 'approved',       label: 'Approved',           color: '#16a34a', description: 'Approved and ready to assign or publish.' },
   { key: 'scheduled',      label: 'Scheduled',          color: '#b8860b', description: 'Assigned to an issue or publish date.' },
   { key: 'published',      label: 'Published',          color: '#374151', description: 'Live in digital or print.' },
@@ -189,7 +189,7 @@ export default async function EditorialPage({
           { label: 'Total',        val: total,                              color: '#374151' },
           { label: 'Await Draft',  val: stageCounts.get('awaiting-draft')!, color: '#6b7280' },
           { label: 'Draft Ready',  val: stageCounts.get('draft-ready')!,   color: '#6366f1' },
-          { label: 'In Editing',   val: stageCounts.get('in-editing')!,    color: '#c4622d' },
+          { label: 'In Editing',   val: stageCounts.get('in-editing')!,    color: '#ef6442' },
           { label: 'Approved',     val: stageCounts.get('approved')!,      color: '#16a34a' },
           { label: 'Scheduled',    val: stageCounts.get('scheduled')!,     color: '#b8860b' },
           { label: 'Urgent',       val: urgent,                            color: '#dc2626' },

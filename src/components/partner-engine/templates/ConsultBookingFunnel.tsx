@@ -95,7 +95,7 @@ function MobileStickyBar({ formId, buttonLabel, phone, scheme }: { formId: strin
 // ── Avatar placeholder SVGs ───────────────────────────────────────────────────
 
 const AVATAR_INITIALS = ['E', 'J', 'A']
-const AVATAR_COLORS   = ['#4a90d9', '#5a8a6a', '#c4622d']
+const AVATAR_COLORS   = ['#4a90d9', '#5a8a6a', '#ef6442']
 
 function AvatarStack({ scheme }: { scheme: ReturnType<typeof getColorScheme> }) {
   return (
@@ -291,7 +291,7 @@ function BookingForm({
         </>
       )}
 
-      {error && <p style={{ fontSize: 13, color: '#c4622d', fontWeight: 600 }}>{error}</p>}
+      {error && <p style={{ fontSize: 13, color: '#ef6442', fontWeight: 600 }}>{error}</p>}
 
       <button type="submit" disabled={saving} style={{
         width: '100%',

@@ -82,7 +82,7 @@ export default function PartnerLoginPage({ params }: { params: Promise<{ slug: s
                 </div>
               </div>
 
-              {error && <p style={{ fontSize: 13, color: '#c4622d', fontWeight: 600 }}>{error}</p>}
+              {error && <p style={{ fontSize: 13, color: '#ef6442', fontWeight: 600 }}>{error}</p>}
 
               <button type="submit" disabled={sending} style={{ padding: '13px', borderRadius: 10, fontSize: 14, fontWeight: 800, backgroundColor: sending ? '#ddd' : '#1a2744', color: sending ? '#888' : 'white', border: 'none', cursor: sending ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
                 {sending

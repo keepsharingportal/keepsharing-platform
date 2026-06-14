@@ -33,7 +33,7 @@ export function ProposalActions({ token, businessName }: { token: string; busine
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <button onClick={accept} disabled={accepting} style={{ width: '100%', padding: '16px 24px', borderRadius: 14, fontSize: 16, fontWeight: 800, backgroundColor: accepting ? '#ddd' : '#c4622d', color: accepting ? '#888' : 'white', border: 'none', cursor: accepting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+      <button onClick={accept} disabled={accepting} style={{ width: '100%', padding: '16px 24px', borderRadius: 14, fontSize: 16, fontWeight: 800, backgroundColor: accepting ? '#ddd' : '#ef6442', color: accepting ? '#888' : 'white', border: 'none', cursor: accepting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
         {accepting ? <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing…</> : <>Yes, Let&apos;s Proceed <ArrowRight size={16} /></>}
       </button>
 

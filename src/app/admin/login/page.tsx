@@ -247,7 +247,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim() || !password}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#ef6442] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {busy === 'password' ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
             {busy === 'password' ? 'Signing in…' : 'Sign in'}
@@ -294,7 +294,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim()}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#ef6442] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
           >
             {busy === 'magic' ? <RefreshCw size={14} className="animate-spin" /> : <Mail size={14} />}
             {busy === 'magic' ? 'Sending link…' : 'Send sign-in link'}
@@ -340,7 +340,7 @@ function AdminLoginInner() {
           <button
             type="submit"
             disabled={busy !== null || !email.trim()}
-            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
+            className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#ef6442] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
           >
             {busy === 'reset' ? <RefreshCw size={14} className="animate-spin" /> : <ArrowRight size={14} />}
             {busy === 'reset' ? 'Sending…' : 'Send reset link'}
@@ -373,7 +373,7 @@ function ShellCard({ children }: { children: React.ReactNode }) {
           <div className="font-serif text-xl font-bold text-[#1a2744] mb-1">
             River Region <span className="text-[#4a90d9]">Parents</span>
           </div>
-          <div className="text-xs font-semibold tracking-widest uppercase text-[#c4622d]">
+          <div className="text-xs font-semibold tracking-widest uppercase text-[#ef6442]">
             Admin
           </div>
         </div>

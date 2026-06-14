@@ -117,7 +117,7 @@ export const STATUS_CONFIG: Record<SubmissionStatus, {
   'in-progress':   { label: 'In Progress',   color: '#8b5cf6', bg: '#f5f3ff', description: 'Operator is actively working on this.',                  nextActions: ['Queue for AI draft', 'Move to in-editing', 'Approve'] },
   'ready-for-ai':  { label: 'Ready for AI',  color: '#0284c7', bg: '#e0f2fe', description: 'All info present. Queued for AI draft generation.',      nextActions: ['Generate AI draft (future)'] },
   'ai-draft-ready':{ label: 'AI Draft Ready',color: '#0284c7', bg: '#e0f2fe', description: 'AI has generated a first-pass draft for review.',        nextActions: ['Review and refine draft', 'Move to in-editing'] },
-  'in-editing':    { label: 'In Editing',    color: '#c4622d', bg: '#fff7ed', description: 'Editor is refining the content.',                        nextActions: ['Approve', 'Send back for info'] },
+  'in-editing':    { label: 'In Editing',    color: '#ef6442', bg: '#fff7ed', description: 'Editor is refining the content.',                        nextActions: ['Approve', 'Send back for info'] },
   'approved':      { label: 'Approved',      color: '#166534', bg: '#f0fdf4', description: 'Approved and ready to publish.',                         nextActions: ['Schedule', 'Publish now'] },
   'scheduled':     { label: 'Scheduled',     color: '#b8860b', bg: '#fefce8', description: 'Assigned to a specific issue.',                          nextActions: ['Publish', 'Reschedule'] },
   'published':     { label: 'Published',     color: '#374151', bg: '#f9fafb', description: 'Live in digital or print.',                              nextActions: ['Archive'] },

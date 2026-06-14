@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const terra   = '#c4622d'
+const terra   = '#ef6442'
 const navy    = '#1a2744'
 const cream   = '#fdf8f3'
 const border  = 'rgba(0,0,0,0.08)'

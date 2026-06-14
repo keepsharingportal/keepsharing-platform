@@ -53,7 +53,7 @@ const SCHEMES: Record<string, ColorScheme> = {
     best_for: 'Pediatric services, childcare, family activities',
     primary: '#4a90d9',
     primaryForeground: '#ffffff',
-    secondary: '#c4622d',
+    secondary: '#ef6442',
     secondaryForeground: '#ffffff',
     background: '#faf8f3',
     foreground: '#1a2744',

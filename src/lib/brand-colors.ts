@@ -80,5 +80,5 @@ export function validateBrandColor(hex: string): { passes: boolean; contrastRati
 /** Default brand colors used when no custom colors provided. */
 export const DEFAULT_BRAND = {
   primary: '#1a2744',  // --fg-navy
-  accent: '#c4622d',   // --fg-terra
+  accent: '#ef6442',   // --fg-terra
 }

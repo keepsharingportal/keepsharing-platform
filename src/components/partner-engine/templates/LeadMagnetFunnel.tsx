@@ -265,13 +265,13 @@ export function LeadMagnetFunnel(props: LeadMagnetFunnelProps) {
       )}
 
       {/* ── Final CTA — terra gradient ────────────────────────────────────────── */}
-      <section style={{ background: `linear-gradient(135deg, #c4622d 0%, #a03818 100%)`, padding: '72px 24px', textAlign: 'center' }}>
+      <section style={{ background: `linear-gradient(135deg, #ef6442 0%, #a03818 100%)`, padding: '72px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: 560, margin: '0 auto' }}>
           <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: 'white', lineHeight: 1.1, marginBottom: 28 }}>
             {props.final_cta_headline}{' '}
             <span style={{ color: 'rgba(255,255,255,0.75)', fontStyle: 'italic' }}>{props.final_cta_emphasis}</span>
           </h2>
-          <a href={`#${formId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 32px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: 'white', color: '#c4622d', textDecoration: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
+          <a href={`#${formId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 32px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: 'white', color: '#ef6442', textDecoration: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
             {props.final_cta_button_label} <ArrowRight size={15} />
           </a>
         </div>

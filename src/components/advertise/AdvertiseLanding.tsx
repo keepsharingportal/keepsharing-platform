@@ -21,14 +21,14 @@ function useScrollReveal() {
 
 // ── Reusable layout pieces ────────────────────────────────────────────────────
 function Divider() {
-  return <div style={{ width: 48, height: 3, backgroundColor: 'var(--fg-terra, #c4622d)', borderRadius: 2, marginBottom: 20 }} />
+  return <div style={{ width: 48, height: 3, backgroundColor: 'var(--fg-terra, #ef6442)', borderRadius: 2, marginBottom: 20 }} />
 }
 
 function CheckItem({ children }: { children: React.ReactNode }) {
   return (
     <li style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'rgba(196,98,45,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-        <Check size={11} color="#c4622d" strokeWidth={3} />
+        <Check size={11} color="#ef6442" strokeWidth={3} />
       </div>
       <span style={{ fontSize: 14, color: '#3a2c1e', lineHeight: 1.6 }}>{children}</span>
     </li>
@@ -41,7 +41,7 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)' }}
     >
-      <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(196,98,45,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#c4622d' }}>
+      <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(196,98,45,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#ef6442' }}>
         {icon}
       </div>
       <div>
@@ -81,7 +81,7 @@ export function AdvertiseLanding() {
 
   const CREAM = '#faf8f5'
   const NAVY  = '#1a2744'
-  const TERRA = '#c4622d'
+  const TERRA = '#ef6442'
 
   return (
     <div style={{ backgroundColor: CREAM, fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#3a2c1e' }}>

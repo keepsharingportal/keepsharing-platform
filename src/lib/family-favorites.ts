@@ -104,7 +104,7 @@ export const PHASE_CONFIG: Record<FFPhase, { label: string; publicLabel: string;
   'nominations':      { label: 'Nominations Open', publicLabel: 'Nominations Open',    color: '#22c55e', description: 'Community nominations are being accepted.' },
   'finalist-review':  { label: 'Finalist Review',  publicLabel: 'Finalists Being Chosen',color: '#eab308', description: 'Editorial team is reviewing nominations.' },
   'voting':           { label: 'Voting Open',       publicLabel: 'Vote Now!',           color: '#3b82f6', description: 'Community voting is open.' },
-  'announcing':       { label: 'Announcing',        publicLabel: 'Winners Revealed!',   color: '#c4622d', description: 'Winners are being revealed.' },
+  'announcing':       { label: 'Announcing',        publicLabel: 'Winners Revealed!',   color: '#ef6442', description: 'Winners are being revealed.' },
   'complete':         { label: 'Complete',          publicLabel: 'See the Winners',     color: '#b8860b', description: 'Season complete. Winners archived.' },
 }
 
@@ -122,7 +122,7 @@ export const FF_SPONSOR_TIERS = [
   {
     tier:       'category',
     label:      'Category Sponsor',
-    color:      '#c4622d',
+    color:      '#ef6442',
     what:       '"Presented By" for one specific award category — nomination page, voting, and winner reveal.',
     inventory:  30,
     description: 'Own a specific category. Your name appears whenever that category is featured.',
@@ -154,7 +154,7 @@ export const FF_ANNUAL_CALENDAR = [
   { phase: 'Finalist Review',        months: 'December',           color: '#eab308', icon: '🔍', desc: 'Editorial team reviews, deduplicates, and selects 5 finalists per category.' },
   { phase: 'Finalists Announced',    months: 'January 1',          color: '#3b82f6', icon: '📣', desc: 'Major announcement moment. Finalist businesses get social graphics. Voting opens.' },
   { phase: 'Community Voting',       months: 'January',            color: '#3b82f6', icon: '🗳️', desc: '2–3 week voting window. Newsletter features. Social campaigns. Sponsor visibility peak.' },
-  { phase: 'Winners Announced',      months: 'February/March',     color: '#c4622d', icon: '🏆', desc: 'Winners revealed via social, newsletter, and dedicated email. Digital badges deployed.' },
+  { phase: 'Winners Announced',      months: 'February/March',     color: '#ef6442', icon: '🏆', desc: 'Winners revealed via social, newsletter, and dedicated email. Digital badges deployed.' },
   { phase: 'Print Issue Integration',months: 'March/April',        color: '#1e3a5f', icon: '📖', desc: 'Annual Family Favorites winners issue. The most saved and shared issue of the year.' },
   { phase: 'Afterglow & Badges',     months: 'Year-round',         color: '#b8860b', icon: '🎖️', desc: 'Winners display badges across listings, social, and print. Prestige builds year over year.' },
   { phase: 'Next Year Anticipation', months: 'September',          color: '#9ca3af', icon: '🔁', desc: 'Cycle begins again. Past winners teased. Sponsor positions offered early.' },

@@ -141,7 +141,7 @@ export interface ColumnBrand {
 // Site default — coral. Used when a column slug doesn't have its own entry.
 const DEFAULT_BRAND: ColumnBrand = {
   label:   'Feature',
-  primary: '#c4622d',   // site coral
+  primary: '#ef6442',   // site coral
   accent:  '#f3bf24',   // site gold
 }
 

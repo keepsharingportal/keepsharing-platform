@@ -155,7 +155,7 @@ function tierColor(tier: string | null): string {
   if (!tier) return '#6b7280'
   const n = tier.toLowerCase()
   if (n.includes('sponsor'))   return '#b8860b'
-  if (n.includes('ecosystem')) return '#c4622d'
+  if (n.includes('ecosystem')) return '#ef6442'
   if (n.includes('guide'))     return '#1e3a5f'
   return '#6b7280'
 }
@@ -431,7 +431,7 @@ export default async function OnboardingPage() {
                       <Link href={`/admin/advertisers/sponsor-inventory?guide=${acc.sponsor_guide_slug ?? 'all'}`} style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textDecoration: 'none' }}>
                         Inventory →
                       </Link>
-                      <Link href="/admin/proposals/new" style={{ fontSize: 11, fontWeight: 600, color: '#c4622d', textDecoration: 'none', marginLeft: 'auto' }}>
+                      <Link href="/admin/proposals/new" style={{ fontSize: 11, fontWeight: 600, color: '#ef6442', textDecoration: 'none', marginLeft: 'auto' }}>
                         + Send proposal →
                       </Link>
                     </div>

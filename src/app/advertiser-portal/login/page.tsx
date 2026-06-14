@@ -43,7 +43,7 @@ export default function AdvertiserLoginPage() {
           <div style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 20, fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 4 }}>
             River Region <span style={{ color: 'var(--fg-sky, #4a90d9)' }}>Parents</span>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-terra, #c4622d)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-terra, #ef6442)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Advertiser Portal
           </div>
         </div>

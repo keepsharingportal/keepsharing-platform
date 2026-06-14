@@ -22,7 +22,7 @@ interface Submission {
 
 function ScoreStars({ score }: { score: number | null | undefined }) {
   if (!score) return <span style={{ fontSize: 11, color: '#aaa' }}>Unscored</span>
-  const color = score >= 4 ? '#5a8a6a' : score >= 3 ? '#d4a843' : '#c4622d'
+  const color = score >= 4 ? '#5a8a6a' : score >= 3 ? '#d4a843' : '#ef6442'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
       {[1, 2, 3, 4, 5].map(s => (
@@ -50,7 +50,7 @@ function SubmissionCard({ sub, onAction }: { sub: Submission; onAction: (id: str
     setActing(false)
   }
 
-  const statusColor = sub.review_status === 'approved' ? '#5a8a6a' : sub.review_status === 'declined' ? '#c4622d' : '#888'
+  const statusColor = sub.review_status === 'approved' ? '#5a8a6a' : sub.review_status === 'declined' ? '#ef6442' : '#888'
 
   return (
     <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', marginBottom: 12 }}>
@@ -80,7 +80,7 @@ function SubmissionCard({ sub, onAction }: { sub: Submission; onAction: (id: str
       {/* AI quote preview */}
       {sub.ai_extracted_quote && (
         <div style={{ padding: '0 18px 14px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-          <p style={{ fontSize: 13, fontStyle: 'italic', color: '#1a2744', lineHeight: 1.55, borderLeft: '3px solid #c4622d', paddingLeft: 10, marginTop: 12 }}>
+          <p style={{ fontSize: 13, fontStyle: 'italic', color: '#1a2744', lineHeight: 1.55, borderLeft: '3px solid #ef6442', paddingLeft: 10, marginTop: 12 }}>
             &ldquo;{sub.ai_extracted_quote}&rdquo;
           </p>
         </div>
@@ -92,7 +92,7 @@ function SubmissionCard({ sub, onAction }: { sub: Submission; onAction: (id: str
           {/* Full responses */}
           {(sub.submission_responses ?? []).map((r, i) => (
             <div key={i} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5 }}>Response {i + 1}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5 }}>Response {i + 1}</p>
               <p style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>{r.question}</p>
               <p style={{ fontSize: 14, color: '#333', lineHeight: 1.65 }}>{r.answer}</p>
             </div>
@@ -119,7 +119,7 @@ function SubmissionCard({ sub, onAction }: { sub: Submission; onAction: (id: str
               <button onClick={() => act('approved')} disabled={acting} style={{ flex: 1, padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, backgroundColor: '#5a8a6a', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 <Check size={13} /> Approve
               </button>
-              <button onClick={() => act('declined')} disabled={acting} style={{ padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, backgroundColor: 'white', color: '#c4622d', border: '1px solid #c4622d', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <button onClick={() => act('declined')} disabled={acting} style={{ padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, backgroundColor: 'white', color: '#ef6442', border: '1px solid #ef6442', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <X size={13} /> Decline
               </button>
             </div>
@@ -156,7 +156,7 @@ export function SubmissionsQueue({ initialSubmissions }: { initialSubmissions: S
             <p style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>Mom Insiders Submissions</p>
           </div>
           {pending > 0 && (
-            <span style={{ fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 20, backgroundColor: '#c4622d', color: 'white' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 20, backgroundColor: '#ef6442', color: 'white' }}>
               {pending} pending
             </span>
           )}
@@ -175,7 +175,7 @@ export function SubmissionsQueue({ initialSubmissions }: { initialSubmissions: S
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 8 }}>
             <span style={{ fontSize: 11, color: '#888' }}>Min score:</span>
             {[null, 3, 4].map(s => (
-              <button key={String(s)} onClick={() => setMinScore(s)} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: minScore === s ? '#c4622d' : 'white', color: minScore === s ? 'white' : '#666', border: minScore === s ? 'none' : '1px solid rgba(0,0,0,0.1)' } as React.CSSProperties}>
+              <button key={String(s)} onClick={() => setMinScore(s)} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', backgroundColor: minScore === s ? '#ef6442' : 'white', color: minScore === s ? 'white' : '#666', border: minScore === s ? 'none' : '1px solid rgba(0,0,0,0.1)' } as React.CSSProperties}>
                 {s === null ? 'All' : `${s}+`}
               </button>
             ))}

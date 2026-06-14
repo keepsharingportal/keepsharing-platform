@@ -154,7 +154,7 @@ function NewAdInner() {
         </Row>
 
         <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          <button onClick={save} disabled={saving} style={{ padding: '10px 24px', backgroundColor: '#C4622D', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={save} disabled={saving} style={{ padding: '10px 24px', backgroundColor: '#EF6442', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>
             {saving ? 'Saving...' : 'Save Ad Placement'}
           </button>
           <button onClick={() => router.push('/admin/ads')} style={{ padding: '10px 24px', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', background: 'none' }}>

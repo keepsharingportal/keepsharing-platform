@@ -27,7 +27,7 @@ export async function generateMetadata(
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const T    = '#c4622d'
+const T    = '#ef6442'
 const N    = '#1a2744'
 const C    = '#fdf8f3'
 const W    = '#ffffff'

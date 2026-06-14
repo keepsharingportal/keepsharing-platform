@@ -42,7 +42,7 @@ export function MobileStickyPromo() {
             onClick={() => setModalOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--fg-terra, #c4622d)' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--fg-terra, #ef6442)' }}>
               Want to be Featured?
             </span>
             <ArrowRight size={12} color="var(--fg-terra)" />

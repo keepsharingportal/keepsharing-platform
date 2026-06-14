@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const T = '#c4622d'   // terra
+const T = '#ef6442'   // terra
 const N = '#1a2744'   // navy
 const C = '#fdf8f3'   // cream
 const W = '#ffffff'

@@ -235,7 +235,7 @@ function buildHTML(items: DistItem[], pubName: string): string {
   if (items.length === 0) return '<!-- No newsletter content assembled yet. -->'
   const bySec = nlGroupBySec(items)
   const year  = new Date().getFullYear()
-  const N = '#1a2744'; const T = '#c4622d'
+  const N = '#1a2744'; const T = '#ef6442'
   const p: string[] = [
     `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">`,
     `  <div style="background:${N};padding:24px 28px;">`,
@@ -1684,7 +1684,7 @@ export default async function DistributionPage({
           {/* Channel metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: 'Homepage Coverage',  val: groups.homepage.length,   max: 12, color: '#c4622d' },
+              { label: 'Homepage Coverage',  val: groups.homepage.length,   max: 12, color: '#ef6442' },
               { label: 'Newsletter Queue',   val: groups.newsletter.length, max: 8,  color: '#0284c7' },
               { label: 'Social Queue',       val: groups.social.length,     max: 10, color: '#7c3aed' },
               { label: 'Guide Integration',  val: groups.guides.length,     max: 15, color: '#16a34a' },

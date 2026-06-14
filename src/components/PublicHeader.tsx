@@ -64,7 +64,7 @@ export function PublicHeader() {
                 textDecoration: 'none',
                 transition: 'all 0.15s',
                 backgroundColor: isFeatured
-                  ? (active ? 'var(--fg-terra, #c4622d)' : 'var(--fg-terra, #c4622d)')
+                  ? (active ? 'var(--fg-terra, #ef6442)' : 'var(--fg-terra, #ef6442)')
                   : (active ? 'rgba(74,144,217,0.1)' : 'transparent'),
                 color: isFeatured
                   ? 'white'
@@ -101,7 +101,7 @@ export function PublicHeader() {
                   fontWeight: isFeatured ? 700 : 500,
                   textDecoration: 'none',
                   marginBottom: 4,
-                  backgroundColor: isFeatured ? 'var(--fg-terra, #c4622d)' : 'transparent',
+                  backgroundColor: isFeatured ? 'var(--fg-terra, #ef6442)' : 'transparent',
                   color: isFeatured ? 'white' : 'var(--fg-text, #1a1a1a)',
                 }}>
                 {link.label}

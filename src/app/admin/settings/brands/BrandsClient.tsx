@@ -202,7 +202,7 @@ function BrandCard({ brand, effective }: { brand: Brand; effective: EffectiveCol
               </div>
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Primary color</label>
-                <ColorInput value={primary} onChange={setPrimary} placeholder="#c4622d" />
+                <ColorInput value={primary} onChange={setPrimary} placeholder="#ef6442" />
               </div>
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">Accent color</label>

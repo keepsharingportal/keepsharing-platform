@@ -54,7 +54,7 @@ export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBanne
             fontFamily: 'var(--font-fraunces, serif)',
             fontSize: 14,
             fontWeight: 700,
-            color: 'var(--fg-terra, #c4622d)',
+            color: 'var(--fg-terra, #ef6442)',
             marginBottom: 4,
           }}>
             {sectionLabel} — Section Sponsorship Available
@@ -71,7 +71,7 @@ export function SponsorBanner({ sectionLabel, sponsorName, pitch }: SponsorBanne
             fontSize: 12,
             fontWeight: 700,
             color: 'white',
-            backgroundColor: 'var(--fg-terra, #c4622d)',
+            backgroundColor: 'var(--fg-terra, #ef6442)',
             textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}>

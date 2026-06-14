@@ -71,7 +71,7 @@ export interface BrandChrome {
 
 // Parents defaults — match globals.css public-page tokens.
 const PARENTS_DEFAULTS = {
-  primary:    '#c4622d',  // RRP coral (legacy default)
+  primary:    '#ef6442',  // RRP coral (legacy default)
   accent:     '#1a2744',  // RRP navy
   tertiary:   '#f3bf24',  // gold
   background: '#fbfaf8',  // cream

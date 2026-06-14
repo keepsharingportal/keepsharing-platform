@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function DemoBanner({ businessName }: { businessName: string }) {
   return (
-    <div style={{ backgroundColor: 'var(--fg-terra, #c4622d)', padding: '10px 20px', textAlign: 'center', position: 'relative', zIndex: 9999 }}>
+    <div style={{ backgroundColor: 'var(--fg-terra, #ef6442)', padding: '10px 20px', textAlign: 'center', position: 'relative', zIndex: 9999 }}>
       <p style={{ fontSize: 13, color: 'white', fontWeight: 600, margin: 0 }}>
         ✨ Sample of The KeepSharing Partner Engine for {businessName}.{' '}
         <Link href="/advertise" style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline', fontWeight: 700 }}>

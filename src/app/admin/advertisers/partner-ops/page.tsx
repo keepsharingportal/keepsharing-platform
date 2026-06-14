@@ -12,7 +12,7 @@ export const metadata = {
 
 // ── Design tokens (admin palette) ────────────────────────────────────────────
 const N    = '#1a2744'
-const T    = '#c4622d'
+const T    = '#ef6442'
 const GOLD = '#b8860b'
 const G    = '#f4f4f5'
 const W    = '#ffffff'
@@ -142,7 +142,7 @@ export default function PartnerOpsPage() {
               { stage: 'sponsor-qualified', color: GOLD,    def: 'Meets loyalty and engagement criteria for Category Sponsor pitch. Sponsor position available or opening.' },
               { stage: 'renewal',           color: '#6d2d9a',def: 'In the 60-day priority renewal window before contract expires. Hold position for them.' },
               { stage: 'dormant',           color: RED,     def: 'Lapsed. No active plan. Reactivation candidate. Do not offer their category sponsor position for 90 days.' },
-              { stage: 'reactivation',      color: '#c4622d',def: 'Former partner returning. Loyalty tier restored based on prior total tenure. Priority may be restored.' },
+              { stage: 'reactivation',      color: '#ef6442',def: 'Former partner returning. Loyalty tier restored based on prior total tenure. Priority may be restored.' },
             ].map(s => (
               <div key={s.stage} style={{ backgroundColor: W, border: '1px solid #e4e4e7', borderRadius: 8, padding: '14px 16px' }}>
                 <div style={{ marginBottom: 8 }}>

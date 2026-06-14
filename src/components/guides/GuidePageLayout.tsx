@@ -81,7 +81,7 @@ function ArticleCard({ article }: { article: AnchorArticle }) {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,39,68,0.85) 0%, rgba(26,39,68,0.15) 55%, transparent 100%)' }} />
         )}
         {article.category && (
-          <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 3 }}>
+          <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, backgroundColor: 'var(--fg-terra, #ef6442)', color: 'white', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 3 }}>
             {article.category}
           </span>
         )}
@@ -201,7 +201,7 @@ export function GuidePageLayout({
         {startCards.length > 0 && (
           <section id="start-here" style={{ paddingTop: 64, marginBottom: 64 }}>
             {/* Section header */}
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 6 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #ef6442)', marginBottom: 6 }}>
               → Start Here
             </p>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 8 }}>
@@ -255,7 +255,7 @@ export function GuidePageLayout({
         {playbookSection && (
           <section id="first-30-days" style={{ marginBottom: 64 }}>
             {/* Section header */}
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 6 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #ef6442)', marginBottom: 6 }}>
               Practical Checklist
             </p>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 6 }}>
@@ -274,7 +274,7 @@ export function GuidePageLayout({
                   <div key={col.columnLabel}>
                     {/* Column label chip */}
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-                      <span style={{ fontFamily: 'var(--font-fraunces, serif)', fontWeight: 700, fontSize: 14, color: 'var(--fg-terra, #c4622d)', padding: '4px 12px', borderRadius: 6, backgroundColor: 'rgba(196,98,45,0.1)', border: '1px solid rgba(196,98,45,0.18)' }}>
+                      <span style={{ fontFamily: 'var(--font-fraunces, serif)', fontWeight: 700, fontSize: 14, color: 'var(--fg-terra, #ef6442)', padding: '4px 12px', borderRadius: 6, backgroundColor: 'rgba(196,98,45,0.1)', border: '1px solid rgba(196,98,45,0.18)' }}>
                         {col.columnLabel}
                       </span>
                     </div>
@@ -304,7 +304,7 @@ export function GuidePageLayout({
         {/* ── 5. EDITORIAL ARTICLE GRID ─────────────────────────────────── */}
         {articles && articles.length > 0 && (
           <section style={{ marginBottom: 64 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 6 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #ef6442)', marginBottom: 6 }}>
               Worth Reading
             </p>
             <h2 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 700, color: 'var(--fg-navy, #1a2744)', marginBottom: 28 }}>

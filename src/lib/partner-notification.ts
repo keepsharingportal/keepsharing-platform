@@ -61,7 +61,7 @@ export async function sendPartnerNotification(params: PartnerNotificationParams)
   </div>
 
   <div style="background: #fdf0eb; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
-    <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #c4622d; margin: 0 0 6px;">Offer They Responded To</p>
+    <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #ef6442; margin: 0 0 6px;">Offer They Responded To</p>
     <p style="font-size: 15px; font-weight: 700; color: #1a2744; margin: 0 0 2px;">${params.offerHeadline ?? 'Active Offer'}</p>
     ${params.offerSubheadline ? `<p style="font-size: 13px; color: #666; margin: 0;">${params.offerSubheadline}</p>` : ''}
   </div>
@@ -73,7 +73,7 @@ export async function sendPartnerNotification(params: PartnerNotificationParams)
     <p style="font-size: 13px; margin: 2px 0;">✓ Lead source: ${params.utmSource ?? 'Direct'}</p>
   </div>
 
-  <p style="font-size: 15px; font-weight: 700; color: #c4622d; margin: 0 0 6px;">Reach out within 24 hours. Speed wins.</p>
+  <p style="font-size: 15px; font-weight: 700; color: #ef6442; margin: 0 0 6px;">Reach out within 24 hours. Speed wins.</p>
   <p style="font-size: 13px; color: #888;">You can manage this lead at: <a href="${params.partnerDashboardUrl}" style="color: #4a90d9;">${params.partnerDashboardUrl}</a></p>
 
   <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;" />

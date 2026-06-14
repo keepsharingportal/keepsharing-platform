@@ -228,7 +228,7 @@ export function OfferConversionForm({ data }: { data: PartnerPageData }) {
             </>
           )}
 
-          {error && <p style={{ fontSize: 13, color: '#c4622d', fontWeight: 600 }}>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: '#ef6442', fontWeight: 600 }}>{error}</p>}
 
           <button type="submit" disabled={saving} style={{
             padding: '15px 24px', borderRadius: 12, fontSize: 15, fontWeight: 800,

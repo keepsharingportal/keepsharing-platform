@@ -563,7 +563,7 @@ export const TRUST_LABELS: Record<TrustProfile, string> = {
 export const TRUST_COLORS: Record<TrustProfile, string> = {
   'browse':          '#2d5a2d',
   'research':        '#1a2744',
-  'high-trust':      '#c4622d',
+  'high-trust':      '#ef6442',
   'critical-trust':  '#6d2d9a',
 }
 
@@ -576,5 +576,5 @@ export const URGENCY_LABELS: Record<GuideUrgency, string> = {
 export const URGENCY_COLORS: Record<GuideUrgency, string> = {
   'evergreen':     '#2d5a2d',
   'seasonal':      '#b8860b',
-  'time-critical': '#c4622d',
+  'time-critical': '#ef6442',
 }

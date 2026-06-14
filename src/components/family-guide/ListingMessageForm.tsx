@@ -38,7 +38,7 @@ export function ListingMessageForm({ listingSlug, listingName, advertiserId }: P
     setSaving(false)
   }
 
-  const inp = 'w-full px-3 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-[#c4622d] transition-all bg-white'
+  const inp = 'w-full px-3 py-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-[#ef6442] transition-all bg-white'
 
   if (done) return (
     <div style={{ textAlign: 'center', padding: '24px 16px' }}>
@@ -75,7 +75,7 @@ export function ListingMessageForm({ listingSlug, listingName, advertiserId }: P
         </div>
         <button type="submit" disabled={saving || !email || !message} style={{
           padding: '10px 16px', borderRadius: 9, fontSize: 13, fontWeight: 700,
-          backgroundColor: !email || !message || saving ? '#ccc' : 'var(--fg-terra, #c4622d)',
+          backgroundColor: !email || !message || saving ? '#ccc' : 'var(--fg-terra, #ef6442)',
           color: 'white', border: 'none', cursor: email && message && !saving ? 'pointer' : 'not-allowed',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const N    = '#1a2744'
-const T    = '#c4622d'
+const T    = '#ef6442'
 const GOLD = '#b8860b'
 const C    = '#fdf8f3'
 const W    = '#ffffff'

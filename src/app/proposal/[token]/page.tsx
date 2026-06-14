@@ -33,7 +33,7 @@ export default async function ProposalPage({ params }: Props) {
   const valueProps = Array.isArray(proposal.value_props) ? proposal.value_props as string[] : []
 
   const NAVY  = '#1a2744'
-  const TERRA = '#c4622d'
+  const TERRA = '#ef6442'
   const CREAM = '#faf8f5'
 
   return (

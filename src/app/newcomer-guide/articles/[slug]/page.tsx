@@ -167,7 +167,7 @@ export default async function ArticlePage({ params }: Props) {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, var(--fg-navy, #1a2744) 0%, #2a3f6f 100%)' }} />
         )}
         <div style={{ position: 'relative', maxWidth: 780, margin: '0 auto', padding: '56px 20px 52px' }}>
-          <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white', marginBottom: 18 }}>
+          <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: 'var(--fg-terra, #ef6442)', color: 'white', marginBottom: 18 }}>
             Family Resource Guide · Article
           </span>
           <h1 style={{
@@ -286,7 +286,7 @@ export default async function ArticlePage({ params }: Props) {
           <Link href="/newcomer-guide" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '9px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-            border: '1.5px solid rgba(196,98,45,0.3)', color: 'var(--fg-terra, #c4622d)', textDecoration: 'none',
+            border: '1.5px solid rgba(196,98,45,0.3)', color: 'var(--fg-terra, #ef6442)', textDecoration: 'none',
           }}>
             <ArrowLeft size={13} /> Return to Family Guide
           </Link>

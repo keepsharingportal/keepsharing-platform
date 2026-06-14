@@ -112,7 +112,7 @@ export function LeadMagnetSignup({ magnet_id }: Props) {
           {magnet.image_emoji ?? '📄'}
         </div>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #c4622d)', marginBottom: 5 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-terra, #ef6442)', marginBottom: 5 }}>
             <Download size={11} /> Free Download
           </div>
           <h3 style={{ fontFamily: 'var(--font-fraunces, serif)', fontSize: 18, fontWeight: 700, color: 'var(--fg-navy, #1a2744)', lineHeight: 1.2, marginBottom: 4 }}>
@@ -138,11 +138,11 @@ export function LeadMagnetSignup({ magnet_id }: Props) {
           placeholder="your@email.com"
           value={email} onChange={e => setEmail(e.target.value)}
         />
-        <button type="submit" disabled={submitting} style={{ padding: '10px 18px', borderRadius: 8, fontSize: 13, fontWeight: 800, backgroundColor: submitting ? '#ddd' : 'var(--fg-terra, #c4622d)', color: submitting ? '#888' : 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit' }}>
+        <button type="submit" disabled={submitting} style={{ padding: '10px 18px', borderRadius: 8, fontSize: 13, fontWeight: 800, backgroundColor: submitting ? '#ddd' : 'var(--fg-terra, #ef6442)', color: submitting ? '#888' : 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit' }}>
           {submitting ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <><ArrowRight size={13} /> {magnet.cta_label}</>}
         </button>
       </form>
-      {err && <p style={{ fontSize: 12, color: '#c4622d', marginTop: 6 }}>{err}</p>}
+      {err && <p style={{ fontSize: 12, color: '#ef6442', marginTop: 6 }}>{err}</p>}
       <p style={{ fontSize: 10, color: '#bbb', marginTop: 8 }}>Free. Unsubscribe any time.</p>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

@@ -49,7 +49,7 @@ async function notifyAdmin(args: {
       ${args.parentPhone ? `<p style="margin: 2px 0; font-size: 14px;">${args.parentPhone}</p>` : ''}
     </div>
     <div style="background: #fff7ed; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
-      <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #c4622d; margin: 0 0 6px;">Forward to business</p>
+      <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #ef6442; margin: 0 0 6px;">Forward to business</p>
       <p style="margin: 2px 0; font-size: 14px;"><strong>${args.businessName}</strong></p>
       ${args.contactEmail ? `<p style="margin: 2px 0; font-size: 14px;">📧 <a href="mailto:${args.contactEmail}">${args.contactEmail}</a></p>` : '<p style="margin: 2px 0; font-size: 13px; color: #888;">No business email on file</p>'}
       ${args.contactPhone ? `<p style="margin: 2px 0; font-size: 14px;">📞 ${args.contactPhone}</p>` : ''}

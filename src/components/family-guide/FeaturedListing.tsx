@@ -145,7 +145,7 @@ export function FeaturedListing({
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                backgroundColor: 'var(--fg-terra, #c4622d)', color: 'white',
+                backgroundColor: 'var(--fg-terra, #ef6442)', color: 'white',
                 textDecoration: 'none',
               }}>
               <Phone size={13} /> {fmt(listing.phone)}

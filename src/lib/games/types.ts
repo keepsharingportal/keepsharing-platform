@@ -73,7 +73,7 @@ export const GAMES: GameDefinition[] = [
   { id: 'trivia', title: 'Parenting Trivia',
     desc: 'Test your local & parenting knowledge.',
     emoji: '✨',
-    signature: { bg: '#C4622D', fg: '#FFFFFF', tile: '#FAEAE0' } },
+    signature: { bg: '#EF6442', fg: '#FFFFFF', tile: '#FAEAE0' } },
   { id: 'scramble', title: 'Lunchbox Scramble',
     desc: 'Unscramble the school-themed words.',
     emoji: '🔤',

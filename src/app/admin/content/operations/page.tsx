@@ -428,7 +428,7 @@ export default async function ContentOperationsPage() {
                           </div>
                         </td>
                         <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                          <Link href={`/admin/content/new?guide=${row.guide.slug}`} style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textDecoration: 'none' }}>+ Article</Link>
+                          <Link href={`/admin/content/new?guide=${row.guide.slug}`} style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textDecoration: 'none' }}>+ Article</Link>
                         </td>
                       </tr>
                     ))}
@@ -464,7 +464,7 @@ export default async function ContentOperationsPage() {
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 4, backgroundColor: fresh.bg, color: fresh.color }}>
                               {dOld < 9999 ? `${dOld}d old` : 'No date'}
                             </span>
-                            <Link href={`/admin/articles/${a.id}/edit`} style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textDecoration: 'none' }}>Refresh →</Link>
+                            <Link href={`/admin/articles/${a.id}/edit`} style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textDecoration: 'none' }}>Refresh →</Link>
                           </div>
                         </div>
                       )
@@ -512,7 +512,7 @@ export default async function ContentOperationsPage() {
                               <span style={{ fontSize: 11, color: '#9ca3af' }}>
                                 {articleCount === 0 ? '⚠ No articles yet' : `${articleCount} article${articleCount > 1 ? 's' : ''} published`}
                               </span>
-                              <Link href={`/admin/content/new?guide=${s.guide}`} style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textDecoration: 'none' }}>
+                              <Link href={`/admin/content/new?guide=${s.guide}`} style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textDecoration: 'none' }}>
                                 + Add →
                               </Link>
                             </div>
@@ -594,7 +594,7 @@ export default async function ContentOperationsPage() {
                               HIGH IMPACT
                             </span>
                           )}
-                          <Link href={`/admin/content/new?guide=${op.guide.slug}`} style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textDecoration: 'none' }}>+ Article</Link>
+                          <Link href={`/admin/content/new?guide=${op.guide.slug}`} style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textDecoration: 'none' }}>+ Article</Link>
                         </div>
                       </div>
                     ))}

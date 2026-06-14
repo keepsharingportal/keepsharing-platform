@@ -389,7 +389,7 @@ export default async function SponsorInventoryPage({
             { label: 'Claimed / Protected',value: totalClaimed, sub: `${claimPct}% of inventory`,    dot: '#3b82f6' },
             { label: 'Renewals in 60d',    value: renewals60,   sub: 'require attention',         dot: '#eab308' },
             { label: 'At Risk',            value: totalAtRisk,  sub: 'sponsors flagged',          dot: '#ef4444' },
-            { label: 'Upgrade Ready',      value: upgraders.length, sub: 'awaiting conversation', dot: '#c4622d' },
+            { label: 'Upgrade Ready',      value: upgraders.length, sub: 'awaiting conversation', dot: '#ef6442' },
           ].map(m => (
             <div key={m.label} style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '16px 18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
@@ -599,7 +599,7 @@ export default async function SponsorInventoryPage({
                             <span style={{ fontSize: 10, color: '#9ca3af' }}>{u.package_tier ?? 'unknown tier'}</span>
                           </div>
                         </div>
-                        <Link href={`/admin/proposals/new?account=${u.id}`} style={{ fontSize: 11, fontWeight: 700, color: '#c4622d', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                        <Link href={`/admin/proposals/new?account=${u.id}`} style={{ fontSize: 11, fontWeight: 700, color: '#ef6442', textDecoration: 'none', whiteSpace: 'nowrap' }}>
                           Start proposal →
                         </Link>
                       </div>

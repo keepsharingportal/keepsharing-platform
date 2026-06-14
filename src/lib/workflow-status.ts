@@ -52,7 +52,7 @@ export const SUBMISSION_STATUS: Record<string, WorkflowStatus> = {
     description: 'AI generated a first-pass draft for review.',
   },
   'in-editing': {
-    label: 'In Editing', color: '#c4622d', bg: '#fff7ed',
+    label: 'In Editing', color: '#ef6442', bg: '#fff7ed',
     style: 'bg-orange-50 text-orange-700',
     description: 'Editor is refining the content.',
   },

@@ -42,7 +42,7 @@ const SEGMENT_GUIDES: Record<string, string[]> = {
 // Tier recommendation by intent signal (read from ops_notes or package_tier context)
 const TIER_DESCRIPTIONS = {
   'Guide Partner':      { label: 'Guide Partner',      color: '#1e3a5f', what: 'Discovery listing — families can find and evaluate you.' },
-  'Ecosystem Partner':  { label: 'Ecosystem Partner',  color: '#c4622d', what: 'Multi-surface presence — families know your name before they search.' },
+  'Ecosystem Partner':  { label: 'Ecosystem Partner',  color: '#ef6442', what: 'Multi-surface presence — families know your name before they search.' },
   'Category Sponsor':   { label: 'Category Sponsor',   color: '#b8860b', what: '"Presented By" header — you own the category, no competitor above you.' },
 }
 
@@ -121,7 +121,7 @@ function inferGuides(acc: AccountRow): string[] {
 
 function TierBadge({ tier, small = false }: { tier: string | null; small?: boolean }) {
   const n = (tier ?? '').toLowerCase()
-  const color = n.includes('sponsor') ? '#b8860b' : n.includes('ecosystem') ? '#c4622d' : '#1e3a5f'
+  const color = n.includes('sponsor') ? '#b8860b' : n.includes('ecosystem') ? '#ef6442' : '#1e3a5f'
   const label = n.includes('sponsor') ? 'Cat. Sponsor' : n.includes('ecosystem') ? 'Ecosystem' : 'Guide Partner'
   return (
     <span style={{ fontSize: small ? 9 : 10, fontWeight: 700, padding: small ? '1px 6px' : '2px 9px', borderRadius: 10, backgroundColor: `${color}12`, color, border: `1px solid ${color}25` }}>
@@ -495,7 +495,7 @@ export default async function ProposalsPage({
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center' }}>
                     <Link
                       href={`/admin/proposals/new?name=${encodeURIComponent(focused.business_name)}&email=${encodeURIComponent(focused.contact_email ?? '')}`}
-                      style={{ fontSize: 13, fontWeight: 700, color: '#fff', textDecoration: 'none', padding: '9px 20px', backgroundColor: '#c4622d', borderRadius: 8 }}
+                      style={{ fontSize: 13, fontWeight: 700, color: '#fff', textDecoration: 'none', padding: '9px 20px', backgroundColor: '#ef6442', borderRadius: 8 }}
                     >
                       Create Proposal Document →
                     </Link>

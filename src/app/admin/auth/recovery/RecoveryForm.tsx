@@ -69,7 +69,7 @@ export function RecoveryForm() {
       <button
         type="submit"
         disabled={busy || code.trim().length < 8}
-        className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#c4622d] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
+        className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold rounded-lg bg-[#ef6442] text-white hover:bg-[#a85426] transition-colors disabled:opacity-40"
       >
         {busy ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
         {busy ? 'Verifying…' : 'Use this code'}

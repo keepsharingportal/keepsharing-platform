@@ -41,7 +41,7 @@ export default function ShareYourPickPage() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const inp = 'w-full px-4 py-3 text-sm rounded-xl border border-black/10 outline-none focus:border-[#c4622d] bg-white font-sans transition-all resize-none'
+  const inp = 'w-full px-4 py-3 text-sm rounded-xl border border-black/10 outline-none focus:border-[#ef6442] bg-white font-sans transition-all resize-none'
   const lbl = 'block text-xs font-semibold text-gray-500 mb-1.5 tracking-wide'
 
   async function handleSubmit(e: React.FormEvent) {
@@ -134,7 +134,7 @@ export default function ShareYourPickPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: 40 }}>
             {QUESTIONS.map((q, i) => (
               <div key={q.id} style={{ backgroundColor: 'white', borderRadius: 16, padding: '24px 22px', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <p style={{ fontSize: 12, fontWeight: 800, color: '#c4622d', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+                <p style={{ fontSize: 12, fontWeight: 800, color: '#ef6442', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
                   Question {i + 1} <span style={{ color: '#ccc', fontWeight: 400 }}>· Optional</span>
                 </p>
                 <p style={{ fontSize: 15, fontWeight: 600, color: '#1a2744', lineHeight: 1.55, marginBottom: 14 }}>{q.question}</p>
@@ -189,9 +189,9 @@ export default function ShareYourPickPage() {
             </div>
           </div>
 
-          {error && <p style={{ fontSize: 13, color: '#c4622d', fontWeight: 600, marginBottom: 12 }}>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: '#ef6442', fontWeight: 600, marginBottom: 12 }}>{error}</p>}
 
-          <button type="submit" disabled={submitting} style={{ width: '100%', padding: '15px 24px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: submitting ? '#ddd' : '#c4622d', color: submitting ? '#888' : 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+          <button type="submit" disabled={submitting} style={{ width: '100%', padding: '15px 24px', borderRadius: 12, fontSize: 15, fontWeight: 800, backgroundColor: submitting ? '#ddd' : '#ef6442', color: submitting ? '#888' : 'white', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
             {submitting ? <><RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> Submitting…</> : <>Share my picks <ArrowRight size={15} /></>}
           </button>
 
