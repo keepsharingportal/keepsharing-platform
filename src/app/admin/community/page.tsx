@@ -295,14 +295,14 @@ export default async function AdminCommunityPage({
               const nextAct = sc?.nextActions ?? []
 
               return (
-                <Link
+                // Plain card (not a Link wrapper) — nesting forms +
+                // mailto inside an <a> is invalid HTML and was causing
+                // a runtime failure. Open-link is at the right side.
+                <div
                   key={sub.id}
-                  href={`/admin/community/${sub.id}`}
                   className="card"
                   style={{
                     borderLeft: `3px solid ${accent}`,
-                    textDecoration: 'none', color: 'inherit',
-                    transition: 'border-color .12s ease, background .12s ease',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
@@ -328,7 +328,7 @@ export default async function AdminCommunityPage({
                       <div className="text-sub text-sm" style={{ marginTop: 4 }}>
                         From <span className="fw-600">{sub.submitter_name}</span>
                         {' · '}
-                        <a href={`mailto:${sub.submitter_email}`} onClick={e => e.stopPropagation()} style={{ color: 'var(--color-portal-blue)' }}>
+                        <a href={`mailto:${sub.submitter_email}`} style={{ color: 'var(--color-portal-blue)' }}>
                           {sub.submitter_email}
                         </a>
                         {sub.submitter_phone && <span className="text-muted"> · {sub.submitter_phone}</span>}
@@ -351,13 +351,18 @@ export default async function AdminCommunityPage({
                           Due {shortDate(sub.editorial_deadline)}
                         </div>
                       )}
-                      <div className="text-xs fw-700" style={{ color: 'var(--color-portal-blue)', marginTop: 6 }}>Open →</div>
+                      <Link
+                        href={`/admin/community/${sub.id}`}
+                        className="text-xs fw-700"
+                        style={{ color: 'var(--color-portal-blue)', marginTop: 6, display: 'inline-block', textDecoration: 'none' }}
+                      >
+                        Open →
+                      </Link>
                     </div>
                   </div>
 
                   {nextAct.length > 0 && (
                     <div
-                      onClick={e => e.stopPropagation()}
                       style={{
                         display: 'flex', gap: 6, flexWrap: 'wrap',
                         marginTop: 12, paddingTop: 10,
@@ -380,7 +385,7 @@ export default async function AdminCommunityPage({
                       })}
                     </div>
                   )}
-                </Link>
+                </div>
               )
             })}
 
