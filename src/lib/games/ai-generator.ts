@@ -200,11 +200,13 @@ that feel like a 1995 office calendar, anything politically charged, anything th
 shames parents. Lean into the small-but-universal truths of family life.`
 
 const LIFE_STAGE: Record<Difficulty, string> = {
-  'easy': `LIFE STAGE: Kids ages 5-12 (this is the "Perfect for Kids" tier — kids
-will play alongside parents). Vocabulary and references must be accessible to
-elementary-age readers. Topics: pets, recess, lunchbox, snacks, simple feelings,
-weather, animals, school subjects, holidays, sports kids play. Keep it
-encouraging — no failure shame, no adult cynicism.`,
+  'easy': `LIFE STAGE: The "Easy" tier — accessible to kids ages 5-12 playing
+alongside parents AND to adults who want a low-stakes warm-up. Vocabulary and
+references must be elementary-friendly but not babyish. Topics: pets, recess,
+lunchbox, snacks, simple feelings, weather, animals, school subjects, holidays,
+sports kids play, household life, family activities. Keep it encouraging — no
+failure shame, no adult cynicism. AVOID infant/baby-specific framing
+(diapers, pacifiers, rattles, strollers) — the tier is broad, not toddler.`,
 
   'challenging': `LIFE STAGE: Parents of elementary-to-tween kids (the magazine's core
 audience). Topics: school chaos, soccer schedules, sibling dynamics, the
@@ -345,11 +347,19 @@ family pop-culture, holidays, kids-show references. Avoid anything political.`,
   },
 
   memory: {
-    label: 'memory-match game boards',
-    systemAddendum: `For MEMORY: each item is one full game board. Provide a list of unique
-emoji "icons" — pairs count is the icons.length, the player flips to find
-matching pairs. Counts: easy 6 pairs · challenging 8 pairs · brain-squeezing 10
-pairs. Icons must be life-stage appropriate AND visually distinct from each
+    label: 'Match Sprint game boards',
+    systemAddendum: `For MATCH SPRINT (memory game): each item is one full game board.
+Provide a list of unique emoji "icons" — pairs count is the icons.length, the
+player flips to find matching pairs. Counts: easy 6 pairs · challenging 8 pairs
+· brain-squeezing 10 pairs.
+
+Pick from a MIX of family-life categories so the board feels universal, not
+age-locked: food + drinks, pets + animals, school supplies, sports + hobbies,
+weather + seasons, holidays, household objects, transportation, music + art.
+Mix categories within a single board — don't make a whole board one theme.
+
+DO NOT use infant/baby-specific icons (🍼 👶 🚼 🧸-as-rattle) — Match Sprint
+is universal, not a toddler game. Icons must be visually distinct from each
 other (don't pick 10 similar-looking yellow faces).`,
     userGuidance: 'Each item: `icons` (an array of unique emoji) and `pairs` (icons.length).',
     itemSchema: {

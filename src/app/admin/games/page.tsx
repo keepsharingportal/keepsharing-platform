@@ -192,7 +192,7 @@ export default async function GamesAdminPage() {
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">3. Each tier targets a different audience</p>
-            <p><strong>Perfect for Kids</strong> = ages 5-12 (whole-family play). <strong>Challenging</strong> = the magazine&apos;s core parent audience. <strong>Brain Squeezing</strong> = parents of teens / empty-nesters. Claude is prompted with this so generated content stays on-tone per tier.</p>
+            <p><strong>Easy</strong> = accessible to kids 5-12 + adult warm-up. <strong>Challenging</strong> = the magazine&apos;s core parent audience. <strong>Brain Squeezing</strong> = parents of teens / empty-nesters. Claude is prompted with this so generated content stays on-tone per tier.</p>
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">4. Days of supply</p>

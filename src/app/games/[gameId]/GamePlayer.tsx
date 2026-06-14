@@ -9,6 +9,7 @@
 // On finish, shows WinScreen with the entry form that POSTs to GHL.
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trophy, CheckCircle2, ChevronRight, FastForward, Clock, Flame, Lightbulb, Sparkles } from 'lucide-react'
 import type {
   GameDefinition, Difficulty,
@@ -124,6 +125,7 @@ interface Props {
 }
 
 export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props) {
+  const router                    = useRouter()
   const [score, setScore]         = useState(0)
   const [done,  setDone]          = useState(false)
   const [shareGrid, setShareGrid] = useState<string | undefined>(undefined)
@@ -151,6 +153,14 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
     setNewBest(saveBestIfBetter(bestKey, elapsed))
     if (opts?.shareGrid) setShareGrid(opts.shareGrid)
     setDone(true)
+  }
+
+  // Quit ≠ finish. When the player taps "I'm stumped", they're opting
+  // out — no celebration, no WinScreen, no entry into the weekly
+  // drawing. Send them straight back to the Games Hub. Score isn't
+  // saved because no game was completed.
+  function quit() {
+    router.push('/games')
   }
 
   function handleCorrect() {
@@ -191,6 +201,7 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         labelOfRound="Word"
         onCorrect={handleCorrect}
         onFinish={finish}
+        onQuit={quit}
         signatureBg={game.signature.bg}
         signatureFg={game.signature.fg}
       />
@@ -208,6 +219,7 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         labelOfRound="Puzzle"
         onCorrect={handleCorrect}
         onFinish={finish}
+        onQuit={quit}
         signatureBg={game.signature.bg}
         signatureFg={game.signature.fg}
       />
@@ -226,6 +238,7 @@ export function GamePlayer({ game, difficulty, isoYear, isoWeek, items }: Props)
         caseSensitive
         onCorrect={handleCorrect}
         onFinish={finish}
+        onQuit={quit}
         signatureBg={game.signature.bg}
         signatureFg={game.signature.fg}
       />
@@ -301,6 +314,9 @@ interface GuessAndCheckProps {
   caseSensitive?:  boolean
   onCorrect:       () => void
   onFinish:        (opts?: { shareGrid?: string }) => void
+  /** Player tapped "I'm stumped". No WinScreen, no entry into the
+   *  drawing — just navigate back to the Games Hub. */
+  onQuit:          () => void
   /** Game's signature color — themes the prompt display + submit button. */
   signatureBg?:    string
   signatureFg?:    string
@@ -308,7 +324,7 @@ interface GuessAndCheckProps {
 
 function GuessAndCheck({
   title, intro, prompts, displayClass, labelOfRound, caseSensitive,
-  onCorrect, onFinish, signatureBg, signatureFg,
+  onCorrect, onFinish, onQuit, signatureBg, signatureFg,
 }: GuessAndCheckProps) {
   const [idx, setIdx]           = useState(0)
   const [guess, setGuess]       = useState('')
@@ -580,10 +596,10 @@ function GuessAndCheck({
           </div>
           <button
             type="button"
-            onClick={() => onFinish({ shareGrid: buildGrid() })}
+            onClick={onQuit}
             className="text-xs text-muted-foreground hover:text-foreground"
           >
-            I&apos;m stumped, end game
+            I&apos;m stumped, take me back
           </button>
         </form>
 
@@ -984,9 +1000,9 @@ function MemoryPlayer({
           className="text-2xl md:text-3xl font-bold mb-1 text-center"
           style={{ ...titleStyle, fontFamily: 'var(--font-fraunces, serif)' }}
         >
-          Toddler Chaos Match
+          Match Sprint
         </h2>
-        <p className="text-sm text-muted-foreground text-center mb-4">Find the matching pairs!</p>
+        <p className="text-sm text-muted-foreground text-center mb-4">Flip and find the matching pairs — race the clock.</p>
 
         {/* Live moves counter — secondary measurable axis alongside time */}
         <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">

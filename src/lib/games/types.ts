@@ -13,7 +13,7 @@ export type GameId =
 export type Difficulty = 'easy' | 'challenging' | 'brain-squeezing'
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  'easy':            'Perfect for Kids',
+  'easy':            'Easy',
   'challenging':     'Challenging',
   'brain-squeezing': 'Brain Squeezing',
 }
@@ -22,8 +22,11 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
 // score records key off these strings. Affects column ordering only.
 export const DIFFICULTIES: Difficulty[] = ['easy', 'challenging', 'brain-squeezing']
 
-// UI display order — adult difficulties first, kids tile last (bonus discovery).
-export const DIFFICULTIES_DISPLAY_ORDER: Difficulty[] = ['challenging', 'brain-squeezing', 'easy']
+// UI display order — natural left-to-right ramp: Easy → Challenging →
+// Brain Squeezing. Previous "adults-first, kids-last bonus tile" layout
+// was branded as kid-mode with amber chrome; that framing was removed
+// per editor (Jun 2026), so the ramp now reads straight across.
+export const DIFFICULTIES_DISPLAY_ORDER: Difficulty[] = ['easy', 'challenging', 'brain-squeezing']
 
 // Default difficulty for fresh visitors — parents first.
 export const DEFAULT_DIFFICULTY: Difficulty = 'challenging'
@@ -62,7 +65,7 @@ export interface GameDefinition {
 //   Family Connect → deep blue (puzzle/intellect, mirrors portal-blue)
 //   Parenting Trivia → coral/terra (warm, conversational)
 //   Lunchbox Scramble → teal (fresh, schoolyard-adjacent without childish)
-//   Toddler Chaos Match → amber/gold (energetic, race-against-time)
+//   Match Sprint → amber/gold (energetic, race-against-time)
 //   Emoji Decode → purple (playful, breaks pattern — emoji is casual)
 //   Carpool Math → forest green (disciplined, "right answers exist")
 export const GAMES: GameDefinition[] = [
@@ -78,8 +81,8 @@ export const GAMES: GameDefinition[] = [
     desc: 'Unscramble the school-themed words.',
     emoji: '🔤',
     signature: { bg: '#0F766E', fg: '#FFFFFF', tile: '#DEF1EE' } },
-  { id: 'memory', title: 'Toddler Chaos Match',
-    desc: 'Find the matching pairs before time runs out.',
+  { id: 'memory', title: 'Match Sprint',
+    desc: 'Flip, find, match — race the clock through pairs from everyday family life.',
     emoji: '⏱️',
     signature: { bg: '#D4A843', fg: '#1E3A5F', tile: '#FAF1DC' } },
   { id: 'emoji', title: 'Emoji Decode',
