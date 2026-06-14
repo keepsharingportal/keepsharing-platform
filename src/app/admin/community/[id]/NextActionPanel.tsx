@@ -95,34 +95,64 @@ export function NextActionPanel({ submissionId, currentPhase, needsOutreach, has
           type="button"
           disabled={busy}
           onClick={() => handlePrimary(config.nextAction!.nextPhase, config.nextAction!.label)}
-          className="btn btn-primary btn-sm"
-          style={{ width: '100%', justifyContent: 'center' }}
+          // Explicit flex row + nowrap so the label + icon stay on one
+          // line. The portal-app .btn class flexes but icons were
+          // wrapping to their own line in narrow right-column widths.
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            whiteSpace: 'nowrap',
+            padding: '10px 14px',
+            background: 'var(--color-portal-navy)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: busy ? 'wait' : 'pointer',
+            opacity: busy ? 0.7 : 1,
+          }}
         >
-          {busy ? <><Loader2 size={12} className="animate-spin" /> Working…</> : <>{config.nextAction.label} <ArrowRight size={12} /></>}
+          {busy
+            ? <><Loader2 size={13} className="animate-spin" /><span>Working…</span></>
+            : <><span>{config.nextAction.label}</span><ArrowRight size={13} /></>}
         </button>
       )}
 
       {!config.nextAction && (
-        <div className="text-muted text-xs" style={{ marginBottom: 8, fontStyle: 'italic' }}>
+        <div className="alert alert-info" style={{ fontSize: 12, marginBottom: 4 }}>
           {currentPhase === 'in-pool'
-            ? 'Open the Pending Pool to schedule for a month.'
+            ? <>This article is in the monthly pool. Schedule + publish from <a href="/admin/pending" style={{ color: 'var(--color-portal-blue)', fontWeight: 600 }}>Pending Pool →</a></>
             : currentPhase === 'published'
-              ? 'Article is live. Nothing more to do here.'
-              : 'No editor action — waiting on external state.'}
+              ? 'Article is live on the homepage.'
+              : currentPhase === 'archived'
+                ? 'Archived. No further action.'
+                : 'No editor action — waiting on external state (nominee response, etc).'}
         </div>
       )}
 
-      {/* Quick context-aware shortcuts */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
-
+      {/* Secondary actions — single small text link row at the bottom,
+          NOT giant equal-weight buttons. The primary CTA above is
+          where 95% of the editor's clicks should go. */}
+      <div style={{
+        display: 'flex',
+        gap: 12,
+        marginTop: 10,
+        paddingTop: 10,
+        borderTop: '1px solid var(--color-portal-border)',
+        fontSize: 11,
+        flexWrap: 'wrap',
+      }}>
         {showSkipToDrafting && (
           <button
             type="button" disabled={busy}
             onClick={() => advance('draft-in-progress', 'This type doesn\'t need outreach. Jump straight to drafting?')}
-            className="btn btn-ghost btn-sm"
-            style={{ width: '100%', justifyContent: 'center' }}
+            style={secondaryLink}
           >
-            Skip outreach → start drafting
+            Skip outreach
           </button>
         )}
 
@@ -130,23 +160,10 @@ export function NextActionPanel({ submissionId, currentPhase, needsOutreach, has
           <button
             type="button" disabled={busy}
             onClick={() => advance('nominee-declined', 'Mark nominee as declined? (You won\'t be able to send the interview after this.)')}
-            className="btn btn-ghost btn-sm"
-            style={{ width: '100%', justifyContent: 'center', color: 'var(--color-portal-red)' }}
+            style={{ ...secondaryLink, color: 'var(--color-portal-red)' }}
           >
             Nominee declined
           </button>
-        )}
-
-        {currentPhase === 'interview-sent' && hasInterview && (
-          <div className="alert alert-info" style={{ fontSize: 11, marginTop: 4 }}>
-            Nominee already submitted the interview form. Click the main action above to move forward.
-          </div>
-        )}
-
-        {currentPhase === 'draft-ready' && !hasDraft && (
-          <div className="alert alert-warning" style={{ fontSize: 11, marginTop: 4 }}>
-            No draft body yet. Write or AI-draft the article first.
-          </div>
         )}
 
         {/* Archive escape hatch — always available unless already archived/published */}
@@ -154,13 +171,38 @@ export function NextActionPanel({ submissionId, currentPhase, needsOutreach, has
           <button
             type="button" disabled={busy}
             onClick={() => advance('archived', 'Archive this submission? It will stop appearing in the active queue.')}
-            className="btn btn-ghost btn-sm"
-            style={{ width: '100%', justifyContent: 'center', marginTop: 4, color: 'var(--color-portal-sub)' }}
+            style={{ ...secondaryLink, marginLeft: 'auto' }}
           >
-            <Archive size={11} /> Archive
+            <Archive size={10} style={{ display: 'inline', verticalAlign: -1, marginRight: 3 }} /> Archive
           </button>
         )}
       </div>
+
+      {/* Phase-conditional hints — small italic notes, not full alert boxes */}
+      {currentPhase === 'interview-sent' && hasInterview && (
+        <div className="text-muted text-xs" style={{ marginTop: 8, fontStyle: 'italic' }}>
+          ℹ︎ Nominee already submitted the interview. Click the main action above to move forward.
+        </div>
+      )}
+      {currentPhase === 'draft-ready' && !hasDraft && (
+        <div className="text-muted text-xs" style={{ marginTop: 8, fontStyle: 'italic' }}>
+          ℹ︎ No draft body yet. Use AI draft below or write manually first.
+        </div>
+      )}
+
     </div>
   )
+}
+
+const secondaryLink: React.CSSProperties = {
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  fontSize: 11,
+  color: 'var(--color-portal-sub)',
+  fontWeight: 500,
+  textDecoration: 'underline',
+  textUnderlineOffset: 2,
+  whiteSpace: 'nowrap',
 }

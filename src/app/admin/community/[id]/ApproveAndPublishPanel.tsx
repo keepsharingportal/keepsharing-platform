@@ -1,37 +1,44 @@
 'use client'
 
-// One-stop Approval + Publish panel on the canonical submission detail.
-// Replaces the bouncing-between-pages dance: channel approvals, request
-// changes, and Publish-to-Homepage all live here so the editor never
-// has to leave /admin/community/[id].
+// Channel approvals panel. Renamed from "Approve & Publish" because
+// publishing no longer happens from this page — it happens in
+// /admin/pending (the editor schedules + publishes from the monthly
+// pool). What stays here: the three channel gates (web / newsletter
+// / social) that drive downstream automation:
+//   - approved_web        → article eligible for homepage rotation
+//                            (via the publish-to-article bridge when
+//                             scheduled in the pool)
+//   - approved_newsletter → flagged for the newsletter draft builder
+//                            in Content Deployment
+//   - approved_social     → Meta Suite auto-posts to Facebook when
+//                            the article publishes
+//
+// These channel gates are ONLY meaningful at draft-ready and beyond.
+// Earlier phases (nominated, outreach-sent, etc.) have nothing to
+// approve yet — the calling page hides this panel for those phases.
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Loader2, Send, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Check, Loader2, AlertTriangle } from 'lucide-react'
 
 interface Props {
   submissionId:        string
   initialApproved:     { web: boolean; newsletter: boolean; social: boolean }
-  alreadyPromoted:     boolean
-  promotedArticleId?:  string | null
   initialChangesNote?: string | null
 }
 
 const CHANNELS = [
-  { key: 'web',        label: 'Approve for Website',     hint: 'Eligible for the homepage rotation + article archives' },
-  { key: 'newsletter', label: 'Approve for Newsletter',  hint: 'Eligible to be drafted into a newsletter issue' },
-  { key: 'social',     label: 'Approve for Social',      hint: 'When the article publishes, Meta Suite auto-posts to Facebook' },
+  { key: 'web',        label: 'Approve for Website',     hint: 'Homepage rotation + article archives' },
+  { key: 'newsletter', label: 'Approve for Newsletter',  hint: 'Eligible for next newsletter issue' },
+  { key: 'social',     label: 'Approve for Social',      hint: 'Auto-posts to Facebook on publish' },
 ] as const
 
 export function ApproveAndPublishPanel({
-  submissionId, initialApproved, alreadyPromoted, promotedArticleId, initialChangesNote,
+  submissionId, initialApproved, initialChangesNote,
 }: Props) {
   const router = useRouter()
   const [approved, setApproved]     = useState(initialApproved)
   const [busy, setBusy]             = useState<string | null>(null)
-  const [publishing, setPublishing] = useState(false)
-  const [published, setPublished]   = useState(alreadyPromoted)
-  const [articleId, setArticleId]   = useState(promotedArticleId ?? null)
   const [error, setError]           = useState<string | null>(null)
   const [changesNote, setChangesNote] = useState(initialChangesNote ?? '')
   const [changesBusy, setChangesBusy] = useState(false)
@@ -67,41 +74,21 @@ export function ApproveAndPublishPanel({
     } finally { setChangesBusy(false) }
   }
 
-  async function publish() {
-    if (!approved.web) { setError('Approve for Website first.'); return }
-    const confirmMsg = approved.social
-      ? 'Publish to homepage now? Creates a public article AND auto-posts to Facebook (Social approved).'
-      : 'Publish to homepage now? Creates a public article. Social posting is NOT included (Social not approved).'
-    if (!confirm(confirmMsg)) return
-
-    setPublishing(true); setError(null)
-    try {
-      const res = await fetch(`/api/admin/community-submissions/${submissionId}/publish-to-article`, { method: 'POST' })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setError(j.error ?? 'Publish failed.'); return }
-      setPublished(true)
-      setArticleId(j.article_id)
-      setTimeout(() => router.refresh(), 800)
-    } finally { setPublishing(false) }
-  }
-
   return (
-    <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-portal-border bg-portal-bg">
-        <h2 className="text-xs font-bold text-portal-text uppercase tracking-wide">Approve & publish</h2>
-        <p className="text-[11px] text-portal-muted mt-0.5">
-          Channel approvals + Publish to Homepage. Same workflow that used to live on the Approval Desk — now here so you don&apos;t leave the page.
-        </p>
+    <div className="card">
+      <div className="card-title" style={{ marginBottom: 4 }}>Channel approvals</div>
+      <div className="text-muted text-xs" style={{ marginBottom: 12 }}>
+        Which channels can this run on once it&apos;s published from the pool.
       </div>
 
-      <div className="p-5 space-y-3">
-        {error && (
-          <div className="alert alert-error" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <AlertTriangle size={12} /> {error}
-          </div>
-        )}
+      {error && (
+        <div className="alert alert-error" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <AlertTriangle size={12} /> {error}
+        </div>
+      )}
 
-        {/* Channel toggles */}
+      {/* Channel toggles */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {CHANNELS.map(ch => (
           <div key={ch.key} className="flex items-start gap-3">
             <button
@@ -129,104 +116,72 @@ export function ApproveAndPublishPanel({
             </div>
           </div>
         ))}
+      </div>
 
-        {/* Approve-the-rest shortcut. Hides when all three channels
-            are already on (nothing left to do) — previously it
-            also hid when only ONE was approved, leaving the editor
-            with no quick way to flip the other two. Now visible
-            whenever at least one channel is still off. */}
-        {!(approved.web && approved.newsletter && approved.social) && (
+      {/* Approve-the-rest shortcut. Hides when all three are on. */}
+      {!(approved.web && approved.newsletter && approved.social) && (
+        <button
+          type="button"
+          onClick={async () => {
+            if (!approved.web)        await toggleChannel('web', true)
+            if (!approved.newsletter) await toggleChannel('newsletter', true)
+            if (!approved.social)     await toggleChannel('social', true)
+          }}
+          disabled={!!busy}
+          style={{
+            width: '100%', padding: '8px 12px', marginTop: 12,
+            background: 'var(--color-portal-navy)', color: 'white',
+            border: 'none', borderRadius: 8,
+            fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          }}
+        >
+          ✓ Approve {!approved.web && !approved.newsletter && !approved.social ? 'all channels' : 'remaining channels'}
+        </button>
+      )}
+
+      {/* Request changes — small secondary link, not a giant button. */}
+      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-portal-border)' }}>
+        {!showChanges ? (
           <button
             type="button"
-            onClick={async () => {
-              if (!approved.web)        await toggleChannel('web', true)
-              if (!approved.newsletter) await toggleChannel('newsletter', true)
-              if (!approved.social)     await toggleChannel('social', true)
+            onClick={() => setShowChanges(true)}
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              fontSize: 11, color: 'var(--color-portal-amber)', fontWeight: 600,
+              textDecoration: 'underline', textUnderlineOffset: 2,
             }}
-            disabled={!!busy}
-            className="w-full py-2 rounded-lg text-xs font-bold text-white bg-portal-navy hover:opacity-90 transition-opacity"
           >
-            ✓ Approve {!approved.web && !approved.newsletter && !approved.social ? 'all channels' : 'remaining channels'}
+            ↩ Request changes from the editor
           </button>
-        )}
-
-        {/* Request changes */}
-        <div className="pt-3 border-t border-portal-border">
-          {!showChanges ? (
-            <button
-              type="button"
-              onClick={() => setShowChanges(true)}
-              className="w-full text-xs px-3 py-2 rounded-lg border border-portal-amber/30 text-portal-amber hover:bg-portal-amber-lt transition-colors font-medium"
-            >
-              ↩ Request changes
-            </button>
-          ) : (
-            <div className="space-y-2">
-              <textarea
-                value={changesNote}
-                onChange={e => setChangesNote(e.target.value)}
-                rows={3}
-                placeholder="Describe what needs to change before this is ready…"
-                className="w-full text-xs px-3 py-2 rounded-lg border border-portal-border"
-              />
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  type="button"
-                  onClick={requestChanges}
-                  disabled={changesBusy}
-                  className="flex-1 text-xs px-3 py-2 rounded-lg bg-portal-amber text-white font-bold"
-                >
-                  {changesBusy ? <Loader2 size={11} className="animate-spin inline" /> : 'Send'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowChanges(false)}
-                  disabled={changesBusy}
-                  className="text-xs px-3 py-2 rounded-lg text-portal-sub"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Publish to Homepage — the bridge */}
-        <div className="pt-3 border-t border-portal-border">
-          {published && articleId ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-portal-green)' }}>
-                <CheckCircle2 size={12} /> Published to homepage
-              </span>
-              <a
-                href={`/admin/articles/${articleId}/edit`}
-                className="text-xs text-portal-blue hover:underline font-semibold"
-              >
-                Edit article →
-              </a>
-            </div>
-          ) : !approved.web ? (
-            <div style={{ fontSize: 11, color: 'var(--color-portal-muted)', fontStyle: 'italic' }}>
-              Approve for Website above to enable Publish to homepage.
-            </div>
-          ) : (
-            <>
+        ) : (
+          <div className="space-y-2">
+            <textarea
+              value={changesNote}
+              onChange={e => setChangesNote(e.target.value)}
+              rows={3}
+              placeholder="Describe what needs to change before this is ready…"
+              className="w-full text-xs px-3 py-2 rounded-lg border border-portal-border"
+            />
+            <div style={{ display: 'flex', gap: 6 }}>
               <button
                 type="button"
-                onClick={publish}
-                disabled={publishing}
-                className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-navy hover:opacity-90 transition-opacity"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                onClick={requestChanges}
+                disabled={changesBusy}
+                className="flex-1 text-xs px-3 py-2 rounded-lg bg-portal-amber text-white font-bold"
               >
-                {publishing ? <><Loader2 size={13} className="animate-spin" /> Publishing…</> : <><Send size={13} /> Publish to homepage</>}
+                {changesBusy ? <Loader2 size={11} className="animate-spin inline" /> : 'Send'}
               </button>
-              <div style={{ fontSize: 10, color: 'var(--color-portal-muted)', marginTop: 6, lineHeight: 1.4 }}>
-                Creates a guide_articles row with the right column_slug. Homepage rotation picks it up immediately.
-                {approved.social && ' Auto-posts to Facebook via Meta Suite (Social approved).'}
-              </div>
-            </>
-          )}
-        </div>
+              <button
+                type="button"
+                onClick={() => setShowChanges(false)}
+                disabled={changesBusy}
+                className="text-xs px-3 py-2 rounded-lg text-portal-sub"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

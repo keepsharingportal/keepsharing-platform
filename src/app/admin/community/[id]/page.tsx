@@ -779,34 +779,83 @@ export default async function SubmissionDetailPage({
             hasDraft={hasDraft}
           />
 
-          {/* Inline AI drafting — primary CTA right here so editors
-              don't have to scroll to the bottom of the page to find
-              the AI helpers. Drafts from nomination + interview using
-              the per-type article_format (Q&A / profile / write-up /
-              news-brief / photo-caption / roundup). */}
-          <AIDraftPanel
-            submissionId={sub.id}
-            hasInterview={hasInterview}
-            hasDraft={hasDraft}
-            articleFormat={articleFormat}
-            currentDraftLen={(subAny.ai_draft_content as string | null)?.length ?? 0}
-          />
+          {/* AI Draft only matters when we have something to draft
+              FROM. Before interview-received the nominator's content
+              is the only input and the result is thin. Hide for
+              early phases AND post-publish phases to keep the right
+              column focused on the phase's primary action. */}
+          {['interview-received', 'draft-in-progress', 'draft-ready'].includes(currentPhase) && (
+            <AIDraftPanel
+              submissionId={sub.id}
+              hasInterview={hasInterview}
+              hasDraft={hasDraft}
+              articleFormat={articleFormat}
+              currentDraftLen={(subAny.ai_draft_content as string | null)?.length ?? 0}
+            />
+          )}
 
           {/* Approve & Publish — the workflow that used to live on the
               deleted /admin/editorial/approval page. Channel approvals
               + Publish-to-homepage all in one place so editors don't
               have to bounce between pages. */}
-          <ApproveAndPublishPanel
-            submissionId={sub.id}
-            initialApproved={{
-              web:        !!(sub as unknown as Record<string, unknown>).approved_web,
-              newsletter: !!(sub as unknown as Record<string, unknown>).approved_newsletter,
-              social:     !!(sub as unknown as Record<string, unknown>).approved_social,
-            }}
-            alreadyPromoted={!!(sub as unknown as Record<string, unknown>).promoted_to_article_id}
-            promotedArticleId={(sub as unknown as Record<string, unknown>).promoted_to_article_id as string | null}
-            initialChangesNote={(sub as unknown as Record<string, unknown>).needs_changes_note as string | null}
-          />
+          {/* Channel approvals only matter once a draft exists.
+             Before draft-ready there's nothing to approve yet, so
+             we hide this panel entirely. After approved/in-pool/
+             scheduled/published the approvals are frozen and shown
+             as a small read-only summary instead. */}
+          {(() => {
+            const APPROVAL_PHASES = ['draft-ready', 'approved']
+            const FROZEN_PHASES   = ['in-pool', 'scheduled', 'published', 'archived']
+            if (APPROVAL_PHASES.includes(currentPhase)) {
+              return (
+                <ApproveAndPublishPanel
+                  submissionId={sub.id}
+                  initialApproved={{
+                    web:        !!(sub as unknown as Record<string, unknown>).approved_web,
+                    newsletter: !!(sub as unknown as Record<string, unknown>).approved_newsletter,
+                    social:     !!(sub as unknown as Record<string, unknown>).approved_social,
+                  }}
+                  initialChangesNote={(sub as unknown as Record<string, unknown>).needs_changes_note as string | null}
+                />
+              )
+            }
+            if (FROZEN_PHASES.includes(currentPhase)) {
+              const a = sub as unknown as Record<string, unknown>
+              const chips = [
+                { label: 'Web',        on: !!a.approved_web },
+                { label: 'Newsletter', on: !!a.approved_newsletter },
+                { label: 'Social',     on: !!a.approved_social },
+              ]
+              const articleId = a.promoted_to_article_id as string | null
+              return (
+                <div className="card">
+                  <div className="card-title" style={{ marginBottom: 4 }}>Channel approvals (locked)</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                    {chips.map(c => (
+                      <span
+                        key={c.label}
+                        className={`badge ${c.on ? 'badge-green' : 'badge-gray'}`}
+                      >
+                        {c.on ? '✓' : '—'} {c.label}
+                      </span>
+                    ))}
+                  </div>
+                  {articleId && (
+                    <a
+                      href={`/admin/articles/${articleId}/edit`}
+                      className="text-xs"
+                      style={{ display: 'block', marginTop: 10, color: 'var(--color-portal-blue)', fontWeight: 600 }}
+                    >
+                      Edit published article →
+                    </a>
+                  )}
+                </div>
+              )
+            }
+            // Earlier phases — nothing renders. Right column stays focused
+            // on the NextActionPanel + AIDraftPanel + Editor Notes.
+            return null
+          })()}
 
           {/* Legacy panels removed:
              - Operator Guidance: duplicated PhaseTracker descriptions
