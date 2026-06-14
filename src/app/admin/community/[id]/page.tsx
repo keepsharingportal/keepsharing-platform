@@ -13,7 +13,9 @@ import { PhaseTracker }            from './PhaseTracker'
 import { NextActionPanel }         from './NextActionPanel'
 import { AIDraftPanel }            from './AIDraftPanel'
 import { OutreachComposerPanel }   from './OutreachComposerPanel'
-import type { Phase }              from '@/lib/submissions/phases'
+import { RejectPanel }             from './RejectPanel'
+import { RejectedBanner }          from './RejectedBanner'
+import { PHASES, type Phase }      from '@/lib/submissions/phases'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
   type SubmissionStatus, type SubmissionTypeConfig, type SubmissionField,
@@ -479,6 +481,18 @@ export default async function SubmissionDetailPage({
         </div>
       </div>
 
+      {/* ── REJECTED BANNER ──────────────────────────────────────────────── */}
+      {/* Surfaces the editor's reason + Reconsider button at the top so
+          a rejected row is unambiguous on arrival, with a one-click
+          path back to the active queue. */}
+      {currentPhase === 'rejected' && (
+        <RejectedBanner
+          submissionId={sub.id}
+          rejectionReason={(subAny.rejection_reason as string | null) ?? null}
+          rejectedAt={(subAny.rejected_at as string | null) ?? null}
+        />
+      )}
+
       {/* ── PHASE TRACKER ────────────────────────────────────────────────── */}
       {/* Where is this submission in the multi-actor workflow? The tracker
           gives a visual at-a-glance + the right column's NextActionPanel
@@ -540,48 +554,75 @@ export default async function SubmissionDetailPage({
             </div>
           </div>
 
-          {/* Submission answers */}
+          {/* Nominator's Submission — renders the payload DIRECTLY
+              instead of filtering against config.fields. Earlier
+              version filtered config.fields by which keys existed in
+              payload, but our nomination forms (added later) use
+              their own key set (why_nominate, nominee_email, etc.)
+              that don't match the original "apply yourself" config
+              fields. Result: the panel said "didn't fill anything"
+              while the RAW SUBMISSION DATA accordion below proved
+              otherwise. New approach: walk the payload, prefer the
+              config label when a key matches, humanize the key when
+              it doesn't. Drops the separate RAW accordion entirely. */}
           <div
             className="bg-white border border-portal-border rounded-lg overflow-hidden"
             style={{ borderTop: `4px solid ${accentColor}` }}
           >
             <div className="p-5">
               {(() => {
-                // Filter to fields that actually have content. The
-                // original layout showed every field including
-                // blanks — looked like the nominator failed when
-                // most nominators only fill 2-3 of 8 questions.
-                const answered = config.fields.filter((f: SubmissionField) => !!sub.payload[f.id])
-                const missingRequired = config.fields.filter((f: SubmissionField) => f.required && !sub.payload[f.id])
-                if (answered.length === 0) {
+                // Pull every payload entry that actually has content.
+                // Strings only — skip arrays/objects (those live in
+                // dedicated cards: photos, interview, etc.).
+                const entries = Object.entries(sub.payload ?? {})
+                  .filter(([, v]) => typeof v === 'string' && v.trim().length > 0)
+
+                // Build a lookup so we use the config's label when the
+                // key happens to match a known form field.
+                const fieldByKey = new Map<string, SubmissionField>(
+                  config.fields.map(f => [f.id, f]),
+                )
+
+                // Surface required fields the nominator left blank.
+                const missingRequired = config.fields.filter(
+                  (f: SubmissionField) =>
+                    f.required &&
+                    !(typeof sub.payload[f.id] === 'string' && sub.payload[f.id].trim().length > 0),
+                )
+
+                if (entries.length === 0) {
                   return (
                     <>
-                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominator's Submission</h2>
+                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominator&apos;s Submission</h2>
                       <p className="text-sm text-portal-muted italic">
-                        The nominator didn&apos;t fill in any optional fields. The basics are in the Submitter section above.
+                        The nominator submitted only the basics — see Submitter above.
                       </p>
                     </>
                   )
                 }
+
                 return (
                   <>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Nominator&apos;s Submission</h2>
                       <span className="text-[10px] text-portal-muted">
-                        {answered.length} of {config.fields.length} field{config.fields.length === 1 ? '' : 's'} answered
+                        {entries.length} field{entries.length === 1 ? '' : 's'} answered
                       </span>
                     </div>
                     <div className="space-y-5">
-                      {answered.map((field: SubmissionField) => (
-                        <div key={field.id}>
-                          <p className="text-xs font-semibold text-portal-sub mb-1">
-                            {field.label}
-                          </p>
-                          <p className={`text-sm text-portal-text leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
-                            {sub.payload[field.id]}
-                          </p>
-                        </div>
-                      ))}
+                      {entries.map(([key, val]) => {
+                        const field    = fieldByKey.get(key)
+                        const label    = field?.label ?? humanize(key)
+                        const isLong   = (val as string).length > 80 || (val as string).includes('\n')
+                        return (
+                          <div key={key}>
+                            <p className="text-xs font-semibold text-portal-sub mb-1">{label}</p>
+                            <p className={`text-sm text-portal-text leading-relaxed ${isLong ? 'whitespace-pre-wrap' : ''}`}>
+                              {val as string}
+                            </p>
+                          </div>
+                        )
+                      })}
                     </div>
                     {missingRequired.length > 0 && (
                       <div className="alert alert-warning" style={{ marginTop: 16, fontSize: 11 }}>
@@ -778,40 +819,13 @@ export default async function SubmissionDetailPage({
             </div>
           )}
 
-          {/* Raw data — collapsed by default */}
-          <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
-            <summary className="px-5 py-4 text-xs font-semibold text-portal-muted cursor-pointer hover:bg-portal-bg transition-colors select-none uppercase tracking-wide">
-              Advanced: Raw Submission Data
-            </summary>
-            <div className="px-5 pb-5 pt-2 border-t border-gray-50">
-              <div className="space-y-1.5">
-                {Object.entries(sub.payload).map(([k, v]) => (
-                  <div key={k} className="flex gap-3 text-xs">
-                    <span className="font-mono text-portal-muted shrink-0 w-40">{k}</span>
-                    <span className="text-portal-text break-all">{String(v)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-portal-border pt-2 mt-2 space-y-1.5">
-                  <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-portal-muted w-40">id</span>
-                    <span className="text-portal-sub font-mono break-all">{sub.id}</span>
-                  </div>
-                  <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-portal-muted w-40">submission_type</span>
-                    <span className="text-portal-sub">{sub.submission_type}</span>
-                  </div>
-                  <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-portal-muted w-40">created_at</span>
-                    <span className="text-portal-sub">{sub.created_at}</span>
-                  </div>
-                  <div className="flex gap-3 text-xs">
-                    <span className="font-mono text-portal-muted w-40">updated_at</span>
-                    <span className="text-portal-sub">{sub.updated_at}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </details>
+          {/* The separate "Advanced: Raw Submission Data" accordion used
+              to live here. Removed — the Nominator's Submission card
+              above now renders the entire payload directly (using
+              humanized keys when no form-config label matches), so the
+              raw accordion was duplicating the same data with worse
+              formatting. Edit-raw-fields link in the header is enough
+              for the rare case an editor needs the literal column view. */}
 
         </div>
 
@@ -842,6 +856,15 @@ export default async function SubmissionDetailPage({
               hasInterview={hasInterview}
               hasDraft={hasDraft}
             />
+          )}
+
+          {/* Reject — small red text link directly under the primary
+              action. Expands inline to a required-note textarea. Only
+              renders when the current phase actually permits /reject
+              (early phases only); past draft-* the editor uses Archive
+              instead via NextActionPanel. */}
+          {PHASES[currentPhase]?.allowedNext.includes('rejected') && (
+            <RejectPanel submissionId={sub.id} nomineeName={nomineeName} />
           )}
 
           {/* AI Draft only matters when we have something to draft

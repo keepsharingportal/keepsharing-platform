@@ -6,7 +6,6 @@
 
 import type { Metadata }  from 'next'
 import Link               from 'next/link'
-import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
@@ -46,35 +45,13 @@ interface Submission {
   updated_at:            string
 }
 
-// ── Server actions ─────────────────────────────────────────────────────────────
-
-async function setStatus(formData: FormData) {
-  'use server'
-  const supabase = createAdminClient()
-  const id       = formData.get('id')     as string
-  const status   = formData.get('status') as string
-  await supabase.from('community_submissions').update({ status }).eq('id', id)
-  revalidatePath('/admin/community')
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const ACTION_STATUS: Record<string, SubmissionStatus> = {
-  'Mark needs-review':              'needs-review',
-  'Request more info':              'awaiting-info',
-  'Reject':                         'rejected',
-  'Begin editing':                  'in-editing',
-  'Approve':                        'approved',
-  'Mark in-progress when info arrives': 'in-progress',
-  'Archive if no reply':            'archived',
-  'Move to in-editing':             'in-editing',
-  'Queue for AI draft':             'ready-for-ai',
-  'Archive':                        'archived',
-  'Publish now':                    'published',
-  'Schedule':                       'scheduled',
-  'Reschedule':                     'scheduled',
-  'Review and refine draft':        'in-editing',
-}
+// Inline quick-action server actions used to live here. Removed —
+// queue-level "Mark needs-review / Request more info / Reject" buttons
+// created editorial decisions from row-level context, but the right
+// context lives inside the submission. Editor clicks Open → makes the
+// call from the detail page where they can read the full nomination,
+// rejection reasons get captured, and the audit trail is unambiguous.
 
 function subjectLine(s: Submission): string {
   return s.related_person_name
@@ -137,6 +114,7 @@ export default async function AdminCommunityPage({
   const inProgress  = rows.filter(r => r.status === 'in-progress').length
   const inEditing   = rows.filter(r => r.status === 'in-editing').length
   const published   = rows.filter(r => r.status === 'published').length
+  const rejected    = rows.filter(r => r.status === 'rejected').length
   const backlog     = newCount + inReview
 
   // ── Type counts ───────────────────────────────────────────────────────────
@@ -239,6 +217,10 @@ export default async function AdminCommunityPage({
             <div className="stat-num">{published}</div>
             <div className="stat-label">Published</div>
           </Link>
+          <Link href="/admin/community?status=rejected" className="stat-card" style={{ textDecoration: 'none' }}>
+            <div className={`stat-num ${filterStatus === 'rejected' ? 'has-red' : ''}`} style={filterStatus === 'rejected' ? { color: 'var(--color-portal-red)' } : undefined}>{rejected}</div>
+            <div className="stat-label">Rejected</div>
+          </Link>
         </div>
 
         {/* Filters card */}
@@ -292,17 +274,22 @@ export default async function AdminCommunityPage({
               const sc      = STATUS_CONFIG[sub.status]
               const subject = subjectLine(sub)
               const accent  = TYPE_COLORS[sub.submission_type] ?? 'var(--color-portal-border-2)'
-              const nextAct = sc?.nextActions ?? []
 
               return (
-                // Plain card (not a Link wrapper) — nesting forms +
-                // mailto inside an <a> is invalid HTML and was causing
-                // a runtime failure. Open-link is at the right side.
-                <div
+                // Whole card is a Link now. Inline mailto: was the
+                // reason we couldn't make the whole row clickable
+                // before — moved to a plain visible string here, since
+                // the editor opens the row and emails from the
+                // detail page anyway.
+                <Link
                   key={sub.id}
+                  href={`/admin/community/${sub.id}`}
                   className="card"
                   style={{
                     borderLeft: `3px solid ${accent}`,
+                    display: 'block',
+                    textDecoration: 'none',
+                    color: 'inherit',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
@@ -327,10 +314,7 @@ export default async function AdminCommunityPage({
                       )}
                       <div className="text-sub text-sm" style={{ marginTop: 4 }}>
                         From <span className="fw-600">{sub.submitter_name}</span>
-                        {' · '}
-                        <a href={`mailto:${sub.submitter_email}`} style={{ color: 'var(--color-portal-blue)' }}>
-                          {sub.submitter_email}
-                        </a>
+                        <span className="text-muted"> · {sub.submitter_email}</span>
                         {sub.submitter_phone && <span className="text-muted"> · {sub.submitter_phone}</span>}
                       </div>
                       {sub.editor_notes && (
@@ -344,48 +328,38 @@ export default async function AdminCommunityPage({
                         </div>
                       )}
                     </div>
-                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, minWidth: 92 }}>
                       <div className="text-muted text-xs">{timeAgo(sub.created_at)}</div>
                       {sub.editorial_deadline && (
-                        <div className="text-xs fw-700" style={{ color: 'var(--color-portal-amber)', marginTop: 2 }}>
+                        <div className="text-xs fw-700" style={{ color: 'var(--color-portal-amber)' }}>
                           Due {shortDate(sub.editorial_deadline)}
                         </div>
                       )}
-                      <Link
-                        href={`/admin/community/${sub.id}`}
-                        className="text-xs fw-700"
-                        style={{ color: 'var(--color-portal-blue)', marginTop: 6, display: 'inline-block', textDecoration: 'none' }}
+                      {/* Open → button. Used to be a small text link
+                          on the far right, with three inline action
+                          buttons (Mark needs-review / Request more
+                          info / Reject) below the row. Removed those
+                          quick actions — editorial decisions happen
+                          inside the detail page where the full
+                          context lives. Open is now the single
+                          primary affordance on every row. */}
+                      <span
+                        className="btn btn-blue btn-xs"
+                        style={{
+                          padding: '5px 12px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          borderRadius: 6,
+                          background: 'var(--color-portal-navy)',
+                          color: 'white',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
                         Open →
-                      </Link>
+                      </span>
                     </div>
                   </div>
-
-                  {nextAct.length > 0 && (
-                    <div
-                      style={{
-                        display: 'flex', gap: 6, flexWrap: 'wrap',
-                        marginTop: 12, paddingTop: 10,
-                        borderTop: '1px solid var(--color-portal-border)',
-                      }}
-                    >
-                      {nextAct.map(action => {
-                        const targetStatus = ACTION_STATUS[action]
-                        if (!targetStatus) return null
-                        const isBad = action === 'Reject' || action === 'Archive if no reply'
-                        return (
-                          <form key={action} action={setStatus}>
-                            <input type="hidden" name="id"     value={sub.id} />
-                            <input type="hidden" name="status" value={targetStatus} />
-                            <button type="submit" className={`btn ${isBad ? 'btn-red' : 'btn-ghost'} btn-xs`}>
-                              {action}
-                            </button>
-                          </form>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
+                </Link>
               )
             })}
 

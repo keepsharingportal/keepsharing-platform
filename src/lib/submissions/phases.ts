@@ -18,6 +18,7 @@ export type Phase =
   | 'in-pool'
   | 'scheduled'
   | 'published'
+  | 'rejected'
   | 'archived'
 
 export interface PhaseConfig {
@@ -45,7 +46,7 @@ export const PHASES: Record<Phase, PhaseConfig> = {
     tone:       'amber',
     description: 'Nominator just submitted. Editor needs to decide if we feature this person.',
     nextAction: { label: 'Accept nomination', nextPhase: 'nomination-accepted' },
-    allowedNext: ['nomination-accepted', 'archived'],
+    allowedNext: ['nomination-accepted', 'rejected', 'archived'],
   },
   'nomination-accepted': {
     key: 'nomination-accepted',
@@ -54,7 +55,7 @@ export const PHASES: Record<Phase, PhaseConfig> = {
     tone:       'blue',
     description: 'Editor wants to feature this person. Time to reach out to the nominee.',
     nextAction: { label: 'Send outreach email', nextPhase: 'outreach-sent' },
-    allowedNext: ['outreach-sent', 'archived'],
+    allowedNext: ['outreach-sent', 'rejected', 'archived'],
   },
   'outreach-sent': {
     key: 'outreach-sent',
@@ -63,7 +64,7 @@ export const PHASES: Record<Phase, PhaseConfig> = {
     tone:       'amber',
     description: 'We emailed the nominee. Waiting for them to confirm they want to be featured.',
     nextAction: { label: 'Mark accepted (manual)', nextPhase: 'nominee-accepted' },
-    allowedNext: ['nominee-accepted', 'nominee-declined', 'archived'],
+    allowedNext: ['nominee-accepted', 'nominee-declined', 'rejected', 'archived'],
   },
   'nominee-accepted': {
     key: 'nominee-accepted',
@@ -154,6 +155,15 @@ export const PHASES: Record<Phase, PhaseConfig> = {
     description: 'Article is live on the homepage.',
     nextAction: null,
     allowedNext: ['archived'],
+  },
+  'rejected': {
+    key: 'rejected',
+    label:      'Rejected',
+    shortLabel: 'Rejected',
+    tone:       'red',
+    description: 'Editor decided not to feature this nomination. The reason is recorded — bring it back with Reconsider if you change your mind.',
+    nextAction: { label: 'Reconsider — back to Nominated', nextPhase: 'nominated' },
+    allowedNext: ['nominated', 'archived'],
   },
   'archived': {
     key: 'archived',
