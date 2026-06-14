@@ -39,6 +39,42 @@ export function NextActionPanel({ submissionId, currentPhase, needsOutreach, has
     } finally { setBusy(false) }
   }
 
+  // Some next-actions trigger side-effects (sending email, generating
+  // the interview token). Route those through the outreach API instead
+  // of the plain set-phase endpoint so the email actually fires and
+  // the phase advance happens atomically server-side.
+  async function callOutreach(action: 'outreach' | 'send-interview') {
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch(`/api/admin/community-submissions/${submissionId}/outreach`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(j.error ?? 'Send failed.'); return }
+      router.refresh()
+    } finally { setBusy(false) }
+  }
+
+  async function handlePrimary(nextPhase: Phase, label: string) {
+    // Outreach side-effect routing
+    if (currentPhase === 'nomination-accepted' && nextPhase === 'outreach-sent') {
+      if (!confirm(`Send the outreach email to the nominee?\n\nThey'll get a message explaining they were nominated for ${label.toLowerCase()} and asking if they'd like to participate.`)) return
+      await callOutreach('outreach'); return
+    }
+    if (currentPhase === 'nominee-accepted' && nextPhase === 'interview-sent') {
+      if (!confirm('Send the interview form link to the nominee?\n\nThey\'ll get an email with a per-type questionnaire + photo upload. The form auto-fills the submission when they submit.')) return
+      await callOutreach('send-interview'); return
+    }
+    // Publish-to-homepage confirmation
+    if (currentPhase === 'scheduled' && nextPhase === 'published') {
+      if (!confirm('Publish to homepage now? Creates a public guide_articles row + (if approved) fires Meta Suite auto-post.')) return
+    }
+    // Plain phase advance
+    await advance(nextPhase)
+  }
+
   // The "skip to publish" path for types that don't need outreach
   // (school-news, birthday, parent-picks): once nominated, the editor
   // can go straight to drafting.
@@ -58,12 +94,7 @@ export function NextActionPanel({ submissionId, currentPhase, needsOutreach, has
         <button
           type="button"
           disabled={busy}
-          onClick={() => {
-            const confirmMsg = currentPhase === 'scheduled' && config.nextAction!.nextPhase === 'published'
-              ? 'Publish to homepage now? Creates a public guide_articles row + (if approved) fires Meta Suite auto-post.'
-              : undefined
-            advance(config.nextAction!.nextPhase, confirmMsg)
-          }}
+          onClick={() => handlePrimary(config.nextAction!.nextPhase, config.nextAction!.label)}
           className="btn btn-primary btn-sm"
           style={{ width: '100%', justifyContent: 'center' }}
         >
