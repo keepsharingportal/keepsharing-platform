@@ -9,7 +9,7 @@
 // On finish, shows WinScreen with the entry form that POSTs to GHL.
 
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Trophy, CheckCircle2, ChevronRight, FastForward, Clock, Flame } from 'lucide-react'
+import { Trophy, CheckCircle2, ChevronRight, FastForward, Clock, Flame, Lightbulb, Sparkles } from 'lucide-react'
 import type {
   GameDefinition, Difficulty,
   ScramblePayload, TriviaPayload, EmojiPayload, MathPayload,
@@ -315,6 +315,17 @@ function GuessAndCheck({
   const [attempts, setAttempts] = useState(0)
   const [error, setError]       = useState(false)
   const [passed, setPassed]     = useState<number[]>([])
+  // Celebration moment — when correct, we briefly show what the player
+  // typed in the signature color with a sparkle + a confetti burst
+  // before advancing. Adds the "feels good when I'm right" beat the
+  // game was missing.
+  const [celebrating, setCelebrating] = useState<string | null>(null)
+  // Three hints per WHOLE game session (not per round). Each hint
+  // reveals one previously-unrevealed letter of the current answer.
+  // Hint count persists across rounds; revealed-positions resets per
+  // round.
+  const [hintsLeft,        setHintsLeft]        = useState(3)
+  const [revealedPositions, setRevealedPositions] = useState<Set<number>>(new Set())
 
   // Ref (not state) so we can read latest values synchronously when building
   // the share grid at the moment of finish.
@@ -340,7 +351,8 @@ function GuessAndCheck({
   function normalize(s: string) { return caseSensitive ? s.trim() : s.trim().toUpperCase() }
 
   function advance() {
-    setAttempts(0); setError(false); setGuess('')
+    setAttempts(0); setError(false); setGuess(''); setCelebrating(null)
+    setRevealedPositions(new Set())  // hints carry over, reveals don't
     if (idx + 1 < prompts.length) {
       setIdx(idx + 1)
     } else if (passed.length > 0) {
@@ -353,13 +365,38 @@ function GuessAndCheck({
     }
   }
 
+  /** Small confetti burst from the bottom corners — celebratory but
+   *  not over the top, matched to the game's signature color so each
+   *  game's "right answer" beat feels distinct. Skipped on reduced
+   *  motion. */
+  function celebrationBurst() {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    void import('canvas-confetti').then(mod => {
+      const confetti = mod.default
+      const color = signatureBg ?? '#ef6442'
+      const common: import('canvas-confetti').Options = {
+        spread: 50, startVelocity: 38, ticks: 140,
+        colors: [color, '#FFFFFF', '#FFD580'],
+        zIndex: 9999,
+      }
+      confetti({ ...common, particleCount: 30, origin: { x: 0.25, y: 0.7 }, angle: 70 })
+      confetti({ ...common, particleCount: 30, origin: { x: 0.75, y: 0.7 }, angle: 110 })
+    }).catch(() => {/* fallback: no confetti, no crash */})
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!current) return
     if (normalize(guess) === normalize(current.answer)) {
       record(idx, 'ok')
+      // Show celebration with the answer in signature color, fire
+      // confetti, then advance. The player FINALLY sees what they
+      // typed reflected back — that was the missing beat.
+      setCelebrating(current.answer)
+      celebrationBurst()
       onCorrect()
-      advance()
+      setTimeout(advance, 1400)
     } else {
       const next = attempts + 1
       setAttempts(next)
@@ -376,12 +413,64 @@ function GuessAndCheck({
     record(idx, 'pass')
     setPassed(p => [...p, idx])
     setAttempts(0); setError(false); setGuess('')
+    setRevealedPositions(new Set())
     if (idx + 1 < prompts.length) {
       setIdx(idx + 1)
     } else {
       // End of list — start cycling passed words
       onFinish({ shareGrid: buildGrid() })
     }
+  }
+
+  /** Reveal one unrevealed letter of the current answer. Pick a
+   *  position uniformly at random from positions not already revealed
+   *  AND not whitespace. Decrements the global hints counter. */
+  function useHint() {
+    if (!current || hintsLeft <= 0 || celebrating) return
+    const ans = current.answer
+    const candidates: number[] = []
+    for (let i = 0; i < ans.length; i++) {
+      if (revealedPositions.has(i)) continue
+      if (/\s/.test(ans[i])) continue
+      candidates.push(i)
+    }
+    if (candidates.length === 0) return
+    const pick = candidates[Math.floor(Math.random() * candidates.length)]
+    setRevealedPositions(prev => {
+      const next = new Set(prev)
+      next.add(pick)
+      return next
+    })
+    setHintsLeft(h => h - 1)
+  }
+
+  /** Skeleton-with-revealed-letters display for the current answer.
+   *  Renders only when at least one position has been revealed via
+   *  the Hint button. Revealed letters use the signature color so
+   *  they read as "helpful" not "given away". */
+  function HintSkeleton() {
+    if (!current || revealedPositions.size === 0) return null
+    const chars = current.answer.split('')
+    return (
+      <div className="mb-4 flex items-center justify-center gap-1.5 select-none" aria-label="Hint">
+        {chars.map((ch, i) => {
+          if (/\s/.test(ch)) return <span key={i} className="w-2" />
+          const shown = revealedPositions.has(i)
+          return (
+            <span
+              key={i}
+              className="inline-flex items-end justify-center w-7 h-9 md:w-8 md:h-10 text-lg md:text-xl font-black uppercase tracking-tight border-b-2"
+              style={{
+                color: shown ? (signatureBg ?? 'inherit') : 'transparent',
+                borderColor: shown ? (signatureBg ?? 'currentColor') : 'rgba(0,0,0,0.25)',
+              }}
+            >
+              {shown ? ch : '_'}
+            </span>
+          )
+        })}
+      </div>
+    )
   }
 
   if (finished || !current) return null
@@ -402,13 +491,39 @@ function GuessAndCheck({
         </h2>
         <p className="text-sm text-muted-foreground mb-8">{intro}</p>
 
-        <div
-          key={`${idx}-${attempts}-${error ? 'err' : 'ok'}`}
-          className={`${displayClass} mb-8 select-none ${error ? 'tile-shake' : ''}`}
-          style={signatureBg ? { color: signatureBg } : undefined}
-        >
-          {current.display}
-        </div>
+        {/* ── Celebration moment ────────────────────────────────────
+            When the answer is correct, we briefly replace the prompt
+            with a "Yes!" + the correctly-spelled answer in the
+            signature color. Without this beat the game silently
+            advanced and the player never got to see what they typed
+            reflected back. */}
+        {celebrating ? (
+          <div className="mb-8 flex flex-col items-center justify-center min-h-[120px] md:min-h-[160px]" aria-live="polite">
+            <div className="inline-flex items-center gap-2 text-base md:text-lg font-bold mb-2" style={{ color: signatureBg ?? 'inherit' }}>
+              <Sparkles className="h-5 w-5" /> Yes!
+            </div>
+            <div
+              className="text-4xl md:text-5xl font-black uppercase tracking-tight celebrate-pop"
+              style={{ color: signatureBg ?? 'inherit' }}
+            >
+              {celebrating}
+            </div>
+          </div>
+        ) : (
+          <div
+            key={`${idx}-${attempts}-${error ? 'err' : 'ok'}`}
+            className={`${displayClass} mb-8 select-none ${error ? 'tile-shake' : ''}`}
+            style={signatureBg ? { color: signatureBg } : undefined}
+          >
+            {current.display}
+          </div>
+        )}
+
+        {/* Hint skeleton only renders when the player has spent at
+            least one hint on this round. Sits above the input so the
+            revealed letters guide their typing without crowding the
+            form. */}
+        {!celebrating && <HintSkeleton />}
 
         <form onSubmit={submit} className="max-w-sm mx-auto space-y-3">
           <input
@@ -417,7 +532,7 @@ function GuessAndCheck({
             value={guess}
             onChange={e => setGuess(caseSensitive ? e.target.value : e.target.value.toUpperCase())}
             placeholder="Type your answer…"
-            disabled={attempts >= maxAttempts}
+            disabled={attempts >= maxAttempts || !!celebrating}
             className={`w-full text-center text-lg font-bold uppercase px-4 py-3 rounded-xl border-2 outline-none transition-colors ${
               error
                 ? 'border-rose-400 bg-rose-50'
@@ -429,18 +544,32 @@ function GuessAndCheck({
               {attempts >= maxAttempts ? 'Here is the answer! Moving on…' : `Not quite — try again (${attempts} of ${maxAttempts})`}
             </p>
           )}
+          {/* Action row — Hint / Pass / Submit. Hint sits to the LEFT
+              so the eye sweeps Hint → Pass → Submit in order of
+              increasing commitment. */}
           <div className="flex gap-2">
             <button
               type="button"
+              onClick={useHint}
+              disabled={hintsLeft <= 0 || attempts >= maxAttempts || !!celebrating}
+              title={hintsLeft > 0 ? `Reveal a letter (${hintsLeft} of 3 left)` : 'No hints left'}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-3 text-xs font-semibold rounded-xl border border-border bg-card hover:bg-muted/40 disabled:opacity-40 whitespace-nowrap"
+            >
+              <Lightbulb className="h-4 w-4" />
+              <span className="hidden sm:inline">Hint</span>
+              <span className="tabular-nums">{hintsLeft}</span>
+            </button>
+            <button
+              type="button"
               onClick={pass}
-              disabled={attempts >= maxAttempts}
+              disabled={attempts >= maxAttempts || !!celebrating}
               className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold rounded-xl border border-border bg-card hover:bg-muted/40 disabled:opacity-40"
             >
               <FastForward className="h-4 w-4" /> Pass
             </button>
             <button
               type="submit"
-              disabled={attempts >= maxAttempts || !guess.trim()}
+              disabled={attempts >= maxAttempts || !guess.trim() || !!celebrating}
               className="flex-[2] inline-flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-opacity"
               style={signatureBg
                 ? { backgroundColor: signatureBg, color: signatureFg ?? 'white' }
@@ -462,6 +591,24 @@ function GuessAndCheck({
           {labelOfRound} {idx + 1} of {prompts.length}
         </p>
       </div>
+
+      {/* Inline celebration-pop animation. Defined here (not globals.css)
+          so the game stays self-contained and other surfaces can't drift
+          out of sync. */}
+      <style>{`
+        @keyframes celebratePop {
+          0%   { transform: scale(0.7); opacity: 0; }
+          40%  { transform: scale(1.15); opacity: 1; }
+          70%  { transform: scale(0.97); }
+          100% { transform: scale(1); }
+        }
+        .celebrate-pop {
+          animation: celebratePop 480ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .celebrate-pop { animation: none; }
+        }
+      `}</style>
     </div>
   )
 }
@@ -474,12 +621,19 @@ function TriviaPlayer({
   const [idx, setIdx]           = useState(0)
   const [attempts, setAttempts] = useState(0)
   const [picked, setPicked]     = useState<string | null>(null)
+  // Three hints per session — each click eliminates one wrong answer
+  // (50/50-style mechanic that families recognize from game shows).
+  // Per-round eliminations don't persist across rounds, but the hints
+  // counter does.
+  const [hintsLeft,     setHintsLeft]     = useState(3)
+  const [eliminated,    setEliminated]    = useState<Set<string>>(new Set())
+  // Celebration moment on correct answer — fires confetti + briefly
+  // shows a "Got it!" banner before advancing. The existing 600ms
+  // timing already gave a beat; now that beat is visible.
+  const [celebrating,   setCelebrating]   = useState(false)
   const outcomesRef = useRef<('ok' | 'fail')[]>([])
   const current = rounds[idx]
   const maxAttempts = 2
-  // Signature theming for Trivia (commit 6591af9 added it for the other
-  // games but missed Trivia + Word Search + Memory; this fixes the parity
-  // gap. Falls back gracefully when props are undefined.)
   const titleStyle = signatureBg ? { color: signatureBg } : undefined
   const tileBgStyle = signatureTile ? { backgroundColor: signatureTile } : undefined
 
@@ -492,13 +646,32 @@ function TriviaPlayer({
 
   if (!current) return null
 
+  function celebrationBurst() {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    void import('canvas-confetti').then(mod => {
+      const confetti = mod.default
+      const color = signatureBg ?? '#ef6442'
+      const common: import('canvas-confetti').Options = {
+        spread: 50, startVelocity: 38, ticks: 140,
+        colors: [color, '#FFFFFF', '#FFD580'],
+        zIndex: 9999,
+      }
+      confetti({ ...common, particleCount: 30, origin: { x: 0.25, y: 0.7 }, angle: 70 })
+      confetti({ ...common, particleCount: 30, origin: { x: 0.75, y: 0.7 }, angle: 110 })
+    }).catch(() => {/* no-op */})
+  }
+
   function pick(opt: string) {
-    if (attempts >= maxAttempts || picked) return
+    if (attempts >= maxAttempts || picked || celebrating) return
+    if (eliminated.has(opt)) return  // can't pick a hinted-away wrong answer
     setPicked(opt)
     if (opt === current.a) {
       outcomesRef.current[idx] = 'ok'
+      setCelebrating(true)
+      celebrationBurst()
       onCorrect()
-      setTimeout(advance, 600)
+      setTimeout(advance, 1100)
     } else {
       const next = attempts + 1
       setAttempts(next)
@@ -512,9 +685,26 @@ function TriviaPlayer({
   }
 
   function advance() {
-    setAttempts(0); setPicked(null)
+    setAttempts(0); setPicked(null); setCelebrating(false)
+    setEliminated(new Set())  // hints carry over, eliminations don't
     if (idx + 1 < rounds.length) setIdx(idx + 1)
     else onFinish({ shareGrid: buildGrid() })
+  }
+
+  /** Eliminate one wrong answer that hasn't already been eliminated
+   *  or picked. Picks uniformly at random so the same hint doesn't
+   *  always give away the same option. */
+  function useHint() {
+    if (hintsLeft <= 0 || celebrating || picked || attempts >= maxAttempts) return
+    const wrongs = current.options.filter(o => o !== current.a && !eliminated.has(o))
+    if (wrongs.length === 0) return
+    const drop = wrongs[Math.floor(Math.random() * wrongs.length)]
+    setEliminated(prev => {
+      const next = new Set(prev)
+      next.add(drop)
+      return next
+    })
+    setHintsLeft(h => h - 1)
   }
 
   return (
@@ -526,26 +716,59 @@ function TriviaPlayer({
         >
           Parenting Trivia
         </h2>
-        <p className="text-sm text-muted-foreground mb-8 text-center">Test your knowledge!</p>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Test your knowledge!</p>
+
+        {/* Hint row — sits above the question card so the player sees
+            their remaining hints at all times. Right-aligned so it
+            doesn't compete with the question content. */}
+        <div className="flex items-center justify-end mb-3">
+          <button
+            type="button"
+            onClick={useHint}
+            disabled={hintsLeft <= 0 || celebrating || picked !== null || attempts >= maxAttempts}
+            title={hintsLeft > 0 ? `Eliminate one wrong answer (${hintsLeft} of 3 left)` : 'No hints left'}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-border bg-card hover:bg-muted/40 disabled:opacity-40 whitespace-nowrap"
+          >
+            <Lightbulb className="h-3.5 w-3.5" />
+            Hint <span className="tabular-nums opacity-70">{hintsLeft}</span>
+          </button>
+        </div>
 
         <div className="bg-muted/40 border border-border/60 rounded-2xl px-6 py-6 mb-6">
           <h3 className="text-lg md:text-xl font-bold text-foreground leading-snug">{current.q}</h3>
         </div>
+
+        {/* Celebration banner — only renders when a correct answer
+            was just picked, in the brief beat before advancing. */}
+        {celebrating && (
+          <div
+            className="mb-4 inline-flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl font-bold celebrate-pop"
+            style={{
+              color: signatureBg ?? 'inherit',
+              backgroundColor: signatureTile ?? 'rgba(0,0,0,0.04)',
+            }}
+            aria-live="polite"
+          >
+            <Sparkles className="h-5 w-5" /> Got it! That&apos;s the right answer.
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-3">
           {current.options.map(opt => {
             const isPicked      = picked === opt
             const isCorrectShow = picked && opt === current.a
             const isWrong       = isPicked && !isCorrectShow
+            const isEliminated  = eliminated.has(opt)
             return (
               <button
                 key={opt}
                 onClick={() => pick(opt)}
-                disabled={attempts >= maxAttempts || picked !== null}
+                disabled={attempts >= maxAttempts || picked !== null || isEliminated}
                 style={isCorrectShow && signatureBg ? { borderColor: signatureBg, backgroundColor: signatureTile, color: signatureFg } : undefined}
                 className={`px-4 py-4 rounded-xl border-2 text-left text-base font-semibold transition-colors ${
                   isCorrectShow ? 'tile-pop'                                       :
                   isWrong       ? 'border-rose-400 bg-rose-50 text-rose-900 tile-shake' :
+                  isEliminated  ? 'border-border bg-muted/20 text-muted-foreground line-through opacity-50 cursor-not-allowed' :
                                   'border-border bg-card hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50'
                 }`}
               >
@@ -559,6 +782,23 @@ function TriviaPlayer({
           Question {idx + 1} of {rounds.length}
         </p>
       </div>
+
+      {/* Shares the celebrate-pop keyframe with GuessAndCheck — keeps
+          the beat consistent across games. */}
+      <style>{`
+        @keyframes celebratePop {
+          0%   { transform: scale(0.7); opacity: 0; }
+          40%  { transform: scale(1.08); opacity: 1; }
+          70%  { transform: scale(0.97); }
+          100% { transform: scale(1); }
+        }
+        .celebrate-pop {
+          animation: celebratePop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .celebrate-pop { animation: none; }
+        }
+      `}</style>
     </div>
   )
 }
