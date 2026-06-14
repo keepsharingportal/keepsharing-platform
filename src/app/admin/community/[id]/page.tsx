@@ -415,19 +415,15 @@ export default async function SubmissionDetailPage({
               <span className="font-medium text-portal-text">{sub.submitter_name}</span>
             </p>
           </div>
-          <div className="shrink-0 flex gap-2">
-            <Link
-              href={`/admin/editorial/approval?id=${id}`}
-              className="px-4 py-2 text-sm font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 transition-opacity"
-              title="Approve channels + publish to homepage"
-            >
-              Approve & Publish →
-            </Link>
+          <div className="shrink-0 flex gap-2 items-center">
+            {/* Approve & Publish moved into the right-column panel.
+               Edit-raw-fields stays as a secondary text link only —
+               that subpage is for typo fixes, not the main workflow. */}
             <Link
               href={`/admin/community/${id}/edit`}
-              className="px-4 py-2 text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg transition-colors"
+              className="text-xs text-portal-muted hover:text-portal-text underline"
             >
-              Edit →
+              Edit raw fields
             </Link>
           </div>
         </div>
@@ -445,25 +441,35 @@ export default async function SubmissionDetailPage({
         {/* ── LEFT COLUMN: Content ────────────────────────────────────── */}
         <div className="flex-1 min-w-[320px] space-y-4">
 
-          {/* Routing / meta */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Routing & Targeting</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: 'Publication', val: sub.target_publication?.toUpperCase() ?? '—' },
-                { label: 'Market',      val: sub.target_market ?? '—'               },
-                { label: 'Source',      val: sub.source_page   ?? '—'               },
-                { label: 'Issue Month', val: sub.issue_month   ?? 'Not set'         },
-                { label: 'Issue Year',  val: sub.issue_year?.toString() ?? 'Not set'},
-                { label: 'Assigned',    val: sub.assigned_to   ?? 'Unassigned'      },
-              ].map(({ label, val }) => (
-                <div key={label}>
-                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">{label}</p>
-                  <p className="text-sm font-medium text-portal-text mt-0.5 truncate">{val}</p>
-                </div>
-              ))}
+          {/* Routing / meta — collapsed by default so the
+              workflow content (Nominator's Submission + Interview +
+              AI Draft) gets above-the-fold real estate. Click to
+              expand when you actually need the routing details. */}
+          <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <summary
+              className="px-5 py-3 text-xs font-bold text-portal-muted cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
+              style={{ listStyle: 'none' }}
+            >
+              ▸ Routing &amp; targeting · {sub.target_publication?.toUpperCase() ?? '—'} · {sub.issue_month ?? 'no month set'}
+            </summary>
+            <div className="px-5 pb-4 pt-1">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Publication', val: sub.target_publication?.toUpperCase() ?? '—' },
+                  { label: 'Market',      val: sub.target_market ?? '—'               },
+                  { label: 'Source',      val: sub.source_page   ?? '—'               },
+                  { label: 'Issue Month', val: sub.issue_month   ?? 'Not set'         },
+                  { label: 'Issue Year',  val: sub.issue_year?.toString() ?? 'Not set'},
+                  { label: 'Assigned',    val: sub.assigned_to   ?? 'Unassigned'      },
+                ].map(({ label, val }) => (
+                  <div key={label}>
+                    <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">{label}</p>
+                    <p className="text-sm font-medium text-portal-text mt-0.5 truncate">{val}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </details>
 
           {/* Submitter */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
@@ -529,7 +535,12 @@ export default async function SubmissionDetailPage({
                     </div>
                     {missingRequired.length > 0 && (
                       <div className="alert alert-warning" style={{ marginTop: 16, fontSize: 11 }}>
-                        Missing required from the nominator: {missingRequired.map((f: SubmissionField) => f.label).join(', ')}
+                        <strong>Missing required from the nominator:</strong>
+                        <ul style={{ marginTop: 6, paddingLeft: 18, lineHeight: 1.6 }}>
+                          {missingRequired.map((f: SubmissionField) => (
+                            <li key={f.id}>{f.label}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </>
@@ -710,19 +721,10 @@ export default async function SubmissionDetailPage({
                 </div>
               )}
 
-              {/* Mark Ready for Editorial Pipeline */}
-              {['ready', 'edited'].includes(sub.ai_draft_status) && (
-                <div className="px-5 pb-5 pt-1">
-                  <form action={markReadyForEditorial}>
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-green hover:bg-portal-green transition-colors"
-                    >
-                      ✓ Mark Ready for Editorial Pipeline
-                    </button>
-                  </form>
-                </div>
-              )}
+              {/* The legacy "Mark Ready for Editorial Pipeline" button
+                  was removed — the right-column NextActionPanel now
+                  drives every phase transition. Eliminates the
+                  two-buttons-doing-similar-things confusion. */}
             </div>
           )}
 
@@ -836,202 +838,115 @@ export default async function SubmissionDetailPage({
             </form>
           </div>
 
-          {/* Assignment */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Assignment</h2>
-            <form action={saveAssignment} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-portal-sub mb-1">Assigned To</label>
-                <input
-                  name="assigned_to"
-                  defaultValue={sub.assigned_to ?? ''}
-                  placeholder="Operator name or email"
-                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-portal-sub mb-1">Priority</label>
-                <select
-                  name="internal_priority"
-                  defaultValue={sub.internal_priority}
-                  className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
-                >
-                  <option value="low">Low</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+          {/* Assignment + Publishing Destination collapsed into ONE
+              metadata accordion. Both are reference info — the
+              editor doesn't need to look at them on every visit, but
+              they need to be findable. Default-collapsed so the
+              right column shows just the 4 action cards above. */}
+          <details className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <summary
+              className="px-5 py-3 text-xs font-bold text-portal-muted cursor-pointer hover:bg-portal-bg uppercase tracking-wide select-none"
+              style={{ listStyle: 'none' }}
+            >
+              ▸ Assignment &amp; destination
+              {sub.assigned_to && <span className="text-portal-text normal-case ml-2">· {sub.assigned_to}</span>}
+              {publishDest && <span className="text-portal-muted normal-case ml-2">· {publishDest.destination}</span>}
+            </summary>
+            <div className="px-5 pb-4 pt-1 space-y-4">
+
+              <form action={saveAssignment} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Month</label>
-                  <select
-                    name="issue_month"
-                    defaultValue={sub.issue_month ?? ''}
-                    className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
-                  >
-                    <option value="">—</option>
-                    {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Year</label>
+                  <label className="block text-xs font-semibold text-portal-sub mb-1">Assigned To</label>
                   <input
-                    name="issue_year"
-                    type="number"
-                    defaultValue={sub.issue_year ?? ''}
-                    placeholder="2026"
+                    name="assigned_to"
+                    defaultValue={sub.assigned_to ?? ''}
+                    placeholder="Operator name or email"
                     className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                   />
                 </div>
-              </div>
-              <button
-                type="submit"
-                className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy transition-colors"
-              >
-                Save Assignment
-              </button>
-            </form>
-          </div>
-
-          {/* Publishing destination */}
-          {publishDest && (
-            <div className="bg-white border border-portal-border rounded-lg p-5">
-              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Publishing Destination</h2>
-              <div className="space-y-3">
                 <div>
-                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Destination</p>
-                  <p className="text-sm font-semibold text-portal-text mt-0.5">{publishDest.destination}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold text-portal-muted uppercase tracking-wide">Section</p>
-                  <p className="text-sm text-portal-text mt-0.5">{publishDest.section}</p>
-                </div>
-                <div className="flex gap-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-row-hover text-portal-muted'
-                  }`}>
-                    {publishDest.print ? '✓ Print' : '— Print'}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-row-hover text-portal-muted'
-                  }`}>
-                    {publishDest.digital ? '✓ Digital' : '— Digital'}
-                  </span>
-                </div>
-                <p className="text-xs text-portal-sub leading-relaxed">{publishDest.notes}</p>
-                {sub.published_url && (
-                  <a href={sub.published_url} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-portal-blue hover:underline font-medium">
-                    View Published →
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* AI Assist */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">AI Assist</h2>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                sub.ai_draft_status === 'none'        ? 'bg-portal-row-hover text-portal-muted'
-                : sub.ai_draft_status === 'ready'     ? 'bg-portal-blue-lt text-portal-blue'
-                : sub.ai_draft_status === 'edited'    ? 'bg-portal-green-lt text-portal-green'
-                : sub.ai_draft_status === 'needs_info'? 'bg-portal-amber-lt text-portal-amber'
-                : sub.ai_draft_status === 'generating'? 'bg-portal-blue-lt text-portal-blue'
-                : sub.ai_draft_status === 'failed'    ? 'bg-portal-red-lt text-portal-red'
-                : 'bg-portal-row-hover text-portal-sub'
-              }`}>
-                {DRAFT_STATUS_LABELS[sub.ai_draft_status] ?? sub.ai_draft_status}
-              </span>
-            </div>
-
-            {/* Generate / Regenerate */}
-            <form action={generateDraft} className="mb-2">
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-portal-blue hover:bg-portal-navy transition-colors"
-              >
-                {sub.ai_draft_status === 'none' ? '✍️  Generate Draft' : '↺  Regenerate Draft'}
-              </button>
-            </form>
-
-            {/* Secondary actions when a draft exists */}
-            {['ready', 'edited', 'needs_info', 'failed'].includes(sub.ai_draft_status) && (
-              <div className="flex gap-2 mb-3">
-                {sub.status !== 'in-editing' && (
-                  <form action={markForEditing} className="flex-1">
-                    <button
-                      type="submit"
-                      className="w-full py-1.5 text-xs font-semibold border border-portal-border rounded-lg text-portal-text hover:bg-portal-bg transition-colors"
-                    >
-                      → Move to Editing
-                    </button>
-                  </form>
-                )}
-                <form action={clearDraft}>
-                  <button
-                    type="submit"
-                    className="py-1.5 px-3 text-xs font-semibold border border-portal-red/30 rounded-lg text-portal-red hover:bg-portal-red-lt transition-colors"
+                  <label className="block text-xs font-semibold text-portal-sub mb-1">Priority</label>
+                  <select
+                    name="internal_priority"
+                    defaultValue={sub.internal_priority}
+                    className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
                   >
-                    Clear
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Generating indicator */}
-            {sub.ai_draft_status === 'generating' && (
-              <p className="text-xs text-portal-blue text-center py-1 mb-2">Generating draft…</p>
-            )}
-
-            {/* Future AI features */}
-            <div className="space-y-1.5 border-t border-gray-50 pt-3">
-              {[
-                { icon: '💡', label: 'Suggest Headline' },
-                { icon: '📱', label: 'Write Social Caption' },
-                { icon: '📧', label: 'Request Missing Info Email' },
-              ].map(item => (
-                <button
-                  key={item.label}
-                  disabled
-                  className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border border-portal-border text-xs text-portal-muted cursor-not-allowed"
-                >
-                  <span>{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
-                  <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* GHL future */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">GHL Workflow</h2>
-            <p className="text-[11px] text-portal-muted mb-3">Future automation — not yet wired.</p>
-            <div className="space-y-1.5">
-              {[
-                { icon: '💌', label: 'Send Thank-You',         sent: sub.thank_you_sent_at },
-                { icon: '📋', label: 'Request Missing Info',   sent: sub.follow_up_sent_at },
-                { icon: '🎉', label: 'Notify When Published',  sent: sub.published_notice_sent_at },
-                { icon: '🔗', label: 'Send Share Link',        sent: null },
-              ].map(item => (
-                <div key={item.label} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-portal-border">
-                  <span className="text-base">{item.icon}</span>
-                  <span className="text-xs text-portal-sub flex-1">{item.label}</span>
-                  {item.sent ? (
-                    <span className="text-[10px] text-portal-green font-semibold">Sent</span>
-                  ) : (
-                    <span className="text-[10px] bg-portal-row-hover text-portal-muted px-1.5 py-0.5 rounded font-medium">Soon</span>
-                  )}
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
                 </div>
-              ))}
-              {sub.ghl_contact_id && (
-                <p className="text-[10px] text-portal-muted mt-1 px-1">GHL: {sub.ghl_contact_id}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Month</label>
+                    <select
+                      name="issue_month"
+                      defaultValue={sub.issue_month ?? ''}
+                      className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
+                    >
+                      <option value="">—</option>
+                      {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-portal-sub mb-1">Issue Year</label>
+                    <input
+                      name="issue_year"
+                      type="number"
+                      defaultValue={sub.issue_year ?? ''}
+                      placeholder="2026"
+                      className="w-full text-sm border border-portal-border rounded-lg px-3 py-2 outline-none focus:border-portal-blue transition-colors"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="text-xs px-4 py-2 bg-portal-navy text-white rounded-lg font-semibold hover:bg-portal-navy transition-colors"
+                >
+                  Save assignment
+                </button>
+                <p className="text-[10px] text-portal-muted">
+                  Tip: for final scheduling, use{' '}
+                  <a href="/admin/pending" className="text-portal-blue hover:underline">Pending Pool</a>{' '}
+                  — this assignment form is for editorial planning notes only.
+                </p>
+              </form>
+
+              {publishDest && (
+                <div style={{ borderTop: '1px solid var(--color-portal-border)', paddingTop: 14 }}>
+                  <div className="text-xs fw-700" style={{ color: 'var(--color-portal-sub)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
+                    Publishing destination
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] font-semibold text-portal-muted uppercase">Destination</p>
+                      <p className="text-sm font-semibold text-portal-text">{publishDest.destination} <span className="text-portal-muted font-normal">· {publishDest.section}</span></p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${publishDest.print ? 'bg-portal-blue-lt text-portal-blue' : 'bg-portal-row-hover text-portal-muted'}`}>
+                        {publishDest.print ? '✓ Print' : '— Print'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${publishDest.digital ? 'bg-portal-green-lt text-portal-green' : 'bg-portal-row-hover text-portal-muted'}`}>
+                        {publishDest.digital ? '✓ Digital' : '— Digital'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-portal-sub leading-relaxed">{publishDest.notes}</p>
+                    {sub.published_url && (
+                      <a href={sub.published_url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-portal-blue hover:underline font-medium">
+                        View published →
+                      </a>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-          </div>
+          </details>
+
+          {/* Old AI Assist + GHL Workflow cards deleted — duplicates of
+             AIDraftPanel (right column, top) and same dead-promise
+             "Soon" buttons we already cleaned up on Distribution. */}
 
         </div>
       </div>

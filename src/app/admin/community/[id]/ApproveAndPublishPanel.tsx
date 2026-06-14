@@ -130,15 +130,23 @@ export function ApproveAndPublishPanel({
           </div>
         ))}
 
-        {/* Approve All shortcut */}
-        {!approved.web && !approved.newsletter && !approved.social && (
+        {/* Approve-the-rest shortcut. Hides when all three channels
+            are already on (nothing left to do) — previously it
+            also hid when only ONE was approved, leaving the editor
+            with no quick way to flip the other two. Now visible
+            whenever at least one channel is still off. */}
+        {!(approved.web && approved.newsletter && approved.social) && (
           <button
             type="button"
-            onClick={() => toggleChannel('web', true).then(() => toggleChannel('newsletter', true)).then(() => toggleChannel('social', true))}
+            onClick={async () => {
+              if (!approved.web)        await toggleChannel('web', true)
+              if (!approved.newsletter) await toggleChannel('newsletter', true)
+              if (!approved.social)     await toggleChannel('social', true)
+            }}
             disabled={!!busy}
             className="w-full py-2 rounded-lg text-xs font-bold text-white bg-portal-navy hover:opacity-90 transition-opacity"
           >
-            ✓ Approve all channels
+            ✓ Approve {!approved.web && !approved.newsletter && !approved.social ? 'all channels' : 'remaining channels'}
           </button>
         )}
 

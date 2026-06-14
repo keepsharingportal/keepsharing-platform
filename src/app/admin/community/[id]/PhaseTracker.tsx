@@ -42,12 +42,47 @@ export function PhaseTracker({ currentPhase, needsOutreach }: Props) {
   }
 
   return (
-    <div className="card">
+    <div className="card" style={{ background: 'linear-gradient(180deg, var(--color-portal-bg) 0%, white 80%)' }}>
+
+      {/* Dominant current-phase callout — what phase + the editor's
+          decision context, large and high-contrast so it's the first
+          thing the eye lands on. */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: 12,
+        padding: '4px 0 12px',
+        borderBottom: '1px solid var(--color-portal-border)',
+        marginBottom: 12,
+      }}>
+        <div
+          style={{
+            background: toneColor(currentConfig.tone),
+            color: 'white',
+            padding: '6px 12px',
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '.6px',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {currentConfig.label}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="text-sm" style={{ color: 'var(--color-portal-text)', lineHeight: 1.4 }}>
+            {currentConfig.description}
+          </div>
+        </div>
+      </div>
+
+      {/* Tracker — past phases checked, current phase highlighted,
+          future phases faded. Larger labels + bigger pills so it's
+          actually readable at a glance. */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${stages.length}, 1fr)`,
-        gap: 2,
-        marginBottom: 12,
+        gap: 3,
       }}>
         {stages.map((p, idx) => {
           const config = PHASES[p]
@@ -55,22 +90,23 @@ export function PhaseTracker({ currentPhase, needsOutreach }: Props) {
           const isCurrent = idx === currentIdx
           const tone      = toneColor(config.tone)
           return (
-            <div key={p} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div key={p} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
               <div
                 title={config.label}
                 style={{
                   width: '100%',
-                  height: 6,
-                  borderRadius: 3,
-                  background: isPast || isCurrent ? tone : 'var(--color-portal-border)',
-                  opacity: isCurrent ? 1 : isPast ? 0.6 : 0.4,
+                  height: 8,
+                  borderRadius: 4,
+                  background: isCurrent ? tone : isPast ? 'var(--color-portal-green)' : 'var(--color-portal-border)',
+                  opacity: isCurrent ? 1 : isPast ? 0.85 : 0.5,
+                  border: isCurrent ? `1px solid ${tone}` : 'none',
                 }}
               />
               <div
                 style={{
-                  fontSize: 9,
-                  fontWeight: isCurrent ? 800 : 500,
-                  color: isCurrent ? tone : 'var(--color-portal-muted)',
+                  fontSize: 10,
+                  fontWeight: isCurrent ? 800 : isPast ? 600 : 500,
+                  color: isCurrent ? tone : isPast ? 'var(--color-portal-text)' : 'var(--color-portal-muted)',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -78,23 +114,18 @@ export function PhaseTracker({ currentPhase, needsOutreach }: Props) {
                   maxWidth: '100%',
                   textTransform: 'uppercase',
                   letterSpacing: '.3px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2,
                 }}
               >
-                {isPast && <Check size={8} style={{ display: 'inline', marginRight: 2 }} />}
+                {isPast && <Check size={9} color="var(--color-portal-green)" strokeWidth={3} />}
                 {config.shortLabel}
               </div>
             </div>
           )
         })}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-        <span
-          className="badge"
-          style={{ background: toneColor(currentConfig.tone), color: 'white' }}
-        >
-          Phase: {currentConfig.label}
-        </span>
-        <span className="text-muted text-xs">{currentConfig.description}</span>
       </div>
     </div>
   )
