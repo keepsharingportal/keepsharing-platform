@@ -420,10 +420,27 @@ export default async function DistributionPage({
 
   if (filterPub) itemsQuery = itemsQuery.eq('target_publication', filterPub)
 
+  // Pipeline counts — the page was silently empty before because items
+  // sit at status='new' (and earlier stages) until an editor explicitly
+  // approves them. Surfacing the count at each stage shows exactly
+  // where the bottleneck is so we can fix it upstream instead of
+  // staring at a 0 here.
+  let pipelineQuery = supabase
+    .from('community_submissions')
+    .select('status')
+    .in('status', [
+      'new', 'needs-review', 'awaiting-info', 'in-progress',
+      'ready-for-ai', 'ai-draft-ready', 'in-editing',
+      'approved', 'scheduled',
+    ])
+    .limit(2000)
+  if (filterPub) pipelineQuery = pipelineQuery.eq('target_publication', filterPub)
+
   const [
     { data: rawItems },
     { data: rawSponsors },
     { data: rawArticleStats },
+    { data: rawPipeline },
   ] = await Promise.all([
     itemsQuery,
     supabase
@@ -437,10 +454,32 @@ export default async function DistributionPage({
       .eq('published', true)
       .order('created_at', { ascending: false })
       .limit(500),
+    pipelineQuery,
   ])
 
   const items    = (rawItems    ?? []) as unknown as SubmissionRow[]
   const sponsors = (rawSponsors ?? []) as SponsorRow[]
+
+  // ── Pipeline funnel (upstream visibility) ────────────────────────────────
+  // Count by status across the full pipeline so an editor opening this
+  // page knows the queue is empty *because* 12 items are stuck at
+  // needs-review, not because nothing was submitted.
+  const pipelineCounts = new Map<string, number>()
+  for (const row of (rawPipeline ?? []) as Array<{ status: string }>) {
+    pipelineCounts.set(row.status, (pipelineCounts.get(row.status) ?? 0) + 1)
+  }
+  const pipelineStages = [
+    { key: 'new',            label: 'New',           desc: 'Just submitted, not reviewed' },
+    { key: 'needs-review',   label: 'Needs Review',  desc: 'Awaiting editor triage' },
+    { key: 'awaiting-info',  label: 'Awaiting Info', desc: 'Replied to submitter, waiting' },
+    { key: 'in-progress',    label: 'In Progress',   desc: 'Editor actively working' },
+    { key: 'ready-for-ai',   label: 'Ready for AI',  desc: 'Queued for AI drafting' },
+    { key: 'ai-draft-ready', label: 'AI Drafted',    desc: 'AI draft, awaiting human review' },
+    { key: 'in-editing',     label: 'In Editing',    desc: 'Editor refining draft' },
+    { key: 'approved',       label: 'Approved',      desc: 'Ready to deploy here' },
+    { key: 'scheduled',      label: 'Scheduled',     desc: 'Assigned to specific issue' },
+  ] as const
+  const pipelineTotal = pipelineStages.reduce((s, st) => s + (pipelineCounts.get(st.key) ?? 0), 0)
 
   // Guide article stats by slug
   const guideArticleMap = new Map<string, GuideArticleStat>()
@@ -512,57 +551,119 @@ export default async function DistributionPage({
   }
 
   return (
-    <main className="p-6 max-w-[1100px] mx-auto space-y-6 pb-16">
+    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
 
-      {/* ── HEADER ──────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-portal-text tracking-tight">Distribution & Amplification</h1>
-          <p className="text-sm text-portal-sub mt-0.5">
-            Strategic content deployment — homepage, newsletter, social, guides, and sponsors.
-          </p>
+          <h1 className="ph-title">Content Deployment</h1>
+          <div className="text-muted text-sm">
+            One desk for routing every approved story to homepage, newsletter, social, guides, and sponsors.
+          </div>
         </div>
-        <Link href="/admin/editorial" className="text-xs px-3 py-2 rounded-lg border border-portal-border text-portal-sub hover:bg-portal-bg font-medium shrink-0">
-          ← Editorial Pipeline
-        </Link>
+        <div className="ph-actions">
+          <Link href="/admin/editorial" className="btn btn-ghost btn-sm">← Editorial Pipeline</Link>
+          <Link href="/admin/editorial/approval" className="btn btn-primary btn-sm">Approval Desk →</Link>
+        </div>
       </div>
 
-      {/* ── VIEW TABS ───────────────────────────────────────────────────── */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {VIEWS.map(v => (
-          <Link
-            key={v.key}
-            href={viewHref(v.key)}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              activeView === v.key
-                ? 'bg-portal-navy text-white'
-                : 'bg-white border border-portal-border text-portal-sub hover:bg-portal-bg'
-            }`}
-          >
-            <span>{v.icon}</span>
-            <span>{v.label}</span>
-          </Link>
-        ))}
-      </div>
+      <div className="content-body overflow-y-auto">
 
-      {/* ── HEALTH STRIP — always visible ───────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-        {[
-          { label: 'Ready',        val: items.length,              color: '#374151', href: viewHref('queue')      },
-          { label: 'Homepage',     val: groups.homepage.length,    color: '#c4622d', href: viewHref('homepage')   },
-          { label: 'Newsletter',   val: groups.newsletter.length,  color: '#0284c7', href: viewHref('newsletter') },
-          { label: 'Social',       val: groups.social.length,      color: '#7c3aed', href: viewHref('social')     },
-          { label: 'Guides',       val: groups.guides.length,      color: '#16a34a', href: viewHref('guides')     },
-          { label: 'Stale HP',     val: staleHomepage.length,      color: '#dc2626', href: viewHref('homepage')   },
-          { label: 'No Image',     val: missingImages.length,      color: '#b8860b', href: viewHref('health')     },
-        ].map(m => (
-          <Link key={m.label} href={m.href}
-            className="bg-white border border-portal-border rounded-lg px-3 py-2.5 hover:border-portal-border transition-colors block">
-            <div className="text-xl font-bold" style={{ color: m.color }}>{m.val}</div>
-            <div className="text-[10px] text-portal-muted mt-0.5 leading-tight">{m.label}</div>
-          </Link>
-        ))}
-      </div>
+        {/* ── PIPELINE FUNNEL ────────────────────────────────────────────
+            Surfaces WHERE submissions are stuck so editors stop wondering
+            why the queue is empty. Each tile links to the right operator
+            queue so they can unblock in one click. */}
+        {pipelineTotal > 0 && (
+          <div className="card mb-4">
+            <div className="card-header">
+              <div>
+                <div className="card-title">Pipeline funnel</div>
+                <div className="text-muted text-xs">{pipelineTotal.toLocaleString()} submissions across the pipeline · click any stage to operate on it</div>
+              </div>
+              <Link href="/admin/editorial/approval" className="btn btn-blue btn-xs">Open Approval Desk</Link>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginTop: 12 }}>
+              {pipelineStages.map(st => {
+                const n   = pipelineCounts.get(st.key) ?? 0
+                const hot = (st.key === 'new' || st.key === 'needs-review') && n > 0
+                const ok  = (st.key === 'approved' || st.key === 'scheduled') && n > 0
+                return (
+                  <Link
+                    key={st.key}
+                    href={`/admin/editorial/approval?status=${st.key}`}
+                    style={{
+                      background: 'white',
+                      border: `1px solid ${hot ? 'var(--color-portal-amber)' : 'var(--color-portal-border)'}`,
+                      borderLeft: `3px solid ${hot ? 'var(--color-portal-amber)' : ok ? 'var(--color-portal-green)' : 'var(--color-portal-border-2)'}`,
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      textDecoration: 'none',
+                      color: 'inherit',
+                      display: 'block',
+                    }}
+                  >
+                    <div style={{ fontSize: 20, fontWeight: 800, color: hot ? 'var(--color-portal-amber)' : ok ? 'var(--color-portal-green)' : 'var(--color-portal-text)', fontFamily: 'ui-monospace,monospace' }}>{n}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{st.label}</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-portal-muted)', marginTop: 1 }}>{st.desc}</div>
+                  </Link>
+                )
+              })}
+            </div>
+            {items.length === 0 && pipelineTotal > 0 && (
+              <div className="alert alert-warning" style={{ marginTop: 14 }}>
+                <strong>Nothing is deployable yet.</strong> {pipelineTotal} submissions exist but none have reached <strong>Approved</strong>.
+                Most likely stuck at <strong>{pipelineStages.find(s => (pipelineCounts.get(s.key) ?? 0) > 0)?.label ?? 'New'}</strong>.
+                Open the <Link href="/admin/editorial/approval" style={{ textDecoration: 'underline' }}>Approval Desk</Link> to move items forward.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── VIEW TABS — portal sub-nav style ───────────────────────────── */}
+        <div className="card" style={{ padding: 0, marginBottom: 14, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', overflowX: 'auto', borderBottom: '1px solid var(--color-portal-border)' }}>
+            {VIEWS.map(v => {
+              const isActive = activeView === v.key
+              return (
+                <Link
+                  key={v.key}
+                  href={viewHref(v.key)}
+                  style={{
+                    padding: '10px 16px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: isActive ? 'var(--color-portal-navy)' : 'var(--color-portal-sub)',
+                    borderBottom: isActive ? '2px solid var(--color-portal-navy)' : '2px solid transparent',
+                    whiteSpace: 'nowrap',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {v.label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── STATS STRIP — portal stat cards ─────────────────────────── */}
+        <div className="stats-row" style={{ marginBottom: 18 }}>
+          {[
+            { label: 'Ready to deploy', val: items.length,              href: viewHref('queue')      },
+            { label: 'Homepage queue',  val: groups.homepage.length,    href: viewHref('homepage')   },
+            { label: 'Newsletter',      val: groups.newsletter.length,  href: viewHref('newsletter') },
+            { label: 'Social ready',    val: groups.social.length,      href: viewHref('social')     },
+            { label: 'Guides',          val: groups.guides.length,      href: viewHref('guides')     },
+            { label: 'Stale homepage',  val: staleHomepage.length,      href: viewHref('homepage'), alert: staleHomepage.length > 0 },
+            { label: 'Missing image',   val: missingImages.length,      href: viewHref('health'),   alert: missingImages.length > 0 },
+          ].map(m => (
+            <Link key={m.label} href={m.href} className="stat-card" style={{ textDecoration: 'none' }}>
+              <div className={`stat-num ${m.alert ? 'has-amber' : ''}`}>{m.val}</div>
+              <div className="stat-label">{m.label}</div>
+            </Link>
+          ))}
+        </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
           VIEW: QUEUE (default)
@@ -940,19 +1041,7 @@ export default async function DistributionPage({
             </p>
           </div>
 
-          {/* AI Future */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Assist — Coming Soon</p>
-            <div className="flex gap-2 flex-wrap">
-              {['Suggest Newsletter Lineup', 'Generate Section Intros', 'Suggest Subject Lines'].map(label => (
-                <button key={label} disabled
-                  className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
-                  {label}
-                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* AI suggestions wired in Phase B */}
         </div>
       )}
 
@@ -1027,17 +1116,7 @@ export default async function DistributionPage({
           )}
 
           {/* AI Future */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Assist — Coming Soon</p>
-            <div className="flex gap-2 flex-wrap">
-              {['Generate Social Captions', 'Identify Viral Potential', 'Suggest Posting Schedule'].map(label => (
-                <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
-                  {label}
-                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* AI social captions wired in Phase C */}
         </div>
       )}
 
@@ -1181,17 +1260,7 @@ export default async function DistributionPage({
           )}
 
           {/* AI Future */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Assist — Coming Soon</p>
-            <div className="flex gap-2 flex-wrap">
-              {['Suggest Sponsor Pairings', 'Identify Coverage Gaps', 'Flag Conflict Risk'].map(label => (
-                <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
-                  {label}
-                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* AI sponsor pairings wired in Phase B */}
         </div>
       )}
 
@@ -1273,21 +1342,11 @@ export default async function DistributionPage({
             ))}
           </div>
 
-          {/* AI Future */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <p className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">AI Assist — Coming Soon</p>
-            <div className="flex gap-2 flex-wrap">
-              {['Suggest Homepage Lineup', 'Flag Under-Amplified Content', 'Identify Seasonal Gaps'].map(label => (
-                <button key={label} disabled className="text-xs px-3 py-1.5 border border-portal-border rounded-lg text-portal-muted cursor-not-allowed flex items-center gap-1.5">
-                  {label}
-                  <span className="text-[10px] bg-portal-row-hover px-1.5 py-0.5 rounded font-medium">Soon</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* AI suggestions slot — wired in Phase B.3 */}
         </div>
       )}
 
-    </main>
+      </div>
+    </div>
   )
 }
