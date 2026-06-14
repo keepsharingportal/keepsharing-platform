@@ -197,6 +197,17 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+/** Convert a snake_case_key into a human-readable label. Used to
+ *  render interview Q&A when the live submission_type_columns config
+ *  isn't loaded on this page (cheap fallback — for the canonical
+ *  labels, the future detail-page rewrite will join the type config). */
+function humanize(key: string): string {
+  return key
+    .split('_')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SubmissionDetailPage({
@@ -479,31 +490,113 @@ export default async function SubmissionDetailPage({
             style={{ borderTop: `4px solid ${accentColor}` }}
           >
             <div className="p-5">
-              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-4">Submission Answers</h2>
-              <div className="space-y-5">
-                {config.fields.map((field: SubmissionField) => {
-                  const answer = sub.payload[field.id]
+              {(() => {
+                // Filter to fields that actually have content. The
+                // original layout showed every field including
+                // blanks — looked like the nominator failed when
+                // most nominators only fill 2-3 of 8 questions.
+                const answered = config.fields.filter((f: SubmissionField) => !!sub.payload[f.id])
+                const missingRequired = config.fields.filter((f: SubmissionField) => f.required && !sub.payload[f.id])
+                if (answered.length === 0) {
                   return (
-                    <div key={field.id}>
-                      <p className="text-xs font-semibold text-portal-sub mb-1">
-                        {field.label}
-                        {field.required && <span className="text-portal-red ml-0.5">*</span>}
+                    <>
+                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominator's Submission</h2>
+                      <p className="text-sm text-portal-muted italic">
+                        The nominator didn&apos;t fill in any optional fields. The basics are in the Submitter section above.
                       </p>
-                      {answer ? (
-                        <p className={`text-sm text-portal-text leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
-                          {answer}
-                        </p>
-                      ) : (
-                        <p className="text-sm italic text-portal-border-2">
-                          {field.required ? 'Not provided — required' : 'Not provided'}
-                        </p>
-                      )}
-                    </div>
+                    </>
                   )
-                })}
-              </div>
+                }
+                return (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Nominator&apos;s Submission</h2>
+                      <span className="text-[10px] text-portal-muted">
+                        {answered.length} of {config.fields.length} field{config.fields.length === 1 ? '' : 's'} answered
+                      </span>
+                    </div>
+                    <div className="space-y-5">
+                      {answered.map((field: SubmissionField) => (
+                        <div key={field.id}>
+                          <p className="text-xs font-semibold text-portal-sub mb-1">
+                            {field.label}
+                          </p>
+                          <p className={`text-sm text-portal-text leading-relaxed ${field.type === 'textarea' ? 'whitespace-pre-wrap' : ''}`}>
+                            {sub.payload[field.id]}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {missingRequired.length > 0 && (
+                      <div className="alert alert-warning" style={{ marginTop: 16, fontSize: 11 }}>
+                        Missing required from the nominator: {missingRequired.map((f: SubmissionField) => f.label).join(', ')}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
             </div>
           </div>
+
+          {/* Nominee Interview — only renders when the nominee has
+              actually submitted their /interview/[token] form. Shows
+              their Q&A responses + their uploaded images so the
+              editor (or the AI drafter) has the full picture. */}
+          {(() => {
+            const responses = (subAny.interview_responses as Record<string, string> | null) ?? {}
+            const images    = (subAny.interview_image_urls as Array<{ url: string; caption?: string }> | null) ?? []
+            const hasAny    = Object.keys(responses).length > 0 || images.length > 0
+            if (!hasAny) {
+              if (currentPhase === 'outreach-sent' || currentPhase === 'interview-sent' || currentPhase === 'nominee-accepted') {
+                return (
+                  <div
+                    className="bg-white border border-portal-border rounded-lg p-5"
+                    style={{ borderLeft: '3px solid var(--color-portal-amber)' }}
+                  >
+                    <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominee Interview</h2>
+                    <p className="text-sm text-portal-muted italic">
+                      Waiting on the nominee&apos;s interview form. {currentPhase === 'interview-sent' ? 'Form was sent — they have the link.' : 'Send the interview form when they accept.'}
+                    </p>
+                  </div>
+                )
+              }
+              return null
+            }
+            return (
+              <div
+                className="bg-white border border-portal-border rounded-lg p-5"
+                style={{ borderLeft: '3px solid var(--color-portal-green)' }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Nominee Interview</h2>
+                  <span className="text-[10px] text-portal-green fw-700">
+                    ✓ Submitted{subAny.interview_submitted_at ? ` ${fmtDate(subAny.interview_submitted_at as string)}` : ''}
+                  </span>
+                </div>
+                <div className="space-y-5">
+                  {Object.entries(responses).map(([key, ans]) => (
+                    <div key={key}>
+                      <p className="text-xs font-semibold text-portal-sub mb-1">{humanize(key)}</p>
+                      <p className="text-sm text-portal-text leading-relaxed whitespace-pre-wrap">{ans}</p>
+                    </div>
+                  ))}
+                </div>
+                {images.length > 0 && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-portal-border)' }}>
+                    <p className="text-xs font-semibold text-portal-sub mb-2">Photos from nominee ({images.length})</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
+                      {images.map((img, i) => (
+                        <a key={i} href={img.url} target="_blank" rel="noopener noreferrer">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img.url} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 6, border: '1px solid var(--color-portal-border)' }} />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Photos */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
@@ -713,104 +806,14 @@ export default async function SubmissionDetailPage({
             initialChangesNote={(sub as unknown as Record<string, unknown>).needs_changes_note as string | null}
           />
 
-          {/* Operator guidance */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Operator Guidance</h2>
-            {guidance.length === 0 ? (
-              <p className="text-sm text-portal-muted">No specific guidance available.</p>
-            ) : (
-              <div className="space-y-2">
-                {guidance.map((g, i) => (
-                  <div key={i} className={`flex gap-2.5 items-start px-3 py-2.5 rounded-lg border text-xs font-medium ${SEV_CLS[g.severity]}`}>
-                    <span className="shrink-0 mt-0.5">{g.icon}</span>
-                    <span className="leading-relaxed">{g.message}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Status workflow */}
-          <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Status Workflow</h2>
-
-            {/* Recommended next — prominent */}
-            {nextStatus && (
-              <form action={updateStatus} className="mb-3">
-                <input type="hidden" name="status" value={nextStatus} />
-                <button
-                  type="submit"
-                  className="w-full py-2.5 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  → {STATUS_CONFIG[nextStatus]?.label}
-                </button>
-              </form>
-            )}
-
-            {/* Full status grid */}
-            <div className="grid grid-cols-2 gap-1.5">
-              {(Object.keys(STATUS_CONFIG) as SubmissionStatus[]).map(s => {
-                const cfg      = STATUS_CONFIG[s]
-                const isCurrent = s === sub.status
-                if (isCurrent) {
-                  return (
-                    <div
-                      key={s}
-                      className="py-1.5 px-2 rounded-lg text-xs font-semibold text-center"
-                      style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.color}40` }}
-                    >
-                      ● {cfg.label}
-                    </div>
-                  )
-                }
-                return (
-                  <form key={s} action={updateStatus}>
-                    <input type="hidden" name="status" value={s} />
-                    <button
-                      type="submit"
-                      className="w-full py-1.5 px-2 rounded-lg text-xs font-semibold border border-portal-border text-portal-sub hover:bg-portal-bg transition-colors text-left"
-                    >
-                      {cfg.label}
-                    </button>
-                  </form>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Missing info checklist */}
-          {checklist.length > 0 && (
-            <div className="bg-white border border-portal-border rounded-lg p-5">
-              <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-3">Info Checklist</h2>
-              <div className="space-y-2.5">
-                {checklist.map(item => (
-                  <div key={item.key} className="flex items-start gap-2.5">
-                    <span className={`text-base shrink-0 leading-none mt-0.5 ${
-                      item.present ? 'text-portal-green' : item.required ? 'text-portal-red' : 'text-portal-amber'
-                    }`}>
-                      {item.present ? '✓' : item.required ? '✗' : '○'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-xs ${
-                        item.present ? 'text-portal-sub' : item.required ? 'text-portal-red font-semibold' : 'text-portal-amber'
-                      }`}>
-                        {item.label}
-                      </span>
-                      {!item.present && !item.required && (
-                        <span className="text-xs text-portal-muted ml-1">(optional)</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {allComplete && (
-                <p className="text-xs text-portal-green font-semibold mt-3 pt-3 border-t border-gray-50">
-                  All required info received ✓
-                </p>
-              )}
-            </div>
-          )}
+          {/* Legacy panels removed:
+             - Operator Guidance: duplicated PhaseTracker descriptions
+             - Status Workflow (16-button grid): replaced by phase machine
+               (PhaseTracker visual + NextActionPanel CTA)
+             - Info Checklist: was for the OLD intake-form fields that
+               assumed the nominator = nominee. Nominee data now comes
+               from the interview form (Phase 5) instead. Re-add if a
+               specific use case shows we need it back. */}
 
           {/* Editor notes */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
