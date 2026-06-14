@@ -8,6 +8,7 @@ import { notFound, redirect }    from 'next/navigation'
 import Link                      from 'next/link'
 import { createAdminClient }     from '@/lib/supabase/admin'
 import { generateCommunityDraft } from '@/lib/community-drafts'
+import { ApproveAndPublishPanel } from './ApproveAndPublishPanel'
 import {
   STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
   type SubmissionStatus, type SubmissionTypeConfig, type SubmissionField,
@@ -641,6 +642,22 @@ export default async function SubmissionDetailPage({
 
         {/* ── RIGHT COLUMN: Actions & Metadata ────────────────────────── */}
         <div className="w-80 shrink-0 space-y-4">
+
+          {/* Approve & Publish — the workflow that used to live on the
+              deleted /admin/editorial/approval page. Channel approvals
+              + Publish-to-homepage all in one place so editors don't
+              have to bounce between pages. */}
+          <ApproveAndPublishPanel
+            submissionId={sub.id}
+            initialApproved={{
+              web:        !!(sub as unknown as Record<string, unknown>).approved_web,
+              newsletter: !!(sub as unknown as Record<string, unknown>).approved_newsletter,
+              social:     !!(sub as unknown as Record<string, unknown>).approved_social,
+            }}
+            alreadyPromoted={!!(sub as unknown as Record<string, unknown>).promoted_to_article_id}
+            promotedArticleId={(sub as unknown as Record<string, unknown>).promoted_to_article_id as string | null}
+            initialChangesNote={(sub as unknown as Record<string, unknown>).needs_changes_note as string | null}
+          />
 
           {/* Operator guidance */}
           <div className="bg-white border border-portal-border rounded-lg p-5">

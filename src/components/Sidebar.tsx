@@ -148,20 +148,17 @@ const NAV: NavItem[] = [
   { name: 'Brain Games',       href: '/admin/games',       icon: Brain     },
   { name: 'Weekly Polls',      href: '/admin/polls',       icon: BarChart3 },
   { name: '50+ Hero Slots',    href: '/admin/homepage/hero', icon: Sparkles },
-  // Three views on the same community_submissions data — three jobs:
-  // intake triage, production pipeline, final approval + publish.
-  // The detail pages they open all read/write the same row.
+  // ONE entry for community submissions. The detail page handles the
+  // entire intake → editorial → channel-approval → publish-to-homepage
+  // flow in one view. Production-pipeline (kanban) view stays
+  // accessible as a secondary entry below.
   {
     name: 'Community Submissions',
     href: '/admin/community',
     icon: Heart,
     badgeKey: 'community_nominations',
-    children: [
-      { name: 'Triage queue',     href: '/admin/community'           },
-      { name: 'Editorial pipeline', href: '/admin/editorial'         },
-      { name: 'Approval desk',    href: '/admin/editorial/approval' },
-    ],
   },
+  { name: 'Editorial Pipeline', href: '/admin/editorial', icon: Heart },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
 
