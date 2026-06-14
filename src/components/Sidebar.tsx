@@ -149,15 +149,17 @@ const NAV: NavItem[] = [
   { name: 'Weekly Polls',      href: '/admin/polls',       icon: BarChart3 },
   { name: '50+ Hero Slots',    href: '/admin/homepage/hero', icon: Sparkles },
   // ONE entry for community submissions. The detail page handles the
-  // entire intake → editorial → channel-approval → publish-to-homepage
-  // flow in one view. Production-pipeline (kanban) view stays
-  // accessible as a secondary entry below.
+  // entire intake → outreach → interview → draft → approve →
+  // pool → schedule → publish flow in one view (Phase 3+ rebuild).
+  // Pool is a separate page because monthly scheduling has a
+  // different mental model than per-submission editing.
   {
     name: 'Community Submissions',
     href: '/admin/community',
     icon: Heart,
     badgeKey: 'community_nominations',
   },
+  { name: 'Pending Pool',       href: '/admin/pending',  icon: Heart },
   { name: 'Editorial Pipeline', href: '/admin/editorial', icon: Heart },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
