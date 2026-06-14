@@ -29,6 +29,7 @@
 
 INSERT INTO community_submissions (
   id, submission_type, target_publication, status, ai_draft_status,
+  submitter_name, submitter_email,
   working_title, slug_suggestion, excerpt, ai_draft_content,
   feature_image_url,
   related_person_name, related_business_name, related_school_name,
@@ -41,6 +42,7 @@ INSERT INTO community_submissions (
 -- 1. Mom to Mom — APPROVED for web + newsletter, ready for publish bridge
 ('11111111-1111-4111-8111-111111111101',
  'mom-to-mom', 'rrp', 'approved', 'ready',
+ 'Sarah Bennett', 'sarah.bennett@example.com',
  'Why I Stopped Pinterest-Comparing My Kid''s Birthday Parties',
  'why-i-stopped-pinterest-comparing-birthday-parties',
  'A real-mom reflection on letting go of the perfect-party trap and what actually mattered to my five-year-old at her birthday this year.',
@@ -56,6 +58,7 @@ INSERT INTO community_submissions (
 -- 2. Teacher of the Month — APPROVED for ALL channels, tests FB auto-post
 ('11111111-1111-4111-8111-111111111102',
  'teacher-of-the-month', 'rrp', 'approved', 'ready',
+ 'Anna Bennett', 'anna.bennett@example.com',
  'Mrs. Patricia Holloway — Trinity Presbyterian Day School',
  'patricia-holloway-trinity-presbyterian-teacher-of-month',
  'A 19-year veteran kindergarten teacher who has every former student''s parent on a first-name basis and a classroom that looks like an artist''s studio.',
@@ -71,6 +74,7 @@ INSERT INTO community_submissions (
 -- 3. Play Ball — AI-DRAFT-READY, needs review before approval
 ('11111111-1111-4111-8111-111111111103',
  'play-ball', 'rrp', 'ai-draft-ready', 'ready',
+ 'Brian Thomas', 'coach.thomas@example.com',
  'Montgomery Catholic Pee-Wee Football Goes 8-0',
  'montgomery-catholic-peewee-football-undefeated',
  'A perfect regular season for the Knights — and a coach who says the real win was watching nine-year-olds become teammates.',
@@ -86,6 +90,7 @@ INSERT INTO community_submissions (
 -- 4. Student Spotlight — APPROVED for web only, tests bridge without social
 ('11111111-1111-4111-8111-111111111104',
  'student-spotlight', 'rrp', 'approved', 'ready',
+ 'Theresa Carter', 'theresa.carter@example.com',
  'Eli Carter — ASMS Junior with a Patent at 16',
  'eli-carter-asms-junior-patent',
  'A homegrown Wetumpka kid whose science project turned into a real-world medical device patent — and who still has to do the dishes after dinner.',
@@ -101,6 +106,7 @@ INSERT INTO community_submissions (
 -- 5. School News — NEEDS-REVIEW, sits in the upstream queue
 ('11111111-1111-4111-8111-111111111105',
  'school-news', 'rrp', 'needs-review', 'none',
+ 'Pike Road Communications', 'comms@pikeroadschools.example.com',
  'Pike Road Schools earns National Blue Ribbon recognition',
  'pike-road-blue-ribbon-recognition',
  'The U.S. Department of Education named Pike Road Schools one of 356 schools nationwide to earn the Blue Ribbon honor this year — recognition for sustained academic excellence.',
@@ -116,6 +122,7 @@ INSERT INTO community_submissions (
 -- 6. Parent Picks — NEW, top of the funnel
 ('11111111-1111-4111-8111-111111111106',
  'parent-picks', 'rrp', 'new', 'none',
+ 'Crystal Walker', 'crystal.walker@example.com',
  'Best birthday party venues we''ve tried (so far)',
  'best-birthday-party-venues-we-tried',
  'A roundup of where we''ve thrown our kids'' parties this year — what worked, what didn''t, and what would make us go back.',
