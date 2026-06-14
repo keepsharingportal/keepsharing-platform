@@ -13,11 +13,10 @@ import { PhaseTracker }            from './PhaseTracker'
 import { NextActionPanel }         from './NextActionPanel'
 import { AIDraftPanel }            from './AIDraftPanel'
 import { OutreachComposerPanel }   from './OutreachComposerPanel'
-import { RejectPanel }             from './RejectPanel'
-import { RejectedBanner }          from './RejectedBanner'
-import { PHASES, type Phase }      from '@/lib/submissions/phases'
+import { ReconsiderButton }        from './ReconsiderButton'
+import { type Phase }              from '@/lib/submissions/phases'
 import {
-  STATUS_CONFIG, SUBMISSION_TYPES, TYPE_COLORS,
+  STATUS_CONFIG, SUBMISSION_TYPES,
   type SubmissionStatus, type SubmissionTypeConfig, type SubmissionField,
 } from '@/lib/submissions'
 
@@ -254,7 +253,10 @@ export default async function SubmissionDetailPage({
   const config = SUBMISSION_TYPES.find(t => t.type === sub.submission_type)
   if (!config) notFound()
 
-  const accentColor  = TYPE_COLORS[sub.submission_type] ?? '#374151'
+  // accentColor (TYPE_COLORS lookup) was used for a color stripe on
+  // top of the Nominator's Submission card. Removed — accent stripes
+  // aren't part of the Ads & Sponsors design vocabulary the rest of
+  // admin follows.
   const sc           = STATUS_CONFIG[sub.status]
   const checklist    = buildChecklist(sub, config)
   const guidance     = buildGuidance(sub, config, checklist)
@@ -483,14 +485,29 @@ export default async function SubmissionDetailPage({
 
       {/* ── REJECTED BANNER ──────────────────────────────────────────────── */}
       {/* Surfaces the editor's reason + Reconsider button at the top so
-          a rejected row is unambiguous on arrival, with a one-click
-          path back to the active queue. */}
+          a rejected row is unambiguous on arrival. The Reconsider
+          button is a small client island; the banner itself renders
+          server-side. */}
       {currentPhase === 'rejected' && (
-        <RejectedBanner
-          submissionId={sub.id}
-          rejectionReason={(subAny.rejection_reason as string | null) ?? null}
-          rejectedAt={(subAny.rejected_at as string | null) ?? null}
-        />
+        <div className="bg-portal-red-lt border border-portal-red rounded-lg" style={{ borderLeftWidth: 4, padding: 16 }}>
+          <div className="flex items-start gap-3 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="text-portal-red fw-700" style={{ fontSize: 13, marginBottom: 4 }}>
+                Rejected{subAny.rejected_at ? ` ${new Date(subAny.rejected_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}
+              </div>
+              {subAny.rejection_reason ? (
+                <div className="text-portal-text" style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                  {subAny.rejection_reason as string}
+                </div>
+              ) : (
+                <div className="text-portal-sub" style={{ fontSize: 12, fontStyle: 'italic' }}>
+                  No reason was recorded.
+                </div>
+              )}
+            </div>
+            <ReconsiderButton submissionId={sub.id} />
+          </div>
+        </div>
       )}
 
       {/* ── PHASE TRACKER ────────────────────────────────────────────────── */}
@@ -565,10 +582,7 @@ export default async function SubmissionDetailPage({
               otherwise. New approach: walk the payload, prefer the
               config label when a key matches, humanize the key when
               it doesn't. Drops the separate RAW accordion entirely. */}
-          <div
-            className="bg-white border border-portal-border rounded-lg overflow-hidden"
-            style={{ borderTop: `4px solid ${accentColor}` }}
-          >
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="p-5">
               {(() => {
                 // Pull every payload entry that actually has content.
@@ -651,12 +665,9 @@ export default async function SubmissionDetailPage({
             if (!hasAny) {
               if (currentPhase === 'outreach-sent' || currentPhase === 'interview-sent' || currentPhase === 'nominee-accepted') {
                 return (
-                  <div
-                    className="bg-white border border-portal-border rounded-lg p-5"
-                    style={{ borderLeft: '3px solid var(--color-portal-amber)' }}
-                  >
-                    <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-2">Nominee Interview</h2>
-                    <p className="text-sm text-portal-muted italic">
+                  <div className="bg-white border border-portal-border rounded-lg p-5">
+                    <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-2">Nominee Interview</h2>
+                    <p className="text-sm text-portal-sub italic">
                       Waiting on the nominee&apos;s interview form. {currentPhase === 'interview-sent' ? 'Form was sent — they have the link.' : 'Send the interview form when they accept.'}
                     </p>
                   </div>
@@ -665,12 +676,9 @@ export default async function SubmissionDetailPage({
               return null
             }
             return (
-              <div
-                className="bg-white border border-portal-border rounded-lg p-5"
-                style={{ borderLeft: '3px solid var(--color-portal-green)' }}
-              >
+              <div className="bg-white border border-portal-border rounded-lg p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide">Nominee Interview</h2>
+                  <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide">Nominee Interview</h2>
                   <span className="text-[10px] text-portal-green fw-700">
                     ✓ Submitted{subAny.interview_submitted_at ? ` ${fmtDate(subAny.interview_submitted_at as string)}` : ''}
                   </span>
@@ -855,17 +863,14 @@ export default async function SubmissionDetailPage({
               needsOutreach={needsOutreach}
               hasInterview={hasInterview}
               hasDraft={hasDraft}
+              nomineeName={nomineeName}
             />
           )}
-
-          {/* Reject — small red text link directly under the primary
-              action. Expands inline to a required-note textarea. Only
-              renders when the current phase actually permits /reject
-              (early phases only); past draft-* the editor uses Archive
-              instead via NextActionPanel. */}
-          {PHASES[currentPhase]?.allowedNext.includes('rejected') && (
-            <RejectPanel submissionId={sub.id} nomineeName={nomineeName} />
-          )}
+          {/* Reject — used to be a separate panel beneath the primary
+              action. Removed: Reject now lives INSIDE the primary
+              action card (OutreachComposerPanel or NextActionPanel)
+              as a same-dimensions red destructive button below the
+              navy primary. Opens RejectModal on click. */}
 
           {/* AI Draft only matters when we have something to draft
               FROM. Before interview-received the nominator's content
@@ -956,8 +961,8 @@ export default async function SubmissionDetailPage({
 
           {/* Editor notes */}
           <div className="bg-white border border-portal-border rounded-lg p-5">
-            <h2 className="text-xs font-bold text-portal-muted uppercase tracking-wide mb-1">Editor Notes</h2>
-            <p className="text-[11px] text-portal-muted mb-2">Internal only — never shown to submitters.</p>
+            <h2 className="text-xs font-bold text-portal-sub uppercase tracking-wide mb-1">Editor Notes</h2>
+            <p className="text-[11px] text-portal-sub mb-2">Internal only — never shown to submitters.</p>
             <form action={saveEditorNotes} className="space-y-2">
               <textarea
                 name="editor_notes"

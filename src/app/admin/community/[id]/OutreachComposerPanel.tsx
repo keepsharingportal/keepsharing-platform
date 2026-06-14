@@ -1,40 +1,30 @@
 'use client'
 
-// THE panel for phase=nominated and nomination-accepted. Replaces the
-// generic Next Action button with a real outreach email composer:
+// Right-column panel at phase=nominated and nomination-accepted.
+// Compact summary of the pre-filled outreach email — the editor sees
+// the TO, SUBJECT, and a plain-text preview (no HTML markup) at a
+// glance. "Edit email" opens a full-screen WYSIWYG modal.
 //
-//   - Pre-filled per-type stock template (subject + body) from the
-//     submission_type_columns config
-//   - Variables already substituted ({{nominee_first}},
-//     {{nominator_name}}, {{nomination_pitch}}, {{brand_name}}, etc.)
-//   - Editor can edit subject + body before sending
-//   - Single "Send to nominee" button: composes the actual send via
-//     the existing /outreach API, advances phase straight to
-//     'outreach-sent' (skips the artificial nomination-accepted
-//     intermediate)
+// Two equal-weight buttons:
+//   - Approve & send email  (navy, primary)
+//   - Reject nomination     (red, destructive)
 //
-// What this REPLACES at this phase:
-//   - "Accept nomination →" generic next-action button (which only
-//     advanced state and didn't send anything)
-//   - Channel approvals panel (premature — no draft exists yet)
-//   - AI Draft panel (premature — no interview content yet)
-//
-// Result: at the nominated phase, the editor sees ONE workflow card
-// for the ONE thing they actually need to do.
+// Same dimensions, same typography — only the background color
+// differs. Mirrors the design vocabulary on the Ads & Sponsors page.
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Loader2, Send, AlertTriangle, CheckCircle2, Mail } from 'lucide-react'
+import { useState }       from 'react'
+import { useRouter }      from 'next/navigation'
+import { CheckCircle2, Mail, Edit3, Loader2 } from 'lucide-react'
+import { EmailComposerModal } from './EmailComposerModal'
+import { RejectModal }        from './RejectModal'
 
 interface Props {
   submissionId:   string
   typeLabel:      string
-  nomineeName:    string  // resolved name we'll greet
-  nomineeEmail:   string  // editable in case the nominator typoed
-  initialSubject: string  // pre-substituted template
-  initialBody:    string  // pre-substituted template (HTML)
-  /** True at phase=nominated and false at nomination-accepted —
-   *  controls confirm copy + button label. */
+  nomineeName:    string
+  nomineeEmail:   string
+  initialSubject: string
+  initialBody:    string  // pre-substituted HTML template
   isFirstSend:    boolean
 }
 
@@ -43,188 +33,256 @@ export function OutreachComposerPanel({
   initialSubject, initialBody, isFirstSend,
 }: Props) {
   const router = useRouter()
-  const [email,   setEmail]   = useState(nomineeEmail)
-  const [subject, setSubject] = useState(initialSubject)
-  const [body,    setBody]    = useState(initialBody)
-  const [busy,    setBusy]    = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
+
+  // Local editable copies — start from the pre-substituted templates,
+  // get overwritten when the editor saves changes in the modal.
+  const [to,       setTo]      = useState(nomineeEmail)
+  const [subject,  setSubject] = useState(initialSubject)
+  const [bodyHtml, setBody]    = useState(initialBody)
+
+  const [composerOpen, setComposerOpen] = useState(false)
+  const [rejectOpen,   setRejectOpen]   = useState(false)
+
+  // Direct-send path: editor doesn't open the modal, just clicks
+  // Approve & send email with the pre-filled template. Same backend
+  // call as the modal's onSend handler.
+  const [sending, setSending] = useState(false)
   const [sent,    setSent]    = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
 
-  async function send() {
-    if (!email.trim()) { setError('Add a nominee email before sending.'); return }
-    if (!subject.trim()) { setError('Subject can\'t be empty.'); return }
-    if (!body.trim()) { setError('Body can\'t be empty.'); return }
-    if (!confirm(`Send outreach email to ${nomineeName} <${email}>?`)) return
+  async function sendOutreach(payload: { to: string; subject: string; bodyHtml: string }) {
+    const res = await fetch(`/api/admin/community-submissions/${submissionId}/outreach`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        action:        'outreach',
+        nominee_email: payload.to,
+        subject:       payload.subject,
+        body_html:     payload.bodyHtml,
+      }),
+    })
+    const j = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(j.error ?? 'Send failed.')
 
-    setBusy(true); setError(null)
+    // Persist edits locally too in case the page doesn't refresh fast
+    // enough — the success state reads them.
+    setTo(payload.to); setSubject(payload.subject); setBody(payload.bodyHtml)
+    setComposerOpen(false)
+    setSent(true)
+    setTimeout(() => router.refresh(), 900)
+  }
+
+  async function handleSendDirect() {
+    setSending(true); setError(null)
     try {
-      const res = await fetch(`/api/admin/community-submissions/${submissionId}/outreach`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          action:        'outreach',
-          nominee_email: email.trim(),
-          subject:       subject.trim(),
-          body_html:     body,
-        }),
-      })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setError(j.error ?? 'Send failed.'); return }
-      setSent(true)
-      setTimeout(() => router.refresh(), 900)
-    } finally { setBusy(false) }
+      await sendOutreach({ to, subject, bodyHtml })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Send failed.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function handleReject(reason: string) {
+    const res = await fetch(`/api/admin/community-submissions/${submissionId}/reject`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ reason }),
+    })
+    const j = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(j.error ?? 'Reject failed.')
+    setRejectOpen(false)
+    router.refresh()
   }
 
   if (sent) {
     return (
-      <div className="card" style={{ borderLeft: '3px solid var(--color-portal-green)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="bg-white border border-portal-border rounded-lg p-4">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <CheckCircle2 size={16} color="var(--color-portal-green)" />
-          <div className="fw-700">Email sent to {nomineeName}</div>
+          <div className="fw-700" style={{ color: 'var(--color-portal-text)' }}>Email sent to {nomineeName}</div>
         </div>
-        <div className="text-muted text-xs" style={{ marginTop: 4 }}>
-          Phase advanced to <strong>Outreach sent</strong>. The page will refresh in a moment with the next-step UI.
+        <div className="text-sm" style={{ color: 'var(--color-portal-sub)', lineHeight: 1.5 }}>
+          Phase advanced to <strong>Outreach sent</strong>. The page is refreshing.
         </div>
       </div>
     )
   }
 
+  // Plain-text preview of the body for the summary card — strips tags
+  // so the editor never sees raw HTML markup.
+  const bodyPreview = bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+
   return (
-    <div className="card">
-      <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Mail size={13} color="var(--color-portal-blue)" /> Outreach to nominee
-      </div>
-      <div className="text-muted text-xs" style={{ marginBottom: 12 }}>
-        Pre-filled {typeLabel} template. Edit anything before sending.
-      </div>
+    <>
+      <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
 
-      {error && (
-        <div className="alert alert-error" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <AlertTriangle size={12} /> {error}
-        </div>
-      )}
-
-      <div className="fg" style={{ marginBottom: 10 }}>
-        <label style={fieldLabel}>To</label>
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={inputStyle}
-          placeholder="nominee@example.com"
-        />
-      </div>
-
-      <div className="fg" style={{ marginBottom: 10 }}>
-        <label style={fieldLabel}>Subject</label>
-        <input
-          type="text"
-          value={subject}
-          onChange={e => setSubject(e.target.value)}
-          style={inputStyle}
-        />
-      </div>
-
-      {!expanded ? (
-        // Compact preview — first 200 chars of body so the editor sees
-        // it's pre-filled without an overwhelming wall of HTML
+        {/* Header */}
         <div style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--color-portal-border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'var(--color-portal-bg)',
-          border: '1px solid var(--color-portal-border)',
-          borderRadius: 6,
-          padding: 10,
-          fontSize: 12,
-          color: 'var(--color-portal-sub)',
-          lineHeight: 1.5,
-          marginBottom: 10,
-          fontFamily: 'system-ui',
         }}>
-          {plainPreview(body, 200)}…
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Mail size={14} color="var(--color-portal-blue)" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-portal-text)' }}>
+              Outreach to nominee
+            </span>
+          </div>
           <button
             type="button"
-            onClick={() => setExpanded(true)}
+            onClick={() => setComposerOpen(true)}
             style={{
-              display: 'block', marginTop: 6,
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-              color: 'var(--color-portal-blue)', fontSize: 11, fontWeight: 600,
-              textDecoration: 'underline',
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              background: 'none', border: 'none', padding: 0,
+              fontSize: 12, fontWeight: 600,
+              color: 'var(--color-portal-blue)',
+              cursor: 'pointer',
             }}
           >
-            Expand to edit the body
+            <Edit3 size={11} /> Edit email
           </button>
         </div>
-      ) : (
-        <div className="fg" style={{ marginBottom: 10 }}>
-          <label style={fieldLabel}>
-            Body (HTML)
+
+        {/* Summary fields */}
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SummaryRow label="To"      value={to} />
+          <SummaryRow label="Subject" value={subject} />
+          <div>
+            <SummaryLabel>Preview</SummaryLabel>
+            <div style={{
+              marginTop: 4,
+              fontSize: 13,
+              color: 'var(--color-portal-text)',
+              lineHeight: 1.5,
+              maxHeight: 80,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+            }}>
+              {bodyPreview || <span style={{ color: 'var(--color-portal-muted)', fontStyle: 'italic' }}>(empty)</span>}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 12, color: 'var(--color-portal-sub)', lineHeight: 1.5 }}>
+            Pre-filled {typeLabel} template. Click <strong>Edit email</strong> to customize before sending.
+          </div>
+
+          {error && (
+            <div className="alert alert-error" style={{ fontSize: 12 }}>
+              {error}
+            </div>
+          )}
+
+          {/* ── Two equal-weight buttons: navy primary + red destructive */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             <button
               type="button"
-              onClick={() => setExpanded(false)}
-              style={{
-                marginLeft: 8, fontSize: 10,
-                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                color: 'var(--color-portal-sub)', textDecoration: 'underline',
-              }}
+              onClick={handleSendDirect}
+              disabled={sending}
+              style={primaryBtn(sending)}
             >
-              Collapse
+              {sending
+                ? <><Loader2 size={14} className="animate-spin" /><span>Sending…</span></>
+                : <span>{isFirstSend ? 'Approve & send email' : 'Send outreach'}</span>}
             </button>
-          </label>
-          <textarea
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            rows={14}
-            style={{ ...inputStyle, fontFamily: 'ui-monospace, monospace', fontSize: 11, lineHeight: 1.5 }}
-          />
+            <button
+              type="button"
+              onClick={() => setRejectOpen(true)}
+              disabled={sending}
+              style={destructiveBtn(sending)}
+            >
+              Reject nomination
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
-      <button
-        type="button"
-        onClick={send}
-        disabled={busy}
-        style={{
-          width: '100%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '11px 14px',
-          background: 'var(--color-portal-navy)', color: 'white',
-          border: 'none', borderRadius: 8,
-          fontSize: 13, fontWeight: 700,
-          cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {busy
-          ? <><Loader2 size={13} className="animate-spin" /><span>Sending…</span></>
-          : <><Send size={13} /><span>{isFirstSend ? 'Approve & send email' : 'Send outreach'}</span></>}
-      </button>
+      {/* ── Modals ───────────────────────────────────────────────── */}
+      <EmailComposerModal
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        title="Outreach to nominee"
+        sendLabel={isFirstSend ? 'Approve & send email' : 'Send outreach'}
+        initialTo={to}
+        initialSubject={subject}
+        initialBodyHtml={bodyHtml}
+        onSend={sendOutreach}
+      />
+      <RejectModal
+        open={rejectOpen}
+        onClose={() => setRejectOpen(false)}
+        nomineeName={nomineeName}
+        onConfirm={handleReject}
+      />
+    </>
+  )
+}
 
-      <div className="text-muted text-xs" style={{ marginTop: 8, lineHeight: 1.4 }}>
-        Sending will advance the phase to <strong>Outreach sent</strong>. When the nominee replies, mark them accepted from the next-action panel.
+// ── Subcomponents ────────────────────────────────────────────────────────────
+
+function SummaryLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      display: 'block',
+      fontSize: 10, fontWeight: 700,
+      textTransform: 'uppercase', letterSpacing: '.5px',
+      color: 'var(--color-portal-sub)',
+    }}>
+      {children}
+    </span>
+  )
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <SummaryLabel>{label}</SummaryLabel>
+      <div style={{
+        marginTop: 3,
+        fontSize: 13,
+        color: 'var(--color-portal-text)',
+        fontWeight: 500,
+        wordBreak: 'break-word',
+      }}>
+        {value || <span style={{ color: 'var(--color-portal-muted)', fontStyle: 'italic' }}>(empty)</span>}
       </div>
     </div>
   )
 }
 
-/** Strip HTML tags + collapse whitespace for a compact preview. */
-function plainPreview(html: string, maxLen: number): string {
-  const stripped = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  return stripped.length > maxLen ? stripped.slice(0, maxLen) : stripped
+// Shared button styles — same height, same font, same padding, same
+// border-radius. Background is the only thing that differs.
+function primaryBtn(busy: boolean): React.CSSProperties {
+  return {
+    width: '100%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+    padding: '11px 16px',
+    background: 'var(--color-portal-navy)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 13, fontWeight: 700,
+    cursor: busy ? 'wait' : 'pointer',
+    opacity: busy ? 0.7 : 1,
+    whiteSpace: 'nowrap',
+  }
 }
 
-const fieldLabel: React.CSSProperties = {
-  display: 'block', fontSize: 11, fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '.3px',
-  color: 'var(--color-portal-sub)', marginBottom: 4,
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px 10px',
-  border: '1.5px solid var(--color-portal-border)',
-  borderRadius: 6,
-  fontSize: 13,
-  fontFamily: 'inherit',
-  background: 'white',
-  outline: 'none',
+function destructiveBtn(busy: boolean): React.CSSProperties {
+  return {
+    width: '100%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+    padding: '11px 16px',
+    background: 'var(--color-portal-red)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 13, fontWeight: 700,
+    cursor: busy ? 'wait' : 'pointer',
+    opacity: busy ? 0.5 : 1,
+    whiteSpace: 'nowrap',
+  }
 }

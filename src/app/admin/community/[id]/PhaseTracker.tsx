@@ -104,9 +104,15 @@ export function PhaseTracker({ currentPhase, needsOutreach }: Props) {
               />
               <div
                 style={{
-                  fontSize: 10,
-                  fontWeight: isCurrent ? 800 : isPast ? 600 : 500,
-                  color: isCurrent ? tone : isPast ? 'var(--color-portal-text)' : 'var(--color-portal-muted)',
+                  fontSize: 11,
+                  fontWeight: isCurrent ? 800 : isPast ? 700 : 600,
+                  // Future-phase labels were 'var(--color-portal-muted)'
+                  // (#94A3B8) which the user correctly called out as
+                  // unreadable. Bumped to portal-sub (#64748B) which
+                  // is the same token used for secondary text across
+                  // the rest of admin and is comfortably legible on
+                  // white.
+                  color: isCurrent ? tone : isPast ? 'var(--color-portal-text)' : 'var(--color-portal-sub)',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
