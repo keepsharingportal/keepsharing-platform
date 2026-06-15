@@ -211,24 +211,40 @@ Emit raw JSON only.`
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error(`Seed brand profile: model returned non-JSON: ${raw.slice(0, 300)}`)
+    throw new Error(`Seed brand profile: model returned non-JSON. First 500 chars: ${raw.slice(0, 500)}`)
   }
 
-  return {
-    pillars:           (parsed.pillars            as Pillar[])       ?? [],
-    subAreas:          (parsed.subAreas           as SubArea[])      ?? [],
-    personas:          (parsed.personas           as Persona[])      ?? [],
-    editorialCalendar: (parsed.editorialCalendar  as Record<string, CalendarMonth>) ?? {},
-    linkableAssets:    (parsed.linkableAssets     as LinkableAsset[]) ?? [],
-    negativeSpace:     (parsed.negativeSpace      as string[])       ?? [],
-    uniqueAngles:      (parsed.uniqueAngles       as string[])       ?? [],
-    voiceNotes:        (parsed.voiceNotes         as string)         ?? '',
-    editorialPrefs:    (parsed.editorialPrefs     as EditorialPrefs) ?? {},
-    competitorIntel:   (parsed.competitorIntel    as CompetitorIntel)?? {},
-    rationale:         (parsed.rationale          as string)         ?? '',
+  // Accept either camelCase (preferred) or snake_case keys — earlier
+  // versions of the prompt + Claude's own habits drift between the two.
+  function pick<T>(camel: string, snake: string): T | undefined {
+    return (parsed[camel] ?? parsed[snake]) as T | undefined
+  }
+
+  const result = {
+    pillars:           (pick<Pillar[]>           ('pillars',           'pillars')          ?? []) as Pillar[],
+    subAreas:          (pick<SubArea[]>          ('subAreas',          'sub_areas')        ?? []) as SubArea[],
+    personas:          (pick<Persona[]>          ('personas',          'personas')         ?? []) as Persona[],
+    editorialCalendar: (pick<Record<string, CalendarMonth>>('editorialCalendar', 'editorial_calendar') ?? {}) as Record<string, CalendarMonth>,
+    linkableAssets:    (pick<LinkableAsset[]>    ('linkableAssets',    'linkable_assets')  ?? []) as LinkableAsset[],
+    negativeSpace:     (pick<string[]>           ('negativeSpace',     'negative_space')   ?? []) as string[],
+    uniqueAngles:      (pick<string[]>           ('uniqueAngles',      'unique_angles')    ?? []) as string[],
+    voiceNotes:        (pick<string>             ('voiceNotes',        'voice_notes')      ?? '') as string,
+    editorialPrefs:    (pick<EditorialPrefs>     ('editorialPrefs',    'editorial_prefs')  ?? {}) as EditorialPrefs,
+    competitorIntel:   (pick<CompetitorIntel>    ('competitorIntel',   'competitor_intel') ?? {}) as CompetitorIntel,
+    rationale:         (pick<string>             ('rationale',         'rationale')        ?? '') as string,
     tokensUsed:        res.promptTokens + res.completionTokens,
     modelUsed:         res.model,
   }
+
+  // Validation guard — empty pillars + empty subAreas means Claude
+  // either returned the wrong shape OR truncated. Either way the
+  // editor would see "nothing happened" silently. Throw with a
+  // diagnostic preview so we know what to fix.
+  if (result.pillars.length === 0 && result.subAreas.length === 0) {
+    throw new Error(`Seed brand profile: Claude returned no pillars and no sub-areas — likely wrong shape or truncated output. Top-level JSON keys received: ${Object.keys(parsed).join(', ')}. First 500 chars: ${raw.slice(0, 500)}`)
+  }
+
+  return result
 }
 
 /** Higher-level: generate + merge with existing profile + write back.
