@@ -33,7 +33,7 @@ import { ActivationWizard } from './ActivationWizard'
 import {
   Repeat, AlertTriangle, Link as LinkIcon, ListChecks,
   Settings2, FileText, Activity, ArrowRight, Sparkles, Users,
-  Image as ImageIcon, Search, TrendingDown,
+  Image as ImageIcon, Search, TrendingDown, Layers, ShieldCheck,
 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'SEO — Admin' }
@@ -41,6 +41,7 @@ export const dynamic = 'force-dynamic'
 
 const TOOLS = [
   { slug: 'brand-profile',  title: 'Brand SEO Profile', desc: 'Pillars, sub-areas, personas, calendar — the strategy Claude reads.', href: '/admin/seo/brand-profile', icon: Settings2 },
+  { slug: 'clusters',       title: 'Topical Authority', desc: 'Group every article under its pillar. Spot orphans + weak clusters before Google does.', href: '/admin/seo/clusters', icon: Layers },
   { slug: 'authors',        title: 'Author Profiles', desc: 'E-E-A-T bios + headshots + credentials. Renders Person JSON-LD.', href: '/admin/seo/authors', icon: Users },
   { slug: 'alt-text',       title: 'Alt-text Audit', desc: 'Find published articles with images missing alt text.', href: '/admin/seo/alt-text', icon: ImageIcon },
   { slug: 'query-briefs',   title: 'Query Briefs', desc: 'GSC-driven briefs: improve page-2 articles, write for content gaps.', href: '/admin/seo/query-briefs', icon: Search },
@@ -49,6 +50,7 @@ const TOOLS = [
   { slug: 'redirects',      title: 'Redirect Manager', desc: '301/302/307/308 — when URLs change, keep external links working.', href: '/admin/seo/redirects', icon: Repeat },
   { slug: '404-log',        title: '404 Monitor', desc: 'Top 404 paths. One-click convert any to a 301 redirect.', href: '/admin/seo/404-log', icon: AlertTriangle },
   { slug: 'internal-links', title: 'Internal Link Queue', desc: 'Auto-found linking opportunities. Editor approves or rejects.', href: '/admin/seo/internal-links', icon: LinkIcon },
+  { slug: 'schema-validator', title: 'Schema Graph Validator', desc: 'Crawl + verify Organization/Author/Article @id consistency. Catches silent rich-result loss.', href: '/admin/seo/schema-validator', icon: ShieldCheck },
   { slug: 'bulk',           title: 'Bulk SEO Edit', desc: 'Filter, multi-select, apply across many articles at once.', href: '/admin/seo/bulk', icon: ListChecks },
   { slug: 'seo-health',     title: 'Route Coverage Audit', desc: 'Every static page route + which SEO surfaces each one taps.', href: '/admin/seo-health', icon: Activity },
 ] as const

@@ -298,6 +298,7 @@ const NAV: NavItem[] = [
     icon: TrendingUp,
     children: [
       { name: 'Brand Profile',          href: '/admin/seo/brand-profile'  },
+      { name: 'Topical Authority',      href: '/admin/seo/clusters'       },
       { name: 'Author Profiles',        href: '/admin/seo/authors',        settingsOnly: true },
       { name: 'Alt-text Audit',         href: '/admin/seo/alt-text'       },
       { name: 'Query Briefs',           href: '/admin/seo/query-briefs'   },
@@ -306,6 +307,7 @@ const NAV: NavItem[] = [
       { name: 'Redirects',              href: '/admin/seo/redirects',      settingsOnly: true },
       { name: '404 Monitor',            href: '/admin/seo/404-log',        settingsOnly: true },
       { name: 'Internal Link Queue',    href: '/admin/seo/internal-links', settingsOnly: true },
+      { name: 'Schema Validator',       href: '/admin/seo/schema-validator', settingsOnly: true },
       { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk',           settingsOnly: true },
       { name: 'Route Coverage Audit',   href: '/admin/seo-health',         settingsOnly: true },
     ],

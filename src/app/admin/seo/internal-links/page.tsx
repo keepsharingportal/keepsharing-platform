@@ -64,8 +64,9 @@ export default async function InternalLinksPage() {
           <LinkIcon size={16} className="inline -translate-y-0.5 mr-1" /> Internal link suggestions
         </h1>
         <p className="text-[12px] text-portal-sub mt-1">
-          Auto-found opportunities to link one article to another. Accept = link inserted into the source body.
-          Run nightly via the cron; trigger a manual run from below.
+          Auto-found opportunities to link one article to another. The nightly cron auto-applies
+          suggestions with score ≥ 90 (focus-keyword match + page-2 GSC boost); everything below
+          waits here for editor review. Accept = link inserted into the source body.
         </p>
       </div>
 
