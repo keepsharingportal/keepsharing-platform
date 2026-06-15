@@ -119,7 +119,11 @@ export default async function AuditReportPage({ params }: Props) {
                     {item.recommendation}
                   </p>
                   {item.fix_url && (
-                    <Link href={item.fix_url} className="text-portal-blue fw-700" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <Link
+                      href={withSuggestion(item.fix_url, item.recommendation, row.id)}
+                      className="text-portal-blue fw-700"
+                      style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
+                    >
                       Open in editor <ArrowRight size={10} />
                     </Link>
                   )}
@@ -131,6 +135,20 @@ export default async function AuditReportPage({ params }: Props) {
       </div>
     </div>
   )
+}
+
+/** Append the recommendation + audit-run id to the fix URL so the SEO
+ *  editor can surface a "Pending action from audit" banner. */
+function withSuggestion(fixUrl: string, recommendation: string, auditId: string): string {
+  try {
+    // URL needs a base for relative paths.
+    const u = new URL(fixUrl, 'https://placeholder.local')
+    u.searchParams.set('suggestion', recommendation)
+    u.searchParams.set('from', auditId)
+    return `${u.pathname}?${u.searchParams.toString()}`
+  } catch {
+    return fixUrl
+  }
 }
 
 function SeverityIcon({ severity }: { severity: string }) {

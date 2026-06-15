@@ -14,11 +14,15 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-interface Props { params: Promise<{ id: string }> }
+interface Props {
+  params:       Promise<{ id: string }>
+  searchParams: Promise<{ suggestion?: string; from?: string }>
+}
 
-export default async function ArticleSeoPage({ params }: Props) {
+export default async function ArticleSeoPage({ params, searchParams }: Props) {
   await requireAdmin()
   const { id } = await params
+  const sp     = await searchParams
 
   const sb = createAdminClient()
   const { data, error } = await sb
@@ -69,6 +73,8 @@ export default async function ArticleSeoPage({ params }: Props) {
           fallbackDescription={data.excerpt as string | null}
           slug={data.slug as string}
           columnSlug={data.column_slug as string | null}
+          pendingSuggestion={sp.suggestion ?? null}
+          fromAuditId={sp.from ?? null}
           initial={{
             seoTitle:              data.seo_title              as string | null,
             seoDescription:        data.seo_description        as string | null,

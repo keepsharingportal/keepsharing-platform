@@ -179,6 +179,22 @@ export async function POST(_req: NextRequest, ctx: RouteCtx) {
     })
   }
 
+  // 9. IndexNow ping — instant indexing on Bing/Yandex. Fire-and-forget;
+  //    no-op when INDEXNOW_KEY env isn't set.
+  void (async () => {
+    try {
+      const { pingIndexNow } = await import('@/lib/seo/indexnow')
+      const { loadBrandContext } = await import('@/lib/brand-context')
+      const ctx = await loadBrandContext()
+      if (created.column_slug && created.slug) {
+        const url = `${ctx.publicOrigin}/columns/${created.column_slug}/${created.slug}`
+        await pingIndexNow(ctx.publicOrigin, [url])
+      }
+    } catch (e) {
+      console.error('[indexnow] background ping failed', e)
+    }
+  })()
+
   return NextResponse.json({
     ok:        true,
     article_id: created.id,

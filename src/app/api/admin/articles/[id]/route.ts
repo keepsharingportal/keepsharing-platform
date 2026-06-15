@@ -198,6 +198,34 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       })()
     }
 
+    // IndexNow ping — instant indexing on Bing/Yandex. Fires on the
+    // unpublished → published transition only. No-op when INDEXNOW_KEY
+    // env isn't set so dev/staging never spam the search engines.
+    // Also pings on column changes (URL changed) so the new
+    // canonical lands in the index.
+    if (!wasPublished && nowPublished) {
+      void (async () => {
+        try {
+          const { pingIndexNow } = await import('@/lib/seo/indexnow')
+          const { loadBrandContext } = await import('@/lib/brand-context')
+          const ctx = await loadBrandContext()
+          // Look up the article's URL — column + slug.
+          const sb2 = supabaseAdmin()
+          const { data: pubRow } = await sb2
+            .from('guide_articles')
+            .select('column_slug, slug')
+            .eq('id', id)
+            .maybeSingle()
+          if (pubRow?.column_slug && pubRow.slug) {
+            const url = `${ctx.publicOrigin}/columns/${pubRow.column_slug}/${pubRow.slug}`
+            await pingIndexNow(ctx.publicOrigin, [url])
+          }
+        } catch (e) {
+          console.error('[indexnow] background ping failed', e)
+        }
+      })()
+    }
+
     return NextResponse.json({ success: true })
   } catch (e) {
     console.error('[PATCH article] error:', e)

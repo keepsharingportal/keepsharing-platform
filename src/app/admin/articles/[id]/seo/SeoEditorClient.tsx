@@ -21,6 +21,10 @@ interface Props {
   fallbackDescription:  string | null
   slug:                 string
   columnSlug:           string | null
+  /** When arrived from a weekly-audit "Open in editor" link, the audit's
+   *  recommendation text rides along so the editor can show a pending banner. */
+  pendingSuggestion?:   string | null
+  fromAuditId?:         string | null
   initial: {
     seoTitle:             string | null
     seoDescription:       string | null
@@ -36,7 +40,8 @@ interface Props {
 }
 
 export function SeoEditorClient(props: Props) {
-  const { articleId, brandSlug, fallbackTitle, fallbackDescription, slug, columnSlug, initial } = props
+  const { articleId, brandSlug, fallbackTitle, fallbackDescription, slug, columnSlug, initial, pendingSuggestion, fromAuditId } = props
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false)
 
   const [seoTitle,         setSeoTitle]         = useState(initial.seoTitle ?? '')
   const [seoDescription,   setSeoDescription]   = useState(initial.seoDescription ?? '')
@@ -125,6 +130,52 @@ export function SeoEditorClient(props: Props) {
 
       {/* ── LEFT COLUMN ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+        {/* Audit-driven suggestion banner: shown when the editor arrived
+            via "Open in editor" from a weekly audit report. Reading the
+            suggestion is the action — the editor still applies edits by
+            hand, just like every other field on this page. */}
+        {pendingSuggestion && !suggestionDismissed && (
+          <div
+            className="bg-white border border-portal-border rounded-lg"
+            style={{ padding: 14, borderLeft: '4px solid var(--color-portal-blue)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={14} color="var(--color-portal-blue)" />
+                <span className="fw-700 text-portal-text" style={{ fontSize: 13 }}>
+                  Pending action from weekly audit
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {fromAuditId && (
+                  <a
+                    href={`/admin/seo/audit-reports/${fromAuditId}`}
+                    className="text-portal-sub hover:text-portal-text"
+                    style={{ fontSize: 11 }}
+                  >
+                    View full report
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSuggestionDismissed(true)}
+                  className="text-portal-sub hover:text-portal-text"
+                  style={{ fontSize: 11, background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+            <p className="text-portal-text" style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>
+              {pendingSuggestion}
+            </p>
+            <p className="text-portal-sub" style={{ fontSize: 11, marginTop: 8, lineHeight: 1.45 }}>
+              Apply the change manually in the fields below, then click Save.
+              Click Dismiss to ignore this recommendation.
+            </p>
+          </div>
+        )}
 
         {/* SERP preview */}
         <SerpPreview

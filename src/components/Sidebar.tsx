@@ -287,6 +287,23 @@ const NAV: NavItem[] = [
   { name: 'Family Favorites',  href: '/admin/family-favorites', icon: Heart         },
   { name: 'Forms',             href: '/admin/content/forms',    icon: ClipboardList },
 
+  // ── SEO ─────────────────────────────────────────────────────────────────
+  { section: 'SEO' },
+  {
+    name: 'SEO Command Center',
+    href: '/admin/seo',
+    icon: TrendingUp,
+    children: [
+      { name: 'Brand Profile',          href: '/admin/seo/brand-profile'  },
+      { name: 'Weekly Audit Reports',   href: '/admin/seo/audit-reports'  },
+      { name: 'Redirects',              href: '/admin/seo/redirects'      },
+      { name: '404 Monitor',            href: '/admin/seo/404-log'        },
+      { name: 'Internal Link Queue',    href: '/admin/seo/internal-links' },
+      { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk'           },
+      { name: 'Route Coverage Audit',   href: '/admin/seo-health'         },
+    ],
+  },
+
   // ── TOOLS ───────────────────────────────────────────────────────────────
   { section: 'TOOLS' },
   { name: 'Site Navigation', href: '/admin/site/navigation',  icon: Navigation },
