@@ -10,6 +10,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin/auth'
 import { analyzeArticle } from '@/lib/seo/content-analyzer'
 import { SeoEditorClient } from './SeoEditorClient'
+import { loadArticleGsc } from '@/lib/seo/article-gsc'
+import { isGscConfigured } from '@/lib/seo/gsc'
+import { ArticleGscPanel } from './ArticleGscPanel'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -31,6 +34,13 @@ export default async function ArticleSeoPage({ params, searchParams }: Props) {
     .eq('id', id)
     .maybeSingle()
   if (error || !data) notFound()
+
+  // Live article-level GSC roll-up — top queries, page-2 leverage,
+  // CTR. Renders above the editor so the editor sees what's working
+  // before deciding what to edit. When GSC isn't configured we skip
+  // the panel entirely.
+  const articlePath = data.column_slug ? `/columns/${data.column_slug}/${data.slug}` : `/articles/${data.slug}`
+  const articleGsc  = isGscConfigured() ? await loadArticleGsc(sb, articlePath, 28) : null
 
   // Pre-compute the initial score so the editor sees real numbers on
   // first render (don't make them click Re-score first).
@@ -66,6 +76,7 @@ export default async function ArticleSeoPage({ params, searchParams }: Props) {
       </div>
 
       <div className="content-body overflow-y-auto">
+        {articleGsc && <ArticleGscPanel gsc={articleGsc} articleId={data.id as string} />}
         <SeoEditorClient
           articleId={data.id as string}
           brandSlug={(data.brand_slug as string | null) ?? 'rrp'}

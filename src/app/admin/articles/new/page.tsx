@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Check, RefreshCw, Eye } from 'lucide-react'
+import { ArrowLeft, Check, RefreshCw, Eye, Search as SearchIcon } from 'lucide-react'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
@@ -29,10 +29,32 @@ function slugify(text: string) {
     .slice(0, 80)
 }
 
+/** Build a working title from a GSC query. Keeps the editor on-target
+ *  without being prescriptive — they'll rewrite it, but the keyword
+ *  gets into the H1 from minute zero. */
+function titleScaffoldForQuery(q: string): string {
+  const trimmed = q.trim()
+  if (!trimmed) return ''
+  // Capitalize first letter of each word for the working title.
+  const cased = trimmed.replace(/\b\w/g, c => c.toUpperCase())
+  return `${cased}: A Family Guide`
+}
+
 type SaveMode = 'draft' | 'pending' | 'publish'
 
-export default function NewArticlePage() {
+export default function NewArticlePageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <NewArticlePage />
+    </Suspense>
+  )
+}
+
+function NewArticlePage() {
   const router = useRouter()
+  const search = useSearchParams()
+  const queryBriefSeed = search?.get('queryBrief') ?? null
+  const briefImpressions = search?.get('impressions') ?? null
 
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ text: string; ok: boolean } | null>(null)
@@ -66,6 +88,25 @@ export default function NewArticlePage() {
   const [galleryImages,   setGalleryImages]   = useState<GalleryImage[]>([])
   const [spotlightType,   setSpotlightType]   = useState<string>('')
   const [spotlightData,   setSpotlightData]   = useState<Record<string, string>>({})
+
+  // SEO seed carried over from a Query Brief link. Stored separately
+  // from the form's content fields so it travels to the API as
+  // seo_focus_keyword and can also drive a banner on this page.
+  const [seoSeed,         setSeoSeed]         = useState<string | null>(null)
+
+  // One-shot bootstrap from the queryBrief URL param. Pre-fills title
+  // with a working scaffold + sets the SEO seed so the article ships
+  // with the right focus keyword from minute zero.
+  useEffect(() => {
+    if (queryBriefSeed && !seoSeed) {
+      setSeoSeed(queryBriefSeed)
+      setForm(f => f.title
+        ? f
+        : { ...f, title: titleScaffoldForQuery(queryBriefSeed), slug: slugify(titleScaffoldForQuery(queryBriefSeed)) }
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryBriefSeed])
 
   const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
   const sel = `${inp} cursor-pointer`
@@ -131,6 +172,9 @@ export default function NewArticlePage() {
           // Photo gallery — JSONB array of {url, thumbnail_url, alt, caption}
           gallery_images: galleryImages.filter(img => !!img?.url),
           ...spotlightPayload,
+          // SEO seed → focus keyword on the freshly-created article so
+          // the analyzer + Brand Health score recognize it immediately.
+          seo_focus_keyword: seoSeed || undefined,
         }),
       })
       const json = await res.json()
@@ -207,6 +251,35 @@ export default function NewArticlePage() {
 
         {/* Main content column */}
         <div className="space-y-5">
+          {/* Query-Brief seed banner — only renders when the editor
+              landed here from /admin/seo/query-briefs. Shows the source
+              query + impressions + a hint that the title is a scaffold. */}
+          {seoSeed && (
+            <div className="bg-white rounded-lg border border-portal-border p-4" style={{ borderLeft: '4px solid var(--color-portal-blue)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <SearchIcon size={14} className="text-portal-blue" />
+                <strong className="text-sm text-portal-text">Seeded from Query Brief</strong>
+                {briefImpressions && (
+                  <span className="text-xs text-portal-sub">
+                    · {Number(briefImpressions).toLocaleString()} impressions/28d
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-portal-sub leading-relaxed">
+                Target query: <code className="font-semibold text-portal-text">&ldquo;{seoSeed}&rdquo;</code> —
+                saved as <strong>seo_focus_keyword</strong> on first save. The title above is a working scaffold;
+                rewrite it so it reads naturally while keeping the keyword in the first 60 characters.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSeoSeed(null)}
+                className="mt-2 text-[11px] text-portal-sub hover:text-portal-text"
+              >
+                Clear seed
+              </button>
+            </div>
+          )}
+
           {/* Title */}
           <div className="bg-white rounded-lg border border-portal-border p-5">
             <input

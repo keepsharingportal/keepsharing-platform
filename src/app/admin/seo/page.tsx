@@ -69,7 +69,7 @@ export default async function SeoHomePage() {
               return (
                 <Link
                   key={m.slug}
-                  href={`/admin/seo/audit-reports`}
+                  href={`/admin/seo/brand/${m.slug}`}
                   className="bg-white border border-portal-border rounded-lg"
                   style={{ padding: 14, textDecoration: 'none', display: 'block' }}
                 >

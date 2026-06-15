@@ -30,6 +30,10 @@ export async function POST(req: NextRequest) {
       spotlight_type, spotlight_data,
       hero_image_orig_path, profile_image_orig_path,
       gallery_images,
+      // SEO seed — when the editor lands here from a Query Brief deep-link
+      // the query is carried as the focus keyword so the article starts
+      // life targeting the right phrase. Editor can adjust on the SEO tab.
+      seo_focus_keyword,
     } = body
 
     if (!title?.trim() || !slug?.trim()) {
@@ -101,6 +105,8 @@ export async function POST(req: NextRequest) {
       profile_image_orig_path: profile_image_orig_path || null,
       // Photo gallery — always an array (constraint requires it)
       gallery_images:          Array.isArray(gallery_images) ? gallery_images : [],
+      // SEO seed from Query Brief (optional). Editor refines on SEO tab.
+      seo_focus_keyword:       seo_focus_keyword?.trim() || null,
     }
 
     const { data: created, error } = await supabase
