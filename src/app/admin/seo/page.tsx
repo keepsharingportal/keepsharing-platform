@@ -10,6 +10,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MARKETS } from '@/lib/markets'
 import { computeBrandHealth } from '@/lib/seo/brand-health'
+import { isGscConfigured } from '@/lib/seo/gsc'
+import { GscSyncWidget } from './GscSyncWidget'
+import { FeedsHealthWidget } from './FeedsHealthWidget'
 import {
   Repeat, AlertTriangle, Link as LinkIcon, ListChecks,
   Settings2, FileText, Activity, ArrowRight, Sparkles,
@@ -117,6 +120,12 @@ export default async function SeoHomePage() {
             })}
           </div>
         </div>
+
+        {/* ── GSC sync ────────────────────────────────────────── */}
+        <GscSyncWidget configured={isGscConfigured()} />
+
+        {/* ── Feeds healthcheck ──────────────────────────────── */}
+        <FeedsHealthWidget />
 
         {/* ── First-time tip ─────────────────────────────────── */}
         <div className="card" style={{ marginTop: 18, borderLeft: '3px solid var(--color-portal-blue)' }}>

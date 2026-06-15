@@ -24,10 +24,47 @@ interface RouteAudit {
   hasGenerateMetadata:  boolean
   usesBuildPageMetadata:boolean
   hasJsonLd:            boolean
+  jsonLdTypes:          string[]
   inCuratedSitemap:     boolean
   emitsRSS:             boolean
   emitsImageSitemap:    boolean
   emitsNewsSitemap:     boolean
+}
+
+/** schema.org types we look for in each page source — drives the
+ *  granular badge column + the "missing recommended schema" hints. */
+const JSONLD_PROBES: Array<{ key: string; needles: string[] }> = [
+  { key: 'Article',        needles: ['articleJsonLd', '"NewsArticle"', '"Article"', '"BlogPosting"'] },
+  { key: 'BreadcrumbList', needles: ['breadcrumbJsonLd', '"BreadcrumbList"'] },
+  { key: 'ItemList',       needles: ['itemListJsonLd', '"ItemList"'] },
+  { key: 'Place',          needles: ['placeJsonLd', '"Place"', '"LocalBusiness"'] },
+  { key: 'Event',          needles: ['eventJsonLd', '"Event"'] },
+  { key: 'Person',         needles: ['personJsonLd', '"Person"'] },
+  { key: 'FAQPage',        needles: ['faqPageJsonLd', '"FAQPage"'] },
+  { key: 'HowTo',          needles: ['howToJsonLd', '"HowTo"'] },
+  { key: 'Organization',   needles: ['"NewsMediaOrganization"', '"Organization"'] },
+  { key: 'Speakable',      needles: ['"SpeakableSpecification"', 'speakableSpecification'] },
+]
+
+function detectJsonLdTypes(src: string): string[] {
+  const found: string[] = []
+  for (const probe of JSONLD_PROBES) {
+    if (probe.needles.some(n => src.includes(n))) found.push(probe.key)
+  }
+  return found
+}
+
+/** Heuristic mapping route shape → JSON-LD types the editor really should add.
+ *  Used to flag "this page is naked AND should have Schema X" — drives the
+ *  Needs-Work focus panel. */
+function recommendJsonLd(route: string): string[] {
+  if (/\/columns\/.*\/.*$/.test(route))             return ['Article', 'BreadcrumbList']
+  if (route.endsWith('/[slug]') || /\/listings\//.test(route))      return ['Place', 'BreadcrumbList']
+  if (route === '/calendar' || /\/calendar\//.test(route)) return ['ItemList']
+  if (route === '/authors/[slug]')                  return ['Person']
+  if (route === '/search')                          return ['BreadcrumbList']
+  if (route === '/' || route === '/about' || route === '/contact') return ['Organization']
+  return []
 }
 
 const SKIP_DIRS = new Set(['admin', 'api', 'auth', 'login'])
@@ -48,14 +85,16 @@ function walk(): RouteAudit[] {
     }
     if (pageFile) {
       const src = (() => { try { return fs.readFileSync(pageFile!, 'utf8') } catch { return '' } })()
+      const jsonLdTypes = detectJsonLdTypes(src)
       out.push({
         route:                 route || '/',
         filePath:              path.relative(process.cwd(), pageFile),
         hasGenerateMetadata:   /export\s+async\s+function\s+generateMetadata/.test(src) || /export\s+function\s+generateMetadata/.test(src),
         usesBuildPageMetadata: /buildPageMetadata\s*\(/.test(src),
-        hasJsonLd:             /application\/ld\+json|jsonLdScript|articleJsonLd|breadcrumbJsonLd|itemListJsonLd|placeJsonLd|eventJsonLd|personJsonLd|faqPageJsonLd|howToJsonLd/.test(src),
-        inCuratedSitemap:      false,  // filled in below
-        emitsRSS:              false,  // filled in below
+        hasJsonLd:             jsonLdTypes.length > 0,
+        jsonLdTypes,
+        inCuratedSitemap:      false,
+        emitsRSS:              false,
         emitsImageSitemap:     false,
         emitsNewsSitemap:      false,
       })
@@ -118,6 +157,17 @@ export default async function SeoHealthPage() {
     partial:         scored.filter(r => r.score > 0 && r.score < 5).length,
   }
 
+  // Routes that recommend specific JSON-LD but emit none / wrong types.
+  const schemaGaps = scored
+    .map(r => {
+      const want = recommendJsonLd(r.route)
+      if (want.length === 0) return null
+      const missing = want.filter(t => !r.jsonLdTypes.includes(t))
+      if (missing.length === 0) return null
+      return { route: r.route, missing, has: r.jsonLdTypes, filePath: r.filePath }
+    })
+    .filter(Boolean) as Array<{ route: string; missing: string[]; has: string[]; filePath: string }>
+
   return (
     <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
       <div className="page-header">
@@ -150,6 +200,31 @@ export default async function SeoHealthPage() {
             <div className="stat-label">Naked (no SEO)</div>
           </div>
         </div>
+
+        {/* Schema-gap focus list. Surfaces the editor's actual work: routes
+            that should ship specific JSON-LD types and don't yet. */}
+        {schemaGaps.length > 0 && (
+          <div className="card" style={{ marginBottom: 14, borderLeft: '3px solid var(--color-portal-amber)' }}>
+            <div className="fw-700" style={{ marginBottom: 6, fontSize: 13 }}>
+              Missing recommended schema ({schemaGaps.length})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+              {schemaGaps.map(g => (
+                <div key={g.route} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                  <code style={{ fontSize: 11, color: 'var(--color-portal-text)', minWidth: 200 }}>{g.route}</code>
+                  <span className="text-portal-sub" style={{ fontSize: 11 }}>needs:</span>
+                  {g.missing.map(t => <Tag key={t} tone="amber">{t}</Tag>)}
+                  {g.has.length > 0 && (
+                    <>
+                      <span className="text-portal-sub" style={{ fontSize: 11, marginLeft: 8 }}>has:</span>
+                      {g.has.map(t => <Tag key={t} tone="green">{t}</Tag>)}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="card" style={{ marginBottom: 14, fontSize: 13, lineHeight: 1.5 }}>
           <div className="fw-700" style={{ marginBottom: 6 }}>How to read this</div>
@@ -186,7 +261,16 @@ export default async function SeoHealthPage() {
                       : r.hasGenerateMetadata ? <Tag tone="amber">✓</Tag>
                       : <Tag tone="red">—</Tag>}
                   </Td>
-                  <Td center>{r.hasJsonLd ? <Tag tone="green">✓</Tag> : <Tag tone="gray">—</Tag>}</Td>
+                  <Td center>
+                    {r.jsonLdTypes.length === 0
+                      ? <Tag tone="gray">—</Tag>
+                      : (
+                        <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+                          {r.jsonLdTypes.map(t => <Tag key={t} tone="green">{t}</Tag>)}
+                        </span>
+                      )
+                    }
+                  </Td>
                   <Td center>{r.inCuratedSitemap ? <Tag tone="green">✓</Tag> : <Tag tone="gray">auto</Tag>}</Td>
                   <Td center>{r.emitsRSS ? <Tag tone="green">✓</Tag> : <Tag tone="gray">—</Tag>}</Td>
                   <Td center>{r.emitsNewsSitemap ? <Tag tone="green">✓</Tag> : <Tag tone="gray">—</Tag>}</Td>

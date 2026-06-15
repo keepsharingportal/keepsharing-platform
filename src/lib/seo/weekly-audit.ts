@@ -18,6 +18,7 @@ import { runAI } from '@/lib/ai/client'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { MARKETS } from '@/lib/markets'
 import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
+import { computeBrandHealth } from '@/lib/seo/brand-health'
 
 export interface ActionItem {
   kind:           'fix-article' | 'set-focus-keyword' | 'add-redirect' | 'fill-content-gap' | 'improve-internal-linking' | 'other'
@@ -159,7 +160,25 @@ export async function runWeeklyAudit(
   const promptCtx       = await loadBrandPromptContext(sb, brandSlug)
   const brandContextMd  = renderBrandContextForPrompt(promptCtx)
 
+  // Composite brand-health snapshot — the single 0-100 score + its
+  // weakest component lets Claude lead the report with "your biggest
+  // lever this week is X" instead of generic SEO platitudes.
+  const health = await computeBrandHealth(sb, brandSlug)
+  const weakestComponent = pickWeakest(health)
+
+  const healthBriefMd = `# Brand health snapshot
+Composite score: **${health.score}/100** (${health.grade})
+Components:
+- Avg article SEO score:    ${health.avgArticleScore} (weight 40%)
+- % with focus keyword:     ${health.withFocusKeywordPct}% (weight 20%)
+- % with meta description:  ${health.withDescriptionPct}% (weight 15%)
+- % with hero image:        ${health.withHeroImagePct}% (weight 10%)
+- Recency (days w/ publish in last 30): ${health.recencyPct}% (weight 15%)
+Weakest leverage point: **${weakestComponent}** — your report's Summary should call this out as the #1 lever for next week.`
+
   const userPrompt = `${brandContextMd}
+
+${healthBriefMd}
 
 # Audit corpus context
 Brand: ${seo.organizationName}
@@ -215,4 +234,23 @@ this week.`
     tokensUsed:      res.promptTokens + res.completionTokens,
     modelUsed:       res.model,
   }
+}
+
+/** Of the 4 percentage-based health components, return the human-readable
+ *  label of whichever sits lowest. Drives the "biggest lever this week"
+ *  line in the brand-health brief Claude reads. */
+function pickWeakest(h: {
+  withFocusKeywordPct: number
+  withDescriptionPct:  number
+  withHeroImagePct:    number
+  recencyPct:          number
+}): string {
+  const candidates: Array<[string, number]> = [
+    ['focus-keyword coverage', h.withFocusKeywordPct],
+    ['meta-description coverage', h.withDescriptionPct],
+    ['hero-image coverage',   h.withHeroImagePct],
+    ['publishing recency',    h.recencyPct],
+  ]
+  candidates.sort((a, b) => a[1] - b[1])
+  return `${candidates[0][0]} (${candidates[0][1]}%)`
 }
