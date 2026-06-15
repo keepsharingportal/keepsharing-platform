@@ -142,8 +142,17 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{ fontSize: 12 }}>
-          <AlertTriangle size={12} style={{ display: 'inline', verticalAlign: -1, marginRight: 4 }} /> {error}
+        <div className="bg-portal-red-lt text-portal-red border border-portal-red rounded-lg p-3 text-[12px]" style={{ borderLeft: '3px solid var(--color-portal-red)' }}>
+          <div className="flex items-start gap-2">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <strong className="block mb-1">Generation error</strong>
+              <pre className="whitespace-pre-wrap break-words text-[11px] font-mono">{error}</pre>
+            </div>
+            <button type="button" onClick={() => setError(null)} className="text-portal-red hover:underline text-[11px] shrink-0">
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
