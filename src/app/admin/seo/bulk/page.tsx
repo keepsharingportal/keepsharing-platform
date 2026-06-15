@@ -31,7 +31,7 @@ export default async function BulkSeoPage() {
   const { data } = await sb
     .from('guide_articles')
     .select('id, title, slug, column_slug, seo_title, seo_description, seo_focus_keyword, seo_score, published_at')
-    .eq('status', 'published')
+    .eq('published', true)
     .order('published_at', { ascending: false })
     .limit(500)
   const rows = (data ?? []) as ArticleRow[]

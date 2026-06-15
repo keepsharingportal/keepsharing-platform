@@ -64,7 +64,7 @@ async function searchArticles(q: string): Promise<ArticleHit[]> {
   const { data } = await sb
     .from('guide_articles')
     .select('id, title, slug, column_slug, excerpt, dek, hero_image_url, author_name, published_at')
-    .eq('status', 'published')
+    .eq('published', true)
     .or(`title.ilike.${like},excerpt.ilike.${like},dek.ilike.${like}`)
     .order('published_at', { ascending: false })
     .limit(40)

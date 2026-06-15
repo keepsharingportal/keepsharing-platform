@@ -61,7 +61,7 @@ async function loadByAuthorSlug(slug: string): Promise<{ name: string; articles:
   const { data, error } = await sb
     .from('guide_articles')
     .select('id, title, slug, column_slug, excerpt, dek, hero_image_url, author_name, published_at')
-    .eq('status', 'published')
+    .eq('published', true)
     .not('author_name', 'is', null)
     .order('published_at', { ascending: false })
     .limit(2000)

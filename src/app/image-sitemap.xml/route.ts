@@ -41,7 +41,7 @@ export async function GET() {
   const { data: articles } = await supabase
     .from('guide_articles')
     .select('column_slug, slug, title, hero_image_url, excerpt')
-    .eq('status', 'published')
+    .eq('published', true)
     .not('hero_image_url', 'is', null)
     .order('published_at', { ascending: false })
     .limit(1000)

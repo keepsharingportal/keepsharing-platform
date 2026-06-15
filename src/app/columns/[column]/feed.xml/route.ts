@@ -48,7 +48,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ column:
     supabase
       .from('guide_articles')
       .select('column_slug, slug, title, published_at, dek, excerpt, hero_image_url, author_name')
-      .eq('status', 'published')
+      .eq('published', true)
       .eq('column_slug', column)
       .order('published_at', { ascending: false })
       .limit(50),

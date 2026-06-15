@@ -100,7 +100,7 @@ export async function runWeeklyAudit(
   const { data: recent } = await sb
     .from('guide_articles')
     .select('id, title, slug, column_slug, published_at, seo_score, seo_focus_keyword, seo_title, seo_description')
-    .eq('status', 'published')
+    .eq('published', true)
     .gte('published_at', cutoff)
     .order('published_at', { ascending: false })
     .limit(200)

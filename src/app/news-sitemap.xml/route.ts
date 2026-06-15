@@ -47,7 +47,7 @@ export async function GET() {
   const { data: articles } = await supabase
     .from('guide_articles')
     .select('column_slug, slug, title, published_at, dek, excerpt')
-    .eq('status', 'published')
+    .eq('published', true)
     .gte('published_at', cutoff)
     .order('published_at', { ascending: false })
     .limit(1000)

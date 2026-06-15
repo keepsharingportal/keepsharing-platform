@@ -20,7 +20,6 @@ interface ArticleRow {
   column_slug:       string | null
   body:              string | null
   seo_focus_keyword: string | null
-  status:            string
 }
 
 interface Suggestion {
@@ -75,8 +74,8 @@ export async function runInternalLinkPass(sb: SupabaseClient): Promise<{
   // candidates side; we also need their body to scan for matches.
   const { data: articles, error } = await sb
     .from('guide_articles')
-    .select('id, title, slug, column_slug, body, seo_focus_keyword, status')
-    .eq('status', 'published')
+    .select('id, title, slug, column_slug, body, seo_focus_keyword')
+    .eq('published', true)
     .order('published_at', { ascending: false })
     .limit(PAGE_LIMIT)
   if (error || !articles) return { articlesScanned: 0, suggestionsCreated: 0 }

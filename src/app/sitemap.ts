@@ -184,7 +184,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: articles } = await supabase
     .from('guide_articles')
     .select('column_slug, slug, updated_at, published_at')
-    .eq('status', 'published')
+    .eq('published', true)
     .order('published_at', { ascending: false })
     .limit(2000)
 
@@ -204,7 +204,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: events } = await supabase
     .from('calendar_events')
     .select('slug, updated_at, start_date')
-    .eq('status', 'published')
+    .eq('published', true)
     .gte('start_date', todayIso)
     .order('start_date', { ascending: true })
     .limit(1000)
@@ -239,7 +239,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: authorRows } = await supabase
     .from('guide_articles')
     .select('author_name, updated_at')
-    .eq('status', 'published')
+    .eq('published', true)
     .not('author_name', 'is', null)
     .order('updated_at', { ascending: false })
     .limit(5000)

@@ -53,7 +53,7 @@ CREATE INDEX IF NOT EXISTS idx_guide_articles_seo_focus_keyword
   WHERE seo_focus_keyword IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_guide_articles_seo_score
   ON guide_articles (seo_score)
-  WHERE status = 'published';
+  WHERE published = TRUE;
 
 
 -- ── 2. Redirect manager ─────────────────────────────────────────────────────
