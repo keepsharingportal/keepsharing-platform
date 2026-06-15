@@ -14,10 +14,99 @@
 // the sitemap 50k limit.
 
 import type { MetadataRoute } from 'next'
+import fs from 'node:fs'
+import path from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import { loadBrandContext } from '@/lib/brand-context'
 import { GAMES } from '@/lib/games/types'
 import { authorNameToSlug } from '@/lib/seo/author-slug'
+
+// ── Static-route discovery ───────────────────────────────────────────────────
+// Walks src/app at build time and emits one URL per static page.tsx /
+// page.ts / page.mdx file. Means: any new top-level hub page added to
+// the codebase automatically lands in the sitemap without anyone having
+// to remember to update this file.
+//
+// Skipped:
+//   - dynamic segments like [slug] (those are handled by per-content
+//     DB queries below)
+//   - parallel routes (@modal, etc.)
+//   - route groups ((marketing), etc.) — they don't change the URL
+//   - api routes
+//   - admin / auth / private surfaces (matched against PRIVATE_PREFIXES
+//     so they never accidentally end up in the public sitemap even if
+//     someone forgets robots.txt)
+
+const PUBLIC_HUB_PRIORITY = 0.6
+const PRIVATE_PREFIXES = [
+  '/admin', '/api', '/auth', '/login', '/onboard', '/proposal', '/renew',
+  '/update', '/r', '/distribution', '/advertiser-portal', '/partners/',
+  '/columns/',  // handled by per-DB-row article entries below
+  '/calendar/events/',
+  '/family-resource-guide/listings/',
+  '/family-resource-guide/town/',
+  '/authors/',
+  '/healthy-kids-guide/listings/',
+  '/summer-camp-guide/listings/',
+  '/summer-fun-guide/',
+  '/private-school-guide/listings/',
+  '/special-needs-guide/listings/',
+  '/newcomer-guide/articles/',
+  '/newcomer-guide/listings/',
+  '/local-guides/',
+  '/columns/',
+  '/games/',
+  '/articles/',
+  '/share/',
+  '/go/',
+  '/interview/',
+  '/contribute/',
+  '/nominate/',
+]
+const SKIP_DIR_PREFIX = ['_', '(', '@']
+
+function discoverStaticRoutes(): string[] {
+  // process.cwd() is the project root at build time on Vercel +
+  // locally. The repo layout puts pages under src/app.
+  const root = path.join(process.cwd(), 'src', 'app')
+  if (!fs.existsSync(root)) return []
+  const out: string[] = []
+
+  function visit(dir: string, route: string) {
+    let entries: fs.Dirent[]
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    let hasPage = false
+    for (const e of entries) {
+      if (!e.isFile()) continue
+      if (e.name === 'page.tsx' || e.name === 'page.ts' || e.name === 'page.mdx') {
+        hasPage = true; break
+      }
+    }
+    if (hasPage) {
+      const r = route || '/'
+      // Filter against private prefixes — covers nested admin/api etc.
+      const isPrivate = PRIVATE_PREFIXES.some(p => r === p || r.startsWith(p) || r === p.replace(/\/$/, ''))
+      if (!isPrivate) out.push(r)
+    }
+    for (const e of entries) {
+      if (!e.isDirectory()) continue
+      const name = e.name
+      // Skip private-folder conventions, dynamic segments (those are
+      // handled by per-content DB queries below — putting [slug] in
+      // the sitemap literally would emit "/columns/[column]" which is
+      // useless to crawlers).
+      if (SKIP_DIR_PREFIX.some(p => name.startsWith(p))) continue
+      if (name.startsWith('[')) continue
+      visit(path.join(dir, name), `${route}/${name}`)
+    }
+  }
+  visit(root, '')
+  return Array.from(new Set(out)).sort()
+}
 
 export const revalidate = 3600  // refresh sitemap hourly
 
@@ -63,6 +152,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/privacy`,                lastModified: now, changeFrequency: 'yearly',  priority: 0.2  },
     { url: `${origin}/terms`,                  lastModified: now, changeFrequency: 'yearly',  priority: 0.2  },
   ]
+
+  // ── Auto-discovered hubs ──────────────────────────────────────────
+  // Anything NEW added to src/app as page.tsx (a wellness guide, a
+  // fall events vertical, etc.) lands here automatically without a
+  // sitemap.ts edit. URLs already in `hubs` (with hand-tuned priority +
+  // changefreq) take precedence; the discovery pass fills in gaps.
+  const knownUrls = new Set(hubs.map(h => h.url))
+  const autoHubs: MetadataRoute.Sitemap = discoverStaticRoutes()
+    .map(r => `${origin}${r === '/' ? '' : r}`)
+    .filter(u => !knownUrls.has(u))
+    .map(u => ({
+      url:            u,
+      lastModified:   now,
+      changeFrequency: 'weekly' as const,
+      priority:       PUBLIC_HUB_PRIORITY,
+    }))
 
   // Per-game URLs
   const games: MetadataRoute.Sitemap = GAMES.map(g => ({
@@ -154,6 +259,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...hubs,
+    ...autoHubs,        // anything new added under src/app, auto-discovered
     ...games,
     ...articleEntries,
     ...eventEntries,
