@@ -190,31 +190,50 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const data = await getArticleData(column, slug)
   if (!data) return { title: 'Article — River Region Parents' }
 
-  // Pull the hero image off the article so the Facebook / Twitter
-  // / LinkedIn share preview shows the article's own photo, not the
-  // generic site OG. Falls through to the route's opengraph-image
-  // when no hero is set on the article.
   const heroImage = (data.article.hero_image_url as string | null)
                  ?? (data.article.web_image_url  as string | null)
                  ?? null
 
-  const description = (data.article.excerpt as string | null)
+  // Editor-tuned overrides win over the auto-derived defaults. This is
+  // the whole point of the /admin/articles/[id]/seo editor — let
+  // editors hand-craft the SERP listing when the algorithmic fallback
+  // isn't sharp enough.
+  const seoTitle    = (data.article.seo_title       as string | null)?.trim()
+  const seoDesc     = (data.article.seo_description as string | null)?.trim()
+  const canonical   = (data.article.seo_canonical_override as string | null)?.trim()
+  const noIndex     = !!data.article.seo_no_index
+  const focusKw     = (data.article.seo_focus_keyword as string | null)?.trim()
+  const secondaryKw = (data.article.seo_secondary_keywords as string[] | null) ?? []
+
+  const description = seoDesc
+                   ?? (data.article.excerpt as string | null)
                    ?? (data.article.dek as string | null)
                    ?? `Read ${data.article.title} on River Region Parents.`
 
   const brandLabel = data.column?.label ?? undefined
+  const keywordSet = new Set<string>(
+    [
+      ...(focusKw ? [focusKw] : []),
+      ...secondaryKw,
+      ...(brandLabel ? [brandLabel] : []),
+      'River Region', 'Parenting',
+    ].map(k => k.trim()).filter(Boolean)
+  )
 
-  return buildPageMetadata({
-    title:         data.article.title as string,
+  const md = await buildPageMetadata({
+    title:         seoTitle ?? (data.article.title as string),
     description,
-    path:          `/columns/${column}/${slug}`,
+    path:          canonical ?? `/columns/${column}/${slug}`,
     image:         heroImage,
     type:          'article',
     publishedTime: (data.article.published_at as string | null) ?? undefined,
     modifiedTime:  (data.article.updated_at   as string | null) ?? undefined,
     authorName:    (data.article.author_name  as string | null) ?? undefined,
-    keywords:      brandLabel ? [brandLabel, 'River Region', 'Parenting'] : undefined,
+    keywords:      Array.from(keywordSet),
+    noIndex,
   })
+
+  return md
 }
 
 export default async function ArticlePage({ params }: PageParams) {
@@ -497,9 +516,27 @@ export default async function ArticlePage({ params }: PageParams) {
   const { authorNameToSlug } = await import('@/lib/seo/author-slug')
   const authorSlug = authorNameToSlug(article.author_name as string | null)
   const authorUrl  = authorSlug ? `${articleSeoCfg.url}/authors/${authorSlug}` : undefined
+  // Editor SEO overrides win in JSON-LD too — the article@id and the
+  // share preview should agree, otherwise the rich-results data
+  // mismatches the visible page and Google penalizes for it.
+  const ldTitle       = (article.seo_title       as string | null)?.trim() || (article.title as string)
+  const ldDescription = (article.seo_description as string | null)?.trim() || ((article.excerpt as string | null) ?? '')
+  const ldFocusKw     = (article.seo_focus_keyword as string | null)?.trim()
+  const ldSecondaryKw = (article.seo_secondary_keywords as string[] | null) ?? []
+  const ldKeywords    = (() => {
+    const set = new Set<string>([
+      ...(ldFocusKw ? [ldFocusKw] : []),
+      ...ldSecondaryKw,
+      ...(columnData?.label ? [columnData.label] : []),
+      articleSeoCfg.areaServedLabel,
+      'Parenting',
+    ].map(k => k.trim()).filter(Boolean))
+    return Array.from(set)
+  })()
+
   const articleLd = articleJsonLd({
-    title:        article.title as string,
-    description:  (article.excerpt as string | null) ?? '',
+    title:        ldTitle,
+    description:  ldDescription,
     url:          articleUrl,
     imageUrl:     heroForLd,
     publishedAt:  (article.published_at as string | null) ?? undefined,
@@ -512,7 +549,7 @@ export default async function ArticlePage({ params }: PageParams) {
     articleSection:   columnData?.label ?? undefined,
     type:             'NewsArticle',
     bodyText:         articleBodyPlain || null,
-    keywords:         columnData?.label ? [columnData.label, articleSeoCfg.areaServedLabel, 'Parenting'] : undefined,
+    keywords:         ldKeywords,
   })
   const breadcrumbsLd = breadcrumbJsonLd(
     [
