@@ -11,6 +11,7 @@
 
 import { ImageResponse } from 'next/og'
 import { loadBrandContext } from '@/lib/brand-context'
+import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 
 export const runtime    = 'nodejs'
 export const contentType = 'image/png'
@@ -19,7 +20,10 @@ export const alt  = 'River Region Parents — Local Stories & Events'
 
 export default async function OG() {
   const ctx = await loadBrandContext()
+  const seoCfg = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
   const brandName = ctx.market.displayName
+  const brandColor = seoCfg.brandColor
+  const tagline    = seoCfg.slogan
   // Split last word out so we can color it coral, matching the
   // wordmark treatment on the live site.
   const lastSpace  = brandName.lastIndexOf(' ')
@@ -39,20 +43,21 @@ export default async function OG() {
           position:       'relative',
         }}
       >
-        {/* Top coral stripe */}
+        {/* Top brand stripe */}
         <div
           style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 18,
-            background: '#ef6442',
+            background: brandColor,
           }}
         />
 
-        {/* Eyebrow pill */}
+        {/* Eyebrow pill — area-served label so the share preview tells
+            people WHERE we cover, not just what we are. */}
         <div
           style={{
             display:        'inline-flex',
             alignSelf:      'flex-start',
-            backgroundColor:'#ef6442',
+            backgroundColor: brandColor,
             color:          'white',
             fontSize:       22,
             fontWeight:     800,
@@ -63,7 +68,7 @@ export default async function OG() {
             marginBottom:   40,
           }}
         >
-          Local Family Magazine
+          {seoCfg.areaServedLabel}
         </div>
 
         {/* Wordmark */}
@@ -79,7 +84,7 @@ export default async function OG() {
           }}
         >
           {baseWord}
-          {accentWord && <span style={{ color: '#ef6442' }}>{accentWord}</span>}
+          {accentWord && <span style={{ color: brandColor }}>{accentWord}</span>}
         </div>
 
         {/* Tagline */}
@@ -93,7 +98,7 @@ export default async function OG() {
             maxWidth:   900,
           }}
         >
-          Local stories, family events, and community guides — updated weekly.
+          {tagline}
         </div>
 
         {/* Footer URL */}

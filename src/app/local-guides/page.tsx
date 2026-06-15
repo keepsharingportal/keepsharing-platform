@@ -12,9 +12,15 @@ import type { Metadata } from 'next'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title:       'Local Guides | River Region Parents',
-  description: 'Nine guides covering schools, childcare, health, activities, and more for River Region families.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Local Guides',
+    description: 'River Region\'s family-first guide library — schools, childcare, summer camps, healthy kids, special needs, newcomers, after-school, and more. Local. Real. Updated weekly.',
+    path:        '/local-guides',
+    type:        'website',
+    keywords:    ['River Region guides', 'family resources', 'Montgomery guides', 'local directories'],
+  })
 }
 
 const GUIDE_EMOJIS: Record<string, string> = {

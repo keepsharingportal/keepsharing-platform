@@ -14,9 +14,15 @@ import type { Metadata } from 'next'
 
 export const revalidate = 900
 
-export const metadata: Metadata = {
-  title:       'Articles — River Region Parents',
-  description: 'Local family stories, monthly columns, and parenting resources from River Region Parents.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Articles',
+    description: 'Local family stories, monthly columns, and parenting resources — Mom to Mom, Teacher of the Month, Play Ball, Grands Are the Greatest, and more. Updated weekly.',
+    path:        '/articles',
+    type:        'website',
+    keywords:    ['River Region articles', 'parenting articles', 'local family stories', 'community columns'],
+  })
 }
 
 // ── Section filters ────────────────────────────────────────────────────

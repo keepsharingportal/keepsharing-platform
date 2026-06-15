@@ -3,9 +3,15 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { LeadCaptureForm } from '@/components/advertise/LeadCaptureForm'
 
-export const metadata: Metadata = {
-  title: 'Partner with River Region Parents — Family Discovery Ecosystem',
-  description: 'River Region Parents is the trusted family discovery ecosystem for the River Region — print, digital guides, editorial, events, social, and email. Learn how your business becomes part of it.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Partner With Us — Family Discovery Ecosystem',
+    description: 'River Region Parents is the trusted family discovery ecosystem — print magazine, digital guides, editorial features, events, social, and email. Reach parents actively planning the next thing for their families.',
+    path:        '/partners',
+    type:        'website',
+    keywords:    ['advertise River Region', 'family marketing Montgomery', 'parent advertising', 'local business sponsorship'],
+  })
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────

@@ -16,9 +16,15 @@ import type { Metadata } from 'next'
 
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title: 'Mom Knows Best | River Region Parents',
-  description: 'Real River Region moms writing about real River Region life. Meet our local mom bloggers and read their latest posts.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Mom Knows Best',
+    description: 'Real River Region moms writing about real River Region life — honest, funny, in-the-trenches blog posts from local mom bloggers. New posts every week.',
+    path:        '/mom-knows-best',
+    type:        'website',
+    keywords:    ['mom blogs', 'River Region moms', 'parenting blog', 'local moms', 'Montgomery moms'],
+  })
 }
 
 function getSupabase() {

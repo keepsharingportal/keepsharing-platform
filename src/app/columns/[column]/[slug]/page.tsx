@@ -478,11 +478,21 @@ export default async function ArticlePage({ params }: PageParams) {
   // ── JSON-LD: NewsArticle + BreadcrumbList ──────────────────────────────
   // Two structured-data blobs per article so search engines can
   // surface rich results (article cards, breadcrumb trails) without
-  // having to reverse-engineer our markup.
+  // having to reverse-engineer our markup. NewsArticle now includes
+  // speakable spec (voice rich results) + wordCount + a snippet of
+  // articleBody (content-quality signal) + keyword list.
   const seoCtx = await loadBrandContext()
+  const { getBrandSeoConfig: _getBrandSeo } = await import('@/lib/seo/brand-seo')
+  const articleSeoCfg = _getBrandSeo(seoCtx.market, seoCtx.publicOrigin)
   const heroForLd = (article.hero_image_url as string | null)
                  ?? (article.web_image_url  as string | null)
                  ?? null
+  // Plain-text article body for speakable / wordCount / snippet.
+  // Strip HTML tags, normalize whitespace.
+  const articleBodyPlain = ((article.body as string | null) ?? '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
   const articleUrl = `${seoCtx.publicOrigin}/columns/${column}/${slug}`
   const articleLd = articleJsonLd({
     title:        article.title as string,
@@ -492,10 +502,13 @@ export default async function ArticlePage({ params }: PageParams) {
     publishedAt:  (article.published_at as string | null) ?? undefined,
     modifiedAt:   (article.updated_at   as string | null) ?? undefined,
     authorName:   (article.author_name  as string | null) ?? undefined,
-    publisherName:    seoCtx.market.displayName,
-    publisherLogoUrl: `${seoCtx.publicOrigin}/images/advertise/rrp-logo.png`,
+    publisherName:    articleSeoCfg.organizationName,
+    publisherUrl:     articleSeoCfg.url,
+    publisherLogoUrl: articleSeoCfg.logoUrl,
     articleSection:   columnData?.label ?? undefined,
     type:             'NewsArticle',
+    bodyText:         articleBodyPlain || null,
+    keywords:         columnData?.label ? [columnData.label, articleSeoCfg.areaServedLabel, 'Parenting'] : undefined,
   })
   const breadcrumbsLd = breadcrumbJsonLd(
     [

@@ -17,9 +17,15 @@ import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'School Zone — River Region Parents',
-  description: 'Celebrating student achievements, sharing district news, and keeping you connected to education across the River Region.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'School Zone',
+    description: 'Celebrating student achievements, sharing district news, and keeping families connected to education across Montgomery, Autauga, Elmore, Pike Road, and private schools. Submit a School Bit free.',
+    path:        '/school-zone',
+    type:        'website',
+    keywords:    ['River Region schools', 'Montgomery schools', 'student achievements', 'school news', 'Teacher of the Month'],
+  })
 }
 
 // ── Education-specific Unsplash images ───────────────────────────────────────

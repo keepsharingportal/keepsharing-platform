@@ -35,6 +35,214 @@ export function organizationJsonLd(input: OrganizationInput) {
   }
 }
 
+// ── NewsMediaOrganization — local-news publisher signal ─────────────────────
+//
+// More specific than Organization; tells Google this is a news/media
+// publisher (matters for News Showcase, Top Stories carousel, local
+// news ranking). Includes the full E-E-A-T payload — editorial /
+// ethics / corrections policy URLs, masthead, founding date, area
+// served, address.
+
+export interface NewsMediaOrganizationInput {
+  name:                  string
+  legalName?:            string
+  url:                   string
+  logoUrl:               string
+  slogan:                string
+  foundingYear?:         number
+  socialUrls?:           string[]
+  /** Topics the publication covers. Major niche-ranking signal. */
+  knowsAbout?:           string[]
+  /** Free-text audience description. */
+  audience?:             string
+  /** Geographic area served — e.g. "River Region, AL" */
+  areaServedLabel:       string
+  /** Postal address. */
+  addressLocality:       string
+  addressRegion:         string
+  addressCountry:        string
+  contactEmail?:         string
+  /** Editorial transparency URLs — heavily weighted by Google for
+   *  news-publisher E-E-A-T. */
+  editorialPolicyUrl?:   string
+  ethicsPolicyUrl?:      string
+  correctionsPolicyUrl?: string
+  /** Masthead / about page. */
+  aboutUrl?:             string
+}
+
+export function newsMediaOrganizationJsonLd(input: NewsMediaOrganizationInput) {
+  return {
+    '@context':  'https://schema.org',
+    '@type':     'NewsMediaOrganization',
+    '@id':       `${input.url}#organization`,
+    name:        input.name,
+    ...(input.legalName && { legalName: input.legalName }),
+    url:         input.url,
+    slogan:      input.slogan,
+    logo: {
+      '@type': 'ImageObject',
+      url:     input.logoUrl,
+    },
+    ...(input.foundingYear && { foundingDate: `${input.foundingYear}-01-01` }),
+    ...(input.socialUrls?.length && { sameAs: input.socialUrls }),
+    ...(input.knowsAbout?.length && { knowsAbout: input.knowsAbout }),
+    ...(input.audience && {
+      audience: { '@type': 'Audience', audienceType: input.audience },
+    }),
+    areaServed: {
+      '@type': 'AdministrativeArea',
+      name:    input.areaServedLabel,
+    },
+    address: {
+      '@type':          'PostalAddress',
+      addressLocality:  input.addressLocality,
+      addressRegion:    input.addressRegion,
+      addressCountry:   input.addressCountry,
+    },
+    ...(input.contactEmail && {
+      contactPoint: {
+        '@type':       'ContactPoint',
+        contactType:   'Editorial',
+        email:         input.contactEmail,
+        areaServed:    input.addressCountry,
+        availableLanguage: 'English',
+      },
+    }),
+    ...(input.editorialPolicyUrl   && { publishingPrinciples: input.editorialPolicyUrl }),
+    ...(input.ethicsPolicyUrl      && { ethicsPolicy:         input.ethicsPolicyUrl }),
+    ...(input.correctionsPolicyUrl && { correctionsPolicy:    input.correctionsPolicyUrl }),
+    ...(input.aboutUrl             && { mainEntityOfPage:     input.aboutUrl }),
+    diversityPolicy:    input.editorialPolicyUrl,
+    actionableFeedbackPolicy: input.correctionsPolicyUrl,
+  }
+}
+
+// ── Person schema for author bios — E-E-A-T signal ─────────────────────────
+//
+// Article author cards link via JSON-LD to the author's Person entity.
+// Google grades how well-attributed your articles are; having author
+// pages with Person schema (and the same @id referenced from
+// NewsArticle.author) lifts the whole publication.
+
+export interface PersonJsonLdInput {
+  name:        string
+  url:         string  // author page URL (canonical)
+  imageUrl?:   string | null
+  jobTitle?:   string  // "Editor in Chief", "Staff Writer", "Contributor"
+  description?: string  // short bio
+  knowsAbout?: string[]
+  socialUrls?: string[]
+  email?:      string
+  worksForUrl?: string  // back-reference to organization @id
+  worksForName?: string
+}
+
+export function personJsonLd(input: PersonJsonLdInput) {
+  return {
+    '@context':  'https://schema.org',
+    '@type':     'Person',
+    '@id':       `${input.url}#person`,
+    name:        input.name,
+    url:         input.url,
+    ...(input.imageUrl && { image: input.imageUrl }),
+    ...(input.jobTitle && { jobTitle: input.jobTitle }),
+    ...(input.description && { description: input.description }),
+    ...(input.knowsAbout?.length && { knowsAbout: input.knowsAbout }),
+    ...(input.socialUrls?.length && { sameAs: input.socialUrls }),
+    ...(input.email && { email: input.email }),
+    ...(input.worksForUrl && {
+      worksFor: {
+        '@type': 'NewsMediaOrganization',
+        '@id':   `${input.worksForUrl}#organization`,
+        ...(input.worksForName && { name: input.worksForName }),
+      },
+    }),
+  }
+}
+
+// ── FAQPage schema — for guides + listicles with structured Q&A ────────────
+
+export interface FaqJsonLdInput {
+  url: string
+  items: Array<{ question: string; answer: string }>
+}
+
+export function faqPageJsonLd(input: FaqJsonLdInput) {
+  return {
+    '@context': 'https://schema.org',
+    '@type':    'FAQPage',
+    '@id':      `${input.url}#faqpage`,
+    mainEntity: input.items.map(it => ({
+      '@type':         'Question',
+      name:            it.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text:    it.answer,
+      },
+    })),
+  }
+}
+
+// ── HowTo schema — for parenting how-tos / step-by-step guides ─────────────
+
+export interface HowToJsonLdInput {
+  name:        string
+  description: string
+  url:         string
+  imageUrl?:   string | null
+  totalTime?:  string  // ISO 8601 duration (e.g. PT30M)
+  steps:       Array<{ name: string; text: string; imageUrl?: string }>
+}
+
+export function howToJsonLd(input: HowToJsonLdInput) {
+  return {
+    '@context':  'https://schema.org',
+    '@type':     'HowTo',
+    name:        input.name,
+    description: input.description,
+    url:         input.url,
+    ...(input.imageUrl && { image: input.imageUrl }),
+    ...(input.totalTime && { totalTime: input.totalTime }),
+    step: input.steps.map((s, i) => ({
+      '@type':    'HowToStep',
+      position:   i + 1,
+      name:       s.name,
+      text:       s.text,
+      ...(s.imageUrl && { image: s.imageUrl }),
+    })),
+  }
+}
+
+// ── Place schema for town / neighborhood landing pages ──────────────────────
+
+export interface PlaceJsonLdInput {
+  name:     string
+  url:      string
+  containedInPlace?: string  // e.g. "Montgomery County, AL"
+  latitude?: number
+  longitude?: number
+}
+
+export function placeJsonLd(input: PlaceJsonLdInput) {
+  return {
+    '@context':  'https://schema.org',
+    '@type':     'Place',
+    name:        input.name,
+    url:         input.url,
+    ...(input.containedInPlace && {
+      containedInPlace: { '@type': 'Place', name: input.containedInPlace },
+    }),
+    ...(typeof input.latitude === 'number' && typeof input.longitude === 'number' && {
+      geo: {
+        '@type':    'GeoCoordinates',
+        latitude:   input.latitude,
+        longitude:  input.longitude,
+      },
+    }),
+  }
+}
+
 export interface WebSiteInput {
   name:      string
   url:       string
@@ -67,7 +275,11 @@ export interface ArticleJsonLdInput {
   publishedAt?: string  // ISO
   modifiedAt?:  string  // ISO
   authorName?:  string
+  /** When the author has a public bio page, link it via @id so the
+   *  article ties to Person schema. */
+  authorUrl?:   string
   publisherName: string
+  publisherUrl?: string  // for @id reference
   publisherLogoUrl: string | null
   /** Section / column the article belongs to (e.g. 'Play Ball',
    *  'Mom to Mom'). Surfaces as articleSection in rich results. */
@@ -75,9 +287,22 @@ export interface ArticleJsonLdInput {
   /** 'NewsArticle' for time-sensitive editorial, 'Article' for
    *  evergreen guides. Defaults to Article. */
   type?: 'Article' | 'NewsArticle'
+  /** Plain-text article body for SpeakableSpecification + wordCount
+   *  + brief articleBody snippet. Google uses speakable for voice
+   *  assistants ("hey Google, read me the news"). */
+  bodyText?:    string | null
+  /** Keywords / tags from the article taxonomy. */
+  keywords?:    string[]
 }
 
 export function articleJsonLd(input: ArticleJsonLdInput) {
+  const bodyText  = (input.bodyText ?? '').trim()
+  const wordCount = bodyText ? bodyText.split(/\s+/).filter(Boolean).length : undefined
+  // First 600 chars of body for the articleBody snippet — long enough
+  // for Google to grade content quality, short enough to keep the
+  // structured-data payload reasonable. The full body is in the HTML.
+  const bodySnippet = bodyText ? bodyText.slice(0, 600) + (bodyText.length > 600 ? '…' : '') : undefined
+
   return {
     '@context':     'https://schema.org',
     '@type':        input.type ?? 'Article',
@@ -89,16 +314,31 @@ export function articleJsonLd(input: ArticleJsonLdInput) {
     ...(input.publishedAt && { datePublished: input.publishedAt }),
     ...(input.modifiedAt  && { dateModified:  input.modifiedAt  }),
     ...(input.authorName && {
-      author: { '@type': 'Person', name: input.authorName },
+      author: {
+        '@type': 'Person',
+        name:    input.authorName,
+        ...(input.authorUrl && { '@id': `${input.authorUrl}#person`, url: input.authorUrl }),
+      },
     }),
     publisher: {
-      '@type': 'Organization',
+      '@type': 'NewsMediaOrganization',
+      ...(input.publisherUrl && { '@id': `${input.publisherUrl}#organization` }),
       name:    input.publisherName,
       ...(input.publisherLogoUrl && {
         logo: { '@type': 'ImageObject', url: input.publisherLogoUrl },
       }),
     },
     ...(input.articleSection && { articleSection: input.articleSection }),
+    ...(input.keywords?.length && { keywords: input.keywords.join(', ') }),
+    ...(wordCount   && { wordCount }),
+    ...(bodySnippet && { articleBody: bodySnippet }),
+    // Speakable Specification — Google Assistant + voice rich results.
+    // Selectors point at the headline + the article body container so
+    // a voice assistant can "read this story" without including ads.
+    speakable: {
+      '@type':       'SpeakableSpecification',
+      cssSelector:   ['h1', 'article p'],
+    },
   }
 }
 

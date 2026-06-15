@@ -5,7 +5,8 @@ import Script from 'next/script'
 import { ViewTracker } from '@/components/ViewTracker'
 import { loadBrandContext } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
-import { organizationJsonLd, websiteJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
+import { newsMediaOrganizationJsonLd, websiteJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
+import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -81,24 +82,39 @@ export async function generateMetadata(): Promise<Metadata> {
 const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Site-wide structured data. Organization tells search engines who
-  // we are (name, logo, social profiles); WebSite registers our
-  // search action so Google can show a sitelinks search box. Both
-  // are emitted ONCE per page from the root layout so we don't
-  // duplicate them across route segments.
-  const ctx = await loadBrandContext()
-  const orgLd = organizationJsonLd({
-    name:    ctx.market.displayName,
-    url:     ctx.publicOrigin,
-    logoUrl: `${ctx.publicOrigin}/images/advertise/rrp-logo.png`,
-    socialUrls: [
-      'https://www.facebook.com/riverregionparents',
-      'https://www.instagram.com/riverregionparents',
-    ],
+  // Site-wide structured data. NewsMediaOrganization tells Google we
+  // are a legitimate local-news publisher (vs a generic Organization);
+  // WebSite registers a SearchAction so Google can show a sitelinks
+  // search box. Both inherit brand identity from the resolved request
+  // so RRP, BOOM, AOP, MBP all emit their own publisher schema with
+  // their own social profiles, founding date, knowsAbout list, and
+  // area served. Adding a new brand = MARKETS row + (optional)
+  // BRAND_OVERRIDES entry in brand-seo.ts and the schema flows.
+  const ctx     = await loadBrandContext()
+  const seoCfg  = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
+  const orgLd   = newsMediaOrganizationJsonLd({
+    name:                 seoCfg.organizationName,
+    legalName:            seoCfg.legalName,
+    url:                  seoCfg.url,
+    logoUrl:              seoCfg.logoUrl,
+    slogan:               seoCfg.slogan,
+    foundingYear:         seoCfg.foundingYear,
+    socialUrls:           seoCfg.socialUrls,
+    knowsAbout:           seoCfg.knowsAbout,
+    audience:             seoCfg.audience,
+    areaServedLabel:      seoCfg.areaServedLabel,
+    addressLocality:      seoCfg.addressLocality,
+    addressRegion:        seoCfg.addressRegion,
+    addressCountry:       seoCfg.addressCountry,
+    contactEmail:         seoCfg.contactEmail,
+    editorialPolicyUrl:   seoCfg.editorialPolicyUrl,
+    ethicsPolicyUrl:      seoCfg.ethicsPolicyUrl,
+    correctionsPolicyUrl: seoCfg.correctionsPolicyUrl,
+    aboutUrl:             seoCfg.aboutUrl,
   })
-  const siteLd = websiteJsonLd({
-    name:       ctx.market.displayName,
-    url:        ctx.publicOrigin,
+  const siteLd  = websiteJsonLd({
+    name:       seoCfg.organizationName,
+    url:        seoCfg.url,
     searchPath: '/articles?q={search_term_string}',
   })
 
@@ -116,9 +132,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             src="https://plausible.io/js/script.tagged-events.outbound-links.js"
           />
         )}
-        {/* JSON-LD structured data — Organization + WebSite. Inlined
-            via dangerouslySetInnerHTML so it ships in the initial HTML
-            and search-engine crawlers see it without executing JS. */}
+        {/* JSON-LD structured data — NewsMediaOrganization + WebSite.
+            Inlined via dangerouslySetInnerHTML so it ships in the
+            initial HTML and crawlers see it without executing JS. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(orgLd) }}
@@ -127,6 +143,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(siteLd) }}
         />
+        {/* Auto-discovery links — feed readers + crawlers parse these
+            from the head. RSS feed, news sitemap, and PWA manifest
+            all advertised so every well-behaved client picks them up
+            without a manual subscribe step. */}
+        <link rel="alternate" type="application/rss+xml" title={`${ctx.market.displayName} — Latest`} href="/feed.xml" />
+        <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content={seoCfg.brandColor} />
       </head>
       <body className="h-full">
         {/* First-party pageview tracking — feeds the auto-trending bar +

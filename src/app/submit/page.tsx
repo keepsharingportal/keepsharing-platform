@@ -7,9 +7,15 @@ import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { GATEWAY_GROUPS, SUBMISSION_TYPES, TYPE_COLORS } from '@/lib/submissions'
 
-export const metadata: Metadata = {
-  title: 'Submit — River Region Parents',
-  description: 'Nominate a teacher, share school news, celebrate a birthday, submit an event, or be featured in River Region Parents. Easy community participation.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Submit a Story, Nomination, or Event',
+    description: 'Nominate a Teacher of the Month, a Play Ball athlete, a Mom to Mom feature, a Grandparent who deserves recognition, share School News, celebrate a birthday, submit a family event — your community story has a home here.',
+    path:        '/submit',
+    type:        'website',
+    keywords:    ['nominate', 'submit', 'community submissions', 'River Region', 'family stories'],
+  })
 }
 
 export default function SubmitPage() {

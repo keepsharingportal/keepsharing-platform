@@ -29,6 +29,9 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         ],
       },
     ],
-    sitemap: `${ctx.publicOrigin}/sitemap.xml`,
+    sitemap: [
+      `${ctx.publicOrigin}/sitemap.xml`,
+      `${ctx.publicOrigin}/news-sitemap.xml`,
+    ],
   }
 }
