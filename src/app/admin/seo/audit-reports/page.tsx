@@ -11,6 +11,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MARKETS } from '@/lib/markets'
 import { RunNowButton } from './RunNowButton'
+import { SeasonalAlerts } from '@/components/seo/SeasonalAlerts'
 
 export const metadata: Metadata = { title: 'SEO Audit Reports — Admin' }
 export const dynamic = 'force-dynamic'
@@ -55,6 +56,13 @@ export default async function AuditReportsPage() {
       </div>
 
       <div className="content-body overflow-y-auto">
+
+        {/* Seasonal radar — shows this brand's current + next month
+            calendar themes so the editor knows what coverage to push
+            BEFORE the audit flags gaps. Defaults to 'rrp' since this
+            page lists all brands; per-brand drill-down is in the
+            per-audit detail page. */}
+        <SeasonalAlerts brandSlug="rrp" />
 
         {/* Per-brand latest cards */}
         <div className="stats-row" style={{ marginBottom: 16 }}>

@@ -14,6 +14,8 @@
 import { runAI } from '@/lib/ai/client'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { MARKETS } from '@/lib/markets'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
 
 export interface SeoAssistInput {
   articleTitle:   string
@@ -63,6 +65,14 @@ CONSTRAINTS — every output MUST honor these:
 - Avoid clickbait, all-caps, exclamation marks, em-dashes in the title.
 - Write like a magazine editor, not a marketer.
 
+STRATEGIC ALIGNMENT — when the brand has a strategic brief in the prompt:
+- Prefer keywords that ladder up to an existing topic pillar.
+- Reach for sub-area target keywords when the article is locality-specific.
+- Respect the negative_space list — never suggest a keyword from it.
+- Match the voice_notes if present.
+- If the current month's calendar themes apply to the article, lean into them
+  in the description so the page is seasonally relevant.
+
 OUTPUT FORMAT — emit raw JSON only, no prose, no code fences:
 {
   "seoTitle": "...",
@@ -80,14 +90,21 @@ export async function generateSeoSuggestions(input: SeoAssistInput): Promise<Seo
   // construction we only care about the labels, not the origin.
   const seo = getBrandSeoConfig(market, `https://${market.publicHost ?? 'example.com'}`)
 
+  // Pull the brand's strategic brief — pillars/personas/calendar/etc —
+  // so SEO suggestions land aligned to the brand's stated strategy
+  // instead of generic "use a focus keyword" advice. Falls through
+  // gracefully when the profile is empty (renderer just emits the
+  // baseline brand identity in that case).
+  const sb       = createAdminClient()
+  const promptCtx = await loadBrandPromptContext(sb, input.brandSlug)
+  const brandCtxMd = renderBrandContextForPrompt(promptCtx)
+
   const bodyText = stripHtml(input.articleBody)
   const bodyForPrompt = bodyText.slice(0, 4000)  // cap for cost; leading body is the highest-signal part
 
-  const userPrompt = `Publication: ${seo.organizationName}
-Area served: ${seo.areaServedLabel}
-Audience: ${seo.audience}
-Topics the publication covers: ${seo.knowsAbout.join(', ')}
-Target local-search queries for this market (prefer phrases the audience actually types): ${seo.targetKeywords.join(', ')}
+  const userPrompt = `${brandCtxMd}
+
+# This specific article
 ${input.articleColumn ? `Editorial column: ${input.articleColumn}` : ''}
 
 Article title (as written by the editor): "${input.articleTitle}"

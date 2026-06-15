@@ -17,6 +17,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { runAI } from '@/lib/ai/client'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { MARKETS } from '@/lib/markets'
+import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
 
 export interface ActionItem {
   kind:           'fix-article' | 'set-focus-keyword' | 'add-redirect' | 'fill-content-gap' | 'improve-internal-linking' | 'other'
@@ -43,13 +44,20 @@ queries to page 1 of Google in its market.
 You write reports that read like a smart consultant briefing — direct,
 specific, with concrete next actions. Not generic SEO platitudes.
 
+Anchor every recommendation in the brand's stated STRATEGY (pillars, sub-areas,
+personas, editorial calendar themes). When the strategy says "October themes:
+Halloween events, fall sports, harvest festivals" — your report calls out
+missing coverage on those specifically.
+
 Every recommendation must:
-  - name a SPECIFIC article (by title) OR a SPECIFIC content gap (e.g.
-    "no article currently targets 'Montgomery summer camps 2026'")
+  - name a SPECIFIC article (by title) OR a SPECIFIC content gap aligned to
+    a pillar / sub-area / persona / calendar theme
   - explain WHY (e.g. "GSC shows position 14 for 'Montgomery pediatricians' —
     one stronger H2 + adding focus keyword to first paragraph likely moves it
-    to page 1")
+    to page 1; also matches the Healthy Kids pillar")
   - be ACTIONABLE in one editorial session (not "rewrite the site")
+  - never suggest topics in the brand's negative_space list
+  - respect the voice_notes when proposing content
 
 OUTPUT FORMAT — emit raw JSON only, no prose outside the JSON, no code fences:
 {
@@ -144,7 +152,17 @@ export async function runWeeklyAudit(
     fk:      a.seo_focus_keyword,
   }))
 
-  const userPrompt = `Brand: ${seo.organizationName}
+  // Pull the FULL strategic brief — pillars / sub-areas / personas /
+  // editorial calendar / linkable assets / negative space / voice
+  // notes — so the audit speaks the editor's strategy back to them
+  // instead of generic best-practices.
+  const promptCtx       = await loadBrandPromptContext(sb, brandSlug)
+  const brandContextMd  = renderBrandContextForPrompt(promptCtx)
+
+  const userPrompt = `${brandContextMd}
+
+# Audit corpus context
+Brand: ${seo.organizationName}
 Area served: ${seo.areaServedLabel}
 Target local queries for this brand: ${seo.targetKeywords.join(', ')}
 Known competitor domains: ${seo.competitorDomains.join(', ') || '(none listed)'}
