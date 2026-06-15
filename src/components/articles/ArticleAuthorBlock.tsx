@@ -3,6 +3,8 @@
 import { Button } from '@/components/ui/button'
 import { CalendarDays, Clock, Link as LinkIcon, Bookmark, User } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import Link from 'next/link'
+import { authorNameToSlug } from '@/lib/seo/author-slug'
 
 interface Props {
   authorName?:     string | null
@@ -50,12 +52,26 @@ export function ArticleAuthorBlock({ authorName, publishedDate, readTimeMinutes,
           </span>
         )}
         {(publishedDate || readTimeMinutes !== undefined) && authorName && <span className="text-muted-foreground/40">·</span>}
-        {authorName && (
-          <span className="inline-flex items-center gap-1.5">
-            <User className="h-4 w-4" />
-            <span>by <span className="text-foreground font-semibold">{authorName}</span></span>
-          </span>
-        )}
+        {authorName && (() => {
+          // Author name links to /authors/[slug] when we can derive a
+          // slug from the name. This visible link mirrors the Person
+          // @id reference in NewsArticle JSON-LD — crawlers follow the
+          // structured @id, humans follow the link.
+          const authorSlug = authorNameToSlug(authorName)
+          const inner = <>by <span className="text-foreground font-semibold">{authorName}</span></>
+          return (
+            <span className="inline-flex items-center gap-1.5">
+              <User className="h-4 w-4" />
+              {authorSlug ? (
+                <Link href={`/authors/${authorSlug}`} className="hover:text-foreground transition-colors">
+                  {inner}
+                </Link>
+              ) : (
+                <span>{inner}</span>
+              )}
+            </span>
+          )
+        })()}
       </div>
 
       {/* Nominate slot — placed in the middle/right of the meta row on

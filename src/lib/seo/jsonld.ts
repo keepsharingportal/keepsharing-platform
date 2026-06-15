@@ -272,6 +272,9 @@ export interface ArticleJsonLdInput {
   description:  string
   url:          string
   imageUrl?:    string | null
+  /** Caption for the hero image — emitted as ImageObject.caption.
+   *  Falls back to the article description. */
+  imageCaption?: string | null
   publishedAt?: string  // ISO
   modifiedAt?:  string  // ISO
   authorName?:  string
@@ -303,6 +306,16 @@ export function articleJsonLd(input: ArticleJsonLdInput) {
   // structured-data payload reasonable. The full body is in the HTML.
   const bodySnippet = bodyText ? bodyText.slice(0, 600) + (bodyText.length > 600 ? '…' : '') : undefined
 
+  // ImageObject (with caption) instead of a bare URL string in the
+  // image array — Google grades image-rich-result eligibility on
+  // structured image metadata. Caption defaults to the article
+  // description when no specific caption is provided.
+  const imageObj = input.imageUrl ? {
+    '@type':  'ImageObject',
+    url:      input.imageUrl,
+    caption:  input.imageCaption ?? input.description,
+  } : null
+
   return {
     '@context':     'https://schema.org',
     '@type':        input.type ?? 'Article',
@@ -310,7 +323,7 @@ export function articleJsonLd(input: ArticleJsonLdInput) {
     description:    input.description,
     url:            input.url,
     mainEntityOfPage: { '@type': 'WebPage', '@id': input.url },
-    ...(input.imageUrl && { image: [input.imageUrl] }),
+    ...(imageObj && { image: imageObj }),
     ...(input.publishedAt && { datePublished: input.publishedAt }),
     ...(input.modifiedAt  && { dateModified:  input.modifiedAt  }),
     ...(input.authorName && {

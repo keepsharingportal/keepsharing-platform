@@ -166,6 +166,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content={seoCfg.brandColor} />
+
+        {/* Performance — preconnect / DNS-prefetch hints for the
+            third-party origins we hit on every page. Real Core Web
+            Vitals signal: shaves 100-300ms off LCP by warming the TLS
+            handshake before the actual fetch. crossOrigin needed on
+            preconnect for resources that need CORS. */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <>
+            <link rel="preconnect" href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin} />
+          </>
+        )}
+        {plausibleDomain && (
+          <>
+            <link rel="preconnect" href="https://plausible.io" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://plausible.io" />
+          </>
+        )}
+
+        {/* Apple touch icons + favicon variants. iOS pulls these for
+            the home-screen shortcut + Safari tabs. */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/advertise/rrp-logo.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/advertise/rrp-logo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/advertise/rrp-logo.png" />
+        <link rel="mask-icon" href="/images/advertise/rrp-logo.png" color={seoCfg.brandColor} />
+        <meta name="apple-mobile-web-app-title" content={ctx.market.displayName} />
+        <meta name="application-name" content={ctx.market.displayName} />
+        <meta name="format-detection" content="telephone=no" />
       </head>
       <body className="h-full">
         {/* First-party pageview tracking — feeds the auto-trending bar +

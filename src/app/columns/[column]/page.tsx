@@ -48,12 +48,32 @@ interface PageParams {
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
   const { column } = await params
   const supabase = getSupabase()
-  const { data } = await supabase.from('monthly_columns').select('display_name, description').eq('slug', column).maybeSingle()
-  if (!data) return { title: 'Column — River Region Parents' }
-  return {
-    title:       `${data.display_name} — River Region Parents`,
-    description: data.description ?? undefined,
+  const { data } = await supabase
+    .from('monthly_columns')
+    .select('display_name, description, hero_image_url')
+    .eq('slug', column)
+    .maybeSingle()
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  if (!data) {
+    // Even unknown columns get proper metadata — synthesize a title
+    // from the slug so we never ship a "Column — River Region Parents"
+    // share preview.
+    const synthTitle = column.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    return buildPageMetadata({
+      title:       synthTitle,
+      description: `${synthTitle} stories from River Region Parents — locally reported, family-friendly, updated weekly.`,
+      path:        `/columns/${column}`,
+      type:        'website',
+    })
   }
+  return buildPageMetadata({
+    title:       data.display_name as string,
+    description: (data.description as string | null) ?? `${data.display_name} stories from River Region Parents — locally reported, family-friendly, updated weekly.`,
+    path:        `/columns/${column}`,
+    image:       (data.hero_image_url as string | null) ?? null,
+    type:        'website',
+    keywords:    [data.display_name as string, 'River Region', 'parenting'],
+  })
 }
 
 export default async function ColumnLandingPage({ params }: PageParams) {
@@ -104,8 +124,36 @@ export default async function ColumnLandingPage({ params }: PageParams) {
   const accent     = COLUMN_ACCENT[column] ?? DEFAULT_ACCENT
   const cta        = COLUMN_CTA[column] ?? DEFAULT_CTA
 
+  // ── ItemList + BreadcrumbList JSON-LD ──────────────────────────────
+  // ItemList tells Google "here are the articles in this column, in
+  // this order" — eligible for list-style rich results. BreadcrumbList
+  // mirrors the visible Home > Articles > [Column] trail. Both are
+  // brand-aware via loadBrandContext.
+  const { loadBrandContext: _colLoadBrand } = await import('@/lib/brand-context')
+  const { itemListJsonLd: _itemListLd, breadcrumbJsonLd: _crumbsLd, jsonLdScript: _jsonLdScript } = await import('@/lib/seo/jsonld')
+  const colCtx = await _colLoadBrand()
+  const colUrl = `${colCtx.publicOrigin}/columns/${column}`
+  const colItemListLd = _itemListLd({
+    name: columnData.display_name as string,
+    items: (articles as Array<{ id: string; title: string; slug: string; hero_image_url: string | null }>)
+      .slice(0, 20)
+      .map(a => ({
+        name:  a.title,
+        url:   `${colCtx.publicOrigin}/columns/${column}/${a.slug}`,
+        image: a.hero_image_url ?? undefined,
+      })),
+  })
+  const colCrumbsLd = _crumbsLd([
+    { name: 'Home',     path: '/' },
+    { name: 'Articles', path: '/articles' },
+    { name: columnData.display_name as string, path: `/columns/${column}` },
+  ], colCtx.publicOrigin)
+  void colUrl
+
   return (
     <div className="min-h-screen bg-background public-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _jsonLdScript(colItemListLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _jsonLdScript(colCrumbsLd) }} />
       <Navigation />
 
       {/* Column identity header */}
