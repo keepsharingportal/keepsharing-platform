@@ -87,6 +87,7 @@ export async function generateSeoSuggestions(input: SeoAssistInput): Promise<Seo
 Area served: ${seo.areaServedLabel}
 Audience: ${seo.audience}
 Topics the publication covers: ${seo.knowsAbout.join(', ')}
+Target local-search queries for this market (prefer phrases the audience actually types): ${seo.targetKeywords.join(', ')}
 ${input.articleColumn ? `Editorial column: ${input.articleColumn}` : ''}
 
 Article title (as written by the editor): "${input.articleTitle}"

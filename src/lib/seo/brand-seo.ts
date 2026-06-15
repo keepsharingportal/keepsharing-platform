@@ -42,6 +42,16 @@ export interface BrandSeoConfig {
   knowsAbout:       string[]
   /** Target audience (for the audience field on Organization). */
   audience:         string
+  /** Local-search queries we WANT to rank for. Used by the AI SEO
+   *  assistant + weekly Claude audit to prioritize coverage gaps
+   *  ("we should be ranking for Montgomery summer camps but aren't").
+   *  Brand-aware: each region's list is different (Montgomery families
+   *  vs Mobile Bay families search differently). */
+  targetKeywords:   string[]
+  /** Known local-news / competing publication domains for this market.
+   *  Powers competitor-comparison features (where do they rank that we
+   *  don't, what topics are they covering, etc.). */
+  competitorDomains: string[]
   /** ISO 4217 currency code for any commerce schema (advertising,
    *  events). */
   currency:         'USD'
@@ -64,12 +74,14 @@ export interface BrandSeoConfig {
 // flows from MARKETS + sensible defaults.
 
 interface BrandOverride {
-  foundingYear?: number
-  socialUrls?:   string[]
-  knowsAbout?:   string[]
-  audience?:     string
-  brandColor?:   string
-  legalName?:    string
+  foundingYear?:     number
+  socialUrls?:       string[]
+  knowsAbout?:       string[]
+  audience?:         string
+  brandColor?:       string
+  legalName?:        string
+  targetKeywords?:   string[]
+  competitorDomains?: string[]
 }
 
 const BRAND_OVERRIDES: Record<string, BrandOverride> = {
@@ -89,6 +101,19 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     audience: 'Mothers, fathers, grandparents, and caregivers of River Region children',
     brandColor: '#ef6442',  // site coral
     legalName: 'River Region Parents Magazine',
+    targetKeywords: [
+      'Montgomery family events', 'Montgomery summer camps', 'River Region schools',
+      'Montgomery pediatricians', 'Pike Road schools', 'Prattville family activities',
+      'Autauga County schools', 'Elmore County family events', 'Montgomery birthday parties',
+      'River Region childcare', 'Montgomery moms', 'River Region after-school programs',
+      'Montgomery parks', 'River Region homeschool', 'Montgomery teen activities',
+      'River Region newcomer guide', 'Montgomery family restaurants',
+      'River Region special needs resources', 'Montgomery field trips',
+      'best schools in Montgomery AL',
+    ],
+    competitorDomains: [
+      'montgomeryparents.com', 'al.com', 'wsfa.com', 'montgomeryadvertiser.com',
+    ],
   },
   rr50plus: {
     foundingYear: 2018,
@@ -104,6 +129,13 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     audience: 'River Region adults ages 50 and older',
     brandColor: '#0B1F37',  // 50+ navy
     legalName: 'River Region 50+ Magazine',
+    targetKeywords: [
+      'Montgomery 50+ events', 'River Region retirement', 'Montgomery senior activities',
+      'River Region grandparenting', 'Montgomery senior services', 'River Region active aging',
+      'Montgomery boomer travel', 'River Region empty nester', 'senior dining Montgomery',
+      'River Region midlife reinvention', 'Montgomery downsizing',
+    ],
+    competitorDomains: ['al.com', 'wsfa.com', 'montgomeryadvertiser.com'],
   },
   mbp: {
     foundingYear: 2010,
@@ -117,6 +149,13 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     ],
     audience: 'Mobile Bay families with children',
     brandColor: '#ef6442',
+    targetKeywords: [
+      'Mobile family events', 'Mobile Bay summer camps', 'Mobile schools',
+      'Mobile pediatricians', 'Daphne family activities', 'Spanish Fort schools',
+      'Mobile Bay childcare', 'Fairhope family events', 'Mobile birthday parties',
+      'Mobile Bay moms', 'Mobile parks', 'Mobile newcomer guide',
+    ],
+    competitorDomains: ['al.com', 'fox10tv.com', 'mobilebaymag.com'],
   },
   aop: {
     foundingYear: 2012,
@@ -127,6 +166,12 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     knowsAbout: ['Parenting', 'Family Events', 'Local Schools', 'Auburn Opelika Family Life'],
     audience: 'Auburn-Opelika families with children',
     brandColor: '#ef6442',
+    targetKeywords: [
+      'Auburn family events', 'Opelika summer camps', 'Auburn schools',
+      'Auburn pediatricians', 'Lee County family activities', 'Auburn childcare',
+      'Auburn moms', 'Auburn parks', 'Auburn newcomer guide', 'Opelika schools',
+    ],
+    competitorDomains: ['al.com', 'oanow.com'],
   },
   esp: {
     foundingYear: 2015,
@@ -136,6 +181,12 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     knowsAbout: ['Parenting', 'Eastern Shore Family Activities', 'Local Schools'],
     audience: 'Eastern Shore Alabama families with children',
     brandColor: '#ef6442',
+    targetKeywords: [
+      'Eastern Shore family events', 'Daphne schools', 'Fairhope summer camps',
+      'Baldwin County schools', 'Eastern Shore childcare', 'Spanish Fort family activities',
+      'Eastern Shore moms', 'Fairhope newcomer guide',
+    ],
+    competitorDomains: ['al.com', 'fox10tv.com'],
   },
   gpp: {
     foundingYear: 2014,
@@ -145,6 +196,13 @@ const BRAND_OVERRIDES: Record<string, BrandOverride> = {
     knowsAbout: ['Parenting', 'Greater Pensacola Family Life', 'Local Schools'],
     audience: 'Greater Pensacola families with children',
     brandColor: '#ef6442',
+    targetKeywords: [
+      'Pensacola family events', 'Pensacola summer camps', 'Pensacola schools',
+      'Escambia County schools', 'Pensacola childcare', 'Pensacola pediatricians',
+      'Pensacola Beach family activities', 'Pace schools', 'Milton family events',
+      'Pensacola moms', 'Pensacola newcomer guide',
+    ],
+    competitorDomains: ['pnj.com', 'weartv.com', 'pensacolavoice.com'],
   },
 }
 
@@ -172,6 +230,14 @@ export function getBrandSeoConfig(market: MarketDef, publicOrigin: string): Bran
       'Parenting', 'Family Events', 'Local Schools', 'Family Activities',
     ],
     audience:         o.audience ?? `${market.regionLabel} families`,
+    targetKeywords:   o.targetKeywords ?? [
+      `${market.regionLabel} family events`,
+      `${market.regionLabel} schools`,
+      `${market.regionLabel} summer camps`,
+      `${market.regionLabel} childcare`,
+      `${market.regionLabel} family activities`,
+    ],
+    competitorDomains: o.competitorDomains ?? [],
     currency:         'USD',
     brandColor:       o.brandColor ?? '#ef6442',
     editorialPolicyUrl:   `${origin}/about/editorial-policy`,
