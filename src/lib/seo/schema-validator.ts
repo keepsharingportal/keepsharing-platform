@@ -83,7 +83,7 @@ export async function validateSchemaGraph(
         const type = typeFromNode(node)
         if (id) {
           if (idsThisPage.has(id)) {
-            issues.push({ page: pageUrl, severity: 'error', type, message: `Duplicate @id within same page: ${id}` })
+            issues.push({ page: pageUrl, severity: 'error', type: type ?? 'graph', message: `Duplicate @id within same page: ${id}` })
           }
           idsThisPage.add(id)
           const entry = seenIds.get(id) ?? { pages: [], types: new Set() }

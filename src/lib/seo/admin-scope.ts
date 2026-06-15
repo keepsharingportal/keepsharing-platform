@@ -10,12 +10,12 @@
 // Use these everywhere a brand chip / brand health card / brand
 // dropdown appears so publishers never see brands they don't own.
 
-import { MARKETS, type Market } from '@/lib/markets'
+import { MARKETS, type MarketDef } from '@/lib/markets'
 import type { AdminContext } from '@/lib/admin/auth'
 
 /** Brands this caller can see in the SEO section. Always returns at
- *  least one — Markets.includes(allowedMarkets[0]) is invariant. */
-export function getSeoAllowedBrands(ctx: AdminContext): Market[] {
+ *  least one — MarketDefs.includes(allowedMarkets[0]) is invariant. */
+export function getSeoAllowedBrands(ctx: AdminContext): MarketDef[] {
   if (ctx.role === 'super' || ctx.role === 'admin') return MARKETS.slice()
   return MARKETS.filter(m => ctx.allowedMarkets.includes(m.slug))
 }
