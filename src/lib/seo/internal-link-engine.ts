@@ -22,6 +22,14 @@ interface ArticleRow {
   seo_focus_keyword: string | null
 }
 
+/** Aggregated GSC signal per article over the last 28 days — drives
+ *  the v2 scoring boost. */
+interface GscSummary {
+  clicks:      number
+  impressions: number
+  avgPosition: number
+}
+
 interface Suggestion {
   sourceArticleId: string
   targetArticleId: string
@@ -82,20 +90,33 @@ export async function runInternalLinkPass(sb: SupabaseClient): Promise<{
 
   const rows = articles as ArticleRow[]
 
+  // ── v2: build a per-article GSC summary from the last 28 days.
+  // Rolls page_url → article via /columns/<col>/<slug> match. When
+  // search_console_data is empty (GSC not configured yet) the map is
+  // empty and scoring degrades to the v1 baseline — no errors.
+  const gscByArticle = await buildGscSummary(sb, rows)
+
   // Build the "things to link TO" list. Prefer focus_keyword (it's
   // editor-curated), fall back to title.
-  type Target = { id: string; phrase: string; score: number }
+  type Target = { id: string; phrase: string; score: number; reason: string }
   const targets: Target[] = []
   for (const a of rows) {
     const fk = (a.seo_focus_keyword ?? '').trim()
-    if (fk.length >= MIN_PHRASE_LEN && fk.length <= MAX_PHRASE_LEN) {
-      targets.push({ id: a.id, phrase: fk, score: 90 })  // editor-set = highest signal
-    } else {
-      const t = a.title.trim()
-      if (t.length >= MIN_PHRASE_LEN && t.length <= MAX_PHRASE_LEN) {
-        targets.push({ id: a.id, phrase: t, score: 60 })
-      }
-    }
+    const base = fk.length >= MIN_PHRASE_LEN && fk.length <= MAX_PHRASE_LEN
+      ? { phrase: fk, score: 90, kind: 'focus_keyword' as const }
+      : (a.title.trim().length >= MIN_PHRASE_LEN && a.title.trim().length <= MAX_PHRASE_LEN
+          ? { phrase: a.title.trim(), score: 60, kind: 'title' as const }
+          : null)
+    if (!base) continue
+
+    const gsc        = gscByArticle.get(a.id)
+    const { boost, reason } = computeGscBoost(gsc, base.kind)
+    targets.push({
+      id:     a.id,
+      phrase: base.phrase,
+      score:  Math.min(100, base.score + boost),
+      reason,
+    })
   }
 
   // Pre-fetch existing pending suggestions so we don't requeue dupes.
@@ -131,11 +152,16 @@ export async function runInternalLinkPass(sb: SupabaseClient): Promise<{
         const dedup    = `${source.id}::${t.id}::${anchor.toLowerCase()}`
         if (existingKeys.has(dedup)) continue
         existingKeys.add(dedup)
+        // Annotate the context snippet with the GSC reason so the
+        // editor knows WHY this scored where it did.
+        const snippet = t.reason
+          ? `${ctx}\n\n[${t.reason}]`
+          : ctx
         suggestions.push({
           sourceArticleId: source.id,
           targetArticleId: t.id,
           anchorText:      anchor,
-          contextSnippet:  ctx,
+          contextSnippet:  snippet,
           matchScore:      t.score,
         })
         perSourcePairCount.set(pairKey, (perSourcePairCount.get(pairKey) ?? 0) + 1)
@@ -161,4 +187,99 @@ export async function runInternalLinkPass(sb: SupabaseClient): Promise<{
   }
 
   return { articlesScanned: rows.length, suggestionsCreated: created }
+}
+
+/** Build a per-article GSC summary keyed by article ID. Aggregates the
+ *  last 28 days of search_console_data — total clicks, total
+ *  impressions, impression-weighted average position.
+ *
+ *  The page_url shape in GSC is the full https://… URL. We match it
+ *  back to articles by the trailing /columns/<col>/<slug> path. */
+async function buildGscSummary(
+  sb:   SupabaseClient,
+  rows: ArticleRow[],
+): Promise<Map<string, GscSummary>> {
+  const map = new Map<string, GscSummary>()
+
+  // Empty-corpus / no-GSC path — short-circuit before hitting the table.
+  if (rows.length === 0) return map
+
+  // Build a path → articleId index so we can do O(1) joins on URL match.
+  const pathToId = new Map<string, string>()
+  for (const r of rows) {
+    if (!r.column_slug || !r.slug) continue
+    pathToId.set(`/columns/${r.column_slug}/${r.slug}`, r.id)
+  }
+  if (pathToId.size === 0) return map
+
+  const since = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10)
+  const { data } = await sb
+    .from('search_console_data')
+    .select('page_url, clicks, impressions, position')
+    .gte('date', since)
+    .limit(25000)
+
+  type Agg = { clicks: number; impressions: number; posSum: number; posWeight: number }
+  const agg = new Map<string, Agg>()
+  for (const row of (data ?? []) as Array<{ page_url: string; clicks: number; impressions: number; position: number }>) {
+    // Strip origin → keep just the pathname. Tolerate trailing slashes.
+    let path: string
+    try {
+      path = new URL(row.page_url).pathname.replace(/\/$/, '')
+    } catch {
+      path = row.page_url.replace(/\/$/, '')
+    }
+    const articleId = pathToId.get(path)
+    if (!articleId) continue
+
+    const a = agg.get(articleId) ?? { clicks: 0, impressions: 0, posSum: 0, posWeight: 0 }
+    a.clicks      += row.clicks      ?? 0
+    a.impressions += row.impressions ?? 0
+    a.posSum      += (row.position ?? 0) * (row.impressions ?? 0)
+    a.posWeight   += (row.impressions ?? 0)
+    agg.set(articleId, a)
+  }
+
+  for (const [id, a] of agg) {
+    map.set(id, {
+      clicks:      a.clicks,
+      impressions: a.impressions,
+      avgPosition: a.posWeight > 0 ? a.posSum / a.posWeight : 0,
+    })
+  }
+  return map
+}
+
+/** v2 scoring boost: page-2 articles with real impression volume are
+ *  the prime "internal-link beneficiaries." Returns a 0-30 boost + a
+ *  human-readable reason embedded in the suggestion context. */
+function computeGscBoost(
+  gsc:  GscSummary | undefined,
+  kind: 'focus_keyword' | 'title',
+): { boost: number; reason: string } {
+  if (!gsc || gsc.impressions < 50) return { boost: 0, reason: '' }
+  const pos = gsc.avgPosition
+
+  if (pos >= 11 && pos <= 20) {
+    return {
+      boost:  30,
+      reason: `Target @ pos ${pos.toFixed(1)} (page 2) · ${gsc.impressions.toLocaleString()} impressions/28d — one well-placed internal link can lift to page 1`,
+    }
+  }
+  if (pos > 20 && pos <= 40) {
+    return {
+      boost:  15,
+      reason: `Target @ pos ${pos.toFixed(1)} · ${gsc.impressions.toLocaleString()} impressions/28d — needs more internal authority to climb`,
+    }
+  }
+  if (pos > 0 && pos < 11) {
+    return {
+      boost:  5,
+      reason: `Target already on page 1 (pos ${pos.toFixed(1)}) · linking helps consolidate ranking`,
+    }
+  }
+  if (kind === 'focus_keyword') {
+    return { boost: 0, reason: '' }
+  }
+  return { boost: 0, reason: '' }
 }

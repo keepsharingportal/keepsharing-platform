@@ -12,6 +12,7 @@
 
 import { PhotoCardWithTape } from '@/components/articles/grands/PhotoCardWithTape'
 import { SocialShareButtons } from '@/components/articles/grands/SocialShareButtons'
+import { AuthorByline } from '@/components/articles/AuthorByline'
 
 interface Props {
   logoUrl?:         string | null
@@ -68,7 +69,7 @@ export function GrandsFeatureHero({
         <div className="lg:col-start-1 lg:row-start-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-              {authorName && <span>By {authorName}</span>}
+              {authorName && <AuthorByline authorName={authorName} className="hover:underline" />}
               {authorName && publishedDate && <span>•</span>}
               {publishedDate && <span>{publishedDate}</span>}
               {(authorName || publishedDate) && readTimeMinutes !== undefined && <span>•</span>}

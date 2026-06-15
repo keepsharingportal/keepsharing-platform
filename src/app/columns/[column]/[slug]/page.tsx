@@ -516,6 +516,17 @@ export default async function ArticlePage({ params }: PageParams) {
   const { authorNameToSlug } = await import('@/lib/seo/author-slug')
   const authorSlug = authorNameToSlug(article.author_name as string | null)
   const authorUrl  = authorSlug ? `${articleSeoCfg.url}/authors/${authorSlug}` : undefined
+
+  // seo_authors-driven bio fallback. When the editor has filled in a
+  // canonical bio on /admin/seo/authors/[slug], use it as the inline
+  // bio under the article when the article row's own author_bio is
+  // empty. Surfaces real E-E-A-T context on every story.
+  const { loadAuthorProfile } = await import('@/lib/seo/authors')
+  const authorProfile = authorSlug ? await loadAuthorProfile(supabaseForExtras, authorSlug) : null
+  const inlineAuthorBio =
+    (article.author_bio as string | null)?.trim()
+    || authorProfile?.bio?.trim()
+    || null
   // Editor SEO overrides win in JSON-LD too — the article@id and the
   // share preview should agree, otherwise the rich-results data
   // mismatches the visible page and Google penalizes for it.
@@ -923,11 +934,18 @@ export default async function ArticlePage({ params }: PageParams) {
                 before the post-article sponsor + nominate CTA. Simple
                 divider line + italic text, no box, no section title.
                 Hidden when empty. */}
-            {article.author_bio && (
+            {inlineAuthorBio && (
               <div className="mt-8 pt-5 border-t border-border/40">
                 <p className="text-sm md:text-base text-muted-foreground italic leading-relaxed">
-                  {article.author_bio as string}
+                  {inlineAuthorBio}
                 </p>
+                {authorSlug && (
+                  <p className="mt-2 text-xs">
+                    <a href={`/authors/${authorSlug}`} className="text-primary font-semibold hover:underline">
+                      More from {article.author_name as string} →
+                    </a>
+                  </p>
+                )}
               </div>
             )}
 

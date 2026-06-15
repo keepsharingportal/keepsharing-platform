@@ -100,19 +100,43 @@ export default async function InternalLinksPage() {
                     </span>
                   </div>
 
-                  {r.context_snippet && (
-                    <p className="text-portal-text" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 8 }}>
-                      <span className="text-portal-sub">…</span>
-                      {r.context_snippet.replace(new RegExp(`\\b${r.anchor_text}\\b`, 'i'),
-                        // wrap the anchor in a span via a sentinel that React picks up
-                        ` <<ANCHOR>>${r.anchor_text}<</ANCHOR>> `).split(/<<\/?ANCHOR>>/).map((part, i) =>
-                          i === 1
-                            ? <strong key={i} style={{ background: 'var(--color-portal-amber-lt)', padding: '0 3px', borderRadius: 3 }}>{part}</strong>
-                            : <span key={i}>{part}</span>
+                  {(() => {
+                    if (!r.context_snippet) return null
+                    // v2 suggestions append a "[reason]" line — split it
+                    // off so we can render the GSC justification as its
+                    // own pill instead of inline grey text.
+                    const reasonMatch = r.context_snippet.match(/\n\n\[(.+)\]\s*$/)
+                    const reason   = reasonMatch?.[1] ?? null
+                    const snippet  = reason ? r.context_snippet.replace(/\n\n\[.+\]\s*$/, '') : r.context_snippet
+                    return (
+                      <>
+                        <p className="text-portal-text" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: reason ? 6 : 8 }}>
+                          <span className="text-portal-sub">…</span>
+                          {snippet.replace(new RegExp(`\\b${r.anchor_text}\\b`, 'i'),
+                            ` <<ANCHOR>>${r.anchor_text}<</ANCHOR>> `).split(/<<\/?ANCHOR>>/).map((part, i) =>
+                              i === 1
+                                ? <strong key={i} style={{ background: 'var(--color-portal-amber-lt)', padding: '0 3px', borderRadius: 3 }}>{part}</strong>
+                                : <span key={i}>{part}</span>
+                            )}
+                          <span className="text-portal-sub">…</span>
+                        </p>
+                        {reason && (
+                          <div style={{
+                            display: 'inline-block',
+                            background: 'var(--color-portal-green-lt, #ecfdf5)',
+                            color: 'var(--color-portal-green)',
+                            padding: '3px 8px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            marginBottom: 8,
+                          }}>
+                            ▲ {reason}
+                          </div>
                         )}
-                      <span className="text-portal-sub">…</span>
-                    </p>
-                  )}
+                      </>
+                    )
+                  })()}
 
                   <LinkActionsClient
                     id={r.id}
