@@ -11,6 +11,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ArrowRight } from 'lucide-react'
 import { LinkActionsClient } from './LinkActionsClient'
+import { RunPassButton } from './RunPassButton'
 
 export const metadata: Metadata = { title: 'Internal Links — SEO — Admin' }
 export const dynamic = 'force-dynamic'
@@ -71,12 +72,7 @@ export default async function InternalLinksPage() {
             <div className="stat-num">{rows.length}</div>
             <div className="stat-label">Pending</div>
           </div>
-          <form action="/api/cron/seo-internal-links" method="GET" target="_blank">
-            <button type="submit" className="stat-card" style={{ textDecoration: 'none', border: '1px dashed var(--color-portal-border-2)', cursor: 'pointer' }}>
-              <div className="stat-num">▶</div>
-              <div className="stat-label">Run pass now</div>
-            </button>
-          </form>
+          <RunPassButton />
         </div>
 
         {rows.length === 0 ? (

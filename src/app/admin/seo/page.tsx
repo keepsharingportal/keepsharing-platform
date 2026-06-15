@@ -15,7 +15,8 @@ import { GscSyncWidget } from './GscSyncWidget'
 import { FeedsHealthWidget } from './FeedsHealthWidget'
 import {
   Repeat, AlertTriangle, Link as LinkIcon, ListChecks,
-  Settings2, FileText, Activity, ArrowRight, Sparkles,
+  Settings2, FileText, Activity, ArrowRight, Sparkles, Users,
+  Image as ImageIcon,
 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'SEO — Admin' }
@@ -23,6 +24,8 @@ export const dynamic = 'force-dynamic'
 
 const TOOLS = [
   { slug: 'brand-profile',  title: 'Brand SEO Profile', desc: 'Pillars, sub-areas, personas, calendar — the strategy Claude reads.', href: '/admin/seo/brand-profile', icon: Settings2 },
+  { slug: 'authors',        title: 'Author Profiles', desc: 'E-E-A-T bios + headshots + credentials. Renders Person JSON-LD.', href: '/admin/seo/authors', icon: Users },
+  { slug: 'alt-text',       title: 'Alt-text Audit', desc: 'Find published articles with images missing alt text.', href: '/admin/seo/alt-text', icon: ImageIcon },
   { slug: 'audit-reports',  title: 'Weekly Audit Reports', desc: 'Claude-generated action lists per brand. Runs Sunday 02:00 UTC.', href: '/admin/seo/audit-reports', icon: FileText },
   { slug: 'redirects',      title: 'Redirect Manager', desc: '301/302/307/308 — when URLs change, keep external links working.', href: '/admin/seo/redirects', icon: Repeat },
   { slug: '404-log',        title: '404 Monitor', desc: 'Top 404 paths. One-click convert any to a 301 redirect.', href: '/admin/seo/404-log', icon: AlertTriangle },

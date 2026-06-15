@@ -295,6 +295,8 @@ const NAV: NavItem[] = [
     icon: TrendingUp,
     children: [
       { name: 'Brand Profile',          href: '/admin/seo/brand-profile'  },
+      { name: 'Author Profiles',        href: '/admin/seo/authors'        },
+      { name: 'Alt-text Audit',         href: '/admin/seo/alt-text'       },
       { name: 'Weekly Audit Reports',   href: '/admin/seo/audit-reports'  },
       { name: 'Redirects',              href: '/admin/seo/redirects'      },
       { name: '404 Monitor',            href: '/admin/seo/404-log'        },

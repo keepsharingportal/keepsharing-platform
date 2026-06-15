@@ -19,6 +19,7 @@ import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { MARKETS } from '@/lib/markets'
 import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
 import { computeBrandHealth } from '@/lib/seo/brand-health'
+import { runAltTextAudit } from '@/lib/seo/alt-text-audit'
 
 export interface ActionItem {
   kind:           'fix-article' | 'set-focus-keyword' | 'add-redirect' | 'fill-content-gap' | 'improve-internal-linking' | 'other'
@@ -176,9 +177,21 @@ Components:
 - Recency (days w/ publish in last 30): ${health.recencyPct}% (weight 15%)
 Weakest leverage point: **${weakestComponent}** — your report's Summary should call this out as the #1 lever for next week.`
 
+  // Alt-text gap snapshot — accessibility + image-search SEO. Pass the
+  // top offenders so Claude can call them out by name.
+  const altAudit  = await runAltTextAudit(sb, brandSlug, 300)
+  const altGapsMd = altAudit.missingAlts === 0
+    ? `# Alt-text audit\nNo missing alt text across ${altAudit.articlesChecked} checked articles.`
+    : `# Alt-text audit
+${altAudit.missingAlts.toLocaleString()} missing alts across ${altAudit.affectedArticles} of ${altAudit.articlesChecked} articles.
+Worst offenders (top 8):
+${altAudit.findings.slice(0, 8).map(f => `- "${f.title}" — ${f.missingCount} missing of ${f.imageCount}`).join('\n')}`
+
   const userPrompt = `${brandContextMd}
 
 ${healthBriefMd}
+
+${altGapsMd}
 
 # Audit corpus context
 Brand: ${seo.organizationName}

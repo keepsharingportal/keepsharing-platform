@@ -133,6 +133,7 @@ export interface PersonJsonLdInput {
   description?: string  // short bio
   knowsAbout?: string[]
   socialUrls?: string[]
+  credentials?: string[]  // formal credentials → emits hasCredential array
   email?:      string
   worksForUrl?: string  // back-reference to organization @id
   worksForName?: string
@@ -150,6 +151,12 @@ export function personJsonLd(input: PersonJsonLdInput) {
     ...(input.description && { description: input.description }),
     ...(input.knowsAbout?.length && { knowsAbout: input.knowsAbout }),
     ...(input.socialUrls?.length && { sameAs: input.socialUrls }),
+    ...(input.credentials?.length && {
+      hasCredential: input.credentials.map(c => ({
+        '@type': 'EducationalOccupationalCredential',
+        name:    c,
+      })),
+    }),
     ...(input.email && { email: input.email }),
     ...(input.worksForUrl && {
       worksFor: {

@@ -21,6 +21,7 @@ import { loadBrandContext } from '@/lib/brand-context'
 import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 import { personJsonLd, breadcrumbJsonLd, jsonLdScript } from '@/lib/seo/jsonld'
 import { authorNameToSlug, slugToAuthorTitleCase } from '@/lib/seo/author-slug'
+import { loadAuthorProfile } from '@/lib/seo/authors'
 import { articleHref } from '@/lib/articles/slug'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { ArrowRight } from 'lucide-react'
@@ -113,12 +114,28 @@ export default async function AuthorPage({ params }: Props) {
   const seo = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
   const authorUrl = `${seo.url}/authors/${slug}`
 
+  // Editor-curated overrides — bio, headshot, credentials, social URLs.
+  // Falls back to auto-generated values when no row exists yet.
+  const profile = await loadAuthorProfile(supabase(), slug)
+  const displayName     = profile?.displayName    || found.name
+  const bio             = profile?.bio            || `${displayName} writes for ${seo.organizationName}, covering local family life in ${seo.areaServedLabel}.`
+  const jobTitle        = profile?.jobTitle       || 'Contributor'
+  const credentials     = profile?.credentials    ?? []
+  const headshotUrl     = profile?.headshotUrl    || null
+  const socialUrls      = (profile?.socialUrls ?? []).map(s => s.url).filter(Boolean)
+  const knowsAbout      = profile?.knowsAbout?.length ? profile.knowsAbout : seo.knowsAbout.slice(0, 5)
+  const contactEmail    = profile?.contactEmail   || undefined
+
   const personLd = personJsonLd({
-    name:         found.name,
+    name:         displayName,
     url:          authorUrl,
-    jobTitle:     'Contributor',
-    description:  `${found.name} writes for ${seo.organizationName}, covering local family life in ${seo.areaServedLabel}.`,
-    knowsAbout:   seo.knowsAbout.slice(0, 5),
+    imageUrl:     headshotUrl,
+    jobTitle,
+    description:  bio,
+    knowsAbout,
+    socialUrls,
+    credentials,
+    email:        contactEmail,
     worksForUrl:  seo.url,
     worksForName: seo.organizationName,
   })
@@ -135,14 +152,43 @@ export default async function AuthorPage({ params }: Props) {
       <Navigation />
       <main className="container py-10 md:py-14 max-w-4xl">
 
-        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Author</p>
-        <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-3">{found.name}</h1>
-        <p className="text-base md:text-lg text-foreground/70 leading-relaxed max-w-2xl mb-10">
-          {found.name} writes for {seo.organizationName}, covering local family life in {seo.areaServedLabel}.
-          {found.articles.length === 1
-            ? ' One story so far.'
-            : ` ${found.articles.length} stories so far.`}
-        </p>
+        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">{jobTitle}</p>
+        <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
+          {headshotUrl && (
+            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-muted/40 flex-shrink-0">
+              <Image src={headshotUrl} alt={displayName} fill sizes="160px" className="object-cover" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-3">{displayName}</h1>
+            <p className="text-base md:text-lg text-foreground/70 leading-relaxed max-w-2xl mb-3">
+              {bio}
+            </p>
+            {credentials.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {credentials.map(c => (
+                  <span key={c} className="inline-flex items-center text-xs font-semibold uppercase tracking-wide bg-muted/40 text-foreground/70 px-2 py-1 rounded">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            )}
+            {socialUrls.length > 0 && (
+              <div className="flex flex-wrap gap-3 text-xs font-semibold text-primary">
+                {(profile?.socialUrls ?? []).map(s => (
+                  <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" className="hover:underline capitalize">
+                    {s.platform}
+                  </a>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-foreground/50 mt-3">
+              {found.articles.length === 1
+                ? '1 story published.'
+                : `${found.articles.length} stories published.`}
+            </p>
+          </div>
+        </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {found.articles.map(a => {
