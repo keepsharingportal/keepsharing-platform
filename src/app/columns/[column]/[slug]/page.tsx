@@ -494,6 +494,9 @@ export default async function ArticlePage({ params }: PageParams) {
     .replace(/\s+/g, ' ')
     .trim()
   const articleUrl = `${seoCtx.publicOrigin}/columns/${column}/${slug}`
+  const { authorNameToSlug } = await import('@/lib/seo/author-slug')
+  const authorSlug = authorNameToSlug(article.author_name as string | null)
+  const authorUrl  = authorSlug ? `${articleSeoCfg.url}/authors/${authorSlug}` : undefined
   const articleLd = articleJsonLd({
     title:        article.title as string,
     description:  (article.excerpt as string | null) ?? '',
@@ -502,6 +505,7 @@ export default async function ArticlePage({ params }: PageParams) {
     publishedAt:  (article.published_at as string | null) ?? undefined,
     modifiedAt:   (article.updated_at   as string | null) ?? undefined,
     authorName:   (article.author_name  as string | null) ?? undefined,
+    authorUrl,
     publisherName:    articleSeoCfg.organizationName,
     publisherUrl:     articleSeoCfg.url,
     publisherLogoUrl: articleSeoCfg.logoUrl,

@@ -73,6 +73,21 @@ export async function generateMetadata(): Promise<Metadata> {
       follow:   true,
       googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
     },
+    // Verification meta tags — pulled from env so they don't ship
+    // hardcoded in source. Set GOOGLE_SITE_VERIFICATION (Search
+    // Console) + BING_SITE_VERIFICATION (Bing Webmaster Tools) +
+    // YANDEX_SITE_VERIFICATION (if relevant) in env when you have
+    // the property tokens. Each tag is omitted when its env var
+    // is missing so unverified surfaces don't ship empty tags.
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.YANDEX_SITE_VERIFICATION,
+      other: {
+        ...(process.env.BING_SITE_VERIFICATION && { 'msvalidate.01': process.env.BING_SITE_VERIFICATION }),
+        ...(process.env.PINTEREST_SITE_VERIFICATION && { 'p:domain_verify': process.env.PINTEREST_SITE_VERIFICATION }),
+        ...(process.env.FACEBOOK_DOMAIN_VERIFICATION && { 'facebook-domain-verification': process.env.FACEBOOK_DOMAIN_VERIFICATION }),
+      },
+    },
   }
 }
 

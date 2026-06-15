@@ -3,9 +3,14 @@ import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title:       'Privacy Policy — River Region Parents',
-  description: 'How River Region Parents collects, uses, and protects your personal information.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Privacy Policy',
+    description: 'How River Region Parents collects, uses, and protects personal information. Our promise on nominee contact info, newsletter data, and third-party advertising.',
+    path:        '/privacy',
+    type:        'website',
+  })
 }
 
 export default function PrivacyPage() {

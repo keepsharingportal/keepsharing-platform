@@ -35,16 +35,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('town_profiles')
-    .select('name, vibe_one_line')
+    .select('name, vibe_one_line, hero_image_url')
     .eq('slug', slug)
     .eq('is_active', true)
     .maybeSingle()
 
   if (!data) return { title: 'Town — River Region Parents' }
-  return {
-    title:       `${data.name} — River Region Parents`,
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       `${data.name} — Family Living Guide`,
     description: data.vibe_one_line ?? `Moving to ${data.name}? Schools, neighborhoods, things to do, and family resources in the River Region.`,
-  }
+    path:        `/family-resource-guide/town/${slug}`,
+    image:       (data.hero_image_url as string | null) ?? null,
+    type:        'website',
+    keywords:    [data.name as string, 'River Region', 'schools', 'neighborhoods', 'moving guide'],
+  })
 }
 
 export default async function TownPage({ params }: Props) {
@@ -68,8 +73,30 @@ export default async function TownPage({ params }: Props) {
   const town = townRow as TownProfile
   const siblingTowns = (siblings ?? []) as Array<{ slug: string; name: string; vibe_one_line: string | null; hero_image_url: string | null }>
 
+  // ── Place + BreadcrumbList JSON-LD ────────────────────────────────────
+  // schema.org/Place tells Google this page is the canonical local
+  // landing for the town — boosts "schools in X", "things to do in X",
+  // "moving to X" queries. Breadcrumb mirrors the visible trail.
+  const { loadBrandContext: _townLoadBrand } = await import('@/lib/brand-context')
+  const { placeJsonLd: _placeLd, breadcrumbJsonLd: _crumbsLd, jsonLdScript: _jsonScript } = await import('@/lib/seo/jsonld')
+  const townSeoCtx = await _townLoadBrand()
+  const townUrl    = `${townSeoCtx.publicOrigin}/family-resource-guide/town/${slug}`
+  const townPlaceLd = _placeLd({
+    name:             town.name,
+    url:              townUrl,
+    containedInPlace: town.county ? `${town.county}, ${townSeoCtx.market.state}` : `${townSeoCtx.market.regionLabel}, ${townSeoCtx.market.state}`,
+  })
+  const townCrumbsLd = _crumbsLd([
+    { name: 'Home',                   path: '/' },
+    { name: 'Family Resource Guide',  path: '/family-resource-guide' },
+    { name: town.name,                path: `/family-resource-guide/town/${slug}` },
+  ], townSeoCtx.publicOrigin)
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _jsonScript(townPlaceLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _jsonScript(townCrumbsLd) }} />
+
       {/* ── Hero ── */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">

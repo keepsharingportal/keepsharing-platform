@@ -3,9 +3,14 @@ import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title:       'Terms of Service — River Region Parents',
-  description: 'Terms and conditions for using the River Region Parents website.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Terms of Service',
+    description: 'Terms and conditions for using River Region Parents — submissions, contributor guidelines, advertising, and acceptable use.',
+    path:        '/terms',
+    type:        'website',
+  })
 }
 
 export default function TermsPage() {

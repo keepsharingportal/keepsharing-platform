@@ -17,6 +17,7 @@ import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { loadBrandContext } from '@/lib/brand-context'
 import { GAMES } from '@/lib/games/types'
+import { authorNameToSlug } from '@/lib/seo/author-slug'
 
 export const revalidate = 3600  // refresh sitemap hourly
 
@@ -54,6 +55,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/special-needs-guide`,    lastModified: now, changeFrequency: 'weekly',  priority: 0.7  },
     { url: `${origin}/partners`,               lastModified: now, changeFrequency: 'weekly',  priority: 0.6  },
     { url: `${origin}/submit`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.5  },
+    // E-E-A-T pages — referenced from NewsMediaOrganization JSON-LD,
+    // need to be in the sitemap so they get indexed.
+    { url: `${origin}/about`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.4  },
+    { url: `${origin}/about/editorial-policy`, lastModified: now, changeFrequency: 'monthly', priority: 0.4  },
+    { url: `${origin}/about/corrections`,      lastModified: now, changeFrequency: 'monthly', priority: 0.4  },
+    { url: `${origin}/privacy`,                lastModified: now, changeFrequency: 'yearly',  priority: 0.2  },
+    { url: `${origin}/terms`,                  lastModified: now, changeFrequency: 'yearly',  priority: 0.2  },
   ]
 
   // Per-game URLs
@@ -105,5 +113,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority:       0.7,
     }))
 
-  return [...hubs, ...games, ...articleEntries, ...eventEntries]
+  // ── Town pages — Place-schema-rich local landing pages ─────────────
+  const { data: towns } = await supabase
+    .from('town_profiles')
+    .select('slug, updated_at')
+    .eq('is_active', true)
+  const townEntries: MetadataRoute.Sitemap = (towns ?? [])
+    .filter(t => t.slug)
+    .map(t => ({
+      url:            `${origin}/family-resource-guide/town/${t.slug}`,
+      lastModified:   t.updated_at ?? now,
+      changeFrequency: 'monthly',
+      priority:       0.7,
+    }))
+
+  // ── Author pages — Person-schema-rich attribution pages ────────────
+  // Derived from distinct author_name values on published articles.
+  // Slug = authorNameToSlug(name). Dedupe in case two name variants
+  // resolve to the same slug.
+  const { data: authorRows } = await supabase
+    .from('guide_articles')
+    .select('author_name, updated_at')
+    .eq('status', 'published')
+    .not('author_name', 'is', null)
+    .order('updated_at', { ascending: false })
+    .limit(5000)
+  const seenAuthorSlugs = new Set<string>()
+  const authorEntries: MetadataRoute.Sitemap = []
+  for (const r of authorRows ?? []) {
+    const slug = authorNameToSlug(r.author_name as string | null)
+    if (!slug || seenAuthorSlugs.has(slug)) continue
+    seenAuthorSlugs.add(slug)
+    authorEntries.push({
+      url:             `${origin}/authors/${slug}`,
+      lastModified:    (r.updated_at as string | null) ?? now,
+      changeFrequency: 'weekly',
+      priority:        0.5,
+    })
+  }
+
+  return [
+    ...hubs,
+    ...games,
+    ...articleEntries,
+    ...eventEntries,
+    ...townEntries,
+    ...authorEntries,
+  ]
 }
