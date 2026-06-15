@@ -166,6 +166,7 @@ const NAV: NavItem[] = [
   { name: 'Editorial Pipeline', href: '/admin/editorial', icon: Heart },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
+  { name: 'Social Queue',      href: '/admin/social-queue', icon: Share2 },
 
   // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },
@@ -308,6 +309,7 @@ const NAV: NavItem[] = [
       { name: '404 Monitor',            href: '/admin/seo/404-log',        settingsOnly: true },
       { name: 'Internal Link Queue',    href: '/admin/seo/internal-links', settingsOnly: true },
       { name: 'Schema Validator',       href: '/admin/seo/schema-validator', settingsOnly: true },
+      { name: 'Page Metadata',          href: '/admin/seo/page-metadata',    settingsOnly: true },
       { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk',           settingsOnly: true },
       { name: 'Route Coverage Audit',   href: '/admin/seo-health',         settingsOnly: true },
     ],

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Check, RefreshCw, Eye, ExternalLink,
   ChevronDown, ChevronUp, Search as SearchIcon,
+  MoreVertical, Share2, Sparkles, AlertTriangle, Trash2, Send, EyeOff,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
@@ -206,6 +207,11 @@ export default function ArticleEditPage({ params }: Props) {
   const [syndicatedTo, setSyndicatedTo] = useState<string[]>([])
   const [showCrossFamily, setShowCrossFamily] = useState(false)
 
+  // SEO override fields — edited on /admin/articles/[id]/seo. Loaded here
+  // so the Share Preview card can show what FB/LinkedIn will render.
+  const [seoTitle,       setSeoTitle]       = useState<string>('')
+  const [seoDescription, setSeoDescription] = useState<string>('')
+
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
     body: '', author_bio: '',  // author_bio = closing line that renders below the gallery
@@ -294,6 +300,8 @@ export default function ArticleEditPage({ params }: Props) {
         setTopics(Array.isArray(data.topics) ? data.topics as string[] : [])
         setBrandSlug((data.brand_slug as string) ?? 'rrp')
         setSyndicatedTo(Array.isArray(data.syndicated_to_brands) ? data.syndicated_to_brands as string[] : [])
+        setSeoTitle      ((data.seo_title       as string | null) ?? '')
+        setSeoDescription((data.seo_description as string | null) ?? '')
         // Spotlight (Play Ball Athlete / Coach / Volunteer)
         setSpotlightType((data.spotlight_type as string | null) ?? '')
         const sd = data.spotlight_data
@@ -468,6 +476,13 @@ export default function ArticleEditPage({ params }: Props) {
             </span>
           )}
           <Link
+            href={`/admin/articles/${id}/seo`}
+            title="Edit SEO + social sharing"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg"
+          >
+            <Sparkles size={12} /> SEO
+          </Link>
+          <Link
             href={`/admin/articles/${id}/insights`}
             title="Search Console insights"
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg"
@@ -483,6 +498,47 @@ export default function ArticleEditPage({ params }: Props) {
             {saving ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
             Publish
           </button>
+
+          {/* ── More actions menu (Send to Review, Preview, Unpublish, Move to Trash) ── */}
+          <MoreActionsMenu
+            articleId={id}
+            slug={form.slug}
+            title={form.title}
+            columnSlug={form.column_slug}
+            isPublished={!!form.published_at}
+            disabled={saving || loading}
+            onSendToReview={() => save('pending')}
+            onUnpublish={async () => {
+              setSaving(true)
+              try {
+                const res = await fetch(`/api/admin/articles/${id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ published: false, editorial_review_status: 'draft' }),
+                })
+                if (!res.ok) {
+                  const j = await res.json().catch(() => ({}))
+                  setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
+                } else {
+                  setSaveMsg({ text: '✓ Unpublished — now in draft', ok: true })
+                  setTimeout(() => setSaveMsg(null), 4000)
+                }
+              } finally { setSaving(false) }
+            }}
+            onMoveToTrash={async () => {
+              if (!confirm('Move this article to Trash? You can restore it from /admin/articles/trash.')) return
+              setSaving(true)
+              try {
+                const res = await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' })
+                if (!res.ok) {
+                  const j = await res.json().catch(() => ({}))
+                  setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
+                  return
+                }
+                window.location.href = '/admin/articles'
+              } finally { setSaving(false) }
+            }}
+          />
         </div>
       </div>
 
@@ -634,96 +690,15 @@ export default function ArticleEditPage({ params }: Props) {
         <div className="border-l border-portal-border bg-white overflow-y-auto">
           <div className="p-4 space-y-4">
 
-            {/* ── Publish status card ── */}
-            <div className="border border-portal-border rounded-lg overflow-hidden">
-              <div className="bg-portal-bg px-3 py-2 border-b border-portal-border">
-                <p className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Publish</p>
-              </div>
-              <div className="p-3 space-y-2">
-                <button onClick={() => save('draft')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-border text-sm font-semibold text-portal-text hover:bg-portal-bg disabled:opacity-40 transition-colors">
-                  Save Draft
-                  <span className="block text-xs font-normal text-portal-muted mt-0.5">Not visible to the public</span>
-                </button>
-                <button onClick={() => save('pending')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-amber/30 bg-portal-amber-lt text-sm font-semibold text-portal-amber hover:bg-portal-amber-lt disabled:opacity-40 transition-colors">
-                  Send to Review
-                  <span className="block text-xs font-normal text-portal-amber/70 mt-0.5">Adds to the review queue</span>
-                </button>
-                <button onClick={() => save('publish')} disabled={saving || loading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-green/30 bg-portal-green-lt text-sm font-semibold text-portal-green hover:bg-portal-green-lt disabled:opacity-40 transition-colors">
-                  {saving
-                    ? <span className="flex items-center gap-2"><RefreshCw size={13} className="animate-spin" /> Publishing…</span>
-                    : 'Publish Now'}
-                  <span className="block text-xs font-normal text-portal-green/70 mt-0.5">Goes live immediately</span>
-                </button>
-                {form.slug && (
-                  <Link
-                    href={articleHref({ slug: form.slug, title: form.title, column_slug: form.column_slug })}
-                    target="_blank"
-                    className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg border border-portal-border text-xs font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
-                  >
-                    <ExternalLink size={12} /> Preview Public Page
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* ── Danger zone — unpublish + move to trash ── */}
-            <div className="border border-portal-red/30 rounded-lg overflow-hidden">
-              <div className="bg-portal-red-lt px-3 py-2 border-b border-rose-100">
-                <p className="text-[11px] font-bold text-portal-red uppercase tracking-wider">Danger Zone</p>
-              </div>
-              <div className="p-3 space-y-2">
-                <button
-                  type="button"
-                  disabled={saving || loading}
-                  onClick={async () => {
-                    setSaving(true)
-                    try {
-                      const res = await fetch(`/api/admin/articles/${id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ published: false, editorial_review_status: 'draft' }),
-                      })
-                      if (!res.ok) {
-                        const j = await res.json().catch(() => ({}))
-                        setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
-                      } else {
-                        setSaveMsg({ text: '✓ Unpublished — now in draft', ok: true })
-                        setTimeout(() => setSaveMsg(null), 4000)
-                      }
-                    } finally { setSaving(false) }
-                  }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-portal-border text-sm font-semibold text-portal-text hover:bg-portal-bg disabled:opacity-40 transition-colors"
-                >
-                  Unpublish
-                  <span className="block text-xs font-normal text-portal-muted mt-0.5">Removes from public site; stays in your draft list</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={saving || loading}
-                  onClick={async () => {
-                    if (!confirm('Move this article to Trash? You can restore it from /admin/articles/trash.')) return
-                    setSaving(true)
-                    try {
-                      const res = await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' })
-                      if (!res.ok) {
-                        const j = await res.json().catch(() => ({}))
-                        setSaveMsg({ text: j.error ?? `Error ${res.status}`, ok: false })
-                        return
-                      }
-                      window.location.href = '/admin/articles'
-                    } finally { setSaving(false) }
-                  }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg border border-rose-300 bg-white text-sm font-semibold text-portal-red hover:bg-portal-red-lt disabled:opacity-40 transition-colors"
-                >
-                  Move to Trash
-                  <span className="block text-xs font-normal text-portal-red/80 mt-0.5">Restorable from /admin/articles/trash</span>
-                </button>
-              </div>
-            </div>
+            {/* ── Share Preview card (replaces the old Publish status +
+                 Danger Zone cards — those moved to the top-bar ⋮ menu) ── */}
+            <SharePreviewCard
+              articleId={id}
+              shareTitle={(seoTitle.trim() || form.title)}
+              shareDescription={(seoDescription.trim() || form.excerpt)}
+              shareImageUrl={form.hero_image_url || null}
+              hasSeoOverrides={!!seoTitle.trim() && !!seoDescription.trim()}
+            />
 
             {/* ── Feature on Homepage ── */}
             <div className="border border-portal-blue/30 rounded-lg overflow-hidden">
@@ -1190,4 +1165,173 @@ export default function ArticleEditPage({ params }: Props) {
 // SpotlightSection is now in @/components/admin/SpotlightSection so /new
 // and /edit can both use it. The About-card bio field was removed when the
 // closing About card was retired from the public article surface.
+
+
+// ── MoreActionsMenu ────────────────────────────────────────────────────
+//
+// Top-bar overflow menu. Collects every secondary action that used to
+// live in the right-sidebar Publish status card + Danger Zone. Click
+// outside to close.
+
+function MoreActionsMenu({
+  articleId, slug, title, columnSlug, isPublished, disabled,
+  onSendToReview, onUnpublish, onMoveToTrash,
+}: {
+  articleId:      string
+  slug:           string
+  title:          string
+  columnSlug:     string
+  isPublished:    boolean
+  disabled:       boolean
+  onSendToReview: () => void
+  onUnpublish:    () => void
+  onMoveToTrash:  () => void
+}) {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    function close(e: MouseEvent) {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-more-actions]')) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  const previewHref = slug ? articleHref({ slug, title, column_slug: columnSlug }) : null
+
+  return (
+    <div className="relative" data-more-actions>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        disabled={disabled}
+        className="flex items-center px-2 py-1.5 text-xs font-semibold border border-portal-border-2 rounded-lg text-portal-sub hover:bg-portal-bg disabled:opacity-40"
+        title="More actions"
+      >
+        <MoreVertical size={14} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-portal-border rounded-lg shadow-lg overflow-hidden z-30">
+          <MenuItem onClick={() => { setOpen(false); onSendToReview() }} icon={<Send size={13} />}>
+            Send to Review
+          </MenuItem>
+          {previewHref && (
+            <Link
+              href={previewHref}
+              target="_blank"
+              onClick={() => setOpen(false)}
+              className="w-full px-3 py-2 text-left text-xs font-semibold text-portal-text hover:bg-portal-bg flex items-center gap-2"
+            >
+              <ExternalLink size={13} className="text-portal-sub" /> Preview Public Page
+            </Link>
+          )}
+          <Link
+            href={`/admin/articles/${articleId}/seo`}
+            onClick={() => setOpen(false)}
+            className="w-full px-3 py-2 text-left text-xs font-semibold text-portal-text hover:bg-portal-bg flex items-center gap-2"
+          >
+            <Share2 size={13} className="text-portal-sub" /> Edit social sharing copy
+          </Link>
+          <div className="border-t border-portal-border my-1" />
+          {isPublished && (
+            <MenuItem onClick={() => { setOpen(false); onUnpublish() }} icon={<EyeOff size={13} />}>
+              Unpublish
+            </MenuItem>
+          )}
+          <MenuItem
+            onClick={() => { setOpen(false); onMoveToTrash() }}
+            icon={<Trash2 size={13} />}
+            danger
+          >
+            Move to Trash
+          </MenuItem>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MenuItem({
+  onClick, icon, children, danger,
+}: {
+  onClick:  () => void
+  icon:     React.ReactNode
+  children: React.ReactNode
+  danger?:  boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-portal-bg ${
+        danger ? 'text-portal-red hover:bg-portal-red-lt' : 'text-portal-text'
+      }`}
+    >
+      <span className={danger ? '' : 'text-portal-sub'}>{icon}</span>
+      {children}
+    </button>
+  )
+}
+
+
+// ── SharePreviewCard ─────────────────────────────────────────────────
+//
+// Sidebar card showing the OG share preview (what FB/IG/LinkedIn will
+// render when this article is shared). Reads seo_title + seo_description
+// + hero image. Links to the full SEO editor for editing.
+
+function SharePreviewCard({
+  articleId,
+  shareTitle, shareDescription, shareImageUrl,
+  hasSeoOverrides,
+}: {
+  articleId:         string
+  shareTitle:        string
+  shareDescription:  string
+  shareImageUrl:     string | null
+  hasSeoOverrides:   boolean
+}) {
+  return (
+    <div className="border border-portal-border rounded-lg overflow-hidden">
+      <div className="bg-portal-bg px-3 py-2 border-b border-portal-border flex items-center justify-between">
+        <p className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Share preview</p>
+        <Link
+          href={`/admin/articles/${articleId}/seo`}
+          className="text-[10px] font-bold text-portal-blue hover:underline"
+        >
+          Edit copy →
+        </Link>
+      </div>
+      <div className="p-3">
+        {!hasSeoOverrides && (
+          <div className="mb-2 px-2 py-1.5 bg-portal-amber-lt text-portal-amber text-[10px] rounded">
+            Using defaults (title + excerpt). Click Edit copy to write social-optimized text.
+          </div>
+        )}
+        {/* Facebook / LinkedIn card preview (1.91:1 ratio) */}
+        <div className="border border-portal-border rounded overflow-hidden">
+          {shareImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shareImageUrl} alt="" className="w-full aspect-[1.91/1] object-cover bg-portal-bg" />
+          ) : (
+            <div className="w-full aspect-[1.91/1] bg-portal-bg flex items-center justify-center text-[10px] text-portal-muted">
+              No image — add a hero image
+            </div>
+          )}
+          <div className="p-2 bg-white">
+            <div className="text-[9px] text-portal-muted uppercase tracking-wider mb-0.5">riverregionparents.com</div>
+            <div className="text-[12px] font-semibold text-portal-text line-clamp-2">{shareTitle || 'Untitled'}</div>
+            {shareDescription && (
+              <div className="text-[10px] text-portal-sub line-clamp-2 mt-0.5">{shareDescription}</div>
+            )}
+          </div>
+        </div>
+        <p className="text-[10px] text-portal-muted mt-2 leading-relaxed">
+          This is what shows when shared to Facebook + LinkedIn. Instagram uses a square crop of the same image.
+        </p>
+      </div>
+    </div>
+  )
+}
 

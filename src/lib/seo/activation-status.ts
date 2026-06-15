@@ -36,11 +36,12 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
   // Each migration is detected by a head=true SELECT on the table it
   // creates. If the relation doesn't exist Supabase returns the
   // PostgREST PGRST205 / 42P01 error — we treat that as 'missing'.
-  const [m187, m188, m189, m190, gscData] = await Promise.all([
+  const [m187, m188, m189, m190, m191, gscData] = await Promise.all([
     tableExists(sb, 'search_console_data'),
     tableExists(sb, 'brand_seo_profiles'),
     tableExists(sb, 'seo_authors'),
     columnExists(sb, 'brand_seo_profiles', 'editorial_prefs'),
+    tableExists(sb, 'page_metadata_overrides'),
     countRows  (sb, 'search_console_data'),
   ])
 
@@ -85,6 +86,16 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
       action:      m190 ? undefined : {
         label: 'Run 190_brand_profile_extensions.sql',
         hint:  'supabase/migrations/190_brand_profile_extensions.sql',
+      },
+    },
+    {
+      key:         '191',
+      title:       'Migration 191 — Page metadata overrides',
+      description: 'Adds page_metadata_overrides for the Yoast/MashShare-style per-route social sharing editor (covers static pages, not just articles).',
+      status:      m191 ? 'ok' : 'missing',
+      action:      m191 ? undefined : {
+        label: 'Run 191_page_metadata_overrides.sql',
+        hint:  'supabase/migrations/191_page_metadata_overrides.sql',
       },
     },
     {

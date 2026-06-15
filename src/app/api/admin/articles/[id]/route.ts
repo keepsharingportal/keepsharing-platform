@@ -198,6 +198,28 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       })()
     }
 
+    // Social rotation engine — auto-enqueue the article on the unpublished
+    // → published transition. Schedule rules + recycle math live in the
+    // social_schedules table. Dispatch + caption generation happens via
+    // a separate cron pass so the publish API stays fast.
+    if (!wasPublished && nowPublished) {
+      void (async () => {
+        try {
+          const { enqueueForSource } = await import('@/lib/social/queue')
+          const sb2 = supabaseAdmin()
+          const { data: row } = await sb2
+            .from('guide_articles')
+            .select('brand_slug')
+            .eq('id', id)
+            .maybeSingle()
+          const brand = (row?.brand_slug as string | null) ?? 'rrp'
+          await enqueueForSource(sb2, 'article', id, brand)
+        } catch (e) {
+          console.error('[social-queue] enqueue failed', e)
+        }
+      })()
+    }
+
     // IndexNow ping — instant indexing on Bing/Yandex. Fires on the
     // unpublished → published transition only. No-op when INDEXNOW_KEY
     // env isn't set so dev/staging never spam the search engines.

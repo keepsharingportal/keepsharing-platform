@@ -70,43 +70,57 @@ export function absoluteUrl(path: string, publicOrigin?: string): string {
 export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<Metadata> {
   const ctx       = await loadBrandContext()
   const brandName = ctx.market.displayName
-  // chromeForBrand currently has no twitterHandle field. Reference
-  // kept here in case the brand chrome grows one later; safely
-  // void to silence unused-import warnings.
   void chromeForBrand(ctx.brand)
   const origin    = input.publicOrigin ?? ctx.publicOrigin
 
-  // Browser tab title — always disambiguates with the brand name so a
-  // user with 12 tabs open can tell our pages apart from someone else's.
-  const tabTitle = input.title.includes(brandName)
-    ? input.title
-    : `${input.title} — ${brandName}`
+  // Per-route overrides (page_metadata_overrides table). Loaded for
+  // EVERY page so editors can tune social sharing copy on static routes
+  // (/school-zone, /about, etc.) the same way they can on articles.
+  // No-op when the table doesn't exist or no row matches.
+  const { loadPageMetadataOverride } = await import('@/lib/seo/page-metadata-overrides')
+  const override = await loadPageMetadataOverride(input.path, input.brandSlug ?? ctx.market.slug)
 
-  const canonicalUrl = absoluteUrl(input.path, origin)
-  const imageAbsolute = input.image
-    ? (input.image.startsWith('http') ? input.image : absoluteUrl(input.image, origin))
+  // Resolved values — override wins, then input, then fall back.
+  const resolvedTitle       = override?.ogTitle?.trim()       || input.title
+  const resolvedDescription = override?.ogDescription?.trim() || input.description
+  const resolvedImage       = override?.ogImageUrl?.trim()    || input.image || null
+  const resolvedNoIndex     = override?.noindex ?? !!input.noIndex
+  const resolvedCanonical   = override?.canonicalOverride?.trim()
+    ? override.canonicalOverride
+    : absoluteUrl(input.path, origin)
+
+  const tabTitle = resolvedTitle.includes(brandName)
+    ? resolvedTitle
+    : `${resolvedTitle} — ${brandName}`
+
+  const imageAbsolute = resolvedImage
+    ? (resolvedImage.startsWith('http') ? resolvedImage : absoluteUrl(resolvedImage, origin))
     : null
-  const imageAlt = input.imageAlt ?? `${input.title} — ${brandName}`
+  const imageAlt = input.imageAlt ?? `${resolvedTitle} — ${brandName}`
+
+  // Twitter inherits OG unless explicitly overridden.
+  const twitterTitle = override?.twitterTitle?.trim()       || resolvedTitle
+  const twitterDesc  = override?.twitterDescription?.trim() || resolvedDescription
+  const twitterImg   = override?.twitterImageUrl?.trim()
+    ? (override.twitterImageUrl.startsWith('http') ? override.twitterImageUrl : absoluteUrl(override.twitterImageUrl, origin))
+    : imageAbsolute
+  const twitterCard  = override?.twitterCardType ?? 'summary_large_image'
 
   const md: Metadata = {
     metadataBase: new URL(origin),
     title:       tabTitle,
-    description: input.description,
+    description: resolvedDescription,
     keywords:    input.keywords,
     alternates: {
-      canonical: canonicalUrl,
+      canonical: resolvedCanonical,
     },
     openGraph: {
       siteName:    brandName,
       type:        input.type ?? 'website',
-      url:         canonicalUrl,
-      title:       input.title,
-      description: input.description,
+      url:         resolvedCanonical,
+      title:       resolvedTitle,
+      description: resolvedDescription,
       locale:      'en_US',
-      // When no image is provided, Next.js falls through to the
-      // opengraph-image.tsx file colocated with the route (or the
-      // root /opengraph-image.tsx default). Either way we never ship
-      // an article without a usable preview image.
       ...(imageAbsolute && {
         images: [{
           url:    imageAbsolute,
@@ -122,14 +136,14 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
       }),
     },
     twitter: {
-      card:        'summary_large_image',
-      title:       input.title,
-      description: input.description,
-      ...(imageAbsolute && {
-        images: [{ url: imageAbsolute, alt: imageAlt }],
+      card:        twitterCard,
+      title:       twitterTitle,
+      description: twitterDesc,
+      ...(twitterImg && {
+        images: [{ url: twitterImg, alt: imageAlt }],
       }),
     },
-    robots: input.noIndex
+    robots: resolvedNoIndex
       ? { index: false, follow: false }
       : { index: true,  follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   }
