@@ -22,6 +22,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { brandFromHost } from '@/lib/markets'
+import { lookupRedirect } from '@/lib/seo/redirect-lookup'
 
 const FIRST_TOUCH_COOKIE = 'rrp_first_touch'
 const COOKIE_MAX_AGE     = 60 * 60 * 24 * 30 // 30 days
@@ -135,6 +136,26 @@ export async function proxy(request: NextRequest) {
   const brandSlug = resolveBrand(request)
   const forwardedHeaders = new Headers(request.headers)
   forwardedHeaders.set('x-brand-slug', brandSlug)
+
+  // ── Redirect manager — editor-managed 301/302/307/308 ──────────────────
+  // Check the redirects table for the current path BEFORE serving the
+  // page. Cached in memory for 5 min so we don't hit Supabase on every
+  // request after the first. Editor manages via /admin/seo/redirects;
+  // cache is invalidated on write. We skip for admin/api/static paths
+  // since they have their own routing rules.
+  if (!path.startsWith('/api/') && !path.startsWith('/_next/') && !path.startsWith('/admin')) {
+    try {
+      const redirect = await lookupRedirect(path, brandSlug)
+      if (redirect) {
+        const target = redirect.to_path.startsWith('http')
+          ? redirect.to_path
+          : new URL(redirect.to_path, request.url).toString()
+        return NextResponse.redirect(target, { status: redirect.status_code })
+      }
+    } catch {
+      // Lookup failure must NOT break the page render. Fall through.
+    }
+  }
 
   // ── UTM first-touch attribution (public site) ──────────────────────────
   const response = NextResponse.next({ request: { headers: forwardedHeaders } })
