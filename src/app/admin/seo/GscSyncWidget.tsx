@@ -37,53 +37,45 @@ export function GscSyncWidget({ configured }: { configured: boolean }) {
   }
 
   return (
-    <div className="card" style={{ marginTop: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <strong className="text-portal-text" style={{ fontSize: 13 }}>Search Console sync</strong>
+    <div className="bg-white border border-portal-border rounded-lg p-4">
+      <div className="flex items-center gap-2.5 mb-2">
+        <strong className="text-[13px] text-portal-text">Search Console sync</strong>
         {configured
-          ? <span style={{ fontSize: 11, color: 'var(--color-portal-green)', fontWeight: 700 }}>● configured</span>
-          : <span style={{ fontSize: 11, color: 'var(--color-portal-amber)', fontWeight: 700 }}>● not configured</span>
+          ? <span className="text-[11px] font-bold text-portal-green">● configured</span>
+          : <span className="text-[11px] font-bold text-portal-amber">● not configured</span>
         }
       </div>
-      <p className="text-portal-sub" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 10 }}>
+      <p className="text-[12px] text-portal-sub mb-3 leading-relaxed">
         Pulls per-page / per-query click + impression + position data from Google Search Console
-        into <code>search_console_data</code>. The weekly audit reads this table to find page-2
+        into <code className="text-portal-text">search_console_data</code>. The weekly audit reads this table to find page-2
         keywords ready to push to page 1.
       </p>
 
       {!configured && (
-        <div style={{
-          background: 'var(--color-portal-amber-lt, #fef3c7)',
-          padding: 10, borderRadius: 6, fontSize: 12, lineHeight: 1.5, marginBottom: 10,
-        }}>
+        <div className="bg-portal-amber-lt text-portal-text p-3 rounded-md text-[12px] mb-3 leading-relaxed">
           <strong>To activate:</strong>
-          <ol style={{ paddingLeft: 18, marginTop: 6 }}>
+          <ol className="pl-5 mt-1.5 space-y-1 list-decimal">
             <li>Google Cloud → create a service account → download the JSON key</li>
             <li>In each GSC property → Users → add the service account email as &quot;Restricted&quot;</li>
-            <li>On Vercel set <code>GSC_SERVICE_ACCOUNT_JSON</code> (full JSON, one line) and
-              <code>GSC_SITE_URLS</code> (comma-separated, e.g. <code>https://riverregionparents.com,sc-domain:mobilebayparents.com</code>)</li>
+            <li>On Vercel set <code>GSC_SERVICE_ACCOUNT_JSON</code> (full JSON, one line) and <code>GSC_SITE_URLS</code> (comma-separated, e.g. <code>https://riverregionparents.com,sc-domain:mobilebayparents.com</code>)</li>
           </ol>
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <label className="text-portal-sub" style={{ fontSize: 12 }}>Lookback (days)</label>
+      <div className="flex items-center gap-2">
+        <label className="text-[12px] text-portal-sub">Lookback (days)</label>
         <input
           type="number"
           min={1} max={90}
           value={daysBack}
           onChange={e => setDaysBack(Number(e.target.value))}
-          style={{
-            width: 70, padding: '4px 8px', border: '1px solid var(--color-portal-border)',
-            borderRadius: 4, fontSize: 12,
-          }}
+          className="w-[70px] px-2 py-1 border border-portal-border-2 rounded text-[12px] text-portal-text outline-none focus:border-portal-blue"
         />
         <button
           type="button"
           onClick={run}
           disabled={busy}
-          className="btn btn-primary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           <RotateCw size={12} className={busy ? 'animate-spin' : ''} />
           {busy ? 'Syncing…' : 'Run sync now'}
@@ -91,26 +83,25 @@ export function GscSyncWidget({ configured }: { configured: boolean }) {
       </div>
 
       {error && (
-        <div style={{ marginTop: 10, padding: 10, background: 'var(--color-portal-red-lt, #fee2e2)', borderRadius: 6, fontSize: 12, color: 'var(--color-portal-red)' }}>
-          <AlertTriangle size={12} style={{ display: 'inline', marginRight: 4 }} />
-          {error}
+        <div className="mt-3 p-2.5 bg-portal-red-lt text-portal-red rounded text-[12px] inline-flex items-center gap-1.5">
+          <AlertTriangle size={12} /> {error}
         </div>
       )}
 
       {result && (
-        <div style={{ marginTop: 10, padding: 10, background: result.warning ? 'var(--color-portal-amber-lt, #fef3c7)' : 'var(--color-portal-green-lt, #ecfdf5)', borderRadius: 6, fontSize: 12 }}>
+        <div className={`mt-3 p-2.5 rounded text-[12px] ${result.warning ? 'bg-portal-amber-lt text-portal-text' : 'bg-portal-green-lt text-portal-text'}`}>
           {result.warning ? (
             <>
-              <AlertTriangle size={12} style={{ display: 'inline', marginRight: 4, color: 'var(--color-portal-amber)' }} />
+              <AlertTriangle size={12} className="inline mr-1.5 text-portal-amber" />
               {result.warning}
             </>
           ) : (
             <>
-              <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4, color: 'var(--color-portal-green)' }} />
+              <CheckCircle2 size={12} className="inline mr-1.5 text-portal-green" />
               <strong>{result.rowsImported?.toLocaleString() ?? 0}</strong> rows imported across{' '}
               <strong>{result.sitesProcessed ?? 0}</strong> sites over the last {result.daysBack} days.
               {(result.errors && result.errors.length > 0) && (
-                <ul style={{ marginTop: 6, paddingLeft: 18, color: 'var(--color-portal-red)' }}>
+                <ul className="mt-1.5 pl-5 text-portal-red space-y-0.5">
                   {result.errors.map((e, i) => (
                     <li key={i}><code>{e.site}</code>: {e.error}</li>
                   ))}

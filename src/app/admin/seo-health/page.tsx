@@ -169,42 +169,44 @@ export default async function SeoHealthPage() {
     .filter(Boolean) as Array<{ route: string; missing: string[]; has: string[]; filePath: string }>
 
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <h1 className="ph-title">SEO Health</h1>
-          <div className="text-muted text-sm">
-            Inventory of every static page route — what SEO each one has, what&apos;s missing.
-            Auto-refreshes on every deploy.
-          </div>
-        </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <a href="/admin/seo" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+          ← SEO
+        </a>
+        <h1 className="text-[18px] font-bold text-portal-text">SEO Health</h1>
+        <p className="text-[12px] text-portal-sub mt-1">
+          Inventory of every static page route — what SEO each one has, what&apos;s missing.
+          Auto-refreshes on every deploy.
+        </p>
       </div>
 
-      <div className="content-body overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6 space-y-4">
 
-        <div className="stats-row" style={{ marginBottom: 16 }}>
-          <div className="stat-card">
-            <div className="stat-num">{summary.total}</div>
-            <div className="stat-label">Total routes</div>
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-white border border-portal-border rounded-lg p-4">
+            <div className="text-[22px] font-black text-portal-text">{summary.total}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">Total routes</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-num has-green">{summary.fullCoverage}</div>
-            <div className="stat-label">Full coverage</div>
+          <div className="bg-white border border-portal-border rounded-lg p-4">
+            <div className="text-[22px] font-black text-portal-green">{summary.fullCoverage}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">Full coverage</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-num has-amber">{summary.partial}</div>
-            <div className="stat-label">Partial</div>
+          <div className="bg-white border border-portal-border rounded-lg p-4">
+            <div className="text-[22px] font-black text-portal-amber">{summary.partial}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">Partial</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-num has-red">{summary.naked}</div>
-            <div className="stat-label">Naked (no SEO)</div>
+          <div className="bg-white border border-portal-border rounded-lg p-4">
+            <div className="text-[22px] font-black text-portal-red">{summary.naked}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">Naked (no SEO)</div>
           </div>
         </div>
 
         {/* Schema-gap focus list. Surfaces the editor's actual work: routes
             that should ship specific JSON-LD types and don't yet. */}
         {schemaGaps.length > 0 && (
-          <div className="card" style={{ marginBottom: 14, borderLeft: '3px solid var(--color-portal-amber)' }}>
+          <div className="bg-white border border-portal-border rounded-lg p-4 mb-3.5" style={{ borderLeft: '3px solid var(--color-portal-amber)' }}>
             <div className="fw-700" style={{ marginBottom: 6, fontSize: 13 }}>
               Missing recommended schema ({schemaGaps.length})
             </div>
@@ -226,7 +228,7 @@ export default async function SeoHealthPage() {
           </div>
         )}
 
-        <div className="card" style={{ marginBottom: 14, fontSize: 13, lineHeight: 1.5 }}>
+        <div className="bg-white border border-portal-border rounded-lg p-4 mb-3.5 text-[13px] leading-relaxed">
           <div className="fw-700" style={{ marginBottom: 6 }}>How to read this</div>
           <ul style={{ paddingLeft: 18, color: 'var(--color-portal-sub)' }}>
             <li><strong>Meta</strong>: ✓ = generateMetadata exists. ✓✓ = uses buildPageMetadata (canonical + OG + Twitter + brand).</li>
@@ -236,7 +238,7 @@ export default async function SeoHealthPage() {
           </ul>
         </div>
 
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ background: 'var(--color-portal-bg)' }}>
               <tr style={{ textAlign: 'left' }}>
@@ -282,13 +284,14 @@ export default async function SeoHealthPage() {
           </table>
         </div>
 
-        <p className="text-portal-sub text-xs" style={{ marginTop: 14, lineHeight: 1.5 }}>
+        <p className="text-portal-sub text-xs mt-3 leading-relaxed">
           Tip: any route showing <Tag tone="red">—</Tag> under Meta is &quot;naked&quot; — it inherits only the root layout&apos;s
           brand-default metadata. That means a Facebook share will use the generic brand title + description, not the
           page&apos;s own. Add <code>generateMetadata()</code> calling <code>buildPageMetadata()</code> from{' '}
           <code>@/lib/seo/metadata</code> to fix.
         </p>
 
+        </div>
       </div>
     </div>
   )

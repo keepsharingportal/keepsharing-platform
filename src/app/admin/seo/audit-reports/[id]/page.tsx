@@ -58,26 +58,24 @@ export default async function AuditReportPage({ params }: Props) {
   const html = renderMarkdownToHtml(row.report_markdown)
 
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <Link href="/admin/seo/audit-reports" className="text-xs text-portal-sub hover:text-portal-text" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <ArrowLeft size={11} /> All audits
-          </Link>
-          <h1 className="ph-title" style={{ marginTop: 6 }}>Audit — {row.brand_slug}</h1>
-          <div className="text-muted text-sm">
-            {new Date(row.run_at).toLocaleString()} · {row.articles_checked} articles checked · {row.issues_found} issues identified
-            {row.model_used && <> · {row.model_used}</>}
-            {row.tokens_used && <> · {row.tokens_used.toLocaleString()} tokens</>}
-          </div>
-        </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <Link href="/admin/seo/audit-reports" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+          <ArrowLeft size={11} /> All audits
+        </Link>
+        <h1 className="text-[18px] font-bold text-portal-text">Audit — {row.brand_slug}</h1>
+        <p className="text-[12px] text-portal-sub mt-1">
+          {new Date(row.run_at).toLocaleString()} · {row.articles_checked} articles checked · {row.issues_found} issues identified
+          {row.model_used && <> · {row.model_used}</>}
+          {row.tokens_used && <> · {row.tokens_used.toLocaleString()} tokens</>}
+        </p>
       </div>
 
-      <div className="content-body overflow-y-auto">
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 16, alignItems: 'flex-start' }}>
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6 grid gap-4 items-start" style={{ gridTemplateColumns: 'minmax(0,1fr) 320px' }}>
 
           {/* LEFT: full markdown narrative */}
-          <div className="bg-white border border-portal-border rounded-lg" style={{ padding: 24 }}>
+          <div className="bg-white border border-portal-border rounded-lg p-6">
             <article
               className="prose prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: html }}
@@ -86,49 +84,41 @@ export default async function AuditReportPage({ params }: Props) {
 
           {/* RIGHT: action items as a clickable task list */}
           <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-portal-border)', background: 'var(--color-portal-bg)' }}>
-              <div className="fw-700 text-portal-text" style={{ fontSize: 13 }}>Action items ({sortedItems.length})</div>
-              <div className="text-portal-sub" style={{ fontSize: 12, marginTop: 2 }}>Sorted by severity.</div>
+            <div className="bg-portal-bg px-4 py-2.5 border-b border-portal-border">
+              <div className="text-[13px] font-bold text-portal-text">Action items ({sortedItems.length})</div>
+              <div className="text-[12px] text-portal-sub mt-0.5">Sorted by severity.</div>
             </div>
-            <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="p-3 space-y-2.5">
               {sortedItems.length === 0 && (
-                <div className="text-portal-sub" style={{ fontSize: 12, padding: 8 }}>
+                <div className="text-[12px] text-portal-sub p-2">
                   No structured action items in this report.
                 </div>
               )}
-              {sortedItems.map((item, i) => (
-                <div key={i} style={{
-                  padding: 10,
-                  borderRadius: 6,
-                  background: item.severity === 'high'   ? 'var(--color-portal-red-lt, #fee2e2)'
-                          : item.severity === 'medium' ? 'var(--color-portal-amber-lt, #fef3c7)'
-                          :                              'var(--color-portal-bg)',
-                  borderLeft: `3px solid ${
-                    item.severity === 'high'   ? 'var(--color-portal-red)'
-                  : item.severity === 'medium' ? 'var(--color-portal-amber)'
-                  :                              'var(--color-portal-sub)'
-                  }`,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <SeverityIcon severity={item.severity} />
-                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.3px', color: 'var(--color-portal-sub)' }}>
-                      {item.kind}
-                    </span>
+              {sortedItems.map((item, i) => {
+                const bg = item.severity === 'high'   ? 'bg-portal-red-lt'
+                         : item.severity === 'medium' ? 'bg-portal-amber-lt'
+                         :                              'bg-portal-bg'
+                const border = item.severity === 'high'   ? 'var(--color-portal-red)'
+                             : item.severity === 'medium' ? 'var(--color-portal-amber)'
+                             :                              'var(--color-portal-sub)'
+                return (
+                  <div key={i} className={`p-2.5 rounded ${bg}`} style={{ borderLeft: `3px solid ${border}` }}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <SeverityIcon severity={item.severity} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-portal-sub">{item.kind}</span>
+                    </div>
+                    <p className="text-[12px] text-portal-text leading-relaxed">{item.recommendation}</p>
+                    {item.fix_url && (
+                      <Link
+                        href={withSuggestion(item.fix_url, item.recommendation, row.id)}
+                        className="text-portal-blue text-[11px] font-bold inline-flex items-center gap-1 mt-1"
+                      >
+                        Open in editor <ArrowRight size={10} />
+                      </Link>
+                    )}
                   </div>
-                  <p className="text-portal-text" style={{ fontSize: 12, lineHeight: 1.5 }}>
-                    {item.recommendation}
-                  </p>
-                  {item.fix_url && (
-                    <Link
-                      href={withSuggestion(item.fix_url, item.recommendation, row.id)}
-                      className="text-portal-blue fw-700"
-                      style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
-                    >
-                      Open in editor <ArrowRight size={10} />
-                    </Link>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>

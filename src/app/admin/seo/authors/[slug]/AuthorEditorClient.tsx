@@ -50,20 +50,20 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 16 }}>
-      <div className="card" style={{ padding: 18 }}>
+    <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 320px' }}>
+      <div className="bg-white border border-portal-border rounded-lg p-5">
 
         <Field label="Display name">
-          <input className="form-input" value={form.displayName} onChange={e => update('displayName', e.target.value)} />
+          <input className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text" value={form.displayName} onChange={e => update('displayName', e.target.value)} />
         </Field>
 
         <Field label="Job title" hint="Editor, Contributor, Staff Writer">
-          <input className="form-input" value={form.jobTitle ?? ''} onChange={e => update('jobTitle', e.target.value || null)} />
+          <input className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text" value={form.jobTitle ?? ''} onChange={e => update('jobTitle', e.target.value || null)} />
         </Field>
 
         <Field label="Bio" hint="2-4 sentences. Will appear on the public author page + in Person JSON-LD.">
           <textarea
-            className="form-input"
+            className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
             rows={5}
             value={form.bio ?? ''}
             onChange={e => update('bio', e.target.value || null)}
@@ -71,12 +71,12 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
         </Field>
 
         <Field label="Headshot URL" hint="Full URL to a square portrait (CDN, Supabase storage, etc.)">
-          <input className="form-input" value={form.headshotUrl ?? ''} onChange={e => update('headshotUrl', e.target.value || null)} />
+          <input className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text" value={form.headshotUrl ?? ''} onChange={e => update('headshotUrl', e.target.value || null)} />
         </Field>
 
         <Field label="Credentials (comma-separated)" hint="MD, RD, MS-Education, Certified Teacher, etc. Emitted as hasCredential.">
           <input
-            className="form-input"
+            className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
             value={form.credentials.join(', ')}
             onChange={e => update('credentials', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
           />
@@ -84,14 +84,14 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
 
         <Field label="Topics they know about (comma-separated)" hint="Drives schema.knowsAbout — leave blank to inherit brand defaults.">
           <input
-            className="form-input"
+            className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
             value={form.knowsAbout.join(', ')}
             onChange={e => update('knowsAbout', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
           />
         </Field>
 
         <Field label="Contact email">
-          <input className="form-input" type="email" value={form.contactEmail ?? ''} onChange={e => update('contactEmail', e.target.value || null)} />
+          <input className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text" type="email" value={form.contactEmail ?? ''} onChange={e => update('contactEmail', e.target.value || null)} />
         </Field>
 
         <Field label="Social URLs" hint="Each becomes a schema.sameAs entry.">
@@ -99,7 +99,7 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
             {form.socialUrls.map((s, i) => (
               <div key={i} style={{ display: 'flex', gap: 6 }}>
                 <select
-                  className="form-input"
+                  className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
                   style={{ width: 140 }}
                   value={s.platform}
                   onChange={e => setSocial(i, { platform: e.target.value })}
@@ -107,17 +107,17 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
                   {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
                 <input
-                  className="form-input"
+                  className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
                   placeholder="https://…"
                   value={s.url}
                   onChange={e => setSocial(i, { url: e.target.value })}
                 />
-                <button type="button" onClick={() => removeSocial(i)} className="btn btn-secondary" title="Remove" style={{ padding: '6px 10px' }}>
+                <button type="button" onClick={() => removeSocial(i)} title="Remove" className="px-2.5 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
                   <Trash2 size={12} />
                 </button>
               </div>
             ))}
-            <button type="button" onClick={addSocial} className="btn btn-secondary" style={{ fontSize: 12, alignSelf: 'flex-start' }}>
+            <button type="button" onClick={addSocial} className="px-3 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg self-start">
               + Add social link
             </button>
           </div>
@@ -125,31 +125,28 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
 
       </div>
 
-      <div className="card" style={{ padding: 16, alignSelf: 'flex-start', position: 'sticky', top: 16 }}>
-        <div className="fw-700 text-portal-text" style={{ fontSize: 13, marginBottom: 8 }}>Save changes</div>
-        <p className="text-portal-sub" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 10 }}>
+      <div className="bg-white border border-portal-border rounded-lg p-4 self-start sticky top-4">
+        <div className="text-[13px] font-bold text-portal-text mb-2">Save changes</div>
+        <p className="text-[12px] text-portal-sub leading-relaxed mb-3">
           Profile saves to <code>seo_authors</code>. Public author page picks it up on next request.
         </p>
         <button
           type="button"
           onClick={save}
           disabled={saving}
-          className="btn btn-primary"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: '100%', justifyContent: 'center' }}
+          className="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2 text-[13px] font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           <Save size={12} />
           {saving ? 'Saving…' : 'Save profile'}
         </button>
         {error && (
-          <div style={{ marginTop: 10, padding: 8, background: 'var(--color-portal-red-lt, #fee2e2)', borderRadius: 4, fontSize: 11, color: 'var(--color-portal-red)' }}>
-            <AlertTriangle size={11} style={{ display: 'inline', marginRight: 4 }} />
-            {error}
+          <div className="mt-2.5 p-2 bg-portal-red-lt text-portal-red rounded text-[11px]">
+            <AlertTriangle size={11} className="inline mr-1" /> {error}
           </div>
         )}
         {saved && (
-          <div style={{ marginTop: 10, padding: 8, background: 'var(--color-portal-green-lt, #ecfdf5)', borderRadius: 4, fontSize: 11, color: 'var(--color-portal-green)' }}>
-            <CheckCircle2 size={11} style={{ display: 'inline', marginRight: 4 }} />
-            Saved.
+          <div className="mt-2.5 p-2 bg-portal-green-lt text-portal-green rounded text-[11px]">
+            <CheckCircle2 size={11} className="inline mr-1" /> Saved.
           </div>
         )}
       </div>
@@ -159,9 +156,9 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label className="fw-700 text-portal-text" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{label}</label>
-      {hint && <div className="text-portal-sub" style={{ fontSize: 11, marginBottom: 6 }}>{hint}</div>}
+    <div className="mb-4">
+      <label className="block text-[12px] font-bold text-portal-text mb-1">{label}</label>
+      {hint && <div className="text-[11px] text-portal-sub mb-1.5">{hint}</div>}
       {children}
     </div>
   )

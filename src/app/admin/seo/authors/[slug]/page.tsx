@@ -55,19 +55,21 @@ export default async function EditAuthorPage({ params }: Props) {
   }
 
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <Link href="/admin/seo/authors" className="text-xs text-portal-sub hover:text-portal-text">← Authors</Link>
-          <h1 className="ph-title" style={{ marginTop: 6 }}>{initial.displayName}</h1>
-          <div className="text-muted text-sm">
-            Public URL: <code>/authors/{slug}</code> · Editable bio, headshot, credentials, social links.
-          </div>
-        </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <Link href="/admin/seo/authors" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+          ← Authors
+        </Link>
+        <h1 className="text-[18px] font-bold text-portal-text">{initial.displayName}</h1>
+        <p className="text-[12px] text-portal-sub mt-1">
+          Public URL: <code>/authors/{slug}</code> · Editable bio, headshot, credentials, social links.
+        </p>
       </div>
 
-      <div className="content-body overflow-y-auto">
-        <AuthorEditorClient initial={initial} />
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6">
+          <AuthorEditorClient initial={initial} />
+        </div>
       </div>
     </div>
   )

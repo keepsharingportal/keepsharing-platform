@@ -1,12 +1,14 @@
-// ── /admin/seo/brand/[slug] ───────────────────────────────────────────────
+// ── /admin/seo/brand/[slug] — per-brand GSC dashboard ────────────────────
 //
-// Per-brand GSC dashboard. Hit by clicking a brand health card on
-// /admin/seo. Five-panel layout:
-//   - Header stats: impressions / clicks / CTR / avg position vs prior window
-//   - Sparkline chart: daily impressions + clicks for the window
-//   - Movers list: queries that improved ≥3 positions
-//   - Losers list:  queries that dropped ≥3 positions
-//   - Opportunities: queries currently on page 2 with most impressions
+// Hit by clicking a brand health card on /admin/seo. Five-panel layout:
+//   1. Header stats: impressions / clicks / CTR / avg position vs prior window
+//   2. Sparkline chart: daily impressions + clicks for the window
+//   3. Movers list (≥3 pos improvement)
+//   4. Losers list (≥3 pos regression)
+//   5. Opportunities list (page-2 queries with most impressions)
+//
+// Access: super/admin see any brand; publisher/editor must have the
+// slug in allowedMarkets. 403 otherwise.
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -17,7 +19,8 @@ import { MARKETS } from '@/lib/markets'
 import { isGscConfigured } from '@/lib/seo/gsc'
 import { buildBrandGscStats, type QueryMover } from '@/lib/seo/gsc-brand-stats'
 import { computeBrandHealth } from '@/lib/seo/brand-health'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Target, ArrowRight } from 'lucide-react'
+import { assertBrandAccess } from '@/lib/seo/admin-scope'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Target, ArrowRight, FileText, Search } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Brand SEO — Admin' }
 export const dynamic = 'force-dynamic'
@@ -25,114 +28,132 @@ export const dynamic = 'force-dynamic'
 interface Props { params: Promise<{ slug: string }> }
 
 export default async function BrandSeoDashboard({ params }: Props) {
-  await requireAdmin()
+  const ctx = await requireAdmin()
   const { slug } = await params
   const market = MARKETS.find(m => m.slug === slug)
   if (!market) notFound()
+  assertBrandAccess(ctx, slug)
 
-  const sb = createAdminClient()
+  const sb     = createAdminClient()
   const health = await computeBrandHealth(sb, slug)
-
-  // No GSC = useful page anyway. Show brand health + activation
-  // pointer so the editor knows what's blocking richer data.
-  if (!isGscConfigured()) {
-    return (
-      <Shell market={market} health={health}>
-        <div className="card" style={{ borderLeft: '3px solid var(--color-portal-amber)' }}>
-          <strong>Search Console not connected.</strong>
-          <p className="text-portal-sub" style={{ fontSize: 12, marginTop: 6 }}>
-            Brand-level GSC dashboard lights up after env vars are set + a sync runs. Connect from{' '}
-            <Link href="/admin/seo" className="text-portal-blue fw-700">/admin/seo</Link>.
-          </p>
-        </div>
-      </Shell>
-    )
-  }
-
-  const stats = await buildBrandGscStats(sb, slug, 28)
-  const max = Math.max(1, ...stats.daily.map(d => d.impressions))
+  const stats  = isGscConfigured() ? await buildBrandGscStats(sb, slug, 28) : null
+  const max    = stats ? Math.max(1, ...stats.daily.map(d => d.impressions)) : 1
 
   return (
-    <Shell market={market} health={health}>
+    <div className="flex flex-col flex-1 overflow-hidden">
 
-      {/* ── Totals strip with WoW deltas ───────────────────────── */}
-      <div className="stats-row" style={{ marginBottom: 14 }}>
-        <Stat label="Impressions" cur={stats.totals.impressions} prv={stats.totalsPrev.impressions} />
-        <Stat label="Clicks"      cur={stats.totals.clicks}      prv={stats.totalsPrev.clicks} />
-        <Stat label="CTR"         cur={pct(stats.totals.ctr)}    prv={pct(stats.totalsPrev.ctr)}    format="raw" />
-        <Stat label="Avg position"
-              cur={stats.totals.avgPosition.toFixed(1)}
-              prv={stats.totalsPrev.avgPosition.toFixed(1)}
-              format="raw"
-              positionInverted />
-      </div>
-
-      {/* ── Daily chart ───────────────────────────────────────── */}
-      <div className="card" style={{ padding: 14, marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <strong className="text-portal-text" style={{ fontSize: 13 }}>
-            Daily impressions · clicks · last {stats.windowDays} days
-          </strong>
-          <span className="text-portal-sub" style={{ fontSize: 11 }}>
-            Compared against the previous {stats.comparedAgainst}-day window.
-          </span>
+      {/* ── Page header ──────────────────────────────────────── */}
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <Link href="/admin/seo" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+              <ArrowLeft size={11} /> SEO Command Center
+            </Link>
+            <div className="flex items-center gap-3">
+              <h1 className="text-[18px] font-bold text-portal-text">{market.displayName}</h1>
+              <HealthPill score={health.score} grade={health.grade} />
+            </div>
+            <p className="text-[12px] text-portal-sub mt-1">
+              Brand health {health.score}/100 ({health.grade}) · live GSC roll-up + movers + opportunities.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link href={`/admin/seo/audit-reports?brand=${slug}`} className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
+              <FileText size={14} /> Weekly audit
+            </Link>
+            <Link href={`/admin/seo/query-briefs?brand=${slug}`} className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg">
+              <Search size={14} /> Query briefs
+            </Link>
+            <Link href={`/admin/seo/ctr-optimizer?brand=${slug}`} className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90">
+              CTR optimizer
+            </Link>
+          </div>
         </div>
-        {stats.daily.length === 0 ? (
-          <div className="text-portal-sub" style={{ fontSize: 12, padding: 12 }}>
-            No daily rows for this brand yet — has the GSC importer run for this property?
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 120 }}>
-            {stats.daily.map(d => {
-              const h = Math.max(2, Math.round((d.impressions / max) * 110))
-              const ch = d.impressions > 0 ? Math.max(1, Math.round((d.clicks / d.impressions) * h)) : 0
-              return (
-                <div key={d.date} title={`${d.date} · ${d.impressions} imp · ${d.clicks} clk · pos ${d.avgPosition.toFixed(1)}`}
-                  style={{ flex: 1, height: h, background: 'var(--color-portal-bg)', borderRadius: 2, position: 'relative' }}>
-                  {ch > 0 && (
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: ch, background: 'var(--color-portal-blue)', borderRadius: 2 }} />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
 
-      {/* ── Three-up: movers / losers / opportunities ─────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <MoverPanel title="Movers — climbed ≥3 positions" tone="green" icon={<ArrowUpRight size={12} />} rows={stats.movers} kind="mover" />
-        <MoverPanel title="Losers — dropped ≥3 positions"  tone="red"   icon={<ArrowDownRight size={12} />} rows={stats.losers} kind="loser" />
-        <MoverPanel title="Opportunities — page-2 queries" tone="blue"  icon={<Target size={12} />}        rows={stats.opportunities} kind="opp" />
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6 space-y-4">
+
+          {!stats ? (
+            <div className="bg-white border border-portal-border rounded-lg p-4" style={{ borderLeft: '3px solid var(--color-portal-amber)' }}>
+              <strong className="text-[13px] text-portal-text">Search Console not connected.</strong>
+              <p className="text-[12px] text-portal-sub mt-1">
+                Per-brand dashboard lights up after env vars are set + a sync runs. Connect from{' '}
+                <Link href="/admin/seo" className="text-portal-blue font-bold">/admin/seo</Link>.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ── Totals strip with WoW deltas ───────────────── */}
+              <div className="grid grid-cols-4 gap-3">
+                <Stat label="Impressions" cur={stats.totals.impressions} prv={stats.totalsPrev.impressions} />
+                <Stat label="Clicks"      cur={stats.totals.clicks}      prv={stats.totalsPrev.clicks} />
+                <Stat label="CTR"         cur={pct(stats.totals.ctr)}    prv={pct(stats.totalsPrev.ctr)} format="raw" />
+                <Stat label="Avg position"
+                      cur={stats.totals.avgPosition.toFixed(1)}
+                      prv={stats.totalsPrev.avgPosition.toFixed(1)}
+                      format="raw"
+                      positionInverted />
+              </div>
+
+              {/* ── Daily chart ──────────────────────────────── */}
+              <div className="bg-white border border-portal-border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <strong className="text-[13px] text-portal-text">
+                    Daily impressions · clicks · last {stats.windowDays} days
+                  </strong>
+                  <span className="text-[11px] text-portal-sub">
+                    Compared against the previous {stats.comparedAgainst}-day window.
+                  </span>
+                </div>
+                {stats.daily.length === 0 ? (
+                  <div className="text-[12px] text-portal-sub p-3">
+                    No daily rows for this brand yet — has the GSC importer run for this property?
+                  </div>
+                ) : (
+                  <div className="flex items-end gap-0.5" style={{ height: 120 }}>
+                    {stats.daily.map(d => {
+                      const h  = Math.max(2, Math.round((d.impressions / max) * 110))
+                      const ch = d.impressions > 0 ? Math.max(1, Math.round((d.clicks / d.impressions) * h)) : 0
+                      return (
+                        <div key={d.date}
+                          title={`${d.date} · ${d.impressions} imp · ${d.clicks} clk · pos ${d.avgPosition.toFixed(1)}`}
+                          className="flex-1 bg-portal-bg rounded-sm relative"
+                          style={{ height: h }}>
+                          {ch > 0 && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-portal-blue rounded-sm" style={{ height: ch }} />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Three-up: movers / losers / opportunities ── */}
+              <div className="grid grid-cols-3 gap-3">
+                <MoverPanel title="Movers — climbed ≥3 positions" tone="green" icon={<ArrowUpRight size={12} />}   rows={stats.movers}        kind="mover" />
+                <MoverPanel title="Losers — dropped ≥3 positions"  tone="red"   icon={<ArrowDownRight size={12} />} rows={stats.losers}        kind="loser" />
+                <MoverPanel title="Opportunities — page-2 queries" tone="blue"  icon={<Target size={12} />}         rows={stats.opportunities} kind="opp" />
+              </div>
+            </>
+          )}
+
+        </div>
       </div>
-    </Shell>
+    </div>
   )
 }
 
-function Shell({
-  market, health, children,
-}: {
-  market: typeof MARKETS[number]
-  health: { score: number; grade: string }
-  children: React.ReactNode
-}) {
+function HealthPill({ score, grade }: { score: number; grade: string }) {
+  const tone = score >= 85 ? 'bg-portal-green'
+             : score >= 70 ? 'bg-portal-blue'
+             : score >= 50 ? 'bg-portal-amber'
+             :               'bg-portal-red'
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <Link href="/admin/seo" className="text-xs text-portal-sub hover:text-portal-text" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <ArrowLeft size={11} /> SEO
-          </Link>
-          <h1 className="ph-title" style={{ marginTop: 6 }}>{market.displayName}</h1>
-          <div className="text-muted text-sm">
-            Brand health <strong style={{ color: health.score >= 70 ? 'var(--color-portal-green)' : 'var(--color-portal-amber)' }}>
-              {health.score}/100 ({health.grade})
-            </strong> · live GSC roll-up + movers + losers + opportunities.
-          </div>
-        </div>
-      </div>
-      <div className="content-body overflow-y-auto">{children}</div>
-    </div>
+    <span className={`inline-flex items-center gap-1.5 ${tone} text-white text-[12px] font-bold px-2 py-1 rounded-full`}>
+      {score}/100 · {grade}
+    </span>
   )
 }
 
@@ -141,36 +162,31 @@ function Stat({ label, cur, prv, format, positionInverted }: {
   cur: number | string
   prv: number | string
   format?: 'raw'
-  positionInverted?: boolean   // for avg position — lower is better
+  positionInverted?: boolean
 }) {
   const curNum = typeof cur === 'number' ? cur : parseFloat(cur)
   const prvNum = typeof prv === 'number' ? prv : parseFloat(prv)
   let delta = ''
   let tone: 'green' | 'red' | 'neutral' = 'neutral'
   if (Number.isFinite(curNum) && Number.isFinite(prvNum) && prvNum !== 0) {
-    const change = curNum - prvNum
-    const pctChange = ((change / Math.abs(prvNum)) * 100)
+    const change    = curNum - prvNum
+    const pctChange = (change / Math.abs(prvNum)) * 100
     delta = `${change > 0 ? '+' : ''}${pctChange.toFixed(1)}%`
     if (Math.abs(pctChange) >= 1) {
-      if (positionInverted) {
-        tone = change < 0 ? 'green' : 'red'
-      } else {
-        tone = change > 0 ? 'green' : 'red'
-      }
+      tone = positionInverted
+        ? (change < 0 ? 'green' : 'red')
+        : (change > 0 ? 'green' : 'red')
     }
   }
+  const deltaColor = tone === 'green' ? 'text-portal-green' : tone === 'red' ? 'text-portal-red' : 'text-portal-sub'
   return (
-    <div className="stat-card">
-      <div className="stat-num">{format === 'raw' ? cur : (typeof cur === 'number' ? cur.toLocaleString() : cur)}</div>
-      <div className="stat-label">
+    <div className="bg-white border border-portal-border rounded-lg p-4">
+      <div className="text-[22px] font-black text-portal-text">
+        {format === 'raw' ? cur : (typeof cur === 'number' ? cur.toLocaleString() : cur)}
+      </div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">
         {label}
-        {delta && (
-          <span style={{
-            display: 'inline-block', marginLeft: 6,
-            fontSize: 10, fontWeight: 700,
-            color: tone === 'green' ? 'var(--color-portal-green)' : tone === 'red' ? 'var(--color-portal-red)' : 'var(--color-portal-sub)',
-          }}>{delta}</span>
-        )}
+        {delta && <span className={`ml-2 ${deltaColor}`}>{delta}</span>}
       </div>
     </div>
   )
@@ -187,33 +203,25 @@ function MoverPanel({ title, tone, icon, rows, kind }: {
                     : tone === 'red'   ? 'var(--color-portal-red)'
                     :                    'var(--color-portal-blue)'
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-portal-border)', borderLeft: `3px solid ${borderColor}`, background: 'var(--color-portal-bg)' }}>
-        <strong className="text-portal-text" style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+    <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+      <div className="bg-portal-bg px-4 py-2.5 border-b border-portal-border" style={{ borderLeft: `3px solid ${borderColor}` }}>
+        <strong className="text-[12px] font-bold text-portal-text inline-flex items-center gap-1.5">
           {icon} {title}
         </strong>
       </div>
-      <div style={{ padding: 8 }}>
+      <div className="divide-y divide-portal-border">
         {rows.length === 0 && (
-          <div className="text-portal-sub" style={{ fontSize: 12, padding: 8 }}>None this window.</div>
+          <div className="text-[12px] text-portal-sub p-3">None this window.</div>
         )}
         {rows.map((r, i) => (
-          <div key={i} style={{
-            padding: 8,
-            borderBottom: i === rows.length - 1 ? 'none' : '1px solid var(--color-portal-border)',
-          }}>
-            <div className="fw-700 text-portal-text" style={{ fontSize: 12, marginBottom: 2 }}>“{r.query}”</div>
-            <div className="text-portal-sub" style={{ fontSize: 11, lineHeight: 1.5 }}>
+          <div key={i} className="p-3">
+            <div className="text-[12px] font-bold text-portal-text mb-1">&ldquo;{r.query}&rdquo;</div>
+            <div className="text-[11px] text-portal-sub leading-relaxed">
               {kind === 'opp'   && <>pos {r.currentPos.toFixed(1)} · {r.impressionsNow.toLocaleString()} imp</>}
-              {kind === 'mover' && <>pos {r.previousPos.toFixed(1)} → {r.currentPos.toFixed(1)} · {r.impressionsNow.toLocaleString()} imp</>}
-              {kind === 'loser' && <>pos {r.previousPos.toFixed(1)} → {r.currentPos.toFixed(1)} · {r.impressionsNow.toLocaleString()} imp</>}
+              {kind !== 'opp'   && <>pos {r.previousPos.toFixed(1)} → {r.currentPos.toFixed(1)} · {r.impressionsNow.toLocaleString()} imp</>}
             </div>
             {r.topArticleId && (
-              <Link
-                href={`/admin/articles/${r.topArticleId}/seo`}
-                className="text-portal-blue fw-700"
-                style={{ fontSize: 11, marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 3 }}
-              >
+              <Link href={`/admin/articles/${r.topArticleId}/seo`} className="text-portal-blue text-[11px] font-bold inline-flex items-center gap-1 mt-1.5">
                 Open SEO editor <ArrowRight size={10} />
               </Link>
             )}

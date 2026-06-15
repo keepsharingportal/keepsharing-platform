@@ -1,17 +1,14 @@
 // ── /admin/seo/audit-reports ──────────────────────────────────────────────
-//
-// Weekly Claude audit reports per brand. Latest run shown first.
-// Editor opens a report, reads the prioritized action list, and works
-// through it. "Run now" triggers an immediate audit for a single brand
-// (also useful for testing).
+// Weekly Claude audit reports per brand. Brand-scoped to caller's role.
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { MARKETS } from '@/lib/markets'
+import { getSeoAllowedBrands } from '@/lib/seo/admin-scope'
 import { RunNowButton } from './RunNowButton'
 import { SeasonalAlerts } from '@/components/seo/SeasonalAlerts'
+import { ArrowLeft, FileText, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'SEO Audit Reports — Admin' }
 export const dynamic = 'force-dynamic'
@@ -28,123 +25,134 @@ interface AuditRow {
 }
 
 export default async function AuditReportsPage() {
-  await requireAdmin()
+  const ctx = await requireAdmin()
   const sb = createAdminClient()
+  const allowed = getSeoAllowedBrands(ctx)
+  const allowedSlugs = allowed.map(m => m.slug)
+
   const { data } = await sb
     .from('seo_audit_runs')
     .select('id, brand_slug, run_at, run_by, articles_checked, issues_found, tokens_used, model_used')
+    .in('brand_slug', allowedSlugs)
     .order('run_at', { ascending: false })
     .limit(60)
   const rows = (data ?? []) as AuditRow[]
 
-  // Group: latest per brand at top; older runs grouped below per brand.
   const latestByBrand = new Map<string, AuditRow>()
   for (const r of rows) {
     if (!latestByBrand.has(r.brand_slug)) latestByBrand.set(r.brand_slug, r)
   }
 
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <h1 className="ph-title">SEO Audit Reports</h1>
-          <div className="text-muted text-sm">
-            Weekly Claude-generated audits, prioritized action lists, content gaps, and quick-win recommendations.
-            Cron runs every Sunday 02:00 UTC. Click any brand to read its latest report.
-          </div>
-        </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <Link href="/admin/seo" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+          <ArrowLeft size={11} /> SEO
+        </Link>
+        <h1 className="text-[18px] font-bold text-portal-text">
+          <FileText size={16} className="inline -translate-y-0.5 mr-1" /> SEO Audit Reports
+        </h1>
+        <p className="text-[12px] text-portal-sub mt-1">
+          Weekly Claude-generated audits, prioritized action lists, content gaps, and quick-win recommendations.
+          Cron runs every Sunday 02:00 UTC.
+        </p>
       </div>
 
-      <div className="content-body overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6 space-y-4">
 
-        {/* Seasonal radar — shows this brand's current + next month
-            calendar themes so the editor knows what coverage to push
-            BEFORE the audit flags gaps. Defaults to 'rrp' since this
-            page lists all brands; per-brand drill-down is in the
-            per-audit detail page. */}
-        <SeasonalAlerts brandSlug="rrp" />
+          {/* Seasonal radar — picks the first allowed brand by default */}
+          {allowed.length > 0 && <SeasonalAlerts brandSlug={allowed[0].slug} />}
 
-        {/* Per-brand latest cards */}
-        <div className="stats-row" style={{ marginBottom: 16 }}>
-          {MARKETS.map(m => {
-            const latest = latestByBrand.get(m.slug)
-            return (
-              <Link
-                key={m.slug}
-                href={latest ? `/admin/seo/audit-reports/${latest.id}` : '#'}
-                className="stat-card"
-                style={{ textDecoration: 'none', opacity: latest ? 1 : 0.5 }}
-              >
-                <div className="stat-num">{latest?.issues_found ?? '—'}</div>
-                <div className="stat-label">{m.short ?? m.slug.toUpperCase()}</div>
-                {latest && (
-                  <div style={{ fontSize: 10, color: 'var(--color-portal-sub)', marginTop: 4 }}>
-                    {new Date(latest.run_at).toLocaleDateString()}
+          {/* Per-brand latest cards */}
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(allowed.length, 6)}, minmax(0, 1fr))` }}>
+            {allowed.map(m => {
+              const latest = latestByBrand.get(m.slug)
+              return (
+                <Link
+                  key={m.slug}
+                  href={latest ? `/admin/seo/audit-reports/${latest.id}` : '#'}
+                  className={`bg-white border border-portal-border rounded-lg p-4 hover:border-portal-blue/40 transition-colors ${latest ? '' : 'opacity-50 cursor-default'}`}
+                >
+                  <div className="text-[22px] font-black text-portal-text">{latest?.issues_found ?? '—'}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">
+                    {m.short ?? m.slug.toUpperCase()}
                   </div>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Run-now panel */}
-        <div className="card" style={{ marginBottom: 14 }}>
-          <div className="card-title" style={{ marginBottom: 4 }}>Run audit now</div>
-          <p className="text-portal-sub" style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 10 }}>
-            Runs the full Claude audit for every brand. Takes 1-3 minutes. Costs tokens.
-          </p>
-          <RunNowButton />
-        </div>
-
-        {/* Full audit log */}
-        <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-portal-border)', background: 'var(--color-portal-bg)' }}>
-            <div className="fw-700 text-portal-text" style={{ fontSize: 13 }}>All runs</div>
+                  {latest && (
+                    <div className="text-[10px] text-portal-sub mt-1">
+                      {new Date(latest.run_at).toLocaleDateString()}
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
           </div>
-          {rows.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--color-portal-sub)', fontSize: 13 }}>
-              No audits yet. Click &quot;Run audit now&quot; or wait for the Sunday 02:00 UTC cron.
-            </div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead style={{ background: 'var(--color-portal-bg)' }}>
-                <tr style={{ textAlign: 'left' }}>
-                  <Th>Brand</Th>
-                  <Th>Run at</Th>
-                  <Th center>Articles</Th>
-                  <Th center>Issues</Th>
-                  <Th center>Tokens</Th>
-                  <Th></Th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(r => (
-                  <tr key={r.id} style={{ borderTop: '1px solid var(--color-portal-border)' }}>
-                    <Td><strong>{r.brand_slug}</strong></Td>
-                    <Td>{new Date(r.run_at).toLocaleString()}</Td>
-                    <Td center>{r.articles_checked}</Td>
-                    <Td center>{r.issues_found}</Td>
-                    <Td center>{r.tokens_used?.toLocaleString() ?? '—'}</Td>
-                    <Td>
-                      <Link href={`/admin/seo/audit-reports/${r.id}`} className="text-portal-blue fw-700" style={{ fontSize: 12 }}>
-                        Open →
-                      </Link>
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
 
+          {/* Run-now panel */}
+          <div className="bg-white border border-portal-border rounded-lg p-4">
+            <div className="text-[13px] font-bold text-portal-text mb-1">Run audit now</div>
+            <p className="text-[12px] text-portal-sub mb-3 leading-relaxed">
+              Runs the full Claude audit for every brand. Takes 1-3 minutes. Costs tokens.
+            </p>
+            <RunNowButton />
+          </div>
+
+          {/* Full audit log */}
+          <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+            <div className="bg-portal-bg px-4 py-2.5 border-b border-portal-border">
+              <div className="text-[13px] font-bold text-portal-text">All runs</div>
+            </div>
+            {rows.length === 0 ? (
+              <div className="text-center text-portal-sub text-[13px] py-8">
+                No audits yet. Click &quot;Run audit now&quot; or wait for the Sunday 02:00 UTC cron.
+              </div>
+            ) : (
+              <table className="w-full text-[13px]">
+                <thead className="bg-portal-bg">
+                  <tr className="text-left">
+                    <Th>Brand</Th>
+                    <Th>Run at</Th>
+                    <Th center>Articles</Th>
+                    <Th center>Issues</Th>
+                    <Th center>Tokens</Th>
+                    <Th></Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(r => (
+                    <tr key={r.id} className="border-t border-portal-border">
+                      <Td><strong>{r.brand_slug}</strong></Td>
+                      <Td>{new Date(r.run_at).toLocaleString()}</Td>
+                      <Td center>{r.articles_checked}</Td>
+                      <Td center>{r.issues_found}</Td>
+                      <Td center>{r.tokens_used?.toLocaleString() ?? '—'}</Td>
+                      <Td>
+                        <Link href={`/admin/seo/audit-reports/${r.id}`} className="text-portal-blue text-[12px] font-bold inline-flex items-center gap-1">
+                          Open <ArrowRight size={10} />
+                        </Link>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   )
 }
 
 function Th({ children, center }: { children?: React.ReactNode; center?: boolean }) {
-  return <th style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: 'var(--color-portal-sub)', textTransform: 'uppercase', letterSpacing: '.3px', textAlign: center ? 'center' : 'left' }}>{children}</th>
+  return (
+    <th className={`px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-portal-sub ${center ? 'text-center' : 'text-left'}`}>
+      {children}
+    </th>
+  )
 }
-function Td({ children, center }: { children: React.ReactNode; center?: boolean }) {
-  return <td style={{ padding: '8px 14px', textAlign: center ? 'center' : 'left', verticalAlign: 'middle' }}>{children}</td>
+
+function Td({ children, center }: { children?: React.ReactNode; center?: boolean }) {
+  return <td className={`px-3.5 py-2 align-middle ${center ? 'text-center' : 'text-left'}`}>{children}</td>
 }

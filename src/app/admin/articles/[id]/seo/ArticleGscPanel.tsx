@@ -17,7 +17,7 @@ export function ArticleGscPanel({ gsc, articleId }: { gsc: ArticleGscSummary; ar
   const hasData = gsc.totals.impressions > 0
   if (!hasData) {
     return (
-      <div className="card" style={{ marginBottom: 14, padding: 12, borderLeft: '3px solid var(--color-portal-sub)' }}>
+      <div className="bg-white border border-portal-border rounded-lg p-3 mb-3.5" style={{ borderLeft: '3px solid var(--color-portal-sub)' }}>
         <div style={{ fontSize: 12, color: 'var(--color-portal-sub)' }}>
           <strong>No GSC data yet</strong> for this article URL over the last {gsc.windowDays} days.
           Likely freshly published or below the impression threshold — check back next sync.
@@ -27,7 +27,7 @@ export function ArticleGscPanel({ gsc, articleId }: { gsc: ArticleGscSummary; ar
   }
 
   return (
-    <div className="card" style={{ marginBottom: 14, padding: 14, borderLeft: '3px solid var(--color-portal-blue)' }}>
+    <div className="bg-white border border-portal-border rounded-lg p-3.5 mb-3.5" style={{ borderLeft: '3px solid var(--color-portal-blue)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <strong className="text-portal-text" style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           <TrendingUp size={13} color="var(--color-portal-blue)" />

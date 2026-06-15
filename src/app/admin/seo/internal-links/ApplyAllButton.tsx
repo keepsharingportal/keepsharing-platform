@@ -2,11 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Zap, Loader2 } from 'lucide-react'
 
-/** "Apply all" action — walks every pending suggestion and inserts
- *  each one's <a> into the source article body. Skipped suggestions
- *  (anchor no longer present after intervening edits) are marked
- *  rejected so the queue stays clean. */
 export function ApplyAllButton({ pendingCount }: { pendingCount: number }) {
   const [busy, setBusy] = useState(false)
   const [msg,  setMsg]  = useState<string | null>(null)
@@ -21,7 +18,7 @@ export function ApplyAllButton({ pendingCount }: { pendingCount: number }) {
       const res = await fetch('/api/admin/seo/internal-links?action=apply-all', { method: 'PUT' })
       const j   = await res.json()
       if (!res.ok) throw new Error(j?.error ?? 'Apply-all failed')
-      setMsg(`${j.applied} applied · ${j.skipped} skipped (stale)`)
+      setMsg(`${j.applied} applied · ${j.skipped} skipped`)
       router.refresh()
     } catch (e) {
       setMsg(e instanceof Error ? e.message : String(e))
@@ -35,18 +32,14 @@ export function ApplyAllButton({ pendingCount }: { pendingCount: number }) {
       type="button"
       onClick={run}
       disabled={busy || pendingCount === 0}
-      className="stat-card"
-      style={{
-        border: '1px solid var(--color-portal-green)',
-        background: 'var(--color-portal-green-lt, #ecfdf5)',
-        cursor: busy || pendingCount === 0 ? 'not-allowed' : 'pointer',
-        opacity: pendingCount === 0 ? 0.5 : 1,
-      }}
+      className={`bg-portal-green-lt border border-portal-green rounded-lg p-4 text-left disabled:opacity-50 ${pendingCount === 0 ? 'cursor-not-allowed' : 'hover:opacity-80'}`}
     >
-      <div className="stat-num" style={{ color: 'var(--color-portal-green)' }}>
-        {busy ? '…' : '⚡'}
+      <div className="text-[22px] font-black text-portal-green inline-flex items-center gap-2">
+        {busy ? <Loader2 size={20} className="animate-spin" /> : <Zap size={20} />}
       </div>
-      <div className="stat-label">{msg ?? `Apply all ${pendingCount}`}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-portal-sub mt-1">
+        {msg ?? `Apply all ${pendingCount}`}
+      </div>
     </button>
   )
 }

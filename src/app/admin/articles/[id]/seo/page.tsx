@@ -61,21 +61,20 @@ export default async function ArticleSeoPage({ params, searchParams }: Props) {
   })
 
   return (
-    <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
-      <div className="page-header">
-        <div>
-          <Link href={`/admin/articles/${data.id}/edit`} className="text-xs text-portal-sub hover:text-portal-text">
-            ← Article editor
-          </Link>
-          <h1 className="ph-title" style={{ marginTop: 6 }}>SEO — {data.title}</h1>
-          <div className="text-muted text-sm">
-            Tune how this article appears in Google, social previews, and your structured data.
-            Run the AI assist for one-click suggestions; the analyzer scores the page in real time.
-          </div>
-        </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
+        <Link href={`/admin/articles/${data.id}/edit`} className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+          ← Article editor
+        </Link>
+        <h1 className="text-[18px] font-bold text-portal-text">SEO — {data.title}</h1>
+        <p className="text-[12px] text-portal-sub mt-1">
+          Tune how this article appears in Google, social previews, and your structured data.
+          Run the AI assist for one-click suggestions; the analyzer scores the page in real time.
+        </p>
       </div>
 
-      <div className="content-body overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-portal-bg">
+        <div className="px-6 py-6">
         {articleGsc && <ArticleGscPanel gsc={articleGsc} articleId={data.id as string} />}
         <SeoEditorClient
           articleId={data.id as string}
@@ -99,6 +98,7 @@ export default async function ArticleSeoPage({ params, searchParams }: Props) {
             lastAuditedAt:         data.seo_last_audited_at as string | null,
           }}
         />
+        </div>
       </div>
     </div>
   )
