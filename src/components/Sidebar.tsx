@@ -298,6 +298,7 @@ const NAV: NavItem[] = [
       { name: 'Author Profiles',        href: '/admin/seo/authors'        },
       { name: 'Alt-text Audit',         href: '/admin/seo/alt-text'       },
       { name: 'Query Briefs',           href: '/admin/seo/query-briefs'   },
+      { name: 'CTR Optimizer',          href: '/admin/seo/ctr-optimizer'  },
       { name: 'Weekly Audit Reports',   href: '/admin/seo/audit-reports'  },
       { name: 'Redirects',              href: '/admin/seo/redirects'      },
       { name: '404 Monitor',            href: '/admin/seo/404-log'        },

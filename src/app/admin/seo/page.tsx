@@ -13,10 +13,12 @@ import { computeBrandHealth } from '@/lib/seo/brand-health'
 import { isGscConfigured } from '@/lib/seo/gsc'
 import { GscSyncWidget } from './GscSyncWidget'
 import { FeedsHealthWidget } from './FeedsHealthWidget'
+import { buildDailyMovers } from '@/lib/seo/daily-movers'
+import { DailyMoversWidget } from './DailyMoversWidget'
 import {
   Repeat, AlertTriangle, Link as LinkIcon, ListChecks,
   Settings2, FileText, Activity, ArrowRight, Sparkles, Users,
-  Image as ImageIcon, Search,
+  Image as ImageIcon, Search, TrendingDown,
 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'SEO — Admin' }
@@ -27,6 +29,7 @@ const TOOLS = [
   { slug: 'authors',        title: 'Author Profiles', desc: 'E-E-A-T bios + headshots + credentials. Renders Person JSON-LD.', href: '/admin/seo/authors', icon: Users },
   { slug: 'alt-text',       title: 'Alt-text Audit', desc: 'Find published articles with images missing alt text.', href: '/admin/seo/alt-text', icon: ImageIcon },
   { slug: 'query-briefs',   title: 'Query Briefs', desc: 'GSC-driven briefs: improve page-2 articles, write for content gaps.', href: '/admin/seo/query-briefs', icon: Search },
+  { slug: 'ctr-optimizer',  title: 'CTR Optimizer', desc: 'Ranking well but not earning clicks? Title + meta rewrites with leverage.', href: '/admin/seo/ctr-optimizer', icon: TrendingDown },
   { slug: 'audit-reports',  title: 'Weekly Audit Reports', desc: 'Claude-generated action lists per brand. Runs Sunday 02:00 UTC.', href: '/admin/seo/audit-reports', icon: FileText },
   { slug: 'redirects',      title: 'Redirect Manager', desc: '301/302/307/308 — when URLs change, keep external links working.', href: '/admin/seo/redirects', icon: Repeat },
   { slug: '404-log',        title: '404 Monitor', desc: 'Top 404 paths. One-click convert any to a 301 redirect.', href: '/admin/seo/404-log', icon: AlertTriangle },
@@ -39,10 +42,12 @@ export default async function SeoHomePage() {
   await requireAdmin()
   const sb = createAdminClient()
 
-  // Compute health for every brand in parallel.
-  const healthData = await Promise.all(
-    MARKETS.map(m => computeBrandHealth(sb, m.slug))
-  )
+  // Compute health for every brand in parallel + the cross-brand
+  // daily movers digest.
+  const [healthData, dailyMovers] = await Promise.all([
+    Promise.all(MARKETS.map(m => computeBrandHealth(sb, m.slug))),
+    isGscConfigured() ? buildDailyMovers(sb, null) : Promise.resolve(null),
+  ])
 
   return (
     <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
@@ -124,6 +129,9 @@ export default async function SeoHomePage() {
             })}
           </div>
         </div>
+
+        {/* ── Daily movers digest ────────────────────────────── */}
+        {dailyMovers && <DailyMoversWidget movers={dailyMovers} />}
 
         {/* ── GSC sync ────────────────────────────────────────── */}
         <GscSyncWidget configured={isGscConfigured()} />

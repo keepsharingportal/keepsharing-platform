@@ -12,6 +12,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { ArrowRight } from 'lucide-react'
 import { LinkActionsClient } from './LinkActionsClient'
 import { RunPassButton } from './RunPassButton'
+import { ApplyAllButton } from './ApplyAllButton'
 
 export const metadata: Metadata = { title: 'Internal Links — SEO — Admin' }
 export const dynamic = 'force-dynamic'
@@ -73,6 +74,7 @@ export default async function InternalLinksPage() {
             <div className="stat-label">Pending</div>
           </div>
           <RunPassButton />
+          <ApplyAllButton pendingCount={rows.length} />
         </div>
 
         {rows.length === 0 ? (
