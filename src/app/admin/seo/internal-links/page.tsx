@@ -7,7 +7,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ArrowRight, ArrowLeft, Link as LinkIcon } from 'lucide-react'
 import { LinkActionsClient } from './LinkActionsClient'
@@ -29,7 +29,7 @@ interface SugRow {
 }
 
 export default async function InternalLinksPage() {
-  await requireAdmin()
+  await requireSettingsAccess()
   const sb = createAdminClient()
 
   // Load pending suggestions + the article metadata both sides

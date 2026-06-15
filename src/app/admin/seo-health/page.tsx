@@ -14,6 +14,7 @@
 import type { Metadata } from 'next'
 import fs from 'node:fs'
 import path from 'node:path'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 
 export const metadata: Metadata = { title: 'SEO Health — Admin' }
 export const dynamic = 'force-dynamic'
@@ -135,6 +136,7 @@ function tagFeedCoverage(rows: RouteAudit[]) {
 }
 
 export default async function SeoHealthPage() {
+  await requireSettingsAccess()
   const rows = walk()
   tagCuratedSitemap(rows)
   tagFeedCoverage(rows)

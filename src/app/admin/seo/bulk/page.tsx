@@ -7,7 +7,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { BulkClient } from './BulkClient'
 import { ArrowLeft, ListChecks } from 'lucide-react'
@@ -28,7 +28,7 @@ interface ArticleRow {
 }
 
 export default async function BulkSeoPage() {
-  await requireAdmin()
+  await requireSettingsAccess()
   const sb = createAdminClient()
   const { data } = await sb
     .from('guide_articles')

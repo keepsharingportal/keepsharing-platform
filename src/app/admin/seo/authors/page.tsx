@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { authorNameToSlug } from '@/lib/seo/author-slug'
 import { listAuthorProfiles } from '@/lib/seo/authors'
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 interface DistinctAuthor { slug: string; name: string; articleCount: number }
 
 export default async function AuthorsPage() {
-  await requireAdmin()
+  await requireSettingsAccess()
   const sb = createAdminClient()
 
   const { data: arts } = await sb

@@ -28,6 +28,8 @@ import { GscSyncWidget } from './GscSyncWidget'
 import { FeedsHealthWidget } from './FeedsHealthWidget'
 import { buildDailyMovers } from '@/lib/seo/daily-movers'
 import { DailyMoversWidget } from './DailyMoversWidget'
+import { getActivationStatus } from '@/lib/seo/activation-status'
+import { ActivationWizard } from './ActivationWizard'
 import {
   Repeat, AlertTriangle, Link as LinkIcon, ListChecks,
   Settings2, FileText, Activity, ArrowRight, Sparkles, Users,
@@ -57,11 +59,12 @@ export default async function SeoHomePage() {
   const brands  = getSeoAllowedBrands(ctx)
   const allView = canSeeAllBrands(ctx)
 
-  const [healthData, dailyMovers] = await Promise.all([
+  const [healthData, dailyMovers, activation] = await Promise.all([
     Promise.all(brands.map(m => computeBrandHealth(sb, m.slug))),
     isGscConfigured()
       ? buildDailyMovers(sb, allView ? null : (brands[0]?.slug ?? null))
       : Promise.resolve(null),
+    getActivationStatus(sb),
   ])
 
   return (
@@ -90,6 +93,9 @@ export default async function SeoHomePage() {
 
       <div className="flex-1 overflow-y-auto bg-portal-bg">
         <div className="px-6 py-6 space-y-6">
+
+          {/* ── Activation wizard (only renders when blockers exist) ── */}
+          <ActivationWizard report={activation} />
 
           {/* ── Brand health grid ─────────────────────────────── */}
           <section>

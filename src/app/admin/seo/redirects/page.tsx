@@ -7,7 +7,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { RedirectsClient } from './RedirectsClient'
 import { ArrowLeft, Repeat } from 'lucide-react'
@@ -29,7 +29,7 @@ interface RedirectRow {
 }
 
 export default async function RedirectsAdminPage() {
-  await requireAdmin()
+  await requireSettingsAccess()
   const sb = createAdminClient()
 
   const { data } = await sb

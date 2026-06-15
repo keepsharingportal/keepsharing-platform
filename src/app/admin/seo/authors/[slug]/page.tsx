@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { authorNameToSlug, slugToAuthorTitleCase } from '@/lib/seo/author-slug'
 import { loadAuthorProfile } from '@/lib/seo/authors'
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 interface Props { params: Promise<{ slug: string }> }
 
 export default async function EditAuthorPage({ params }: Props) {
-  await requireAdmin()
+  await requireSettingsAccess()
   const { slug } = await params
   const sb = createAdminClient()
 

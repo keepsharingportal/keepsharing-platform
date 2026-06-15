@@ -3,7 +3,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSeoAllowedBrands } from '@/lib/seo/admin-scope'
 import { NotFoundActionsClient } from './NotFoundActionsClient'
@@ -23,7 +23,7 @@ interface NotFoundRow {
 }
 
 export default async function NotFoundLogPage() {
-  const ctx = await requireAdmin()
+  const ctx = await requireSettingsAccess()
   const sb = createAdminClient()
   const allowedSlugs = getSeoAllowedBrands(ctx).map(m => m.slug)
 

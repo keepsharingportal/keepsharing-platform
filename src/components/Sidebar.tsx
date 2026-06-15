@@ -27,6 +27,9 @@ type ChildItem = {
   external?:   boolean
   /** Visible only to super admins (e.g. internal backlogs / dev tooling). */
   superOnly?:  boolean
+  /** Visible only to super/admin (hidden from publisher/editor). Used for
+   *  cross-brand or infrastructure controls a publisher shouldn't touch. */
+  settingsOnly?: boolean
   /**
    * Key matched against the counts payload so we render a red badge.
    * Circulation badges come from /api/admin/circulation/counts;
@@ -295,16 +298,16 @@ const NAV: NavItem[] = [
     icon: TrendingUp,
     children: [
       { name: 'Brand Profile',          href: '/admin/seo/brand-profile'  },
-      { name: 'Author Profiles',        href: '/admin/seo/authors'        },
+      { name: 'Author Profiles',        href: '/admin/seo/authors',        settingsOnly: true },
       { name: 'Alt-text Audit',         href: '/admin/seo/alt-text'       },
       { name: 'Query Briefs',           href: '/admin/seo/query-briefs'   },
       { name: 'CTR Optimizer',          href: '/admin/seo/ctr-optimizer'  },
       { name: 'Weekly Audit Reports',   href: '/admin/seo/audit-reports'  },
-      { name: 'Redirects',              href: '/admin/seo/redirects'      },
-      { name: '404 Monitor',            href: '/admin/seo/404-log'        },
-      { name: 'Internal Link Queue',    href: '/admin/seo/internal-links' },
-      { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk'           },
-      { name: 'Route Coverage Audit',   href: '/admin/seo-health'         },
+      { name: 'Redirects',              href: '/admin/seo/redirects',      settingsOnly: true },
+      { name: '404 Monitor',            href: '/admin/seo/404-log',        settingsOnly: true },
+      { name: 'Internal Link Queue',    href: '/admin/seo/internal-links', settingsOnly: true },
+      { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk',           settingsOnly: true },
+      { name: 'Route Coverage Audit',   href: '/admin/seo-health',         settingsOnly: true },
     ],
   },
 
@@ -567,8 +570,11 @@ export function Sidebar() {
                   // lit up at once on /admin/events).
                   // superOnly children are filtered here so non-super
                   // admins don't even see them in expanded state.
+                  // settingsOnly hides cross-brand / infrastructure
+                  // controls from publisher and editor.
                   const visibleChildren = item.children.filter(c =>
                     !(c.superOnly && role !== 'super')
+                    && !(c.settingsOnly && !isSettingsTier)
                   )
                   const parsed = visibleChildren.map(c => {
                     const u = new URL(c.href, 'http://x')
