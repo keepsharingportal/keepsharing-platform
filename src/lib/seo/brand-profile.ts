@@ -56,6 +56,32 @@ export interface LinkableAsset {
 
 // ── Full profile shape ──────────────────────────────────────────────────────
 
+export interface EditorialPrefs {
+  formatPreference?:  'long-form' | 'list' | 'mixed'
+  voicePreference?:   'peer' | 'expert' | 'institutional'
+  publishingCadence?: string
+  evergreenVsTimely?: string
+}
+
+export interface CompetitorEntry {
+  name:        string
+  url?:        string
+  strengths?:  string
+  weaknesses?: string
+}
+
+export interface CompetitorIntel {
+  competitors?: CompetitorEntry[]
+  gapsWeOwn?:   string[]
+}
+
+export interface LastGenerationMeta {
+  family_template_version?: number
+  market_intel_version?:    number
+  generated_at?:            string
+  model?:                   string
+}
+
 export interface BrandSeoProfile {
   brandSlug:          string
   pillars:            Pillar[]
@@ -66,6 +92,9 @@ export interface BrandSeoProfile {
   negativeSpace:      string[]
   uniqueAngles:       string[]
   voiceNotes:         string
+  editorialPrefs:     EditorialPrefs
+  competitorIntel:    CompetitorIntel
+  lastGenerationMeta: LastGenerationMeta
   generatedByAiAt:    string | null
   lastEditedAt:       string
   lastEditedBy:       string | null
@@ -81,6 +110,9 @@ const EMPTY_PROFILE = (brandSlug: string): BrandSeoProfile => ({
   negativeSpace:     [],
   uniqueAngles:      [],
   voiceNotes:        '',
+  editorialPrefs:    {},
+  competitorIntel:   {},
+  lastGenerationMeta:{},
   generatedByAiAt:   null,
   lastEditedAt:      new Date().toISOString(),
   lastEditedBy:      null,
@@ -109,6 +141,9 @@ export async function loadBrandProfile(
     negativeSpace:     (data.negative_space as string[] | null) ?? [],
     uniqueAngles:      (data.unique_angles as string[] | null) ?? [],
     voiceNotes:        (data.voice_notes as string | null) ?? '',
+    editorialPrefs:    (data.editorial_prefs       as EditorialPrefs     | null) ?? {},
+    competitorIntel:   (data.competitor_intel      as CompetitorIntel    | null) ?? {},
+    lastGenerationMeta:(data.last_generation_meta  as LastGenerationMeta | null) ?? {},
     generatedByAiAt:   data.generated_by_ai_at as string | null,
     lastEditedAt:      (data.last_edited_at as string | null) ?? new Date().toISOString(),
     lastEditedBy:      data.last_edited_by as string | null,
@@ -127,6 +162,9 @@ export interface SaveBrandProfileInput {
   negativeSpace?:     string[]
   uniqueAngles?:      string[]
   voiceNotes?:        string
+  editorialPrefs?:    EditorialPrefs
+  competitorIntel?:   CompetitorIntel
+  lastGenerationMeta?: LastGenerationMeta
   generatedByAi?:     boolean
   editedBy?:          string | null
 }
@@ -141,15 +179,18 @@ export async function saveBrandProfile(
     last_edited_at: now,
     last_edited_by: input.editedBy ?? null,
   }
-  if (input.pillars           !== undefined) update.pillars             = input.pillars
-  if (input.subAreas          !== undefined) update.sub_areas           = input.subAreas
-  if (input.personas          !== undefined) update.personas            = input.personas
-  if (input.editorialCalendar !== undefined) update.editorial_calendar  = input.editorialCalendar
-  if (input.linkableAssets    !== undefined) update.linkable_assets     = input.linkableAssets
-  if (input.negativeSpace     !== undefined) update.negative_space      = input.negativeSpace
-  if (input.uniqueAngles      !== undefined) update.unique_angles       = input.uniqueAngles
-  if (input.voiceNotes        !== undefined) update.voice_notes         = input.voiceNotes
-  if (input.generatedByAi)                   update.generated_by_ai_at  = now
+  if (input.pillars             !== undefined) update.pillars               = input.pillars
+  if (input.subAreas            !== undefined) update.sub_areas             = input.subAreas
+  if (input.personas            !== undefined) update.personas              = input.personas
+  if (input.editorialCalendar   !== undefined) update.editorial_calendar    = input.editorialCalendar
+  if (input.linkableAssets      !== undefined) update.linkable_assets       = input.linkableAssets
+  if (input.negativeSpace       !== undefined) update.negative_space        = input.negativeSpace
+  if (input.uniqueAngles        !== undefined) update.unique_angles         = input.uniqueAngles
+  if (input.voiceNotes          !== undefined) update.voice_notes           = input.voiceNotes
+  if (input.editorialPrefs      !== undefined) update.editorial_prefs       = input.editorialPrefs
+  if (input.competitorIntel     !== undefined) update.competitor_intel      = input.competitorIntel
+  if (input.lastGenerationMeta  !== undefined) update.last_generation_meta  = input.lastGenerationMeta
+  if (input.generatedByAi)                     update.generated_by_ai_at    = now
 
   await sb.from('brand_seo_profiles').upsert(update, { onConflict: 'brand_slug' })
 }

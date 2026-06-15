@@ -6,9 +6,10 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Save, Loader2, Plus, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Save, Loader2, Plus, Trash2, AlertTriangle, CheckCircle2, RotateCw } from 'lucide-react'
 import type {
   BrandSeoProfile, Pillar, SubArea, Persona, CalendarMonth, LinkableAsset,
+  EditorialPrefs, CompetitorIntel, CompetitorEntry,
 } from '@/lib/seo/brand-profile'
 
 interface BrandOpt { slug: string; name: string; short: string }
@@ -19,7 +20,7 @@ interface Props {
   initial:   BrandSeoProfile
 }
 
-const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative'] as const
+const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative', 'Prefs', 'Competitors'] as const
 type Tab = typeof TABS[number]
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -39,9 +40,12 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
   const [negativeSpace,     setNegativeSpace]     = useState<string[]>(initial.negativeSpace)
   const [uniqueAngles,      setUniqueAngles]      = useState<string[]>(initial.uniqueAngles)
   const [voiceNotes,        setVoiceNotes]        = useState<string>(initial.voiceNotes)
+  const [editorialPrefs,    setEditorialPrefs]    = useState<EditorialPrefs>(initial.editorialPrefs ?? {})
+  const [competitorIntel,   setCompetitorIntel]   = useState<CompetitorIntel>(initial.competitorIntel ?? {})
 
   const [saving,  setSaving]  = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [regenInfo, setRegenInfo] = useState<{ applied: string[]; preserved: string[] } | null>(null)
   const [error,   setError]   = useState<string | null>(null)
   const [saved,   setSaved]   = useState(false)
 
@@ -55,6 +59,7 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
           brandSlug,
           pillars, subAreas, personas, editorialCalendar,
           linkableAssets, negativeSpace, uniqueAngles, voiceNotes,
+          editorialPrefs, competitorIntel,
         }),
       })
       const j = await res.json()
@@ -63,14 +68,16 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
     } finally { setSaving(false) }
   }
 
+  /** Preview-only seed — overwrites the LOCAL editor state but doesn't
+   *  save. Used for the initial "Generate first draft" flow. */
   async function seedDraft() {
-    if (!confirm('Run Claude to generate a first-draft profile? This OVERWRITES any current values in this editor (but does not save until you click Save).')) return
-    setSeeding(true); setError(null)
+    if (!confirm('Run Claude to generate a first-draft profile? This overwrites any unsaved changes in this editor (does not save until you click Save).')) return
+    setSeeding(true); setError(null); setRegenInfo(null)
     try {
       const res = await fetch('/api/admin/seo/brand-profile/seed', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ brandSlug }),
+        body:    JSON.stringify({ brandSlug, save: false }),
       })
       const j = await res.json()
       if (!res.ok) { setError(j.error ?? 'seed failed'); return }
@@ -82,6 +89,28 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
       setNegativeSpace(j.negativeSpace ?? [])
       setUniqueAngles(j.uniqueAngles ?? [])
       setVoiceNotes(j.voiceNotes ?? '')
+      setEditorialPrefs(j.editorialPrefs ?? {})
+      setCompetitorIntel(j.competitorIntel ?? {})
+    } finally { setSeeding(false) }
+  }
+
+  /** Merge-mode regenerate — saves directly, but only fills empty fields.
+   *  Anything the editor has tuned stays untouched. Refreshes the page
+   *  after to load the merged result. */
+  async function regenerateMerge() {
+    if (!confirm('Regenerate with Claude in MERGE mode? Empty fields will be filled in; anything you\'ve already tuned will be preserved.')) return
+    setSeeding(true); setError(null); setRegenInfo(null)
+    try {
+      const res = await fetch('/api/admin/seo/brand-profile/seed', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ brandSlug, save: true, mode: 'merge' }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setError(j.error ?? 'regenerate failed'); return }
+      setRegenInfo({ applied: j.applied ?? [], preserved: j.preserved ?? [] })
+      // Force refresh from server so we load the merged state.
+      router.refresh()
     } finally { setSeeding(false) }
   }
 
@@ -99,7 +128,10 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
           {allBrands.map(b => <option key={b.slug} value={b.slug}>{b.name} ({b.short})</option>)}
         </select>
         <button type="button" onClick={seedDraft} disabled={seeding} style={secondaryBtn(seeding)}>
-          {seeding ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Generate first draft (Claude)
+          {seeding ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Generate first draft
+        </button>
+        <button type="button" onClick={regenerateMerge} disabled={seeding} style={secondaryBtn(seeding)} title="Fill empty fields, preserve your edits">
+          {seeding ? <Loader2 size={13} className="animate-spin" /> : <RotateCw size={13} />} Regenerate (merge)
         </button>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           {saved && <span style={{ color: 'var(--color-portal-green)', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> Saved</span>}
@@ -112,6 +144,20 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
       {error && (
         <div className="alert alert-error" style={{ fontSize: 12 }}>
           <AlertTriangle size={12} style={{ display: 'inline', verticalAlign: -1, marginRight: 4 }} /> {error}
+        </div>
+      )}
+
+      {regenInfo && (
+        <div className="bg-white border border-portal-border rounded-lg" style={{ padding: 12, borderLeft: '3px solid var(--color-portal-green)' }}>
+          <strong className="text-portal-text" style={{ fontSize: 13 }}>
+            <CheckCircle2 size={13} className="inline -translate-y-px mr-1 text-portal-green" />
+            Merge regenerate complete
+          </strong>
+          <div className="text-portal-sub" style={{ fontSize: 11, marginTop: 4, lineHeight: 1.5 }}>
+            <strong>Filled in:</strong> {regenInfo.applied.length === 0 ? 'nothing — your profile is fully tuned' : regenInfo.applied.join(', ')}
+            <br />
+            <strong>Preserved your tunings:</strong> {regenInfo.preserved.length === 0 ? 'nothing was preserved (all fields were empty)' : regenInfo.preserved.join(', ')}
+          </div>
         </div>
       )}
 
@@ -138,8 +184,10 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
         {tab === 'Personas'  && <PersonasTab  personas={personas} setPersonas={setPersonas} />}
         {tab === 'Calendar'  && <CalendarTab  editorialCalendar={editorialCalendar} setEditorialCalendar={setEditorialCalendar} />}
         {tab === 'Assets'    && <AssetsTab    linkableAssets={linkableAssets} setLinkableAssets={setLinkableAssets} />}
-        {tab === 'Voice'     && <VoiceTab     voiceNotes={voiceNotes} setVoiceNotes={setVoiceNotes} uniqueAngles={uniqueAngles} setUniqueAngles={setUniqueAngles} />}
-        {tab === 'Negative'  && <NegativeTab  negativeSpace={negativeSpace} setNegativeSpace={setNegativeSpace} />}
+        {tab === 'Voice'      && <VoiceTab     voiceNotes={voiceNotes} setVoiceNotes={setVoiceNotes} uniqueAngles={uniqueAngles} setUniqueAngles={setUniqueAngles} />}
+        {tab === 'Negative'   && <NegativeTab  negativeSpace={negativeSpace} setNegativeSpace={setNegativeSpace} />}
+        {tab === 'Prefs'      && <PrefsTab     editorialPrefs={editorialPrefs} setEditorialPrefs={setEditorialPrefs} />}
+        {tab === 'Competitors'&& <CompetitorsTab competitorIntel={competitorIntel} setCompetitorIntel={setCompetitorIntel} />}
       </div>
     </div>
   )
@@ -263,6 +311,79 @@ function VoiceTab({ voiceNotes, setVoiceNotes, uniqueAngles, setUniqueAngles }: 
         <textarea value={uniqueAngles.join('\n')} onChange={e => setUniqueAngles(e.target.value.split('\n').map(s => s.trim()).filter(Boolean))} rows={5}
           style={{ ...input, resize: 'vertical', minHeight: 100 }}
           placeholder="What makes this publication different from local competitors. One per line." />
+      </Field>
+    </section>
+  )
+}
+
+function PrefsTab({ editorialPrefs, setEditorialPrefs }: { editorialPrefs: EditorialPrefs; setEditorialPrefs: (p: EditorialPrefs) => void }) {
+  return (
+    <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <P>How this brand prefers to publish. These choices shape every AI recommendation — format, voice, cadence, evergreen vs timely balance.</P>
+      <Row>
+        <Field label="Format preference">
+          <select value={editorialPrefs.formatPreference ?? ''} onChange={e => setEditorialPrefs({ ...editorialPrefs, formatPreference: (e.target.value || undefined) as EditorialPrefs['formatPreference'] })} style={input}>
+            <option value="">— Not specified —</option>
+            <option value="long-form">Long-form (1500+ word in-depth)</option>
+            <option value="list">Lists / how-tos (scan-friendly)</option>
+            <option value="mixed">Mixed (both work)</option>
+          </select>
+        </Field>
+        <Field label="Voice preference">
+          <select value={editorialPrefs.voicePreference ?? ''} onChange={e => setEditorialPrefs({ ...editorialPrefs, voicePreference: (e.target.value || undefined) as EditorialPrefs['voicePreference'] })} style={input}>
+            <option value="">— Not specified —</option>
+            <option value="peer">Peer (texting a friend)</option>
+            <option value="expert">Expert (named-source authority)</option>
+            <option value="institutional">Institutional (formal magazine voice)</option>
+          </select>
+        </Field>
+      </Row>
+      <Field label="Publishing cadence">
+        <input type="text" value={editorialPrefs.publishingCadence ?? ''} onChange={e => setEditorialPrefs({ ...editorialPrefs, publishingCadence: e.target.value })} style={input}
+          placeholder="e.g. 2-4 articles per week with seasonal spikes around school transitions" />
+      </Field>
+      <Field label="Evergreen vs timely balance">
+        <input type="text" value={editorialPrefs.evergreenVsTimely ?? ''} onChange={e => setEditorialPrefs({ ...editorialPrefs, evergreenVsTimely: e.target.value })} style={input}
+          placeholder="e.g. 60% evergreen / 40% timely; lean evergreen on schools, timely on events" />
+      </Field>
+    </section>
+  )
+}
+
+function CompetitorsTab({ competitorIntel, setCompetitorIntel }: { competitorIntel: CompetitorIntel; setCompetitorIntel: (c: CompetitorIntel) => void }) {
+  const competitors = competitorIntel.competitors ?? []
+  const gaps        = competitorIntel.gapsWeOwn   ?? []
+  function setCompetitors(next: CompetitorEntry[]) {
+    setCompetitorIntel({ ...competitorIntel, competitors: next })
+  }
+  function setGaps(next: string[]) {
+    setCompetitorIntel({ ...competitorIntel, gapsWeOwn: next })
+  }
+  return (
+    <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <P>Who else covers this market — and what they suck at. This is YOUR intel that Claude can&apos;t guess from public info. Gaps you list become directly actionable in unique angles + editorial planning.</P>
+
+      <div>
+        <Lab>Competitors</Lab>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {competitors.map((c, i) => (
+            <Card key={i} onDelete={() => setCompetitors(competitors.filter((_, j) => j !== i))}>
+              <Row>
+                <Field label="Name"><input type="text" value={c.name} onChange={e => setCompetitors(competitors.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} style={input} placeholder="e.g. River Region Living" /></Field>
+                <Field label="URL"><input type="text" value={c.url ?? ''} onChange={e => setCompetitors(competitors.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} style={input} placeholder="https://…" /></Field>
+              </Row>
+              <Field label="What they do well"><input type="text" value={c.strengths ?? ''} onChange={e => setCompetitors(competitors.map((x, j) => j === i ? { ...x, strengths: e.target.value } : x))} style={input} placeholder="e.g. strong restaurant coverage + social engagement" /></Field>
+              <Field label="What they suck at / where they're weak"><input type="text" value={c.weaknesses ?? ''} onChange={e => setCompetitors(competitors.map((x, j) => j === i ? { ...x, weaknesses: e.target.value } : x))} style={input} placeholder="e.g. no school content, generic family advice" /></Field>
+            </Card>
+          ))}
+          <AddBtn onClick={() => setCompetitors([...competitors, { name: '' }])}>Add competitor</AddBtn>
+        </div>
+      </div>
+
+      <Field label="Gaps we own (one per line)">
+        <textarea value={gaps.join('\n')} onChange={e => setGaps(e.target.value.split('\n').map(s => s.trim()).filter(Boolean))} rows={6}
+          style={{ ...input, resize: 'vertical', minHeight: 120 }}
+          placeholder={'School-quality content for Pike Road / Prattville\nNamed pediatrician reviews\nDeep relocation guides for military families\nLocal mom interview series'} />
       </Field>
     </section>
   )

@@ -20,16 +20,18 @@ export async function POST(req: NextRequest) {
   const sb = createAdminClient()
   try {
     await saveBrandProfile(sb, {
-      brandSlug:         body.brandSlug,
-      pillars:           body.pillars            as never,
-      subAreas:          body.subAreas           as never,
-      personas:          body.personas           as never,
-      editorialCalendar: body.editorialCalendar  as never,
-      linkableAssets:    body.linkableAssets     as never,
-      negativeSpace:     body.negativeSpace      as never,
-      uniqueAngles:      body.uniqueAngles       as never,
-      voiceNotes:        body.voiceNotes         as never,
-      editedBy:          adminCtx.userId ?? null,
+      brandSlug:           body.brandSlug,
+      pillars:             body.pillars             as never,
+      subAreas:            body.subAreas            as never,
+      personas:            body.personas            as never,
+      editorialCalendar:   body.editorialCalendar   as never,
+      linkableAssets:      body.linkableAssets      as never,
+      negativeSpace:       body.negativeSpace       as never,
+      uniqueAngles:        body.uniqueAngles        as never,
+      voiceNotes:          body.voiceNotes          as never,
+      editorialPrefs:      body.editorialPrefs      as never,
+      competitorIntel:     body.competitorIntel     as never,
+      editedBy:            adminCtx.userId ?? null,
     })
     return NextResponse.json({ ok: true })
   } catch (e) {
