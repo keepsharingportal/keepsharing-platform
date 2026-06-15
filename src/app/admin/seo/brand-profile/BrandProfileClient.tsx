@@ -68,29 +68,45 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
     } finally { setSaving(false) }
   }
 
+  /** Safely parse the response — when Vercel times out or returns an
+   *  HTML error page, .json() throws. Catch that + surface the raw
+   *  text so the user can see what happened. */
+  async function safeFetch(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const res = await fetch('/api/admin/seo/brand-profile/seed', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    })
+    const raw = await res.text()
+    let parsed: Record<string, unknown> | null = null
+    try { parsed = JSON.parse(raw) } catch { /* HTML error page */ }
+    if (!res.ok) {
+      const msg = (parsed?.error as string) ?? `HTTP ${res.status}: ${raw.slice(0, 300)}`
+      throw new Error(msg)
+    }
+    if (!parsed) throw new Error(`Server returned non-JSON: ${raw.slice(0, 300)}`)
+    return parsed
+  }
+
   /** Preview-only seed — overwrites the LOCAL editor state but doesn't
    *  save. Used for the initial "Generate first draft" flow. */
   async function seedDraft() {
     if (!confirm('Run Claude to generate a first-draft profile? This overwrites any unsaved changes in this editor (does not save until you click Save).')) return
     setSeeding(true); setError(null); setRegenInfo(null)
     try {
-      const res = await fetch('/api/admin/seo/brand-profile/seed', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ brandSlug, save: false }),
-      })
-      const j = await res.json()
-      if (!res.ok) { setError(j.error ?? 'seed failed'); return }
-      setPillars(j.pillars ?? [])
-      setSubAreas(j.subAreas ?? [])
-      setPersonas(j.personas ?? [])
-      setEditorialCalendar(j.editorialCalendar ?? {})
-      setLinkableAssets(j.linkableAssets ?? [])
-      setNegativeSpace(j.negativeSpace ?? [])
-      setUniqueAngles(j.uniqueAngles ?? [])
-      setVoiceNotes(j.voiceNotes ?? '')
-      setEditorialPrefs(j.editorialPrefs ?? {})
-      setCompetitorIntel(j.competitorIntel ?? {})
+      const j = await safeFetch({ brandSlug, save: false })
+      setPillars((j.pillars as Pillar[]) ?? [])
+      setSubAreas((j.subAreas as SubArea[]) ?? [])
+      setPersonas((j.personas as Persona[]) ?? [])
+      setEditorialCalendar((j.editorialCalendar as Record<string, CalendarMonth>) ?? {})
+      setLinkableAssets((j.linkableAssets as LinkableAsset[]) ?? [])
+      setNegativeSpace((j.negativeSpace as string[]) ?? [])
+      setUniqueAngles((j.uniqueAngles as string[]) ?? [])
+      setVoiceNotes((j.voiceNotes as string) ?? '')
+      setEditorialPrefs((j.editorialPrefs as EditorialPrefs) ?? {})
+      setCompetitorIntel((j.competitorIntel as CompetitorIntel) ?? {})
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
     } finally { setSeeding(false) }
   }
 
@@ -101,16 +117,11 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
     if (!confirm('Regenerate with Claude in MERGE mode? Empty fields will be filled in; anything you\'ve already tuned will be preserved.')) return
     setSeeding(true); setError(null); setRegenInfo(null)
     try {
-      const res = await fetch('/api/admin/seo/brand-profile/seed', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ brandSlug, save: true, mode: 'merge' }),
-      })
-      const j = await res.json()
-      if (!res.ok) { setError(j.error ?? 'regenerate failed'); return }
-      setRegenInfo({ applied: j.applied ?? [], preserved: j.preserved ?? [] })
-      // Force refresh from server so we load the merged state.
+      const j = await safeFetch({ brandSlug, save: true, mode: 'merge' })
+      setRegenInfo({ applied: (j.applied as string[]) ?? [], preserved: (j.preserved as string[]) ?? [] })
       router.refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
     } finally { setSeeding(false) }
   }
 

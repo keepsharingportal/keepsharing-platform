@@ -15,7 +15,11 @@ import { seedBrandProfile, seedAndMergeBrandProfile } from '@/lib/seo/seed-brand
 
 export const runtime     = 'nodejs'
 export const dynamic     = 'force-dynamic'
-export const maxDuration = 120
+// Max — Vercel Pro caps at 300s. The seed call needs as much as it can
+// get because Claude generates a large structured JSON output across
+// many fields. Hobby plan would still cap at 10s — see error in console
+// if 504s persist after this change.
+export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
   await requireAdmin()
