@@ -194,15 +194,17 @@ ${brandContextMd}
 Generate the first-draft strategic profile per the system prompt instructions.
 Emit raw JSON only.`
 
-  // 8000 tokens of output is enough for the full structured profile —
-  // 12000 was overkill and pushed completion time past Vercel's
-  // gateway window even on Pro.
+  // 16000 — the full structured profile (4-6 pillars + 5-7 sub-areas +
+  // 4-5 personas + 12-month calendar + assets + voice + competitors)
+  // can easily run 10-12k tokens of JSON. 8000 truncated mid-output;
+  // the 504 issue was solved by maxDuration on the route, not by
+  // shrinking output.
   const res = await runAI({
     caller:       'seed-brand-profile',
     taskKind:     'drafting',
     systemPrompt: SYSTEM_PROMPT,
     messages:     [{ role: 'user', content: userPrompt }],
-    maxTokens:    8000,
+    maxTokens:    16000,
   })
 
   const raw = res.text.trim()
