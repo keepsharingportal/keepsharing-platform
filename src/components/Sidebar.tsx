@@ -166,6 +166,8 @@ const NAV: NavItem[] = [
   { name: 'Editorial Pipeline', href: '/admin/editorial', icon: Heart },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
+  { name: 'Social Plan',       href: '/admin/social/plan',  icon: Share2 },
+  { name: 'Content Pool',      href: '/admin/social/pool',  icon: Sparkles },
   { name: 'Social Queue',      href: '/admin/social-queue', icon: Share2 },
   { name: 'Campaigns',         href: '/admin/campaigns',   icon: Sparkles },
 
