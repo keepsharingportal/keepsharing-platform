@@ -42,8 +42,12 @@
       "schedule": "0 2 * * 0"
     },
     {
-      "path": "/api/cron/social-dispatch",
-      "schedule": "*/15 * * * *"
+      "path": "/api/cron/social-strategist",
+      "schedule": "0 18 * * 0"
+    },
+    {
+      "path": "/api/cron/social-insights",
+      "schedule": "30 5 * * *"
     }
   ]
 }
