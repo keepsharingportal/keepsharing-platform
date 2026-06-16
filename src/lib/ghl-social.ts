@@ -8,7 +8,7 @@
  * instead of silently failing).
  *
  * GHL v2.1 (2021-07-28) endpoints:
- *   GET    /social-media-posting/oauth/{locationId}/accounts
+ *   GET    /social-media-posting/{locationId}/accounts
  *   POST   /social-media-posting/{locationId}/posts
  *   PUT    /social-media-posting/{locationId}/posts/{id}
  *   DELETE /social-media-posting/{locationId}/posts/{id}
@@ -89,7 +89,7 @@ export async function listSocialAccounts(brandSlug: string): Promise<{
   const loc = locId(brandSlug)
   if (!loc) return { ok: false, accounts: [], error: `No locationId for ${brandSlug}` }
   const r = await ghlReq(
-    `/social-media-posting/oauth/${loc}/accounts`,
+    `/social-media-posting/${loc}/accounts`,
     brandSlug,
     { method: 'GET' },
   )
