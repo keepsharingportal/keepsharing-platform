@@ -24,15 +24,30 @@ export const dynamic = 'force-dynamic'
 export default async function GhlCheckPage() {
   await requireSettingsAccess()
 
+  // Each brand check wrapped in try/catch — a single brand's API failure
+  // (timeout, malformed response, unexpected scope shape) must NOT take
+  // down the whole page. Without this, one bad brand throws and the
+  // editor sees a Vercel error reference instead of the diagnostic.
   const results = await Promise.all(MARKETS.map(async m => {
-    const scope    = await checkSocialPlannerScope(m.slug)
-    const accounts = scope.ok ? await listSocialAccounts(m.slug) : { ok: false, accounts: [], error: scope.error }
-    return {
-      brand:    m.slug,
-      label:    m.displayName,
-      scope,
-      accounts: accounts.ok ? accounts.accounts : [],
-      error:    accounts.ok ? undefined : accounts.error,
+    try {
+      const scope    = await checkSocialPlannerScope(m.slug)
+      const accounts = scope.ok ? await listSocialAccounts(m.slug) : { ok: false, accounts: [], error: scope.error }
+      return {
+        brand:    m.slug,
+        label:    m.displayName,
+        scope,
+        accounts: accounts.ok ? accounts.accounts : [],
+        error:    accounts.ok ? undefined : accounts.error,
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      return {
+        brand:    m.slug,
+        label:    m.displayName,
+        scope:    { ok: false, accountCount: 0, platforms: [] as string[], error: `Crash: ${msg}` },
+        accounts: [],
+        error:    msg,
+      }
     }
   }))
 

@@ -97,10 +97,17 @@ export async function listSocialAccounts(brandSlug: string): Promise<{
     const errMsg = (r.data as { message?: string })?.message ?? `HTTP ${r.status}`
     return { ok: false, accounts: [], error: errMsg }
   }
-  // GHL returns either { accounts: [...] } or { results: [...] } depending
-  // on version. Handle both defensively.
-  const payload = r.data as { accounts?: unknown[]; results?: unknown[] }
-  const raw     = payload.accounts ?? payload.results ?? []
+  // GHL returns one of several shapes depending on version:
+  //   { accounts: [...] }    | { results: [...] }
+  //   { data: [...] }        | [...] directly
+  // Be paranoid: walk known paths and only proceed if we land on an array.
+  const payload   = r.data as Record<string, unknown> | unknown[] | null
+  const candidate = Array.isArray(payload) ? payload
+                  : (payload as { accounts?: unknown[] })?.accounts
+                  ?? (payload as { results?:  unknown[] })?.results
+                  ?? (payload as { data?:     unknown[] })?.data
+                  ?? []
+  const raw = Array.isArray(candidate) ? candidate : []
   const accounts: SocialAccount[] = (raw as Array<Record<string, unknown>>).map(a => ({
     id:           String(a.id ?? a._id ?? ''),
     name:         String(a.name ?? a.displayName ?? a.platformAccountName ?? ''),
