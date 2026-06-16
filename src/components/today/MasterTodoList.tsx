@@ -37,6 +37,7 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'phase-2',     label: 'Phase 2 (Stripe)',  emoji: '💳', hint: 'Self-serve checkout. Replaces the email-fire in SlotInquiryModal.' },
   { key: 'games',       label: 'Brain games',       emoji: '🧠', hint: 'Cron health, auto-approve toggle, budget tuning.' },
   { key: 'family-hub',  label: 'Family Hub',        emoji: '🏠', hint: 'Aspirational membership concept — parked until specced.' },
+  { key: 'social',      label: 'Social manager',    emoji: '📣', hint: 'AI Social Media Manager (Sprint 10) follow-ups — image picker, IG insights, cross-brand learning.' },
   { key: 'ops',         label: 'Ops & migrations',  emoji: '🛠️', hint: 'Database, CI/CD, housekeeping.' },
   { key: 'general',     label: 'General',           emoji: '📝', hint: 'Anything that doesn\'t fit elsewhere.' },
 ]
