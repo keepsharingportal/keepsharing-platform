@@ -112,7 +112,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // yet if migration 157 hasn't run.
     const { data: priorData } = await supabase
       .from('guide_articles')
-      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at, queue_for_print, print_queued_at')
+      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at, queue_for_print, print_queued_at, social_hook, social_fb_caption, social_ig_caption')
       .eq('id', id)
       .maybeSingle()
     const prior = priorData as null | {
@@ -123,6 +123,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       newsletter_drafted_at: string | null;
       queue_for_print: boolean | null;
       print_queued_at: string | null;
+      social_hook: string | null;
+      social_fb_caption: string | null;
+      social_ig_caption: string | null;
     }
 
     const { error } = await supabase.from('guide_articles').update(update).eq('id', id)
@@ -218,6 +221,59 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           await queueArticleForPrint(id)
         } catch (e) {
           console.error('[print-queue] background job failed', e)
+        }
+      })()
+    }
+
+    // Auto-generate social copy on publish — if this PATCH transitions the
+    // article to published AND social_hook is still empty (post-update),
+    // fire the friend-voice caption generator so the editor sees populated
+    // social copy in the queue / under the article. The dispatch cron would
+    // generate on-the-fly anyway, but pre-populating means: (1) editors can
+    // review before queue dispatch, (2) saved per-platform captions persist
+    // for the article's whole life, not just the queue run.
+    const effectiveHook =
+      'social_hook' in update
+        ? (update.social_hook as string | null) ?? null
+        : prior?.social_hook ?? null
+    const hookIsEmpty = !effectiveHook || String(effectiveHook).trim() === ''
+    if (!wasPublished && nowPublished && hookIsEmpty) {
+      void (async () => {
+        try {
+          const sb2 = supabaseAdmin()
+          const { loadArticlePayload } = await import('@/lib/social/source-adapters')
+          const { generateCaptionsForContent } = await import('@/lib/social/caption-generator')
+          const payload = await loadArticlePayload(sb2, id)
+          if (!payload) return
+          const captions = await generateCaptionsForContent(
+            sb2,
+            payload.brandSlug ?? 'rrp',
+            {
+              title:       payload.title,
+              excerpt:     payload.excerpt,
+              link:        payload.link,
+              contentType: 'article',
+              socialHook:  payload.socialHook,
+              tone:        null,
+              authorName:  payload.authorName,
+              columnLabel: payload.columnLabel,
+            },
+            ['facebook', 'instagram'],
+          )
+          const fb = captions.find(c => c.platform === 'facebook')
+          const ig = captions.find(c => c.platform === 'instagram')
+          const hook = (fb?.caption ?? ig?.caption ?? '').split(/[.!?]\s/)[0]?.trim().slice(0, 240) ?? ''
+          const igCaption = ig
+            ? `${ig.caption}${ig.hashtags && ig.hashtags.length ? '\n\n' + ig.hashtags.join(' ') : ''}`
+            : ''
+          await sb2.from('guide_articles').update({
+            social_hook:         hook || null,
+            social_fb_caption:   fb?.caption ?? null,
+            social_ig_caption:   igCaption || null,
+            social_ai_seeded_at: new Date().toISOString(),
+          }).eq('id', id)
+        } catch (e) {
+          console.error('[auto-social] generate-on-publish failed', e)
         }
       })()
     }

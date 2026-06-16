@@ -12,7 +12,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireSettingsAccess } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ArrowLeft, Calendar as CalendarIcon, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Calendar as CalendarIcon, AlertTriangle, Sparkles } from 'lucide-react'
 import { SocialQueueClient } from './SocialQueueClient'
 
 export const metadata: Metadata = { title: 'Social queue — Admin' }
@@ -87,6 +87,12 @@ export default async function SocialQueuePage({ searchParams }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/admin/social-queue/bulk-seeder"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90"
+          >
+            <Sparkles size={12} /> Bulk social seeder
+          </Link>
           <Link
             href="/admin/social-queue/calendar"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg"
