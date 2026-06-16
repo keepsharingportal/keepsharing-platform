@@ -43,7 +43,12 @@ export default async function BrandProfilePage({ searchParams }: Props) {
 
       <div className="flex-1 overflow-y-auto bg-portal-bg">
         <div className="px-6 py-6">
+          {/* key={brandSlug} forces a full remount of the client when the
+              brand changes via the URL. Without it, the useState fields
+              hold the previous brand's values and the editor sees stale
+              data after switching brands. */}
           <BrandProfileClient
+            key={brandSlug}
             brandSlug={brandSlug}
             allBrands={allowed.map(m => ({ slug: m.slug, name: m.displayName, short: m.short ?? m.slug.toUpperCase() }))}
             initial={profile}

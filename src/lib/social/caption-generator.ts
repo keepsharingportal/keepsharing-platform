@@ -79,7 +79,11 @@ export async function generateCaptionsForContent(
     ? []  // voice profile already contains the gold-standard examples
     : pickRandomExamples(profile.socialCaptionExamples ?? [], 3)
 
-  const tone = input.tone ?? pickRotatingTone(input.recycleIndex ?? 0)
+  // When no tone is pinned, let Claude DETECT the best tone from the
+  // article rather than rotating blindly. The detection happens inside
+  // the same Claude call below — we pass "AUTO_DETECT" through and the
+  // system prompt instructs Claude to pick. Saves a round trip.
+  const tone = input.tone ?? null
 
   const constraintTable = platforms.map(p => {
     switch (p) {
@@ -143,10 +147,26 @@ ABSOLUTE RULES:
   7. Length limits are HARD — Facebook 40-60 words, Instagram 80-120 words. Going over kills engagement.
   8. Emojis: 1-3 per post, placed where they add meaning, never decoration. Skip them entirely if they'd feel forced.`
 
+  // Tone guidance: when pinned, we tell Claude exactly which tone to
+  // use. When null, we describe all 6 tones and tell Claude to pick
+  // the one that genuinely fits the article — celebratory for a win
+  // story, tender for a grandparent piece, practical for a how-to,
+  // etc. No blind rotation.
+  const toneBlock = tone !== null
+    ? `THIS POST'S TONE: ${tone}
+${TONE_DESCRIPTIONS[tone]}`
+    : `TONE DETECTION:
+Read the article and pick the ONE tone below that genuinely fits the piece.
+Don't rotate or default — pick what truly matches.
+
+Available tones:
+${Object.entries(TONE_DESCRIPTIONS).map(([k, v]) => `  - ${k}: ${v}`).join('\n')}
+
+Use the chosen tone to shape the captions. Don't announce it; just write in that voice.`
+
   const SYSTEM_PROMPT = `${voiceBlock}
 
-THIS POST'S TONE: ${tone}
-${TONE_DESCRIPTIONS[tone]}
+${toneBlock}
 
 ${attributionGuidance}
 

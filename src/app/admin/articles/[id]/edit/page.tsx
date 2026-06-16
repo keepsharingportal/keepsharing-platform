@@ -1345,7 +1345,7 @@ function MenuItem({
 // post in the friend voice — completely separate from SEO concerns.
 
 const SOCIAL_TONES = [
-  { value: '',            label: 'AI rotates (default)' },
+  { value: '',            label: 'AI detects best tone (default)' },
   { value: 'supportive',  label: 'Supportive — coach-friend' },
   { value: 'celebratory', label: 'Celebratory — share the win' },
   { value: 'inspiring',   label: 'Inspiring — hopeful, lift them up' },
