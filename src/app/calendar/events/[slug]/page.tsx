@@ -92,7 +92,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       data.title,
-    description: data.description?.slice(0, 200) ?? `Family event in the River Region — ${data.title}.`,
+    description: (data.description?.trim() ? data.description.slice(0, 200) : null) || `Family event in the River Region — ${data.title}.`,
     path:        `/calendar/events/${slug}`,
     image:       data.hero_image_url,
     type:        'article',
@@ -199,7 +199,7 @@ export default async function EventDetailPage({ params }: Props) {
     : undefined
   const eventLd = eventJsonLd({
     name:            ev.title,
-    description:     ev.description ?? `Family event in the River Region — ${ev.title}.`,
+    description:     (ev.description?.trim() || null) || `Family event in the River Region — ${ev.title}.`,
     url:             `${_seoCtx.publicOrigin}/calendar/events/${slug}`,
     startDate:       startIso,
     endDate:         endIso,

@@ -205,10 +205,13 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const focusKw     = (data.article.seo_focus_keyword as string | null)?.trim()
   const secondaryKw = (data.article.seo_secondary_keywords as string[] | null) ?? []
 
+  // Use || (not ??) so empty-string DB values fall through to the next
+  // option. A row with seo_description='' was producing an empty FB
+  // OpenGraph description (link previews showed only the title).
   const description = seoDesc
-                   ?? (data.article.excerpt as string | null)
-                   ?? (data.article.dek as string | null)
-                   ?? `Read ${data.article.title} on River Region Parents.`
+                   || (data.article.excerpt as string | null)?.trim()
+                   || (data.article.dek     as string | null)?.trim()
+                   || `Read ${data.article.title} on River Region Parents.`
 
   const brandLabel = data.column?.label ?? undefined
   const keywordSet = new Set<string>(
@@ -221,7 +224,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   )
 
   const md = await buildPageMetadata({
-    title:         seoTitle ?? (data.article.title as string),
+    title:         seoTitle || (data.article.title as string),
     description,
     path:          canonical ?? `/columns/${column}/${slug}`,
     image:         heroImage,

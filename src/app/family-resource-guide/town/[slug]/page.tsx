@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       `${data.name} — Family Living Guide`,
-    description: data.vibe_one_line ?? `Moving to ${data.name}? Schools, neighborhoods, things to do, and family resources in the River Region.`,
+    description: (data.vibe_one_line?.trim() || null) || `Moving to ${data.name}? Schools, neighborhoods, things to do, and family resources in the River Region.`,
     path:        `/family-resource-guide/town/${slug}`,
     image:       (data.hero_image_url as string | null) ?? null,
     type:        'website',

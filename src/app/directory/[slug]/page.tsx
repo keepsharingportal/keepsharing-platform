@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!row) return { title: `Listing — ${ctx.market.displayName}` }
   return {
     title:       `${row.name} — ${ctx.market.displayName}`,
-    description: row.summary ?? `${row.name} in the ${ctx.market.regionLabel} area, curated by ${ctx.market.displayName}.`,
+    description: (row.summary?.trim() || null) || `${row.name} in the ${ctx.market.regionLabel} area, curated by ${ctx.market.displayName}.`,
   }
 }
 
