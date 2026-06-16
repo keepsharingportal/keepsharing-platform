@@ -17,13 +17,15 @@ interface BatchResult {
   }>
 }
 
-export function BulkSeederClient({ brandSlug, initialQueueSize }: { brandSlug: string | null; initialQueueSize: number }) {
+export function BulkSeederClient({ brandSlug, initialQueueSize, initialReseedSize }: { brandSlug: string | null; initialQueueSize: number; initialReseedSize: number }) {
   const router = useRouter()
-  const [queueSize, setQueueSize] = useState(initialQueueSize)
-  const [batches,   setBatches]   = useState<BatchResult[]>([])
-  const [busy,      setBusy]      = useState(false)
-  const [error,     setError]     = useState<string | null>(null)
-  const [auto,      setAuto]      = useState(false)
+  const [queueSize,    setQueueSize]    = useState(initialQueueSize)
+  const [reseedSize,   setReseedSize]   = useState(initialReseedSize)
+  const [batches,      setBatches]      = useState<BatchResult[]>([])
+  const [busy,         setBusy]         = useState(false)
+  const [error,        setError]        = useState<string | null>(null)
+  const [auto,         setAuto]         = useState(false)
+  const [mode,         setMode]         = useState<'missing' | 'reseed-ai'>('missing')
 
   async function runBatch() {
     setBusy(true); setError(null)
@@ -31,15 +33,18 @@ export function BulkSeederClient({ brandSlug, initialQueueSize }: { brandSlug: s
       const res = await fetch('/api/admin/seo/bulk-seeder', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ brand_slug: brandSlug, batch_size: 5 }),
+        body:    JSON.stringify({ brand_slug: brandSlug, batch_size: 5, mode }),
       })
       const j = await res.json()
       if (!res.ok) { setError(j?.error ?? 'batch failed'); return }
       setBatches(b => [j as BatchResult, ...b])
-      setQueueSize(Math.max(0, queueSize - (j.saved ?? 0)))
+      const saved = j.saved ?? 0
+      if (mode === 'missing') setQueueSize(Math.max(0, queueSize - saved))
+      else                    setReseedSize(Math.max(0, reseedSize - saved))
       router.refresh()
       // Auto-continue if enabled and queue not empty.
-      if (auto && queueSize - (j.saved ?? 0) > 0 && (j.saved ?? 0) > 0) {
+      const remaining = mode === 'missing' ? queueSize - saved : reseedSize - saved
+      if (auto && remaining > 0 && saved > 0) {
         setTimeout(runBatch, 500)
       }
     } catch (e) {
@@ -47,27 +52,44 @@ export function BulkSeederClient({ brandSlug, initialQueueSize }: { brandSlug: s
     } finally { setBusy(false) }
   }
 
+  const activeSize = mode === 'missing' ? queueSize : reseedSize
+
   return (
     <div className="bg-white border border-portal-border rounded-lg p-4 space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-[14px] font-bold text-portal-text">Run seeder</h2>
           <p className="text-[12px] text-portal-sub mt-0.5">Processes 5 articles per batch. ~30-60s each.</p>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={mode} onChange={e => setMode(e.target.value as 'missing' | 'reseed-ai')}
+            className="px-2 py-1.5 border border-portal-border-2 rounded text-[12px] font-semibold text-portal-text bg-white outline-none"
+          >
+            <option value="missing">Missing — never seeded ({queueSize})</option>
+            <option value="reseed-ai">Reseed AI — re-run pure-SEO prompt ({reseedSize})</option>
+          </select>
           <label className="inline-flex items-center gap-1.5 text-[12px] text-portal-sub cursor-pointer">
             <input type="checkbox" checked={auto} onChange={e => setAuto(e.target.checked)} />
-            Auto-continue until empty
+            Auto-continue
           </label>
           <button
-            type="button" onClick={runBatch} disabled={busy || queueSize === 0}
+            type="button" onClick={runBatch} disabled={busy || activeSize === 0}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-portal-navy rounded-lg hover:opacity-90 disabled:opacity-50"
           >
             {busy ? <RotateCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
-            {busy ? 'Seeding…' : queueSize === 0 ? 'Queue empty' : `Run next batch (${Math.min(5, queueSize)} of ${queueSize})`}
+            {busy ? 'Seeding…' : activeSize === 0 ? 'Queue empty' : `Run next batch (${Math.min(5, activeSize)} of ${activeSize})`}
           </button>
         </div>
       </div>
+
+      {mode === 'reseed-ai' && (
+        <div className="bg-portal-amber-lt text-portal-text rounded p-2.5 text-[11px] leading-relaxed" style={{ borderLeft: '3px solid var(--color-portal-amber)' }}>
+          <strong>Reseed mode:</strong> re-processes articles previously seeded by AI with the new PURE SEO prompt
+          (no social blending). Human-edited rows are skipped — only rows with <code>seo_ai_seeded_at</code> set
+          get overwritten.
+        </div>
+      )}
 
       {error && (
         <div className="bg-portal-red-lt text-portal-red border border-portal-red rounded p-2 text-[12px] inline-flex items-start gap-1.5">

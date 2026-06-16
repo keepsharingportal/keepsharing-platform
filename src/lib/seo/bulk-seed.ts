@@ -1,27 +1,46 @@
 // ── Bulk SEO seeder ─────────────────────────────────────────────────
 //
-// Walks published articles where seo_title OR seo_description is
-// empty, asks Claude to generate social-optimized copy per article,
-// writes the result back + stamps seo_ai_seeded_at so the editor
-// knows which rows are AI-seeded vs human-tuned.
+// SEO ≠ Social. This file ONLY produces SEO copy:
+//   - seo_title: 50-60 chars, keyword-led, clear, scannable
+//   - seo_description: 140-155 chars, accurate summary with the focus
+//     keyword naturally placed, no clickbait, no manipulation
+//   - seo_focus_keyword: 2-5 word search term this article targets
 //
-// Processes in batches of 5 to fit Vercel's 300s window comfortably.
-// Each call to runBulkSeed processes one batch — the editor clicks
-// "Run next batch" multiple times until the queue is empty.
+// These fields land in og:title + og:description (the small text on
+// a shared link card) and drive Google search ranking. They are NOT
+// the FB/IG post caption — that's the social_hook + caption pipeline
+// in lib/social/caption-generator.ts.
+//
+// Two modes:
+//   - 'missing' (default): only seeds rows where seo_title AND
+//     seo_description are both empty
+//   - 'reseed-ai': re-seeds rows where seo_ai_seeded_at is set
+//     (re-runs with the new prompt; preserves human-edited rows)
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { runAI } from '@/lib/ai/client'
 import { loadBrandPromptContext, renderBrandContextForPrompt } from '@/lib/seo/brand-profile'
 
-const SYSTEM_PROMPT = `You produce social-sharing-optimized SEO copy for a single article. Each
-article gets:
-  - seo_title:        50-60 chars, lead with the key benefit / hook
-  - seo_description:  140-155 chars, full sentence with locality + payoff
-  - seo_focus_keyword: 2-5 words, the primary search term this article targets
+const SYSTEM_PROMPT = `You produce PURE SEO copy for a single article. This is for Google
+search ranking + the link-preview card on shared posts. It is NOT the
+social media post caption (that's a separate system with a different
+voice).
 
-Read the brand voice + audience + the article excerpt + body snippet.
-Be SPECIFIC to the brand's market — name sub-areas when relevant.
-Don't repeat the article title verbatim; rewrite for social share appeal.
+Your output reads like a clear, professional snippet. No clickbait.
+No manipulation. No fear-based hooks. Honest, keyword-rich, scannable.
+
+Field constraints:
+  - seo_title: 50-60 chars, lead with the primary keyword phrase OR
+    the clear benefit. Title case. No question marks unless natural.
+  - seo_description: 140-155 chars, a clear factual summary that names
+    the topic + the locality (when relevant) + what the reader will
+    learn. Place the focus keyword naturally in the first 100 chars.
+  - seo_focus_keyword: 2-5 word search term parents/readers actually
+    type into Google. Locality-specific when applicable
+    (e.g. "Pike Road preschools" not "best preschools").
+
+Read the brand profile to localize (use named sub-areas when relevant).
+Read the article to identify the topic + primary keyword.
 
 OUTPUT FORMAT — emit raw JSON only, no prose, no code fences:
 {
@@ -46,29 +65,38 @@ export interface SeedResult {
   error?:           string
 }
 
-/** Returns next N candidates needing seed work. Sorted by published_at
- *  desc so most-recent (and most-trafficked likely) get seeded first. */
+export type SeedMode = 'missing' | 'reseed-ai'
+
+/** Returns next N candidates needing seed work. */
 export async function findSeedCandidates(
   sb:          SupabaseClient,
   brandSlug:   string | null,
   limit:       number = 5,
+  mode:        SeedMode = 'missing',
 ): Promise<SeedCandidate[]> {
   let q = sb
     .from('guide_articles')
-    .select('id, title, excerpt, body, brand_slug, seo_title, seo_description, published_at')
+    .select('id, title, excerpt, body, brand_slug, seo_title, seo_description, seo_ai_seeded_at, published_at')
     .eq('published', true)
     .order('published_at', { ascending: false })
     .limit(limit)
   if (brandSlug) q = q.eq('brand_slug', brandSlug)
-  // We want rows where BOTH overrides are unset — the editor decides
-  // whether half-filled rows need backfilling individually.
-  q = q.or('seo_title.is.null,seo_title.eq.')
-  q = q.or('seo_description.is.null,seo_description.eq.')
+
+  if (mode === 'reseed-ai') {
+    // Re-process rows the seeder previously wrote. Skip human-edited
+    // rows entirely (those have seo_ai_seeded_at NULL but seo_title
+    // populated).
+    q = q.not('seo_ai_seeded_at', 'is', null)
+  } else {
+    // Rows where BOTH overrides are unset.
+    q = q.or('seo_title.is.null,seo_title.eq.')
+    q = q.or('seo_description.is.null,seo_description.eq.')
+  }
 
   const { data } = await q
   return ((data ?? []) as Array<{
     id: string; title: string; excerpt: string | null; body: string | null;
-    brand_slug: string | null; seo_title: string | null; seo_description: string | null;
+    brand_slug: string | null;
   }>).map(r => ({
     id:          r.id,
     title:       r.title,
@@ -78,7 +106,6 @@ export async function findSeedCandidates(
   }))
 }
 
-/** Generate seed for one candidate. */
 async function seedOne(
   sb:        SupabaseClient,
   c:         SeedCandidate,
@@ -93,13 +120,13 @@ async function seedOne(
 
   const userPrompt = `${brandMd}
 
-# Article to seed
+# Article to seed SEO for
 Title: ${c.title}
 Existing excerpt: ${c.excerpt ?? '(none)'}
 Body snippet (first 1200 chars, HTML stripped):
 ${c.bodySnippet}
 
-Generate SEO copy per the system prompt. Emit raw JSON only.`
+Generate PURE SEO copy per the system prompt instructions. Emit raw JSON only.`
 
   try {
     const res = await runAI({
@@ -128,15 +155,14 @@ Generate SEO copy per the system prompt. Emit raw JSON only.`
   }
 }
 
-/** Run one batch. Returns the per-article results — caller decides
- *  whether to save immediately (true) or queue for editor review. */
 export async function runBulkSeed(
   sb:          SupabaseClient,
   brandSlug:   string | null,
   batchSize:   number = 5,
   save:        boolean = true,
+  mode:        SeedMode = 'missing',
 ): Promise<{ processed: number; saved: number; errors: number; results: SeedResult[] }> {
-  const candidates = await findSeedCandidates(sb, brandSlug, batchSize)
+  const candidates = await findSeedCandidates(sb, brandSlug, batchSize, mode)
   if (candidates.length === 0) {
     return { processed: 0, saved: 0, errors: 0, results: [] }
   }

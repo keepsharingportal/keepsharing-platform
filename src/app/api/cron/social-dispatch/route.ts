@@ -63,13 +63,37 @@ export async function GET(req: Request) {
         continue
       }
       const platforms = (row.platforms as CaptionPlatform[])
-      const captions  = await generateCaptionsForContent(sb, row.brand_slug ?? 'rrp', {
-        title:       payload.title,
-        excerpt:     payload.excerpt,
-        link:        payload.link,
-        contentType: row.source_kind,
-        recycleIndex: row.recycle_index,
-      }, platforms)
+
+      // Honor per-platform editor overrides. Only call the AI for
+      // platforms the editor hasn't tuned manually.
+      const platformsNeedingAI = platforms.filter(p => {
+        if (p === 'facebook' && payload.fbCaptionOverride?.trim()) return false
+        if (p === 'instagram' && payload.igCaptionOverride?.trim()) return false
+        return true
+      })
+
+      const aiCaptions = platformsNeedingAI.length > 0
+        ? await generateCaptionsForContent(sb, row.brand_slug ?? 'rrp', {
+            title:        payload.title,
+            excerpt:      payload.excerpt,
+            link:         payload.link,
+            contentType:  row.source_kind,
+            recycleIndex: row.recycle_index,
+            socialHook:   payload.socialHook,
+            tone:         (payload.voiceTone as 'supportive' | 'celebratory' | 'funny' | 'inspiring' | 'practical' | 'tender' | null) ?? null,
+          }, platformsNeedingAI)
+        : []
+
+      const captions = [
+        ...aiCaptions,
+        ...(payload.fbCaptionOverride?.trim() && platforms.includes('facebook')
+          ? [{ platform: 'facebook' as CaptionPlatform, caption: payload.fbCaptionOverride.trim(), hashtags: [] }]
+          : []),
+        ...(payload.igCaptionOverride?.trim() && platforms.includes('instagram')
+          ? [{ platform: 'instagram' as CaptionPlatform, caption: payload.igCaptionOverride.trim(), hashtags: [] }]
+          : []),
+      ]
+
       const crops = payload.imageUrl
         ? await generateAllPlatformCrops(payload.imageUrl, platforms as unknown as SocialPlatform[])
         : {} as Record<SocialPlatform, string>

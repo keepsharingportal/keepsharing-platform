@@ -61,23 +61,84 @@ export default async function SocialQueuePage({ searchParams }: Props) {
     tally[r.status] = (tally[r.status] ?? 0) + 1
   }
 
+  // Meta integration diagnostic — pulled once on render so editors
+  // see at a glance whether posts can actually fire.
+  const { data: pages } = await sb
+    .from('facebook_pages')
+    .select('brand_slug, page_name, is_active, ig_business_account_id')
+    .order('brand_slug')
+  const pageRows = (pages ?? []) as Array<{
+    brand_slug: string | null; page_name: string | null; is_active: boolean | null; ig_business_account_id: string | null;
+  }>
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0">
-        <Link href="/admin" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
-          <ArrowLeft size={11} /> Admin
-        </Link>
-        <h1 className="text-[18px] font-bold text-portal-text">
-          <CalendarIcon size={16} className="inline -translate-y-0.5 mr-1" /> Social rotation queue
-        </h1>
-        <p className="text-[12px] text-portal-sub mt-1">
-          Every queued social post — articles, events, guides, school bits, CTAs. Captions are AI-generated;
-          you approve before they fire. Dispatch runs every 15 minutes.
-        </p>
+      <div className="bg-white border-b border-portal-border px-6 py-4 shrink-0 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <Link href="/admin" className="text-[11px] font-semibold text-portal-sub hover:text-portal-text inline-flex items-center gap-1 mb-1">
+            <ArrowLeft size={11} /> Admin
+          </Link>
+          <h1 className="text-[18px] font-bold text-portal-text">
+            <CalendarIcon size={16} className="inline -translate-y-0.5 mr-1" /> Social rotation queue
+          </h1>
+          <p className="text-[12px] text-portal-sub mt-1">
+            Every queued social post. Captions are AI-generated in the friend voice; you approve before they fire.
+            Dispatch runs every 15 minutes.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/social-queue/calendar"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg"
+          >
+            <CalendarIcon size={12} /> Calendar view
+          </Link>
+          <Link
+            href="/admin/integrations/meta-suite"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg"
+          >
+            Meta integration
+          </Link>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto bg-portal-bg">
         <div className="px-6 py-6 space-y-4">
+
+          {/* Meta integration diagnostic — only shows when there's a
+              concrete connection problem so it doesn't shout at editors
+              when everything is fine. */}
+          {(() => {
+            const issues: string[] = []
+            if (pageRows.length === 0) {
+              issues.push('No Facebook Pages connected at all. Posts cannot fire.')
+            } else {
+              const active = pageRows.filter(p => p.is_active)
+              if (active.length === 0) issues.push('Facebook Pages exist but none are marked active.')
+              const noIg = active.filter(p => !p.ig_business_account_id)
+              if (noIg.length > 0) {
+                issues.push(`${noIg.length} Page${noIg.length === 1 ? '' : 's'} have no Instagram Business account linked — IG posts will fail for: ${noIg.map(p => p.brand_slug ?? '?').join(', ')}.`)
+              }
+            }
+            if (issues.length === 0) {
+              return (
+                <div className="bg-portal-green-lt text-portal-text rounded-lg p-3 text-[12px] inline-flex items-center gap-2" style={{ borderLeft: '3px solid var(--color-portal-green)' }}>
+                  ● Meta connected — {pageRows.filter(p => p.is_active).length} active Page{pageRows.filter(p => p.is_active).length === 1 ? '' : 's'}, {pageRows.filter(p => p.is_active && p.ig_business_account_id).length} with IG.
+                </div>
+              )
+            }
+            return (
+              <div className="bg-portal-red-lt text-portal-text rounded-lg p-3 text-[12px]" style={{ borderLeft: '3px solid var(--color-portal-red)' }}>
+                <strong className="text-portal-red">Meta integration issues — posts may not fire:</strong>
+                <ul className="list-disc pl-5 mt-1">
+                  {issues.map((i, j) => <li key={j}>{i}</li>)}
+                </ul>
+                <Link href="/admin/integrations/meta-suite" className="text-portal-blue font-bold mt-1 inline-block">
+                  Open Meta integration →
+                </Link>
+              </div>
+            )
+          })()}
 
           <div className="grid grid-cols-7 gap-2">
             {['pending','ready','dispatching','completed','failed','rejected','paused'].map(s => (

@@ -104,6 +104,7 @@ export default async function BulkSeederPage({ searchParams }: Props) {
           <BulkSeederClient
             brandSlug={brandSlug}
             initialQueueSize={totalNeedSeeding ?? 0}
+            initialReseedSize={aiSeededCount ?? 0}
           />
 
           <div className="bg-white border border-portal-border rounded-lg p-3 text-[12px] leading-relaxed">

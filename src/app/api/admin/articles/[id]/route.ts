@@ -60,6 +60,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'seo_title', 'seo_description', 'seo_focus_keyword',
       'seo_secondary_keywords', 'seo_canonical_override', 'seo_no_index',
       'seo_ai_seeded_at',
+      // Social post copy (migration 196) — inline panel writes these.
+      'social_hook', 'social_fb_caption', 'social_ig_caption',
+      'social_voice_tone', 'social_ai_seeded_at',
     ]
 
     const update: Record<string, unknown> = {}
@@ -160,13 +163,29 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const wantAutoPost  = 'auto_post_to_social' in update
       ? !!update.auto_post_to_social
       : (prior?.auto_post_to_social === true)
+    // Auto-post wiring: the checkbox now feeds the SOCIAL ROTATION QUEUE
+    // (Sprint 3), not the legacy immediate auto-post path. That means:
+    //   - Per-platform AI captions written in the brand voice
+    //   - Smart image cropping per platform (FB 1.91:1, IG 1:1, etc.)
+    //   - Editor approval gate before fire
+    //   - Recycle at day 30 + day 90 automatically
+    //   - Auditable in /admin/social-queue
     if (!wasPublished && nowPublished && wantAutoPost && !prior?.auto_posted_at) {
       void (async () => {
         try {
-          const { autoPostArticle } = await import('@/lib/integrations/meta-suite/auto-post')
-          await autoPostArticle(id)
+          const { enqueueForSource } = await import('@/lib/social/queue')
+          const sb2 = supabaseAdmin()
+          const { data: row } = await sb2
+            .from('guide_articles')
+            .select('brand_slug')
+            .eq('id', id)
+            .maybeSingle()
+          const brand = (row?.brand_slug as string | null) ?? 'rrp'
+          await enqueueForSource(sb2, 'article', id, brand)
+          // Stamp auto_posted_at so we don't re-enqueue on a republish.
+          await sb2.from('guide_articles').update({ auto_posted_at: new Date().toISOString() }).eq('id', id)
         } catch (e) {
-          console.error('[auto-post] background job failed', e)
+          console.error('[social-queue] enqueue failed', e)
         }
       })()
     }
@@ -199,28 +218,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           await queueArticleForPrint(id)
         } catch (e) {
           console.error('[print-queue] background job failed', e)
-        }
-      })()
-    }
-
-    // Social rotation engine — auto-enqueue the article on the unpublished
-    // → published transition. Schedule rules + recycle math live in the
-    // social_schedules table. Dispatch + caption generation happens via
-    // a separate cron pass so the publish API stays fast.
-    if (!wasPublished && nowPublished) {
-      void (async () => {
-        try {
-          const { enqueueForSource } = await import('@/lib/social/queue')
-          const sb2 = supabaseAdmin()
-          const { data: row } = await sb2
-            .from('guide_articles')
-            .select('brand_slug')
-            .eq('id', id)
-            .maybeSingle()
-          const brand = (row?.brand_slug as string | null) ?? 'rrp'
-          await enqueueForSource(sb2, 'article', id, brand)
-        } catch (e) {
-          console.error('[social-queue] enqueue failed', e)
         }
       })()
     }

@@ -22,6 +22,15 @@ export interface SocialPayload {
   /** Time-anchored sources (events) carry a fire-on date that
    *  ramp_days_before computes against. */
   anchorDate?: string         // ISO datetime
+  /** Editor-written one-line social hook — when set, the caption
+   *  generator uses this as the opening line on every platform. */
+  socialHook?: string | null
+  /** Editor-pinned tone for the AI caption. */
+  voiceTone?:  string | null
+  /** Editor-tuned per-platform caption overrides — when set, skip
+   *  AI generation for that platform. */
+  fbCaptionOverride?: string | null
+  igCaptionOverride?: string | null
 }
 
 function originForBrand(brandSlug: string | null): string {
@@ -35,7 +44,7 @@ export async function loadArticlePayload(
 ): Promise<SocialPayload | null> {
   const { data } = await sb
     .from('guide_articles')
-    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description')
+    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description, social_hook, social_voice_tone, social_fb_caption, social_ig_caption')
     .eq('id', id)
     .maybeSingle()
   if (!data) return null
@@ -46,10 +55,18 @@ export async function loadArticlePayload(
     sourceKind: 'article',
     sourceId:   data.id as string,
     brandSlug:  brand,
-    title:      ((data.seo_title as string | null) ?? data.title as string).trim(),
-    excerpt:    (data.seo_description as string | null) ?? (data.excerpt as string | null) ?? null,
+    // Article TITLE goes to the social engine — not the seo_title.
+    // The seo_title is for Google + the link-preview card; the social
+    // caption uses the article's own title since it's the headline a
+    // human chose for the piece.
+    title:      data.title as string,
+    excerpt:    (data.excerpt as string | null) ?? null,
     link:       `${origin}${path}`,
     imageUrl:   (data.hero_image_url as string | null) ?? null,
+    socialHook:        (data.social_hook        as string | null) ?? null,
+    voiceTone:         (data.social_voice_tone  as string | null) ?? null,
+    fbCaptionOverride: (data.social_fb_caption  as string | null) ?? null,
+    igCaptionOverride: (data.social_ig_caption  as string | null) ?? null,
   }
 }
 

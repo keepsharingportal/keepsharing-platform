@@ -209,9 +209,18 @@ export default function ArticleEditPage({ params }: Props) {
   const [showCrossFamily, setShowCrossFamily] = useState(false)
 
   // SEO override fields — edited on /admin/articles/[id]/seo. Loaded here
-  // so the Share Preview card can show what FB/LinkedIn will render.
+  // so the Share Preview card can show what FB/LinkedIn will render in
+  // the link card.
   const [seoTitle,       setSeoTitle]       = useState<string>('')
   const [seoDescription, setSeoDescription] = useState<string>('')
+
+  // Social post copy fields (migration 196) — edited via the inline
+  // Social Sharing panel below the body. Drive the actual FB + IG
+  // captions when auto-post is on. NOT the same as SEO.
+  const [socialHook,        setSocialHook]        = useState<string>('')
+  const [socialFbCaption,   setSocialFbCaption]   = useState<string>('')
+  const [socialIgCaption,   setSocialIgCaption]   = useState<string>('')
+  const [socialVoiceTone,   setSocialVoiceTone]   = useState<string>('')
 
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
@@ -303,6 +312,10 @@ export default function ArticleEditPage({ params }: Props) {
         setSyndicatedTo(Array.isArray(data.syndicated_to_brands) ? data.syndicated_to_brands as string[] : [])
         setSeoTitle      ((data.seo_title       as string | null) ?? '')
         setSeoDescription((data.seo_description as string | null) ?? '')
+        setSocialHook       ((data.social_hook        as string | null) ?? '')
+        setSocialFbCaption  ((data.social_fb_caption  as string | null) ?? '')
+        setSocialIgCaption  ((data.social_ig_caption  as string | null) ?? '')
+        setSocialVoiceTone  ((data.social_voice_tone  as string | null) ?? '')
         // Spotlight (Play Ball Athlete / Coach / Volunteer)
         setSpotlightType((data.spotlight_type as string | null) ?? '')
         const sd = data.spotlight_data
@@ -398,13 +411,19 @@ export default function ArticleEditPage({ params }: Props) {
       print_issue_month:       printIssueMonth.trim() || null,
       brand_slug:              brandSlug || 'rrp',
       syndicated_to_brands:    syndicatedTo,
-      // Inline Social & SEO panel — empty string clears the override
-      // and falls back to the title/excerpt defaults via the cascade.
+      // Inline SEO fields (edited on the dedicated /seo page) — passed
+      // through so a save here doesn't wipe them. Empty string clears
+      // the override and falls back to title/excerpt.
       seo_title:               seoTitle.trim()       || null,
       seo_description:         seoDescription.trim() || null,
-      // Human-edited the SEO copy → clear the AI provenance stamp so
-      // the bulk seeder leaves it alone in future runs.
       seo_ai_seeded_at:        seoTitle.trim() || seoDescription.trim() ? null : undefined,
+      // Social Sharing inline panel — these drive the FB / IG captions.
+      // Empty string = AI generates on the fly when the post fires.
+      social_hook:             socialHook.trim()       || null,
+      social_fb_caption:       socialFbCaption.trim()  || null,
+      social_ig_caption:       socialIgCaption.trim()  || null,
+      social_voice_tone:       socialVoiceTone || null,
+      social_ai_seeded_at:     socialHook.trim() || socialFbCaption.trim() || socialIgCaption.trim() ? null : undefined,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -663,22 +682,24 @@ export default function ArticleEditPage({ params }: Props) {
                 />
               </div>
 
-              {/* ── Inline Social & SEO panel ────────────────────────────
-                   The 90% case — quick edit of share title + description +
-                   focus keyword + AI assist + mini preview, all inline
-                   without leaving the editor. Power editing (canonical
-                   override, noindex, secondary keywords, GSC panel)
-                   still lives at /admin/articles/[id]/seo. Both save to
-                   the same guide_articles row. */}
-              <InlineSocialSeoPanel
+              {/* ── Inline Social Sharing panel ──────────────────────────
+                   Write the hook + (optional) FB / IG caption that goes
+                   out when Auto-post is on. AI generates per-platform
+                   copy in the friend/coach voice. SEO lives behind the
+                   SEO button at the top — different job. */}
+              <InlineSocialSharingPanel
                 articleId={id}
                 title={form.title}
                 excerpt={form.excerpt}
                 heroImageUrl={form.hero_image_url}
-                seoTitle={seoTitle}
-                seoDescription={seoDescription}
-                onChangeSeoTitle={setSeoTitle}
-                onChangeSeoDescription={setSeoDescription}
+                socialHook={socialHook}
+                socialFbCaption={socialFbCaption}
+                socialIgCaption={socialIgCaption}
+                socialVoiceTone={socialVoiceTone}
+                onChangeSocialHook={setSocialHook}
+                onChangeSocialFbCaption={setSocialFbCaption}
+                onChangeSocialIgCaption={setSocialIgCaption}
+                onChangeSocialVoiceTone={setSocialVoiceTone}
               />
 
               {/* Formatting tips */}
@@ -1308,65 +1329,71 @@ function MenuItem({
 // + hero image. Links to the full SEO editor for editing.
 
 
-// ── InlineSocialSeoPanel ─────────────────────────────────────────────
+// ── InlineSocialSharingPanel ─────────────────────────────────────────
 //
-// The 90% case for setting social copy — collapsible panel that lives
-// inline under the body editor. SEO title / description / focus
-// keyword + AI assist button + mini share preview. Saves through the
-// same /api/admin/articles/[id] PATCH endpoint as everything else on
-// this page. The dedicated /admin/articles/[id]/seo page still exists
-// for power editing (canonical override, noindex, secondary keywords,
-// GSC panel).
+// Inline collapsible panel for SOCIAL post copy ONLY. NOT SEO.
+//
+// SEO copy (seo_title, seo_description) is for Google + the link-
+// preview card; it's edited via the SEO button at the top of the page.
+//
+// THIS panel writes the social_hook + (optional) per-platform caption
+// overrides that drive what FB and IG actually post. Voice: friend,
+// coach, partner. Six tone options to keep the feed varied.
+//
+// When Auto-post is on, the queue dispatcher reads social_hook + tone
+// + caption overrides + brand profile and generates the final FB/IG
+// post in the friend voice — completely separate from SEO concerns.
 
-function InlineSocialSeoPanel({
+const SOCIAL_TONES = [
+  { value: '',            label: 'AI rotates (default)' },
+  { value: 'supportive',  label: 'Supportive — coach-friend' },
+  { value: 'celebratory', label: 'Celebratory — share the win' },
+  { value: 'inspiring',   label: 'Inspiring — hopeful, lift them up' },
+  { value: 'practical',   label: 'Practical — direct, useful' },
+  { value: 'tender',      label: 'Tender — warm, family moment' },
+  { value: 'funny',       label: 'Funny — light, playful' },
+] as const
+
+function InlineSocialSharingPanel({
   articleId,
   title, excerpt, heroImageUrl,
-  seoTitle, seoDescription,
-  onChangeSeoTitle, onChangeSeoDescription,
+  socialHook, socialFbCaption, socialIgCaption, socialVoiceTone,
+  onChangeSocialHook, onChangeSocialFbCaption, onChangeSocialIgCaption, onChangeSocialVoiceTone,
 }: {
-  articleId:             string
-  title:                 string
-  excerpt:               string
-  heroImageUrl:          string
-  seoTitle:              string
-  seoDescription:        string
-  onChangeSeoTitle:      (v: string) => void
-  onChangeSeoDescription: (v: string) => void
+  articleId:                string
+  title:                    string
+  excerpt:                  string
+  heroImageUrl:             string
+  socialHook:               string
+  socialFbCaption:          string
+  socialIgCaption:          string
+  socialVoiceTone:          string
+  onChangeSocialHook:       (v: string) => void
+  onChangeSocialFbCaption:  (v: string) => void
+  onChangeSocialIgCaption:  (v: string) => void
+  onChangeSocialVoiceTone:  (v: string) => void
 }) {
-  const [open,    setOpen]    = useState(false)
-  const [busy,    setBusy]    = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
-  const [focusKw, setFocusKw] = useState<string>('')
-
-  // Live-derived values for the share preview.
-  const previewTitle       = seoTitle.trim()       || title
-  const previewDescription = seoDescription.trim() || excerpt
-  const titleLen           = seoTitle.length
-  const descLen            = seoDescription.length
-  const titleTone          = titleLen === 0 ? 'text-portal-amber' : titleLen > 60 ? 'text-portal-red'   : 'text-portal-green'
-  const descTone           = descLen  === 0 ? 'text-portal-amber' : descLen  > 160 ? 'text-portal-red'  : descLen < 120 ? 'text-portal-amber' : 'text-portal-green'
+  const [open,  setOpen]  = useState(false)
+  const [busy,  setBusy]  = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showCaptions, setShowCaptions] = useState(!!(socialFbCaption || socialIgCaption))
 
   async function runAiAssist() {
     setBusy(true); setError(null)
     try {
-      const res = await fetch('/api/admin/seo/assist', {
+      const res = await fetch('/api/admin/articles/social-assist', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ articleId }),
+        body:    JSON.stringify({
+          articleId,
+          tone: socialVoiceTone || undefined,
+        }),
       })
       const j = await res.json()
       if (!res.ok) { setError(j?.error ?? 'AI assist failed'); return }
-      if (j.seoTitle)         onChangeSeoTitle(j.seoTitle)
-      if (j.seoDescription)   onChangeSeoDescription(j.seoDescription)
-      if (j.seoFocusKeyword)  setFocusKw(j.seoFocusKeyword)
-      // Persist the focus keyword so the next save catches it.
-      if (j.seoFocusKeyword) {
-        await fetch(`/api/admin/articles/${articleId}`, {
-          method:  'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ seo_focus_keyword: j.seoFocusKeyword }),
-        })
-      }
+      if (j.social_hook)        onChangeSocialHook(j.social_hook)
+      if (j.facebook_caption)   { onChangeSocialFbCaption(j.facebook_caption); setShowCaptions(true) }
+      if (j.instagram_caption)  { onChangeSocialIgCaption(j.instagram_caption); setShowCaptions(true) }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setBusy(false) }
@@ -1379,9 +1406,12 @@ function InlineSocialSeoPanel({
         className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
       >
         <span className="flex items-center gap-1.5">
-          <Share2 size={13} /> Social sharing & SEO
-          {!seoTitle && !seoDescription && (
-            <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded ml-2">USING DEFAULTS</span>
+          <Share2 size={13} /> Social sharing
+          {!socialHook && !socialFbCaption && !socialIgCaption && (
+            <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded ml-2">AUTO-GENERATED</span>
+          )}
+          {(socialHook || socialFbCaption || socialIgCaption) && (
+            <span className="text-[10px] font-bold text-portal-green bg-portal-green-lt px-1.5 py-0.5 rounded ml-2">CUSTOM</span>
           )}
         </span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -1389,96 +1419,110 @@ function InlineSocialSeoPanel({
 
       {open && (
         <div className="border-t border-portal-border bg-portal-bg p-4 space-y-3">
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 280px' }}>
 
-            {/* Fields */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <strong className="text-[12px] text-portal-text">Override fields</strong>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button" onClick={runAiAssist} disabled={busy}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded hover:bg-portal-bg disabled:opacity-50"
-                  >
-                    {busy ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
-                    AI assist
-                  </button>
-                  <Link
-                    href={`/admin/articles/${articleId}/seo`}
-                    className="text-[11px] font-bold text-portal-blue hover:underline"
-                  >
-                    Power editor →
-                  </Link>
-                </div>
-              </div>
+          {/* Header row */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p className="text-[11px] text-portal-sub leading-relaxed flex-1 min-w-[280px]">
+              When <strong>Auto-post to Facebook + Instagram</strong> is on, this is what gets posted (NOT the
+              SEO snippet). Write the hook + optional captions, or let AI generate from the article body in
+              your brand voice.
+            </p>
+            <div className="flex items-center gap-2">
+              <select
+                value={socialVoiceTone}
+                onChange={e => onChangeSocialVoiceTone(e.target.value)}
+                className="px-2 py-1 text-[11px] border border-portal-border-2 rounded bg-white text-portal-text"
+              >
+                {SOCIAL_TONES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+              <button
+                type="button" onClick={runAiAssist} disabled={busy}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded hover:bg-portal-bg disabled:opacity-50"
+              >
+                {busy ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                AI assist
+              </button>
+            </div>
+          </div>
 
+          {/* Hook field */}
+          <div>
+            <label className="block text-[11px] font-bold text-portal-text mb-0.5">
+              Social hook <span className="text-[10px] text-portal-sub font-normal ml-1">— the &quot;Why click?&quot; lead. 1-2 sentences. Friend voice.</span>
+            </label>
+            <textarea
+              rows={2}
+              value={socialHook}
+              onChange={e => onChangeSocialHook(e.target.value)}
+              placeholder={`e.g. "Tired of second-guessing every meltdown? Good news — your child doesn't have a hidden moral flaw, and better behavior can be taught. Here's how."`}
+              className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
+            />
+          </div>
+
+          {/* Toggle per-platform overrides */}
+          <button
+            type="button"
+            onClick={() => setShowCaptions(s => !s)}
+            className="text-[11px] font-bold text-portal-blue hover:underline"
+          >
+            {showCaptions ? '− Hide' : '+ Show'} per-platform caption overrides (advanced)
+          </button>
+
+          {showCaptions && (
+            <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <label className="block text-[11px] font-bold text-portal-text mb-0.5">
-                  SEO title <span className={`text-[10px] font-semibold ml-1 ${titleTone}`}>{titleLen}/60</span>
-                </label>
-                <input
-                  type="text"
-                  value={seoTitle}
-                  onChange={e => onChangeSeoTitle(e.target.value)}
-                  placeholder={title || 'Inherits from article title if blank'}
-                  className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-portal-text mb-0.5">
-                  SEO description <span className={`text-[10px] font-semibold ml-1 ${descTone}`}>{descLen}/155</span>
-                </label>
+                <label className="block text-[11px] font-bold text-portal-text mb-0.5">Facebook caption override</label>
                 <textarea
-                  rows={3}
-                  value={seoDescription}
-                  onChange={e => onChangeSeoDescription(e.target.value)}
-                  placeholder={excerpt || 'Inherits from article excerpt if blank'}
+                  rows={5}
+                  value={socialFbCaption}
+                  onChange={e => onChangeSocialFbCaption(e.target.value)}
+                  placeholder="Leave blank for AI generation. FB allows links — the article preview card renders below the caption."
                   className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
                 />
               </div>
-
-              {focusKw && (
-                <div className="text-[11px] text-portal-sub">
-                  <strong className="text-portal-text">Focus keyword (saved):</strong> <code>{focusKw}</code>
-                </div>
-              )}
-
-              <p className="text-[10px] text-portal-muted leading-relaxed">
-                These fields become og:title + og:description for Facebook / LinkedIn shares + Twitter cards.
-                The hero image is the og:image. Click <strong>AI assist</strong> for Claude-generated copy that
-                reads the article body + brand voice.
-              </p>
-
-              {error && (
-                <div className="bg-portal-red-lt text-portal-red rounded p-2 text-[11px] inline-flex items-start gap-1.5">
-                  <AlertTriangle size={11} className="mt-0.5 shrink-0" /> {error}
-                </div>
-              )}
-            </div>
-
-            {/* Mini preview */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5">Live preview</div>
-              <div className="border border-portal-border rounded overflow-hidden bg-white">
-                {heroImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={heroImageUrl} alt="" className="w-full aspect-[1.91/1] object-cover bg-portal-bg" />
-                ) : (
-                  <div className="w-full aspect-[1.91/1] bg-portal-bg flex items-center justify-center text-[10px] text-portal-muted">
-                    No hero image
-                  </div>
-                )}
-                <div className="p-2">
-                  <div className="text-[9px] text-portal-muted uppercase tracking-wider mb-0.5">riverregionparents.com</div>
-                  <div className="text-[12px] font-semibold text-portal-text line-clamp-2">{previewTitle || '(no title)'}</div>
-                  {previewDescription && (
-                    <div className="text-[10px] text-portal-sub line-clamp-2 mt-0.5">{previewDescription}</div>
-                  )}
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold text-portal-text mb-0.5">Instagram caption override</label>
+                <textarea
+                  rows={5}
+                  value={socialIgCaption}
+                  onChange={e => onChangeSocialIgCaption(e.target.value)}
+                  placeholder="Leave blank for AI generation. IG strips links — end with 'Link in bio' + 5-10 niche hashtags."
+                  className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
+                />
               </div>
             </div>
+          )}
+
+          {/* Preview */}
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5">Facebook link preview (uses SEO title + description)</div>
+            <div className="border border-portal-border rounded overflow-hidden bg-white max-w-[400px]">
+              {heroImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={heroImageUrl} alt="" className="w-full aspect-[1.91/1] object-cover bg-portal-bg" />
+              ) : (
+                <div className="w-full aspect-[1.91/1] bg-portal-bg flex items-center justify-center text-[10px] text-portal-muted">
+                  No hero image
+                </div>
+              )}
+              <div className="p-2">
+                <div className="text-[9px] text-portal-muted uppercase tracking-wider mb-0.5">riverregionparents.com</div>
+                <div className="text-[12px] font-semibold text-portal-text line-clamp-2">{title || '(no title)'}</div>
+                {excerpt && (
+                  <div className="text-[10px] text-portal-sub line-clamp-2 mt-0.5">{excerpt}</div>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-portal-muted mt-1.5">
+              To tune the link-preview card text (SEO title + description), click the <strong>SEO</strong> button at the top of this page.
+            </p>
           </div>
+
+          {error && (
+            <div className="bg-portal-red-lt text-portal-red rounded p-2 text-[11px] inline-flex items-start gap-1.5">
+              <AlertTriangle size={11} className="mt-0.5 shrink-0" /> {error}
+            </div>
+          )}
         </div>
       )}
     </div>
