@@ -311,6 +311,7 @@ const NAV: NavItem[] = [
       { name: 'Internal Link Queue',    href: '/admin/seo/internal-links', settingsOnly: true },
       { name: 'Schema Validator',       href: '/admin/seo/schema-validator', settingsOnly: true },
       { name: 'Page Metadata',          href: '/admin/seo/page-metadata',    settingsOnly: true },
+      { name: 'Bulk SEO Seeder',        href: '/admin/seo/bulk-seeder',      settingsOnly: true },
       { name: 'Bulk SEO Edit',          href: '/admin/seo/bulk',           settingsOnly: true },
       { name: 'Route Coverage Audit',   href: '/admin/seo-health',         settingsOnly: true },
     ],

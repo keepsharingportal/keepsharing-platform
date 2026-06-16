@@ -55,6 +55,11 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       // Print distribution (migration 167)
       'queue_for_print',
       'print_issue_month',
+      // SEO overrides (migration 187 + 195) — inline panel + SEO editor
+      // + bulk seeder all PATCH through this endpoint.
+      'seo_title', 'seo_description', 'seo_focus_keyword',
+      'seo_secondary_keywords', 'seo_canonical_override', 'seo_no_index',
+      'seo_ai_seeded_at',
     ]
 
     const update: Record<string, unknown> = {}

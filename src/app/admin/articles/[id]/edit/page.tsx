@@ -6,6 +6,7 @@ import {
   ArrowLeft, Check, RefreshCw, Eye, ExternalLink,
   ChevronDown, ChevronUp, Search as SearchIcon,
   MoreVertical, Share2, Sparkles, AlertTriangle, Trash2, Send, EyeOff,
+  Loader2,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
@@ -397,6 +398,13 @@ export default function ArticleEditPage({ params }: Props) {
       print_issue_month:       printIssueMonth.trim() || null,
       brand_slug:              brandSlug || 'rrp',
       syndicated_to_brands:    syndicatedTo,
+      // Inline Social & SEO panel — empty string clears the override
+      // and falls back to the title/excerpt defaults via the cascade.
+      seo_title:               seoTitle.trim()       || null,
+      seo_description:         seoDescription.trim() || null,
+      // Human-edited the SEO copy → clear the AI provenance stamp so
+      // the bulk seeder leaves it alone in future runs.
+      seo_ai_seeded_at:        seoTitle.trim() || seoDescription.trim() ? null : undefined,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -654,6 +662,24 @@ export default function ArticleEditPage({ params }: Props) {
                   placeholder="Add a short closing line about the subject or the writer. Leave blank to hide."
                 />
               </div>
+
+              {/* ── Inline Social & SEO panel ────────────────────────────
+                   The 90% case — quick edit of share title + description +
+                   focus keyword + AI assist + mini preview, all inline
+                   without leaving the editor. Power editing (canonical
+                   override, noindex, secondary keywords, GSC panel)
+                   still lives at /admin/articles/[id]/seo. Both save to
+                   the same guide_articles row. */}
+              <InlineSocialSeoPanel
+                articleId={id}
+                title={form.title}
+                excerpt={form.excerpt}
+                heroImageUrl={form.hero_image_url}
+                seoTitle={seoTitle}
+                seoDescription={seoDescription}
+                onChangeSeoTitle={setSeoTitle}
+                onChangeSeoDescription={setSeoDescription}
+              />
 
               {/* Formatting tips */}
               <div className="border border-portal-border rounded-lg overflow-hidden">
@@ -1280,6 +1306,185 @@ function MenuItem({
 // Sidebar card showing the OG share preview (what FB/IG/LinkedIn will
 // render when this article is shared). Reads seo_title + seo_description
 // + hero image. Links to the full SEO editor for editing.
+
+
+// ── InlineSocialSeoPanel ─────────────────────────────────────────────
+//
+// The 90% case for setting social copy — collapsible panel that lives
+// inline under the body editor. SEO title / description / focus
+// keyword + AI assist button + mini share preview. Saves through the
+// same /api/admin/articles/[id] PATCH endpoint as everything else on
+// this page. The dedicated /admin/articles/[id]/seo page still exists
+// for power editing (canonical override, noindex, secondary keywords,
+// GSC panel).
+
+function InlineSocialSeoPanel({
+  articleId,
+  title, excerpt, heroImageUrl,
+  seoTitle, seoDescription,
+  onChangeSeoTitle, onChangeSeoDescription,
+}: {
+  articleId:             string
+  title:                 string
+  excerpt:               string
+  heroImageUrl:          string
+  seoTitle:              string
+  seoDescription:        string
+  onChangeSeoTitle:      (v: string) => void
+  onChangeSeoDescription: (v: string) => void
+}) {
+  const [open,    setOpen]    = useState(false)
+  const [busy,    setBusy]    = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
+  const [focusKw, setFocusKw] = useState<string>('')
+
+  // Live-derived values for the share preview.
+  const previewTitle       = seoTitle.trim()       || title
+  const previewDescription = seoDescription.trim() || excerpt
+  const titleLen           = seoTitle.length
+  const descLen            = seoDescription.length
+  const titleTone          = titleLen === 0 ? 'text-portal-amber' : titleLen > 60 ? 'text-portal-red'   : 'text-portal-green'
+  const descTone           = descLen  === 0 ? 'text-portal-amber' : descLen  > 160 ? 'text-portal-red'  : descLen < 120 ? 'text-portal-amber' : 'text-portal-green'
+
+  async function runAiAssist() {
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch('/api/admin/seo/assist', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ articleId }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setError(j?.error ?? 'AI assist failed'); return }
+      if (j.seoTitle)         onChangeSeoTitle(j.seoTitle)
+      if (j.seoDescription)   onChangeSeoDescription(j.seoDescription)
+      if (j.seoFocusKeyword)  setFocusKw(j.seoFocusKeyword)
+      // Persist the focus keyword so the next save catches it.
+      if (j.seoFocusKeyword) {
+        await fetch(`/api/admin/articles/${articleId}`, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ seo_focus_keyword: j.seoFocusKeyword }),
+        })
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div className="border border-portal-border rounded-lg overflow-hidden">
+      <button
+        type="button" onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-portal-sub hover:bg-portal-bg transition-colors"
+      >
+        <span className="flex items-center gap-1.5">
+          <Share2 size={13} /> Social sharing & SEO
+          {!seoTitle && !seoDescription && (
+            <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded ml-2">USING DEFAULTS</span>
+          )}
+        </span>
+        {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+
+      {open && (
+        <div className="border-t border-portal-border bg-portal-bg p-4 space-y-3">
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0,1fr) 280px' }}>
+
+            {/* Fields */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <strong className="text-[12px] text-portal-text">Override fields</strong>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button" onClick={runAiAssist} disabled={busy}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded hover:bg-portal-bg disabled:opacity-50"
+                  >
+                    {busy ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                    AI assist
+                  </button>
+                  <Link
+                    href={`/admin/articles/${articleId}/seo`}
+                    className="text-[11px] font-bold text-portal-blue hover:underline"
+                  >
+                    Power editor →
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-portal-text mb-0.5">
+                  SEO title <span className={`text-[10px] font-semibold ml-1 ${titleTone}`}>{titleLen}/60</span>
+                </label>
+                <input
+                  type="text"
+                  value={seoTitle}
+                  onChange={e => onChangeSeoTitle(e.target.value)}
+                  placeholder={title || 'Inherits from article title if blank'}
+                  className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-portal-text mb-0.5">
+                  SEO description <span className={`text-[10px] font-semibold ml-1 ${descTone}`}>{descLen}/155</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={seoDescription}
+                  onChange={e => onChangeSeoDescription(e.target.value)}
+                  placeholder={excerpt || 'Inherits from article excerpt if blank'}
+                  className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
+                />
+              </div>
+
+              {focusKw && (
+                <div className="text-[11px] text-portal-sub">
+                  <strong className="text-portal-text">Focus keyword (saved):</strong> <code>{focusKw}</code>
+                </div>
+              )}
+
+              <p className="text-[10px] text-portal-muted leading-relaxed">
+                These fields become og:title + og:description for Facebook / LinkedIn shares + Twitter cards.
+                The hero image is the og:image. Click <strong>AI assist</strong> for Claude-generated copy that
+                reads the article body + brand voice.
+              </p>
+
+              {error && (
+                <div className="bg-portal-red-lt text-portal-red rounded p-2 text-[11px] inline-flex items-start gap-1.5">
+                  <AlertTriangle size={11} className="mt-0.5 shrink-0" /> {error}
+                </div>
+              )}
+            </div>
+
+            {/* Mini preview */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-portal-sub mb-1.5">Live preview</div>
+              <div className="border border-portal-border rounded overflow-hidden bg-white">
+                {heroImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={heroImageUrl} alt="" className="w-full aspect-[1.91/1] object-cover bg-portal-bg" />
+                ) : (
+                  <div className="w-full aspect-[1.91/1] bg-portal-bg flex items-center justify-center text-[10px] text-portal-muted">
+                    No hero image
+                  </div>
+                )}
+                <div className="p-2">
+                  <div className="text-[9px] text-portal-muted uppercase tracking-wider mb-0.5">riverregionparents.com</div>
+                  <div className="text-[12px] font-semibold text-portal-text line-clamp-2">{previewTitle || '(no title)'}</div>
+                  {previewDescription && (
+                    <div className="text-[10px] text-portal-sub line-clamp-2 mt-0.5">{previewDescription}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 function SharePreviewCard({
   articleId,

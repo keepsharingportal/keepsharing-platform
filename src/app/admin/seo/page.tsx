@@ -51,6 +51,7 @@ const TOOLS = [
   { slug: '404-log',        title: '404 Monitor', desc: 'Top 404 paths. One-click convert any to a 301 redirect.', href: '/admin/seo/404-log', icon: AlertTriangle },
   { slug: 'internal-links', title: 'Internal Link Queue', desc: 'Auto-found linking opportunities. Editor approves or rejects.', href: '/admin/seo/internal-links', icon: LinkIcon },
   { slug: 'schema-validator', title: 'Schema Graph Validator', desc: 'Crawl + verify Organization/Author/Article @id consistency. Catches silent rich-result loss.', href: '/admin/seo/schema-validator', icon: ShieldCheck },
+  { slug: 'bulk-seeder',    title: 'Bulk SEO Seeder', desc: 'Backfill SEO copy on every published article missing it. Runs Claude in batches of 5.', href: '/admin/seo/bulk-seeder', icon: Sparkles },
   { slug: 'bulk',           title: 'Bulk SEO Edit', desc: 'Filter, multi-select, apply across many articles at once.', href: '/admin/seo/bulk', icon: ListChecks },
   { slug: 'seo-health',     title: 'Route Coverage Audit', desc: 'Every static page route + which SEO surfaces each one taps.', href: '/admin/seo-health', icon: Activity },
 ] as const
