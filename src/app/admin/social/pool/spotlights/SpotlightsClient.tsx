@@ -3,48 +3,52 @@
 import { useState } from 'react'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 
+// Existing community_spotlights table uses honoree_* + hero_image_url +
+// full_story_link from migration 037. Migration 200 added brand_slug,
+// tone_hint, times_used, last_used_at to the same table. We keep using
+// the historical column names so homepage + strategist share rows.
 interface SpotlightRow {
-  id:            string
-  brand_slug:    string | null
-  spotlight_type: string
-  name:          string
-  blurb:         string
-  image_url:     string | null
-  link_url:      string | null
-  tone_hint:     string | null
-  is_active:     boolean
-  times_used:    number
+  id:               string
+  brand_slug:       string | null
+  spotlight_type:   string
+  honoree_name:     string
+  honoree_context:  string | null
+  hero_image_url:   string | null
+  full_story_link:  string | null
+  tone_hint:        string | null
+  is_active:        boolean
+  times_used:       number
 }
 
-const TYPES  = ['business', 'person', 'student', 'volunteer', 'school', 'event']
+const TYPES  = ['business', 'person', 'student', 'volunteer', 'school', 'event', 'teacher', 'grands']
 const BRANDS = ['', 'rrp', 'rr50plus', 'aop', 'mbp', 'esp', 'gpp']
 const TONES  = ['', 'tender', 'celebratory', 'inspiring', 'supportive', 'practical']
 
 export function SpotlightsClient({ initial }: { initial: SpotlightRow[] }) {
   const [rows, setRows] = useState<SpotlightRow[]>(initial)
   const [busy, setBusy] = useState(false)
-  const [draft, setDraft] = useState({ spotlight_type: 'person', name: '', blurb: '', image_url: '', link_url: '', brand_slug: '', tone_hint: '' })
+  const [draft, setDraft] = useState({ spotlight_type: 'person', honoree_name: '', honoree_context: '', hero_image_url: '', full_story_link: '', brand_slug: '', tone_hint: '' })
 
   async function add() {
-    if (!draft.name.trim() || !draft.blurb.trim()) return
+    if (!draft.honoree_name.trim() || !draft.honoree_context.trim()) return
     setBusy(true)
     try {
       const res = await fetch('/api/admin/social/pool/spotlights', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          spotlight_type: draft.spotlight_type,
-          name:           draft.name.trim(),
-          blurb:          draft.blurb.trim(),
-          image_url:      draft.image_url.trim() || null,
-          link_url:       draft.link_url.trim()  || null,
-          brand_slug:     draft.brand_slug || null,
-          tone_hint:      draft.tone_hint || null,
+          spotlight_type:  draft.spotlight_type,
+          honoree_name:    draft.honoree_name.trim(),
+          honoree_context: draft.honoree_context.trim(),
+          hero_image_url:  draft.hero_image_url.trim() || null,
+          full_story_link: draft.full_story_link.trim() || null,
+          brand_slug:      draft.brand_slug || null,
+          tone_hint:       draft.tone_hint  || null,
         }),
       })
       const j = await res.json()
       if (res.ok) {
         setRows([j as SpotlightRow, ...rows])
-        setDraft({ spotlight_type: 'person', name: '', blurb: '', image_url: '', link_url: '', brand_slug: '', tone_hint: '' })
+        setDraft({ spotlight_type: 'person', honoree_name: '', honoree_context: '', hero_image_url: '', full_story_link: '', brand_slug: '', tone_hint: '' })
       }
     } finally { setBusy(false) }
   }
@@ -77,18 +81,18 @@ export function SpotlightsClient({ initial }: { initial: SpotlightRow[] }) {
             className="px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white"
           ><option value="">Auto-tone</option>{TONES.slice(1).map(t => <option key={t} value={t}>{t}</option>)}</select>
         </div>
-        <input type="text" value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
-          placeholder="Name" className="w-full px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white" />
-        <textarea rows={3} value={draft.blurb} onChange={e => setDraft(d => ({ ...d, blurb: e.target.value }))}
-          placeholder="2-3 sentence blurb the strategist uses to seed the caption"
+        <input type="text" value={draft.honoree_name} onChange={e => setDraft(d => ({ ...d, honoree_name: e.target.value }))}
+          placeholder="Honoree name" className="w-full px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white" />
+        <textarea rows={3} value={draft.honoree_context} onChange={e => setDraft(d => ({ ...d, honoree_context: e.target.value }))}
+          placeholder="2-3 sentence context the strategist uses to seed the caption"
           className="w-full px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white resize-vertical" />
         <div className="grid sm:grid-cols-2 gap-2">
-          <input type="url" value={draft.image_url} onChange={e => setDraft(d => ({ ...d, image_url: e.target.value }))}
+          <input type="url" value={draft.hero_image_url} onChange={e => setDraft(d => ({ ...d, hero_image_url: e.target.value }))}
             placeholder="Image URL" className="px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white" />
-          <input type="url" value={draft.link_url} onChange={e => setDraft(d => ({ ...d, link_url: e.target.value }))}
+          <input type="url" value={draft.full_story_link} onChange={e => setDraft(d => ({ ...d, full_story_link: e.target.value }))}
             placeholder="Link URL (optional)" className="px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white" />
         </div>
-        <button type="button" onClick={add} disabled={busy || !draft.name.trim() || !draft.blurb.trim()}
+        <button type="button" onClick={add} disabled={busy || !draft.honoree_name.trim() || !draft.honoree_context.trim()}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white bg-portal-navy rounded hover:opacity-90 disabled:opacity-50">
           {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />} Add
         </button>
@@ -111,8 +115,8 @@ export function SpotlightsClient({ initial }: { initial: SpotlightRow[] }) {
             {rows.map(r => (
               <tr key={r.id} className="border-b border-portal-border last:border-b-0 hover:bg-portal-bg">
                 <td className="px-3 py-2 text-portal-sub uppercase font-bold text-[10px]">{r.spotlight_type}</td>
-                <td className="px-3 py-2 text-portal-text font-bold">{r.name}</td>
-                <td className="px-3 py-2 text-portal-sub max-w-md truncate">{r.blurb}</td>
+                <td className="px-3 py-2 text-portal-text font-bold">{r.honoree_name}</td>
+                <td className="px-3 py-2 text-portal-sub max-w-md truncate">{r.honoree_context ?? '—'}</td>
                 <td className="px-3 py-2 text-portal-sub">{r.brand_slug ?? 'all'}</td>
                 <td className="px-3 py-2 text-portal-sub">{r.times_used}</td>
                 <td className="px-3 py-2">

@@ -182,9 +182,12 @@ export async function gatherCandidates(sb: SupabaseClient, brandSlug: string): P
   }
 
   // ── Community spotlights ────────────────────────────────────
+  // The table predates the strategist (migration 037) — uses honoree_name /
+  // honoree_context / hero_image_url / full_story_link. Migration 200
+  // ALTERs in brand_slug + tone_hint + times_used + last_used_at.
   const { data: spots } = await sb
     .from('community_spotlights')
-    .select('id, name, blurb, image_url, link_url, brand_slug, tone_hint, last_used_at')
+    .select('id, honoree_name, honoree_context, hero_image_url, full_story_link, brand_slug, tone_hint, last_used_at')
     .eq('is_active', true)
     .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
     .order('times_used', { ascending: true })
@@ -195,10 +198,10 @@ export async function gatherCandidates(sb: SupabaseClient, brandSlug: string): P
       sourceKind:  'spotlight',
       sourceId:    s.id as string,
       brandSlug:   (s.brand_slug as string | null) ?? null,
-      title:       s.name as string,
-      preview:     (s.blurb as string) ?? '',
-      imageUrl:    (s.image_url as string | null) ?? null,
-      link:        (s.link_url as string | null) ?? null,
+      title:       s.honoree_name as string,
+      preview:     (s.honoree_context as string | null) ?? '',
+      imageUrl:    (s.hero_image_url as string | null) ?? null,
+      link:        (s.full_story_link as string | null) ?? null,
       publishedAt: null,
       anchorDate:  null,
       lastUsedAt:  (s.last_used_at as string | null) ?? null,

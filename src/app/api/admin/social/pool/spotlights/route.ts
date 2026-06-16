@@ -4,13 +4,17 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
 
-const ALLOWED = ['spotlight_type', 'name', 'blurb', 'image_url', 'link_url', 'brand_slug', 'tone_hint']
+// Note: legacy community_spotlights schema (migration 037) uses
+// honoree_name / honoree_context / hero_image_url / full_story_link.
+// We honor those column names; migration 200 added the strategist
+// columns (brand_slug, tone_hint, times_used, last_used_at).
+const ALLOWED = ['spotlight_type', 'honoree_name', 'honoree_context', 'hero_image_url', 'full_story_link', 'brand_slug', 'tone_hint']
 
 export async function POST(req: NextRequest) {
   await requireSettingsAccess()
   const body = await req.json().catch(() => ({})) as Record<string, unknown>
-  if (!body.spotlight_type || !body.name || !body.blurb) {
-    return NextResponse.json({ error: 'spotlight_type, name, blurb required' }, { status: 400 })
+  if (!body.spotlight_type || !body.honoree_name || !body.honoree_context) {
+    return NextResponse.json({ error: 'spotlight_type, honoree_name, honoree_context required' }, { status: 400 })
   }
   const insert: Record<string, unknown> = {}
   for (const k of ALLOWED) if (k in body) insert[k] = body[k]

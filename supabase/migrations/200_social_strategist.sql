@@ -136,21 +136,17 @@ CREATE INDEX IF NOT EXISTS idx_curated_videos_active_brand
   ON curated_videos (is_active, brand_slug);
 
 -- ── community_spotlights ────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS community_spotlights (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  brand_slug   TEXT,
-  spotlight_type TEXT NOT NULL CHECK (spotlight_type IN ('business','person','student','volunteer','school','event')),
-  name         TEXT NOT NULL,
-  blurb        TEXT NOT NULL,                   -- ~2-3 sentences for the caption seed
-  image_url    TEXT,
-  link_url     TEXT,                            -- optional related page
-  tone_hint    TEXT,
-  is_active    BOOLEAN NOT NULL DEFAULT TRUE,
-  times_used   INT NOT NULL DEFAULT 0,
-  last_used_at TIMESTAMPTZ,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_by   UUID
-);
+-- This table already exists from migration 037 with schema:
+--   honoree_name, honoree_context, hero_image_url, full_story_link,
+--   spotlight_type, is_active, display_order, featured_month/year, created_at
+-- The strategist's pool admin reuses those existing columns and adds
+-- brand_slug + tone_hint + times_used + last_used_at via ALTER.
+ALTER TABLE community_spotlights
+  ADD COLUMN IF NOT EXISTS brand_slug   TEXT,
+  ADD COLUMN IF NOT EXISTS tone_hint    TEXT,
+  ADD COLUMN IF NOT EXISTS times_used   INT NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS created_by   UUID;
 
 CREATE INDEX IF NOT EXISTS idx_community_spotlights_active_brand
   ON community_spotlights (is_active, brand_slug);

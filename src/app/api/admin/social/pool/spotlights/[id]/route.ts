@@ -4,7 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
 
-const ALLOWED = ['spotlight_type', 'name', 'blurb', 'image_url', 'link_url', 'brand_slug', 'tone_hint', 'is_active']
+// Honors legacy community_spotlights schema (migration 037).
+const ALLOWED = ['spotlight_type', 'honoree_name', 'honoree_context', 'hero_image_url', 'full_story_link', 'brand_slug', 'tone_hint', 'is_active']
 
 interface RouteParams { params: Promise<{ id: string }> }
 
