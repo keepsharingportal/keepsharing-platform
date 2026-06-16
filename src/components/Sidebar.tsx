@@ -173,6 +173,8 @@ const NAV: NavItem[] = [
   // order an editor uses them: hub for the weekly plan, urgent insert,
   // pool admin (quotes/videos/spotlights), performance, GHL setup,
   // legacy audit/queue at the bottom.
+  { name: 'Birthday Bash',     href: '/admin/birthday',     icon: Sparkles },
+
   { section: 'SOCIAL' },
   { name: 'Social Plan',        href: '/admin/social/plan',        icon: Share2     },
   { name: 'Content Pool',       href: '/admin/social/pool',        icon: Sparkles   },

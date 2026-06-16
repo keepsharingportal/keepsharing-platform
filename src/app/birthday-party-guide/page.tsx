@@ -1,17 +1,216 @@
-import { GuideDetailPage, generateGuideDetailMetadata } from '@/components/guides/GuideDetailPage'
+// ── /birthday-party-guide — "The Big Birthday Bash" ──────────────
+//
+// The Ultimate Planning Portal for River Region moms (and 5 sibling
+// brands when they activate). Replaces the generic GuideDetailPage
+// template with a hand-crafted portal layout that maps to the
+// mom-planning-a-birthday journey:
+//   Inspire → Plan → Source → Save → Show off
+//
+// Most blocks are editor-managed via tables introduced in migration 202;
+// articles + listings + ad placements come from existing infrastructure.
+
 import type { Metadata } from 'next'
+import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 
-export const revalidate = 3600
+import { BigBirthdayBashHero }    from '@/components/birthday/BigBirthdayBashHero'
+import { BirthdayJumpNav }        from '@/components/birthday/BirthdayJumpNav'
+import { BirthdayThisMonth }      from '@/components/birthday/BirthdayThisMonth'
+import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
+import { BudgetTiers }            from '@/components/birthday/BudgetTiers'
+import { TrendingThemes }         from '@/components/birthday/TrendingThemes'
+import { BirthdayCategoryBrowser } from '@/components/birthday/BirthdayCategoryBrowser'
+import { RealRiverRegionParties } from '@/components/birthday/RealRiverRegionParties'
+import { BirthdayArticles }       from '@/components/birthday/BirthdayArticles'
+import { GiftGuidesByAge }        from '@/components/birthday/GiftGuidesByAge'
+import { BirthdayFreebies }       from '@/components/birthday/BirthdayFreebies'
+import { BirthdayPrintables }     from '@/components/birthday/BirthdayPrintables'
+import { BirthdayPoll }           from '@/components/birthday/BirthdayPoll'
+import { MomToMomTips }           from '@/components/birthday/MomToMomTips'
+import { BirthdayMap }            from '@/components/birthday/BirthdayMap'
+import { SubmitVendorTip }        from '@/components/birthday/SubmitVendorTip'
+import { BirthdayInsiderSignup }  from '@/components/birthday/BirthdayInsiderSignup'
+import { BirthdaySidebarSponsor } from '@/components/birthday/BirthdaySidebarSponsor'
+import { BirthdaySectionSponsor } from '@/components/birthday/BirthdaySectionSponsor'
 
-interface Props {
-  searchParams: Promise<{ category?: string }>
+export const revalidate = 600
+
+function sb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return generateGuideDetailMetadata('birthday-party-guide')
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'The Big Birthday Bash — River Region Birthday Planning Portal',
+    description: 'Every venue, vendor, theme, freebie and tip for planning a kid\'s birthday in the River Region. Local moms have tested every one. Budget tiers, printables, real parties, and 89 vetted vendors in one place.',
+    path:        '/birthday-party-guide',
+    type:        'website',
+    keywords:    [
+      'River Region birthday', 'Montgomery kids birthday', 'birthday party Montgomery AL',
+      'birthday venues Montgomery', 'kids birthday cakes Montgomery', 'birthday freebies Montgomery',
+    ],
+  })
 }
 
-export default async function BirthdayPartyGuidePage({ searchParams }: Props) {
-  const { category } = await searchParams
-  return <GuideDetailPage urlSlug="birthday-party-guide" categoryFilter={category} />
+export default async function BirthdayPartyGuidePage() {
+  const ctx       = await loadBrandContext()
+  const brandSlug = ctx.market.slug
+  const supabase  = sb()
+
+  // Single batched load — all blocks paint together rather than waterfall.
+  const [
+    themesRes, tiersRes, freebiesRes, printablesRes, partiesRes, tipsRes,
+    pollRes, articlesRes, listingCountsRes, sectionSponsorRes,
+  ] = await Promise.all([
+    supabase.from('birthday_themes')
+      .select('*').eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .order('display_order').limit(12),
+    supabase.from('birthday_budget_tiers')
+      .select('*').eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .order('display_order').limit(5),
+    supabase.from('birthday_freebies')
+      .select('*').eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .order('category').limit(40),
+    supabase.from('birthday_printables')
+      .select('*').eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .order('display_order').limit(12),
+    supabase.from('birthday_real_parties')
+      .select('*').eq('status', 'approved').eq('brand_slug', brandSlug)
+      .order('display_order', { ascending: true })
+      .order('created_at',    { ascending: false })
+      .limit(9),
+    supabase.from('birthday_mom_tips')
+      .select('*').eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .order('display_order').limit(6),
+    supabase.from('weekly_polls')
+      .select('id, question, options, vote_counts, total_votes, opens_at, closes_at, is_active')
+      .eq('is_active', true)
+      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
+      .lte('opens_at', new Date().toISOString())
+      .order('opens_at', { ascending: false })
+      .limit(1).maybeSingle(),
+    supabase.from('guide_articles')
+      .select('id, title, slug, column_slug, excerpt, hero_image_url, author_byline, published_at')
+      .eq('published', true).eq('brand_slug', brandSlug)
+      .contains('topics', ['birthday'])
+      .order('published_at', { ascending: false })
+      .limit(6),
+    // Category counts on the existing 89-vendor birthday-party-guide listings
+    supabase.from('guide_listings')
+      .select('category, advertiser_accounts(id, slug, business_name, hero_photo_url, neighborhood)')
+      .eq('guide_type_slug', 'birthday-party-guide')
+      .eq('is_published', true)
+      .limit(200),
+    // Active section sponsor for the page (sponsorship slot)
+    supabase.from('ad_placements')
+      .select('id, ad_headline, ad_description, ad_link, ad_image_url, advertiser:advertiser_accounts(business_name, slug)')
+      .eq('placement_type', 'section_sponsor')
+      .eq('is_active', true)
+      .ilike('placement_context', '%birthday%')
+      .limit(1).maybeSingle(),
+  ])
+
+  // Group category counts for the browser block. Supabase types
+  // advertiser_accounts as an array when joined; we only need the category,
+  // so cast through unknown to avoid the relation-shape mismatch.
+  const listings = (listingCountsRes.data ?? []) as unknown as Array<{ category: string | null }>
+  const categoryCounts = new Map<string, number>()
+  for (const l of listings) {
+    if (l.category) categoryCounts.set(l.category, (categoryCounts.get(l.category) ?? 0) + 1)
+  }
+  const topCategories = Array.from(categoryCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([cat, count]) => ({ cat, count }))
+  const totalListings = listings.length
+
+  return (
+    <main className="bg-[#fffaf5]">
+      <BigBirthdayBashHero totalListings={totalListings} totalCategories={categoryCounts.size} />
+      <BirthdayJumpNav />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        {/* Top section sponsor banner */}
+        <BirthdaySectionSponsor sponsor={(sectionSponsorRes.data as Record<string, unknown> | null) ?? null} />
+
+        <div className="grid lg:grid-cols-3 gap-8 mt-6">
+          {/* Main column — the journey */}
+          <div className="lg:col-span-2 space-y-12">
+
+            <section id="this-month">
+              <BirthdayThisMonth />
+            </section>
+
+            <section id="timeline">
+              <PlanningTimeline brandSlug={brandSlug} />
+            </section>
+
+            <section id="budget">
+              <BudgetTiers tiers={(tiersRes.data ?? []) as Array<Record<string, unknown>>} />
+            </section>
+
+            <section id="themes">
+              <TrendingThemes themes={(themesRes.data ?? []) as Array<Record<string, unknown>>} />
+            </section>
+
+            <section id="vendors">
+              <BirthdayCategoryBrowser
+                topCategories={topCategories}
+                totalListings={totalListings}
+              />
+            </section>
+
+            <section id="real-parties">
+              <RealRiverRegionParties parties={(partiesRes.data ?? []) as Array<Record<string, unknown>>} />
+            </section>
+
+            <section id="articles">
+              <BirthdayArticles articles={(articlesRes.data ?? []) as Array<Record<string, unknown>>} />
+            </section>
+
+            <section id="gift-guides">
+              <GiftGuidesByAge />
+            </section>
+
+            <section id="freebies">
+              <BirthdayFreebies freebies={(freebiesRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
+            </section>
+
+            <section id="printables">
+              <BirthdayPrintables printables={(printablesRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
+            </section>
+
+            <section id="tips">
+              <MomToMomTips tips={(tipsRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
+            </section>
+
+            <section id="submit">
+              <SubmitVendorTip />
+            </section>
+
+          </div>
+
+          {/* Right rail — sticky on desktop */}
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <BirthdaySidebarSponsor brand={ctx.market.displayName} />
+
+            <BirthdayPoll poll={(pollRes.data as Record<string, unknown> | null) ?? null} />
+
+            <BirthdayMap />
+
+            <BirthdayInsiderSignup brandSlug={brandSlug} />
+          </aside>
+        </div>
+      </div>
+    </main>
+  )
 }
