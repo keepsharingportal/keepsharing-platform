@@ -31,6 +31,12 @@ export interface SocialPayload {
    *  AI generation for that platform. */
   fbCaptionOverride?: string | null
   igCaptionOverride?: string | null
+  /** Author byline / display name — when set, caption generator
+   *  references by first name ("Dr. Beth's take..."). */
+  authorName?: string | null
+  /** Column display label (e.g. "Mom Knows Best") — when set,
+   *  generator mentions it casually. */
+  columnLabel?: string | null
 }
 
 function originForBrand(brandSlug: string | null): string {
@@ -44,21 +50,29 @@ export async function loadArticlePayload(
 ): Promise<SocialPayload | null> {
   const { data } = await sb
     .from('guide_articles')
-    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description, social_hook, social_voice_tone, social_fb_caption, social_ig_caption')
+    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description, social_hook, social_voice_tone, social_fb_caption, social_ig_caption, author_byline, author_name')
     .eq('id', id)
     .maybeSingle()
   if (!data) return null
   const brand = (data.brand_slug as string | null) ?? 'rrp'
   const origin = originForBrand(brand)
   const path = data.column_slug ? `/columns/${data.column_slug}/${data.slug}` : `/articles/${data.slug}`
+
+  // Resolve column display label so the caption generator can mention
+  // it casually. column_slug like 'mom-knows-best' → 'Mom Knows Best'.
+  const columnSlug = (data.column_slug as string | null) ?? null
+  let columnLabel: string | null = null
+  if (columnSlug) {
+    try {
+      const { findColumn } = await import('@/lib/content-taxonomy')
+      columnLabel = findColumn(columnSlug)?.label ?? null
+    } catch { /* taxonomy import fails in some contexts — degrade silently */ }
+  }
+
   return {
     sourceKind: 'article',
     sourceId:   data.id as string,
     brandSlug:  brand,
-    // Article TITLE goes to the social engine — not the seo_title.
-    // The seo_title is for Google + the link-preview card; the social
-    // caption uses the article's own title since it's the headline a
-    // human chose for the piece.
     title:      data.title as string,
     excerpt:    (data.excerpt as string | null) ?? null,
     link:       `${origin}${path}`,
@@ -67,6 +81,8 @@ export async function loadArticlePayload(
     voiceTone:         (data.social_voice_tone  as string | null) ?? null,
     fbCaptionOverride: (data.social_fb_caption  as string | null) ?? null,
     igCaptionOverride: (data.social_ig_caption  as string | null) ?? null,
+    authorName:        ((data.author_byline as string | null) ?? (data.author_name as string | null)) ?? null,
+    columnLabel,
   }
 }
 

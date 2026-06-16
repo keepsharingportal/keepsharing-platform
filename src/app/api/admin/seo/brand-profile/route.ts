@@ -29,9 +29,10 @@ export async function POST(req: NextRequest) {
       negativeSpace:       body.negativeSpace       as never,
       uniqueAngles:        body.uniqueAngles        as never,
       voiceNotes:          body.voiceNotes          as never,
-      editorialPrefs:      body.editorialPrefs      as never,
-      competitorIntel:     body.competitorIntel     as never,
-      editedBy:            adminCtx.userId ?? null,
+      editorialPrefs:         body.editorialPrefs         as never,
+      competitorIntel:        body.competitorIntel        as never,
+      socialCaptionExamples:  body.socialCaptionExamples  as never,
+      editedBy:               adminCtx.userId ?? null,
     })
     return NextResponse.json({ ok: true })
   } catch (e) {

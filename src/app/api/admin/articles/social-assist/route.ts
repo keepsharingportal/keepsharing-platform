@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
         contentType:  'article',
         socialHook:   payload.socialHook,
         tone,
+        authorName:   payload.authorName,
+        columnLabel:  payload.columnLabel,
       },
       ['facebook', 'instagram'],
     )

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Sparkles, Save, Loader2, Plus, Trash2, AlertTriangle, CheckCircle2, RotateCw } from 'lucide-react'
 import type {
   BrandSeoProfile, Pillar, SubArea, Persona, CalendarMonth, LinkableAsset,
-  EditorialPrefs, CompetitorIntel, CompetitorEntry,
+  EditorialPrefs, CompetitorIntel, CompetitorEntry, SocialCaptionExample,
 } from '@/lib/seo/brand-profile'
 
 interface BrandOpt { slug: string; name: string; short: string }
@@ -20,7 +20,7 @@ interface Props {
   initial:   BrandSeoProfile
 }
 
-const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative', 'Prefs', 'Competitors'] as const
+const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative', 'Prefs', 'Competitors', 'Social Examples'] as const
 type Tab = typeof TABS[number]
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -40,8 +40,9 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
   const [negativeSpace,     setNegativeSpace]     = useState<string[]>(initial.negativeSpace)
   const [uniqueAngles,      setUniqueAngles]      = useState<string[]>(initial.uniqueAngles)
   const [voiceNotes,        setVoiceNotes]        = useState<string>(initial.voiceNotes)
-  const [editorialPrefs,    setEditorialPrefs]    = useState<EditorialPrefs>(initial.editorialPrefs ?? {})
-  const [competitorIntel,   setCompetitorIntel]   = useState<CompetitorIntel>(initial.competitorIntel ?? {})
+  const [editorialPrefs,        setEditorialPrefs]        = useState<EditorialPrefs>(initial.editorialPrefs ?? {})
+  const [competitorIntel,       setCompetitorIntel]       = useState<CompetitorIntel>(initial.competitorIntel ?? {})
+  const [socialCaptionExamples, setSocialCaptionExamples] = useState<SocialCaptionExample[]>(initial.socialCaptionExamples ?? [])
 
   const [saving,  setSaving]  = useState(false)
   const [seeding, setSeeding] = useState(false)
@@ -59,7 +60,7 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
           brandSlug,
           pillars, subAreas, personas, editorialCalendar,
           linkableAssets, negativeSpace, uniqueAngles, voiceNotes,
-          editorialPrefs, competitorIntel,
+          editorialPrefs, competitorIntel, socialCaptionExamples,
         }),
       })
       const j = await res.json()
@@ -208,6 +209,7 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
         {tab === 'Negative'   && <NegativeTab  negativeSpace={negativeSpace} setNegativeSpace={setNegativeSpace} />}
         {tab === 'Prefs'      && <PrefsTab     editorialPrefs={editorialPrefs} setEditorialPrefs={setEditorialPrefs} />}
         {tab === 'Competitors'&& <CompetitorsTab competitorIntel={competitorIntel} setCompetitorIntel={setCompetitorIntel} />}
+        {tab === 'Social Examples' && <SocialExamplesTab examples={socialCaptionExamples} setExamples={setSocialCaptionExamples} />}
       </div>
     </div>
   )
@@ -332,6 +334,57 @@ function VoiceTab({ voiceNotes, setVoiceNotes, uniqueAngles, setUniqueAngles }: 
           style={{ ...input, resize: 'vertical', minHeight: 100 }}
           placeholder="What makes this publication different from local competitors. One per line." />
       </Field>
+    </section>
+  )
+}
+
+function SocialExamplesTab({ examples, setExamples }: { examples: SocialCaptionExample[]; setExamples: (e: SocialCaptionExample[]) => void }) {
+  function add() {
+    setExamples([...examples, { caption: '', platform: undefined, note: '' }])
+  }
+  function update(i: number, patch: Partial<SocialCaptionExample>) {
+    setExamples(examples.map((x, j) => j === i ? { ...x, ...patch } : x))
+  }
+  function remove(i: number) {
+    setExamples(examples.filter((_, j) => j !== i))
+  }
+  return (
+    <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <P>
+        <strong>Captions that hit perfectly.</strong> The caption generator picks 2-3 of these at random
+        on every AI call to match your real voice. Examples beat abstract voice instructions — Claude copies
+        the rhythm, warmth, and length far better when it can SEE what works.
+      </P>
+      <P>
+        Paste 5-10 of your best-performing posts (Facebook or Instagram). Add a short note about WHY each one
+        worked if you can — that helps Claude generalize the lesson, not just copy the words.
+      </P>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {examples.map((e, i) => (
+          <Card key={i} onDelete={() => remove(i)}>
+            <Row>
+              <Field label="Platform (optional)">
+                <select value={e.platform ?? ''} onChange={ev => update(i, { platform: (ev.target.value || undefined) as SocialCaptionExample['platform'] })} style={input}>
+                  <option value="">— Any / no platform —</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="twitter">Twitter / X</option>
+                  <option value="pinterest">Pinterest</option>
+                </select>
+              </Field>
+              <Field label="Why it worked (optional)">
+                <input type="text" value={e.note ?? ''} onChange={ev => update(i, { note: ev.target.value })} style={input} placeholder="e.g. Personal hook + reframe; light emoji; no clickbait" />
+              </Field>
+            </Row>
+            <Field label="Caption">
+              <textarea value={e.caption} onChange={ev => update(i, { caption: ev.target.value })} rows={5}
+                style={{ ...input, resize: 'vertical', minHeight: 90 }}
+                placeholder="Paste the full caption text here, exactly as it was posted." />
+            </Field>
+          </Card>
+        ))}
+      </div>
+      <AddBtn onClick={add}>Add example</AddBtn>
     </section>
   )
 }

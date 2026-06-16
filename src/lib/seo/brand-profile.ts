@@ -82,40 +82,48 @@ export interface LastGenerationMeta {
   model?:                   string
 }
 
+export interface SocialCaptionExample {
+  caption:   string
+  platform?: 'facebook' | 'instagram' | 'twitter' | 'pinterest'
+  note?:     string
+}
+
 export interface BrandSeoProfile {
-  brandSlug:          string
-  pillars:            Pillar[]
-  subAreas:           SubArea[]
-  personas:           Persona[]
-  editorialCalendar:  Record<string, CalendarMonth>  // keys '1'..'12'
-  linkableAssets:     LinkableAsset[]
-  negativeSpace:      string[]
-  uniqueAngles:       string[]
-  voiceNotes:         string
-  editorialPrefs:     EditorialPrefs
-  competitorIntel:    CompetitorIntel
-  lastGenerationMeta: LastGenerationMeta
-  generatedByAiAt:    string | null
-  lastEditedAt:       string
-  lastEditedBy:       string | null
+  brandSlug:              string
+  pillars:                Pillar[]
+  subAreas:               SubArea[]
+  personas:               Persona[]
+  editorialCalendar:      Record<string, CalendarMonth>  // keys '1'..'12'
+  linkableAssets:         LinkableAsset[]
+  negativeSpace:          string[]
+  uniqueAngles:           string[]
+  voiceNotes:             string
+  editorialPrefs:         EditorialPrefs
+  competitorIntel:        CompetitorIntel
+  socialCaptionExamples:  SocialCaptionExample[]
+  lastGenerationMeta:     LastGenerationMeta
+  generatedByAiAt:        string | null
+  lastEditedAt:           string
+  lastEditedBy:           string | null
 }
 
 const EMPTY_PROFILE = (brandSlug: string): BrandSeoProfile => ({
   brandSlug,
-  pillars:           [],
-  subAreas:          [],
-  personas:          [],
-  editorialCalendar: {},
-  linkableAssets:    [],
-  negativeSpace:     [],
-  uniqueAngles:      [],
-  voiceNotes:        '',
-  editorialPrefs:    {},
-  competitorIntel:   {},
-  lastGenerationMeta:{},
-  generatedByAiAt:   null,
-  lastEditedAt:      new Date().toISOString(),
-  lastEditedBy:      null,
+  pillars:               [],
+  subAreas:              [],
+  personas:              [],
+  editorialCalendar:     {},
+  linkableAssets:        [],
+  negativeSpace:         [],
+  uniqueAngles:          [],
+  voiceNotes:            '',
+  editorialPrefs:        {},
+  competitorIntel:       {},
+  socialCaptionExamples: [],
+  lastGenerationMeta:    {},
+  generatedByAiAt:       null,
+  lastEditedAt:          new Date().toISOString(),
+  lastEditedBy:          null,
 })
 
 // ── Load ────────────────────────────────────────────────────────────────────
@@ -141,9 +149,10 @@ export async function loadBrandProfile(
     negativeSpace:     (data.negative_space as string[] | null) ?? [],
     uniqueAngles:      (data.unique_angles as string[] | null) ?? [],
     voiceNotes:        (data.voice_notes as string | null) ?? '',
-    editorialPrefs:    (data.editorial_prefs       as EditorialPrefs     | null) ?? {},
-    competitorIntel:   (data.competitor_intel      as CompetitorIntel    | null) ?? {},
-    lastGenerationMeta:(data.last_generation_meta  as LastGenerationMeta | null) ?? {},
+    editorialPrefs:        (data.editorial_prefs          as EditorialPrefs           | null) ?? {},
+    competitorIntel:       (data.competitor_intel         as CompetitorIntel          | null) ?? {},
+    socialCaptionExamples: (data.social_caption_examples  as SocialCaptionExample[]   | null) ?? [],
+    lastGenerationMeta:    (data.last_generation_meta     as LastGenerationMeta       | null) ?? {},
     generatedByAiAt:   data.generated_by_ai_at as string | null,
     lastEditedAt:      (data.last_edited_at as string | null) ?? new Date().toISOString(),
     lastEditedBy:      data.last_edited_by as string | null,
@@ -162,9 +171,10 @@ export interface SaveBrandProfileInput {
   negativeSpace?:     string[]
   uniqueAngles?:      string[]
   voiceNotes?:        string
-  editorialPrefs?:    EditorialPrefs
-  competitorIntel?:   CompetitorIntel
-  lastGenerationMeta?: LastGenerationMeta
+  editorialPrefs?:        EditorialPrefs
+  competitorIntel?:       CompetitorIntel
+  socialCaptionExamples?: SocialCaptionExample[]
+  lastGenerationMeta?:    LastGenerationMeta
   generatedByAi?:     boolean
   editedBy?:          string | null
 }
@@ -187,9 +197,10 @@ export async function saveBrandProfile(
   if (input.negativeSpace       !== undefined) update.negative_space        = input.negativeSpace
   if (input.uniqueAngles        !== undefined) update.unique_angles         = input.uniqueAngles
   if (input.voiceNotes          !== undefined) update.voice_notes           = input.voiceNotes
-  if (input.editorialPrefs      !== undefined) update.editorial_prefs       = input.editorialPrefs
-  if (input.competitorIntel     !== undefined) update.competitor_intel      = input.competitorIntel
-  if (input.lastGenerationMeta  !== undefined) update.last_generation_meta  = input.lastGenerationMeta
+  if (input.editorialPrefs         !== undefined) update.editorial_prefs           = input.editorialPrefs
+  if (input.competitorIntel        !== undefined) update.competitor_intel          = input.competitorIntel
+  if (input.socialCaptionExamples  !== undefined) update.social_caption_examples   = input.socialCaptionExamples
+  if (input.lastGenerationMeta     !== undefined) update.last_generation_meta      = input.lastGenerationMeta
   if (input.generatedByAi)                     update.generated_by_ai_at    = now
 
   await sb.from('brand_seo_profiles').upsert(update, { onConflict: 'brand_slug' })

@@ -36,7 +36,7 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
   // Each migration is detected by a head=true SELECT on the table it
   // creates. If the relation doesn't exist Supabase returns the
   // PostgREST PGRST205 / 42P01 error — we treat that as 'missing'.
-  const [m187, m188, m189, m190, m191, m192, m193, gscData] = await Promise.all([
+  const [m187, m188, m189, m190, m191, m192, m193, m196, m197, gscData] = await Promise.all([
     tableExists(sb, 'search_console_data'),
     tableExists(sb, 'brand_seo_profiles'),
     tableExists(sb, 'seo_authors'),
@@ -44,6 +44,8 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
     tableExists(sb, 'page_metadata_overrides'),
     tableExists(sb, 'social_queue'),
     tableExists(sb, 'themed_campaigns'),
+    columnExists(sb, 'guide_articles', 'social_hook'),
+    columnExists(sb, 'brand_seo_profiles', 'social_caption_examples'),
     countRows  (sb, 'search_console_data'),
   ])
 
@@ -118,6 +120,26 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
       action:      m193 ? undefined : {
         label: 'Run 193_themed_campaigns.sql',
         hint:  'supabase/migrations/193_themed_campaigns.sql',
+      },
+    },
+    {
+      key:         '196',
+      title:       'Migration 196 — Social post copy columns',
+      description: 'Adds social_hook + social_fb_caption + social_ig_caption + social_voice_tone to guide_articles. Separates social copy from SEO copy.',
+      status:      m196 ? 'ok' : 'missing',
+      action:      m196 ? undefined : {
+        label: 'Run 196_social_post_copy.sql',
+        hint:  'supabase/migrations/196_social_post_copy.sql',
+      },
+    },
+    {
+      key:         '197',
+      title:       'Migration 197 — Social caption examples',
+      description: 'Adds social_caption_examples JSONB to brand_seo_profiles. Few-shot voice tuning for the AI caption generator.',
+      status:      m197 ? 'ok' : 'missing',
+      action:      m197 ? undefined : {
+        label: 'Run 197_social_caption_examples.sql',
+        hint:  'supabase/migrations/197_social_caption_examples.sql',
       },
     },
     {

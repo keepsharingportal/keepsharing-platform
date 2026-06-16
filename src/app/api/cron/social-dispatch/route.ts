@@ -81,6 +81,8 @@ export async function GET(req: Request) {
             recycleIndex: row.recycle_index,
             socialHook:   payload.socialHook,
             tone:         (payload.voiceTone as 'supportive' | 'celebratory' | 'funny' | 'inspiring' | 'practical' | 'tender' | null) ?? null,
+            authorName:   payload.authorName,
+            columnLabel:  payload.columnLabel,
           }, platformsNeedingAI)
         : []
 
