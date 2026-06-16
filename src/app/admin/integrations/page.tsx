@@ -14,7 +14,7 @@ import { createClient } from '@supabase/supabase-js'
 import {
   Megaphone, ChevronRight, CheckCircle2, AlertCircle, Clock,
   Sparkles, MapPin, Search, CreditCard, MessageCircle, Mail, MessageSquare,
-  Eye, Calendar, Building2,
+  Eye, Calendar, Building2, Share2,
 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Integrations — Admin' }
@@ -110,6 +110,16 @@ const ROADMAP: IntegrationRow[] = [
     href: '/admin/integrations/meta-suite',
     unlocks: 'Post directly to your Facebook Page + Instagram (cross-post), AI caption assist, comments inbox with one-click replies.',
     whyValuable: 'Reuses the Meta token from Marketing. Combined with the AI integration, editorial doesn\'t leave admin to do social ops.',
+  },
+  {
+    id: 'ghl-social',
+    name: 'GHL Social Planner',
+    category: 'Social',
+    status: 'available',
+    icon: Share2,
+    href: '/admin/integrations/ghl-social',
+    unlocks: 'Pushes the AI Social Strategist\'s weekly plan into GHL Social Planner. GHL distributes to FB, IG, GBP, TikTok, LinkedIn, Pinterest, YouTube, Threads, Bluesky.',
+    whyValuable: 'GHL\'s planner is already paid-for and connected to your social accounts. Lets our strategist own the picking + writing while GHL handles the 10-channel distribution.',
   },
 
   // ── Tier 2 — Future consideration ────────────────────────────────────
@@ -277,6 +287,22 @@ export default async function IntegrationsIndexPage() {
   } catch {/* fall through */}
   const stripeEnvFallback = !stripeConnected && !!process.env.STRIPE_SECRET_KEY
 
+  // Probe GHL Social Planner — counts how many brands have BOTH the PIT
+  // env var AND the location ID env var set. We can't call the GHL API
+  // from this server-rendered page without slowing it down, so this is
+  // env-var-presence only. The dedicated /admin/social/ghl-check page
+  // does the live scope + connected-accounts call.
+  const GHL_BRANDS: Array<{ slug: string; pitEnv: string; locEnv: string }> = [
+    { slug: 'rrp',      pitEnv: 'GHL_PIT_RRP',      locEnv: 'GHL_LOCATION_ID_RRP'      },
+    { slug: 'rr50plus', pitEnv: 'GHL_PIT_RR50PLUS', locEnv: 'GHL_LOCATION_ID_RR50PLUS' },
+    { slug: 'aop',      pitEnv: 'GHL_PIT_AOP',      locEnv: 'GHL_LOCATION_ID_AOP'      },
+    { slug: 'mbp',      pitEnv: 'GHL_PIT_MBP',      locEnv: 'GHL_LOCATION_ID_MBP'      },
+    { slug: 'esp',      pitEnv: 'GHL_PIT_ESP',      locEnv: 'GHL_LOCATION_ID_ESP'      },
+    { slug: 'gpp',      pitEnv: 'GHL_PIT_GPP',      locEnv: 'GHL_LOCATION_ID_GPP'      },
+  ]
+  const ghlConfigured = GHL_BRANDS.filter(b => process.env[b.pitEnv] && process.env[b.locEnv]).length
+  const ghlBrandTotal = GHL_BRANDS.length
+
   // Probe Meta Business Suite (extends facebook_integrations with facebook_pages).
   let metaSuiteReady = false
   let metaPageCount  = 0
@@ -303,11 +329,11 @@ export default async function IntegrationsIndexPage() {
     if (r.id === 'ai') {
       return {
         ...r,
-        connected: aiAnyConnected,
-        subtitle:  !aiReady           ? 'Migration 148 pending'
-                  : aiAnyConnected     ? `Connected — ${aiProviders.join(' + ')}`
-                  : aiEnvFallback      ? 'Env-var fallback active — connect to track usage + cap spend'
-                                       : 'Not connected — paste a key to enable',
+        connected: aiAnyConnected || aiEnvFallback,
+        subtitle:  !aiReady          ? 'Migration 148 pending'
+                  : aiAnyConnected    ? `Connected — ${aiProviders.join(' + ')}`
+                  : aiEnvFallback     ? 'Active via env var — optional: add budget cap + usage tracking'
+                                      : 'Not connected — paste a key to enable',
       }
     }
     if (r.id === 'gsc') {
@@ -338,6 +364,15 @@ export default async function IntegrationsIndexPage() {
                   : stripeConnected     ? `Connected — ${stripeMode} mode`
                   : stripeEnvFallback   ? 'Env-var keys active — connect to enable products catalog'
                                         : 'Not connected — paste API keys to enable',
+      }
+    }
+    if (r.id === 'ghl-social') {
+      return {
+        ...r,
+        connected: ghlConfigured > 0,
+        subtitle:  ghlConfigured === ghlBrandTotal ? `Configured for all ${ghlBrandTotal} brands`
+                  : ghlConfigured > 0              ? `Configured for ${ghlConfigured}/${ghlBrandTotal} brands — finish setup`
+                                                   : 'Not configured — paste sub-account PITs to enable',
       }
     }
     if (r.id === 'meta-suite') {

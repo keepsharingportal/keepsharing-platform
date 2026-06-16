@@ -166,11 +166,20 @@ const NAV: NavItem[] = [
   { name: 'Editorial Pipeline', href: '/admin/editorial', icon: Heart },
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
-  { name: 'Social Plan',       href: '/admin/social/plan',  icon: Share2 },
-  { name: 'Content Pool',      href: '/admin/social/pool',  icon: Sparkles },
-  { name: 'Social Performance', href: '/admin/social/performance', icon: TrendingUp },
-  { name: 'Social Queue',      href: '/admin/social-queue', icon: Share2 },
   { name: 'Campaigns',         href: '/admin/campaigns',   icon: Sparkles },
+
+  // ── SOCIAL ───────────────────────────────────────────────────────────────
+  // Everything social-media-related lives under this one group, in the
+  // order an editor uses them: hub for the weekly plan, urgent insert,
+  // pool admin (quotes/videos/spotlights), performance, GHL setup,
+  // legacy audit/queue at the bottom.
+  { section: 'SOCIAL' },
+  { name: 'Social Plan',        href: '/admin/social/plan',        icon: Share2     },
+  { name: 'Content Pool',       href: '/admin/social/pool',        icon: Sparkles   },
+  { name: 'Performance',        href: '/admin/social/performance', icon: TrendingUp },
+  { name: 'GHL Setup',          href: '/admin/social/ghl-check',   icon: Share2     },
+  { name: 'Post Audit Log',     href: '/admin/social',             icon: Share2     },
+  { name: 'Legacy Queue',       href: '/admin/social-queue',       icon: Share2     },
 
   // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },

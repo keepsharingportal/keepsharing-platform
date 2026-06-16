@@ -89,8 +89,8 @@ function ProviderCard(p: CardProps) {
                 <CheckCircle2 size={9} /> Connected
               </span>
             ) : p.envFallbackActive ? (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-portal-amber bg-portal-amber-lt border border-portal-amber/30 px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                <AlertCircle size={9} /> Env-var fallback
+              <span className="text-[10px] font-bold uppercase tracking-wider text-portal-green bg-portal-green-lt border border-portal-green/30 px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                <CheckCircle2 size={9} /> Active via env var
               </span>
             ) : (
               <span className="text-[10px] font-bold uppercase tracking-wider text-portal-sub bg-portal-bg border border-portal-border px-1.5 py-0.5 rounded-full inline-flex items-center gap-1">
@@ -106,7 +106,8 @@ function ProviderCard(p: CardProps) {
           )}
           {!p.row && p.envFallbackActive && (
             <p className="text-[11px] text-portal-sub mt-1 leading-relaxed">
-              Using the {p.provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'} env-var as a fallback. No budget cap is enforced until you connect via the form below. Connect to track usage + cap spend.
+              AI is working — using the {p.provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'} env var.
+              You don&apos;t need to do anything unless you want a monthly budget cap or to see usage in admin.
             </p>
           )}
         </div>
@@ -128,7 +129,7 @@ function ProviderCard(p: CardProps) {
               onClick={() => setShowConnect(true)}
               className="text-xs font-bold text-portal-blue hover:text-portal-blue-dk border border-portal-blue/30 bg-portal-blue-lt px-3 py-1.5 rounded-md"
             >
-              Connect {p.label}
+              {p.envFallbackActive ? `Add budget cap & track usage` : `Connect ${p.label}`}
             </button>
           ) : (
             <ConnectForm
