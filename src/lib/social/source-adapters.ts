@@ -27,10 +27,14 @@ export interface SocialPayload {
   socialHook?: string | null
   /** Editor-pinned tone for the AI caption. */
   voiceTone?:  string | null
-  /** Editor-tuned per-platform caption overrides — when set, skip
-   *  AI generation for that platform. */
+  /** Editor-tuned per-platform caption overrides — when set AND
+   *  socialMode === 'per-platform', skip AI generation for that
+   *  platform and post the override verbatim. In 'hook' mode the
+   *  dispatcher MUST ignore these even if non-null. */
   fbCaptionOverride?: string | null
   igCaptionOverride?: string | null
+  /** Sprint 9 single-source-of-truth pin. Default 'hook'. */
+  socialMode?: 'hook' | 'per-platform'
   /** Author byline / display name — when set, caption generator
    *  references by first name ("Dr. Beth's take..."). */
   authorName?: string | null
@@ -50,7 +54,7 @@ export async function loadArticlePayload(
 ): Promise<SocialPayload | null> {
   const { data } = await sb
     .from('guide_articles')
-    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description, social_hook, social_voice_tone, social_fb_caption, social_ig_caption, author_byline, author_name')
+    .select('id, title, excerpt, slug, column_slug, hero_image_url, brand_slug, seo_title, seo_description, social_hook, social_voice_tone, social_fb_caption, social_ig_caption, social_mode, author_byline, author_name')
     .eq('id', id)
     .maybeSingle()
   if (!data) return null
@@ -81,6 +85,7 @@ export async function loadArticlePayload(
     voiceTone:         (data.social_voice_tone  as string | null) ?? null,
     fbCaptionOverride: (data.social_fb_caption  as string | null) ?? null,
     igCaptionOverride: (data.social_ig_caption  as string | null) ?? null,
+    socialMode:        ((data.social_mode as string | null) ?? 'hook') === 'per-platform' ? 'per-platform' : 'hook',
     authorName:        ((data.author_byline as string | null) ?? (data.author_name as string | null)) ?? null,
     columnLabel,
   }

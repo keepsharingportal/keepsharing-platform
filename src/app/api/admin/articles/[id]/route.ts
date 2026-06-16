@@ -63,6 +63,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       // Social post copy (migration 196) — inline panel writes these.
       'social_hook', 'social_fb_caption', 'social_ig_caption',
       'social_voice_tone', 'social_ai_seeded_at',
+      // Sprint 9 — single-source-of-truth pin for social copy.
+      'social_mode',
     ]
 
     const update: Record<string, unknown> = {}
@@ -112,7 +114,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // yet if migration 157 hasn't run.
     const { data: priorData } = await supabase
       .from('guide_articles')
-      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at, queue_for_print, print_queued_at, social_hook, social_fb_caption, social_ig_caption')
+      .select('published, auto_post_to_social, auto_posted_at, queue_newsletter_draft, newsletter_drafted_at, queue_for_print, print_queued_at, social_hook, social_fb_caption, social_ig_caption, social_mode')
       .eq('id', id)
       .maybeSingle()
     const prior = priorData as null | {
@@ -126,6 +128,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       social_hook: string | null;
       social_fb_caption: string | null;
       social_ig_caption: string | null;
+      social_mode: string | null;
     }
 
     const { error } = await supabase.from('guide_articles').update(update).eq('id', id)
@@ -236,8 +239,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'social_hook' in update
         ? (update.social_hook as string | null) ?? null
         : prior?.social_hook ?? null
+    const effectiveMode =
+      'social_mode' in update
+        ? (update.social_mode as string | null) ?? 'hook'
+        : prior?.social_mode ?? 'hook'
     const hookIsEmpty = !effectiveHook || String(effectiveHook).trim() === ''
-    if (!wasPublished && nowPublished && hookIsEmpty) {
+    const isHookMode  = effectiveMode === 'hook'
+    if (!wasPublished && nowPublished && hookIsEmpty && isHookMode) {
       void (async () => {
         try {
           const sb2 = supabaseAdmin()
@@ -266,10 +274,19 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           const igCaption = ig
             ? `${ig.caption}${ig.hashtags && ig.hashtags.length ? '\n\n' + ig.hashtags.join(' ') : ''}`
             : ''
+          // Sprint 9: write the hook only and pin to hook mode. The
+          // dispatcher will AI-regenerate FB + IG from this hook each
+          // time the queue fires — no stale duplicate copy to maintain.
+          // We intentionally clear social_fb_caption / social_ig_caption
+          // so an article that was previously per-platform-mode + then
+          // auto-republished doesn't have orphaned overrides hanging
+          // around in the wrong mode.
+          void fb; void igCaption // referenced for the hook derivation above
           await sb2.from('guide_articles').update({
+            social_mode:         'hook',
             social_hook:         hook || null,
-            social_fb_caption:   fb?.caption ?? null,
-            social_ig_caption:   igCaption || null,
+            social_fb_caption:   null,
+            social_ig_caption:   null,
             social_ai_seeded_at: new Date().toISOString(),
           }).eq('id', id)
         } catch (e) {

@@ -52,16 +52,20 @@ export async function findSocialSeedCandidates(
 
   if (mode === 'reseed-ai') {
     // Re-process rows the seeder previously wrote — but exclude any
-    // within the last 30 minutes so auto-continue can't loop.
+    // within the last 30 minutes so auto-continue can't loop. Also
+    // skip per-platform mode rows: those have editor-written verbatim
+    // captions and the hook isn't authoritative there.
     const freshCutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
     q = q.not('social_ai_seeded_at', 'is', null)
     q = q.lt('social_ai_seeded_at', freshCutoff)
+    q = q.eq('social_mode', 'hook')
   } else {
-    // Rows where social_hook isn't set yet. Editor-written rows (with
-    // social_ai_seeded_at NULL but social_hook populated) are
-    // automatically protected because the OR-clause requires
-    // social_hook empty.
+    // Rows in 'hook' mode where the hook isn't set yet. Editor-written
+    // rows (with social_ai_seeded_at NULL but social_hook populated)
+    // are protected by the hook-empty clause. Per-platform-mode rows
+    // are protected by the mode filter.
     q = q.or('social_hook.is.null,social_hook.eq.')
+    q = q.eq('social_mode', 'hook')
   }
 
   const { data } = await q
@@ -147,10 +151,15 @@ export async function runBulkSocialSeed(
     const now = new Date().toISOString()
     for (const r of results) {
       if (r.error) continue
+      // Sprint 9: write the hook only + pin to hook mode. Dispatcher
+      // AI-regenerates FB + IG fresh on every fire from the hook + the
+      // brand voice profile. Per-platform fields are nulled so we never
+      // have an article in hook mode that also carries stale overrides.
       const { error } = await sb.from('guide_articles').update({
-        social_hook:         r.socialHook        || null,
-        social_fb_caption:   r.fbCaption         || null,
-        social_ig_caption:   r.igCaption         || null,
+        social_mode:         'hook',
+        social_hook:         r.socialHook || null,
+        social_fb_caption:   null,
+        social_ig_caption:   null,
         social_ai_seeded_at: now,
       }).eq('id', r.articleId)
       if (!error) saved++

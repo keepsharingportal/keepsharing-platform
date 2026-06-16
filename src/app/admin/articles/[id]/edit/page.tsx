@@ -221,6 +221,9 @@ export default function ArticleEditPage({ params }: Props) {
   const [socialFbCaption,   setSocialFbCaption]   = useState<string>('')
   const [socialIgCaption,   setSocialIgCaption]   = useState<string>('')
   const [socialVoiceTone,   setSocialVoiceTone]   = useState<string>('')
+  // Sprint 9: which field is authoritative? 'hook' = AI rewrites per platform
+  // from the hook. 'per-platform' = FB+IG text post verbatim. Default 'hook'.
+  const [socialMode,        setSocialMode]        = useState<'hook' | 'per-platform'>('hook')
 
   const [form, setForm] = useState({
     title: '', slug: '', author_byline: '', subtitle: '', excerpt: '',
@@ -316,6 +319,7 @@ export default function ArticleEditPage({ params }: Props) {
         setSocialFbCaption  ((data.social_fb_caption  as string | null) ?? '')
         setSocialIgCaption  ((data.social_ig_caption  as string | null) ?? '')
         setSocialVoiceTone  ((data.social_voice_tone  as string | null) ?? '')
+        setSocialMode       (((data.social_mode as string | null) ?? 'hook') === 'per-platform' ? 'per-platform' : 'hook')
         // Spotlight (Play Ball Athlete / Coach / Volunteer)
         setSpotlightType((data.spotlight_type as string | null) ?? '')
         const sd = data.spotlight_data
@@ -417,13 +421,18 @@ export default function ArticleEditPage({ params }: Props) {
       seo_title:               seoTitle.trim()       || null,
       seo_description:         seoDescription.trim() || null,
       seo_ai_seeded_at:        seoTitle.trim() || seoDescription.trim() ? null : undefined,
-      // Social Sharing inline panel — these drive the FB / IG captions.
-      // Empty string = AI generates on the fly when the post fires.
-      social_hook:             socialHook.trim()       || null,
-      social_fb_caption:       socialFbCaption.trim()  || null,
-      social_ig_caption:       socialIgCaption.trim()  || null,
+      // Social Sharing inline panel — Sprint 9 enforces single-source-of-truth.
+      // In 'hook' mode we send the hook + NULL out per-platform overrides.
+      // In 'per-platform' mode we send the FB/IG text + NULL out the hook.
+      // The dispatcher reads social_mode and honors only the source field.
+      social_mode:             socialMode,
+      social_hook:             socialMode === 'hook'         ? (socialHook.trim() || null)      : null,
+      social_fb_caption:       socialMode === 'per-platform' ? (socialFbCaption.trim() || null) : null,
+      social_ig_caption:       socialMode === 'per-platform' ? (socialIgCaption.trim() || null) : null,
       social_voice_tone:       socialVoiceTone || null,
-      social_ai_seeded_at:     socialHook.trim() || socialFbCaption.trim() || socialIgCaption.trim() ? null : undefined,
+      // Editor edited social copy → clear the AI seeded stamp so the bulk
+      // reseeder leaves it alone. Only matters if anything was actually set.
+      social_ai_seeded_at:     (socialHook.trim() || socialFbCaption.trim() || socialIgCaption.trim()) ? null : undefined,
     }
     if (published_at !== undefined) payload.published_at = published_at
 
@@ -692,10 +701,12 @@ export default function ArticleEditPage({ params }: Props) {
                 title={form.title}
                 excerpt={form.excerpt}
                 heroImageUrl={form.hero_image_url}
+                socialMode={socialMode}
                 socialHook={socialHook}
                 socialFbCaption={socialFbCaption}
                 socialIgCaption={socialIgCaption}
                 socialVoiceTone={socialVoiceTone}
+                onChangeSocialMode={setSocialMode}
                 onChangeSocialHook={setSocialHook}
                 onChangeSocialFbCaption={setSocialFbCaption}
                 onChangeSocialIgCaption={setSocialIgCaption}
@@ -1357,17 +1368,21 @@ const SOCIAL_TONES = [
 function InlineSocialSharingPanel({
   articleId,
   title, excerpt, heroImageUrl,
+  socialMode,
   socialHook, socialFbCaption, socialIgCaption, socialVoiceTone,
+  onChangeSocialMode,
   onChangeSocialHook, onChangeSocialFbCaption, onChangeSocialIgCaption, onChangeSocialVoiceTone,
 }: {
   articleId:                string
   title:                    string
   excerpt:                  string
   heroImageUrl:             string
+  socialMode:               'hook' | 'per-platform'
   socialHook:               string
   socialFbCaption:          string
   socialIgCaption:          string
   socialVoiceTone:          string
+  onChangeSocialMode:       (v: 'hook' | 'per-platform') => void
   onChangeSocialHook:       (v: string) => void
   onChangeSocialFbCaption:  (v: string) => void
   onChangeSocialIgCaption:  (v: string) => void
@@ -1376,7 +1391,6 @@ function InlineSocialSharingPanel({
   const [open,  setOpen]  = useState(false)
   const [busy,  setBusy]  = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showCaptions, setShowCaptions] = useState(!!(socialFbCaption || socialIgCaption))
 
   async function runAiAssist() {
     setBusy(true); setError(null)
@@ -1391,13 +1405,24 @@ function InlineSocialSharingPanel({
       })
       const j = await res.json()
       if (!res.ok) { setError(j?.error ?? 'AI assist failed'); return }
-      if (j.social_hook)        onChangeSocialHook(j.social_hook)
-      if (j.facebook_caption)   { onChangeSocialFbCaption(j.facebook_caption); setShowCaptions(true) }
-      if (j.instagram_caption)  { onChangeSocialIgCaption(j.instagram_caption); setShowCaptions(true) }
+      // In hook mode only the hook is the source of truth — write it
+      // even if AI returned FB/IG too. In per-platform mode the editor
+      // wants verbatim text in the FB/IG boxes, so populate those.
+      if (socialMode === 'hook') {
+        if (j.social_hook) onChangeSocialHook(j.social_hook)
+      } else {
+        if (j.facebook_caption)  onChangeSocialFbCaption(j.facebook_caption)
+        if (j.instagram_caption) onChangeSocialIgCaption(j.instagram_caption)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setBusy(false) }
   }
+
+  // Status chip — what the editor actually shipped, post-Sprint-9.
+  const customized =
+    (socialMode === 'hook'         && !!socialHook) ||
+    (socialMode === 'per-platform' && (!!socialFbCaption || !!socialIgCaption))
 
   return (
     <div className="border border-portal-border rounded-lg overflow-hidden">
@@ -1407,12 +1432,15 @@ function InlineSocialSharingPanel({
       >
         <span className="flex items-center gap-1.5">
           <Share2 size={13} /> Social sharing
-          {!socialHook && !socialFbCaption && !socialIgCaption && (
+          {!customized && (
             <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded ml-2">AUTO-GENERATED</span>
           )}
-          {(socialHook || socialFbCaption || socialIgCaption) && (
+          {customized && (
             <span className="text-[10px] font-bold text-portal-green bg-portal-green-lt px-1.5 py-0.5 rounded ml-2">CUSTOM</span>
           )}
+          <span className="text-[10px] font-bold text-portal-sub bg-portal-bg px-1.5 py-0.5 rounded ml-1 border border-portal-border">
+            {socialMode === 'hook' ? 'HOOK MODE' : 'PER-PLATFORM MODE'}
+          </span>
         </span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
@@ -1424,8 +1452,7 @@ function InlineSocialSharingPanel({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-[11px] text-portal-sub leading-relaxed flex-1 min-w-[280px]">
               When <strong>Auto-post to Facebook + Instagram</strong> is on, this is what gets posted (NOT the
-              SEO snippet). Write the hook + optional captions, or let AI generate from the article body in
-              your brand voice.
+              SEO snippet). Pick a mode — exactly one of these two paths drives the post.
             </p>
             <div className="flex items-center gap-2">
               <select
@@ -1445,51 +1472,81 @@ function InlineSocialSharingPanel({
             </div>
           </div>
 
-          {/* Hook field */}
-          <div>
-            <label className="block text-[11px] font-bold text-portal-text mb-0.5">
-              Social hook <span className="text-[10px] text-portal-sub font-normal ml-1">— the &quot;Why click?&quot; lead. 1-2 sentences. Friend voice.</span>
-            </label>
-            <textarea
-              rows={2}
-              value={socialHook}
-              onChange={e => onChangeSocialHook(e.target.value)}
-              placeholder={`e.g. "Tired of second-guessing every meltdown? Good news — your child doesn't have a hidden moral flaw, and better behavior can be taught. Here's how."`}
-              className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
-            />
+          {/* Mode toggle — Sprint 9. Single source of truth. */}
+          <div className="bg-white rounded-lg p-1 border border-portal-border inline-flex">
+            <button
+              type="button"
+              onClick={() => onChangeSocialMode('hook')}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded transition-colors ${
+                socialMode === 'hook'
+                  ? 'bg-portal-navy text-white'
+                  : 'text-portal-sub hover:bg-portal-bg'
+              }`}
+            >
+              Hook + AI rewrites per platform
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeSocialMode('per-platform')}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded transition-colors ${
+                socialMode === 'per-platform'
+                  ? 'bg-portal-navy text-white'
+                  : 'text-portal-sub hover:bg-portal-bg'
+              }`}
+            >
+              Edit per-platform directly
+            </button>
           </div>
 
-          {/* Toggle per-platform overrides */}
-          <button
-            type="button"
-            onClick={() => setShowCaptions(s => !s)}
-            className="text-[11px] font-bold text-portal-blue hover:underline"
-          >
-            {showCaptions ? '− Hide' : '+ Show'} per-platform caption overrides (advanced)
-          </button>
-
-          {showCaptions && (
-            <div className="grid gap-3 md:grid-cols-2">
+          {socialMode === 'hook' ? (
+            <div className="space-y-2">
               <div>
-                <label className="block text-[11px] font-bold text-portal-text mb-0.5">Facebook caption override</label>
+                <label className="block text-[11px] font-bold text-portal-text mb-0.5">
+                  Social hook <span className="text-[10px] text-portal-sub font-normal ml-1">— the &quot;Why click?&quot; lead. 1-2 sentences. Friend voice.</span>
+                </label>
                 <textarea
-                  rows={5}
-                  value={socialFbCaption}
-                  onChange={e => onChangeSocialFbCaption(e.target.value)}
-                  placeholder="Leave blank for AI generation. FB allows links — the article preview card renders below the caption."
+                  rows={2}
+                  value={socialHook}
+                  onChange={e => onChangeSocialHook(e.target.value)}
+                  placeholder={`e.g. "Tired of second-guessing every meltdown? Good news — your child doesn't have a hidden moral flaw, and better behavior can be taught. Here's how."`}
                   className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
                 />
               </div>
-              <div>
-                <label className="block text-[11px] font-bold text-portal-text mb-0.5">Instagram caption override</label>
-                <textarea
-                  rows={5}
-                  value={socialIgCaption}
-                  onChange={e => onChangeSocialIgCaption(e.target.value)}
-                  placeholder="Leave blank for AI generation. IG strips links — end with 'Link in bio' + 5-10 niche hashtags."
-                  className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
-                />
+              <p className="text-[11px] text-portal-sub leading-relaxed">
+                At post time, the AI rewrites this hook into a full Facebook caption (40-60 words) and Instagram
+                caption (80-120 words) using the brand <strong>Social Voice profile</strong> + the tone above.
+                Each post is generated fresh — varies naturally across recycles.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="block text-[11px] font-bold text-portal-text mb-0.5">Facebook caption</label>
+                  <textarea
+                    rows={5}
+                    value={socialFbCaption}
+                    onChange={e => onChangeSocialFbCaption(e.target.value)}
+                    placeholder="Posts verbatim to Facebook. FB allows links — the article preview card renders below the caption."
+                    className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-portal-text mb-0.5">Instagram caption</label>
+                  <textarea
+                    rows={5}
+                    value={socialIgCaption}
+                    onChange={e => onChangeSocialIgCaption(e.target.value)}
+                    placeholder="Posts verbatim to Instagram. IG strips links — end with 'Link in bio' + 5-10 niche hashtags."
+                    className="w-full px-2.5 py-1.5 text-[13px] border border-portal-border-2 rounded outline-none focus:border-portal-blue bg-white text-portal-text resize-vertical"
+                  />
+                </div>
               </div>
+              <p className="text-[11px] text-portal-sub leading-relaxed">
+                These captions post <strong>verbatim</strong> — no AI rewriting. Use this when you want exact
+                control. The hook field is hidden in this mode. Switching back to Hook mode clears both
+                captions on save.
+              </p>
             </div>
           )}
 

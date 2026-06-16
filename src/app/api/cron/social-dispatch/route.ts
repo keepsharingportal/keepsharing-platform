@@ -64,9 +64,13 @@ export async function GET(req: Request) {
       }
       const platforms = (row.platforms as CaptionPlatform[])
 
-      // Honor per-platform editor overrides. Only call the AI for
-      // platforms the editor hasn't tuned manually.
+      // Honor per-platform editor overrides — but ONLY when the article
+      // is in 'per-platform' mode. In 'hook' mode (Sprint 9) the hook is
+      // the single source of truth: even if an old override row leaked
+      // through, ignore it and AI-generate fresh from the hook.
+      const honorOverrides = (payload.socialMode ?? 'hook') === 'per-platform'
       const platformsNeedingAI = platforms.filter(p => {
+        if (!honorOverrides) return true
         if (p === 'facebook' && payload.fbCaptionOverride?.trim()) return false
         if (p === 'instagram' && payload.igCaptionOverride?.trim()) return false
         return true
@@ -88,10 +92,10 @@ export async function GET(req: Request) {
 
       const captions = [
         ...aiCaptions,
-        ...(payload.fbCaptionOverride?.trim() && platforms.includes('facebook')
+        ...(honorOverrides && payload.fbCaptionOverride?.trim() && platforms.includes('facebook')
           ? [{ platform: 'facebook' as CaptionPlatform, caption: payload.fbCaptionOverride.trim(), hashtags: [] }]
           : []),
-        ...(payload.igCaptionOverride?.trim() && platforms.includes('instagram')
+        ...(honorOverrides && payload.igCaptionOverride?.trim() && platforms.includes('instagram')
           ? [{ platform: 'instagram' as CaptionPlatform, caption: payload.igCaptionOverride.trim(), hashtags: [] }]
           : []),
       ]

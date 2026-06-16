@@ -27,11 +27,14 @@ export default async function BulkSocialSeederPage({ searchParams }: Props) {
 
   const sb = createAdminClient()
 
-  // Queue size — articles where social_hook is empty.
+  // Queue size — hook-mode articles where social_hook is empty.
+  // Per-platform-mode articles are excluded because their hook is
+  // intentionally NULL (the FB/IG verbatim text is the source of truth).
   let q = sb
     .from('guide_articles')
     .select('id', { count: 'exact', head: true })
     .eq('published', true)
+    .eq('social_mode', 'hook')
     .or('social_hook.is.null,social_hook.eq.')
   if (brandSlug) q = q.eq('brand_slug', brandSlug)
   const { count: needSeed } = await q
@@ -41,16 +44,17 @@ export default async function BulkSocialSeederPage({ searchParams }: Props) {
     .from('guide_articles')
     .select('id', { count: 'exact', head: true })
     .eq('published', true)
+    .eq('social_mode', 'hook')
     .not('social_ai_seeded_at', 'is', null)
   if (brandSlug) rq = rq.eq('brand_slug', brandSlug)
   const { count: aiSeededCount } = await rq
 
-  // Editor-edited count (social_hook set but no AI stamp).
+  // Editor-edited count (any social copy set but no AI stamp).
   let eq = sb
     .from('guide_articles')
     .select('id', { count: 'exact', head: true })
     .eq('published', true)
-    .not('social_hook', 'is', null)
+    .or('social_hook.not.is.null,social_fb_caption.not.is.null,social_ig_caption.not.is.null')
     .is('social_ai_seeded_at', null)
   if (brandSlug) eq = eq.eq('brand_slug', brandSlug)
   const { count: humanEditedCount } = await eq
