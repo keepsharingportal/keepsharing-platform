@@ -85,8 +85,12 @@ export async function findSeedCandidates(
   if (mode === 'reseed-ai') {
     // Re-process rows the seeder previously wrote. Skip human-edited
     // rows entirely (those have seo_ai_seeded_at NULL but seo_title
-    // populated).
+    // populated). CRITICAL: exclude rows we just reseeded within the
+    // last 30 minutes — otherwise auto-continue loops forever on the
+    // same articles because the stamp keeps refreshing.
+    const freshCutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
     q = q.not('seo_ai_seeded_at', 'is', null)
+    q = q.lt('seo_ai_seeded_at', freshCutoff)
   } else {
     // Rows where BOTH overrides are unset.
     q = q.or('seo_title.is.null,seo_title.eq.')

@@ -26,6 +26,9 @@ export function BulkSeederClient({ brandSlug, initialQueueSize, initialReseedSiz
   const [error,        setError]        = useState<string | null>(null)
   const [auto,         setAuto]         = useState(false)
   const [mode,         setMode]         = useState<'missing' | 'reseed-ai'>('missing')
+  // Session-set of article IDs we've already processed in THIS run.
+  // Safety net so we never burn credits looping on the same articles.
+  const [processedIds] = useState(() => new Set<string>())
 
   async function runBatch() {
     setBusy(true); setError(null)
@@ -37,14 +40,30 @@ export function BulkSeederClient({ brandSlug, initialQueueSize, initialReseedSiz
       })
       const j = await res.json()
       if (!res.ok) { setError(j?.error ?? 'batch failed'); return }
+
+      // Detect "stuck in a loop" — if this batch only contains IDs we've
+      // already processed this session, the server query is returning
+      // duplicates and auto-continue must stop. This is a hard backstop
+      // against the credit-burn we just saw.
+      const batchIds  = (j.results ?? []).map((r: { articleId: string }) => r.articleId)
+      const newIds    = batchIds.filter((id: string) => !processedIds.has(id))
+      const allDupes  = batchIds.length > 0 && newIds.length === 0
+      for (const id of batchIds) processedIds.add(id)
+
       setBatches(b => [j as BatchResult, ...b])
       const saved = j.saved ?? 0
       if (mode === 'missing') setQueueSize(Math.max(0, queueSize - saved))
       else                    setReseedSize(Math.max(0, reseedSize - saved))
       router.refresh()
-      // Auto-continue if enabled and queue not empty.
+
+      if (allDupes) {
+        setError('Stopping auto-continue — the seeder returned articles already processed in this session. Server queue is exhausted for now.')
+        return
+      }
+      // Auto-continue only when the batch saved new work AND the queue
+      // hasn't hit zero. Empty results = nothing left to do; stop.
       const remaining = mode === 'missing' ? queueSize - saved : reseedSize - saved
-      if (auto && remaining > 0 && saved > 0) {
+      if (auto && remaining > 0 && saved > 0 && newIds.length > 0) {
         setTimeout(runBatch, 500)
       }
     } catch (e) {
