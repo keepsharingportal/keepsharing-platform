@@ -20,7 +20,7 @@ interface Props {
   initial:   BrandSeoProfile
 }
 
-const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative', 'Prefs', 'Competitors', 'Social Examples'] as const
+const TABS = ['Pillars', 'Sub-areas', 'Personas', 'Calendar', 'Assets', 'Voice', 'Negative', 'Prefs', 'Competitors', 'Social Voice'] as const
 type Tab = typeof TABS[number]
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -42,7 +42,8 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
   const [voiceNotes,        setVoiceNotes]        = useState<string>(initial.voiceNotes)
   const [editorialPrefs,        setEditorialPrefs]        = useState<EditorialPrefs>(initial.editorialPrefs ?? {})
   const [competitorIntel,       setCompetitorIntel]       = useState<CompetitorIntel>(initial.competitorIntel ?? {})
-  const [socialCaptionExamples, setSocialCaptionExamples] = useState<SocialCaptionExample[]>(initial.socialCaptionExamples ?? [])
+  const [socialVoiceProfile,    setSocialVoiceProfile]    = useState<string>(initial.socialVoiceProfile ?? '')
+  const [socialCaptionExamples] = useState<SocialCaptionExample[]>(initial.socialCaptionExamples ?? [])
 
   const [saving,  setSaving]  = useState(false)
   const [seeding, setSeeding] = useState(false)
@@ -60,7 +61,8 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
           brandSlug,
           pillars, subAreas, personas, editorialCalendar,
           linkableAssets, negativeSpace, uniqueAngles, voiceNotes,
-          editorialPrefs, competitorIntel, socialCaptionExamples,
+          editorialPrefs, competitorIntel,
+          socialVoiceProfile, socialCaptionExamples,
         }),
       })
       const j = await res.json()
@@ -209,7 +211,7 @@ export function BrandProfileClient({ brandSlug, allBrands, initial }: Props) {
         {tab === 'Negative'   && <NegativeTab  negativeSpace={negativeSpace} setNegativeSpace={setNegativeSpace} />}
         {tab === 'Prefs'      && <PrefsTab     editorialPrefs={editorialPrefs} setEditorialPrefs={setEditorialPrefs} />}
         {tab === 'Competitors'&& <CompetitorsTab competitorIntel={competitorIntel} setCompetitorIntel={setCompetitorIntel} />}
-        {tab === 'Social Examples' && <SocialExamplesTab examples={socialCaptionExamples} setExamples={setSocialCaptionExamples} />}
+        {tab === 'Social Voice' && <SocialVoiceTab voiceProfile={socialVoiceProfile} setVoiceProfile={setSocialVoiceProfile} />}
       </div>
     </div>
   )
@@ -338,56 +340,36 @@ function VoiceTab({ voiceNotes, setVoiceNotes, uniqueAngles, setUniqueAngles }: 
   )
 }
 
-function SocialExamplesTab({ examples, setExamples }: { examples: SocialCaptionExample[]; setExamples: (e: SocialCaptionExample[]) => void }) {
-  function add() {
-    setExamples([...examples, { caption: '', platform: undefined, note: '' }])
-  }
-  function update(i: number, patch: Partial<SocialCaptionExample>) {
-    setExamples(examples.map((x, j) => j === i ? { ...x, ...patch } : x))
-  }
-  function remove(i: number) {
-    setExamples(examples.filter((_, j) => j !== i))
-  }
+function SocialVoiceTab({ voiceProfile, setVoiceProfile }: { voiceProfile: string; setVoiceProfile: (v: string) => void }) {
+  const charCount = voiceProfile.length
+  const wordCount = voiceProfile.trim().split(/\s+/).filter(Boolean).length
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <P>
-        <strong>Captions that hit perfectly.</strong> The caption generator picks 2-3 of these at random
-        on every AI call to match your real voice. Examples beat abstract voice instructions — Claude copies
-        the rhythm, warmth, and length far better when it can SEE what works.
+        <strong>The authoritative social voice document.</strong> Whatever you write here, Claude reads
+        VERBATIM in every social caption generation. This is the single source of truth for the brand
+        voice on Facebook and Instagram.
       </P>
       <P>
-        Paste 5-10 of your best-performing posts (Facebook or Instagram). Add a short note about WHY each one
-        worked if you can — that helps Claude generalize the lesson, not just copy the words.
+        Paste your full voice guide — core voice, audience mindset, hook style, tone, formatting, language
+        to use and avoid, gold-standard example posts. The richer + more specific, the better Claude
+        nails the voice. Editing this is the highest-leverage thing you can do for caption quality.
       </P>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {examples.map((e, i) => (
-          <Card key={i} onDelete={() => remove(i)}>
-            <Row>
-              <Field label="Platform (optional)">
-                <select value={e.platform ?? ''} onChange={ev => update(i, { platform: (ev.target.value || undefined) as SocialCaptionExample['platform'] })} style={input}>
-                  <option value="">— Any / no platform —</option>
-                  <option value="facebook">Facebook</option>
-                  <option value="instagram">Instagram</option>
-                  <option value="twitter">Twitter / X</option>
-                  <option value="pinterest">Pinterest</option>
-                </select>
-              </Field>
-              <Field label="Why it worked (optional)">
-                <input type="text" value={e.note ?? ''} onChange={ev => update(i, { note: ev.target.value })} style={input} placeholder="e.g. Personal hook + reframe; light emoji; no clickbait" />
-              </Field>
-            </Row>
-            <Field label="Caption">
-              <textarea value={e.caption} onChange={ev => update(i, { caption: ev.target.value })} rows={5}
-                style={{ ...input, resize: 'vertical', minHeight: 90 }}
-                placeholder="Paste the full caption text here, exactly as it was posted." />
-            </Field>
-          </Card>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-portal-sub)' }}>
+        <span>{wordCount.toLocaleString()} words · {charCount.toLocaleString()} characters</span>
+        <span>Read by every caption generator call.</span>
       </div>
-      <AddBtn onClick={add}>Add example</AddBtn>
+      <textarea
+        value={voiceProfile}
+        onChange={e => setVoiceProfile(e.target.value)}
+        rows={32}
+        style={{ ...input, resize: 'vertical', minHeight: 600, fontFamily: 'inherit', lineHeight: 1.55 }}
+        placeholder="Paste the full brand voice document here…"
+      />
     </section>
   )
 }
+
 
 function PrefsTab({ editorialPrefs, setEditorialPrefs }: { editorialPrefs: EditorialPrefs; setEditorialPrefs: (p: EditorialPrefs) => void }) {
   return (

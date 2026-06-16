@@ -100,6 +100,11 @@ export interface BrandSeoProfile {
   voiceNotes:             string
   editorialPrefs:         EditorialPrefs
   competitorIntel:        CompetitorIntel
+  /** Full social voice document — editor's authoritative voice guide,
+   *  read VERBATIM by the AI caption generator on every call. */
+  socialVoiceProfile:     string
+  /** Few-shot example library (legacy — kept for backward compat).
+   *  social_voice_profile is now the primary source. */
   socialCaptionExamples:  SocialCaptionExample[]
   lastGenerationMeta:     LastGenerationMeta
   generatedByAiAt:        string | null
@@ -119,6 +124,7 @@ const EMPTY_PROFILE = (brandSlug: string): BrandSeoProfile => ({
   voiceNotes:            '',
   editorialPrefs:        {},
   competitorIntel:       {},
+  socialVoiceProfile:    '',
   socialCaptionExamples: [],
   lastGenerationMeta:    {},
   generatedByAiAt:       null,
@@ -151,6 +157,7 @@ export async function loadBrandProfile(
     voiceNotes:        (data.voice_notes as string | null) ?? '',
     editorialPrefs:        (data.editorial_prefs          as EditorialPrefs           | null) ?? {},
     competitorIntel:       (data.competitor_intel         as CompetitorIntel          | null) ?? {},
+    socialVoiceProfile:    (data.social_voice_profile     as string                   | null) ?? '',
     socialCaptionExamples: (data.social_caption_examples  as SocialCaptionExample[]   | null) ?? [],
     lastGenerationMeta:    (data.last_generation_meta     as LastGenerationMeta       | null) ?? {},
     generatedByAiAt:   data.generated_by_ai_at as string | null,
@@ -173,6 +180,7 @@ export interface SaveBrandProfileInput {
   voiceNotes?:        string
   editorialPrefs?:        EditorialPrefs
   competitorIntel?:       CompetitorIntel
+  socialVoiceProfile?:    string
   socialCaptionExamples?: SocialCaptionExample[]
   lastGenerationMeta?:    LastGenerationMeta
   generatedByAi?:     boolean
@@ -199,6 +207,7 @@ export async function saveBrandProfile(
   if (input.voiceNotes          !== undefined) update.voice_notes           = input.voiceNotes
   if (input.editorialPrefs         !== undefined) update.editorial_prefs           = input.editorialPrefs
   if (input.competitorIntel        !== undefined) update.competitor_intel          = input.competitorIntel
+  if (input.socialVoiceProfile     !== undefined) update.social_voice_profile      = input.socialVoiceProfile
   if (input.socialCaptionExamples  !== undefined) update.social_caption_examples   = input.socialCaptionExamples
   if (input.lastGenerationMeta     !== undefined) update.last_generation_meta      = input.lastGenerationMeta
   if (input.generatedByAi)                     update.generated_by_ai_at    = now

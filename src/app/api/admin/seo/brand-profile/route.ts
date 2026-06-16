@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       voiceNotes:          body.voiceNotes          as never,
       editorialPrefs:         body.editorialPrefs         as never,
       competitorIntel:        body.competitorIntel        as never,
+      socialVoiceProfile:     body.socialVoiceProfile     as never,
       socialCaptionExamples:  body.socialCaptionExamples  as never,
       editedBy:               adminCtx.userId ?? null,
     })

@@ -69,11 +69,15 @@ export async function generateCaptionsForContent(
   const promptCtx = await loadBrandPromptContext(sb, brandSlug)
   const brandMd   = renderBrandContextForPrompt(promptCtx)
 
-  // Few-shot examples — pick 2-3 random "captions that hit" from the
-  // brand profile so the model matches the editor's real tone, not
-  // its training-data default.
-  const profile = await loadBrandProfile(sb, brandSlug)
-  const examples = pickRandomExamples(profile.socialCaptionExamples ?? [], 3)
+  // The authoritative social voice document, written by the editor.
+  // When non-empty, this becomes the PRIMARY voice guidance — Claude
+  // reads it verbatim. The few-shot examples become a secondary
+  // signal, kept for backward compat.
+  const profile      = await loadBrandProfile(sb, brandSlug)
+  const voiceProfile = profile.socialVoiceProfile?.trim() ?? ''
+  const examples     = voiceProfile.length > 0
+    ? []  // voice profile already contains the gold-standard examples
+    : pickRandomExamples(profile.socialCaptionExamples ?? [], 3)
 
   const tone = input.tone ?? pickRotatingTone(input.recycleIndex ?? 0)
 
@@ -105,7 +109,25 @@ ${examples.map((e, i) => `Example ${i + 1}${e.platform ? ` (${e.platform})` : ''
 Match the rhythm + warmth + length of these examples. Do not copy phrases verbatim; capture the voice.`
     : ''
 
-  const SYSTEM_PROMPT = `You write social media captions for a community family publication. The
+  // When the editor has filled in the social voice profile, it takes
+  // primacy — Claude reads it verbatim and treats it as the rulebook.
+  // Generic guidance only fills in when no profile is set.
+  const voiceBlock = voiceProfile.length > 0
+    ? `# AUTHORITATIVE SOCIAL VOICE PROFILE
+Follow this document verbatim. It is the single source of truth for how
+this brand sounds on Facebook and Instagram. Match the voice, hooks,
+tone, formatting, and rhythm exactly. The gold-standard example posts
+inside this document show you what good looks like — match their feel,
+do not copy their words.
+
+────────────────────────────────────────
+${voiceProfile}
+────────────────────────────────────────
+
+Honor the voice profile above on every caption. Length targets in the
+profile (or if absent: Facebook 40-60 words, Instagram 80-120 words)
+are HARD limits — going over kills engagement.`
+    : `You write social media captions for a community family publication. The
 voice is a LOCAL MOM-INFLUENCER who happens to be wise — the friend a
 mom would text first when she has a real parenting question. Warm,
 knowing, never preachy. Always speaks TO the reader (you), never AT
@@ -119,7 +141,9 @@ ABSOLUTE RULES:
   5. ALWAYS speak TO the reader, not ABOUT parents in general.
   6. Honor the brand voice from voice_notes EXACTLY.
   7. Length limits are HARD — Facebook 40-60 words, Instagram 80-120 words. Going over kills engagement.
-  8. Emojis: 1-3 per post, placed where they add meaning, never decoration. Skip them entirely if they'd feel forced.
+  8. Emojis: 1-3 per post, placed where they add meaning, never decoration. Skip them entirely if they'd feel forced.`
+
+  const SYSTEM_PROMPT = `${voiceBlock}
 
 THIS POST'S TONE: ${tone}
 ${TONE_DESCRIPTIONS[tone]}
