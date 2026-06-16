@@ -167,6 +167,7 @@ const NAV: NavItem[] = [
   { name: 'Media Library',     href: '/admin/assets',      icon: ImageIcon },
   { name: 'Trending Bar',      href: '/admin/trending',    icon: TrendingUp },
   { name: 'Social Queue',      href: '/admin/social-queue', icon: Share2 },
+  { name: 'Campaigns',         href: '/admin/campaigns',   icon: Sparkles },
 
   // ── PRODUCTION ──────────────────────────────────────────────────────────
   { section: 'PRODUCTION' },

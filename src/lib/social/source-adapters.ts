@@ -155,6 +155,30 @@ export async function loadCtaPayload(
   }
 }
 
+/** Themed campaign — the campaign landing page becomes a social
+ *  promotion source. */
+export async function loadCampaignPayload(
+  sb: SupabaseClient, id: string,
+): Promise<SocialPayload | null> {
+  const { data } = await sb
+    .from('themed_campaigns')
+    .select('id, brand_slug, slug, theme_title, hero_tagline, cover_image_url')
+    .eq('id', id)
+    .maybeSingle()
+  if (!data) return null
+  const brand = (data.brand_slug as string | null) ?? 'rrp'
+  const origin = originForBrand(brand)
+  return {
+    sourceKind: 'campaign',
+    sourceId:   data.id as string,
+    brandSlug:  brand,
+    title:      data.theme_title as string,
+    excerpt:    (data.hero_tagline as string | null) ?? null,
+    link:       `${origin}/campaigns/${data.slug}`,
+    imageUrl:   (data.cover_image_url as string | null) ?? null,
+  }
+}
+
 /** Dispatch table — kind → loader. */
 const LOADERS: Record<string, (sb: SupabaseClient, id: string, brandSlug?: string | null) => Promise<SocialPayload | null>> = {
   'article':    (sb, id) => loadArticlePayload(sb, id),
@@ -162,6 +186,7 @@ const LOADERS: Record<string, (sb: SupabaseClient, id: string, brandSlug?: strin
   'guide':      (sb, id, brand) => loadGuidePayload(sb, id, brand ?? null),
   'school-bit': (sb, id) => loadSchoolBitPayload(sb, id),
   'cta':        (sb, id, brand) => loadCtaPayload(sb, id, brand ?? null),
+  'campaign':   (sb, id) => loadCampaignPayload(sb, id),
 }
 
 export async function loadPayload(

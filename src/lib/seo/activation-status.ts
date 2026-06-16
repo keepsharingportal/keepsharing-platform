@@ -36,12 +36,14 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
   // Each migration is detected by a head=true SELECT on the table it
   // creates. If the relation doesn't exist Supabase returns the
   // PostgREST PGRST205 / 42P01 error — we treat that as 'missing'.
-  const [m187, m188, m189, m190, m191, gscData] = await Promise.all([
+  const [m187, m188, m189, m190, m191, m192, m193, gscData] = await Promise.all([
     tableExists(sb, 'search_console_data'),
     tableExists(sb, 'brand_seo_profiles'),
     tableExists(sb, 'seo_authors'),
     columnExists(sb, 'brand_seo_profiles', 'editorial_prefs'),
     tableExists(sb, 'page_metadata_overrides'),
+    tableExists(sb, 'social_queue'),
+    tableExists(sb, 'themed_campaigns'),
     countRows  (sb, 'search_console_data'),
   ])
 
@@ -96,6 +98,26 @@ export async function getActivationStatus(sb: SupabaseClient): Promise<Activatio
       action:      m191 ? undefined : {
         label: 'Run 191_page_metadata_overrides.sql',
         hint:  'supabase/migrations/191_page_metadata_overrides.sql',
+      },
+    },
+    {
+      key:         '192',
+      title:       'Migration 192 — Social rotation engine',
+      description: 'Adds social_schedules + social_queue + social_post_outputs. The continuous-engagement layer that auto-recycles content to social.',
+      status:      m192 ? 'ok' : 'missing',
+      action:      m192 ? undefined : {
+        label: 'Run 192_social_rotation.sql',
+        hint:  'supabase/migrations/192_social_rotation.sql',
+      },
+    },
+    {
+      key:         '193',
+      title:       'Migration 193 — Themed campaigns',
+      description: 'Adds themed_campaigns + linked articles + sponsors. The editorial campaign system around monthly themes (e.g. Big Birthday Issue).',
+      status:      m193 ? 'ok' : 'missing',
+      action:      m193 ? undefined : {
+        label: 'Run 193_themed_campaigns.sql',
+        hint:  'supabase/migrations/193_themed_campaigns.sql',
       },
     },
     {
