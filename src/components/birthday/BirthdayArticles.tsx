@@ -10,23 +10,46 @@ interface Article {
   title:           string
   slug:            string
   column_slug?:    string | null
-  excerpt?:        string | null
+  preview:         string                 // resolved preview text (excerpt → social_hook → body lead)
   hero_image_url?: string | null
   author_byline?:  string | null
   published_at?:   string | null
 }
 
+// Derive a ~140-char preview from the article body when neither excerpt
+// nor social_hook is set. Sentence-aware trim so we don't cut mid-word.
+function bodyLead(body: string | null | undefined): string {
+  if (!body) return ''
+  const stripped = body
+    .replace(/<\/?[^>]+>/g, ' ')
+    .replace(/[#*_>`~]+/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (stripped.length <= 145) return stripped
+  const w = stripped.slice(0, 180)
+  const end = w.search(/[.!?]\s/)
+  if (end >= 50 && end <= 140) return w.slice(0, end + 1)
+  return stripped.slice(0, 140).replace(/\s+\S*$/, '') + '…'
+}
+
 export function BirthdayArticles({ articles }: { articles: Array<Record<string, unknown>> }) {
-  const useArticles: Article[] = articles.map(a => ({
-    id:              a.id as string,
-    title:           a.title as string,
-    slug:            a.slug as string,
-    column_slug:     a.column_slug as string | null,
-    excerpt:         a.excerpt as string | null,
-    hero_image_url:  a.hero_image_url as string | null,
-    author_byline:   a.author_byline as string | null,
-    published_at:    a.published_at as string | null,
-  }))
+  const useArticles: Article[] = articles.map(a => {
+    const excerpt    = ((a.excerpt as string | null) ?? '').trim()
+    const socialHook = ((a.social_hook as string | null) ?? '').trim()
+    const preview    = excerpt || socialHook || bodyLead(a.body as string | null | undefined)
+    return {
+      id:              a.id as string,
+      title:           a.title as string,
+      slug:            a.slug as string,
+      column_slug:     a.column_slug as string | null,
+      preview,
+      hero_image_url:  a.hero_image_url as string | null,
+      author_byline:   a.author_byline as string | null,
+      published_at:    a.published_at as string | null,
+    }
+  })
 
   return (
     <div>
@@ -62,8 +85,8 @@ export function BirthdayArticles({ articles }: { articles: Array<Record<string, 
               </div>
               <div className="p-4">
                 <h3 className="text-[15px] font-bold text-slate-900 leading-snug group-hover:text-[#ff7a59] transition-colors line-clamp-2">{a.title}</h3>
-                {a.excerpt && (
-                  <p className="text-[12px] text-slate-600 mt-2 leading-relaxed line-clamp-3">{a.excerpt}</p>
+                {a.preview && (
+                  <p className="text-[12px] text-slate-600 mt-2 leading-relaxed line-clamp-3">{a.preview}</p>
                 )}
                 <div className="flex items-center justify-between mt-3 text-[11px] text-slate-500">
                   <span>{a.author_byline ?? 'River Region Parents'}</span>

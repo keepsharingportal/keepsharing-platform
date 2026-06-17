@@ -126,8 +126,10 @@ export default async function BirthdayPartyGuidePage() {
     // OR assigned to the birthday-party-guide via guide_slug. Either path
     // surfaces the article in the portal's Inspiration Articles block, so
     // the editor can pick whichever feels right at write-time.
+    // Pull social_hook + body so the article-card preview can fall back
+    // when excerpt is empty (excerpt → social_hook → body-derived lead).
     supabase.from('guide_articles')
-      .select('id, title, slug, column_slug, excerpt, hero_image_url, author_byline, published_at')
+      .select('id, title, slug, column_slug, excerpt, social_hook, body, hero_image_url, author_byline, published_at')
       .eq('published', true).eq('brand_slug', brandSlug)
       .or('topics.cs.{birthday},guide_slug.eq.birthday-party-guide')
       .order('published_at', { ascending: false })
