@@ -51,6 +51,27 @@ const SCHOOL_REGIONS = [
   { value: 'other',               label: 'Other / Unknown'    },
 ]
 
+// Derive a ~155-char lead from the article body so the share preview has
+// something to show when both seo_description AND excerpt are blank. Strips
+// HTML tags + markdown headings, collapses whitespace, trims at a sentence
+// boundary when one falls inside the window.
+function deriveLeadFromBody(body: string | null | undefined): string {
+  if (!body) return ''
+  const stripped = body
+    .replace(/<\/?[^>]+>/g, ' ')          // HTML tags
+    .replace(/[#*_>`~]+/g, ' ')           // common markdown
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ') // markdown images
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [text](url) → text
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (stripped.length <= 160) return stripped
+  // Prefer trimming at the nearest sentence boundary inside the first 160 chars.
+  const window = stripped.slice(0, 200)
+  const sentenceEnd = window.search(/[.!?]\s/)
+  if (sentenceEnd >= 60 && sentenceEnd <= 160) return window.slice(0, sentenceEnd + 1)
+  return stripped.slice(0, 155).replace(/\s+\S*$/, '') + '…'
+}
+
 function slugify(text: string) {
   return text.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -753,7 +774,7 @@ export default function ArticleEditPage({ params }: Props) {
             <SharePreviewCard
               articleId={id}
               shareTitle={(seoTitle.trim() || form.title)}
-              shareDescription={(seoDescription.trim() || form.excerpt)}
+              shareDescription={(seoDescription.trim() || form.excerpt?.trim() || deriveLeadFromBody(form.body))}
               shareImageUrl={form.hero_image_url || null}
               hasSeoOverrides={!!seoTitle.trim() && !!seoDescription.trim()}
             />
@@ -1391,6 +1412,33 @@ function InlineSocialSharingPanel({
   const [open,  setOpen]  = useState(false)
   const [busy,  setBusy]  = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [autoPolling, setAutoPolling] = useState(false)
+
+  // After publish, the article PATCH/POST routes fire an async social-copy
+  // generation in the background. Poll once shortly after mount when the
+  // hook is still empty — if the cron filled it in, surface it without
+  // forcing the editor to refresh manually.
+  useEffect(() => {
+    if (socialHook || socialFbCaption || socialIgCaption) return
+    let cancelled = false
+    setAutoPolling(true)
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/articles/${articleId}/social-state`, { cache: 'no-store' })
+        if (cancelled) return
+        if (res.ok) {
+          const j = await res.json() as { social_hook?: string | null; social_fb_caption?: string | null; social_ig_caption?: string | null }
+          if (j.social_hook && !socialHook) onChangeSocialHook(j.social_hook)
+          if (j.social_fb_caption && !socialFbCaption) onChangeSocialFbCaption(j.social_fb_caption)
+          if (j.social_ig_caption && !socialIgCaption) onChangeSocialIgCaption(j.social_ig_caption)
+        }
+      } finally { if (!cancelled) setAutoPolling(false) }
+    }, 8000)
+    return () => { cancelled = true; clearTimeout(t); setAutoPolling(false) }
+    // Only re-arm when articleId changes — we don't want to keep retriggering
+    // every time the editor types in the hook field.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articleId])
 
   async function runAiAssist() {
     setBusy(true); setError(null)
@@ -1432,7 +1480,12 @@ function InlineSocialSharingPanel({
       >
         <span className="flex items-center gap-1.5">
           <Share2 size={13} /> Social sharing
-          {!customized && (
+          {autoPolling && !customized && (
+            <span className="text-[10px] font-bold text-portal-blue bg-portal-blue-lt px-1.5 py-0.5 rounded ml-2 inline-flex items-center gap-1">
+              <Loader2 size={10} className="animate-spin" /> AI WRITING…
+            </span>
+          )}
+          {!autoPolling && !customized && (
             <span className="text-[10px] font-bold text-portal-amber bg-portal-amber-lt px-1.5 py-0.5 rounded ml-2">AUTO-GENERATED</span>
           )}
           {customized && (

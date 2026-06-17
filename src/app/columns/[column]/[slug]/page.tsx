@@ -66,6 +66,26 @@ export const revalidate = 600
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 
+// Derive a ~155-char lead from the article body — used as the FINAL
+// fallback for the share/OG description when seo_description, excerpt,
+// and dek are all empty. Strips HTML + common markdown, trims at a
+// sentence boundary when possible.
+function deriveLeadFromBody(body: string | null | undefined): string {
+  if (!body) return ''
+  const stripped = body
+    .replace(/<\/?[^>]+>/g, ' ')
+    .replace(/[#*_>`~]+/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (stripped.length <= 160) return stripped
+  const window = stripped.slice(0, 200)
+  const sentenceEnd = window.search(/[.!?]\s/)
+  if (sentenceEnd >= 60 && sentenceEnd <= 160) return window.slice(0, sentenceEnd + 1)
+  return stripped.slice(0, 155).replace(/\s+\S*$/, '') + '…'
+}
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -208,9 +228,12 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   // Use || (not ??) so empty-string DB values fall through to the next
   // option. A row with seo_description='' was producing an empty FB
   // OpenGraph description (link previews showed only the title).
+  // Final fallback derives from the article body so even untagged articles
+  // get a meaningful share description (~155 chars, sentence-aware).
   const description = seoDesc
                    || (data.article.excerpt as string | null)?.trim()
                    || (data.article.dek     as string | null)?.trim()
+                   || deriveLeadFromBody(data.article.body as string | null)
                    || `Read ${data.article.title} on River Region Parents.`
 
   const brandLabel = data.column?.label ?? undefined

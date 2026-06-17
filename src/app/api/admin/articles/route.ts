@@ -127,6 +127,47 @@ export async function POST(req: NextRequest) {
         revalidatePath('/school-bits')
         revalidatePath('/school-zone')
       }
+
+      // Auto-generate social copy when a new article is published direct from
+      // the New Article page. Mirrors the PATCH route's auto-trigger so the
+      // editor lands on /edit with the Social Sharing panel already populated
+      // (instead of empty + having to manually click AI assist).
+      void (async () => {
+        try {
+          const sb2 = supabaseAdmin()
+          const { loadArticlePayload } = await import('@/lib/social/source-adapters')
+          const { generateCaptionsForContent } = await import('@/lib/social/caption-generator')
+          const payload = await loadArticlePayload(sb2, created.id)
+          if (!payload) return
+          const captions = await generateCaptionsForContent(
+            sb2,
+            payload.brandSlug ?? 'rrp',
+            {
+              title:       payload.title,
+              excerpt:     payload.excerpt,
+              link:        payload.link,
+              contentType: 'article',
+              socialHook:  payload.socialHook,
+              tone:        null,
+              authorName:  payload.authorName,
+              columnLabel: payload.columnLabel,
+            },
+            ['facebook', 'instagram'],
+          )
+          const fb = captions.find(c => c.platform === 'facebook')
+          const ig = captions.find(c => c.platform === 'instagram')
+          const hook = (fb?.caption ?? ig?.caption ?? '').split(/[.!?]\s/)[0]?.trim().slice(0, 240) ?? ''
+          await sb2.from('guide_articles').update({
+            social_mode:         'hook',
+            social_hook:         hook || null,
+            social_fb_caption:   null,
+            social_ig_caption:   null,
+            social_ai_seeded_at: new Date().toISOString(),
+          }).eq('id', created.id)
+        } catch (e) {
+          console.error('[auto-social-on-create]', e)
+        }
+      })()
     }
 
     return NextResponse.json({ id: created.id, slug: created.slug })

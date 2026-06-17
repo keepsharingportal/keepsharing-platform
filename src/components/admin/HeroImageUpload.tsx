@@ -33,6 +33,11 @@ interface Props {
   /** Set on upload when context is article-hero / article-profile so the parent can persist it. */
   origPath?: string | null
   onOrigPathChange?: (origPath: string | null) => void
+  /** Empty-state warning copy. Defaults are tuned per context so the warning
+   *  doesn't mislead the editor (e.g. "Missing hero" rendering inside the
+   *  Profile Image slot). Pass an explicit string to override completely;
+   *  pass `false` to hide the warning entirely. */
+  emptyWarning?: string | false
 }
 
 // Contexts that opt into the re-crop flow. Used in a few places so worth
@@ -55,7 +60,16 @@ function isSupabaseUrl(url: string): boolean {
 export function HeroImageUpload({
   value, onChange, context = 'article',
   articleId, origPath, onOrigPathChange,
+  emptyWarning,
 }: Props) {
+  // Context-aware default warning copy. Profile slot reads "Missing profile
+  // photo" instead of the original hero-only language.
+  const resolvedWarning =
+    emptyWarning === false ? null
+    : typeof emptyWarning === 'string' ? emptyWarning
+    : context === 'article-profile'
+      ? 'No profile photo — author/spotlight portrait used in places like the byline + Mom Knows Best lists. Optional but adds polish.'
+      : 'Missing image — articles without a hero photo look blank in listings.'
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [compressing, setCompressing] = useState(false)
@@ -343,10 +357,10 @@ export function HeroImageUpload({
         </div>
       )}
 
-      {!value && !uploading && !error && (
-        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-orange-50 border border-orange-200">
-          <AlertTriangle size={13} className="text-orange-500 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-orange-700 leading-relaxed">Missing image — articles without a hero photo look blank in listings.</p>
+      {!value && !uploading && !error && resolvedWarning && (
+        <div className={`flex items-start gap-2 p-2.5 rounded-lg ${context === 'article-profile' ? 'bg-blue-50 border border-blue-200' : 'bg-orange-50 border border-orange-200'}`}>
+          <AlertTriangle size={13} className={`shrink-0 mt-0.5 ${context === 'article-profile' ? 'text-blue-500' : 'text-orange-500'}`} />
+          <p className={`text-[11px] leading-relaxed ${context === 'article-profile' ? 'text-blue-700' : 'text-orange-700'}`}>{resolvedWarning}</p>
         </div>
       )}
     </div>

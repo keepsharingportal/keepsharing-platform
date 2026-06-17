@@ -57,7 +57,32 @@ function darken(hex: string, amount: number): string {
 const NON_SPEAKER_LABELS = new Set([
   'bio', 'note', 'update', 'source', 'photo', 'caption', 'editor', 'editor\'s note',
   'editors note', 'p.s', 'ps', 'sidebar', 'tip', 'pro tip',
+  // Common sentence starters — added after a real article had "The direction is clear: lawmakers..."
+  // mis-rendered as a Q&A row because the speaker regex doesn't care that
+  // "The direction is clear" is plainly not a name.
+  'the', 'a', 'an', 'this', 'that', 'these', 'those',
+  'and', 'or', 'but', 'so', 'if', 'when', 'where', 'while',
+  'why', 'how', 'what', 'who', 'which',
+  'it', 'they', 'we', 'i', 'you', 'he', 'she',
+  'one', 'two', 'three', 'first', 'second', 'finally',
+  'remember', 'consider', 'here', 'there', 'now', 'today', 'yesterday',
 ])
+
+// Sentence-shaped speaker labels — anything that looks like the start of
+// a real sentence (multiple common words, contains a verb-ish word) should
+// be treated as prose, not a Q&A speaker.
+function looksLikeSentenceFragment(s: string): boolean {
+  const words = s.toLowerCase().split(/\s+/).filter(Boolean)
+  // Single-word labels (Mary, Jamie, Dr.) → not a sentence
+  if (words.length === 1) return false
+  // "Mary Beth", "Dr. Smith" → fine
+  if (words.length === 2 && words.every(w => /^[a-z][a-z'.\-]{0,15}$/.test(w))) return false
+  // 3+ words OR contains common stopwords beyond a name → likely a sentence
+  const stopwords = new Set(['is','are','was','were','be','been','being','the','a','an','of','to','in','on','at','for','with','by','from','as','that','this','it','and','or','but','no','not','so','if','when','where','why','how'])
+  const stopwordHits = words.filter(w => stopwords.has(w)).length
+  if (stopwordHits >= 1) return true
+  return words.length >= 3
+}
 
 function extractQA(chunk: string): { speaker: string; text: string } | null {
   // Permit <p> with attributes, optional <strong>, optional spaces around colon.
@@ -72,6 +97,9 @@ function extractQA(chunk: string): { speaker: string; text: string } | null {
   // Skip common editorial labels that aren't speakers — e.g. the magazine
   // "Bio:" footer that prints under a profile interview.
   if (NON_SPEAKER_LABELS.has(speaker.toLowerCase())) return null
+  // Skip anything that looks like the start of a regular sentence
+  // ("The direction is clear:" is not a Q&A speaker).
+  if (looksLikeSentenceFragment(speaker)) return null
   return { speaker, text }
 }
 
