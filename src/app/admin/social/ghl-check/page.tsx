@@ -17,6 +17,7 @@ import { MARKETS } from '@/lib/markets'
 import { ArrowLeft, CheckCircle2, AlertTriangle, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { GhlTestPostPanel } from './GhlTestPostPanel'
+import { ManualTestPostPanel } from './ManualTestPostPanel'
 
 export const metadata: Metadata = { title: 'GHL Social Planner check — Admin' }
 export const dynamic = 'force-dynamic'
@@ -110,7 +111,10 @@ export default async function GhlCheckPage() {
                   </div>
                 )}
                 {r.scope.scopeOk && r.accounts.length === 0 && (
-                  <AccountConnectionWalkthrough brand={r.brand} label={r.label} />
+                  <>
+                    <AccountConnectionWalkthrough brand={r.brand} label={r.label} />
+                    <ManualTestPostPanel brand={r.brand} />
+                  </>
                 )}
                 {r.accounts.length > 0 && (
                   <div>

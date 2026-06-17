@@ -88,14 +88,28 @@ export async function listSocialAccounts(brandSlug: string): Promise<{
 }> {
   const loc = locId(brandSlug)
   if (!loc) return { ok: false, accounts: [], error: `No locationId for ${brandSlug}` }
-  const r = await ghlReq(
-    `/social-media-posting/${loc}/accounts`,
-    brandSlug,
-    { method: 'GET' },
-  )
-  if (!r.ok) {
-    const errMsg = (r.data as { message?: string })?.message ?? `HTTP ${r.status}`
-    return { ok: false, accounts: [], error: errMsg }
+  // GHL's "list accounts" endpoint path has shifted across API versions.
+  // We try the known shapes in order and use whichever 2xx-responds first.
+  // This makes the listing tolerant of HighLevel's quiet path renames.
+  const candidatePaths = [
+    `/social-media-posting/${loc}/accounts`,                       // current docs (post-2026 rev)
+    `/social-media-posting/oauth/${loc}/accounts`,                 // previous gen
+    `/social-media-posting/oauth/accounts?locationId=${loc}`,      // query-param variant
+    `/social-media-posting/accounts?locationId=${loc}`,            // alt query-param
+  ]
+  let r: Awaited<ReturnType<typeof ghlReq>> | null = null
+  let lastErrMsg = ''
+  for (const path of candidatePaths) {
+    const attempt = await ghlReq(path, brandSlug, { method: 'GET' })
+    if (attempt.ok) { r = attempt; break }
+    lastErrMsg = (attempt.data as { message?: string })?.message ?? `HTTP ${attempt.status}`
+    // 4xx other than 404/405 is a real auth/permission issue; stop trying.
+    if (attempt.status >= 400 && attempt.status !== 404 && attempt.status !== 405) {
+      r = attempt; break
+    }
+  }
+  if (!r || !r.ok) {
+    return { ok: false, accounts: [], error: lastErrMsg || 'No accounts endpoint matched' }
   }
   // GHL returns one of several shapes depending on version:
   //   { accounts: [...] }    | { results: [...] }
