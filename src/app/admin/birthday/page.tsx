@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ArrowLeft, Camera, Gift, FileText, Lightbulb, Quote, ArrowRight, Mail, DollarSign } from 'lucide-react'
+import { ArrowLeft, Camera, Gift, FileText, Lightbulb, Quote, ArrowRight, Mail, DollarSign, Tag, Megaphone, Star, Building2 } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Big Birthday Bash — Admin' }
 export const dynamic = 'force-dynamic'
@@ -14,7 +14,7 @@ export default async function BirthdayAdminHub() {
   await requireAdmin()
   const sb = createAdminClient()
 
-  const [pending, freebies, themes, tiers, printables, tips, subs] = await Promise.all([
+  const [pending, freebies, themes, tiers, printables, tips, subs, deals, buzz, clubSubs, sponsored] = await Promise.all([
     sb.from('birthday_real_parties').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     sb.from('birthday_freebies').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('birthday_themes').select('id', { count: 'exact', head: true }).eq('is_active', true),
@@ -22,16 +22,24 @@ export default async function BirthdayAdminHub() {
     sb.from('birthday_printables').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('birthday_mom_tips').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('birthday_planning_subscribers').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    sb.from('birthday_deals').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    sb.from('birthday_buzz').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    sb.from('birthday_club_subscribers').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    sb.from('advertiser_accounts').select('id', { count: 'exact', head: true }).not('birthday_tier', 'is', null),
   ])
 
   const tiles = [
     { href: '/admin/birthday/real-parties', icon: Camera,    title: 'Real Parties (UGC)', count: pending.count ?? 0, hint: 'Moderate mom-submitted party photos. Pending review.', urgent: (pending.count ?? 0) > 0 },
+    { href: '/admin/birthday/deals',        icon: Tag,       title: 'Birthday Deals',     count: deals.count ?? 0,    hint: 'Paid deal slots for advertisers. Recurring revenue.' },
+    { href: '/admin/birthday/buzz',         icon: Megaphone, title: 'Birthday Buzz',      count: buzz.count ?? 0,     hint: 'Micro-shoutout stream on the portal home.' },
+    { href: '/admin/birthday/sponsors',     icon: Star,      title: 'Sponsored Vendors',  count: sponsored.count ?? 0, hint: 'Advertisers on Featured/Sponsored Category/Presenting tiers.' },
     { href: '/admin/birthday/freebies',     icon: Gift,      title: 'Freebies',           count: freebies.count ?? 0, hint: 'Local birthday freebie offers — the SEO-darling list.' },
     { href: '/admin/birthday/themes',       icon: Lightbulb, title: 'Trending Themes',    count: themes.count ?? 0,   hint: 'Trending Themes gallery — defaults render until you customize.' },
     { href: '/admin/birthday/budget-tiers', icon: DollarSign,title: 'Budget Tiers',       count: tiers.count ?? 0,    hint: '3-tier Plan-by-Budget — the differentiator block.' },
     { href: '/admin/birthday/printables',   icon: FileText,  title: 'Printables',         count: printables.count ?? 0, hint: 'Invitations, thank-yous, banners. is_premium = email-gated.' },
     { href: '/admin/birthday/mom-tips',     icon: Quote,     title: 'Mom-to-Mom Tips',    count: tips.count ?? 0,     hint: 'Short quoted advice from local moms.' },
     { href: '/admin/birthday/subscribers',  icon: Mail,      title: 'Insider Subscribers', count: subs.count ?? 0,    hint: 'Email captures — Timeline drip + Freebies PDF + Newsletter.' },
+    { href: '/admin/birthday/club',         icon: Building2, title: 'Birthday Club',      count: clubSubs.count ?? 0, hint: 'Sellable monthly newsletter list — sponsorable per issue.' },
   ]
 
   return (
@@ -46,7 +54,24 @@ export default async function BirthdayAdminHub() {
         </p>
       </div>
 
-      <div className="p-6 max-w-5xl">
+      <div className="p-6 max-w-5xl space-y-4">
+
+        {/* Sales tool pointer */}
+        <Link href="/birthday-party-guide/sponsor" target="_blank"
+          className="block bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 hover:from-amber-100 hover:to-orange-100 transition-colors">
+          <div className="flex items-center gap-3">
+            <Star size={20} className="text-amber-600 shrink-0" />
+            <div className="flex-1">
+              <div className="text-[13px] font-bold text-portal-text">Sponsorship sales page is live</div>
+              <p className="text-[11px] text-portal-sub mt-0.5">
+                Send <code>/birthday-party-guide/sponsor</code> to your sales prospects. 3 tiers (Featured / Sponsored Category / Presenting),
+                annual pricing, comparison table, opens a pre-filled email to advertise@.
+              </p>
+            </div>
+            <ArrowRight size={14} className="text-amber-600" />
+          </div>
+        </Link>
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tiles.map(t => {
             const Icon = t.icon
@@ -72,6 +97,7 @@ export default async function BirthdayAdminHub() {
             )
           })}
         </div>
+
       </div>
     </div>
   )

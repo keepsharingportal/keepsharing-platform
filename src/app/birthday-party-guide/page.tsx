@@ -32,6 +32,9 @@ import { SubmitVendorTip }        from '@/components/birthday/SubmitVendorTip'
 import { BirthdayInsiderSignup }  from '@/components/birthday/BirthdayInsiderSignup'
 import { BirthdaySidebarSponsor } from '@/components/birthday/BirthdaySidebarSponsor'
 import { BirthdaySectionSponsor } from '@/components/birthday/BirthdaySectionSponsor'
+import { BirthdayBuzz }           from '@/components/birthday/BirthdayBuzz'
+import { BirthdayQuickLinks }     from '@/components/birthday/BirthdayQuickLinks'
+import { SidebarDealsCard }       from '@/components/birthday/SidebarDealsCard'
 
 export const revalidate = 600
 
@@ -64,7 +67,7 @@ export default async function BirthdayPartyGuidePage() {
   // Single batched load — all blocks paint together rather than waterfall.
   const [
     themesRes, tiersRes, freebiesRes, printablesRes, partiesRes, tipsRes,
-    pollRes, articlesRes, listingCountsRes, sectionSponsorRes,
+    pollRes, articlesRes, listingCountsRes, sectionSponsorRes, buzzRes, dealsRes,
   ] = await Promise.all([
     supabase.from('birthday_themes')
       .select('*').eq('is_active', true)
@@ -117,6 +120,20 @@ export default async function BirthdayPartyGuidePage() {
       .eq('is_active', true)
       .ilike('placement_context', '%birthday%')
       .limit(1).maybeSingle(),
+    // Birthday Buzz micro-shoutout stream
+    supabase.from('birthday_buzz')
+      .select('id, kind, body, from_name, image_url, vendor_name, link_url, posted_at')
+      .eq('is_active', true).eq('brand_slug', brandSlug)
+      .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+      .order('posted_at', { ascending: false })
+      .limit(6),
+    // Top 2-3 active deals for the sidebar promo
+    supabase.from('birthday_deals')
+      .select('id, business_name, headline, offer, image_url, link_url, valid_until, is_featured')
+      .eq('is_active', true).eq('brand_slug', brandSlug)
+      .order('is_featured', { ascending: false })
+      .order('display_order', { ascending: true })
+      .limit(2),
   ])
 
   // Group category counts for the browser block. Supabase types
@@ -142,12 +159,21 @@ export default async function BirthdayPartyGuidePage() {
         {/* Top section sponsor banner */}
         <BirthdaySectionSponsor sponsor={(sectionSponsorRes.data as Record<string, unknown> | null) ?? null} />
 
+        {/* Quick-action tiles — jump straight to Finder / Deals / Timeline / Share */}
+        <div className="mt-6">
+          <BirthdayQuickLinks />
+        </div>
+
         <div className="grid lg:grid-cols-3 gap-8 mt-6">
           {/* Main column — the journey */}
           <div className="lg:col-span-2 space-y-12">
 
             <section id="this-month">
               <BirthdayThisMonth />
+            </section>
+
+            <section id="buzz">
+              <BirthdayBuzz buzz={(buzzRes.data ?? []) as Array<Record<string, unknown>>} />
             </section>
 
             <section id="timeline">
@@ -202,6 +228,8 @@ export default async function BirthdayPartyGuidePage() {
           {/* Right rail — sticky on desktop */}
           <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
             <BirthdaySidebarSponsor brand={ctx.market.displayName} />
+
+            <SidebarDealsCard deals={(dealsRes.data ?? []) as Array<Record<string, unknown>>} />
 
             <BirthdayPoll poll={(pollRes.data as Record<string, unknown> | null) ?? null} />
 

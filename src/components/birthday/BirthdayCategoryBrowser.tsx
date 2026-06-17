@@ -56,13 +56,20 @@ export function BirthdayCategoryBrowser({ topCategories, totalListings }: {
           )
         })}
       </div>
-      <Link
-        href="/birthday-party-guide?category=all"
-        className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ff7a59] hover:underline"
-      >
-        See all {totalListings} listings across {topCategories.length} categories
-        <ArrowRight size={12} />
-      </Link>
+      <div className="flex items-center gap-3 flex-wrap">
+        <Link
+          href="/birthday-party-guide/finder"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-bold text-white bg-[#ff7a59] rounded-lg hover:opacity-90"
+        >
+          Filter all {totalListings} vendors <ArrowRight size={12} />
+        </Link>
+        <Link
+          href="/birthday-party-guide/deals"
+          className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#ff7a59] hover:underline"
+        >
+          See current deals
+        </Link>
+      </div>
     </div>
   )
 }
