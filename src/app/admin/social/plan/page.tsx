@@ -71,6 +71,12 @@ export default async function SocialPlanPage({ searchParams }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/admin/social/calendar"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-portal-text bg-portal-blue-lt border border-portal-blue rounded-lg hover:opacity-90"
+          >
+            Calendar view
+          </Link>
+          <Link
             href="/admin/social/ghl-check"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-portal-sub bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg"
           >

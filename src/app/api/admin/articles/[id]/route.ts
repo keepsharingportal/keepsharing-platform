@@ -261,6 +261,33 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           }
 
           const anyOk = results.some(r => r.ok)
+
+          // Log each posted platform as a social_plan_slot row so the
+          // unified calendar at /admin/social/calendar can show editors
+          // every scheduled GHL post — strategist plans + article auto-
+          // posts + urgent inserts — in one place. plan_id is null
+          // because this isn't part of a weekly strategist plan; urgency
+          // is 'direct' to distinguish from manual urgent inserts.
+          const scheduledAtIso = scheduleDate
+          for (const r of results) {
+            if (!r.ok) continue
+            await sb2.from('social_plan_slot').insert({
+              plan_id:       null,
+              day_of_week:   new Date(scheduledAtIso).getUTCDay(),
+              slot:          'midday',  // label-only; not load-bearing for direct posts
+              scheduled_for: scheduledAtIso,
+              source_kind:   'article',
+              source_id:     id,
+              platforms:     [r.platform],
+              fb_caption:    r.platform === 'facebook'  ? fbCaption : null,
+              ig_caption:    r.platform === 'instagram' ? igCaption : null,
+              image_url:     row.hero_image_url,
+              status:        'dispatched',
+              ghl_post_id:   r.postId ?? null,
+              urgency:       'direct',
+            })
+          }
+
           // Stamp auto_posted_at so we don't re-push on a republish.
           // Always stamp, even on partial failure — operator can hand-fix.
           await sb2.from('guide_articles').update({

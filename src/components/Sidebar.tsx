@@ -177,6 +177,7 @@ const NAV: NavItem[] = [
 
   { section: 'SOCIAL' },
   { name: 'Social Plan',        href: '/admin/social/plan',        icon: Share2     },
+  { name: 'Social Calendar',    href: '/admin/social/calendar',    icon: Share2     },
   { name: 'Content Pool',       href: '/admin/social/pool',        icon: Sparkles   },
   { name: 'Performance',        href: '/admin/social/performance', icon: TrendingUp },
   { name: 'GHL Setup',          href: '/admin/social/ghl-check',   icon: Share2     },
