@@ -22,16 +22,27 @@ interface Buzz {
 interface Vendor { id: string; slug: string; business_name: string }
 
 const KIND_OPTIONS = [
-  { value: 'vendor_spotlight', label: 'Vendor spotlight (the commercial)' },
-  { value: 'editor_pick',      label: 'Editor pick' },
-  { value: 'shoutout',         label: 'Birthday shoutout' },
-  { value: 'tip',              label: 'Tip' },
-  { value: 'milestone',        label: 'Milestone' },
+  { value: 'vendor_spotlight', label: 'Vendor spotlight → Featured Pros section' },
+  { value: 'milestone',        label: 'Kid birthday celebration → Buzz' },
+  { value: 'shoutout',         label: 'Mom party story (win or honest fail) → Buzz' },
+  { value: 'tip',              label: 'Mom-to-mom tip → Buzz' },
+  { value: 'editor_pick',      label: 'Editor pick / "we spotted this" → Buzz' },
 ]
+
+// Maps kind → which public section it appears in. Used by the filter chips
+// and the "where this will appear" hint under the form.
+const KIND_SURFACE: Record<string, 'Featured Pros' | 'Buzz'> = {
+  vendor_spotlight: 'Featured Pros',
+  milestone:        'Buzz',
+  shoutout:         'Buzz',
+  tip:              'Buzz',
+  editor_pick:      'Buzz',
+}
 
 export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Vendor[] }) {
   const [rows, setRows] = useState<Buzz[]>(initial)
   const [busy, setBusy] = useState(false)
+  const [surfaceFilter, setSurfaceFilter] = useState<'all' | 'Featured Pros' | 'Buzz'>('all')
   const [draft, setDraft] = useState({
     brand_slug:  'rrp',
     kind:        'vendor_spotlight',
@@ -84,10 +95,51 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
     if (res.ok) setRows(rs => rs.filter(r => r.id !== id))
   }
 
+  const visibleRows = surfaceFilter === 'all'
+    ? rows
+    : rows.filter(r => KIND_SURFACE[r.kind] === surfaceFilter)
+  const featuredProsCount = rows.filter(r => KIND_SURFACE[r.kind] === 'Featured Pros').length
+  const communityCount    = rows.filter(r => KIND_SURFACE[r.kind] === 'Buzz').length
+
   return (
     <div className="space-y-4">
+      {/* Where-it-goes guide. Without this the kind dropdown is mysterious. */}
+      <div className="bg-portal-blue-lt rounded-lg p-3 text-[11px] text-portal-text leading-relaxed">
+        <strong className="text-portal-text">Two public sections feed from this table:</strong>
+        <ul className="mt-1 space-y-0.5">
+          <li>
+            <span className="font-bold text-[#ff7a59]">Featured Birthday Pros</span> (paid editorial spotlights — magazine
+            hero + 4 supporting layout). Picks up entries where Kind = <code>vendor_spotlight</code>. Top 5 by posted date win the slots; #1 becomes the Editor&apos;s Pick hero.
+          </li>
+          <li>
+            <span className="font-bold text-portal-sub">Birthday Buzz</span> (community chatter — no paid placements).
+            Picks up every other kind: kid celebrations (<code>milestone</code>), mom party stories (<code>shoutout</code>), mom-to-mom tips (<code>tip</code>), editor picks (<code>editor_pick</code>).
+          </li>
+        </ul>
+      </div>
+
+      {/* Surface filter chips */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {([
+          { v: 'all',           l: `All (${rows.length})` },
+          { v: 'Featured Pros', l: `Featured Pros (${featuredProsCount})` },
+          { v: 'Buzz',          l: `Community Buzz (${communityCount})` },
+        ] as const).map(opt => (
+          <button key={opt.v} type="button" onClick={() => setSurfaceFilter(opt.v as typeof surfaceFilter)}
+            className={`px-3 py-1.5 text-[11px] font-bold uppercase rounded-full border ${
+              surfaceFilter === opt.v ? 'bg-portal-navy text-white border-portal-navy' : 'bg-white text-portal-sub border-portal-border'
+            }`}
+          >{opt.l}</button>
+        ))}
+      </div>
+
       <div className="bg-white border border-portal-border rounded-lg p-4 space-y-3">
-        <div className="text-[13px] font-bold text-portal-text">New buzz entry</div>
+        <div className="text-[13px] font-bold text-portal-text">New entry</div>
+        {draft.kind && (
+          <div className="text-[11px] text-portal-sub">
+            Will appear in: <strong className="text-portal-text">{KIND_SURFACE[draft.kind] ?? '—'}</strong>
+          </div>
+        )}
         <div className="grid sm:grid-cols-3 gap-2">
           <CrudSelect label="Kind" value={draft.kind} onChange={e => setDraft(d => ({ ...d, kind: e.target.value }))} options={KIND_OPTIONS} />
           <CrudSelect label="Vendor (for vendor_spotlight)" hint="Links the slide to the business profile page."
@@ -127,8 +179,8 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-portal-sub">Nothing buzzing yet.</td></tr>}
-            {rows.map(r => (
+            {visibleRows.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-portal-sub">{surfaceFilter === 'all' ? 'Nothing buzzing yet.' : `Nothing in ${surfaceFilter} yet.`}</td></tr>}
+            {visibleRows.map(r => (
               <tr key={r.id} className="border-b border-portal-border last:border-b-0 hover:bg-portal-bg">
                 <td className="px-3 py-2">
                   {r.image_url && (

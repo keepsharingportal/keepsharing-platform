@@ -6,9 +6,10 @@
 import { useEffect, useState } from 'react'
 
 const JUMPS = [
-  { id: 'this-month', label: 'This Month' },
-  { id: 'buzz',       label: 'Buzz' },
-  { id: 'timeline',   label: 'Plan It' },
+  { id: 'this-month',     label: 'This Month' },
+  { id: 'featured-pros',  label: 'Featured Pros' },
+  { id: 'buzz',           label: 'Buzz' },
+  { id: 'timeline',       label: 'Plan It' },
   { id: 'budget',     label: 'By Budget' },
   { id: 'themes',     label: 'Themes' },
   { id: 'vendors',    label: 'Vendors' },

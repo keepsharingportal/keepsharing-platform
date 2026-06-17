@@ -54,9 +54,9 @@ export function BirthdayArticles({ articles }: { articles: Array<Record<string, 
   return (
     <div>
       <SectionHeader
-        eyebrow="Inspiration"
-        title="Party planning, in your voice"
-        kicker="Long-reads from River Region moms who've been there. Theme inspiration, sanity-saving tips, and budget reality checks."
+        eyebrow="Read this first"
+        title="Birthday planning inspiration"
+        kicker="Mom-tested tips, theme inspiration, and budget reality checks — start here before you book anything."
       />
 
       {useArticles.length === 0 ? (

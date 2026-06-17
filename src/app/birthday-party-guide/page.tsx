@@ -33,6 +33,7 @@ import { BirthdayInsiderSignup }  from '@/components/birthday/BirthdayInsiderSig
 import { BirthdaySidebarSponsor } from '@/components/birthday/BirthdaySidebarSponsor'
 import { BirthdaySectionSponsor } from '@/components/birthday/BirthdaySectionSponsor'
 import { BirthdayBuzz }           from '@/components/birthday/BirthdayBuzz'
+import { FeaturedBirthdayPros }   from '@/components/birthday/FeaturedBirthdayPros'
 import { BirthdayQuickLinks }     from '@/components/birthday/BirthdayQuickLinks'
 import { SidebarDealsCard }       from '@/components/birthday/SidebarDealsCard'
 
@@ -147,13 +148,17 @@ export default async function BirthdayPartyGuidePage() {
       .eq('is_active', true)
       .ilike('placement_context', '%birthday%')
       .limit(1).maybeSingle(),
-    // Birthday Buzz spotlight carousel
+    // birthday_buzz table holds two distinct surfaces:
+    //   - vendor_spotlight rows → Featured Birthday Pros (paid editorial)
+    //   - everything else      → Birthday Buzz (community chatter)
+    // Both fetched in one round-trip with a higher limit; we split + slice
+    // in JS below so the editor can manage both from /admin/birthday/buzz.
     supabase.from('birthday_buzz')
       .select('id, kind, body, from_name, image_url, vendor_id, vendor_name, link_url, posted_at, advertiser_accounts:advertiser_accounts(slug)')
       .eq('is_active', true).eq('brand_slug', brandSlug)
       .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
       .order('posted_at', { ascending: false })
-      .limit(8),
+      .limit(30),
     // Top 2-3 active deals for the sidebar promo
     supabase.from('birthday_deals')
       .select('id, business_name, headline, offer, image_url, link_url, valid_until, is_featured')
@@ -205,8 +210,22 @@ export default async function BirthdayPartyGuidePage() {
               <BirthdayThisMonth />
             </section>
 
+            {/* Featured Birthday Pros = paid editorial spotlights.
+                Hero + 4 supporting magazine layout. Filter to vendor_spotlight
+                kind from the buzz table, take top 5 by posted_at. */}
+            <section id="featured-pros">
+              <FeaturedBirthdayPros
+                items={normalizeBuzz(buzzRes.data ?? []).filter(b => b.kind === 'vendor_spotlight').slice(0, 5)}
+              />
+            </section>
+
+            {/* Birthday Buzz = community chatter (milestones, mom stories,
+                tips, editor picks). Excludes vendor_spotlight rows because
+                those live in Featured Pros above. */}
             <section id="buzz">
-              <BirthdayBuzz buzz={normalizeBuzz(buzzRes.data ?? [])} />
+              <BirthdayBuzz
+                buzz={normalizeBuzz(buzzRes.data ?? []).filter(b => b.kind !== 'vendor_spotlight')}
+              />
             </section>
 
             <section id="timeline">
