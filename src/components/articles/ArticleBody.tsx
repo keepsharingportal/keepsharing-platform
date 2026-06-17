@@ -30,6 +30,16 @@ interface Props {
 
 function isHtml(s: string) { return /<[a-z][\s\S]*>/i.test(s) }
 
+// Columns where the BIG gradient blockquote treatment makes sense — these
+// are magazine-style spotlight features where the loud "wow card"
+// aesthetic IS the page identity. Everywhere else gets a soft editorial
+// pull-quote so a mid-article blockquote doesn't look like a billboard
+// dropped on a long-form essay.
+const SPOTLIGHT_BLOCKQUOTE_COLUMNS = new Set([
+  'play-ball', 'teacher-of-month', 'mom-to-mom', 'grands-greatest',
+  'local-kid', 'student-spotlight', 'parent-poll',
+])
+
 // Tiny hex darkener — pushes a color toward black by `amount` (0..1).
 // Used to build the gradient pull-quote shadow side without pulling in a
 // full color utility.
@@ -305,10 +315,28 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
 
   if (leadingQuoteParts.length > 0) {
     const quoteText = leadingQuoteParts.join(' ')
-    // High-impact gradient pull quote — full brand-color gradient bg + white
-    // text + heart accent + soft glow blobs. Per the magazine mockup, this
-    // is the "wow" treatment for the lead-in quote. Mid-article quotes get
-    // a softer variant (see below).
+    const useLoudLead = SPOTLIGHT_BLOCKQUOTE_COLUMNS.has(columnSlug ?? '')
+    // Lead pull-quote rendering. Spotlight columns keep the loud gradient
+    // billboard treatment (it works for the magazine-style profile pages).
+    // Regular articles get an editorial pull-quote: serif italic, brand-
+    // colored quote mark, soft top accent — quiet enough to live above a
+    // long-form essay without dominating the layout.
+    if (!useLoudLead) {
+      elements.push(
+        <figure key="lead-quote" className="my-6 md:my-8 px-2 sm:px-4">
+          <span
+            aria-hidden="true"
+            className="block text-[3rem] md:text-[3.5rem] font-black leading-none mb-1 select-none"
+            style={{ color: brand.primary, opacity: 0.45, fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            &ldquo;
+          </span>
+          <blockquote className="font-serif italic text-xl md:text-2xl text-foreground/90 leading-snug max-w-3xl">
+            {quoteText}
+          </blockquote>
+        </figure>
+      )
+    } else {
     elements.push(
       <figure
         key="lead-quote"
@@ -340,6 +368,7 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
         </blockquote>
       </figure>
     )
+    }
   }
 
   let dropCapApplied = false
@@ -500,51 +529,77 @@ export function ArticleBody({ body, pullQuotes = [], inlineAd, inlineAds, inline
       }
     }
 
-    // In-body <blockquote> chunks get the magazine gradient pull-quote
-    // treatment per the column spec — purple gradient bg, white serif
-    // italic text, soft glow blobs, tilted heart watermark. Previously
-    // these fell through to dangerouslySetInnerHTML which rendered as a
-    // basic italic paragraph.
+    // In-body <blockquote> rendering. Two treatments:
+    //
+    //   - Spotlight columns (Play Ball, Teacher of the Month, Mom to Mom,
+    //     Grands' Greatest) keep the loud magazine treatment because the
+    //     whole spotlight aesthetic is "wow card" content. Editor used
+    //     blockquote = editor wanted a billboard.
+    //
+    //   - Regular articles get a SOFT editorial treatment: thin brand-
+    //     colored left border, subtle quote mark, serif italic body text on
+    //     the page background. Editorial-feel; doesn't dominate the page.
+    //     The previous gradient-orange box was too shouty mid-article.
     if (/^<blockquote\b/i.test(chunk)) {
-      // Strip the blockquote wrapper to get just the inner HTML, then
-      // strip nested <p> tags so we render the text directly inside the
-      // figure (cleaner typography than nested paragraph defaults).
       const inner = chunk
         .replace(/^<blockquote\b[^>]*>/i, '')
         .replace(/<\/blockquote>\s*$/i, '')
         .replace(/^<p\b[^>]*>/i, '')
         .replace(/<\/p>\s*$/i, '')
         .trim()
-      elements.push(
-        <figure
-          key={`bq-${i}`}
-          className="relative overflow-hidden rounded-2xl p-6 md:p-8 my-12 text-white"
-          style={{
-            background: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primary}e6 50%, ${darken(brand.primary, 0.30)} 100%)`,
-            boxShadow:  `0 16px 40px ${brand.primary}47`,
-          }}
-        >
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-black/10 blur-2xl pointer-events-none" />
-          <BrandWatermark
-            columnSlug={columnSlug ?? null}
-            className="absolute bottom-4 right-4 md:bottom-5 md:right-6 -rotate-12 pointer-events-none"
-            size={68}
-            fillOpacity={0.18}
-          />
-          <span
-            aria-hidden="true"
-            className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+      const useLoudTreatment = SPOTLIGHT_BLOCKQUOTE_COLUMNS.has(columnSlug ?? '')
+      if (useLoudTreatment) {
+        elements.push(
+          <figure
+            key={`bq-${i}`}
+            className="relative overflow-hidden rounded-2xl p-6 md:p-8 my-12 text-white"
+            style={{
+              background: `linear-gradient(135deg, ${brand.primary} 0%, ${brand.primary}e6 50%, ${darken(brand.primary, 0.30)} 100%)`,
+              boxShadow:  `0 16px 40px ${brand.primary}47`,
+            }}
           >
-            &ldquo;
-          </span>
-          <blockquote
-            className="relative font-serif italic text-xl md:text-2xl lg:text-3xl font-medium leading-snug tracking-tight"
-            dangerouslySetInnerHTML={{ __html: inner }}
-          />
-        </figure>
-      )
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-black/10 blur-2xl pointer-events-none" />
+            <BrandWatermark
+              columnSlug={columnSlug ?? null}
+              className="absolute bottom-4 right-4 md:bottom-5 md:right-6 -rotate-12 pointer-events-none"
+              size={68}
+              fillOpacity={0.18}
+            />
+            <span
+              aria-hidden="true"
+              className="relative block text-[3rem] md:text-[3.5rem] font-black not-italic leading-none mb-2 text-white/60"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              &ldquo;
+            </span>
+            <blockquote
+              className="relative font-serif italic text-xl md:text-2xl lg:text-3xl font-medium leading-snug tracking-tight"
+              dangerouslySetInnerHTML={{ __html: inner }}
+            />
+          </figure>
+        )
+      } else {
+        elements.push(
+          <figure
+            key={`bq-${i}`}
+            className="my-7 md:my-10 pl-5 md:pl-7 relative"
+            style={{ borderLeft: `3px solid ${brand.primary}` }}
+          >
+            <span
+              aria-hidden="true"
+              className="absolute -top-2 left-2 md:left-3 text-3xl md:text-4xl font-black leading-none select-none pointer-events-none"
+              style={{ color: brand.primary, opacity: 0.30, fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              &ldquo;
+            </span>
+            <blockquote
+              className="font-serif italic text-lg md:text-xl text-foreground/85 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: inner }}
+            />
+          </figure>
+        )
+      }
       return
     }
 
