@@ -1453,15 +1453,16 @@ function InlineSocialSharingPanel({
       })
       const j = await res.json()
       if (!res.ok) { setError(j?.error ?? 'AI assist failed'); return }
-      // In hook mode only the hook is the source of truth — write it
-      // even if AI returned FB/IG too. In per-platform mode the editor
-      // wants verbatim text in the FB/IG boxes, so populate those.
-      if (socialMode === 'hook') {
-        if (j.social_hook) onChangeSocialHook(j.social_hook)
-      } else {
-        if (j.facebook_caption)  onChangeSocialFbCaption(j.facebook_caption)
-        if (j.instagram_caption) onChangeSocialIgCaption(j.instagram_caption)
-      }
+      // Populate ALL THREE fields locally regardless of mode. The save
+      // logic in the article PATCH still nulls out the inactive set
+      // based on social_mode, so the persistence rules stay clean —
+      // but in the form, the editor can switch modes and see both
+      // versions Claude generated. Otherwise switching to per-platform
+      // after using AI in hook mode would show empty boxes (the
+      // captions Claude wrote got silently discarded).
+      if (j.social_hook)         onChangeSocialHook(j.social_hook)
+      if (j.facebook_caption)    onChangeSocialFbCaption(j.facebook_caption)
+      if (j.instagram_caption)   onChangeSocialIgCaption(j.instagram_caption)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setBusy(false) }
@@ -1540,7 +1541,15 @@ function InlineSocialSharingPanel({
             </button>
             <button
               type="button"
-              onClick={() => onChangeSocialMode('per-platform')}
+              onClick={() => {
+                onChangeSocialMode('per-platform')
+                // Auto-generate captions on mode switch when they're empty.
+                // Editor expected to see the FB / IG copy that would post —
+                // empty boxes look broken, so we fire the AI assist for them.
+                if (!socialFbCaption.trim() && !socialIgCaption.trim() && !busy) {
+                  runAiAssist()
+                }
+              }}
               className={`px-3 py-1.5 text-[12px] font-bold rounded transition-colors ${
                 socialMode === 'per-platform'
                   ? 'bg-portal-navy text-white'
@@ -1573,6 +1582,12 @@ function InlineSocialSharingPanel({
             </div>
           ) : (
             <div className="space-y-2">
+              {busy && !socialFbCaption.trim() && !socialIgCaption.trim() && (
+                <div className="flex items-center gap-2 text-[12px] text-portal-blue bg-portal-blue-lt rounded p-2">
+                  <Loader2 size={12} className="animate-spin" />
+                  Writing the Facebook + Instagram captions in your brand voice…
+                </div>
+              )}
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="block text-[11px] font-bold text-portal-text mb-0.5">Facebook caption</label>
