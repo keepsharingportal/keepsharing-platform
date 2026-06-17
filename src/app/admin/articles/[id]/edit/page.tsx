@@ -562,6 +562,7 @@ export default function ArticleEditPage({ params }: Props) {
             slug={form.slug}
             title={form.title}
             columnSlug={form.column_slug}
+            brandSlug={brandSlug}
             isPublished={!!form.published_at}
             disabled={saving || loading}
             onSendToReview={() => save('pending')}
@@ -1253,13 +1254,14 @@ export default function ArticleEditPage({ params }: Props) {
 // outside to close.
 
 function MoreActionsMenu({
-  articleId, slug, title, columnSlug, isPublished, disabled,
+  articleId, slug, title, columnSlug, brandSlug, isPublished, disabled,
   onSendToReview, onUnpublish, onMoveToTrash,
 }: {
   articleId:      string
   slug:           string
   title:          string
   columnSlug:     string
+  brandSlug:      string
   isPublished:    boolean
   disabled:       boolean
   onSendToReview: () => void
@@ -1277,7 +1279,13 @@ function MoreActionsMenu({
     return () => document.removeEventListener('mousedown', close)
   }, [open])
 
-  const previewHref = slug ? articleHref({ slug, title, column_slug: columnSlug }) : null
+  // Build a fully-qualified URL on the brand's public host. The admin lives
+  // at app.keepsharing.com; opening the relative href there gives a 404
+  // (the article routes are only registered on the public brand domains).
+  const publicHost = (MARKETS.find(m => m.slug === brandSlug)?.publicHost) ?? 'riverregionparents.com'
+  const previewHref = slug
+    ? `https://${publicHost}${articleHref({ slug, title, column_slug: columnSlug })}`
+    : null
 
   return (
     <div className="relative" data-more-actions>
@@ -1310,7 +1318,7 @@ function MoreActionsMenu({
             onClick={() => setOpen(false)}
             className="w-full px-3 py-2 text-left text-xs font-semibold text-portal-text hover:bg-portal-bg flex items-center gap-2"
           >
-            <Share2 size={13} className="text-portal-sub" /> Edit social sharing copy
+            <Share2 size={13} className="text-portal-sub" /> Edit SEO + share preview
           </Link>
           <div className="border-t border-portal-border my-1" />
           {isPublished && (

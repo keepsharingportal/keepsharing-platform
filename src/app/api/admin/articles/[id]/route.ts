@@ -169,29 +169,108 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const wantAutoPost  = 'auto_post_to_social' in update
       ? !!update.auto_post_to_social
       : (prior?.auto_post_to_social === true)
-    // Auto-post wiring: the checkbox now feeds the SOCIAL ROTATION QUEUE
-    // (Sprint 3), not the legacy immediate auto-post path. That means:
-    //   - Per-platform AI captions written in the brand voice
-    //   - Smart image cropping per platform (FB 1.91:1, IG 1:1, etc.)
-    //   - Editor approval gate before fire
-    //   - Recycle at day 30 + day 90 automatically
-    //   - Auditable in /admin/social-queue
+    // Auto-post wiring (as of the GHL pipeline switch — was Sprint 3 queue,
+    // then Sprint 10 GHL bridge). The checkbox now pushes directly to GHL
+    // Social Planner using the article's prepared captions:
+    //   - Per-platform mode → posts social_fb_caption / social_ig_caption verbatim
+    //   - Hook mode → posts the voice-on social_hook to both FB + IG
+    //   - Scheduled +1 hour so the editor can amend in GHL before fire
+    //   - Includes hero image + canonical article link (FB)
+    //   - GHL handles the actual dispatch + analytics
     if (!wasPublished && nowPublished && wantAutoPost && !prior?.auto_posted_at) {
       void (async () => {
         try {
-          const { enqueueForSource } = await import('@/lib/social/queue')
           const sb2 = supabaseAdmin()
-          const { data: row } = await sb2
+          // Pull the row we just wrote so the prepared social_hook + FB +
+          // IG captions ride with the GHL push. If the editor wrote
+          // verbatim captions (per-platform mode), those post as-is. If
+          // we're in hook mode, the auto-trigger above will have written
+          // a voice-on hook; we send that as the FB caption and let GHL
+          // copy it to IG.
+          const { data: rowAll } = await sb2
             .from('guide_articles')
-            .select('brand_slug')
+            .select(`
+              brand_slug, title, slug, column_slug, hero_image_url,
+              social_mode, social_hook, social_fb_caption, social_ig_caption
+            `)
             .eq('id', id)
             .maybeSingle()
-          const brand = (row?.brand_slug as string | null) ?? 'rrp'
-          await enqueueForSource(sb2, 'article', id, brand)
-          // Stamp auto_posted_at so we don't re-enqueue on a republish.
-          await sb2.from('guide_articles').update({ auto_posted_at: new Date().toISOString() }).eq('id', id)
+          const row = rowAll as null | {
+            brand_slug: string | null
+            title: string
+            slug: string
+            column_slug: string | null
+            hero_image_url: string | null
+            social_mode: 'hook' | 'per-platform' | null
+            social_hook: string | null
+            social_fb_caption: string | null
+            social_ig_caption: string | null
+          }
+          if (!row) return
+          const brand = row.brand_slug ?? 'rrp'
+
+          // Resolve the captions to actually post. per-platform mode wins
+          // when both overrides are present; otherwise fall back to the hook.
+          const mode = row.social_mode ?? 'hook'
+          const fbCaption = (mode === 'per-platform' && row.social_fb_caption?.trim())
+            ? row.social_fb_caption.trim()
+            : (row.social_hook?.trim() || row.title)
+          const igCaption = (mode === 'per-platform' && row.social_ig_caption?.trim())
+            ? row.social_ig_caption.trim()
+            : (row.social_hook?.trim() || row.title)
+
+          // GHL Social Planner push. Connected accounts come from GHL's
+          // OAuth set per brand. Schedule +1 hour so the editor has a
+          // window to amend the captions in GHL before they fire.
+          const { listSocialAccounts, createSocialPost } = await import('@/lib/ghl-social')
+          const { accounts } = await listSocialAccounts(brand)
+          const fbAccount = accounts.find(a => a.platform === 'facebook')
+          const igAccount = accounts.find(a => a.platform === 'instagram')
+          const scheduleDate = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+          const publicHost = brand === 'rrp' ? 'riverregionparents.com'
+                           : brand === 'rr50plus' ? 'riverregion50plus.com'
+                           : brand === 'aop' ? 'auburnopelikaparents.com'
+                           : brand === 'mbp' ? 'mobilebayparents.com'
+                           : brand === 'esp' ? 'easternshoreparents.com'
+                           : 'greaterpensacolaparents.com'
+          const articleLink = row.column_slug
+            ? `https://${publicHost}/columns/${row.column_slug}/${row.slug}`
+            : `https://${publicHost}/articles/${row.slug}`
+
+          const results: Array<{ platform: string; ok: boolean; postId?: string; error?: string }> = []
+          if (fbAccount && fbCaption.trim()) {
+            const r = await createSocialPost({
+              brandSlug:    brand,
+              accountIds:   [fbAccount.id],
+              caption:      fbCaption,
+              imageUrl:     row.hero_image_url,
+              link:         articleLink,
+              scheduleDate,
+            })
+            results.push({ platform: 'facebook', ok: r.ok, postId: r.postId, error: r.error })
+          }
+          if (igAccount && igCaption.trim() && row.hero_image_url) {
+            const r = await createSocialPost({
+              brandSlug:    brand,
+              accountIds:   [igAccount.id],
+              caption:      igCaption,
+              imageUrl:     row.hero_image_url,
+              scheduleDate,
+            })
+            results.push({ platform: 'instagram', ok: r.ok, postId: r.postId, error: r.error })
+          }
+
+          const anyOk = results.some(r => r.ok)
+          // Stamp auto_posted_at so we don't re-push on a republish.
+          // Always stamp, even on partial failure — operator can hand-fix.
+          await sb2.from('guide_articles').update({
+            auto_posted_at: new Date().toISOString(),
+          }).eq('id', id)
+
+          if (!anyOk) console.error('[ghl-auto-push] no platforms posted', results)
+          else        console.info('[ghl-auto-push] pushed', { id, results })
         } catch (e) {
-          console.error('[social-queue] enqueue failed', e)
+          console.error('[ghl-auto-push] failed', e)
         }
       })()
     }
