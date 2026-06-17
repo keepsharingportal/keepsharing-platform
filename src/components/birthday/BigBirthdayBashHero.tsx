@@ -1,21 +1,43 @@
 // Full-bleed photo hero for The Big Birthday Bash.
-// Title with two-tone treatment ("Bash" highlighted), subtitle
-// speaks directly to moms, three quick stats reinforce credibility.
+//
+// Hero image is editor-managed: pulled from the 'birthday-bash' row in
+// the verticals table (same pattern as FRG / Mom Knows Best). Editor
+// uploads via /admin/verticals/birthday-bash/edit. Falls back to a
+// gradient when no image is set so the hero is never blank.
 
 import Image from 'next/image'
 
-export function BigBirthdayBashHero({ totalListings, totalCategories }: { totalListings: number; totalCategories: number }) {
+interface Props {
+  totalListings:   number
+  totalCategories: number
+  heroImageUrl?:   string | null
+  title?:          string | null
+  subtitle?:       string | null
+}
+
+export function BigBirthdayBashHero({ totalListings, totalCategories, heroImageUrl, title, subtitle }: Props) {
+  const displayTitle    = title    ?? 'The Big Birthday Bash'
+  const displaySubtitle = subtitle ?? 'Every venue, vendor, theme and tip for planning your kid\'s birthday in the River Region. Local moms have tested every one.'
+  // Split the last word out so we can highlight it (e.g. "Bash")
+  const titleParts = displayTitle.match(/^(.*)\s+(\S+)$/)
+  const titleHead  = titleParts ? titleParts[1] : displayTitle
+  const titleTail  = titleParts ? titleParts[2] : ''
   return (
     <div className="relative overflow-hidden border-b border-black/5">
       <div className="absolute inset-0">
-        <Image
-          src="/images/birthday/hero-balloons.jpg"
-          alt="Colorful birthday balloons"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        {heroImageUrl ? (
+          <Image
+            src={heroImageUrl}
+            alt={displayTitle}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : (
+          // Brand-gradient fallback — no broken image, ever
+          <div className="absolute inset-0 bg-gradient-to-br from-[#ff7a59] via-[#ff9d8a] to-[#ffd9cc]" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/65" />
       </div>
 
@@ -25,11 +47,10 @@ export function BigBirthdayBashHero({ totalListings, totalCategories }: { totalL
             🎂 The Ultimate Planning Portal
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.05] tracking-tight">
-            The Big Birthday <span className="text-[#ff7a59]">Bash</span>
+            {titleHead}{titleTail && <> <span className="text-[#ff7a59]">{titleTail}</span></>}
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-white/90 mt-4 max-w-2xl mx-auto leading-relaxed">
-            Every venue, vendor, theme and tip for planning your kid&apos;s birthday in the River Region.
-            Local moms have tested every one.
+            {displaySubtitle}
           </p>
 
           <div className="mt-7 flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-sm">

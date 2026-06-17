@@ -74,6 +74,17 @@ export default async function BirthdayPartyGuidePage() {
   const brandSlug = ctx.market.slug
   const supabase  = sb()
 
+  // Editor-managed hero from the verticals table — pattern matches the
+  // FRG / Mom Knows Best heroes. Falls back to defaults when the row
+  // hasn't been customized yet (or doesn't exist if migration 205
+  // hasn't been applied).
+  const { data: heroVertical } = await supabase
+    .from('verticals')
+    .select('hero_image_url, display_name, subtitle')
+    .eq('slug', 'birthday-bash')
+    .maybeSingle()
+  const hv = heroVertical as { hero_image_url?: string | null; display_name?: string | null; subtitle?: string | null } | null
+
   // Single batched load — all blocks paint together rather than waterfall.
   const [
     themesRes, tiersRes, freebiesRes, printablesRes, partiesRes, tipsRes,
@@ -162,7 +173,13 @@ export default async function BirthdayPartyGuidePage() {
 
   return (
     <main className="bg-[#fffaf5]">
-      <BigBirthdayBashHero totalListings={totalListings} totalCategories={categoryCounts.size} />
+      <BigBirthdayBashHero
+        totalListings={totalListings}
+        totalCategories={categoryCounts.size}
+        heroImageUrl={hv?.hero_image_url ?? null}
+        title={hv?.display_name ?? null}
+        subtitle={hv?.subtitle ?? null}
+      />
       <BirthdayJumpNav />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

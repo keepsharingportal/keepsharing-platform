@@ -16,6 +16,9 @@ export interface GuideListingRow {
   advertiser_account_id:  string | null
   listing_tier:           string | null
   category:               string | null
+  /** Optional editorial sub-category. Lives only in the editor UI (free text);
+   *  there's no column for it in the DB. Stays in the type so callers that
+   *  still pass it don't error, but reads/writes resolve to null. */
   subcategory:            string | null
   is_published:           boolean | null
   listing_year:           number | null

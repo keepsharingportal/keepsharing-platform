@@ -42,7 +42,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
   const { data: listings, error: listErr } = await supabase
     .from('guide_listings')
     .select(`
-      id, advertiser_account_id, listing_tier, category, subcategory,
+      id, advertiser_account_id, listing_tier, category,
       is_published, listing_year, display_order,
       business_name, office_phone, mobile_phone, website_url,
       contact_email, address, city_state_zip, neighborhood, card_hook,

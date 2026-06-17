@@ -18,7 +18,7 @@ const EDITABLE = new Set([
   'contact_email', 'address', 'city_state_zip', 'neighborhood',
   'hero_photo_url', 'card_hook',
   // Guide-specific
-  'category', 'subcategory', 'listing_tier', 'listing_year',
+  'category', 'listing_tier', 'listing_year',
   'is_published', 'display_order', 'notes', 'tags',
   // Cross-reference (set to advertiser id to associate, NULL to unlink)
   'advertiser_account_id',
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   for (const k of [
     'office_phone', 'mobile_phone', 'website_url', 'contact_email',
     'address', 'city_state_zip', 'neighborhood', 'hero_photo_url',
-    'card_hook', 'category', 'subcategory', 'notes',
+    'card_hook', 'category', 'notes',
   ]) {
     if (k in updates && typeof updates[k] === 'string') {
       updates[k] = (updates[k] as string).trim() || null

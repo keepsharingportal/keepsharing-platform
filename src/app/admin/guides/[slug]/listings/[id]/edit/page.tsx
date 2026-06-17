@@ -30,7 +30,7 @@ export default async function EditListingPage({ params }: Props) {
     supabase
       .from('guide_listings')
       .select(`
-        id, advertiser_account_id, guide_type_slug, listing_tier, category, subcategory,
+        id, advertiser_account_id, guide_type_slug, listing_tier, category,
         is_published, listing_year, display_order, tags, notes,
         business_name, office_phone, mobile_phone, website_url,
         contact_email, address, city_state_zip, neighborhood,
