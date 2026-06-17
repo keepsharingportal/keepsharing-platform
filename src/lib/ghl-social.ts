@@ -208,19 +208,23 @@ export async function deleteSocialPost(brandSlug: string, postId: string): Promi
  * concrete error message editors can act on.
  */
 export async function checkSocialPlannerScope(brandSlug: string): Promise<{
+  /** True when PIT authenticates AND at least one account is connected — i.e. fully ready to post. */
   ok:           boolean
+  /** True when PIT env vars exist and the API call succeeded. Independent of whether accounts are connected. */
+  scopeOk:      boolean
   accountCount: number
   platforms:    string[]
   error?:       string
 }> {
-  if (!pit(brandSlug))   return { ok: false, accountCount: 0, platforms: [], error: `Missing GHL_PIT_${brandSlug.toUpperCase()} env var` }
-  if (!locId(brandSlug)) return { ok: false, accountCount: 0, platforms: [], error: `Missing GHL_LOCATION_ID_${brandSlug.toUpperCase()} env var` }
+  if (!pit(brandSlug))   return { ok: false, scopeOk: false, accountCount: 0, platforms: [], error: `Missing GHL_PIT_${brandSlug.toUpperCase()} env var` }
+  if (!locId(brandSlug)) return { ok: false, scopeOk: false, accountCount: 0, platforms: [], error: `Missing GHL_LOCATION_ID_${brandSlug.toUpperCase()} env var` }
 
   const { ok, accounts, error } = await listSocialAccounts(brandSlug)
   if (!ok) {
     const isScope = (error ?? '').toLowerCase().includes('scope') || (error ?? '').toLowerCase().includes('unauthorized')
     return {
       ok:           false,
+      scopeOk:      false,
       accountCount: 0,
       platforms:    [],
       error:        isScope
@@ -228,8 +232,12 @@ export async function checkSocialPlannerScope(brandSlug: string): Promise<{
         : error,
     }
   }
+  // PIT authenticated successfully. ok=ready-to-post requires at least one
+  // connected account; scopeOk=PIT itself is fine. The page uses scopeOk to
+  // categorize "no accounts" separately from "PIT broken."
   return {
     ok:           accounts.length > 0,
+    scopeOk:      true,
     accountCount: accounts.length,
     platforms:    Array.from(new Set(accounts.map(a => a.platform))),
     error:        accounts.length === 0 ? 'PIT works but no social accounts connected in GHL for this brand.' : undefined,
