@@ -122,10 +122,14 @@ export default async function BirthdayPartyGuidePage() {
       .lte('opens_at', new Date().toISOString())
       .order('opens_at', { ascending: false })
       .limit(1).maybeSingle(),
+    // Birthday-relevant articles: anything tagged with the 'birthday' topic
+    // OR assigned to the birthday-party-guide via guide_slug. Either path
+    // surfaces the article in the portal's Inspiration Articles block, so
+    // the editor can pick whichever feels right at write-time.
     supabase.from('guide_articles')
       .select('id, title, slug, column_slug, excerpt, hero_image_url, author_byline, published_at')
       .eq('published', true).eq('brand_slug', brandSlug)
-      .contains('topics', ['birthday'])
+      .or('topics.cs.{birthday},guide_slug.eq.birthday-party-guide')
       .order('published_at', { ascending: false })
       .limit(6),
     // Category counts on the existing 89-vendor birthday-party-guide listings

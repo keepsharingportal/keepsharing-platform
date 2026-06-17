@@ -118,6 +118,8 @@ export const CONTENT_TOPICS: ContentTopicDef[] = [
     description: 'Physical health, mental health, nutrition, development — for kids and parents.' },
   { slug: 'family-fun',      label: 'Family Fun',
     description: 'Activities, day trips, traditions, holidays — things to do as a family.' },
+  { slug: 'birthday',        label: 'Birthday Planning',
+    description: 'Birthday venues, vendors, themes, budgets, planning. Surfaces on The Big Birthday Bash portal.' },
 ]
 
 export function contentTopicLabel(slug: string): string {
