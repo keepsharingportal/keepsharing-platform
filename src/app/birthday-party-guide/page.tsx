@@ -45,6 +45,16 @@ function sb() {
   )
 }
 
+// Flattens advertiser_accounts.slug onto the buzz row as vendor_slug so the
+// carousel can build vendor profile links without a second query.
+function normalizeBuzz(rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return rows.map(r => {
+    const adv = r.advertiser_accounts as { slug?: string } | { slug?: string }[] | null
+    const vendor_slug = Array.isArray(adv) ? adv[0]?.slug : adv?.slug
+    return { ...r, vendor_slug: vendor_slug ?? null }
+  })
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
@@ -120,13 +130,13 @@ export default async function BirthdayPartyGuidePage() {
       .eq('is_active', true)
       .ilike('placement_context', '%birthday%')
       .limit(1).maybeSingle(),
-    // Birthday Buzz micro-shoutout stream
+    // Birthday Buzz spotlight carousel
     supabase.from('birthday_buzz')
-      .select('id, kind, body, from_name, image_url, vendor_name, link_url, posted_at')
+      .select('id, kind, body, from_name, image_url, vendor_id, vendor_name, link_url, posted_at, advertiser_accounts:advertiser_accounts(slug)')
       .eq('is_active', true).eq('brand_slug', brandSlug)
       .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
       .order('posted_at', { ascending: false })
-      .limit(6),
+      .limit(8),
     // Top 2-3 active deals for the sidebar promo
     supabase.from('birthday_deals')
       .select('id, business_name, headline, offer, image_url, link_url, valid_until, is_featured')
@@ -173,7 +183,7 @@ export default async function BirthdayPartyGuidePage() {
             </section>
 
             <section id="buzz">
-              <BirthdayBuzz buzz={(buzzRes.data ?? []) as Array<Record<string, unknown>>} />
+              <BirthdayBuzz buzz={normalizeBuzz(buzzRes.data ?? [])} />
             </section>
 
             <section id="timeline">
