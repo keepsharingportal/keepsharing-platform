@@ -13,29 +13,31 @@
 
 import Link from 'next/link'
 import { SectionHeader } from './BudgetTiers'
-import { Star, ArrowRight } from 'lucide-react'
+import { Star, ArrowRight, ExternalLink } from 'lucide-react'
 
 interface Spotlight {
-  id:           string
-  body:         string
-  from_name:    string | null
-  image_url:    string | null
-  vendor_id:    string | null
-  vendor_name:  string | null
-  vendor_slug:  string | null
-  link_url:     string | null
+  id:             string
+  body:           string
+  from_name:      string | null
+  image_url:      string | null
+  vendor_id:      string | null
+  vendor_name:    string | null
+  vendor_slug:    string | null
+  vendor_website: string | null
+  link_url:       string | null
 }
 
 export function FeaturedBirthdayPros({ items }: { items: Array<Record<string, unknown>> }) {
   const list: Spotlight[] = items.map(b => ({
-    id:          b.id          as string,
-    body:        b.body        as string,
-    from_name:   b.from_name   as string | null,
-    image_url:   b.image_url   as string | null,
-    vendor_id:   b.vendor_id   as string | null,
-    vendor_name: b.vendor_name as string | null,
-    vendor_slug: b.vendor_slug as string | null,
-    link_url:    b.link_url    as string | null,
+    id:             b.id             as string,
+    body:           b.body           as string,
+    from_name:      b.from_name      as string | null,
+    image_url:      b.image_url      as string | null,
+    vendor_id:      b.vendor_id      as string | null,
+    vendor_name:    b.vendor_name    as string | null,
+    vendor_slug:    b.vendor_slug    as string | null,
+    vendor_website: b.vendor_website as string | null,
+    link_url:       b.link_url       as string | null,
   }))
 
   if (list.length === 0) return null
@@ -62,9 +64,24 @@ export function FeaturedBirthdayPros({ items }: { items: Array<Record<string, un
   )
 }
 
-function hrefFor(spot: Spotlight): string | null {
-  if (spot.vendor_slug) return `/birthday-party-guide/business/${spot.vendor_slug}`
-  if (spot.link_url)    return spot.link_url
+// Click priority:
+//   1. Editor-set external link on the buzz entry → open in new tab.
+//      Editor explicitly wanted to send the user somewhere specific.
+//   2. Vendor's website_url from advertiser_accounts → open in new tab.
+//      Safe fallback while the internal vendor profile is sparse.
+//   3. Internal vendor profile page → same tab.
+//      Once the editor fills birthday_profile (packages, hours, gallery),
+//      the profile page is genuinely useful — but it shouldn't be the
+//      destination just because a vendor is picked.
+function hrefFor(spot: Spotlight): { href: string; external: boolean } | null {
+  const link = spot.link_url?.trim()
+  if (link) return { href: link, external: true }
+  const website = spot.vendor_website?.trim()
+  if (website) {
+    const url = website.startsWith('http') ? website : `https://${website}`
+    return { href: url, external: true }
+  }
+  if (spot.vendor_slug) return { href: `/birthday-party-guide/business/${spot.vendor_slug}`, external: false }
   return null
 }
 
@@ -123,7 +140,8 @@ function HeroSpotlight({ spot }: { spot: Spotlight }) {
           {href && (
             <div className="mt-5">
               <span className="inline-flex items-center gap-1.5 px-5 py-2.5 text-[13px] font-bold text-white bg-[#ff7a59] rounded-lg group-hover:opacity-90">
-                See their work <ArrowRight size={12} />
+                See their work
+                {href.external ? <ExternalLink size={12} /> : <ArrowRight size={12} />}
               </span>
             </div>
           )}
@@ -132,9 +150,9 @@ function HeroSpotlight({ spot }: { spot: Spotlight }) {
     </div>
   )
   return href
-    ? (href.startsWith('/')
-        ? <Link href={href} className="block">{Inner}</Link>
-        : <a href={href} target="_blank" rel="noopener noreferrer" className="block">{Inner}</a>)
+    ? (href.external
+        ? <a href={href.href} target="_blank" rel="noopener noreferrer" className="block">{Inner}</a>
+        : <Link href={href.href} className="block">{Inner}</Link>)
     : <div>{Inner}</div>
 }
 
@@ -169,8 +187,8 @@ function SupportingCard({ spot }: { spot: Spotlight }) {
     </div>
   )
   return href
-    ? (href.startsWith('/')
-        ? <Link href={href} className="block h-full">{Inner}</Link>
-        : <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">{Inner}</a>)
+    ? (href.external
+        ? <a href={href.href} target="_blank" rel="noopener noreferrer" className="block h-full">{Inner}</a>
+        : <Link href={href.href} className="block h-full">{Inner}</Link>)
     : <div className="h-full">{Inner}</div>
 }

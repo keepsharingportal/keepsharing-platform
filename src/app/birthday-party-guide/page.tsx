@@ -46,13 +46,16 @@ function sb() {
   )
 }
 
-// Flattens advertiser_accounts.slug onto the buzz row as vendor_slug so the
-// carousel can build vendor profile links without a second query.
+// Flattens advertiser_accounts.{slug,website_url} onto the buzz row as
+// vendor_slug + vendor_website so the carousel can decide where the CTA
+// should send the user without a second query.
 function normalizeBuzz(rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   return rows.map(r => {
-    const adv = r.advertiser_accounts as { slug?: string } | { slug?: string }[] | null
-    const vendor_slug = Array.isArray(adv) ? adv[0]?.slug : adv?.slug
-    return { ...r, vendor_slug: vendor_slug ?? null }
+    const adv = r.advertiser_accounts as { slug?: string; website_url?: string | null } | { slug?: string; website_url?: string | null }[] | null
+    const first         = Array.isArray(adv) ? adv[0] : adv
+    const vendor_slug   = first?.slug ?? null
+    const vendor_website = first?.website_url ?? null
+    return { ...r, vendor_slug, vendor_website }
   })
 }
 
@@ -154,7 +157,7 @@ export default async function BirthdayPartyGuidePage() {
     // Both fetched in one round-trip with a higher limit; we split + slice
     // in JS below so the editor can manage both from /admin/birthday/buzz.
     supabase.from('birthday_buzz')
-      .select('id, kind, body, from_name, image_url, vendor_id, vendor_name, link_url, posted_at, advertiser_accounts:advertiser_accounts(slug)')
+      .select('id, kind, body, from_name, image_url, vendor_id, vendor_name, link_url, posted_at, advertiser_accounts:advertiser_accounts(slug, website_url)')
       .eq('is_active', true).eq('brand_slug', brandSlug)
       .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
       .order('posted_at', { ascending: false })
