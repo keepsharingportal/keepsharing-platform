@@ -1,28 +1,22 @@
 'use client'
 
-// Lead-magnet editor — one PDF + welcome email per row, slug-keyed,
-// trigger-source matched at delivery time. Dropdown picks the magnet
-// being edited; "New" button creates a fresh row.
+// Unified lead-magnet editor. Top bar: vertical filter + magnet picker
+// + "New" button. Below: the chosen magnet's editor (identity, PDF,
+// thumbnail, GHL sync, delivery email, preview).
 //
-// Workflow per magnet:
-//   1. Editor picks (or creates) the magnet from the dropdown.
-//   2. Sets the trigger source — the value /api/birthday/subscribe must
-//      receive to fire this magnet (e.g. 'timeline-checklist').
-//   3. Uploads the PDF, writes the email subject + body, sets GHL tags
-//      and (optional) workflow ID.
-//   4. Save. Next subscribe matching that source gets:
-//        a. row in birthday_planning_subscribers
-//        b. Resend email with the PDF link
-//        c. GHL contact upsert with the tags + workflow trigger
+// State model: rows is the FULL set for the brand; the dropdowns derive
+// from it. Changing the vertical filter narrows the magnet picker but
+// keeps every row in memory so switching back is instant.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
-import { CrudInput, CrudTextarea, CrudActiveToggle } from '@/components/admin/BirthdayCrudHelpers'
+import { CrudInput, CrudTextarea, CrudActiveToggle, CrudSelect } from '@/components/admin/BirthdayCrudHelpers'
 import { Loader2, Save, Upload, FileText, ExternalLink, Mail, Eye, Plus, Trash2, ChevronDown, Tag, X } from 'lucide-react'
 
 export interface LeadMagnet {
   id:              string
   brand_slug:      string
+  vertical:        string
   slug:            string
   title:           string
   description:     string | null
@@ -37,10 +31,40 @@ export interface LeadMagnet {
   is_active:       boolean
 }
 
-export function LeadMagnetsClient({ initial }: { initial: LeadMagnet[] }) {
+// Editor-facing vertical options. Drives the "+ New" modal and the
+// filter dropdown. The string stored in lead_magnets.vertical matches
+// these values exactly, so they're easy to grep for and align with
+// /admin/{vertical} routes where applicable.
+export const VERTICAL_OPTIONS = [
+  { value: 'birthday',      label: 'Birthday Bash' },
+  { value: 'special-needs', label: 'Special Needs Guide' },
+  { value: 'after-school',  label: 'After School' },
+  { value: 'summer-camps',  label: 'Summer Camps Guide' },
+  { value: 'summer-fun',    label: 'Summer Fun Guide' },
+  { value: 'private-school',label: 'Private School Guide' },
+  { value: 'general',       label: 'General / Cross-vertical' },
+]
+
+function verticalLabel(v: string): string {
+  return VERTICAL_OPTIONS.find(o => o.value === v)?.label ?? v
+}
+
+export function LeadMagnetsClient({ initial, initialVertical }: { initial: LeadMagnet[]; initialVertical: string | null }) {
   const [rows, setRows]   = useState<LeadMagnet[]>(initial)
-  const [activeId, setActiveId] = useState<string | null>(initial[0]?.id ?? null)
+  const [verticalFilter, setVerticalFilter] = useState<string>(initialVertical ?? '')
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+
+  const filtered = useMemo(
+    () => verticalFilter ? rows.filter(r => r.vertical === verticalFilter) : rows,
+    [rows, verticalFilter],
+  )
+
+  // Auto-select something visible whenever the filter changes.
+  useEffect(() => {
+    if (activeId && filtered.some(r => r.id === activeId)) return
+    setActiveId(filtered[0]?.id ?? null)
+  }, [filtered, activeId])
 
   const active = rows.find(r => r.id === activeId) ?? null
 
@@ -48,36 +72,58 @@ export function LeadMagnetsClient({ initial }: { initial: LeadMagnet[] }) {
     setRows(rs => rs.map(r => r.id === updated.id ? updated : r))
   }
   function onCreated(created: LeadMagnet) {
-    setRows(rs => [...rs, created].sort((a, b) => a.slug.localeCompare(b.slug)))
+    setRows(rs => [...rs, created].sort((a, b) => a.vertical.localeCompare(b.vertical) || a.slug.localeCompare(b.slug)))
     setActiveId(created.id)
+    setVerticalFilter(created.vertical)
     setCreating(false)
   }
   function onDeleted(id: string) {
     setRows(rs => {
       const next = rs.filter(r => r.id !== id)
-      if (activeId === id) setActiveId(next[0]?.id ?? null)
+      if (activeId === id) setActiveId(null)
       return next
     })
   }
 
+  // Group filtered options by vertical for the picker so a 30-magnet
+  // future doesn't drown the editor in a flat list.
+  const grouped = useMemo(() => {
+    const out: Record<string, LeadMagnet[]> = {}
+    for (const r of filtered) {
+      out[r.vertical] = out[r.vertical] ?? []
+      out[r.vertical].push(r)
+    }
+    return out
+  }, [filtered])
+
   return (
     <div className="space-y-4">
-      {/* Picker */}
-      <div className="bg-white border border-portal-border rounded-lg p-3 flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[220px]">
+      {/* Top bar — filter + picker + new */}
+      <div className="bg-white border border-portal-border rounded-lg p-3 grid sm:grid-cols-[180px,1fr,auto] gap-3 items-end">
+        <CrudSelect
+          label="Vertical"
+          value={verticalFilter}
+          onChange={e => setVerticalFilter(e.target.value)}
+          options={[{ value: '', label: 'All verticals' }, ...VERTICAL_OPTIONS]}
+        />
+        <div>
           <label className="block text-[11px] font-bold text-portal-text mb-1">Editing lead magnet</label>
           <div className="relative">
             <select
               value={activeId ?? ''}
               onChange={e => setActiveId(e.target.value || null)}
-              disabled={rows.length === 0}
+              disabled={filtered.length === 0}
               className="w-full appearance-none px-3 py-2 pr-8 text-[13px] border border-portal-border-2 rounded bg-white outline-none focus:border-portal-blue"
             >
-              {rows.length === 0 && <option value="">— none yet —</option>}
-              {rows.map(r => (
-                <option key={r.id} value={r.id}>
-                  {r.title} {r.is_active ? '' : '(paused)'}{r.source ? `  ·  source: ${r.source}` : '  ·  no source set'}
-                </option>
+              {filtered.length === 0 && <option value="">— no magnets in this view —</option>}
+              {Object.entries(grouped).map(([vert, list]) => (
+                <optgroup key={vert} label={verticalLabel(vert)}>
+                  {list.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.title} {r.is_active ? '' : '(paused)'}{r.source ? `  ·  source: ${r.source}` : '  ·  no source set'}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-portal-sub pointer-events-none" />
@@ -93,27 +139,35 @@ export function LeadMagnetsClient({ initial }: { initial: LeadMagnet[] }) {
       {active
         ? <LeadMagnetCard row={active} onUpdated={onUpdated} onDeleted={onDeleted} />
         : <div className="bg-white border border-portal-border rounded-lg p-6 text-center text-portal-sub text-[12px]">
-            Create a lead magnet to get started.
+            {rows.length === 0
+              ? 'No lead magnets yet. Click "New lead magnet" to add the first one.'
+              : 'Select a magnet from the dropdown to edit, or create a new one.'}
           </div>}
 
-      {creating && <NewLeadMagnetModal onClose={() => setCreating(false)} onCreated={onCreated} existing={rows} />}
+      {creating && <NewLeadMagnetModal
+        onClose={() => setCreating(false)}
+        onCreated={onCreated}
+        existing={rows}
+        defaultVertical={verticalFilter || initialVertical || 'birthday'}
+      />}
     </div>
   )
 }
 
-function NewLeadMagnetModal({ onClose, onCreated, existing }: {
-  onClose:   () => void
-  onCreated: (row: LeadMagnet) => void
-  existing:  LeadMagnet[]
+function NewLeadMagnetModal({ onClose, onCreated, existing, defaultVertical }: {
+  onClose:         () => void
+  onCreated:       (row: LeadMagnet) => void
+  existing:        LeadMagnet[]
+  defaultVertical: string
 }) {
-  const [title, setTitle]   = useState('')
-  const [slug, setSlug]     = useState('')
-  const [source, setSource] = useState('')
-  const [busy, setBusy]     = useState(false)
-  const [err, setErr]       = useState<string | null>(null)
+  const [vertical, setVertical] = useState(defaultVertical)
+  const [title, setTitle]       = useState('')
+  const [slug, setSlug]         = useState('')
+  const [source, setSource]     = useState('')
+  const [busy, setBusy]         = useState(false)
+  const [err, setErr]           = useState<string | null>(null)
   const [slugTouched, setSlugTouched] = useState(false)
 
-  // Auto-derive slug from title until the editor types one explicitly.
   useEffect(() => {
     if (slugTouched) return
     const auto = title.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64)
@@ -121,14 +175,14 @@ function NewLeadMagnetModal({ onClose, onCreated, existing }: {
   }, [title, slugTouched])
 
   async function submit() {
-    if (!title.trim() || !slug.trim()) return
-    if (existing.some(r => r.slug === slug.trim())) { setErr(`Slug '${slug}' already exists.`); return }
+    if (!title.trim() || !slug.trim() || !vertical) return
+    if (existing.some(r => r.vertical === vertical && r.slug === slug.trim())) { setErr(`Slug '${slug}' already exists in this vertical.`); return }
     setBusy(true); setErr(null)
     try {
-      const res = await fetch('/api/admin/birthday/lead-magnets', {
+      const res = await fetch('/api/admin/lead-magnets', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ title: title.trim(), slug: slug.trim(), source: source.trim() || null }),
+        body:    JSON.stringify({ vertical, title: title.trim(), slug: slug.trim(), source: source.trim() || null }),
       })
       const j = await res.json()
       if (!res.ok) { setErr(j?.error ?? 'Create failed'); return }
@@ -144,6 +198,12 @@ function NewLeadMagnetModal({ onClose, onCreated, existing }: {
           <button type="button" onClick={onClose} className="text-portal-sub hover:text-portal-text"><X size={14} /></button>
         </div>
         <div className="p-4 space-y-3">
+          <CrudSelect
+            label="Vertical"
+            value={vertical}
+            onChange={e => setVertical(e.target.value)}
+            options={VERTICAL_OPTIONS}
+          />
           <CrudInput
             label="Title"
             placeholder="Goody-bag essentials checklist"
@@ -157,7 +217,7 @@ function NewLeadMagnetModal({ onClose, onCreated, existing }: {
           />
           <CrudInput
             label="Trigger source"
-            hint="Value sent to /api/birthday/subscribe when this magnet should fire. Use kebab-case, e.g. 'goody-bag-block'. Leave blank to wire later."
+            hint="Value sent to the subscribe endpoint when this magnet should fire. Kebab-case (e.g. 'goody-bag-block'). Leave blank to wire later."
             placeholder="e.g. goody-bag-block"
             value={source} onChange={e => setSource(e.target.value)}
           />
@@ -165,7 +225,7 @@ function NewLeadMagnetModal({ onClose, onCreated, existing }: {
         </div>
         <div className="border-t border-portal-border px-4 py-3 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="px-3 py-1.5 text-[12px] font-bold text-portal-sub hover:text-portal-text">Cancel</button>
-          <button type="button" onClick={submit} disabled={busy || !title.trim() || !slug.trim()}
+          <button type="button" onClick={submit} disabled={busy || !title.trim() || !slug.trim() || !vertical}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white bg-portal-navy rounded hover:opacity-90 disabled:opacity-50">
             {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create
           </button>
@@ -199,7 +259,7 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/admin/birthday/upload-pdf', { method: 'POST', body: fd })
+      const res = await fetch('/api/admin/lead-magnets/upload-pdf', { method: 'POST', body: fd })
       const j = await res.json()
       if (!res.ok) { setErr(j?.error ?? 'Upload failed'); return }
       update('file_url', j.url)
@@ -213,10 +273,11 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
   async function save() {
     setBusy(true); setErr(null); setSaved(false)
     try {
-      const res = await fetch(`/api/admin/birthday/lead-magnets/${row.slug}?brand=${row.brand_slug}`, {
+      const res = await fetch(`/api/admin/lead-magnets/${row.id}`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
+          vertical:        row.vertical,
           title:           row.title,
           description:     row.description,
           source:          row.source,
@@ -240,7 +301,7 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
 
   async function remove() {
     if (!confirm(`Delete '${row.title}'? This can't be undone.`)) return
-    const res = await fetch(`/api/admin/birthday/lead-magnets/${row.slug}?brand=${row.brand_slug}`, { method: 'DELETE' })
+    const res = await fetch(`/api/admin/lead-magnets/${row.id}`, { method: 'DELETE' })
     if (res.ok) onDeleted(row.id)
   }
 
@@ -262,7 +323,9 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
           <FileText size={14} className="text-portal-navy" />
           <div>
             <div className="text-[13px] font-bold text-portal-text">{row.title}</div>
-            <div className="text-[10px] uppercase tracking-wider text-portal-sub">slug: {row.slug}</div>
+            <div className="text-[10px] uppercase tracking-wider text-portal-sub">
+              {verticalLabel(row.vertical)} · slug: {row.slug}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -277,6 +340,12 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
       <div className="p-4 grid lg:grid-cols-2 gap-4">
         {/* Left: identity + PDF + GHL */}
         <div className="space-y-3">
+          <CrudSelect
+            label="Vertical"
+            value={row.vertical}
+            onChange={e => update('vertical', e.target.value)}
+            options={VERTICAL_OPTIONS}
+          />
           <CrudInput
             label="Title"
             value={row.title}
@@ -284,7 +353,7 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
           />
           <CrudInput
             label="Trigger source"
-            hint="The 'source' value /api/birthday/subscribe receives to fire this magnet. e.g. timeline-checklist."
+            hint="The 'source' value the subscribe endpoint receives to fire this magnet."
             value={row.source ?? ''}
             onChange={e => update('source', e.target.value || null)}
             placeholder="timeline-checklist"
@@ -351,7 +420,7 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
               <Tag size={13} className="text-portal-navy" /> GHL sync
             </div>
             <p className="text-[10px] text-portal-sub mb-2">
-              Every subscribe also upserts the contact in GoHighLevel with these tags. A GHL workflow ID (optional) fires after the upsert — use it for drip series, SMS reminders, etc.
+              Every signup also upserts the contact in GoHighLevel with these tags. A GHL workflow ID (optional) fires after the upsert — use for drip series, SMS reminders, etc.
             </p>
             <div>
               <label className="block text-[11px] font-bold text-portal-text mb-1">Tags</label>
@@ -411,7 +480,7 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
           />
           <CrudTextarea
             label="Email body (HTML)"
-            hint="Tokens: {{first_name}}, {{file_url}}, {{party_date}}. Use {{file_url}} in a link/button so mom can download the PDF."
+            hint="Tokens: {{first_name}}, {{file_url}}, {{party_date}}. Put {{file_url}} in a link/button so the recipient can download the PDF."
             rows={16}
             value={row.email_body}
             onChange={e => update('email_body', e.target.value)}

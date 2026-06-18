@@ -70,7 +70,7 @@ function fromAddress(fromName: string | null | undefined): string {
 async function findLeadMagnet(brandSlug: string, source: string): Promise<LeadMagnetRow | null> {
   const client = sb()
   const { data } = await client
-    .from('birthday_lead_magnets')
+    .from('lead_magnets')
     .select('slug, title, file_url, email_subject, email_body, from_name, ghl_tags, ghl_workflow_id, is_active')
     .eq('brand_slug', brandSlug)
     .eq('source', source)

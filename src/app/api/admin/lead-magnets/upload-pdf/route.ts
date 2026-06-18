@@ -1,12 +1,8 @@
-// POST /api/admin/birthday/upload-pdf
+// POST /api/admin/lead-magnets/upload-pdf
 //
-// Multipart file upload for PDF lead-magnet assets (the Birthday Bash
-// Planner, future goody-bag list, etc.). Streams straight to Supabase
-// Storage under the 'article-media' public bucket — no Sharp pipeline,
-// the file goes up byte-for-byte.
-//
-// Vercel function bodies cap at ~4.5 MB; we enforce a generous 10 MB
-// limit so the editor sees a clean error instead of a 413.
+// Multipart PDF upload for lead-magnet assets across every vertical.
+// Streams straight to the public 'article-media' Supabase Storage
+// bucket — no transform, the file goes up byte-for-byte.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -52,7 +48,7 @@ export async function POST(req: NextRequest) {
   const yyyy = now.getFullYear()
   const mm   = String(now.getMonth() + 1).padStart(2, '0')
   const stamp = `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`
-  const path = `birthday-lead-magnets/${yyyy}/${mm}/${safeFilename(file.name)}-${stamp}.pdf`
+  const path = `lead-magnets/${yyyy}/${mm}/${safeFilename(file.name)}-${stamp}.pdf`
 
   const sb = supabaseAdmin()
   const { error } = await sb.storage.from(BUCKET).upload(path, buf, {
@@ -61,7 +57,7 @@ export async function POST(req: NextRequest) {
     upsert: false,
   })
   if (error) {
-    console.error('[birthday-upload-pdf]', error)
+    console.error('[lead-magnets-upload-pdf]', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
   const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path)

@@ -174,6 +174,7 @@ const NAV: NavItem[] = [
   // pool admin (quotes/videos/spotlights), performance, GHL setup,
   // legacy audit/queue at the bottom.
   { name: 'Birthday Bash',     href: '/admin/birthday',     icon: Sparkles },
+  { name: 'Lead Magnets',      href: '/admin/lead-magnets', icon: Mail     },
 
   { section: 'SOCIAL' },
   { name: 'Social Plan',        href: '/admin/social/plan',        icon: Share2     },
