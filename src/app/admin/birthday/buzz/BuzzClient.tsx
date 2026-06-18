@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, Edit2, X } from 'lucide-react'
 import { CrudInput, CrudTextarea, CrudSelect, CrudActiveToggle, CrudDeleteButton, BRAND_OPTIONS } from '@/components/admin/BirthdayCrudHelpers'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 
@@ -48,6 +48,8 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
   // a new advertiser without a page refresh.
   const [vendorList, setVendorList] = useState<Vendor[]>(vendors)
   const [quickCreateOpen, setQuickCreateOpen] = useState(false)
+  // Which row is open in the edit modal (null = closed)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState({
     brand_slug:  'rrp',
     kind:        'vendor_spotlight',
@@ -209,20 +211,28 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
             {visibleRows.length === 0 && <tr><td colSpan={6} className="px-3 py-6 text-center text-portal-sub">{surfaceFilter === 'all' ? 'Nothing buzzing yet.' : `Nothing in ${surfaceFilter} yet.`}</td></tr>}
             {visibleRows.map(r => (
               <tr key={r.id} className="border-b border-portal-border last:border-b-0 hover:bg-portal-bg">
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 cursor-pointer" onClick={() => setEditingId(r.id)}>
                   {r.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={r.image_url} alt="" className="w-16 h-12 object-cover rounded bg-portal-bg" />
                   )}
                 </td>
-                <td className="px-3 py-2 text-portal-text max-w-md">{r.body}</td>
-                <td className="px-3 py-2 text-portal-sub">
+                <td className="px-3 py-2 text-portal-text max-w-md cursor-pointer" onClick={() => setEditingId(r.id)}>{r.body}</td>
+                <td className="px-3 py-2 text-portal-sub cursor-pointer" onClick={() => setEditingId(r.id)}>
                   <div className="font-bold text-portal-text">{r.vendor_name ?? '—'}</div>
                   <div className="text-[10px] uppercase text-portal-sub">{r.kind}</div>
                 </td>
-                <td className="px-3 py-2 text-portal-sub text-[11px]">{new Date(r.posted_at).toLocaleDateString()}</td>
+                <td className="px-3 py-2 text-portal-sub text-[11px] cursor-pointer" onClick={() => setEditingId(r.id)}>{new Date(r.posted_at).toLocaleDateString()}</td>
                 <td className="px-3 py-2"><CrudActiveToggle active={r.is_active} onChange={() => toggleActive(r.id, r.is_active)} /></td>
-                <td className="px-3 py-2"><CrudDeleteButton onClick={() => remove(r.id)} /></td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => setEditingId(r.id)}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-blue hover:underline">
+                      <Edit2 size={11} /> Edit
+                    </button>
+                    <CrudDeleteButton onClick={() => remove(r.id)} />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -239,6 +249,133 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
           }}
         />
       )}
+
+      {editingId && (() => {
+        const row = rows.find(r => r.id === editingId)
+        if (!row) return null
+        return (
+          <EditBuzzModal
+            row={row}
+            vendors={vendorList}
+            onClose={() => setEditingId(null)}
+            onSaved={(updated) => {
+              setRows(rs => rs.map(r => r.id === updated.id ? updated : r))
+              setEditingId(null)
+            }}
+          />
+        )
+      })()}
+    </div>
+  )
+}
+
+function EditBuzzModal({ row, vendors, onClose, onSaved }: {
+  row:      Buzz
+  vendors:  Vendor[]
+  onClose:  () => void
+  onSaved:  (row: Buzz) => void
+}) {
+  const [kind,       setKind]       = useState(row.kind)
+  const [vendorId,   setVendorId]   = useState(row.vendor_id ?? '')
+  const [brandSlug,  setBrandSlug]  = useState(row.brand_slug)
+  const [body,       setBody]       = useState(row.body)
+  const [imageUrl,   setImageUrl]   = useState(row.image_url ?? '')
+  const [fromName,   setFromName]   = useState(row.from_name ?? '')
+  const [linkUrl,    setLinkUrl]    = useState(row.link_url ?? '')
+  const [expiresAt,  setExpiresAt]  = useState(row.expires_at ? row.expires_at.slice(0, 10) : '')
+  const [busy,       setBusy]       = useState(false)
+  const [error,      setError]      = useState<string | null>(null)
+
+  async function save() {
+    setBusy(true); setError(null)
+    try {
+      const vendor_name = vendorId ? vendors.find(v => v.id === vendorId)?.business_name ?? null : null
+      const res = await fetch(`/api/admin/birthday/buzz/${row.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind,
+          brand_slug:  brandSlug || 'rrp',
+          body:        body.trim(),
+          image_url:   imageUrl.trim() || null,
+          from_name:   fromName.trim() || null,
+          vendor_id:   vendorId || null,
+          vendor_name,
+          link_url:    linkUrl.trim() || null,
+          expires_at:  expiresAt || null,
+        }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setError(j?.error ?? 'Save failed.'); return }
+      onSaved({
+        ...row,
+        kind,
+        brand_slug:  brandSlug || 'rrp',
+        body:        body.trim(),
+        image_url:   imageUrl.trim() || null,
+        from_name:   fromName.trim() || null,
+        vendor_id:   vendorId || null,
+        vendor_name,
+        link_url:    linkUrl.trim() || null,
+        expires_at:  expiresAt || null,
+      })
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-2xl w-full my-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white px-5 py-3 border-b border-portal-border flex items-center justify-between z-10 rounded-t-2xl">
+          <div>
+            <h2 className="text-[15px] font-bold text-portal-text">Edit buzz entry</h2>
+            <p className="text-[11px] text-portal-sub">
+              {KIND_SURFACE[kind] && <>Currently appears in: <strong className="text-portal-text">{KIND_SURFACE[kind]}</strong></>}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="text-portal-sub hover:text-portal-text"><X size={16} /></button>
+        </div>
+
+        <div className="p-5 space-y-3">
+          <div className="grid sm:grid-cols-3 gap-2">
+            <CrudSelect label="Kind" value={kind} onChange={e => setKind(e.target.value)} options={KIND_OPTIONS} />
+            <div>
+              <label className="block text-[11px] font-bold text-portal-text mb-1">Vendor</label>
+              <select value={vendorId} onChange={e => setVendorId(e.target.value)}
+                className="w-full px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white">
+                <option value="">— None —</option>
+                {vendors.map(v => <option key={v.id} value={v.id}>{v.business_name}</option>)}
+              </select>
+            </div>
+            <CrudSelect label="Brand" value={brandSlug} onChange={e => setBrandSlug(e.target.value)} options={BRAND_OPTIONS.filter(b => b.value)} />
+          </div>
+
+          <CrudTextarea label="Body *" hint="First sentence becomes the headline; rest is the pitch. Wrap a mom quote in &quot;…&quot; to pull it as an italic block."
+            rows={4} value={body} onChange={e => setBody(e.target.value)} />
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-portal-text mb-1">Image</label>
+              <HeroImageUpload value={imageUrl} onChange={setImageUrl} context="asset" emptyWarning={false} />
+            </div>
+            <div className="space-y-2">
+              <CrudInput label="Attribution" hint="Shown as 'From Sarah, Pike Road'"
+                value={fromName} onChange={e => setFromName(e.target.value)} />
+              <CrudInput type="url" label="External link" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://…" />
+              <CrudInput type="date" label="Expires" hint="Falls off automatically." value={expiresAt} onChange={e => setExpiresAt(e.target.value)} />
+            </div>
+          </div>
+
+          {error && <div className="bg-portal-red-lt text-portal-red rounded p-2 text-[12px]">{error}</div>}
+        </div>
+
+        <div className="sticky bottom-0 bg-white px-5 py-3 border-t border-portal-border flex items-center gap-2 justify-end rounded-b-2xl">
+          <button type="button" onClick={onClose} className="text-[12px] text-portal-sub hover:text-portal-text">Cancel</button>
+          <button type="button" onClick={save} disabled={busy || !body.trim()}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold text-white bg-portal-navy rounded hover:opacity-90 disabled:opacity-50">
+            {busy && <Loader2 size={11} className="animate-spin" />} Save changes
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
