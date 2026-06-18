@@ -14,7 +14,7 @@ export default async function BirthdayAdminHub() {
   await requireAdmin()
   const sb = createAdminClient()
 
-  const [pending, freebies, themes, tiers, printables, tips, subs, deals, buzz, clubSubs, sponsored] = await Promise.all([
+  const [pending, freebies, themes, tiers, printables, tips, subs, deals, buzz, clubSubs, sponsored, leadMagnets] = await Promise.all([
     sb.from('birthday_real_parties').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     sb.from('birthday_freebies').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('birthday_themes').select('id', { count: 'exact', head: true }).eq('is_active', true),
@@ -26,6 +26,7 @@ export default async function BirthdayAdminHub() {
     sb.from('birthday_buzz').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('birthday_club_subscribers').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('advertiser_accounts').select('id', { count: 'exact', head: true }).not('birthday_tier', 'is', null),
+    sb.from('birthday_lead_magnets').select('id', { count: 'exact', head: true }).eq('is_active', true),
   ])
 
   const tiles = [
@@ -37,6 +38,7 @@ export default async function BirthdayAdminHub() {
     { href: '/admin/birthday/themes',       icon: Lightbulb, title: 'Trending Themes',    count: themes.count ?? 0,   hint: 'Trending Themes gallery — defaults render until you customize.' },
     { href: '/admin/birthday/budget-tiers', icon: DollarSign,title: 'Budget Tiers',       count: tiers.count ?? 0,    hint: '3-tier Plan-by-Budget — the differentiator block.' },
     { href: '/admin/birthday/printables',   icon: FileText,  title: 'Printables',         count: printables.count ?? 0, hint: 'Invitations, thank-yous, banners. is_premium = email-gated.' },
+    { href: '/admin/birthday/lead-magnets', icon: Mail,      title: 'Lead Magnets',       count: leadMagnets.count ?? 0, hint: 'PDF + welcome email mom receives when she signs up via the Planning Timeline.' },
     { href: '/admin/birthday/mom-tips',     icon: Quote,     title: 'Mom-to-Mom Tips',    count: tips.count ?? 0,     hint: 'Short quoted advice from local moms.' },
     { href: '/admin/birthday/subscribers',  icon: Mail,      title: 'Insider Subscribers', count: subs.count ?? 0,    hint: 'Email captures — Timeline drip + Freebies PDF + Newsletter.' },
     { href: '/admin/birthday/club',         icon: Building2, title: 'Birthday Club',      count: clubSubs.count ?? 0, hint: 'Sellable monthly newsletter list — sponsorable per issue.' },
