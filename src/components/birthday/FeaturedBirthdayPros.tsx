@@ -48,7 +48,7 @@ export function FeaturedBirthdayPros({ items }: { items: Array<Record<string, un
       <SectionHeader
         eyebrow="Featured this month"
         title="Featured Birthday Pros"
-        kicker="Hand-picked local vendors our editors trust. Five spots, refreshed monthly. Each one is editorially endorsed — we&apos;ve seen their work."
+        kicker="Check out these Birthday Pros who are ready to make your child's birthday special!"
       />
 
       <HeroSpotlight spot={hero} />
@@ -96,7 +96,7 @@ function HeroSpotlight({ spot }: { spot: Spotlight }) {
           )}
           <div className="absolute top-3 left-3">
             <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white bg-[#ff7a59] rounded-full shadow-md">
-              <Star size={10} /> Editor&apos;s pick · This month
+              <Star size={10} /> Featured Pro
             </span>
           </div>
         </div>
