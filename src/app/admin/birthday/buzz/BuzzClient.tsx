@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import { CrudInput, CrudTextarea, CrudSelect, CrudActiveToggle, CrudDeleteButton, BRAND_OPTIONS } from '@/components/admin/BirthdayCrudHelpers'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 
 interface Buzz {
   id:            string
@@ -150,13 +151,23 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
         <CrudTextarea label="Body *" hint="2-3 sentences. First sentence becomes the headline; rest is the pitch."
           rows={3} value={draft.body} onChange={e => setDraft(d => ({ ...d, body: e.target.value }))}
           placeholder="Custom Cakes by Sarah turns 5! Award-winning custom cakes for the most important birthdays in the River Region." />
-        <div className="grid sm:grid-cols-3 gap-2">
-          <CrudInput type="url" label="Image URL *" hint="Wide image works best (~3:2)."
-            value={draft.image_url} onChange={e => setDraft(d => ({ ...d, image_url: e.target.value }))} placeholder="https://…" />
-          <CrudInput type="text" label="Attribution (optional)" hint="Shown as 'From Sarah, Pike Road'"
-            value={draft.from_name} onChange={e => setDraft(d => ({ ...d, from_name: e.target.value }))} />
-          <CrudInput type="url" label="External link (if no vendor picked)"
-            value={draft.link_url} onChange={e => setDraft(d => ({ ...d, link_url: e.target.value }))} placeholder="https://…" />
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[11px] font-bold text-portal-text mb-1">Image *</label>
+            <p className="text-[10px] text-portal-sub mb-1.5">Upload from your computer OR paste a URL. Wide image works best (~3:2).</p>
+            <HeroImageUpload
+              value={draft.image_url}
+              onChange={(url: string) => setDraft(d => ({ ...d, image_url: url }))}
+              context="asset"
+              emptyWarning={false}
+            />
+          </div>
+          <div className="space-y-2">
+            <CrudInput type="text" label="Attribution (optional)" hint="Shown as 'From Sarah, Pike Road'"
+              value={draft.from_name} onChange={e => setDraft(d => ({ ...d, from_name: e.target.value }))} />
+            <CrudInput type="url" label="External link (if no vendor picked)"
+              value={draft.link_url} onChange={e => setDraft(d => ({ ...d, link_url: e.target.value }))} placeholder="https://…" />
+          </div>
         </div>
         <CrudInput type="date" label="Expires (optional)" hint="Falls off the carousel automatically after this date."
           value={draft.expires_at} onChange={e => setDraft(d => ({ ...d, expires_at: e.target.value }))} />
