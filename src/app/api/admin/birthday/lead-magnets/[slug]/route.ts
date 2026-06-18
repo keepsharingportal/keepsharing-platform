@@ -14,7 +14,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const ALLOWED = ['title', 'description', 'file_url', 'preview_url', 'email_subject', 'email_body', 'from_name', 'is_active']
+const ALLOWED = ['title', 'description', 'source', 'file_url', 'preview_url', 'email_subject', 'email_body', 'from_name', 'ghl_tags', 'ghl_workflow_id', 'is_active']
 
 interface RouteParams { params: Promise<{ slug: string }> }
 
@@ -56,4 +56,18 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
+}
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  await requireAdmin()
+  const { slug } = await params
+  const brand = req.nextUrl.searchParams.get('brand') ?? 'rrp'
+  const sb = createAdminClient()
+  const { error } = await sb
+    .from('birthday_lead_magnets')
+    .delete()
+    .eq('brand_slug', brand)
+    .eq('slug', slug)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
 }
