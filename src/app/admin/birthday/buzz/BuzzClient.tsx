@@ -44,6 +44,10 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
   const [rows, setRows] = useState<Buzz[]>(initial)
   const [busy, setBusy] = useState(false)
   const [surfaceFilter, setSurfaceFilter] = useState<'all' | 'Featured Pros' | 'Buzz'>('all')
+  // Local copy of the vendors list so the quick-create modal can append
+  // a new advertiser without a page refresh.
+  const [vendorList, setVendorList] = useState<Vendor[]>(vendors)
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false)
   const [draft, setDraft] = useState({
     brand_slug:  'rrp',
     kind:        'vendor_spotlight',
@@ -60,7 +64,7 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
     if (!draft.body.trim()) return
     setBusy(true)
     try {
-      const vendor_name = draft.vendor_id ? vendors.find(v => v.id === draft.vendor_id)?.business_name ?? null : draft.vendor_name.trim() || null
+      const vendor_name = draft.vendor_id ? vendorList.find(v => v.id === draft.vendor_id)?.business_name ?? null : draft.vendor_name.trim() || null
       const res = await fetch('/api/admin/birthday/buzz', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -143,9 +147,21 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
         )}
         <div className="grid sm:grid-cols-3 gap-2">
           <CrudSelect label="Kind" value={draft.kind} onChange={e => setDraft(d => ({ ...d, kind: e.target.value }))} options={KIND_OPTIONS} />
-          <CrudSelect label="Vendor (for vendor_spotlight)" hint="Links the slide to the business profile page."
-            value={draft.vendor_id} onChange={e => setDraft(d => ({ ...d, vendor_id: e.target.value }))}
-            options={[{ value: '', label: '— None —' }, ...vendors.map(v => ({ value: v.id, label: v.business_name }))]} />
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-bold text-portal-text">Vendor (for vendor_spotlight)</label>
+              <button type="button" onClick={() => setQuickCreateOpen(true)}
+                className="text-[10px] font-bold text-portal-blue hover:underline">
+                + Add new vendor
+              </button>
+            </div>
+            <p className="text-[10px] text-portal-sub mb-1">Links the slide to the business profile page.</p>
+            <select value={draft.vendor_id} onChange={e => setDraft(d => ({ ...d, vendor_id: e.target.value }))}
+              className="w-full px-2 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white outline-none focus:border-portal-blue">
+              <option value="">— None —</option>
+              {vendorList.map(v => <option key={v.id} value={v.id}>{v.business_name}</option>)}
+            </select>
+          </div>
           <CrudSelect label="Brand" value={draft.brand_slug} onChange={e => setDraft(d => ({ ...d, brand_slug: e.target.value }))} options={BRAND_OPTIONS.filter(b => b.value)} />
         </div>
         <CrudTextarea label="Body *" hint="2-3 sentences. First sentence becomes the headline; rest is the pitch."
@@ -211,6 +227,80 @@ export function BuzzClient({ initial, vendors }: { initial: Buzz[]; vendors: Ven
             ))}
           </tbody>
         </table>
+      </div>
+
+      {quickCreateOpen && (
+        <QuickAddVendorModal
+          onClose={() => setQuickCreateOpen(false)}
+          onCreated={(v) => {
+            setVendorList(vs => [...vs, v].sort((a, b) => a.business_name.localeCompare(b.business_name)))
+            setDraft(d => ({ ...d, vendor_id: v.id }))
+            setQuickCreateOpen(false)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function QuickAddVendorModal({ onClose, onCreated }: {
+  onClose:   () => void
+  onCreated: (vendor: Vendor) => void
+}) {
+  const [name,    setName]    = useState('')
+  const [website, setWebsite] = useState('')
+  const [phone,   setPhone]   = useState('')
+  const [hood,    setHood]    = useState('')
+  const [hook,    setHook]    = useState('')
+  const [busy,    setBusy]    = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
+
+  async function submit() {
+    if (!name.trim()) return
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch('/api/admin/birthday/vendors/quick-create', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          business_name: name.trim(),
+          website_url:   website.trim() || undefined,
+          contact_phone: phone.trim()   || undefined,
+          neighborhood:  hood.trim()    || undefined,
+          card_hook:     hook.trim()    || undefined,
+        }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setError(j?.error ?? 'Could not create vendor.'); return }
+      onCreated({ id: j.id, slug: j.slug, business_name: j.business_name })
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full my-12" onClick={e => e.stopPropagation()}>
+        <div className="px-5 py-3 border-b border-portal-border">
+          <h2 className="text-[15px] font-bold text-portal-text">Quick-add vendor</h2>
+          <p className="text-[11px] text-portal-sub mt-0.5">
+            Creates an advertiser account so this spotlight can link to a profile page.
+            Fill in the full birthday profile (packages, hours, gallery) later at <code>/admin/birthday/sponsors</code>.
+          </p>
+        </div>
+        <div className="p-5 space-y-3">
+          <CrudInput label="Business name *" value={name} onChange={e => setName(e.target.value)} placeholder="Adventure Sports" autoFocus />
+          <CrudInput label="Website" type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://advsports2.com" />
+          <CrudInput label="Phone (optional)" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(334) 555-1234" />
+          <CrudInput label="Neighborhood (optional)" value={hood} onChange={e => setHood(e.target.value)} placeholder="Midtown" />
+          <CrudInput label="One-line pitch (optional)" value={hook} onChange={e => setHook(e.target.value)} placeholder="Indoor pool party packages year-round." />
+          {error && <div className="bg-portal-red-lt text-portal-red rounded p-2 text-[12px]">{error}</div>}
+        </div>
+        <div className="px-5 py-3 border-t border-portal-border flex items-center gap-2 justify-end">
+          <button type="button" onClick={onClose} className="text-[12px] text-portal-sub hover:text-portal-text">Cancel</button>
+          <button type="button" onClick={submit} disabled={busy || !name.trim()}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold text-white bg-portal-navy rounded hover:opacity-90 disabled:opacity-50">
+            {busy && <Loader2 size={11} className="animate-spin" />} Create & select
+          </button>
+        </div>
       </div>
     </div>
   )
