@@ -411,9 +411,10 @@ export default async function FamilyResourceGuidePage() {
             {/* 1. Best Of editorial */}
             <BestOfFeatureRow articles={bestOf} />
 
-            {/* 2. Discover the Guides — magazine cards that funnel into the
-                 dedicated topical guide pages (Private School, Childcare, etc.) */}
-            <GuideHubCards />
+            {/* 2. Discover the Guides — temporarily hidden until the topical
+                 guides (Private School, Childcare, etc.) are content-complete.
+                 Re-enable by uncommenting <GuideHubCards /> below. */}
+            {/* <GuideHubCards /> */}
 
             {/* In-feed sponsored ad — exact home page treatment */}
             {inlineAd && inlineAd.ad_link && (

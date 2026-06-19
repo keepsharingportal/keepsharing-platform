@@ -19,8 +19,7 @@ import { BirthdayThisMonth }      from '@/components/birthday/BirthdayThisMonth'
 import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
 import { BudgetTiers }            from '@/components/birthday/BudgetTiers'
 import { TrendingThemes }         from '@/components/birthday/TrendingThemes'
-import { BirthdayCategoryBrowser } from '@/components/birthday/BirthdayCategoryBrowser'
-import { BirthdayGuideByCategory } from '@/components/birthday/BirthdayGuideByCategory'
+import { BirthdayCategoryHubCards } from '@/components/birthday/BirthdayCategoryHubCards'
 import { RealRiverRegionParties } from '@/components/birthday/RealRiverRegionParties'
 import { BirthdayArticles }       from '@/components/birthday/BirthdayArticles'
 import { GiftGuidesByAge }        from '@/components/birthday/GiftGuidesByAge'
@@ -139,23 +138,13 @@ export default async function BirthdayPartyGuidePage() {
       .or('topics.cs.{birthday},guide_slug.eq.birthday-party-guide')
       .order('published_at', { ascending: false })
       .limit(6),
-    // Full birthday-party-guide vendor listings, joined to
-    // advertiser_accounts so the canonical ListingCard design renders.
-    // Importer now creates an advertiser_accounts row for every CSV
-    // row, so every listing here is linked.
+    // Birthday-party-guide listings — slim category-count query that
+    // feeds the hub cards. Full vendor cards live on the per-category
+    // landing pages now (see /birthday-party-guide/category/[slug]).
     supabase.from('guide_listings')
-      .select(`
-        id, listing_tier, category, guide_data, display_order,
-        advertiser_accounts (
-          id, slug, business_name, card_hook, hero_photo_url,
-          neighborhood, city_state_zip, website_url, office_phone,
-          has_military_discount, is_veteran_owned, is_woman_owned,
-          is_minority_owned, is_locally_owned
-        )
-      `)
+      .select('category, advertiser_accounts(id)')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .eq('is_published', true)
-      .order('display_order', { ascending: true })
       .limit(500),
     // Active section sponsor for the page (sponsorship slot)
     supabase.from('ad_placements')
@@ -185,76 +174,26 @@ export default async function BirthdayPartyGuidePage() {
   ])
 
   // Birthday vendor listings — joined to advertiser_accounts so the
-  // canonical ListingCard renders. Rows where the join is null are
-  // dropped (every linked import should have one). Description in
-  // guide_data is preserved as a fallback for the card hook.
+  // hub cards can count per-bucket. The full categorized list moved to
+  // dedicated /birthday-party-guide/category/[slug] pages, so the
+  // portal page only needs counts, not full payloads.
   type RawListing = {
-    id:            string
-    listing_tier:  string | null
-    category:      string | null
-    guide_data:    Record<string, unknown> | null
-    display_order: number | null
-    advertiser_accounts: {
-      id:                     string
-      slug:                   string
-      business_name:          string
-      card_hook:              string | null
-      hero_photo_url:         string | null
-      neighborhood:           string | null
-      city_state_zip:         string | null
-      website_url:            string | null
-      office_phone:           string | null
-      has_military_discount:  boolean | null
-      is_veteran_owned:       boolean | null
-      is_woman_owned:         boolean | null
-      is_minority_owned:      boolean | null
-      is_locally_owned:       boolean | null
-    } | null
+    category: string | null
+    advertiser_accounts: { id: string } | null
   }
   const rawListings = (listingCountsRes.data ?? []) as unknown as RawListing[]
-  const guideListings = rawListings
-    .filter(r => r.advertiser_accounts !== null)
-    .map(r => {
-      const a = r.advertiser_accounts!
-      const hookFallback = (r.guide_data?.description as string | undefined) ?? null
-      return {
-        id:            r.id,
-        category:      r.category,
-        listing_tier:  r.listing_tier,
-        display_order: r.display_order,
-        listing: {
-          id:                    a.id,
-          slug:                  a.slug,
-          business_name:         a.business_name,
-          card_hook:             a.card_hook ?? hookFallback,
-          hero_photo_url:        a.hero_photo_url,
-          neighborhood:          a.neighborhood,
-          city_state_zip:        a.city_state_zip,
-          website_url:           a.website_url,
-          office_phone:          a.office_phone,
-          has_military_discount: a.has_military_discount,
-          is_veteran_owned:      a.is_veteran_owned,
-          is_woman_owned:        a.is_woman_owned,
-          is_minority_owned:     a.is_minority_owned,
-          is_locally_owned:      a.is_locally_owned,
-        },
-      }
-    })
-  const categoryCounts = new Map<string, number>()
-  for (const l of guideListings) {
-    if (l.category) categoryCounts.set(l.category, (categoryCounts.get(l.category) ?? 0) + 1)
+  const linkedListings = rawListings.filter(r => r.advertiser_accounts !== null)
+  const categoryCountsObj: Record<string, number> = {}
+  for (const l of linkedListings) {
+    if (l.category) categoryCountsObj[l.category] = (categoryCountsObj[l.category] ?? 0) + 1
   }
-  const topCategories = Array.from(categoryCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([cat, count]) => ({ cat, count }))
-  const totalListings = guideListings.length
+  const totalListings = linkedListings.length
 
   return (
     <main className="bg-[#fffaf5]">
       <BigBirthdayBashHero
         totalListings={totalListings}
-        totalCategories={categoryCounts.size}
+        totalCategories={Object.keys(categoryCountsObj).length}
         heroImageUrl={hv?.hero_image_url ?? null}
         title={hv?.display_name ?? null}
         subtitle={hv?.subtitle ?? null}
@@ -308,15 +247,8 @@ export default async function BirthdayPartyGuidePage() {
               <TrendingThemes themes={(themesRes.data ?? []) as Array<Record<string, unknown>>} />
             </section>
 
-            <section id="vendors" className="space-y-8">
-              <BirthdayCategoryBrowser
-                topCategories={topCategories}
-                totalListings={totalListings}
-              />
-              <BirthdayGuideByCategory
-                rows={guideListings}
-                totalCount={totalListings}
-              />
+            <section id="vendors">
+              <BirthdayCategoryHubCards countsByCategory={categoryCountsObj} />
             </section>
 
             <section id="real-parties">

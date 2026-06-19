@@ -15,8 +15,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   MapPin, Phone, Globe, Mail, CheckCircle2, Clock,
-  CalendarDays, ArrowRight, BookOpen, Sparkles, Info,
-  Share2, Heart, MessageCircle, Star, ArrowLeft,
+  CalendarDays, ArrowRight, BookOpen, Sparkles,
+  Share2, Heart, MessageCircle, Star, ArrowLeft, Filter,
 } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
@@ -144,6 +144,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     { data: related },
     { data: allGuideListings },
     { data: guideArticles },
+    { data: siblingCategoryRows },
   ] = await Promise.all([
     supabase
       .from('guide_listings')
@@ -157,14 +158,18 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       .eq('advertiser_account_id', acct.id)
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
+    // Related — pull a wider set and dedupe by advertiser_account_id
+    // in JS so a vendor listed under multiple categories doesn't render
+    // twice in the "More in" rail. The 3-card display set is sliced
+    // after dedup below.
     supabase
       .from('guide_listings')
-      .select('id, advertiser_accounts ( slug, business_name, neighborhood, city_state_zip )')
+      .select('id, advertiser_account_id, advertiser_accounts ( slug, business_name, neighborhood, city_state_zip )')
       .eq('guide_type_slug', guideSlug)
       .eq('is_published', true)
       .neq('advertiser_account_id', acct.id)
       .order('listing_tier', { ascending: true })
-      .limit(3),
+      .limit(20),
     // All guides this advertiser is published in (for "Featured in Guides" chips)
     supabase
       .from('guide_listings')
@@ -179,6 +184,17 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       .eq('published', true)
       .order('display_order')
       .limit(2),
+    // Sibling categories — drives the sidebar "Browse other categories"
+    // widget. Pulls every distinct category for this guide; counts
+    // computed in JS. Excludes the current listing's category from the
+    // displayed list so the widget surfaces alternatives.
+    supabase
+      .from('guide_listings')
+      .select('category')
+      .eq('guide_type_slug', guideSlug)
+      .eq('is_published', true)
+      .not('category', 'is', null)
+      .limit(1000),
   ])
 
   // ── Data processing ───────────────────────────────────────────────────────
@@ -222,6 +238,42 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const breadcrumbCategoryHref = listing?.category
     ? `/${urlSlug}#dir-${(listing.category as string).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
     : null
+
+  // Sibling categories for the sidebar "Browse other categories"
+  // widget — distinct category names with counts, sorted by size,
+  // current listing's category surfaced first (highlighted as "current").
+  const siblingCatMap: Record<string, number> = {}
+  for (const r of (siblingCategoryRows ?? []) as Array<{ category: string | null }>) {
+    if (r.category) siblingCatMap[r.category] = (siblingCatMap[r.category] ?? 0) + 1
+  }
+  const currentCategory = (listing?.category as string | null | undefined) ?? null
+  const siblingCategories = Object.entries(siblingCatMap)
+    .map(([cat, count]) => ({ cat, count, isCurrent: cat === currentCategory }))
+    .sort((a, b) => {
+      // Current first, then by count descending
+      if (a.isCurrent && !b.isCurrent) return -1
+      if (!a.isCurrent && b.isCurrent) return 1
+      return b.count - a.count
+    })
+    .slice(0, 8)
+
+  // Dedupe related listings by advertiser_account_id so a vendor with
+  // multiple category listings in the same guide doesn't render twice.
+  // Slice to 3 AFTER dedup.
+  type RelatedRow = {
+    id: string
+    advertiser_account_id: string | null
+    advertiser_accounts: { slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null } | null
+  }
+  const relatedSeen = new Set<string>()
+  const relatedDeduped: RelatedRow[] = []
+  for (const r of (related ?? []) as unknown as RelatedRow[]) {
+    const key = r.advertiser_account_id ?? r.id
+    if (relatedSeen.has(key)) continue
+    relatedSeen.add(key)
+    relatedDeduped.push(r)
+    if (relatedDeduped.length === 3) break
+  }
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -461,7 +513,40 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </div>
             )}
 
-            {/* Related editorial articles from the same guide */}
+            {/* Flexible CMS sections — features_bullets handled above */}
+            {sections?.filter(s => s.section_type !== 'features_bullets').map(section => (
+              <SectionRenderer key={section.id} section={section} />
+            ))}
+
+            {/* Contact form — primary CTA for free listings; lives ABOVE
+                the editorial articles so anyone ready to act doesn't
+                have to scroll past four article cards first. Honest
+                wording: admin forwards to the business; we don't claim
+                to email them directly. */}
+            {showMessageForm && (
+              <Card className="border-primary/20 shadow-xl overflow-hidden rounded-[2rem]" id="message-form">
+                <CardHeader className="bg-primary text-white p-8">
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <MessageCircle className="h-7 w-7" />
+                    Request Info
+                  </CardTitle>
+                  <p className="text-white/80 mt-2">
+                    Send your question and our team will pass it to {acct.business_name} within 1 business day.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <ListingMessageForm
+                    advertiserAccountId={acct.id}
+                    advertiserName={acct.business_name}
+                    guideTypeSlug={guideSlug}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Related editorial articles — sits BELOW the request form
+                so the primary CTA is what readers see after the listing
+                body. Skipped if the guide has no published articles. */}
             {guideArticles && guideArticles.length > 0 && (
               <div className="pt-10 border-t border-border/50">
                 <h3 className="text-2xl font-bold mb-8 text-foreground">
@@ -472,8 +557,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     id: string; slug: string; title: string;
                     hero_image_url?: string | null; column_slug?: string | null; guide_slug?: string | null
                   }) => {
-                    // Column articles → canonical /columns or /articles via helper.
-                    // Articles without a column stay on the guide-specific subroute.
                     const href = article.column_slug
                       ? articleHref(article)
                       : `/${urlSlug}/articles/${article.slug}`
@@ -505,34 +588,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                   })}
                 </div>
               </div>
-            )}
-
-            {/* Flexible CMS sections — features_bullets handled above */}
-            {sections?.filter(s => s.section_type !== 'features_bullets').map(section => (
-              <SectionRenderer key={section.id} section={section} />
-            ))}
-
-            {/* Contact form — wording is honest about what happens (admin forwards
-                to the business); we never claim to email the business directly. */}
-            {showMessageForm && (
-              <Card className="border-primary/20 shadow-xl overflow-hidden rounded-[2rem]" id="message-form">
-                <CardHeader className="bg-primary text-white p-8">
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <MessageCircle className="h-7 w-7" />
-                    Request Info
-                  </CardTitle>
-                  <p className="text-white/80 mt-2">
-                    Send your question and our team will pass it to {acct.business_name} within 1 business day.
-                  </p>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <ListingMessageForm
-                    advertiserAccountId={acct.id}
-                    advertiserName={acct.business_name}
-                    guideTypeSlug={guideSlug}
-                  />
-                </CardContent>
-              </Card>
             )}
           </div>
 
@@ -652,28 +707,49 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </Card>
             )}
 
-            {/* Help / engagement widget */}
-            <Card className="bg-secondary text-white border-none rounded-[2rem] shadow-lg overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-              <CardContent className="p-8">
-                <div className="h-12 w-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
-                  <Info className="h-6 w-6" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">Interested?</h3>
-                <p className="text-white/80 mb-6 text-sm leading-relaxed">
-                  Mention &quot;River Region Parents&quot; when you reach out to {acct.business_name} — our readers receive special attention from local partners.
-                </p>
-                {showMessageForm ? (
-                  <Button className="w-full bg-white text-secondary hover:bg-white/90 rounded-xl font-bold h-12" asChild>
-                    <a href="#message-form">Request Info</a>
-                  </Button>
-                ) : website ? (
-                  <Button className="w-full bg-white text-secondary hover:bg-white/90 rounded-xl font-bold h-12" asChild>
-                    <a href={website} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
+            {/* Browse other categories — replaces the old "Interested?"
+                duplicate-CTA block. Surfaces sibling categories with
+                their counts so a reader who came in via search can
+                pivot inside the guide instead of bouncing back home.
+                The current listing's category lands first, marked as
+                "you're here". */}
+            {siblingCategories.length > 0 && (
+              <Card className="rounded-[2rem] border-border/50 shadow-sm overflow-hidden">
+                <CardHeader className="p-6 border-b border-border/50 bg-muted/30">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-primary" />
+                    Browse {guide?.display_name?.replace(' Guide', '') ?? 'Guide'} Categories
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <div className="space-y-1">
+                    {siblingCategories.map(({ cat, count, isCurrent }) => (
+                      <Link
+                        key={cat}
+                        href={`/${urlSlug}#dir-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                          isCurrent
+                            ? 'bg-primary/10 text-primary font-bold'
+                            : 'text-foreground hover:bg-muted/60 font-semibold'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="truncate">{cat}</span>
+                          {isCurrent && (
+                            <span className="text-[9px] font-black uppercase tracking-widest text-primary/70 shrink-0">
+                              You&apos;re here
+                            </span>
+                          )}
+                        </span>
+                        <span className={`text-xs tabular-nums shrink-0 ${isCurrent ? 'text-primary/70' : 'text-muted-foreground'}`}>
+                          {count}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Platform ad / media kit CTA */}
             <Link
@@ -696,7 +772,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       </main>
 
       {/* ── Other Resources for You (full-width, below fold) ─────────────── */}
-      {related && related.length > 0 && (
+      {relatedDeduped.length > 0 && (
         <section className="bg-muted/30 py-20 mt-12 border-t border-border/50">
           <div className="container">
             <div className="flex items-center justify-between mb-10">
@@ -712,10 +788,8 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </Button>
             </div>
             <div className="grid sm:grid-cols-3 gap-8">
-              {related.map(r => {
-                const ra = r.advertiser_accounts as unknown as {
-                  slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null
-                } | null
+              {relatedDeduped.map(r => {
+                const ra = r.advertiser_accounts
                 if (!ra) return null
                 return (
                   <Link
