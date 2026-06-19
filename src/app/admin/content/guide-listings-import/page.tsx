@@ -27,12 +27,47 @@ const GUIDE_TYPES = [
 ]
 
 // ── Flexible column mapper ────────────────────────────────────────────────────
-// Tries many naming conventions so any CSV format works.
+// Tries many naming conventions so any CSV format works. The auto-mapper
+// runs at parse time; the editor can override any column in the
+// "Map columns" step before running the import.
 
-const FIELD_PATTERNS: Array<{ field: keyof GuideListingImportRow; patterns: string[] }> = [
+// '_skip' — drop the column entirely (e.g. an internal CSV note column)
+// '_extra' — pipe through to guide_data JSONB under the original header
+// Any other value = explicit target column on guide_listings.
+export type FieldTarget =
+  | '_skip' | '_extra'
+  | 'business_name' | 'category' | 'description' | 'card_hook'
+  | 'phone' | 'email' | 'website_url'
+  | 'address' | 'city_state_zip' | 'neighborhood' | 'hours'
+  | 'hero_photo_url' | 'listing_tier' | 'listing_year'
+
+// Editor-facing dropdown options. Order = order shown in the picker.
+// Visible columns get the bold label; the descriptive line under the
+// option hint at where the field lands.
+const TARGET_OPTIONS: Array<{ value: FieldTarget; label: string; hint?: string }> = [
+  { value: '_skip',         label: '— skip this column —',  hint: 'Do not import this column.' },
+  { value: 'business_name', label: 'Business name *',        hint: 'Required.' },
+  { value: 'category',      label: 'Category',               hint: 'Drives the Guide-by-Category grouping.' },
+  { value: 'description',   label: 'Description',            hint: 'Long-form text — falls into guide_data + cards.' },
+  { value: 'card_hook',     label: 'Card hook (short blurb)',hint: 'One-line teaser used on directory cards.' },
+  { value: 'phone',         label: 'Phone',                  hint: 'Office phone, click-to-call on cards.' },
+  { value: 'email',         label: 'Email' },
+  { value: 'website_url',   label: 'Website URL' },
+  { value: 'address',       label: 'Street address' },
+  { value: 'city_state_zip',label: 'City / state / zip' },
+  { value: 'neighborhood',  label: 'Neighborhood',           hint: 'Shows above the blurb on cards.' },
+  { value: 'hours',         label: 'Hours',                  hint: 'Stored in guide_data.' },
+  { value: 'hero_photo_url',label: 'Hero photo URL' },
+  { value: 'listing_tier',  label: 'Listing tier',           hint: 'community / enhanced / featured.' },
+  { value: 'listing_year',  label: 'Listing year' },
+  { value: '_extra',        label: '→ extra (guide_data JSONB)', hint: 'Anything else lands here keyed by the CSV header.' },
+]
+
+const FIELD_PATTERNS: Array<{ field: FieldTarget; patterns: string[] }> = [
   { field: 'business_name', patterns: ['business name', 'name', 'business', 'organization', 'school name', 'camp name', 'practice name', 'provider name', 'venue name'] },
   { field: 'category',      patterns: ['category', 'type', 'subcategory', 'section', 'group', 'parent group'] },
   { field: 'description',   patterns: ['description', 'about', 'details', 'summary', 'overview', 'blurb'] },
+  { field: 'card_hook',     patterns: ['card hook', 'hook', 'tagline', 'short blurb'] },
   { field: 'phone',         patterns: ['phone', 'phone number', 'telephone', 'contact phone', 'office phone', 'main phone'] },
   { field: 'email',         patterns: ['email', 'email address', 'contact email', 'office email'] },
   { field: 'website_url',   patterns: ['website', 'url', 'web', 'site', 'website url', 'web address'] },
@@ -40,10 +75,12 @@ const FIELD_PATTERNS: Array<{ field: keyof GuideListingImportRow; patterns: stri
   { field: 'city_state_zip',patterns: ['city state zip', 'city/state/zip', 'city', 'location city', 'city state'] },
   { field: 'neighborhood',  patterns: ['neighborhood', 'area', 'zone', 'district', 'part of town'] },
   { field: 'hours',         patterns: ['hours', 'business hours', 'office hours', 'hours of operation', 'open hours'] },
+  { field: 'hero_photo_url',patterns: ['hero photo', 'hero image', 'photo url', 'image url', 'logo url'] },
   { field: 'listing_tier',  patterns: ['tier', 'listing tier', 'level', 'plan', 'package'] },
+  { field: 'listing_year',  patterns: ['year', 'listing year', 'guide year'] },
 ]
 
-function matchField(header: string): keyof GuideListingImportRow | '_extra' {
+function matchField(header: string): FieldTarget {
   const h = header.toLowerCase().trim()
   for (const { field, patterns } of FIELD_PATTERNS) {
     if (patterns.some(p => h === p || h.includes(p))) return field
@@ -89,10 +126,29 @@ function chunk<T>(arr: T[], size: number): T[][] {
 
 type ParsedState = {
   headers:       string[]
-  fieldMap:      Array<keyof GuideListingImportRow | '_extra'>
-  extraHeaders:  string[]   // columns going into guide_data
-  rows:          GuideListingImportRow[]
-  unmapped:      string[]
+  fieldMap:      FieldTarget[]                    // one entry per header; editable in the UI
+  rawRows:       string[][]                       // raw cell values, indexed by header position
+}
+
+// Apply the current fieldMap to the raw cells → importable row payload.
+// Re-runs on every mapping change so the preview and the final import
+// always reflect what the editor sees.
+function buildRows(state: ParsedState, guideTypeSlug: string): GuideListingImportRow[] {
+  return state.rawRows.map(cells => {
+    const row: Record<string, unknown> = { guide_type_slug: guideTypeSlug }
+    state.headers.forEach((h, i) => {
+      const val = (cells[i] ?? '').trim()
+      if (!val) return
+      const target = state.fieldMap[i]
+      if (target === '_skip') return
+      if (target === '_extra') {
+        row[h.trim().toLowerCase().replace(/\s+/g, '_')] = val
+      } else {
+        row[target] = val
+      }
+    })
+    return row as GuideListingImportRow
+  }).filter(r => (r.business_name as string)?.trim())
 }
 
 type RowResult = {
@@ -137,36 +193,17 @@ export default function GuideListingsImportPage() {
 
         const rawHeaders = allRows[0]
         const fieldMap   = rawHeaders.map(matchField)
-        const extraHeaders = rawHeaders
-          .filter((_, i) => fieldMap[i] === '_extra')
-          .map(h => h.trim())
-        const unmapped   = rawHeaders
-          .filter((_, i) => fieldMap[i] === '_extra')
-          .map(h => h.trim())
-
-        const rows: GuideListingImportRow[] = allRows.slice(1)
-          .map(cells => {
-            const row: Record<string, unknown> = { guide_type_slug: '' }
-            rawHeaders.forEach((h, i) => {
-              const val = (cells[i] ?? '').trim()
-              if (!val) return
-              const field = fieldMap[i]
-              if (field === '_extra') {
-                row[h.trim().toLowerCase().replace(/\s+/g, '_')] = val
-              } else {
-                row[field as string] = val
-              }
-            })
-            return row as GuideListingImportRow
-          })
-          .filter(r => (r.business_name as string)?.trim())
-
-        setParsed({ headers: rawHeaders, fieldMap, extraHeaders, rows, unmapped })
+        const rawRows    = allRows.slice(1)
+        setParsed({ headers: rawHeaders, fieldMap, rawRows })
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Parse error')
       }
     }
     reader.readAsText(file)
+  }
+
+  function updateMapping(idx: number, target: FieldTarget) {
+    setParsed(p => p ? { ...p, fieldMap: p.fieldMap.map((t, i) => i === idx ? target : t) } : p)
   }
 
   function onDrop(e: React.DragEvent) {
@@ -178,7 +215,13 @@ export default function GuideListingsImportPage() {
 
   async function runImport() {
     if (!parsed || !guideType) return
-    const rowsWithType: GuideListingImportRow[] = parsed.rows.map(r => ({ ...r, guide_type_slug: guideType }))
+    // Re-derive payload from the current mapping at run time so any
+    // mid-flight dropdown change is honored.
+    const rowsWithType = buildRows(parsed, guideType)
+    if (rowsWithType.length === 0) {
+      setError('No rows with a business_name after mapping. Map the name column first.')
+      return
+    }
     const chunks = chunk(rowsWithType, 25)
 
     setImporting(true); setDone(false)
@@ -232,8 +275,23 @@ export default function GuideListingsImportPage() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const displayRows = parsed ? (showAll ? parsed.rows : parsed.rows.slice(0, 15)) : []
+  // Derived from raw + current mapping → reflects mapping edits live.
+  const derivedRows = parsed ? buildRows(parsed, guideType || 'TEMP') : []
+  const displayRows = showAll ? derivedRows : derivedRows.slice(0, 15)
   const guideLabel  = GUIDE_TYPES.find(g => g.slug === guideType)?.label ?? 'Select a guide'
+
+  // Surface mapping summary so the editor sees what each column does.
+  const mappingSummary = parsed ? parsed.fieldMap.reduce<Record<string, number>>((acc, t) => {
+    acc[t] = (acc[t] ?? 0) + 1
+    return acc
+  }, {}) : {}
+  const extraColumns = parsed
+    ? parsed.headers.filter((_, i) => parsed.fieldMap[i] === '_extra').map(h => h.trim())
+    : []
+  const skippedColumns = parsed
+    ? parsed.headers.filter((_, i) => parsed.fieldMap[i] === '_skip').map(h => h.trim())
+    : []
+  const businessNameMapped = parsed ? parsed.fieldMap.includes('business_name') : false
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -331,19 +389,22 @@ export default function GuideListingsImportPage() {
           </div>
         )}
 
-        {/* Preview */}
+        {/* Preview + mapping */}
         {parsed && !done && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-sm text-portal-sub">
-                  <span className="font-bold text-portal-text">{parsed.rows.length}</span> listings from{' '}
+                  <span className="font-bold text-portal-text">{derivedRows.length}</span> listings from{' '}
                   <code className="bg-portal-row-hover px-1.5 py-0.5 rounded text-xs">{fileName}</code>
                 </span>
                 <div className="text-xs text-portal-sub mt-1">
                   Guide: <strong>{guideLabel}</strong>
-                  {parsed.extraHeaders.length > 0 && (
-                    <> · Extra columns → guide_data: {parsed.extraHeaders.slice(0, 4).join(', ')}{parsed.extraHeaders.length > 4 ? ` +${parsed.extraHeaders.length - 4} more` : ''}</>
+                  {extraColumns.length > 0 && (
+                    <> · Extra → guide_data: {extraColumns.slice(0, 4).join(', ')}{extraColumns.length > 4 ? ` +${extraColumns.length - 4} more` : ''}</>
+                  )}
+                  {skippedColumns.length > 0 && (
+                    <> · Skipping: {skippedColumns.join(', ')}</>
                   )}
                 </div>
               </div>
@@ -358,10 +419,62 @@ export default function GuideListingsImportPage() {
               </div>
             )}
 
+            {!businessNameMapped && (
+              <div className="p-3 bg-portal-amber-lt border border-portal-amber/30 rounded-lg text-sm text-portal-amber font-semibold">
+                No column is mapped to <code>Business name</code> — every row will be skipped.
+                Pick a CSV column → <strong>Business name *</strong> in the mapping table below.
+              </div>
+            )}
+
+            {/* Column mapping table — editable */}
+            <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Map columns</div>
+                  <div className="text-[11px] text-portal-muted mt-0.5">
+                    Auto-detected from the headers — change any dropdown to remap. Sample value shown to help confirm.
+                  </div>
+                </div>
+                <div className="text-[11px] text-portal-sub">
+                  {Object.entries(mappingSummary)
+                    .filter(([k]) => k !== '_skip' && k !== '_extra')
+                    .reduce((sum, [, n]) => sum + n, 0)} mapped · {(mappingSummary._extra ?? 0)} extra · {(mappingSummary._skip ?? 0)} skipped
+                </div>
+              </div>
+              <div className="divide-y divide-portal-border">
+                {parsed.headers.map((h, i) => {
+                  const target = parsed.fieldMap[i]
+                  const sample = parsed.rawRows.find(r => (r[i] ?? '').trim())?.[i]?.trim() ?? ''
+                  return (
+                    <div key={`${h}-${i}`} className="grid grid-cols-[1fr,auto,2fr] sm:grid-cols-[1fr,auto,1fr,2fr] gap-2 items-center px-4 py-2">
+                      <div className="text-[12px] font-semibold text-portal-text truncate" title={h}>{h || <span className="text-portal-muted italic">(no header)</span>}</div>
+                      <div className="text-[10px] text-portal-muted hidden sm:block">→</div>
+                      <select
+                        value={target}
+                        onChange={e => updateMapping(i, e.target.value as FieldTarget)}
+                        className={`px-2 py-1.5 text-[11px] border rounded bg-white outline-none focus:border-portal-blue ${
+                          target === '_skip'  ? 'border-portal-border text-portal-muted' :
+                          target === '_extra' ? 'border-portal-border-2 text-portal-sub' :
+                                                'border-portal-blue/40 text-portal-text'
+                        }`}
+                      >
+                        {TARGET_OPTIONS.map(o => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                      <div className="text-[11px] text-portal-muted truncate" title={sample}>
+                        {sample ? <><span className="text-portal-muted/70 mr-1">sample:</span>{sample}</> : <span className="italic">(empty)</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             <div className="bg-white border border-portal-border rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-portal-border flex items-center justify-between">
                 <span className="text-xs font-semibold text-portal-sub uppercase tracking-wide">Preview</span>
-                <span className="text-xs text-portal-muted">Showing {displayRows.length} of {parsed.rows.length}</span>
+                <span className="text-xs text-portal-muted">Showing {displayRows.length} of {derivedRows.length}</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -403,11 +516,11 @@ export default function GuideListingsImportPage() {
                   </tbody>
                 </table>
               </div>
-              {parsed.rows.length > 15 && (
+              {derivedRows.length > 15 && (
                 <button onClick={() => setShowAll(!showAll)}
                   className="w-full py-3 text-xs text-portal-muted hover:text-portal-sub flex items-center justify-center gap-1 border-t border-portal-border">
                   <ChevronDown size={13} className={showAll ? 'rotate-180' : ''} />
-                  {showAll ? 'Show less' : `Show all ${parsed.rows.length} rows`}
+                  {showAll ? 'Show less' : `Show all ${derivedRows.length} rows`}
                 </button>
               )}
             </div>
@@ -428,7 +541,7 @@ export default function GuideListingsImportPage() {
 
             <button
               onClick={runImport}
-              disabled={importing || !guideType}
+              disabled={importing || !guideType || !businessNameMapped || derivedRows.length === 0}
               className="flex items-center gap-2 px-6 py-3 bg-portal-navy hover:opacity-90 disabled:opacity-40 text-white text-sm font-bold rounded-lg transition-colors"
             >
               {importing ? <RefreshCw size={15} className="animate-spin" /> : <Upload size={15} />}
@@ -436,7 +549,9 @@ export default function GuideListingsImportPage() {
                 ? 'Importing…'
                 : !guideType
                 ? 'Select a guide type first'
-                : `Import ${parsed.rows.length} listings → ${guideLabel}`
+                : !businessNameMapped
+                ? 'Map a Business Name column first'
+                : `${mode === 'merge' ? 'Merge' : 'Import'} ${derivedRows.length} listings → ${guideLabel}`
               }
             </button>
           </div>
