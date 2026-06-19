@@ -28,7 +28,8 @@
 // Each request takes ≤30 rows; client sends in chunks.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { slugifyForUrl } from '@/lib/articles/slug'
 
 export type GuideListingImportRow = {
   guide_type_slug:   string          // private-school, childcare, healthy-kids, etc.
@@ -103,6 +104,89 @@ function isEmpty(v: unknown): boolean {
   return v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
 }
 
+// CSV row → advertiser_accounts columns. Same merge semantics as
+// guide_listings: only fill empty fields on existing accounts; copy
+// everything to new ones. Keeps the canonical ListingCard design
+// (which renders from advertiser_accounts) working for every imported
+// row — the public guide page no longer has to drop unlinked listings.
+const ADVERTISER_FIELD_MAP: Array<{ source: keyof GuideListingImportRow; column: string }> = [
+  { source: 'phone',          column: 'office_phone' },
+  { source: 'email',          column: 'contact_email' },
+  { source: 'website_url',    column: 'website_url' },
+  { source: 'address',        column: 'address' },
+  { source: 'city_state_zip', column: 'city_state_zip' },
+  { source: 'neighborhood',   column: 'neighborhood' },
+  { source: 'hero_photo_url', column: 'hero_photo_url' },
+  { source: 'card_hook',      column: 'card_hook' },
+]
+
+async function findUniqueAdvertiserSlug(sb: SupabaseClient, baseName: string): Promise<string | null> {
+  const base = slugifyForUrl(baseName)
+  if (!base) return null
+  let candidate = base
+  for (let i = 1; i <= 50; i++) {
+    if (i > 1) candidate = `${base}-${i}`
+    const { data } = await sb.from('advertiser_accounts').select('id').eq('slug', candidate).maybeSingle()
+    if (!data) return candidate
+  }
+  return null
+}
+
+async function findOrCreateAdvertiser(
+  sb: SupabaseClient,
+  name: string,
+  row: GuideListingImportRow,
+  acctByName: Map<string, string>,
+): Promise<string | null> {
+  const lower = name.toLowerCase()
+  const existingId = acctByName.get(lower)
+  if (existingId) {
+    // Merge non-overwriting — newly imported CSV fields fill empty
+    // columns on the existing account. Editor-touched fields stay.
+    const { data: existing } = await sb
+      .from('advertiser_accounts')
+      .select('office_phone, contact_email, website_url, address, city_state_zip, neighborhood, hero_photo_url, card_hook')
+      .eq('id', existingId)
+      .maybeSingle()
+    if (existing) {
+      const update: Record<string, unknown> = {}
+      for (const { source, column } of ADVERTISER_FIELD_MAP) {
+        const incoming = (row as Record<string, unknown>)[source]
+        if (isEmpty(incoming)) continue
+        if (isEmpty((existing as Record<string, unknown>)[column])) {
+          update[column] = incoming
+        }
+      }
+      if (Object.keys(update).length > 0) {
+        await sb.from('advertiser_accounts').update(update).eq('id', existingId)
+      }
+    }
+    return existingId
+  }
+
+  // Fresh advertiser — every CSV row that isn't already a business in
+  // the CRM becomes one. Slug collisions get a numeric suffix.
+  const slug = await findUniqueAdvertiserSlug(sb, name)
+  if (!slug) return null
+  const insert: Record<string, unknown> = {
+    business_name: name,
+    slug,
+    is_active:     true,
+  }
+  for (const { source, column } of ADVERTISER_FIELD_MAP) {
+    const v = (row as Record<string, unknown>)[source]
+    if (!isEmpty(v)) insert[column] = v
+  }
+  const { data: created, error } = await sb
+    .from('advertiser_accounts')
+    .insert(insert)
+    .select('id')
+    .single()
+  if (error || !created) return null
+  acctByName.set(lower, created.id)
+  return created.id
+}
+
 function buildGuideData(row: GuideListingImportRow): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(row)) {
@@ -153,10 +237,16 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // Optional auto-link: if a CRM advertiser already exists with
-        // this exact business name, link the listing to it. Otherwise
-        // leave advertiser_account_id NULL — it's just directory content.
-        const linkedAcctId = acctByName.get(name.toLowerCase()) ?? null
+        // Business is top-level — every CSV row creates (or merges
+        // into) one advertiser_accounts row, and the guide_listings row
+        // ALWAYS links to it. That keeps the canonical ListingCard
+        // design (renders from advertiser_accounts) covering every row.
+        const linkedAcctId = await findOrCreateAdvertiser(supabase, name, row, acctByName)
+        if (!linkedAcctId) {
+          result.skipped++
+          result.rowResults.push({ name, status: 'skipped', message: 'Could not create advertiser account (empty slug or 50-collision retry exceeded).' })
+          continue
+        }
 
         // Build guide_data from non-core fields so guide-specific
         // payload (age ranges, certifications, custom JSON…) survives.
