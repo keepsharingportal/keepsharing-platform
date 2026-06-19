@@ -79,7 +79,17 @@ export async function proxy(request: NextRequest) {
         || p === '/favicon.ico'
   }
 
-  if (host === 'app.keepsharing.com' && !isPassThrough(originalPath)) {
+  // Paths exempted from the app.keepsharing.com → /admin rewrite. Used
+  // to host path-based PREVIEWS of public brand sites on the editorial
+  // host before their canonical domain is wired (e.g. the 50+ preview
+  // at /riverregion50plus, which renders the same FiftyPlusHomePage
+  // that will eventually live at riverregion50plus.com).
+  function isAppHostPublicPreview(p: string): boolean {
+    return p === '/riverregion50plus'
+        || p.startsWith('/riverregion50plus/')
+  }
+
+  if (host === 'app.keepsharing.com' && !isPassThrough(originalPath) && !isAppHostPublicPreview(originalPath)) {
     if (originalPath === '/') {
       path       = '/admin'
       rewriteUrl = request.nextUrl.clone(); rewriteUrl.pathname = '/admin'
