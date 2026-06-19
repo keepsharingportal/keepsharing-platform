@@ -20,6 +20,7 @@ import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
 import { BudgetTiers }            from '@/components/birthday/BudgetTiers'
 import { TrendingThemes }         from '@/components/birthday/TrendingThemes'
 import { BirthdayCategoryBrowser } from '@/components/birthday/BirthdayCategoryBrowser'
+import { BirthdayGuideByCategory } from '@/components/birthday/BirthdayGuideByCategory'
 import { RealRiverRegionParties } from '@/components/birthday/RealRiverRegionParties'
 import { BirthdayArticles }       from '@/components/birthday/BirthdayArticles'
 import { GiftGuidesByAge }        from '@/components/birthday/GiftGuidesByAge'
@@ -138,12 +139,16 @@ export default async function BirthdayPartyGuidePage() {
       .or('topics.cs.{birthday},guide_slug.eq.birthday-party-guide')
       .order('published_at', { ascending: false })
       .limit(6),
-    // Category counts on the existing 89-vendor birthday-party-guide listings
+    // Full birthday-party-guide vendor listings — drives both the
+    // category-count tiles AND the new BirthdayGuideByCategory section.
+    // Inline business identity (migration 134) so we don't need the
+    // advertiser_accounts join for the public render.
     supabase.from('guide_listings')
-      .select('category, advertiser_accounts(id, slug, business_name, hero_photo_url, neighborhood)')
-      .eq('guide_type_slug', 'birthday-party-guide')
+      .select('id, business_name, category, listing_tier, office_phone, website_url, address, city_state_zip, neighborhood, hero_photo_url, card_hook, guide_data, display_order')
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .eq('is_published', true)
-      .limit(200),
+      .order('display_order', { ascending: true })
+      .limit(500),
     // Active section sponsor for the page (sponsorship slot)
     supabase.from('ad_placements')
       .select('id, ad_headline, ad_description, ad_link, ad_image_url, advertiser:advertiser_accounts(business_name, slug)')
@@ -171,19 +176,50 @@ export default async function BirthdayPartyGuidePage() {
       .limit(2),
   ])
 
-  // Group category counts for the browser block. Supabase types
-  // advertiser_accounts as an array when joined; we only need the category,
-  // so cast through unknown to avoid the relation-shape mismatch.
-  const listings = (listingCountsRes.data ?? []) as unknown as Array<{ category: string | null }>
+  // Birthday vendor listings — fully hydrated for the new
+  // BirthdayGuideByCategory section. Same row set drives the category
+  // count tiles (still kept above the fold) and the full grouped guide
+  // below. card_hook | guide_data.description feeds the card blurb.
+  type RawListing = {
+    id: string
+    business_name: string | null
+    category: string | null
+    listing_tier: string | null
+    office_phone: string | null
+    website_url: string | null
+    address: string | null
+    city_state_zip: string | null
+    neighborhood: string | null
+    hero_photo_url: string | null
+    card_hook: string | null
+    guide_data: Record<string, unknown> | null
+    display_order: number | null
+  }
+  const rawListings = (listingCountsRes.data ?? []) as unknown as RawListing[]
+  const guideListings = rawListings.map(r => ({
+    id:              r.id,
+    business_name:   r.business_name,
+    category:        r.category,
+    listing_tier:    r.listing_tier,
+    office_phone:    r.office_phone,
+    website_url:     r.website_url,
+    address:         r.address,
+    city_state_zip:  r.city_state_zip,
+    neighborhood:    r.neighborhood,
+    hero_photo_url:  r.hero_photo_url,
+    card_hook:       r.card_hook,
+    description:     (r.guide_data?.description as string | undefined) ?? null,
+    display_order:   r.display_order,
+  }))
   const categoryCounts = new Map<string, number>()
-  for (const l of listings) {
+  for (const l of guideListings) {
     if (l.category) categoryCounts.set(l.category, (categoryCounts.get(l.category) ?? 0) + 1)
   }
   const topCategories = Array.from(categoryCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([cat, count]) => ({ cat, count }))
-  const totalListings = listings.length
+  const totalListings = guideListings.length
 
   return (
     <main className="bg-[#fffaf5]">
@@ -243,10 +279,14 @@ export default async function BirthdayPartyGuidePage() {
               <TrendingThemes themes={(themesRes.data ?? []) as Array<Record<string, unknown>>} />
             </section>
 
-            <section id="vendors">
+            <section id="vendors" className="space-y-8">
               <BirthdayCategoryBrowser
                 topCategories={topCategories}
                 totalListings={totalListings}
+              />
+              <BirthdayGuideByCategory
+                listings={guideListings}
+                totalCount={totalListings}
               />
             </section>
 

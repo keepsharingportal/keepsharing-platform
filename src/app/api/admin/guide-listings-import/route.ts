@@ -1,5 +1,5 @@
 // src/app/api/admin/guide-listings-import/route.ts
-// Bulk-inserts guide listing rows from CSV import.
+// Bulk-inserts (or merges) guide listing rows from CSV import.
 //
 // Behavior change (migration 134): the importer no longer creates
 // advertiser_accounts rows. Each guide CSV row becomes a self-contained
@@ -14,6 +14,16 @@
 // case where an editor re-imports a guide CSV for a business that
 // already advertises elsewhere. Anything else: advertiser_account_id
 // stays NULL.
+//
+// Two modes (body field `mode`, default 'insert'):
+//   'insert' — every row creates a new row. Used for the first import
+//              of a new guide year.
+//   'merge'  — match existing row by
+//              (guide_type_slug, lower(business_name), category, listing_year)
+//              and ONLY fill empty/null fields. Never overwrites editor
+//              data (logos, hero photos, hand-edited blurbs, etc.).
+//              Insert if no match. Used to refresh next year's CSV
+//              without losing the touch-ups done in admin between cycles.
 //
 // Each request takes ≤30 rows; client sends in chunks.
 
@@ -42,15 +52,20 @@ export type GuideListingImportRow = {
 
 export type GuideListingImportResult = {
   inserted:   number
+  merged:     number              // matched an existing row; empty fields filled
   matched:    number              // landed inline + auto-linked to existing advertiser
+  unchanged:  number              // merged but every field was already populated
   skipped:    number
   errors:     string[]
   rowResults: {
     name: string
-    status: 'inserted' | 'matched' | 'skipped' | 'error'
+    status: 'inserted' | 'merged' | 'matched' | 'unchanged' | 'skipped' | 'error'
     message?: string
+    filledFields?: string[]       // for merged rows — which fields the importer wrote
   }[]
 }
+
+export type ImportMode = 'insert' | 'merge'
 
 function supabaseAdmin() {
   return createClient(
@@ -69,9 +84,42 @@ const CORE_FIELDS = new Set([
   'hero_photo_url', 'card_hook',
 ])
 
+// Field that maps from the import row → guide_listings column. Order
+// matters only for the merge-fill report. Anything not in this list
+// gets dropped into guide_data JSONB (see buildGuideData below).
+const FIELD_TO_COLUMN: Array<{ source: keyof GuideListingImportRow; column: string }> = [
+  { source: 'business_name',    column: 'business_name' },
+  { source: 'phone',            column: 'office_phone' },
+  { source: 'email',            column: 'contact_email' },
+  { source: 'website_url',      column: 'website_url' },
+  { source: 'address',          column: 'address' },
+  { source: 'city_state_zip',   column: 'city_state_zip' },
+  { source: 'neighborhood',     column: 'neighborhood' },
+  { source: 'hero_photo_url',   column: 'hero_photo_url' },
+  { source: 'card_hook',        column: 'card_hook' },
+]
+
+function isEmpty(v: unknown): boolean {
+  return v === null || v === undefined || (typeof v === 'string' && v.trim() === '')
+}
+
+function buildGuideData(row: GuideListingImportRow): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(row)) {
+    if (!CORE_FIELDS.has(k) && v !== null && v !== undefined && v !== '') {
+      out[k] = v
+    }
+  }
+  if (row.description) out.description = row.description
+  if (row.hours)       out.hours       = row.hours
+  return out
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { rows }: { rows: GuideListingImportRow[] } = await req.json()
+    const body = await req.json() as { rows: GuideListingImportRow[]; mode?: ImportMode }
+    const rows = body.rows
+    const mode: ImportMode = body.mode === 'merge' ? 'merge' : 'insert'
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: 'No rows' }, { status: 400 })
     }
@@ -81,7 +129,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = supabaseAdmin()
     const result: GuideListingImportResult = {
-      inserted: 0, matched: 0, skipped: 0, errors: [], rowResults: [],
+      inserted: 0, merged: 0, matched: 0, unchanged: 0, skipped: 0, errors: [], rowResults: [],
     }
 
     // Pre-load every existing advertiser_account name for the optional
@@ -112,27 +160,94 @@ export async function POST(req: NextRequest) {
 
         // Build guide_data from non-core fields so guide-specific
         // payload (age ranges, certifications, custom JSON…) survives.
-        const guideData: Record<string, unknown> = {}
-        for (const [k, v] of Object.entries(row)) {
-          if (!CORE_FIELDS.has(k) && v !== null && v !== undefined && v !== '') {
-            guideData[k] = v
-          }
-        }
-        if (row.description) guideData.description    = row.description
-        if (row.hours)       guideData.hours          = row.hours
+        const guideData = buildGuideData(row)
 
         const listingYear = typeof row.listing_year === 'string'
           ? parseInt(row.listing_year, 10)
           : (row.listing_year ?? null)
+        const yearNum = Number.isFinite(listingYear as number) ? (listingYear as number) : null
+        const category = row.category?.trim() || null
+
+        // ── Merge path ─────────────────────────────────────────────
+        // Match on (guide_type_slug, lower(business_name), category, listing_year).
+        // Multiple categories per business = multiple rows; each merges
+        // independently. The match is conservative — exact name match
+        // only, no fuzzy guessing.
+        if (mode === 'merge') {
+          let q = supabase
+            .from('guide_listings')
+            .select('id, business_name, office_phone, contact_email, website_url, address, city_state_zip, neighborhood, hero_photo_url, card_hook, guide_data, advertiser_account_id, listing_tier')
+            .eq('guide_type_slug', row.guide_type_slug)
+            .ilike('business_name', name)
+          if (category) q = q.eq('category', category)
+          else          q = q.is('category', null)
+          if (yearNum !== null) q = q.eq('listing_year', yearNum)
+          else                  q = q.is('listing_year', null)
+          const { data: existing } = await q.maybeSingle()
+
+          if (existing) {
+            // Build a partial update that ONLY writes empty fields.
+            // Editor-touched columns stay exactly as they are.
+            const update: Record<string, unknown> = {}
+            const filledFields: string[] = []
+            for (const { source, column } of FIELD_TO_COLUMN) {
+              const incoming = (row as Record<string, unknown>)[source]
+              if (isEmpty(incoming)) continue
+              if (isEmpty((existing as Record<string, unknown>)[column])) {
+                update[column] = incoming
+                filledFields.push(column)
+              }
+            }
+            // Auto-link advertiser only if not already linked.
+            if (linkedAcctId && isEmpty(existing.advertiser_account_id)) {
+              update.advertiser_account_id = linkedAcctId
+              filledFields.push('advertiser_account_id')
+            }
+            // guide_data: merge keys, never overwrite existing keys.
+            const existingData = (existing.guide_data ?? {}) as Record<string, unknown>
+            const dataMerged   = { ...existingData }
+            let dataChanged    = false
+            for (const [k, v] of Object.entries(guideData)) {
+              if (isEmpty(existingData[k])) {
+                dataMerged[k] = v
+                dataChanged   = true
+              }
+            }
+            if (dataChanged) {
+              update.guide_data = dataMerged
+              filledFields.push('guide_data')
+            }
+
+            if (Object.keys(update).length === 0) {
+              result.unchanged++
+              result.rowResults.push({ name, status: 'unchanged', message: 'All fields already populated' })
+              continue
+            }
+            const { error: updateErr } = await supabase
+              .from('guide_listings')
+              .update(update)
+              .eq('id', existing.id)
+            if (updateErr) {
+              const msg = updateErr.message
+              result.errors.push(`${name}: ${msg}`)
+              result.rowResults.push({ name, status: 'error', message: msg })
+              continue
+            }
+            result.merged++
+            result.rowResults.push({ name, status: 'merged', filledFields })
+            continue
+          }
+          // No existing row — fall through to insert below.
+        }
 
         const { error: listingErr } = await supabase
           .from('guide_listings')
           .insert({
             advertiser_account_id: linkedAcctId,     // NULL unless an exact-match advertiser exists
             guide_type_slug:       row.guide_type_slug,
-            category:              row.category?.trim() || null,
+            category,
             listing_tier:          row.listing_tier || 'community',
-            listing_year:          Number.isFinite(listingYear) ? listingYear : null,
+            listing_year:          yearNum,
             is_published:          true,
             display_order:         9999,
             // Inline business identity (migration 134) — listing is now

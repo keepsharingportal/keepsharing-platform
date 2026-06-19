@@ -95,7 +95,13 @@ type ParsedState = {
   unmapped:      string[]
 }
 
-type RowResult = { name: string; status: 'inserted' | 'matched' | 'skipped' | 'error'; message?: string }
+type RowResult = {
+  name: string
+  status: 'inserted' | 'merged' | 'matched' | 'unchanged' | 'skipped' | 'error'
+  message?: string
+  filledFields?: string[]
+}
+type ImportMode = 'insert' | 'merge'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -108,7 +114,8 @@ export default function GuideListingsImportPage() {
   const [importing,  setImporting]  = useState(false)
   const [progress,   setProgress]   = useState({ done: 0, total: 0 })
   const [results,    setResults]    = useState<RowResult[]>([])
-  const [totals,     setTotals]     = useState({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
+  const [totals,     setTotals]     = useState({ inserted: 0, merged: 0, matched: 0, unchanged: 0, skipped: 0, errors: 0 })
+  const [mode,       setMode]       = useState<ImportMode>('insert')
   const [done,       setDone]       = useState(false)
   const [showAll,    setShowAll]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
@@ -175,10 +182,10 @@ export default function GuideListingsImportPage() {
     const chunks = chunk(rowsWithType, 25)
 
     setImporting(true); setDone(false)
-    setResults([]); setTotals({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
+    setResults([]); setTotals({ inserted: 0, merged: 0, matched: 0, unchanged: 0, skipped: 0, errors: 0 })
     setProgress({ done: 0, total: rowsWithType.length })
 
-    let ins = 0, upd = 0, skip = 0, errs = 0
+    let ins = 0, mer = 0, upd = 0, unc = 0, skip = 0, errs = 0
     const all: RowResult[] = []
 
     for (const ch of chunks) {
@@ -186,7 +193,7 @@ export default function GuideListingsImportPage() {
         const res = await fetch('/api/admin/guide-listings-import', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rows: ch }),
+          body: JSON.stringify({ rows: ch, mode }),
         })
         if (!res.ok) {
           const txt = await res.text()
@@ -197,10 +204,12 @@ export default function GuideListingsImportPage() {
         } else {
           const data: GuideListingImportResult = await res.json()
           ins  += data.inserted
+          mer  += data.merged
           upd  += data.matched
+          unc  += data.unchanged
           skip += data.skipped
           errs += data.errors.length
-          all.push(...data.rowResults)
+          all.push(...data.rowResults as RowResult[])
         }
       } catch (e: unknown) {
         for (const r of ch) {
@@ -210,7 +219,7 @@ export default function GuideListingsImportPage() {
       }
       setProgress({ done: all.length, total: rowsWithType.length })
       setResults([...all])
-      setTotals({ inserted: ins, matched: upd, skipped: skip, errors: errs })
+      setTotals({ inserted: ins, merged: mer, matched: upd, unchanged: unc, skipped: skip, errors: errs })
     }
 
     setImporting(false); setDone(true)
@@ -218,7 +227,7 @@ export default function GuideListingsImportPage() {
 
   function reset() {
     setParsed(null); setDone(false); setError(null)
-    setResults([]); setTotals({ inserted: 0, matched: 0, skipped: 0, errors: 0 })
+    setResults([]); setTotals({ inserted: 0, merged: 0, matched: 0, unchanged: 0, skipped: 0, errors: 0 })
     setFileName(''); setShowAll(false)
     if (fileRef.current) fileRef.current.value = ''
   }
@@ -237,6 +246,41 @@ export default function GuideListingsImportPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-5">
+
+        {/* Import mode — insert vs merge */}
+        <div className="bg-white rounded-lg border border-portal-border p-4">
+          <label className="block text-xs font-semibold text-portal-sub mb-2 uppercase tracking-wide">
+            How should this CSV land?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button" onClick={() => setMode('insert')}
+              className={`text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                mode === 'insert'
+                  ? 'bg-portal-navy text-white border-portal-navy'
+                  : 'bg-white text-portal-text border-portal-border-2 hover:bg-portal-bg'
+              }`}
+            >
+              <div className="text-[12px] font-bold">Insert (new guide year)</div>
+              <div className={`text-[10px] mt-0.5 ${mode === 'insert' ? 'text-white/80' : 'text-portal-sub'}`}>
+                Every row creates a new listing. Use for the first import of a fresh year.
+              </div>
+            </button>
+            <button
+              type="button" onClick={() => setMode('merge')}
+              className={`text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                mode === 'merge'
+                  ? 'bg-portal-navy text-white border-portal-navy'
+                  : 'bg-white text-portal-text border-portal-border-2 hover:bg-portal-bg'
+              }`}
+            >
+              <div className="text-[12px] font-bold">Merge (refresh existing)</div>
+              <div className={`text-[10px] mt-0.5 ${mode === 'merge' ? 'text-white/80' : 'text-portal-sub'}`}>
+                Match on business + category + year. Only fill empty fields — never overwrite logos, photos, or edits.
+              </div>
+            </button>
+          </div>
+        </div>
 
         {/* Guide type selector */}
         <div className="bg-white rounded-lg border border-portal-border p-4">
@@ -401,12 +445,14 @@ export default function GuideListingsImportPage() {
         {/* Results */}
         {done && (
           <div className="space-y-4">
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
               {[
-                { label: 'New',           value: totals.inserted, color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
-                { label: 'Auto-linked',   value: totals.matched,  color: 'text-portal-blue',  bg: 'bg-portal-blue-lt border-portal-blue/30'   },
-                { label: 'Skipped',       value: totals.skipped,  color: 'text-portal-sub',  bg: 'bg-portal-bg border-portal-border'   },
-                { label: 'Errors',   value: totals.errors,   color: 'text-portal-red',   bg: 'bg-portal-red-lt border-portal-red/30'     },
+                { label: 'New',           value: totals.inserted,  color: 'text-portal-green', bg: 'bg-portal-green-lt border-portal-green/30' },
+                { label: 'Merged',        value: totals.merged,    color: 'text-portal-blue',  bg: 'bg-portal-blue-lt border-portal-blue/30'   },
+                { label: 'Unchanged',     value: totals.unchanged, color: 'text-portal-sub',   bg: 'bg-portal-bg border-portal-border'         },
+                { label: 'Auto-linked',   value: totals.matched,   color: 'text-portal-blue',  bg: 'bg-portal-blue-lt border-portal-blue/30'   },
+                { label: 'Skipped',       value: totals.skipped,   color: 'text-portal-sub',   bg: 'bg-portal-bg border-portal-border'         },
+                { label: 'Errors',        value: totals.errors,    color: 'text-portal-red',   bg: 'bg-portal-red-lt border-portal-red/30'     },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`rounded-lg border p-4 text-center ${bg}`}>
                   <div className={`text-2xl font-bold ${color}`}>{value}</div>
@@ -420,12 +466,19 @@ export default function GuideListingsImportPage() {
                 {results.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-2.5">
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                      r.status === 'inserted' ? 'bg-portal-green-lt text-portal-green' :
-                      r.status === 'matched'  ? 'bg-portal-blue-lt text-portal-blue'  :
-                      r.status === 'skipped'  ? 'bg-portal-row-hover text-portal-sub'  :
-                                                'bg-portal-red-lt text-portal-red'
+                      r.status === 'inserted'  ? 'bg-portal-green-lt text-portal-green' :
+                      r.status === 'merged'    ? 'bg-portal-blue-lt text-portal-blue'   :
+                      r.status === 'matched'   ? 'bg-portal-blue-lt text-portal-blue'   :
+                      r.status === 'unchanged' ? 'bg-portal-row-hover text-portal-sub'  :
+                      r.status === 'skipped'   ? 'bg-portal-row-hover text-portal-sub'  :
+                                                 'bg-portal-red-lt text-portal-red'
                     }`}>{r.status}</span>
                     <span className="text-xs text-portal-text flex-1 truncate">{r.name}</span>
+                    {r.status === 'merged' && r.filledFields && r.filledFields.length > 0 && (
+                      <span className="text-[10px] text-portal-blue truncate max-w-xs">
+                        filled: {r.filledFields.join(', ')}
+                      </span>
+                    )}
                     {r.message && <span className="text-[10px] text-portal-muted truncate max-w-xs">{r.message}</span>}
                   </div>
                 ))}
@@ -443,10 +496,11 @@ export default function GuideListingsImportPage() {
               </a>
             </div>
 
-            {(totals.inserted + totals.matched) > 0 && (
+            {(totals.inserted + totals.matched + totals.merged) > 0 && (
               <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg px-4 py-3 text-sm text-portal-green">
-                <strong>{totals.inserted + totals.matched} listings</strong> are now live in the{' '}
-                <strong>{guideLabel}</strong>. Import the next guide CSV or go populate FRG categories.
+                <strong>{totals.inserted + totals.matched} new</strong>
+                {totals.merged > 0 && <> · <strong>{totals.merged} merged</strong></>}
+                {' '}live in the <strong>{guideLabel}</strong>. Import the next guide CSV or go populate FRG categories.
               </div>
             )}
           </div>
