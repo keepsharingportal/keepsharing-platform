@@ -5,9 +5,19 @@
 -- with real-looking data. Visible at:
 --   /birthday-party-guide/listings/confetti-cove-party-studio
 --
+-- Also adds gallery_image_urls TEXT[] to advertiser_accounts — the
+-- canonical ListingDetailPage has been reading from this column for
+-- months but it was never actually created (gallery only ever existed
+-- on guide_listings). Adding it here so the gallery section finally
+-- works site-wide, not just for the demo.
+--
 -- Idempotent — only inserts if the row doesn't already exist; safe to
 -- re-run. To wipe + re-seed, DELETE the advertiser_accounts row first
 -- (ON DELETE CASCADE clears guide_listings + listing_sections).
+
+-- Add gallery_image_urls if it doesn't exist yet. Safe on re-runs.
+ALTER TABLE advertiser_accounts
+  ADD COLUMN IF NOT EXISTS gallery_image_urls TEXT[] DEFAULT '{}';
 
 DO $$
 DECLARE
