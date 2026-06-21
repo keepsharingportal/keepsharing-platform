@@ -138,7 +138,7 @@ BEGIN
   -- 4. Features Bullets (What's Included)
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, bullet_points) VALUES
   (v_acct_id, 'features_bullets', TRUE, 40, 'What''s Included in Every Party',
-   ARRAY[
+   jsonb_build_array(
      'Trained party host(s) for the full event',
      'Setup AND cleanup — you arrive to a ready room',
      'All themed decor, plates, cups, napkins',
@@ -146,13 +146,13 @@ BEGIN
      'Cake plating, candle lighting, serving',
      'Photo backdrop with theme-matched props',
      'Allergy-aware menu options on request'
-   ]);
+   ));
 
   -- 5. Themes Available
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, subheadline, bullet_points) VALUES
   (v_acct_id, 'themes_available', TRUE, 50, 'Themes Available',
    'Eight ready-to-go themes plus custom themes by request (4 weeks notice).',
-   ARRAY[
+   jsonb_build_array(
      'Princess Tea Party',
      'Superhero Academy',
      'Dinosaur Dig',
@@ -162,7 +162,7 @@ BEGIN
      'Unicorn Garden',
      'Pirate Adventure',
      'Custom (by request)'
-   ]);
+   ));
 
   -- 6. Add-Ons
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, subheadline, items) VALUES
@@ -194,14 +194,14 @@ BEGIN
   -- 8. Best For
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, bullet_points) VALUES
   (v_acct_id, 'best_for', TRUE, 80, 'Best For',
-   ARRAY[
+   jsonb_build_array(
      'Parents who want to actually enjoy the party',
      'Ages 2 – 12',
      'Indoor weather backup',
      'Themed birthday parties',
      'Co-ed groups',
      'Allergy-aware families'
-   ]);
+   ));
 
   -- 9. Parents Say
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, items) VALUES
@@ -227,25 +227,25 @@ BEGIN
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, body_content, bullet_points) VALUES
   (v_acct_id, 'booking_notes', TRUE, 110, 'Booking & Policies',
    'Deposits are non-refundable but transferable to a future date with 14 days'' notice.',
-   ARRAY[
+   jsonb_build_array(
      '$100 deposit reserves the date',
      'Balance due 48 hours before',
      'Cancellation with 14 days notice → reschedule, no refund',
      'Late cancellation forfeits the deposit',
      'Custom themes need 4 weeks lead time'
-   ]);
+   ));
 
   -- 12. Health & Safety
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, body_content, bullet_points) VALUES
   (v_acct_id, 'health_safety', TRUE, 120, 'Health & Safety',
    'Every host is CPR + first-aid certified, background-checked, and trained on our allergy protocol. Studio is deep-cleaned between every party.',
-   ARRAY[
+   jsonb_build_array(
      'All hosts CPR + first-aid certified',
      'Background checks on every staff member',
      'Separate allergy-safe prep station',
      'Deep clean between every party',
      '$2M general liability insurance'
-   ]);
+   ));
 
   -- 13. Special Offer
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, offer_text, offer_cta_label, offer_cta_url) VALUES
