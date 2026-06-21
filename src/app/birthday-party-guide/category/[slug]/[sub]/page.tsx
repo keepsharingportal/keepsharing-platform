@@ -1,14 +1,15 @@
-// /birthday-party-guide/category/[slug] — landing page for one
-// birthday category bucket (e.g. "cakes-and-treats" → all listings
-// with category IN ['Cakes/Finger Foods']). The bucket → CSV
-// categories map lives in BirthdayCategoryHubCards so both the portal
-// hub cards and this page agree on the rollup.
+// /birthday-party-guide/category/[slug]/[sub] — leaf-level sub-type
+// page (e.g. "places-to-party/bowling"). Each sub is its own indexable
+// URL with bespoke title + meta description for long-tail search
+// intent like "Montgomery bowling birthday party".
 //
 // Layout:
-//   Hero strip — gradient + bucket label + count + breadcrumb back
-//   Featured listings (tier-1/2/3 + 'featured') — canonical ListingCard 'featured' variant
-//   All other listings — canonical ListingCard 'standard' variant grid
-//   Hub cards again at bottom so parents can pivot to another category
+//   Breadcrumbs (Home > Birthday > Bucket > Sub)
+//   Hero strip using the parent bucket's gradient + sub label
+//   Featured listings (canonical ListingCard 'featured')
+//   Standard listings (canonical ListingCard 'standard')
+//   Sibling subs chip-row to pivot inside the bucket
+//   Other birthday hub cards at the bottom
 
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
@@ -20,7 +21,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { ArrowLeft, Star, Building2 } from 'lucide-react'
 import {
   BirthdayCategoryHubCards,
-  BirthdaySubCategoryCards,
+  subBySlug,
   bucketBySlug,
 } from '@/components/birthday/BirthdayCategoryHubCards'
 import type { Metadata } from 'next'
@@ -28,7 +29,7 @@ import type { Metadata } from 'next'
 export const revalidate = 600
 
 interface Props {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; sub: string }>
 }
 
 function sb() {
@@ -39,12 +40,13 @@ function sb() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
-  const bucket = bucketBySlug(slug)
-  if (!bucket) return { title: 'Birthday Category Not Found' }
+  const { slug, sub } = await params
+  const match = subBySlug(slug, sub)
+  if (!match) return { title: 'Birthday Sub-Category Not Found' }
   return {
-    title:       `${bucket.label} — Birthday Party Guide | River Region Parents`,
-    description: bucket.blurb,
+    title:       match.sub.metaTitle ?? `${match.sub.label} — ${match.bucket.label} | Birthday Party Guide`,
+    description: match.sub.blurb,
+    alternates:  { canonical: `/birthday-party-guide/category/${slug}/${sub}` },
   }
 }
 
@@ -95,17 +97,14 @@ function toListingData(row: ListingRow): ListingData | null {
   }
 }
 
-export default async function BirthdayCategoryPage({ params }: Props) {
-  const { slug } = await params
-  const bucket = bucketBySlug(slug)
-  if (!bucket) notFound()
+export default async function BirthdaySubCategoryPage({ params }: Props) {
+  const { slug, sub } = await params
+  const match = subBySlug(slug, sub)
+  if (!match) notFound()
+  const { bucket, sub: subCfg } = match
 
   const supabase = sb()
 
-  // Listings in this bucket — joined to advertiser_accounts. Featured-
-  // tier rows surface first; we de-dup by advertiser_account_id later
-  // (a vendor can appear in multiple CSV categories within the bucket
-  // and we don't want to render them twice on the same page).
   const { data } = await supabase
     .from('guide_listings')
     .select(`
@@ -118,45 +117,29 @@ export default async function BirthdayCategoryPage({ params }: Props) {
       )
     `)
     .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-    .in('category', bucket.categories)
+    .in('category', subCfg.categories)
     .eq('is_published', true)
     .order('display_order', { ascending: true })
     .limit(500)
 
   const rows = (data ?? []) as unknown as ListingRow[]
 
-  // Dedup by advertiser_account_id so the same vendor never renders
-  // twice when the bucket pulls multiple CSV categories.
+  // Dedup by advertiser_account_id so a vendor with multiple CSV
+  // categories within the sub doesn't render twice.
   const seen = new Set<string>()
   const uniq = rows
     .map(toListingData)
     .filter((l): l is ListingData => l !== null)
-    .filter(l => {
-      if (seen.has(l.id)) return false
-      seen.add(l.id); return true
-    })
+    .filter(l => { if (seen.has(l.id)) return false; seen.add(l.id); return true })
 
-  // Re-attach tier so we can split featured vs standard.
   const tierById = new Map<string, string | null>()
   for (const r of rows) if (r.advertiser_accounts) tierById.set(r.advertiser_accounts.id, r.listing_tier)
   const featured = uniq.filter(l => FEATURED_TIERS.includes(tierById.get(l.id) ?? ''))
   const standard = uniq.filter(l => !FEATURED_TIERS.includes(tierById.get(l.id) ?? ''))
 
-  // Counts per CSV category for the sub-cards. Built off the raw rows
-  // (not the deduped set) so each sub shows its true row count even
-  // when a vendor straddles two categories within the bucket.
-  type CountRow = { category: string | null }
-  const countsByCategory: Record<string, number> = {}
-  const { data: countRows } = await supabase
-    .from('guide_listings')
-    .select('category')
-    .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-    .in('category', bucket.categories)
-    .eq('is_published', true)
-    .limit(2000)
-  for (const r of (countRows ?? []) as CountRow[]) {
-    if (r.category) countsByCategory[r.category] = (countsByCategory[r.category] ?? 0) + 1
-  }
+  // Sibling subs for the in-page chip row (pivot to another sub without
+  // a round trip to the bucket landing page).
+  const siblingSubs = (bucket.subs ?? []).filter(s => s.slug !== subCfg.slug)
 
   return (
     <div className="min-h-screen bg-background">
@@ -168,28 +151,30 @@ export default async function BirthdayCategoryPage({ params }: Props) {
             items={[
               { label: 'Home', href: '/' },
               { label: 'Birthday Party Guide', href: '/birthday-party-guide' },
-              { label: bucket.label },
+              { label: bucket.label, href: `/birthday-party-guide/category/${bucket.slug}` },
+              { label: subCfg.label },
             ]}
           />
         </div>
       </div>
 
-      {/* Category hero strip */}
+      {/* Sub hero — reuses the parent bucket's gradient so visitors
+          feel they're still inside the same bucket, just one level deeper. */}
       <div className={`relative overflow-hidden bg-gradient-to-br ${bucket.gradient}`}>
         <div className="container py-10 md:py-14 text-white">
           <Link
-            href="/birthday-party-guide"
+            href={`/birthday-party-guide/category/${bucket.slug}`}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white/85 hover:text-white mb-3"
           >
-            <ArrowLeft className="h-3 w-3" /> Birthday Party Guide
+            <ArrowLeft className="h-3 w-3" /> All {bucket.label}
           </Link>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80 mb-1.5">
-            {bucket.eyebrow}
+            {bucket.label.toUpperCase()}
           </p>
           <h1 className="text-3xl md:text-5xl font-black leading-tight drop-shadow-sm">
-            {bucket.label}
+            {subCfg.label}
           </h1>
-          <p className="text-white/85 mt-3 max-w-2xl leading-relaxed">{bucket.blurb}</p>
+          <p className="text-white/85 mt-3 max-w-2xl leading-relaxed">{subCfg.blurb}</p>
           <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-bold">
             <Building2 className="h-3.5 w-3.5" />
             {uniq.length} {uniq.length === 1 ? 'listing' : 'listings'}
@@ -199,14 +184,6 @@ export default async function BirthdayCategoryPage({ params }: Props) {
 
       <main className="container py-10 lg:py-14 space-y-14">
 
-        {/* Sub-type cards — only when this bucket has 2+ subs
-            (Places to Party, Decor & Invitations). Each card links to
-            its own SEO-friendly /category/{bucket}/{sub} page. */}
-        {bucket.subs && bucket.subs.length > 1 && (
-          <BirthdaySubCategoryCards bucket={bucket} countsByCategory={countsByCategory} />
-        )}
-
-        {/* Featured listings */}
         {featured.length > 0 && (
           <section>
             <div className="flex items-baseline gap-2 mb-5">
@@ -227,12 +204,11 @@ export default async function BirthdayCategoryPage({ params }: Props) {
           </section>
         )}
 
-        {/* Standard / free listings */}
         {standard.length > 0 ? (
           <section>
             <div className="flex items-baseline justify-between mb-5">
               <h2 className="text-2xl font-bold text-foreground">
-                {featured.length > 0 ? `More ${bucket.label}` : 'All listings'}
+                {featured.length > 0 ? `More ${subCfg.label}` : 'All listings'}
               </h2>
               <span className="text-xs font-semibold text-muted-foreground">{standard.length} listings</span>
             </div>
@@ -251,15 +227,33 @@ export default async function BirthdayCategoryPage({ params }: Props) {
         ) : featured.length === 0 ? (
           <section className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 px-8 py-14 text-center">
             <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-foreground mb-1">No {bucket.label.toLowerCase()} yet</h3>
+            <h3 className="text-lg font-bold text-foreground mb-1">No {subCfg.label.toLowerCase()} listings yet</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              We&apos;re still building out this category. Know a business that belongs here?{' '}
+              We&apos;re still building out this section. Know a business that belongs here?{' '}
               <Link href="/birthday-party-guide/share-yours" className="text-primary font-semibold hover:underline">Tell us about them.</Link>
             </p>
           </section>
         ) : null}
 
-        {/* Pivot — same hub cards at the bottom */}
+        {/* Sibling subs — chip-row pivot to a different sub-type
+            without leaving the page concept */}
+        {siblingSubs.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-3">Other {bucket.label} options</h2>
+            <div className="flex flex-wrap gap-2">
+              {siblingSubs.map(s => (
+                <Link
+                  key={s.slug}
+                  href={`/birthday-party-guide/category/${bucket.slug}/${s.slug}`}
+                  className="px-3 py-1.5 text-xs font-bold rounded-full border border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                >
+                  {s.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="pt-10 border-t border-border/40">
           <BirthdayCategoryHubCards />
         </section>

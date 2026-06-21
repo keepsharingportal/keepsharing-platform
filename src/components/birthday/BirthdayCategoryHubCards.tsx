@@ -14,6 +14,18 @@ import {
   ArrowRight, BookOpen,
 } from 'lucide-react'
 
+// A sub-type inside a bucket — gets its own SEO-friendly URL at
+// /birthday-party-guide/category/{bucket}/{sub}. Each sub points at
+// the CSV categories it represents (almost always one, but the model
+// supports multiple in case the CSV ever drifts).
+export interface CategorySub {
+  slug:        string         // URL segment, e.g. 'bowling'
+  label:       string         // Card title, e.g. 'Bowling'
+  blurb:       string         // 1-sentence description for the sub-page
+  metaTitle?:  string         // Optional override for <title> + H1; auto-derived if absent
+  categories:  string[]       // CSV category names this sub maps to
+}
+
 export interface CategoryBucket {
   slug:        string
   label:       string
@@ -25,6 +37,11 @@ export interface CategoryBucket {
   // CSV categories that roll up into this bucket. The landing page
   // queries `guide_listings.category IN (...)` against this list.
   categories:  string[]
+  // Optional sub-types. When present, the parent landing page shows a
+  // grid of smaller sub-cards above the listings AND each sub becomes
+  // its own indexable page at /category/{bucket}/{sub}. Buckets with
+  // only one natural meaning (Cakes, Party Planners, etc.) omit this.
+  subs?:       CategorySub[]
 }
 
 export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
@@ -67,6 +84,16 @@ export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
     gradient:   'from-purple-600/85 via-purple-700/75 to-indigo-800/70',
     iconTone:   'text-purple-50',
     categories: ['Paper Goods/Decoration/Invitations', 'Printed Invitations'],
+    subs: [
+      { slug: 'paper-goods-and-decor', label: 'Decor, Balloons & Favors',
+        blurb: 'Themed decorations, balloon bouquets, party supplies, and themed favors for River Region birthday parties.',
+        metaTitle: 'Birthday Decorations, Balloons & Party Supplies | Montgomery & River Region',
+        categories: ['Paper Goods/Decoration/Invitations'] },
+      { slug: 'printed-invitations', label: 'Printed Invitations',
+        blurb: 'Custom birthday invitations, print shops, and stationers serving the River Region.',
+        metaTitle: 'Custom Birthday Invitations | Montgomery & River Region',
+        categories: ['Printed Invitations'] },
+    ],
   },
   {
     slug:       'places-to-party',
@@ -86,6 +113,44 @@ export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
       'Places to Party - Restaurants',
       'Places to Party - Skating',
       'Places to Party - Miscellaneous',
+    ],
+    subs: [
+      { slug: 'bowling', label: 'Bowling',
+        blurb: 'Bowling alleys and centers hosting birthday parties across the River Region.',
+        metaTitle: 'Bowling Birthday Parties | Montgomery, Prattville & River Region',
+        categories: ['Places to Party - Bowling'] },
+      { slug: 'gymnastics-and-dance', label: 'Gymnastics, Cheer & Dance',
+        blurb: 'Gym, cheer, and dance studios that host birthday parties for River Region kids.',
+        metaTitle: 'Gymnastics, Cheer & Dance Birthday Parties | Montgomery & River Region',
+        categories: ['Places to Party - Cheer/Gymnastics/Dance'] },
+      { slug: 'skating', label: 'Skating',
+        blurb: 'Skating rinks and roller-skating birthday party venues in the River Region.',
+        metaTitle: 'Skating Rink Birthday Parties | Montgomery & River Region',
+        categories: ['Places to Party - Skating'] },
+      { slug: 'martial-arts', label: 'Martial Arts',
+        blurb: 'Martial arts studios that throw active, themed birthday parties.',
+        metaTitle: 'Martial Arts Birthday Parties | Montgomery & River Region',
+        categories: ['Places to Party - Martial Arts'] },
+      { slug: 'art-studios', label: 'Art Studios',
+        blurb: 'Paint, pottery, and creative studios hosting kid birthday parties.',
+        metaTitle: 'Art Studio Birthday Parties | Montgomery & River Region',
+        categories: ['Places to Party - Artistic'] },
+      { slug: 'restaurants', label: 'Restaurants',
+        blurb: 'River Region restaurants that book birthday parties — pizza, themed dining, more.',
+        metaTitle: 'Restaurant Birthday Parties | Montgomery & River Region',
+        categories: ['Places to Party - Restaurants'] },
+      { slug: 'outdoors', label: 'Outdoor Venues',
+        blurb: 'Outdoor venues for River Region birthday parties — splash pads, farms, adventure spots.',
+        metaTitle: 'Outdoor Birthday Party Venues | Montgomery & River Region',
+        categories: ['Places to Party - Outdoors'] },
+      { slug: 'parks', label: 'Parks',
+        blurb: 'Local parks with shelters and pavilions perfect for River Region birthday parties.',
+        metaTitle: 'Park Birthday Party Venues | Montgomery & River Region',
+        categories: ['Places to Party - Parks'] },
+      { slug: 'other-venues', label: 'Other Venues',
+        blurb: 'Other birthday party venues in the River Region that don’t fit the standard buckets.',
+        metaTitle: 'Other Birthday Party Venues | Montgomery & River Region',
+        categories: ['Places to Party - Miscellaneous'] },
     ],
   },
   {
@@ -112,6 +177,55 @@ export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
 
 export function bucketBySlug(slug: string): CategoryBucket | null {
   return BIRTHDAY_CATEGORY_BUCKETS.find(b => b.slug === slug) ?? null
+}
+
+export function subBySlug(bucketSlug: string, subSlug: string): { bucket: CategoryBucket; sub: CategorySub } | null {
+  const bucket = bucketBySlug(bucketSlug)
+  if (!bucket?.subs) return null
+  const sub = bucket.subs.find(s => s.slug === subSlug)
+  if (!sub) return null
+  return { bucket, sub }
+}
+
+// Compact card used on the parent landing page to send visitors into a
+// sub-type. Smaller and tonally lighter than the top-level hub cards so
+// the hierarchy is obvious: big colored buckets at the top of the
+// portal, lighter sub-cards inside each bucket's landing page.
+export function BirthdaySubCategoryCards({
+  bucket, countsByCategory,
+}: {
+  bucket: CategoryBucket
+  countsByCategory?: Record<string, number>
+}) {
+  if (!bucket.subs?.length) return null
+  function subCount(sub: CategorySub): number {
+    if (!countsByCategory) return 0
+    return sub.categories.reduce((sum, c) => sum + (countsByCategory[c] ?? 0), 0)
+  }
+  return (
+    <section>
+      <h2 className="text-lg font-bold text-foreground mb-3">Browse {bucket.label} by type</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {bucket.subs.map(s => {
+          const count = subCount(s)
+          return (
+            <Link
+              key={s.slug}
+              href={`/birthday-party-guide/category/${bucket.slug}/${s.slug}`}
+              className="group flex items-center justify-between gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all"
+            >
+              <span className="text-sm font-bold text-foreground group-hover:text-primary leading-tight truncate">
+                {s.label}
+              </span>
+              <span className="text-xs font-bold tabular-nums text-muted-foreground shrink-0">
+                {count}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </section>
+  )
 }
 
 export function BirthdayCategoryHubCards({ countsByCategory }: {
