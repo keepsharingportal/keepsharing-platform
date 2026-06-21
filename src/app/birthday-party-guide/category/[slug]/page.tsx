@@ -23,6 +23,13 @@ import {
   BirthdaySubCategoryCards,
   bucketBySlug,
 } from '@/components/birthday/BirthdayCategoryHubCards'
+import {
+  BirthdayCategorySidebar,
+  pickSpotlights,
+  type FeaturedSpotlight,
+  type SidebarDeal,
+} from '@/components/birthday/BirthdayCategorySidebar'
+import { CompactListingList } from '@/components/birthday/CompactListingList'
 import type { Metadata } from 'next'
 
 export const revalidate = 600
@@ -158,6 +165,36 @@ export default async function BirthdayCategoryPage({ params }: Props) {
     if (r.category) countsByCategory[r.category] = (countsByCategory[r.category] ?? 0) + 1
   }
 
+  // Sidebar — featured spotlights pulled from any featured listing
+  // ANYWHERE in the birthday guide (not just this bucket) so the
+  // spotlight slot still has content even when the current bucket
+  // has no featured. Active deal pulled from birthday_deals.
+  const [{ data: spotlightRows }, { data: dealRow }] = await Promise.all([
+    supabase
+      .from('guide_listings')
+      .select('advertiser_accounts ( slug, business_name, card_hook, hero_photo_url )')
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
+      .eq('is_published', true)
+      .in('listing_tier', FEATURED_TIERS)
+      .limit(20),
+    supabase
+      .from('birthday_deals')
+      .select('id, business_name, headline, offer, image_url, link_url')
+      .eq('is_active', true)
+      .order('is_featured', { ascending: false })
+      .order('display_order', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const spotlightPool: FeaturedSpotlight[] = ((spotlightRows ?? []) as unknown as Array<{
+    advertiser_accounts: { slug: string; business_name: string; card_hook: string | null; hero_photo_url: string | null } | null
+  }>)
+    .map(r => r.advertiser_accounts)
+    .filter((a): a is { slug: string; business_name: string; card_hook: string | null; hero_photo_url: string | null } => !!a)
+  const spotlights = pickSpotlights(spotlightPool, 2)
+  const deal = (dealRow as SidebarDeal | null) ?? null
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -197,72 +234,74 @@ export default async function BirthdayCategoryPage({ params }: Props) {
         </div>
       </div>
 
-      <main className="container py-10 lg:py-14 space-y-14">
+      <main className="container py-10 lg:py-14">
+        <div className="grid lg:grid-cols-12 gap-10">
 
-        {/* Sub-type cards — only when this bucket has 2+ subs
-            (Places to Party, Decor & Invitations). Each card links to
-            its own SEO-friendly /category/{bucket}/{sub} page. */}
-        {bucket.subs && bucket.subs.length > 1 && (
-          <BirthdaySubCategoryCards bucket={bucket} countsByCategory={countsByCategory} />
-        )}
+          {/* ── Main column ────────────────────────────────────── */}
+          <div className="lg:col-span-8 space-y-12">
 
-        {/* Featured listings */}
-        {featured.length > 0 && (
-          <section>
-            <div className="flex items-baseline gap-2 mb-5">
-              <Star className="h-4 w-4 text-accent" />
-              <h2 className="text-2xl font-bold text-foreground">Featured Partners</h2>
-            </div>
-            <div className="space-y-5">
-              {featured.map(l => (
-                <ListingCard
-                  key={l.id}
-                  listing={l}
-                  guideUrlSlug="birthday-party-guide"
-                  guideContext="birthday-party"
-                  variant="featured"
-                />
-              ))}
-            </div>
-          </section>
-        )}
+            {/* Sub-type cards — only when this bucket has 2+ subs */}
+            {bucket.subs && bucket.subs.length > 1 && (
+              <BirthdaySubCategoryCards bucket={bucket} countsByCategory={countsByCategory} />
+            )}
 
-        {/* Standard / free listings */}
-        {standard.length > 0 ? (
-          <section>
-            <div className="flex items-baseline justify-between mb-5">
-              <h2 className="text-2xl font-bold text-foreground">
-                {featured.length > 0 ? `More ${bucket.label}` : 'All listings'}
-              </h2>
-              <span className="text-xs font-semibold text-muted-foreground">{standard.length} listings</span>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {standard.map(l => (
-                <ListingCard
-                  key={l.id}
-                  listing={l}
-                  guideUrlSlug="birthday-party-guide"
-                  guideContext="birthday-party"
-                  variant="standard"
-                />
-              ))}
-            </div>
-          </section>
-        ) : featured.length === 0 ? (
-          <section className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 px-8 py-14 text-center">
-            <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-foreground mb-1">No {bucket.label.toLowerCase()} yet</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              We&apos;re still building out this category. Know a business that belongs here?{' '}
-              <Link href="/birthday-party-guide/share-yours" className="text-primary font-semibold hover:underline">Tell us about them.</Link>
-            </p>
-          </section>
-        ) : null}
+            {/* Featured listings — full ListingCard, prominent */}
+            {featured.length > 0 && (
+              <section>
+                <div className="flex items-baseline gap-2 mb-5">
+                  <Star className="h-4 w-4 text-accent" />
+                  <h2 className="text-2xl font-bold text-foreground">Featured Partners</h2>
+                </div>
+                <div className="space-y-5">
+                  {featured.map(l => (
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      guideUrlSlug="birthday-party-guide"
+                      guideContext="birthday-party"
+                      variant="featured"
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {/* Pivot — same hub cards at the bottom */}
-        <section className="pt-10 border-t border-border/40">
-          <BirthdayCategoryHubCards />
-        </section>
+            {/* Free / standard listings — compact list-rows with
+                show-all-12 cap + mid-list upgrade CTA */}
+            {standard.length > 0 ? (
+              <section>
+                <div className="flex items-baseline justify-between mb-5">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {featured.length > 0 ? `More ${bucket.label}` : 'All listings'}
+                  </h2>
+                  <span className="text-xs font-semibold text-muted-foreground">{standard.length} {standard.length === 1 ? 'listing' : 'listings'}</span>
+                </div>
+                <CompactListingList listings={standard} />
+              </section>
+            ) : featured.length === 0 ? (
+              <section className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 px-8 py-14 text-center">
+                <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-foreground mb-1">No {bucket.label.toLowerCase()} yet</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  We&apos;re still building out this category. Know a business that belongs here?{' '}
+                  <Link href="/birthday-party-guide/share-yours" className="text-primary font-semibold hover:underline">Tell us about them.</Link>
+                </p>
+              </section>
+            ) : null}
+
+            {/* Pivot — full hub cards at the bottom */}
+            <section className="pt-10 border-t border-border/40">
+              <BirthdayCategoryHubCards />
+            </section>
+          </div>
+
+          {/* ── Sidebar ────────────────────────────────────────── */}
+          <BirthdayCategorySidebar
+            currentBucketSlug={bucket.slug}
+            featuredSpotlights={spotlights}
+            deal={deal}
+          />
+        </div>
       </main>
 
       <PublicFooter />

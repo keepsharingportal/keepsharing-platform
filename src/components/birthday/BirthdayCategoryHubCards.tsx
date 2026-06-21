@@ -12,6 +12,8 @@ import Link from 'next/link'
 import {
   Cake, Music, Calendar, Sparkles, MapPin, ClipboardList, Gift,
   ArrowRight, BookOpen,
+  Trophy, Disc, Shield, Palette, UtensilsCrossed, TreePine, Trees,
+  Mail,
 } from 'lucide-react'
 
 // A sub-type inside a bucket — gets its own SEO-friendly URL at
@@ -24,6 +26,12 @@ export interface CategorySub {
   blurb:       string         // 1-sentence description for the sub-page
   metaTitle?:  string         // Optional override for <title> + H1; auto-derived if absent
   categories:  string[]       // CSV category names this sub maps to
+  // Visual identity — drives the colorful sub-cards on the bucket
+  // landing page. Each sub gets its own gradient + icon for the same
+  // magazine-spread feel as the top-level hub cards.
+  Icon:        React.ElementType
+  gradient:    string
+  iconTone:    string
 }
 
 export interface CategoryBucket {
@@ -88,11 +96,17 @@ export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
       { slug: 'paper-goods-and-decor', label: 'Decor, Balloons & Favors',
         blurb: 'Themed decorations, balloon bouquets, party supplies, and themed favors for River Region birthday parties.',
         metaTitle: 'Birthday Decorations, Balloons & Party Supplies | Montgomery & River Region',
-        categories: ['Paper Goods/Decoration/Invitations'] },
+        categories: ['Paper Goods/Decoration/Invitations'],
+        Icon: Sparkles,
+        gradient: 'from-purple-500/85 via-purple-600/75 to-violet-700/70',
+        iconTone: 'text-purple-50' },
       { slug: 'printed-invitations', label: 'Printed Invitations',
         blurb: 'Custom birthday invitations, print shops, and stationers serving the River Region.',
         metaTitle: 'Custom Birthday Invitations | Montgomery & River Region',
-        categories: ['Printed Invitations'] },
+        categories: ['Printed Invitations'],
+        Icon: Mail,
+        gradient: 'from-indigo-500/85 via-indigo-600/75 to-blue-700/70',
+        iconTone: 'text-indigo-50' },
     ],
   },
   {
@@ -118,39 +132,66 @@ export const BIRTHDAY_CATEGORY_BUCKETS: CategoryBucket[] = [
       { slug: 'bowling', label: 'Bowling',
         blurb: 'Bowling alleys and centers hosting birthday parties across the River Region.',
         metaTitle: 'Bowling Birthday Parties | Montgomery, Prattville & River Region',
-        categories: ['Places to Party - Bowling'] },
+        categories: ['Places to Party - Bowling'],
+        Icon: Disc,
+        gradient: 'from-emerald-600/85 via-emerald-700/75 to-teal-800/70',
+        iconTone: 'text-emerald-50' },
       { slug: 'gymnastics-and-dance', label: 'Gymnastics, Cheer & Dance',
         blurb: 'Gym, cheer, and dance studios that host birthday parties for River Region kids.',
         metaTitle: 'Gymnastics, Cheer & Dance Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Cheer/Gymnastics/Dance'] },
+        categories: ['Places to Party - Cheer/Gymnastics/Dance'],
+        Icon: Trophy,
+        gradient: 'from-rose-500/85 via-rose-600/75 to-pink-700/70',
+        iconTone: 'text-rose-50' },
       { slug: 'skating', label: 'Skating',
         blurb: 'Skating rinks and roller-skating birthday party venues in the River Region.',
         metaTitle: 'Skating Rink Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Skating'] },
+        categories: ['Places to Party - Skating'],
+        Icon: Disc,
+        gradient: 'from-sky-500/85 via-sky-600/75 to-cyan-700/70',
+        iconTone: 'text-sky-50' },
       { slug: 'martial-arts', label: 'Martial Arts',
         blurb: 'Martial arts studios that throw active, themed birthday parties.',
         metaTitle: 'Martial Arts Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Martial Arts'] },
+        categories: ['Places to Party - Martial Arts'],
+        Icon: Shield,
+        gradient: 'from-red-600/85 via-red-700/75 to-rose-800/70',
+        iconTone: 'text-red-50' },
       { slug: 'art-studios', label: 'Art Studios',
         blurb: 'Paint, pottery, and creative studios hosting kid birthday parties.',
         metaTitle: 'Art Studio Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Artistic'] },
+        categories: ['Places to Party - Artistic'],
+        Icon: Palette,
+        gradient: 'from-violet-500/85 via-violet-600/75 to-purple-700/70',
+        iconTone: 'text-violet-50' },
       { slug: 'restaurants', label: 'Restaurants',
         blurb: 'River Region restaurants that book birthday parties — pizza, themed dining, more.',
         metaTitle: 'Restaurant Birthday Parties | Montgomery & River Region',
-        categories: ['Places to Party - Restaurants'] },
+        categories: ['Places to Party - Restaurants'],
+        Icon: UtensilsCrossed,
+        gradient: 'from-amber-500/85 via-amber-600/75 to-orange-700/70',
+        iconTone: 'text-amber-50' },
       { slug: 'outdoors', label: 'Outdoor Venues',
         blurb: 'Outdoor venues for River Region birthday parties — splash pads, farms, adventure spots.',
         metaTitle: 'Outdoor Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Outdoors'] },
+        categories: ['Places to Party - Outdoors'],
+        Icon: TreePine,
+        gradient: 'from-lime-600/85 via-green-700/75 to-emerald-800/70',
+        iconTone: 'text-lime-50' },
       { slug: 'parks', label: 'Parks',
         blurb: 'Local parks with shelters and pavilions perfect for River Region birthday parties.',
         metaTitle: 'Park Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Parks'] },
+        categories: ['Places to Party - Parks'],
+        Icon: Trees,
+        gradient: 'from-green-600/85 via-emerald-700/75 to-teal-800/70',
+        iconTone: 'text-green-50' },
       { slug: 'other-venues', label: 'Other Venues',
         blurb: 'Other birthday party venues in the River Region that don’t fit the standard buckets.',
         metaTitle: 'Other Birthday Party Venues | Montgomery & River Region',
-        categories: ['Places to Party - Miscellaneous'] },
+        categories: ['Places to Party - Miscellaneous'],
+        Icon: MapPin,
+        gradient: 'from-slate-600/85 via-slate-700/75 to-slate-900/70',
+        iconTone: 'text-slate-100' },
     ],
   },
   {
@@ -187,15 +228,18 @@ export function subBySlug(bucketSlug: string, subSlug: string): { bucket: Catego
   return { bucket, sub }
 }
 
-// Compact card used on the parent landing page to send visitors into a
-// sub-type. Smaller and tonally lighter than the top-level hub cards so
-// the hierarchy is obvious: big colored buckets at the top of the
-// portal, lighter sub-cards inside each bucket's landing page.
+// Smaller, colorful sub-cards used on bucket landing pages. Same
+// visual DNA as the top-level hub cards (gradient bg, watermark icon,
+// label, count) but scaled down so the hierarchy is obvious: big hub
+// cards on the portal, mini gradient cards inside each bucket page.
 export function BirthdaySubCategoryCards({
-  bucket, countsByCategory,
+  bucket, countsByCategory, currentSubSlug,
 }: {
   bucket: CategoryBucket
   countsByCategory?: Record<string, number>
+  // Optional — when set, highlights the active sub on the sub-page so
+  // visitors see where they are in the bucket.
+  currentSubSlug?: string
 }) {
   if (!bucket.subs?.length) return null
   function subCount(sub: CategorySub): number {
@@ -207,19 +251,36 @@ export function BirthdaySubCategoryCards({
       <h2 className="text-lg font-bold text-foreground mb-3">Browse {bucket.label} by type</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {bucket.subs.map(s => {
+          const Icon = s.Icon
           const count = subCount(s)
+          const isCurrent = currentSubSlug === s.slug
           return (
             <Link
               key={s.slug}
               href={`/birthday-party-guide/category/${bucket.slug}/${s.slug}`}
-              className="group flex items-center justify-between gap-2 px-4 py-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all"
+              className={`group relative overflow-hidden rounded-xl aspect-[3/2] flex flex-col justify-end hover:shadow-lg transition-shadow ${
+                isCurrent ? 'ring-2 ring-offset-2 ring-primary/60' : ''
+              }`}
             >
-              <span className="text-sm font-bold text-foreground group-hover:text-primary leading-tight truncate">
-                {s.label}
-              </span>
-              <span className="text-xs font-bold tabular-nums text-muted-foreground shrink-0">
-                {count}
-              </span>
+              <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient}`} />
+              <div className="absolute top-2.5 right-2.5 opacity-45 group-hover:opacity-65 transition-opacity">
+                <Icon className={`h-7 w-7 ${s.iconTone}`} strokeWidth={1.5} />
+              </div>
+              <div className="relative p-3 z-10">
+                <h3 className="text-sm font-black text-white leading-tight drop-shadow-sm">
+                  {s.label}
+                </h3>
+                <div className="flex items-center justify-between mt-1.5">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white/90">
+                    Explore <ArrowRight className="h-2.5 w-2.5" />
+                  </span>
+                  {count > 0 && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/75">
+                      {count}
+                    </span>
+                  )}
+                </div>
+              </div>
             </Link>
           )
         })}
