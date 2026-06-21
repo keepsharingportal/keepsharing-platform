@@ -21,6 +21,7 @@ import {
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
+import { schemaForGuide } from '@/lib/guides/schemas'
 import type { Metadata } from 'next'
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -202,7 +203,14 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // guideSlug is resolved above (after guide_types query)
   const guideData   = (listing?.guide_data ?? {}) as Record<string, string>
   const isFeatured  = ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'].includes(listing?.listing_tier ?? '')
-  const fieldLabels = GUIDE_FIELD_LABELS[guideSlug] ?? {}
+  // GUIDE_SCHEMAS (per-guide field+section manifests) takes precedence
+  // over the legacy GUIDE_FIELD_LABELS map when present. Schema-driven
+  // guides also reorder listing_sections by their declared section_type
+  // order (instead of display_order alone).
+  const schema      = schemaForGuide(guideSlug)
+  const fieldLabels = schema
+    ? Object.fromEntries(schema.headlineFacts.map(f => [f.key, f.label]))
+    : (GUIDE_FIELD_LABELS[guideSlug] ?? {})
 
   const phone   = (acct.office_phone ?? acct.contact_phone ?? acct.mobile_phone ?? null) as string | null
   const website = (acct.website_url ?? null) as string | null
@@ -231,6 +239,25 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const heroGradient = GUIDE_GRADIENTS[guideSlug] ?? 'linear-gradient(135deg, #1f2937, #374151, #6b7280)'
   const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
   const hasRealGallery = !!heroImg || galleryImgs.length > 0
+
+  // Schema-driven section ordering. If the guide has a schema, we
+  // render the rich sections in the schema-declared order; any sections
+  // NOT in the schema still render afterwards in display_order so a
+  // bespoke editor-added section doesn't get silently dropped.
+  // features_bullets is intentionally rendered inline higher up as
+  // "What We Offer" — keep skipping it in this rail to avoid dupes.
+  const allSections = (sections ?? []) as Array<{ id: string; section_type: string; is_active: boolean; display_order: number }>
+  let orderedSections: typeof allSections = []
+  if (schema) {
+    const ordering = new Map<string, number>(schema.sections.map((s, i) => [s.section_type, i]))
+    const scored = allSections
+      .filter(s => s.section_type !== 'features_bullets')
+      .map(s => ({ s, rank: ordering.get(s.section_type) ?? 999 + s.display_order }))
+      .sort((a, b) => a.rank - b.rank)
+    orderedSections = scored.map(x => x.s)
+  } else {
+    orderedSections = allSections.filter(s => s.section_type !== 'features_bullets')
+  }
 
   // Breadcrumb category hop — only when the listing has a category
   // value that ties to a section anchor on the parent guide. Falls
@@ -513,9 +540,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </div>
             )}
 
-            {/* Flexible CMS sections — features_bullets handled above */}
-            {sections?.filter(s => s.section_type !== 'features_bullets').map(section => (
-              <SectionRenderer key={section.id} section={section} />
+            {/* Flexible CMS sections — features_bullets handled above.
+                Order driven by the guide schema when present (see
+                lib/guides/schemas.ts), otherwise by display_order. */}
+            {orderedSections.map(section => (
+              <SectionRenderer key={section.id} section={section as unknown as Parameters<typeof SectionRenderer>[0]['section']} />
             ))}
 
             {/* Contact form — primary CTA for free listings; lives ABOVE

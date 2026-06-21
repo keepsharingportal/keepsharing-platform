@@ -1,8 +1,17 @@
 import { Card, CardContent } from '@/components/ui/card'
 import type { ListingSection } from './types'
 
+interface Testimonial {
+  quote?:       string
+  parent_name?: string
+  // The new birthday seed uses `name` + `detail` instead of parent_name;
+  // accept both so older sections keep rendering.
+  name?:        string
+  detail?:      string
+}
+
 export function ParentsSaySection({ section }: { section: ListingSection }) {
-  const testimonials = section.items ?? []
+  const testimonials = (section.items ?? []) as Testimonial[]
   if (!section.headline && testimonials.length === 0) return null
   return (
     <Card>
@@ -22,9 +31,10 @@ export function ParentsSaySection({ section }: { section: ListingSection }) {
                     {t.quote}
                   </p>
                 )}
-                {t.parent_name && (
+                {(t.parent_name || t.name) && (
                   <p className="text-sm font-semibold text-foreground mt-2">
-                    — {t.parent_name}
+                    — {t.parent_name ?? t.name}
+                    {t.detail && <span className="text-muted-foreground font-normal"> · {t.detail}</span>}
                   </p>
                 )}
               </div>

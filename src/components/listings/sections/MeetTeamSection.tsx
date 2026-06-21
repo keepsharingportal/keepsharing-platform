@@ -2,8 +2,15 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import type { ListingSection } from './types'
 
+interface TeamMember {
+  photo_url?: string
+  name?:      string
+  title?:     string
+  quote?:     string
+}
+
 export function MeetTeamSection({ section }: { section: ListingSection }) {
-  const members = section.items ?? []
+  const members = (section.items ?? []) as TeamMember[]
   if (!section.headline && members.length === 0) return null
   return (
     <Card>
