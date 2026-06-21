@@ -455,31 +455,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
               </CardContent>
             </Card>
 
-            {/* Featured in Guides */}
-            {featuredInGuides.length > 0 && (
-              <div className="bg-muted/50 rounded-3xl p-8 border border-border/50">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Featured in these Digital Guides
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {featuredInGuides.map(g => (
-                    <Link
-                      key={g.urlSlug}
-                      href={`/${g.urlSlug}`}
-                      className="bg-background border border-border/50 px-5 py-3 rounded-2xl flex items-center gap-3 hover:border-primary/50 hover:shadow-md transition-all group"
-                    >
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
-                        <BookOpen className="h-4 w-4" />
-                      </div>
-                      <span className="font-bold text-sm">{g.displayName}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* About — fieldLabels summary is already in the header key-facts row;
                   show the long-form text here. guideData.description supplements detail_lead. */}
             {(acct.detail_lead || guideData.description) && (
@@ -546,6 +521,36 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
             {orderedSections.map(section => (
               <SectionRenderer key={section.id} section={section as unknown as Parameters<typeof SectionRenderer>[0]['section']} />
             ))}
+
+            {/* Featured in Guides — sits at the END of the listing's
+                content (per editor request) so it functions as a "this
+                business is in these other guides too" cross-promo
+                signal after the reader has consumed the listing detail.
+                Only renders when this advertiser is published in 2+
+                guides. */}
+            {featuredInGuides.length > 0 && (
+              <div className="bg-muted/50 rounded-3xl p-8 border border-border/50">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Featured in these Digital Guides
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  {featuredInGuides.map(g => (
+                    <Link
+                      key={g.urlSlug}
+                      href={`/${g.urlSlug}`}
+                      className="bg-background border border-border/50 px-5 py-3 rounded-2xl flex items-center gap-3 hover:border-primary/50 hover:shadow-md transition-all group"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                        <BookOpen className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-sm">{g.displayName}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Contact form — primary CTA for free listings; lives ABOVE
                 the editorial articles so anyone ready to act doesn't
