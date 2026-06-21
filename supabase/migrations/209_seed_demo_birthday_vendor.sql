@@ -137,7 +137,7 @@ BEGIN
 
   -- 4. Features Bullets (What's Included)
   INSERT INTO listing_sections (advertiser_account_id, section_type, is_active, display_order, headline, bullet_points) VALUES
-  (v_acct_id, 'features_bullets', TRUE, 40, "What's Included in Every Party",
+  (v_acct_id, 'features_bullets', TRUE, 40, 'What''s Included in Every Party',
    ARRAY[
      'Trained party host(s) for the full event',
      'Setup AND cleanup — you arrive to a ready room',
