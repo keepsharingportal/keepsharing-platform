@@ -172,6 +172,30 @@ export default function GuideListingsImportPage() {
   const [results,    setResults]    = useState<RowResult[]>([])
   const [totals,     setTotals]     = useState({ inserted: 0, merged: 0, matched: 0, unchanged: 0, skipped: 0, errors: 0 })
   const [mode,       setMode]       = useState<ImportMode>('insert')
+
+  // ── Backfill advertiser links (utility) ────────────────────────────
+  // For listings imported BEFORE the importer was updated to always
+  // create + link an advertiser_accounts row. The canonical ListingCard
+  // (used everywhere) renders from advertiser_accounts, so an unlinked
+  // listing is invisible on the public guide page. This button calls
+  // the existing backfill endpoint and shows the result counts.
+  const [backfillBusy,   setBackfillBusy]   = useState(false)
+  const [backfillResult, setBackfillResult] = useState<{ scanned: number; linked: number; created: number; skipped: number } | null>(null)
+  const [backfillError,  setBackfillError]  = useState<string | null>(null)
+
+  async function runBackfill(guideTypeSlug: string) {
+    setBackfillBusy(true); setBackfillResult(null); setBackfillError(null)
+    try {
+      const res = await fetch(`/api/admin/guide-listings/backfill-advertisers?guide_type_slug=${encodeURIComponent(guideTypeSlug)}`, {
+        method: 'POST',
+      })
+      const j = await res.json()
+      if (!res.ok) { setBackfillError(j?.error ?? `Backfill failed (${res.status})`); return }
+      setBackfillResult({ scanned: j.scanned, linked: j.linked, created: j.created, skipped: j.skipped })
+    } catch (e) {
+      setBackfillError(e instanceof Error ? e.message : 'Backfill failed')
+    } finally { setBackfillBusy(false) }
+  }
   const [done,       setDone]       = useState(false)
   const [showAll,    setShowAll]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
@@ -338,6 +362,51 @@ export default function GuideListingsImportPage() {
               </div>
             </button>
           </div>
+        </div>
+
+        {/* Backfill advertiser links — utility for guides where listings
+            were imported under the old (pre-link) flow. Each guide gets a
+            button; click runs the backfill for that guide_type_slug. */}
+        <div className="bg-white rounded-lg border border-portal-border p-4">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1">
+                Backfill advertiser links
+              </label>
+              <p className="text-[11px] text-portal-muted leading-relaxed max-w-2xl">
+                For older imports where guide_listings rows have no <code>advertiser_account_id</code> — the
+                public guide hides those (the ListingCard renders from <code>advertiser_accounts</code>).
+                Click your guide&apos;s button to find-or-create accounts for every unlinked row and link them up.
+                Idempotent — safe to re-run.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {GUIDE_TYPES.map(g => (
+              <button
+                key={g.slug}
+                type="button"
+                onClick={() => runBackfill(g.slug)}
+                disabled={backfillBusy}
+                className="text-[11px] font-bold px-3 py-1.5 rounded border border-portal-border-2 bg-portal-bg text-portal-text hover:border-portal-blue/40 hover:bg-portal-blue-lt disabled:opacity-50"
+              >
+                {backfillBusy ? 'Running…' : `Backfill ${g.label}`}
+              </button>
+            ))}
+          </div>
+          {backfillResult && (
+            <div className="mt-3 p-3 bg-portal-green-lt border border-portal-green/30 rounded text-[11px] text-portal-green">
+              Scanned <strong>{backfillResult.scanned}</strong> unlinked rows ·
+              created <strong>{backfillResult.created}</strong> new accounts ·
+              linked <strong>{backfillResult.linked}</strong> to existing ·
+              skipped <strong>{backfillResult.skipped}</strong>
+            </div>
+          )}
+          {backfillError && (
+            <div className="mt-3 p-3 bg-portal-red-lt border border-portal-red/30 rounded text-[11px] text-portal-red">
+              {backfillError}
+            </div>
+          )}
         </div>
 
         {/* Guide type selector */}
