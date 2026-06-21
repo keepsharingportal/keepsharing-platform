@@ -15,9 +15,19 @@
 -- re-run. To wipe + re-seed, DELETE the advertiser_accounts row first
 -- (ON DELETE CASCADE clears guide_listings + listing_sections).
 
--- Add gallery_image_urls if it doesn't exist yet. Safe on re-runs.
+-- Latent-bug fixes — both columns are read by existing components but
+-- were never created. Safe on re-runs.
+--   advertiser_accounts.gallery_image_urls — ListingDetailPage reads
+--     it for the Gallery section but it only ever lived on
+--     guide_listings (per migration 012).
+--   listing_sections.offer_cta_url — SpecialOfferSection renders a
+--     CTA button when this is set, but only offer_cta_label was ever
+--     added to the schema.
 ALTER TABLE advertiser_accounts
   ADD COLUMN IF NOT EXISTS gallery_image_urls TEXT[] DEFAULT '{}';
+
+ALTER TABLE listing_sections
+  ADD COLUMN IF NOT EXISTS offer_cta_url TEXT;
 
 DO $$
 DECLARE
