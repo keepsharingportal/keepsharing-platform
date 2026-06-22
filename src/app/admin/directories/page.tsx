@@ -18,12 +18,18 @@ export default async function DirectoriesHubPage() {
   await requireAdmin()
   const sb = createAdminClient()
 
-  // Counts for the tiles
+  // Counts for the tiles + analytics
+  const sevenDaysAgo  = new Date(Date.now() - 7  * 86_400_000).toISOString()
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
+
   const [
     { data: guides },
     listingsCount,
     onboardingCount,
     featuredCount,
+    signups7d,
+    signups30d,
+    statusBreakdown,
   ] = await Promise.all([
     sb.from('guide_types').select('slug, display_name, url_slug').order('display_order'),
     sb.from('guide_listings').select('id', { count: 'exact', head: true }).eq('is_published', true),
@@ -31,7 +37,28 @@ export default async function DirectoriesHubPage() {
       .in('onboarding_status', ['self_signup', 'invited', 'in_progress']),
     sb.from('guide_listings').select('id', { count: 'exact', head: true })
       .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight']),
+    // New signups (advertiser_accounts created in window)
+    sb.from('advertiser_accounts').select('id', { count: 'exact', head: true })
+      .gte('created_at', sevenDaysAgo),
+    sb.from('advertiser_accounts').select('id', { count: 'exact', head: true })
+      .gte('created_at', thirtyDaysAgo),
+    // Status breakdown — funnel from signup → published
+    sb.from('advertiser_accounts').select('onboarding_status').limit(5000),
   ])
+
+  // Conversion funnel — count each stage
+  type StatusRow = { onboarding_status: string | null }
+  const statusCounts: Record<string, number> = {}
+  for (const r of (statusBreakdown.data ?? []) as StatusRow[]) {
+    const k = r.onboarding_status ?? 'admin_managed'
+    statusCounts[k] = (statusCounts[k] ?? 0) + 1
+  }
+  const totalSignups   = Object.values(statusCounts).reduce((a, b) => a + b, 0)
+  const submittedCount = statusCounts['submitted'] ?? 0
+  const inProgressN    = statusCounts['in_progress'] ?? 0
+  const completionPct  = totalSignups > 0
+    ? Math.round(((submittedCount + (statusCounts['admin_managed'] ?? 0)) / totalSignups) * 100)
+    : 0
 
   return (
     <div className="flex-1 overflow-y-auto bg-portal-bg">
@@ -48,6 +75,15 @@ export default async function DirectoriesHubPage() {
       </div>
 
       <div className="p-6 max-w-5xl space-y-5">
+
+        {/* Analytics strip — signups, funnel, featured count */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <Metric label="Signups · 7d"  value={signups7d.count ?? 0}  tone="bg-portal-blue-lt text-portal-blue" />
+          <Metric label="Signups · 30d" value={signups30d.count ?? 0} tone="bg-portal-blue-lt text-portal-blue" />
+          <Metric label="In progress"   value={inProgressN}            tone="bg-purple-50 text-purple-800" />
+          <Metric label="Submitted"     value={submittedCount}         tone="bg-portal-green-lt text-portal-green" />
+          <Metric label="Completion %"  value={`${completionPct}%`}    tone="bg-amber-50 text-amber-800" />
+        </div>
 
         {/* Top action tiles */}
         <div className="grid sm:grid-cols-3 gap-3">
@@ -116,6 +152,17 @@ export default async function DirectoriesHubPage() {
           {listingsCount.count ?? 0} published listings across {(guides ?? []).length} guides.
         </div>
       </div>
+    </div>
+  )
+}
+
+function Metric({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+  return (
+    <div className={`rounded-lg p-3 border border-portal-border bg-white`}>
+      <div className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest mb-1 ${tone}`}>
+        {label}
+      </div>
+      <div className="text-[22px] font-black text-portal-text tabular-nums leading-none mt-1">{value}</div>
     </div>
   )
 }

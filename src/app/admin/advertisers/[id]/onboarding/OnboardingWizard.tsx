@@ -31,6 +31,7 @@ import { FAQStep }           from '@/components/onboarding/steps/FAQStep'
 import { BookingNotesStep }  from '@/components/onboarding/steps/BookingNotesStep'
 import { HealthSafetyStep }  from '@/components/onboarding/steps/HealthSafetyStep'
 import { SpecialOfferStep }  from '@/components/onboarding/steps/SpecialOfferStep'
+import { WizardPreview }     from '@/components/onboarding/WizardPreview'
 import type { SectionRowShape } from '@/components/onboarding/steps/types'
 import type { GuideSchema } from '@/lib/guides/schemas'
 
@@ -70,31 +71,53 @@ interface ListingSection {
   [key: string]: unknown
 }
 
-// All onboarding steps in render order. `section_type` (when set)
-// points the step's save callback at the matching listing_sections
-// row; steps without it write to advertiser_accounts or guide_data.
-const STEP_DEFS = [
-  { key: 'basics',        label: 'Business basics' },
-  { key: 'tagline',       label: 'Tagline & about' },
-  { key: 'hero',          label: 'Hero photo' },
+// All onboarding steps in render order. `required: true` blocks the
+// listing from publishing until that step's content is filled in.
+// `section_type` (when set) points the save callback at the matching
+// listing_sections row; otherwise the step writes to advertiser_accounts
+// or guide_data.
+type StepDef = {
+  key:           string
+  label:         string
+  section_type?: string
+  required?:     boolean
+}
+
+const STEP_DEFS: readonly StepDef[] = [
+  { key: 'basics',        label: 'Business basics',          required: true },
+  { key: 'tagline',       label: 'Tagline & about',          required: true },
+  { key: 'hero',          label: 'Hero photo',               required: true },
   { key: 'gallery',       label: 'Photo gallery' },
   { key: 'key-facts',     label: 'Key facts' },
-  { key: 'our-story',     label: 'Our story',             section_type: 'our_story' },
+  { key: 'our-story',     label: 'Our story',                section_type: 'our_story' },
   { key: 'whats-different', label: 'What makes you different', section_type: 'whats_different' },
-  { key: 'packages',      label: 'Packages',              section_type: 'party_packages' },
-  { key: 'whats-included', label: "What's included",       section_type: 'features_bullets' },
-  { key: 'themes',        label: 'Themes available',      section_type: 'themes_available' },
-  { key: 'addons',        label: 'Add-ons',               section_type: 'party_addons' },
-  { key: 'hours',         label: 'Hours',                 section_type: 'party_hours' },
-  { key: 'best-for',      label: 'Best for',              section_type: 'best_for' },
-  { key: 'parents-say',   label: 'Parents say',           section_type: 'parents_say' },
-  { key: 'faq',           label: 'FAQ',                   section_type: 'faq' },
-  { key: 'booking',       label: 'Booking & policies',    section_type: 'booking_notes' },
-  { key: 'health-safety', label: 'Health & safety',       section_type: 'health_safety' },
-  { key: 'special-offer', label: 'Special offer',         section_type: 'special_offer' },
+  { key: 'packages',      label: 'Packages',                 section_type: 'party_packages' },
+  { key: 'whats-included', label: "What's included",          section_type: 'features_bullets' },
+  { key: 'themes',        label: 'Themes available',         section_type: 'themes_available' },
+  { key: 'addons',        label: 'Add-ons',                  section_type: 'party_addons' },
+  { key: 'hours',         label: 'Hours',                    section_type: 'party_hours' },
+  { key: 'best-for',      label: 'Best for',                 section_type: 'best_for' },
+  { key: 'parents-say',   label: 'Parents say',              section_type: 'parents_say' },
+  { key: 'faq',           label: 'FAQ',                      section_type: 'faq' },
+  { key: 'booking',       label: 'Booking & policies',       section_type: 'booking_notes' },
+  { key: 'health-safety', label: 'Health & safety',          section_type: 'health_safety' },
+  { key: 'special-offer', label: 'Special offer',            section_type: 'special_offer' },
 ] as const
 
 type StepKey = typeof STEP_DEFS[number]['key']
+
+// Required-step completion check. Returns the list of unmet
+// requirements (empty when ready to publish).
+function unmetRequirements(advertiser: Advertiser): Array<{ key: string; label: string; reason: string }> {
+  const out: Array<{ key: string; label: string; reason: string }> = []
+  if (!(advertiser.business_name ?? '').trim())
+    out.push({ key: 'basics',  label: 'Business basics', reason: 'Business name is required' })
+  if (!(advertiser.card_hook ?? '').trim() && !(advertiser.detail_lead ?? '').trim())
+    out.push({ key: 'tagline', label: 'Tagline & about', reason: 'Add a tagline OR an About paragraph' })
+  if (!(advertiser.hero_photo_url ?? '').trim())
+    out.push({ key: 'hero',    label: 'Hero photo',      reason: 'Upload a hero photo' })
+  return out
+}
 
 export function OnboardingWizard({
   advertiserId, guideSlug, advertiser: initialAdvertiser,
@@ -111,10 +134,13 @@ export function OnboardingWizard({
   const [advertiser, setAdvertiser] = useState<Advertiser>(initialAdvertiser)
   const [listing, setListing]       = useState<GuideListing | null>(initialListing)
   const [sections, setSections]     = useState<ListingSection[]>(initialSections)
-  const [stepKey, setStepKey]       = useState<StepKey>(STEP_DEFS[0].key)
+  const [stepKey, setStepKey]       = useState<StepKey>(STEP_DEFS[0].key as StepKey)
   const [savedAt, setSavedAt]       = useState<Date | null>(null)
   const [saveError, setSaveError]   = useState<string | null>(null)
   const [pending, startTransition]  = useTransition()
+  const [publishing, setPublishing] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
+  const [publishedAt, setPublishedAt]   = useState<Date | null>(null)
 
   // Save URL depends on whether we're admin-driven or token-driven.
   const saveUrl = publicToken
@@ -203,8 +229,8 @@ export function OnboardingWizard({
     })
   }, [advertiserId, guideSlug, listing])
 
-  function prev() { if (stepIdx > 0) setStepKey(STEP_DEFS[stepIdx - 1].key) }
-  function next() { if (stepIdx < STEP_DEFS.length - 1) setStepKey(STEP_DEFS[stepIdx + 1].key) }
+  function prev() { if (stepIdx > 0) setStepKey(STEP_DEFS[stepIdx - 1].key as StepKey) }
+  function next() { if (stepIdx < STEP_DEFS.length - 1) setStepKey(STEP_DEFS[stepIdx + 1].key as StepKey) }
 
   return (
     <div className="space-y-5">
@@ -237,7 +263,7 @@ export function OnboardingWizard({
             <button
               key={s.key}
               type="button"
-              onClick={() => setStepKey(s.key)}
+              onClick={() => setStepKey(s.key as StepKey)}
               className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded ${
                 i === stepIdx
                   ? 'bg-portal-blue text-white'
@@ -252,7 +278,8 @@ export function OnboardingWizard({
         </div>
       </div>
 
-      {/* Active step body */}
+      {/* Active step body + live preview pane */}
+      <div className="grid lg:grid-cols-[1fr,360px] gap-5">
       <div className="bg-white border border-portal-border rounded-lg p-6">
         {stepKey === 'basics'        && <BasicsStep        advertiser={advertiser} onSave={saveAdvertiser} />}
         {stepKey === 'tagline'       && <TaglineStep       advertiser={advertiser} onSave={saveAdvertiser} />}
@@ -272,6 +299,15 @@ export function OnboardingWizard({
         {stepKey === 'booking'       && <BookingNotesStep  section={sectionFor('booking_notes')}    onSave={p => saveSection('booking_notes', p as Record<string, unknown>)} />}
         {stepKey === 'health-safety' && <HealthSafetyStep  section={sectionFor('health_safety')}    onSave={p => saveSection('health_safety', p as Record<string, unknown>)} />}
         {stepKey === 'special-offer' && <SpecialOfferStep  section={sectionFor('special_offer')}    onSave={p => saveSection('special_offer', p as Record<string, unknown>)} />}
+      </div>
+        {/* Live preview pane — sticky on desktop, stacks below on mobile */}
+        <WizardPreview
+          stepKey={stepKey}
+          advertiser={advertiser}
+          listingData={listing?.guide_data ?? null}
+          sections={sections as unknown as Parameters<typeof WizardPreview>[0]['sections']}
+          schema={schema}
+        />
       </div>
 
       {/* Footer nav */}
@@ -306,11 +342,120 @@ export function OnboardingWizard({
         </button>
       </div>
 
-      {stepIdx === STEP_DEFS.length - 1 && (
-        <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-4 text-[12px] text-portal-text">
-          <strong>All done.</strong> Your listing is live — open the &ldquo;View live listing&rdquo;
-          link at the top to see how it looks. Come back any time to update anything.
+      <PublishPanel
+        advertiser={advertiser}
+        publicToken={publicToken}
+        advertiserId={advertiserId}
+        guideSlug={guideSlug}
+        publishing={publishing}
+        publishError={publishError}
+        publishedAt={publishedAt}
+        onGoToStep={(k: StepKey) => setStepKey(k)}
+        onPublish={async () => {
+          setPublishing(true); setPublishError(null)
+          try {
+            const url = publicToken
+              ? `/api/public/onboarding/${publicToken}/submit`
+              : `/api/admin/advertisers/${advertiserId}/onboarding/publish`
+            const res = await fetch(url, {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body:    JSON.stringify({ guide_slug: guideSlug }),
+            })
+            const j = await res.json()
+            if (!res.ok) { setPublishError(j?.error ?? `Publish failed (${res.status})`); return }
+            setPublishedAt(new Date())
+          } finally { setPublishing(false) }
+        }}
+      />
+    </div>
+  )
+}
+
+function PublishPanel({
+  advertiser, publicToken, advertiserId, guideSlug, publishing, publishError, publishedAt, onPublish, onGoToStep,
+}: {
+  advertiser:    Advertiser
+  publicToken?:  string
+  advertiserId:  string
+  guideSlug:     string
+  publishing:    boolean
+  publishError:  string | null
+  publishedAt:   Date | null
+  onPublish:     () => void
+  onGoToStep:    (k: StepKey) => void
+}) {
+  const unmet = unmetRequirements(advertiser)
+  const ready = unmet.length === 0
+
+  // Headline copy + button label differ between admin path
+  // ("Publish my listing") and public token path
+  // ("Submit for editor review") since the public flow gets reviewed.
+  const buttonLabel = publicToken ? 'Submit for editor review' : 'Publish my listing'
+  const successMsg  = publicToken
+    ? "Submitted — the River Region Parents team will review and publish it."
+    : 'Published. Your live listing is up.'
+
+  if (publishedAt) {
+    return (
+      <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-5 text-[13px] text-portal-text">
+        <div className="font-bold mb-1 inline-flex items-center gap-2">
+          <Check size={14} className="text-portal-green" /> {successMsg}
         </div>
+        <p className="text-[12px] text-portal-sub leading-relaxed">
+          Come back any time to update anything — your changes auto-save and reflect on the live listing immediately.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`rounded-lg p-5 border ${ready ? 'bg-portal-blue-lt border-portal-blue/30' : 'bg-amber-50 border-amber-200'}`}>
+      <div className="text-[12px] font-bold uppercase tracking-widest mb-2"
+        style={{ color: ready ? '#0a73e6' : '#92400e' }}>
+        {ready ? 'Ready to go live' : 'Almost there'}
+      </div>
+      <h3 className="text-[15px] font-bold text-portal-text leading-tight mb-3">
+        {ready
+          ? (publicToken ? 'Submit your listing for review' : 'Publish this listing')
+          : `${unmet.length} required ${unmet.length === 1 ? 'item' : 'items'} left`}
+      </h3>
+
+      {!ready && (
+        <ul className="space-y-1.5 mb-4">
+          {unmet.map(u => (
+            <li key={u.key} className="flex items-center gap-2 text-[12px] text-portal-text">
+              <span className="h-2 w-2 rounded-full bg-amber-600 shrink-0" />
+              <span>
+                <strong>{u.label}:</strong> {u.reason}
+              </span>
+              <button type="button" onClick={() => onGoToStep(u.key as StepKey)}
+                className="ml-1 text-[11px] font-bold text-portal-blue hover:underline">
+                Go to step →
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={onPublish}
+          disabled={!ready || publishing}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold text-white bg-portal-navy rounded hover:opacity-90 disabled:opacity-40"
+        >
+          {publishing ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+          {publishing ? 'Working…' : buttonLabel}
+        </button>
+        {publishError && <span className="text-[11px] text-portal-red">{publishError}</span>}
+      </div>
+
+      {!publicToken && (
+        <p className="text-[10px] text-portal-muted mt-3 leading-snug">
+          Admin shortcut: publishing flips <code>guide_listings.is_published</code> and stamps
+          <code> onboarding_status=&apos;submitted&apos;</code>. Safe to re-run.
+        </p>
       )}
     </div>
   )

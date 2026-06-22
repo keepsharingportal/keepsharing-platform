@@ -34,9 +34,6 @@ export interface GuideSchema {
 
 export const GUIDE_SCHEMAS: Record<string, GuideSchema> = {
   // ── Birthday Party Guide ────────────────────────────────────────
-  // The richest schema — every birthday vendor potentially has packages,
-  // hours, themes, add-ons, FAQ, policies. The page degrades gracefully
-  // when sections aren't filled in.
   'birthday-party': {
     headlineFacts: [
       { key: 'ages',           label: 'Ages' },
@@ -57,6 +54,180 @@ export const GUIDE_SCHEMAS: Record<string, GuideSchema> = {
       { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
       { section_type: 'booking_notes',    defaultHeadline: 'Booking & Policies' },
       { section_type: 'health_safety',    defaultHeadline: 'Health & Safety' },
+      { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
+    ],
+  },
+
+  // ── Summer Camp Guide ───────────────────────────────────────────
+  // party_packages serves as "Sessions Offered"; party_hours becomes
+  // "Camp Hours"; party_addons becomes "Add-Ons & Extras".
+  'summer-camp': {
+    headlineFacts: [
+      { key: 'camp_type', label: 'Camp Type' },
+      { key: 'ages',      label: 'Ages' },
+      { key: 'dates',     label: 'Session Dates' },
+      { key: 'cost',      label: 'Weekly Cost' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About the Camp' },
+      { section_type: 'party_packages',   defaultHeadline: 'Sessions Offered' },
+      { section_type: 'whats_different',  defaultHeadline: 'Why Families Pick Us' },
+      { section_type: 'features_bullets', defaultHeadline: "What's Included" },
+      { section_type: 'party_addons',     defaultHeadline: 'Add-Ons & Extras' },
+      { section_type: 'party_hours',      defaultHeadline: 'Camp Hours' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'meet_team',        defaultHeadline: 'Meet the Counselors' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Registration & Policies' },
+      { section_type: 'health_safety',    defaultHeadline: 'Health & Safety' },
+      { section_type: 'special_offer',    defaultHeadline: 'Early-Bird Offer' },
+    ],
+  },
+
+  // ── Summer Fun Guide ────────────────────────────────────────────
+  // Activities, events, places — lighter than camps, no sessions.
+  'summer-fun': {
+    headlineFacts: [
+      { key: 'activity_type',    label: 'Activity' },
+      { key: 'ages',             label: 'Ages' },
+      { key: 'city',             label: 'Location' },
+      { key: 'cost',             label: 'Cost' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About This Spot' },
+      { section_type: 'whats_different',  defaultHeadline: 'Why Families Love It' },
+      { section_type: 'features_bullets', defaultHeadline: "What's Here" },
+      { section_type: 'party_hours',      defaultHeadline: 'Hours & Access' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
+    ],
+  },
+
+  // ── Private School Guide ────────────────────────────────────────
+  // No packages or hours grid; emphasis on team, accreditations, FAQ.
+  'private-school': {
+    headlineFacts: [
+      { key: 'grade',                 label: 'Grades' },
+      { key: 'enrollment',            label: 'Enrollment' },
+      { key: 'tuition',               label: 'Tuition' },
+      { key: 'religious_affiliation', label: 'Affiliation' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About the School' },
+      { section_type: 'whats_different',  defaultHeadline: 'What Sets Us Apart' },
+      { section_type: 'features_bullets', defaultHeadline: 'Programs & Curriculum' },
+      { section_type: 'meet_team',        defaultHeadline: 'Leadership' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'parents_say',      defaultHeadline: 'What Families Say' },
+      { section_type: 'faq',              defaultHeadline: 'Admissions FAQ' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Application Process' },
+      { section_type: 'special_offer',    defaultHeadline: 'Tour or Open House' },
+    ],
+  },
+
+  // ── Childcare Guide ─────────────────────────────────────────────
+  'childcare': {
+    headlineFacts: [
+      { key: 'ages',          label: 'Ages Served' },
+      { key: 'hours',         label: 'Hours' },
+      { key: 'teacher_ratio', label: 'Teacher Ratio' },
+      { key: 'license',       label: 'License' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About Our Center' },
+      { section_type: 'whats_different',  defaultHeadline: 'Our Approach' },
+      { section_type: 'features_bullets', defaultHeadline: 'Programs Offered' },
+      { section_type: 'party_hours',      defaultHeadline: 'Hours' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'meet_team',        defaultHeadline: 'Meet Our Team' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Enrollment & Waitlist' },
+      { section_type: 'health_safety',    defaultHeadline: 'Health & Safety' },
+      { section_type: 'special_offer',    defaultHeadline: 'New-Family Offer' },
+    ],
+  },
+
+  // ── Healthy Kids Guide (pediatricians, dentists, specialists) ──
+  'healthy-kids': {
+    headlineFacts: [
+      { key: 'specialty',             label: 'Specialty' },
+      { key: 'providers',             label: 'Providers' },
+      { key: 'accepts_new_patients',  label: 'New Patients' },
+      { key: 'insurance',             label: 'Insurance' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About the Practice' },
+      { section_type: 'whats_different',  defaultHeadline: 'Our Approach to Care' },
+      { section_type: 'features_bullets', defaultHeadline: 'Services Offered' },
+      { section_type: 'meet_team',        defaultHeadline: 'Meet the Providers' },
+      { section_type: 'party_hours',      defaultHeadline: 'Office Hours' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'booking_notes',    defaultHeadline: 'New Patients & Insurance' },
+      { section_type: 'special_offer',    defaultHeadline: 'New Patient Offer' },
+    ],
+  },
+
+  // ── Special Needs Guide ─────────────────────────────────────────
+  'special-needs': {
+    headlineFacts: [
+      { key: 'specialty',  label: 'Specialty' },
+      { key: 'ages',       label: 'Ages Served' },
+      { key: 'services',   label: 'Services' },
+      { key: 'insurance',  label: 'Insurance' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About Us' },
+      { section_type: 'whats_different',  defaultHeadline: 'Our Approach' },
+      { section_type: 'features_bullets', defaultHeadline: 'Services Offered' },
+      { section_type: 'meet_team',        defaultHeadline: 'Meet Our Team' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'parents_say',      defaultHeadline: 'Families Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Intake & Insurance' },
+    ],
+  },
+
+  // ── After-School Guide ──────────────────────────────────────────
+  'afterschool': {
+    headlineFacts: [
+      { key: 'ages',            label: 'Ages' },
+      { key: 'hours',           label: 'Pickup Window' },
+      { key: 'pickup_schools',  label: 'Pickup From' },
+      { key: 'cost',            label: 'Cost' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About the Program' },
+      { section_type: 'whats_different',  defaultHeadline: 'What Makes It Special' },
+      { section_type: 'features_bullets', defaultHeadline: 'Programs Offered' },
+      { section_type: 'party_hours',      defaultHeadline: 'Hours & Pickup' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Enrollment Info' },
+      { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
+    ],
+  },
+
+  // ── Newcomer / Family Resource Guide ────────────────────────────
+  'newcomer': {
+    headlineFacts: [
+      { key: 'category',     label: 'Category' },
+      { key: 'services',     label: 'Services' },
+      { key: 'area_served',  label: 'Area Served' },
+      { key: 'hours',        label: 'Hours' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About Us' },
+      { section_type: 'whats_different',  defaultHeadline: 'Why Families Choose Us' },
+      { section_type: 'features_bullets', defaultHeadline: 'Services Offered' },
+      { section_type: 'party_hours',      defaultHeadline: 'Hours' },
+      { section_type: 'parents_say',      defaultHeadline: 'Families Say' },
+      { section_type: 'faq',              defaultHeadline: 'Frequently Asked' },
       { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
     ],
   },
