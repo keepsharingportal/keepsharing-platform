@@ -87,6 +87,11 @@ export async function proxy(request: NextRequest) {
   function isAppHostPublicPreview(p: string): boolean {
     return p === '/riverregion50plus'
         || p.startsWith('/riverregion50plus/')
+        // Advertiser self-serve / token-authenticated wizard URLs live
+        // under /advertise — they're public pages even when reached
+        // via app.keepsharing.com (admin previewing a magic link).
+        || p === '/advertise'
+        || p.startsWith('/advertise/')
   }
 
   if (host === 'app.keepsharing.com' && !isPassThrough(originalPath) && !isAppHostPublicPreview(originalPath)) {

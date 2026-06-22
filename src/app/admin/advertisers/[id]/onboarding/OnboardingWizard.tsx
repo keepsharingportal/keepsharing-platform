@@ -11,7 +11,7 @@
 // confirms in the background.
 
 import { useState, useTransition, useCallback } from 'react'
-import { Check, Loader2, ArrowLeft, ArrowRight, X } from 'lucide-react'
+import { Check, Loader2, ArrowLeft, ArrowRight, X, Send, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { BasicsStep }    from '@/components/onboarding/steps/BasicsStep'
 import { TaglineStep }   from '@/components/onboarding/steps/TaglineStep'
@@ -68,7 +68,7 @@ type StepKey = typeof STEP_DEFS[number]['key']
 
 export function OnboardingWizard({
   advertiserId, guideSlug, advertiser: initialAdvertiser,
-  listing: initialListing, schema,
+  listing: initialListing, schema, publicToken,
 }: {
   advertiserId: string
   guideSlug:    string
@@ -76,6 +76,10 @@ export function OnboardingWizard({
   listing:      GuideListing | null
   sections:     ListingSection[]
   schema:       GuideSchema
+  // When set, the wizard is being driven from the public token URL
+  // and saves go to the token-verified public endpoint instead of
+  // the admin endpoint. Otherwise this is the admin-side view.
+  publicToken?: string
 }) {
   const [advertiser, setAdvertiser] = useState<Advertiser>(initialAdvertiser)
   const [listing, setListing]       = useState<GuideListing | null>(initialListing)
@@ -83,6 +87,11 @@ export function OnboardingWizard({
   const [savedAt, setSavedAt]       = useState<Date | null>(null)
   const [saveError, setSaveError]   = useState<string | null>(null)
   const [pending, startTransition]  = useTransition()
+
+  // Save URL depends on whether we're admin-driven or token-driven.
+  const saveUrl = publicToken
+    ? `/api/public/onboarding/${publicToken}`
+    : `/api/admin/advertisers/${advertiserId}/onboarding`
 
   const stepIdx   = STEP_DEFS.findIndex(s => s.key === stepKey)
   const progress  = Math.round(((stepIdx + 1) / STEP_DEFS.length) * 100)
@@ -92,7 +101,7 @@ export function OnboardingWizard({
     setSaveError(null)
     setAdvertiser(prev => ({ ...prev, ...patch }))
     startTransition(async () => {
-      const res = await fetch(`/api/admin/advertisers/${advertiserId}/onboarding`, {
+      const res = await fetch(saveUrl, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ target: 'advertiser', patch }),
@@ -113,7 +122,7 @@ export function OnboardingWizard({
       ? { ...prev, guide_data: { ...(prev.guide_data ?? {}), ...patch } }
       : prev)
     startTransition(async () => {
-      const res = await fetch(`/api/admin/advertisers/${advertiserId}/onboarding`, {
+      const res = await fetch(saveUrl, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ target: 'guide_data', guide_slug: guideSlug, patch }),
@@ -137,6 +146,13 @@ export function OnboardingWizard({
 
   return (
     <div className="space-y-5">
+
+      {/* Hand-off card — admin-only. Generates a magic link for the
+          business owner. Hidden when the wizard is itself running
+          from the public token URL (the business is already here). */}
+      {!publicToken && (
+        <SendLinkCard advertiserId={advertiserId} guideSlug={guideSlug} defaultEmail={advertiser.contact_email ?? ''} />
+      )}
 
       {/* Progress strip */}
       <div className="bg-white border border-portal-border rounded-lg p-4">
@@ -192,12 +208,18 @@ export function OnboardingWizard({
         >
           <ArrowLeft size={12} /> Back
         </button>
-        <Link
-          href={`/admin/advertisers/${advertiserId}`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold text-portal-sub hover:text-portal-text"
-        >
-          <X size={12} /> Save & exit
-        </Link>
+        {publicToken ? (
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold text-portal-sub">
+            <Check size={12} className="text-portal-green" /> Save anytime — bookmark this page
+          </span>
+        ) : (
+          <Link
+            href={`/admin/advertisers/${advertiserId}`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold text-portal-sub hover:text-portal-text"
+          >
+            <X size={12} /> Save & exit
+          </Link>
+        )}
         <button
           type="button"
           onClick={next}
@@ -213,6 +235,96 @@ export function OnboardingWizard({
           <strong>Wizard v1 ends here.</strong> The remaining steps (Packages, Hours, FAQ, etc.)
           land in the next push. You can verify the live listing above — the changes made in
           these 4 steps render immediately at the live listing URL.
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SendLinkCard({ advertiserId, guideSlug, defaultEmail }: {
+  advertiserId: string; guideSlug: string; defaultEmail: string | null
+}) {
+  const [email, setEmail]   = useState(defaultEmail ?? '')
+  const [busy, setBusy]     = useState(false)
+  const [result, setResult] = useState<{ sent: boolean; url: string; recipient: string } | null>(null)
+  const [error, setError]   = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  async function send() {
+    setBusy(true); setError(null); setResult(null); setCopied(false)
+    try {
+      const res = await fetch(`/api/admin/advertisers/${advertiserId}/onboarding/send-link`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ to: email || undefined, guide_slug: guideSlug }),
+      })
+      const j = await res.json()
+      if (!res.ok) { setError(j?.error ?? `Failed (${res.status})`); return }
+      setResult({ sent: !!j.sent, url: j.wizard_url, recipient: j.recipient })
+    } finally { setBusy(false) }
+  }
+
+  function copy() {
+    if (!result?.url) return
+    void navigator.clipboard.writeText(result.url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-portal-blue-lt to-white border border-portal-blue/20 rounded-lg p-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
+        <div>
+          <div className="text-[12px] font-bold text-portal-text inline-flex items-center gap-1.5">
+            <Send size={12} className="text-portal-blue" />
+            Hand off to the business
+          </div>
+          <p className="text-[11px] text-portal-sub mt-0.5 max-w-2xl leading-relaxed">
+            Generate a private edit link for the business owner. They can fill out the wizard themselves, save & exit, and come back any time using the same URL.
+          </p>
+        </div>
+      </div>
+      <div className="flex items-end gap-2 flex-wrap">
+        <div className="flex-1 min-w-[220px]">
+          <label className="block text-[10px] font-bold uppercase tracking-widest text-portal-muted mb-1">
+            Send to
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="owner@business.com"
+            className="w-full px-2.5 py-1.5 text-[12px] border border-portal-border-2 rounded bg-white outline-none focus:border-portal-blue"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={send}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold text-white bg-portal-blue rounded hover:opacity-90 disabled:opacity-50"
+        >
+          {busy ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+          {busy ? 'Sending…' : 'Generate & send'}
+        </button>
+      </div>
+      {error && (
+        <div className="mt-2 text-[11px] text-portal-red">{error}</div>
+      )}
+      {result && (
+        <div className="mt-3 p-3 bg-white border border-portal-border rounded space-y-2">
+          <div className="text-[11px] font-bold text-portal-text">
+            {result.sent ? `✓ Sent to ${result.recipient}` : `⚠ Email send failed — copy the URL manually`}
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-[10px] text-portal-sub bg-portal-bg px-2 py-1.5 rounded truncate">{result.url}</code>
+            <button type="button" onClick={copy}
+              className="inline-flex items-center gap-1 px-2 py-1.5 text-[10px] font-bold text-portal-blue border border-portal-blue/30 rounded hover:bg-portal-blue-lt">
+              <Copy size={10} /> {copied ? 'Copied' : 'Copy URL'}
+            </button>
+          </div>
+          <p className="text-[10px] text-portal-muted">
+            Re-issuing rotates the token — any previous link stops working. Safe to re-send if the business reports losing the link.
+          </p>
         </div>
       )}
     </div>
