@@ -164,6 +164,131 @@ async function stampLastWebhook(): Promise<void> {
 
 function fmt$(cents: number) { return '$' + ((cents ?? 0) / 100).toFixed(0) }
 
+// ── Featured-listing provisioning ─────────────────────────────────
+// Called from the checkout.session.completed handler when metadata
+// type='featured_listing'. Find-or-create the advertiser_account,
+// promote its guide_listings row to tier-1-featured-listing, mint
+// an onboarding token, and email the wizard URL.
+async function provisionFeaturedListing(input: {
+  business_name:  string
+  email:          string
+  guide_slug:     string
+  customerId:     string | null
+  subscriptionId: string | null
+}): Promise<void> {
+  const { randomUUID } = await import('node:crypto')
+  const { Resend } = await import('resend')
+  const { slugifyForUrl } = await import('@/lib/articles/slug')
+
+  if (!input.business_name || !input.email) {
+    console.warn('[provisionFeaturedListing] missing business_name or email — skipping')
+    return
+  }
+
+  const supabase = createAdminClient()
+
+  // Find or create the advertiser_account
+  const { data: existing } = await supabase
+    .from('advertiser_accounts')
+    .select('id')
+    .ilike('business_name', input.business_name)
+    .maybeSingle()
+
+  let advertiserId: string
+  if (existing) {
+    advertiserId = existing.id
+  } else {
+    // Slug with collision handling
+    const base = slugifyForUrl(input.business_name) || 'business'
+    let slug = base
+    for (let i = 1; i <= 50; i++) {
+      const candidate = i === 1 ? base : `${base}-${i}`
+      const { data: dupe } = await supabase.from('advertiser_accounts').select('id').eq('slug', candidate).maybeSingle()
+      if (!dupe) { slug = candidate; break }
+    }
+    const { data: created, error } = await supabase
+      .from('advertiser_accounts')
+      .insert({
+        business_name: input.business_name,
+        slug,
+        contact_email: input.email,
+        is_active:     true,
+      })
+      .select('id').single()
+    if (error || !created) {
+      console.error('[provisionFeaturedListing] create failed:', error?.message)
+      return
+    }
+    advertiserId = created.id
+  }
+
+  // Find or create the guide_listings row, promote to featured tier
+  const { data: gl } = await supabase
+    .from('guide_listings')
+    .select('id')
+    .eq('advertiser_account_id', advertiserId)
+    .eq('guide_type_slug', input.guide_slug)
+    .maybeSingle()
+  if (gl) {
+    await supabase.from('guide_listings').update({
+      listing_tier: 'tier-1-featured-listing',
+      is_published: true,
+    }).eq('id', gl.id)
+  } else {
+    await supabase.from('guide_listings').insert({
+      advertiser_account_id: advertiserId,
+      guide_type_slug:       input.guide_slug,
+      listing_tier:          'tier-1-featured-listing',
+      is_published:          true,
+      display_order:         0,
+    })
+  }
+
+  // Mint onboarding token (1 year — matches the subscription window)
+  const token     = randomUUID()
+  const now       = new Date()
+  const expiresAt = new Date(now.getTime() + 365 * 86_400_000)
+  await supabase.from('advertiser_accounts').update({
+    onboarding_token:            token,
+    onboarding_token_issued_at:  now.toISOString(),
+    onboarding_token_expires_at: expiresAt.toISOString(),
+    onboarding_status:           'invited',
+  }).eq('id', advertiserId)
+
+  // Email the magic link
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.warn('[provisionFeaturedListing] RESEND_API_KEY missing — wizard link NOT emailed; admin must hand-deliver')
+    return
+  }
+  const publicOrigin = process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
+                    ?? process.env.NEXT_PUBLIC_SITE_URL
+                    ?? 'https://riverregionparents.com'
+  const wizardUrl = `${publicOrigin}/advertise/edit/${token}?guide=${encodeURIComponent(input.guide_slug)}`
+  try {
+    await new Resend(apiKey).emails.send({
+      from:    process.env.ADVERTISER_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>',
+      to:      input.email,
+      subject: `Welcome aboard — your featured ${input.business_name} listing is ready`,
+      html: `
+        <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+          <h1 style="font-size:22px;color:#1a1a1a;margin:0 0 16px;">Welcome to River Region Parents!</h1>
+          <p style="font-size:15px;color:#444;line-height:1.6;margin:0 0 16px;">Your payment is confirmed — <strong>${input.business_name}</strong> is set up as a Featured Partner. Use the button below to open your private listing editor.</p>
+          <p style="font-size:15px;color:#444;line-height:1.6;margin:0 0 24px;">Fill out as many sections as you like; everything auto-saves. Come back any time using this same link.</p>
+          <p style="text-align:center;margin:0 0 24px;">
+            <a href="${wizardUrl}" style="display:inline-block;background:#ff7a59;color:#fff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;">Open Your Listing Editor</a>
+          </p>
+          <p style="font-size:13px;color:#666;line-height:1.6;margin:0 0 8px;">Or paste this URL into your browser:</p>
+          <p style="font-size:12px;color:#888;word-break:break-all;background:#f7f7f7;padding:10px 12px;border-radius:6px;margin:0 0 24px;">${wizardUrl}</p>
+          <p style="font-size:13px;color:#666;line-height:1.6;margin:0;">— River Region Parents</p>
+        </div>
+      `,
+    })
+  } catch (e) {
+    console.error('[provisionFeaturedListing] Resend failed:', e)
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body      = await req.text()
   const sig       = req.headers.get('stripe-signature') ?? ''
@@ -264,6 +389,20 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session  = event.data.object as Stripe.Checkout.Session
     const meta     = session.metadata ?? {}
+
+    if (meta.type === 'featured_listing') {
+      try {
+        await provisionFeaturedListing({
+          business_name: meta.business_name ?? '',
+          email:         meta.email ?? '',
+          guide_slug:    meta.guide_slug ?? 'birthday-party',
+          customerId:    typeof session.customer === 'string' ? session.customer : null,
+          subscriptionId: typeof session.subscription === 'string' ? session.subscription : null,
+        })
+      } catch (e) {
+        console.error('[stripe-webhook/featured_listing]', e)
+      }
+    }
 
     if (meta.type === 'birthday_spotlight') {
       try {

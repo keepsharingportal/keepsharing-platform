@@ -13,10 +13,25 @@
 import { useState, useTransition, useCallback } from 'react'
 import { Check, Loader2, ArrowLeft, ArrowRight, X, Send, Copy } from 'lucide-react'
 import Link from 'next/link'
-import { BasicsStep }    from '@/components/onboarding/steps/BasicsStep'
-import { TaglineStep }   from '@/components/onboarding/steps/TaglineStep'
-import { HeroPhotoStep } from '@/components/onboarding/steps/HeroPhotoStep'
-import { KeyFactsStep }  from '@/components/onboarding/steps/KeyFactsStep'
+import { BasicsStep }        from '@/components/onboarding/steps/BasicsStep'
+import { TaglineStep }       from '@/components/onboarding/steps/TaglineStep'
+import { HeroPhotoStep }     from '@/components/onboarding/steps/HeroPhotoStep'
+import { KeyFactsStep }      from '@/components/onboarding/steps/KeyFactsStep'
+import { GalleryStep }       from '@/components/onboarding/steps/GalleryStep'
+import { OurStoryStep }      from '@/components/onboarding/steps/OurStoryStep'
+import { WhatsDifferentStep } from '@/components/onboarding/steps/WhatsDifferentStep'
+import { WhatsIncludedStep } from '@/components/onboarding/steps/WhatsIncludedStep'
+import { ThemesStep }        from '@/components/onboarding/steps/ThemesStep'
+import { BestForStep }       from '@/components/onboarding/steps/BestForStep'
+import { PackagesStep }      from '@/components/onboarding/steps/PackagesStep'
+import { AddOnsStep }        from '@/components/onboarding/steps/AddOnsStep'
+import { HoursStep }         from '@/components/onboarding/steps/HoursStep'
+import { ParentsSayStep }    from '@/components/onboarding/steps/ParentsSayStep'
+import { FAQStep }           from '@/components/onboarding/steps/FAQStep'
+import { BookingNotesStep }  from '@/components/onboarding/steps/BookingNotesStep'
+import { HealthSafetyStep }  from '@/components/onboarding/steps/HealthSafetyStep'
+import { SpecialOfferStep }  from '@/components/onboarding/steps/SpecialOfferStep'
+import type { SectionRowShape } from '@/components/onboarding/steps/types'
 import type { GuideSchema } from '@/lib/guides/schemas'
 
 // Loose shape so the per-step components (each of which declares its
@@ -55,20 +70,35 @@ interface ListingSection {
   [key: string]: unknown
 }
 
-// Steps in the v1 shipping set. Add additional step types to this
-// array as their components land; the shell auto-displays them.
+// All onboarding steps in render order. `section_type` (when set)
+// points the step's save callback at the matching listing_sections
+// row; steps without it write to advertiser_accounts or guide_data.
 const STEP_DEFS = [
-  { key: 'basics',     label: 'Business basics' },
-  { key: 'tagline',    label: 'Tagline & about' },
-  { key: 'hero',       label: 'Hero photo' },
-  { key: 'key-facts',  label: 'Key facts' },
+  { key: 'basics',        label: 'Business basics' },
+  { key: 'tagline',       label: 'Tagline & about' },
+  { key: 'hero',          label: 'Hero photo' },
+  { key: 'gallery',       label: 'Photo gallery' },
+  { key: 'key-facts',     label: 'Key facts' },
+  { key: 'our-story',     label: 'Our story',             section_type: 'our_story' },
+  { key: 'whats-different', label: 'What makes you different', section_type: 'whats_different' },
+  { key: 'packages',      label: 'Packages',              section_type: 'party_packages' },
+  { key: 'whats-included', label: "What's included",       section_type: 'features_bullets' },
+  { key: 'themes',        label: 'Themes available',      section_type: 'themes_available' },
+  { key: 'addons',        label: 'Add-ons',               section_type: 'party_addons' },
+  { key: 'hours',         label: 'Hours',                 section_type: 'party_hours' },
+  { key: 'best-for',      label: 'Best for',              section_type: 'best_for' },
+  { key: 'parents-say',   label: 'Parents say',           section_type: 'parents_say' },
+  { key: 'faq',           label: 'FAQ',                   section_type: 'faq' },
+  { key: 'booking',       label: 'Booking & policies',    section_type: 'booking_notes' },
+  { key: 'health-safety', label: 'Health & safety',       section_type: 'health_safety' },
+  { key: 'special-offer', label: 'Special offer',         section_type: 'special_offer' },
 ] as const
 
 type StepKey = typeof STEP_DEFS[number]['key']
 
 export function OnboardingWizard({
   advertiserId, guideSlug, advertiser: initialAdvertiser,
-  listing: initialListing, schema, publicToken,
+  listing: initialListing, sections: initialSections, schema, publicToken,
 }: {
   advertiserId: string
   guideSlug:    string
@@ -76,13 +106,11 @@ export function OnboardingWizard({
   listing:      GuideListing | null
   sections:     ListingSection[]
   schema:       GuideSchema
-  // When set, the wizard is being driven from the public token URL
-  // and saves go to the token-verified public endpoint instead of
-  // the admin endpoint. Otherwise this is the admin-side view.
   publicToken?: string
 }) {
   const [advertiser, setAdvertiser] = useState<Advertiser>(initialAdvertiser)
   const [listing, setListing]       = useState<GuideListing | null>(initialListing)
+  const [sections, setSections]     = useState<ListingSection[]>(initialSections)
   const [stepKey, setStepKey]       = useState<StepKey>(STEP_DEFS[0].key)
   const [savedAt, setSavedAt]       = useState<Date | null>(null)
   const [saveError, setSaveError]   = useState<string | null>(null)
@@ -114,6 +142,40 @@ export function OnboardingWizard({
       setSavedAt(new Date())
     })
   }, [advertiserId])
+
+  // ── Partial save: listing_sections row ──────────────────────────
+  // Each step that owns a section calls saveSection(section_type, patch)
+  // on blur. The endpoint upserts by (advertiser, section_type) so
+  // there's exactly one row per section per advertiser. We optimistically
+  // patch local state so the field reflects immediately.
+  const saveSection = useCallback(async (section_type: string, patch: Record<string, unknown>) => {
+    setSaveError(null)
+    setSections(prev => {
+      const idx = prev.findIndex(s => s.section_type === section_type)
+      if (idx === -1) {
+        return [...prev, { id: 'pending-' + section_type, section_type, is_active: true, ...patch } as ListingSection]
+      }
+      return prev.map((s, i) => i === idx ? { ...s, ...patch } : s)
+    })
+    startTransition(async () => {
+      const res = await fetch(saveUrl, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ target: 'section', section_type, patch }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setSaveError(j?.error ?? `Save failed (${res.status})`)
+        return
+      }
+      setSavedAt(new Date())
+    })
+  }, [saveUrl])
+
+  // Lookup helper for the section-typed steps
+  function sectionFor(type: string): SectionRowShape | null {
+    return (sections.find(s => s.section_type === type) ?? null) as SectionRowShape | null
+  }
 
   // ── Partial save: guide_listings.guide_data merge ─────────────
   const saveGuideData = useCallback(async (patch: Record<string, unknown>) => {
@@ -192,10 +254,24 @@ export function OnboardingWizard({
 
       {/* Active step body */}
       <div className="bg-white border border-portal-border rounded-lg p-6">
-        {stepKey === 'basics'    && <BasicsStep    advertiser={advertiser} onSave={saveAdvertiser} />}
-        {stepKey === 'tagline'   && <TaglineStep   advertiser={advertiser} onSave={saveAdvertiser} />}
-        {stepKey === 'hero'      && <HeroPhotoStep advertiser={advertiser} onSave={saveAdvertiser} />}
-        {stepKey === 'key-facts' && <KeyFactsStep  schema={schema} listing={listing} onSave={saveGuideData} />}
+        {stepKey === 'basics'        && <BasicsStep        advertiser={advertiser} onSave={saveAdvertiser} />}
+        {stepKey === 'tagline'       && <TaglineStep       advertiser={advertiser} onSave={saveAdvertiser} />}
+        {stepKey === 'hero'          && <HeroPhotoStep     advertiser={advertiser} onSave={saveAdvertiser} />}
+        {stepKey === 'gallery'       && <GalleryStep       advertiser={advertiser} onSave={saveAdvertiser} />}
+        {stepKey === 'key-facts'     && <KeyFactsStep      schema={schema} listing={listing} onSave={saveGuideData} />}
+        {stepKey === 'our-story'     && <OurStoryStep      section={sectionFor('our_story')}        onSave={p => saveSection('our_story', p as Record<string, unknown>)} />}
+        {stepKey === 'whats-different' && <WhatsDifferentStep section={sectionFor('whats_different')} onSave={p => saveSection('whats_different', p as Record<string, unknown>)} />}
+        {stepKey === 'packages'      && <PackagesStep      section={sectionFor('party_packages')}   onSave={p => saveSection('party_packages', p as Record<string, unknown>)} />}
+        {stepKey === 'whats-included' && <WhatsIncludedStep section={sectionFor('features_bullets')} onSave={p => saveSection('features_bullets', p as Record<string, unknown>)} />}
+        {stepKey === 'themes'        && <ThemesStep        section={sectionFor('themes_available')} onSave={p => saveSection('themes_available', p as Record<string, unknown>)} />}
+        {stepKey === 'addons'        && <AddOnsStep        section={sectionFor('party_addons')}     onSave={p => saveSection('party_addons', p as Record<string, unknown>)} />}
+        {stepKey === 'hours'         && <HoursStep         section={sectionFor('party_hours')}      onSave={p => saveSection('party_hours', p as Record<string, unknown>)} />}
+        {stepKey === 'best-for'      && <BestForStep       section={sectionFor('best_for')}         onSave={p => saveSection('best_for', p as Record<string, unknown>)} />}
+        {stepKey === 'parents-say'   && <ParentsSayStep    section={sectionFor('parents_say')}      onSave={p => saveSection('parents_say', p as Record<string, unknown>)} />}
+        {stepKey === 'faq'           && <FAQStep           section={sectionFor('faq')}              onSave={p => saveSection('faq', p as Record<string, unknown>)} />}
+        {stepKey === 'booking'       && <BookingNotesStep  section={sectionFor('booking_notes')}    onSave={p => saveSection('booking_notes', p as Record<string, unknown>)} />}
+        {stepKey === 'health-safety' && <HealthSafetyStep  section={sectionFor('health_safety')}    onSave={p => saveSection('health_safety', p as Record<string, unknown>)} />}
+        {stepKey === 'special-offer' && <SpecialOfferStep  section={sectionFor('special_offer')}    onSave={p => saveSection('special_offer', p as Record<string, unknown>)} />}
       </div>
 
       {/* Footer nav */}
@@ -231,10 +307,9 @@ export function OnboardingWizard({
       </div>
 
       {stepIdx === STEP_DEFS.length - 1 && (
-        <div className="bg-portal-blue-lt border border-portal-blue/30 rounded-lg p-4 text-[12px] text-portal-text">
-          <strong>Wizard v1 ends here.</strong> The remaining steps (Packages, Hours, FAQ, etc.)
-          land in the next push. You can verify the live listing above — the changes made in
-          these 4 steps render immediately at the live listing URL.
+        <div className="bg-portal-green-lt border border-portal-green/30 rounded-lg p-4 text-[12px] text-portal-text">
+          <strong>All done.</strong> Your listing is live — open the &ldquo;View live listing&rdquo;
+          link at the top to see how it looks. Come back any time to update anything.
         </div>
       )}
     </div>

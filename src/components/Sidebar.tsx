@@ -198,10 +198,16 @@ const NAV: NavItem[] = [
   { name: 'Print Export',        href: '/admin/distribution/print-export',     icon: Printer    },
   { name: 'Production Calendar', href: '/admin/content/calendar',              icon: Calendar   },
 
-  // ── GUIDES ──────────────────────────────────────────────────────────────
-  { section: 'GUIDES' },
-  { name: 'Guide Editor',  href: '/admin/guides',                        icon: BookOpen },
-  { name: 'Guide Imports', href: '/admin/content/guide-listings-import', icon: Upload   },
+  // ── DIRECTORIES ─────────────────────────────────────────────────────────
+  // 'All things directories' — every guide, the businesses inside them,
+  // onboarding queue, CSV import. The hub at /admin/directories links
+  // out to each tool; the individual nav entries below are kept for
+  // muscle-memory deep links.
+  { section: 'DIRECTORIES' },
+  { name: 'Directories Hub',  href: '/admin/directories',                   icon: BookOpen },
+  { name: 'Onboarding Queue', href: '/admin/directories/onboarding',        icon: Sparkles },
+  { name: 'Guide Editor',     href: '/admin/guides',                        icon: BookOpen },
+  { name: 'Guide Imports',    href: '/admin/content/guide-listings-import', icon: Upload   },
 
   // ── VERTICALS ───────────────────────────────────────────────────────────
   { section: 'VERTICALS' },
