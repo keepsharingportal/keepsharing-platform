@@ -31,7 +31,7 @@ export default async function DirectoriesHubPage() {
     signups30d,
     statusBreakdown,
   ] = await Promise.all([
-    sb.from('guide_types').select('slug, display_name, url_slug').order('display_order'),
+    sb.from('guide_types').select('slug, display_name').order('display_order'),
     sb.from('guide_listings').select('id', { count: 'exact', head: true }).eq('is_published', true),
     sb.from('advertiser_accounts').select('id', { count: 'exact', head: true })
       .in('onboarding_status', ['self_signup', 'invited', 'in_progress']),
@@ -117,7 +117,7 @@ export default async function DirectoriesHubPage() {
             {(guides ?? []).map(g => (
               <Link
                 key={g.slug}
-                href={`/admin/guides/${g.url_slug}/listings`}
+                href={`/admin/guides/${g.slug}/listings`}
                 className="bg-white border border-portal-border rounded-lg p-4 hover:border-portal-blue/40 transition-colors block relative"
               >
                 <div className="flex items-center justify-between mb-2">

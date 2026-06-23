@@ -17,18 +17,13 @@ import { BigBirthdayBashHero }    from '@/components/birthday/BigBirthdayBashHer
 import { BirthdayJumpNav }        from '@/components/birthday/BirthdayJumpNav'
 import { BirthdayThisMonth }      from '@/components/birthday/BirthdayThisMonth'
 import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
-import { BudgetTiers }            from '@/components/birthday/BudgetTiers'
-import { TrendingThemes }         from '@/components/birthday/TrendingThemes'
 import { BirthdayCategoryHubCards } from '@/components/birthday/BirthdayCategoryHubCards'
 import { RealRiverRegionParties } from '@/components/birthday/RealRiverRegionParties'
 import { BirthdayArticles }       from '@/components/birthday/BirthdayArticles'
 import { GiftGuidesByAge }        from '@/components/birthday/GiftGuidesByAge'
-import { BirthdayFreebies }       from '@/components/birthday/BirthdayFreebies'
-import { BirthdayPrintables }     from '@/components/birthday/BirthdayPrintables'
 import { BirthdayPoll }           from '@/components/birthday/BirthdayPoll'
 import { MomToMomTips }           from '@/components/birthday/MomToMomTips'
 import { BirthdayMap }            from '@/components/birthday/BirthdayMap'
-import { SubmitVendorTip }        from '@/components/birthday/SubmitVendorTip'
 import { BirthdayInsiderSignup }  from '@/components/birthday/BirthdayInsiderSignup'
 import { BirthdaySidebarSponsor } from '@/components/birthday/BirthdaySidebarSponsor'
 import { BirthdaySectionSponsor } from '@/components/birthday/BirthdaySectionSponsor'
@@ -90,26 +85,12 @@ export default async function BirthdayPartyGuidePage() {
   const hv = heroVertical as { hero_image_url?: string | null; display_name?: string | null; subtitle?: string | null } | null
 
   // Single batched load — all blocks paint together rather than waterfall.
+  // Themes / budget tiers / freebies / printables removed from the
+  // page per editor request — queries dropped to keep the page tight.
   const [
-    themesRes, tiersRes, freebiesRes, printablesRes, partiesRes, tipsRes,
+    partiesRes, tipsRes,
     pollRes, articlesRes, listingCountsRes, sectionSponsorRes, buzzRes, dealsRes,
   ] = await Promise.all([
-    supabase.from('birthday_themes')
-      .select('*').eq('is_active', true)
-      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
-      .order('display_order').limit(12),
-    supabase.from('birthday_budget_tiers')
-      .select('*').eq('is_active', true)
-      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
-      .order('display_order').limit(5),
-    supabase.from('birthday_freebies')
-      .select('*').eq('is_active', true)
-      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
-      .order('category').limit(40),
-    supabase.from('birthday_printables')
-      .select('*').eq('is_active', true)
-      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
-      .order('display_order').limit(12),
     supabase.from('birthday_real_parties')
       .select('*').eq('status', 'approved').eq('brand_slug', brandSlug)
       .order('display_order', { ascending: true })
@@ -239,14 +220,6 @@ export default async function BirthdayPartyGuidePage() {
               <PlanningTimeline brandSlug={brandSlug} />
             </section>
 
-            <section id="budget">
-              <BudgetTiers tiers={(tiersRes.data ?? []) as Array<Record<string, unknown>>} />
-            </section>
-
-            <section id="themes">
-              <TrendingThemes themes={(themesRes.data ?? []) as Array<Record<string, unknown>>} />
-            </section>
-
             <section id="vendors">
               <BirthdayCategoryHubCards countsByCategory={categoryCountsObj} />
             </section>
@@ -263,20 +236,8 @@ export default async function BirthdayPartyGuidePage() {
               <GiftGuidesByAge />
             </section>
 
-            <section id="freebies">
-              <BirthdayFreebies freebies={(freebiesRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
-            </section>
-
-            <section id="printables">
-              <BirthdayPrintables printables={(printablesRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
-            </section>
-
             <section id="tips">
               <MomToMomTips tips={(tipsRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
-            </section>
-
-            <section id="submit">
-              <SubmitVendorTip />
             </section>
 
           </div>

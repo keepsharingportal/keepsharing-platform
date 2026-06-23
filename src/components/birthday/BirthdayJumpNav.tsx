@@ -10,14 +10,11 @@ const JUMPS = [
   { id: 'featured-pros',  label: 'Featured Pros' },
   { id: 'buzz',           label: 'Buzz' },
   { id: 'timeline',       label: 'Plan It' },
-  { id: 'budget',     label: 'By Budget' },
-  { id: 'themes',     label: 'Themes' },
-  { id: 'vendors',    label: 'Vendors' },
-  { id: 'real-parties', label: 'Real Parties' },
-  { id: 'articles',   label: 'Articles' },
-  { id: 'freebies',   label: 'Freebies' },
-  { id: 'printables', label: 'Printables' },
-  { id: 'tips',       label: 'Mom Tips' },
+  { id: 'vendors',        label: 'Vendors' },
+  { id: 'real-parties',   label: 'Real Parties' },
+  { id: 'articles',       label: 'Articles' },
+  { id: 'gift-guides',    label: 'Gift Guides' },
+  { id: 'tips',           label: 'Mom Tips' },
 ]
 
 export function BirthdayJumpNav() {
