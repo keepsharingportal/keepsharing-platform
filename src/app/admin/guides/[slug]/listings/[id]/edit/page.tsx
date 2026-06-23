@@ -21,15 +21,27 @@ export default async function EditListingPage({ params }: Props) {
 
   const supabase = createAdminClient()
 
-  const [guideRes, listingRes, advRes] = await Promise.all([
-    // Tolerant of either internal slug ('birthday-party') or url_slug
-    // ('birthday-party-guide') in the URL — both should resolve to the
-    // same guide_types row. Avoids 404s when admin links use either.
-    supabase
+  // Resolve guide first — tolerant of either internal slug
+  // ('birthday-party') OR url_slug ('birthday-party-guide') so admin
+  // URLs in either form work. Two separate queries instead of an OR
+  // because PostgREST's OR syntax has edge cases with maybeSingle().
+  let { data: guideData } = await supabase
+    .from('guide_types')
+    .select('slug, display_name')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (!guideData) {
+    const { data } = await supabase
       .from('guide_types')
       .select('slug, display_name')
-      .or(`slug.eq.${slug},url_slug.eq.${slug}`)
-      .maybeSingle(),
+      .eq('url_slug', slug)
+      .maybeSingle()
+    guideData = data
+  }
+  if (!guideData) return notFound()
+  const guideRes = { data: guideData, error: null as null }
+
+  const [listingRes, advRes] = await Promise.all([
     supabase
       .from('guide_listings')
       .select(`
@@ -49,7 +61,6 @@ export default async function EditListingPage({ params }: Props) {
       .limit(5000),
   ])
 
-  if (guideRes.error || !guideRes.data) return notFound()
   if (listingRes.error || !listingRes.data) return notFound()
 
   type Raw = Omit<EditableListing, 'linked_advertiser_name'> & {

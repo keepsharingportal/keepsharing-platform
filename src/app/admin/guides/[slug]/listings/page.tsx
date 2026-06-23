@@ -30,13 +30,22 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 
   // Guide metadata for the header. Tolerant of either internal slug
   // ('birthday-party') OR url_slug ('birthday-party-guide') — both
-  // should resolve the same guide row.
-  const { data: guide, error: guideErr } = await supabase
+  // resolve to the same guide row. Two-step lookup avoids PostgREST
+  // OR edge cases.
+  let { data: guide } = await supabase
     .from('guide_types')
     .select('slug, display_name, short_description, primary_filter_field')
-    .or(`slug.eq.${slug},url_slug.eq.${slug}`)
+    .eq('slug', slug)
     .maybeSingle()
-  if (guideErr || !guide) return notFound()
+  if (!guide) {
+    const { data } = await supabase
+      .from('guide_types')
+      .select('slug, display_name, short_description, primary_filter_field')
+      .eq('url_slug', slug)
+      .maybeSingle()
+    guide = data
+  }
+  if (!guide) return notFound()
 
   // Use the canonical internal slug for the rest of the queries so
   // a URL that came in with url_slug still hits the right guide_listings.
