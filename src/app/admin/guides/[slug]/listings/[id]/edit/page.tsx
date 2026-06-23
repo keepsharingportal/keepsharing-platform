@@ -22,10 +22,13 @@ export default async function EditListingPage({ params }: Props) {
   const supabase = createAdminClient()
 
   const [guideRes, listingRes, advRes] = await Promise.all([
+    // Tolerant of either internal slug ('birthday-party') or url_slug
+    // ('birthday-party-guide') in the URL — both should resolve to the
+    // same guide_types row. Avoids 404s when admin links use either.
     supabase
       .from('guide_types')
       .select('slug, display_name')
-      .eq('slug', slug)
+      .or(`slug.eq.${slug},url_slug.eq.${slug}`)
       .maybeSingle(),
     supabase
       .from('guide_listings')

@@ -28,13 +28,19 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 
   const supabase = createAdminClient()
 
-  // Guide metadata for the header.
+  // Guide metadata for the header. Tolerant of either internal slug
+  // ('birthday-party') OR url_slug ('birthday-party-guide') — both
+  // should resolve the same guide row.
   const { data: guide, error: guideErr } = await supabase
     .from('guide_types')
     .select('slug, display_name, short_description, primary_filter_field')
-    .eq('slug', slug)
+    .or(`slug.eq.${slug},url_slug.eq.${slug}`)
     .maybeSingle()
   if (guideErr || !guide) return notFound()
+
+  // Use the canonical internal slug for the rest of the queries so
+  // a URL that came in with url_slug still hits the right guide_listings.
+  const canonicalSlug = guide.slug as string
 
   // All listings in this guide. We pull both inline columns AND the
   // legacy advertiser join so we can flag rows that still need the
@@ -48,7 +54,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
       contact_email, address, city_state_zip, neighborhood, card_hook,
       advertiser:advertiser_account_id (id, business_name, slug)
     `)
-    .eq('guide_type_slug', slug)
+    .eq('guide_type_slug', canonicalSlug)
     .order('listing_year', { ascending: false, nullsFirst: false })
     .order('business_name', { ascending: true })
 
@@ -127,7 +133,7 @@ export default async function GuideListingsBrowsePage({ params, searchParams }: 
 
       {/* List */}
       <GuideListingsBrowseClient
-        slug={slug}
+        slug={canonicalSlug}
         guideName={guide.display_name}
         rows={rows}
         initialQuery={(sp.q ?? '').trim()}

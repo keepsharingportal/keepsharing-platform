@@ -182,6 +182,41 @@ export default function GuideListingsImportPage() {
   const [backfillBusy,   setBackfillBusy]   = useState(false)
   const [backfillResult, setBackfillResult] = useState<{ scanned: number; linked: number; created: number; skipped: number } | null>(null)
   const [backfillError,  setBackfillError]  = useState<string | null>(null)
+  const [dedupeBusy,     setDedupeBusy]     = useState(false)
+  const [dedupeResult,   setDedupeResult]   = useState<{ groups_with_dupes: number; deleted: number } | null>(null)
+  const [dedupeError,    setDedupeError]    = useState<string | null>(null)
+
+  async function runDedupe(guideTypeSlug: string) {
+    setDedupeBusy(true); setDedupeResult(null); setDedupeError(null)
+    try {
+      // Two-step: dry run to count, confirm with user, then execute.
+      const preview = await fetch('/api/admin/guide-listings/dedupe', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ guide_type_slug: guideTypeSlug, dry_run: true }),
+      })
+      const pj = await preview.json()
+      if (!preview.ok) { setDedupeError(pj?.error ?? `Dedupe preview failed (${preview.status})`); return }
+      const willDelete = pj.will_delete as number
+      if (willDelete === 0) {
+        setDedupeResult({ groups_with_dupes: 0, deleted: 0 })
+        return
+      }
+      if (!confirm(`Found ${pj.groups_with_dupes} businesses with duplicate listings — will delete ${willDelete} extra rows. Proceed?`)) {
+        return
+      }
+      const exec = await fetch('/api/admin/guide-listings/dedupe', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ guide_type_slug: guideTypeSlug, dry_run: false }),
+      })
+      const ej = await exec.json()
+      if (!exec.ok) { setDedupeError(ej?.error ?? `Dedupe failed (${exec.status})`); return }
+      setDedupeResult({ groups_with_dupes: ej.groups_with_dupes, deleted: ej.deleted })
+    } catch (e) {
+      setDedupeError(e instanceof Error ? e.message : 'Dedupe failed')
+    } finally { setDedupeBusy(false) }
+  }
 
   async function runBackfill(guideTypeSlug: string) {
     setBackfillBusy(true); setBackfillResult(null); setBackfillError(null)
@@ -405,6 +440,50 @@ export default function GuideListingsImportPage() {
           {backfillError && (
             <div className="mt-3 p-3 bg-portal-red-lt border border-portal-red/30 rounded text-[11px] text-portal-red">
               {backfillError}
+            </div>
+          )}
+        </div>
+
+        {/* Dedupe — fixes the "every business shows twice" symptom
+            when the importer was run multiple times in Insert mode
+            instead of Merge mode. */}
+        <div className="bg-white rounded-lg border border-portal-border p-4">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div>
+              <label className="block text-xs font-semibold text-portal-sub uppercase tracking-wide mb-1">
+                Dedupe duplicate listings
+              </label>
+              <p className="text-[11px] text-portal-muted leading-relaxed max-w-2xl">
+                Removes duplicate <code>guide_listings</code> rows for the same business + category
+                within one guide. Common after running the importer twice in Insert mode.
+                Always shows a preview + confirmation before deleting. Linked rows win over
+                unlinked; published wins over draft; most-recent wins as tiebreak.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {GUIDE_TYPES.map(g => (
+              <button
+                key={g.slug}
+                type="button"
+                onClick={() => runDedupe(g.slug)}
+                disabled={dedupeBusy}
+                className="text-[11px] font-bold px-3 py-1.5 rounded border border-portal-border-2 bg-portal-bg text-portal-text hover:border-portal-blue/40 hover:bg-portal-blue-lt disabled:opacity-50"
+              >
+                {dedupeBusy ? 'Running…' : `Dedupe ${g.label}`}
+              </button>
+            ))}
+          </div>
+          {dedupeResult && (
+            <div className="mt-3 p-3 bg-portal-green-lt border border-portal-green/30 rounded text-[11px] text-portal-green">
+              {dedupeResult.deleted === 0
+                ? <>No duplicates found.</>
+                : <>Removed <strong>{dedupeResult.deleted}</strong> duplicate rows across <strong>{dedupeResult.groups_with_dupes}</strong> businesses.</>}
+            </div>
+          )}
+          {dedupeError && (
+            <div className="mt-3 p-3 bg-portal-red-lt border border-portal-red/30 rounded text-[11px] text-portal-red">
+              {dedupeError}
             </div>
           )}
         </div>
