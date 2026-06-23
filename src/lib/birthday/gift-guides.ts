@@ -25,6 +25,12 @@ export interface GiftIdea {
   /** Optional affiliate URL (Amazon, Target, etc.). When set, the
    *  card's CTA links here; when not, the card is informational. */
   affiliateUrl?: string
+  /** Optional product image URL. When set, renders as the card hero.
+   *  When NOT set, the card shows a designed text-poster fallback
+   *  using the bucket's color — looks intentional, not missing.
+   *  Editor can paste any URL: upload via /api/admin/upload, an
+   *  Amazon Product Advertising API image, a manufacturer's CDN, etc. */
+  image?:       string
   /** Marks one idea per bucket as the editor's headline pick — gets
    *  the large hero card slot at the top of the per-age page. */
   featured?:    boolean

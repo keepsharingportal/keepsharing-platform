@@ -1,7 +1,7 @@
-// FeaturedPickCard — the "if you only get one thing" hero card.
-// Larger, with an editor's note + accent border + bigger CTA. Sits
-// at the top of the per-age guide so the most-recommended pick gets
-// dominant visual weight.
+// FeaturedPickCard — "if you only get one thing" hero card.
+// 2-column layout: image/poster on the left, content on the right.
+// When idea.image is set the left renders the real photo; otherwise
+// it renders a designed poster with the gift name as type.
 
 import { Star, ExternalLink, Quote } from 'lucide-react'
 import type { GiftIdea, PriceBand } from '@/lib/birthday/gift-guides'
@@ -24,39 +24,18 @@ export function FeaturedPickCard({ idea, accent }: { idea: GiftIdea; accent: str
           className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white rounded-full shadow-sm"
           style={{ backgroundColor: accent }}
         >
-          <Star size={11} className="fill-current" /> Editor's pick
+          <Star size={11} className="fill-current" /> Editor&apos;s pick
         </span>
       </div>
 
       <div className="grid md:grid-cols-[1fr,1.4fr]">
-        {/* Accent panel */}
-        <div
-          className="hidden md:flex relative items-center justify-center p-8"
-          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
-        >
-          <Quote size={140} className="text-white/15" />
-          <div className="absolute inset-0 flex items-center justify-center p-10 text-center">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/85 mb-2">If you only get one</p>
-              <p className="text-white text-xl font-black leading-tight">{idea.name}</p>
-            </div>
-          </div>
-        </div>
+        <FeaturedHero idea={idea} accent={accent} />
 
         {/* Body */}
         <div className="p-6 md:p-8 flex flex-col gap-4">
-          {/* Mobile-only title (the accent panel hides at < md) */}
-          <div className="md:hidden">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-1" style={{ color: accent }}>
-              If you only get one
-            </p>
-            <h2 className="text-2xl font-black text-slate-900 leading-tight">{idea.name}</h2>
-          </div>
-          <div className="hidden md:block">
-            <h2 className="text-3xl font-black text-slate-900 leading-tight">{idea.name}</h2>
-          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">{idea.name}</h2>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span
               className="inline-flex items-center px-2.5 py-1 text-[11px] font-bold rounded-full"
               style={{ backgroundColor: `${accent}1a`, color: accent }}
@@ -78,7 +57,7 @@ export function FeaturedPickCard({ idea, accent }: { idea: GiftIdea; accent: str
               style={{ borderColor: accent }}
             >
               <span className="not-italic text-[10px] font-black uppercase tracking-widest block mb-1" style={{ color: accent }}>
-                Editor's note
+                Editor&apos;s note
               </span>
               {idea.editorNote}
             </blockquote>
@@ -102,5 +81,32 @@ export function FeaturedPickCard({ idea, accent }: { idea: GiftIdea; accent: str
         </div>
       </div>
     </article>
+  )
+}
+
+function FeaturedHero({ idea, accent }: { idea: GiftIdea; accent: string }) {
+  if (idea.image) {
+    return (
+      <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[320px] overflow-hidden bg-slate-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={idea.image} alt={idea.name} className="w-full h-full object-cover" />
+      </div>
+    )
+  }
+  // Designed poster fallback — larger version of GiftIdeaCard's
+  return (
+    <div
+      className="hidden md:flex relative items-center justify-center p-8 overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+    >
+      <div className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 70% 80%, white 1px, transparent 1px)', backgroundSize: '28px 28px, 36px 36px' }}
+      />
+      <Quote size={120} className="absolute top-4 left-4 text-white/10" />
+      <div className="relative text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/85 mb-2">If you only get one</p>
+        <p className="text-white text-2xl font-black leading-tight">{idea.name}</p>
+      </div>
+    </div>
   )
 }
