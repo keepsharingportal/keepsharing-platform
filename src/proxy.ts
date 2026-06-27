@@ -92,6 +92,11 @@ export async function proxy(request: NextRequest) {
         // via app.keepsharing.com (admin previewing a magic link).
         || p === '/advertise'
         || p.startsWith('/advertise/')
+        // QR scan handler — historical bug baked app.keepsharing.com
+        // into printed QRs (June 2026 issue). Passing /go/ through to
+        // the public handler keeps those existing prints alive; the
+        // handler itself redirects to NEXT_PUBLIC_SITE_URL.
+        || p.startsWith('/go/')
   }
 
   if (host === 'app.keepsharing.com' && !isPassThrough(originalPath) && !isAppHostPublicPreview(originalPath)) {

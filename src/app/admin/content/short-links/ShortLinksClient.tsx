@@ -20,7 +20,16 @@ import {
   CHANNEL_LIST, CHANNELS, channelOf, channelsForPurpose, type Channel,
 } from './link-taxonomy'
 
-const SITE_ORIGIN = typeof window !== 'undefined' ? window.location.origin : 'https://riverregionparents.com'
+// CRITICAL: QR codes MUST encode the public-site origin, not the admin
+// host. window.location.origin returns 'https://app.keepsharing.com' when
+// the editor is browsing on the admin subdomain — that baked the wrong
+// host into printed QRs (June 2026 issue). Hard-pin to the public origin
+// via env var; fall back to riverregionparents.com so QRs always point
+// at the brand site no matter where the wizard is opened from.
+const SITE_ORIGIN =
+  process.env.NEXT_PUBLIC_PUBLIC_ORIGIN
+  ?? process.env.NEXT_PUBLIC_SITE_URL
+  ?? 'https://riverregionparents.com'
 
 const CONTENT_TYPES = [
   { value: 'url',    label: 'URL / Website',  icon: Link2,          desc: 'Link to any page on our site or an external URL' },
