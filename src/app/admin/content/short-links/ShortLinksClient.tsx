@@ -706,6 +706,12 @@ export function AddPanel({
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody]       = useState('')
 
+  // SMS fields — phone number lives in `destination`; smsBody is the
+  // optional pre-filled text that drops into the user's messaging app
+  // when they scan ("I saw your ad in the magazine — please send me
+  // the details.").
+  const [smsBody, setSmsBody] = useState('')
+
   // Event fields
   const [evTitle, setEvTitle]   = useState('')
   const [evStart, setEvStart]   = useState('')
@@ -725,7 +731,7 @@ export function AddPanel({
   function buildContentData(): Record<string, unknown> {
     if (contentType === 'vcard') return { name: vcName, org: vcOrg, phone: vcPhone, email: vcEmail, url: vcUrl, address: vcAddress, title: vcTitle }
     if (contentType === 'email') return { subject: emailSubject, body: emailBody }
-    if (contentType === 'sms')   return { body: destination }
+    if (contentType === 'sms')   return { body: smsBody.trim() }
     if (contentType === 'event') return { title: evTitle, start: evStart, end: evEnd, location: evLocation, description: evDesc }
     return {}
   }
@@ -1050,9 +1056,25 @@ export function AddPanel({
             </div>
           )}
           {contentType === 'sms' && (
-            <div>
-              <label className={lbl}>Phone Number <span className="text-portal-red">*</span></label>
-              <input type="tel" value={destination} onChange={e => setDestination(e.target.value)} required placeholder="334-555-1234" className={inp} />
+            <div className="space-y-3">
+              <div>
+                <label className={lbl}>Phone Number <span className="text-portal-red">*</span></label>
+                <input type="tel" value={destination} onChange={e => setDestination(e.target.value)} required placeholder="334-555-1234" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Pre-filled Message <span className="text-portal-sub font-normal normal-case tracking-normal">(optional)</span></label>
+                <textarea
+                  value={smsBody}
+                  onChange={e => setSmsBody(e.target.value)}
+                  rows={3}
+                  maxLength={300}
+                  placeholder="I saw your ad in the magazine about advertising. Please send me the details."
+                  className={`${inp} resize-y`}
+                />
+                <p className="mt-1 text-[10px] text-portal-sub leading-snug">
+                  Drops into their texting app when they scan, ready to send. Keep it short — some carriers truncate past ~160 chars.
+                </p>
+              </div>
             </div>
           )}
           {contentType === 'text' && (
