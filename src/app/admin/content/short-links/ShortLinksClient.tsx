@@ -35,9 +35,9 @@ const CONTENT_TYPES = [
   { value: 'url',    label: 'URL / Website',  icon: Link2,          desc: 'Link to any page on our site or an external URL' },
   { value: 'phone',  label: 'Phone Call',      icon: Phone,          desc: 'Opens the phone dialer when scanned' },
   { value: 'email',  label: 'Email',           icon: Mail,           desc: 'Opens an email compose window' },
-  { value: 'sms',    label: 'SMS / Text',      icon: MessageSquare,  desc: 'Opens a text message to a number' },
+  { value: 'sms',    label: 'Text Us',         icon: MessageSquare,  desc: 'Opens their messaging app — they send YOU a text (with optional pre-filled message)' },
   { value: 'vcard',  label: 'vCard / Contact',  icon: User,          desc: 'Downloads a contact card to their phone' },
-  { value: 'text',   label: 'Text Message',    icon: FileText,       desc: 'Shows a branded text page when scanned' },
+  { value: 'text',   label: 'Plain Text Note', icon: FileText,       desc: 'Displays a branded text page when scanned (welcome message, instructions, quote)' },
   { value: 'event',  label: 'Calendar Event',  icon: Calendar,       desc: 'Adds an event to their calendar' },
 ] as const
 
