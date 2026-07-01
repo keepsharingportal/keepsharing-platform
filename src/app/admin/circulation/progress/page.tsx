@@ -38,7 +38,8 @@ export default async function ProgressPage({ searchParams }: PageProps) {
   let focusDetail: {
     delivery: DeliveryProgressRow
     stops: Array<{
-      id: string; name: string; address: string | null; city: string | null;
+      id: string; stop_id: string; name: string; address: string | null; city: string | null;
+      zip: string | null; notes: string | null; quantities: Record<string, number> | null;
       sort_order: number; is_pickup: boolean; not_delivering: boolean;
       checked: boolean; checked_at: string | null; driver_note: string | null;
       leftovers: number; leftovers_json: Record<string, number> | null;
@@ -132,30 +133,41 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       if (focused) {
         const { data: dsRows } = await sb
           .from('circulation_delivery_stops')
-          .select('id, stop_id, checked, checked_at, driver_note, leftovers, leftovers_json, photo_urls, circulation_stops(name, address, city, sort_order, is_pickup, not_delivering)')
+          .select('id, stop_id, checked, checked_at, driver_note, leftovers, leftovers_json, photo_urls, circulation_stops(name, address, city, zip, notes, quantities, sort_order, is_pickup, not_delivering)')
           .eq('delivery_id', focus)
         type Det = {
           id: string; stop_id: string; checked: boolean; checked_at: string | null;
           driver_note: string | null; leftovers: number; leftovers_json: Record<string, number> | null;
           photo_urls: string[] | null;
-          circulation_stops?: { name: string; address: string | null; city: string | null; sort_order: number; is_pickup: boolean; not_delivering: boolean } | null;
+          circulation_stops?: {
+            name: string; address: string | null; city: string | null;
+            zip: string | null; notes: string | null; quantities: Record<string, number> | null;
+            sort_order: number; is_pickup: boolean; not_delivering: boolean;
+          } | { name: string; address: string | null; city: string | null; zip: string | null; notes: string | null; quantities: Record<string, number> | null; sort_order: number; is_pickup: boolean; not_delivering: boolean }[] | null;
         }
         const detailed = (dsRows as Det[] | null ?? [])
-          .map(d => ({
-            id:           d.id,
-            name:         d.circulation_stops?.name ?? '(stop)',
-            address:      d.circulation_stops?.address ?? null,
-            city:         d.circulation_stops?.city ?? null,
-            sort_order:   d.circulation_stops?.sort_order ?? 0,
-            is_pickup:    d.circulation_stops?.is_pickup ?? false,
-            not_delivering: d.circulation_stops?.not_delivering ?? false,
-            checked:      d.checked,
-            checked_at:   d.checked_at,
-            driver_note:  d.driver_note,
-            leftovers:    d.leftovers,
-            leftovers_json: d.leftovers_json,
-            photo_urls:   d.photo_urls ?? [],
-          }))
+          .map(d => {
+            const cs = Array.isArray(d.circulation_stops) ? d.circulation_stops[0] : d.circulation_stops
+            return {
+              id:           d.id,
+              stop_id:      d.stop_id,
+              name:         cs?.name ?? '(stop)',
+              address:      cs?.address ?? null,
+              city:         cs?.city ?? null,
+              zip:          cs?.zip ?? null,
+              notes:        cs?.notes ?? null,
+              quantities:   cs?.quantities ?? null,
+              sort_order:   cs?.sort_order ?? 0,
+              is_pickup:    cs?.is_pickup ?? false,
+              not_delivering: cs?.not_delivering ?? false,
+              checked:      d.checked,
+              checked_at:   d.checked_at,
+              driver_note:  d.driver_note,
+              leftovers:    d.leftovers,
+              leftovers_json: d.leftovers_json,
+              photo_urls:   d.photo_urls ?? [],
+            }
+          })
           .sort((a, b) => (b.is_pickup ? 1 : 0) - (a.is_pickup ? 1 : 0) || a.sort_order - b.sort_order)
         focusDetail = { delivery: focused, stops: detailed }
       }
