@@ -182,6 +182,15 @@ export async function POST(req: NextRequest) {
     suggestion_note?:  string           // for suggest-route-order
     gas_amount?:       number           // dollar amount for save-gas + submit-delivery
     pickup_load_json?: Record<string, number>  // per-pub bundle counts picked up
+    new_stops?:        Array<{           // for suggest-route-order — new stops driver wants added
+      temp_id:    string
+      name:       string
+      address?:   string
+      city?:      string
+      zip?:       string
+      notes?:     string
+      quantities?: Record<string, number>
+    }>
   } | null
   if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
 
@@ -230,10 +239,24 @@ export async function POST(req: NextRequest) {
       .eq('driver_id', driver.user_id)
       .eq('status', 'pending')
 
+    // Validate new_stops entries — every temp_id in stop_order that isn't
+    // an existing UUID must have a matching new_stops entry, and every
+    // new_stops entry must be referenced in stop_order (otherwise it'd
+    // be orphaned on approval).
+    const newStops = (body.new_stops ?? []).filter(s => s && s.temp_id && s.name?.trim())
+    const newIds = new Set(newStops.map(s => s.temp_id))
+    const orderIds = new Set(body.stop_order)
+    for (const nid of newIds) {
+      if (!orderIds.has(nid)) {
+        return NextResponse.json({ error: `New stop ${nid} not in stop_order` }, { status: 400 })
+      }
+    }
+
     const { data: inserted, error } = await sb.from('circulation_route_suggestions').insert({
       route_id:   body.route_id,
       driver_id:  driver.user_id,
       stop_order: JSON.stringify(body.stop_order),
+      new_stops:  newStops,
       status:     'pending',
       note:       body.suggestion_note ?? null,
     }).select('id').single()

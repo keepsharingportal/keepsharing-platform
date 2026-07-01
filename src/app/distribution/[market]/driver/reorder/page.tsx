@@ -62,17 +62,23 @@ export default async function DriverReorderPage({ params, searchParams }: PagePr
 
   const { data: stopsData } = await admin
     .from('circulation_stops')
-    .select('id, sort_order, name, address, city, is_pickup, not_delivering')
+    .select('id, sort_order, name, address, city, is_pickup, not_delivering, quantities')
     .eq('market', market)
     .eq('route_id', routeId!)
     .eq('active', true)
     .order('is_pickup', { ascending: false })
     .order('sort_order')
     .order('name')
-  type StopLite = { id: string; sort_order: number; name: string; address: string | null; city: string | null; is_pickup: boolean; not_delivering: boolean }
+  type StopLite = { id: string; sort_order: number; name: string; address: string | null; city: string | null; is_pickup: boolean; not_delivering: boolean; quantities?: Record<string, number> | null }
   const stops = (stopsData ?? []) as StopLite[]
   const pickup    = stops.find(s => s.is_pickup) ?? null
   const draggable = stops.filter(s => !s.is_pickup && !s.not_delivering)
+
+  // Publication keys — union across existing stops' quantities so the
+  // add-stop form can prompt for the right per-pub qty inputs.
+  const pubKeySet = new Set<string>()
+  for (const s of stops) for (const k of Object.keys(s.quantities ?? {})) pubKeySet.add(k)
+  const pubKeys = Array.from(pubKeySet).sort()
 
   // Existing pending suggestion?
   const { data: pendingRow } = await admin
@@ -89,8 +95,8 @@ export default async function DriverReorderPage({ params, searchParams }: PagePr
     <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
       <div className="page-header">
         <div>
-          <h1 className="ph-title">Suggest route order</h1>
-          <div className="text-muted text-sm">{(route as { name: string }).name}</div>
+          <h1 className="ph-title">Edit route</h1>
+          <div className="text-muted text-sm">{(route as { name: string }).name} — reorder stops or add a new one</div>
         </div>
         <div className="ph-actions">
           <Link href={`/distribution/${market}/driver/dashboard`} className="btn btn-ghost btn-sm">
@@ -116,6 +122,7 @@ export default async function DriverReorderPage({ params, searchParams }: PagePr
           market={market}
           pickup={pickup}
           draggable={draggable}
+          pubKeys={pubKeys}
         />
       </div>
     </div>

@@ -248,7 +248,7 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                       </Link>
                       {!submitted && (
                         <Link href={`/distribution/${market}/driver/reorder?route=${r.id}`} className="btn btn-ghost" style={{ textAlign: 'center', fontSize: 13 }}>
-                          ↕ Reorder route
+                          ✎ Edit route
                         </Link>
                       )}
                       <Link href={`/distribution/${market}/driver/print?route=${r.id}`} target="_blank" className="btn btn-ghost" style={{ textAlign: 'center', fontSize: 13 }}>

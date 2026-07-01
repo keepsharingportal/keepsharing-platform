@@ -148,17 +148,67 @@ export async function PATCH(req: NextRequest) {
   const client = sb()
 
   if (body.action === 'approve') {
-    // Pull the suggestion + route_id, snapshot current, apply the new order.
+    // Pull the suggestion + route_id + new_stops + stop_order, snapshot
+    // the current route, create any new stops, then apply the reorder.
     const { data: sugg } = await client
       .from('circulation_route_suggestions')
-      .select('id, route_id, suggestion')
+      .select('id, route_id, stop_order, suggestion, new_stops')
       .eq('id', body.suggestion_id)
       .maybeSingle()
     if (!sugg) return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })
-    type S = { id: string; route_id: string; suggestion: string[] }
+    type NewStop = { temp_id: string; name: string; address?: string; city?: string; zip?: string; notes?: string; quantities?: Record<string, number> }
+    type S = { id: string; route_id: string; stop_order: unknown; suggestion: unknown; new_stops: NewStop[] | null }
     const s = sugg as S
-    const ids = s.suggestion as unknown as string[]
 
+    // Prefer the newer `stop_order` field but fall back to legacy
+    // `suggestion` for pre-migration-212 rows.
+    const rawOrder = s.stop_order ?? s.suggestion
+    let ids: string[] = []
+    try {
+      ids = typeof rawOrder === 'string' ? JSON.parse(rawOrder) : (rawOrder as string[])
+    } catch { ids = [] }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'Suggestion has no ordered stops' }, { status: 400 })
+    }
+
+    // Look up the route's market — new stops need it.
+    const { data: routeRow } = await client
+      .from('circulation_routes')
+      .select('market')
+      .eq('id', s.route_id)
+      .maybeSingle()
+    const market = (routeRow as { market?: string } | null)?.market ?? 'rrp'
+
+    // Create new stops (if any) and build temp_id → real UUID map.
+    const tempToReal = new Map<string, string>()
+    for (const ns of (s.new_stops ?? [])) {
+      if (!ns.temp_id || !ns.name?.trim()) continue
+      const { data: created, error: createErr } = await client
+        .from('circulation_stops')
+        .insert({
+          market,
+          route_id:       s.route_id,
+          name:           ns.name.trim(),
+          address:        ns.address?.trim() || null,
+          city:           ns.city?.trim() || null,
+          zip:            ns.zip?.trim() || null,
+          notes:          ns.notes?.trim() || null,
+          quantities:     ns.quantities ?? {},
+          active:         true,
+          is_pickup:      false,
+          not_delivering: false,
+          sort_order:     ids.length + 1000,  // placeholder — final position set below
+        })
+        .select('id')
+        .single()
+      if (createErr) return NextResponse.json({ error: `Failed to create stop "${ns.name}": ${createErr.message}` }, { status: 500 })
+      tempToReal.set(ns.temp_id, (created as { id: string }).id)
+    }
+
+    // Substitute temp_ids in the order with real UUIDs.
+    const finalOrder = ids.map(id => tempToReal.get(id) ?? id)
+
+    // Snapshot BEFORE writing the new order so admin can restore.
     const { data: prior } = await client
       .from('circulation_stops')
       .select('id, sort_order, name')
@@ -172,11 +222,14 @@ export async function PATCH(req: NextRequest) {
       })
     }
 
-    for (let i = 0; i < ids.length; i++) {
-      await client.from('circulation_stops').update({ sort_order: i }).eq('id', ids[i]).eq('route_id', s.route_id)
+    // Apply the new order.
+    for (let i = 0; i < finalOrder.length; i++) {
+      await client.from('circulation_stops').update({ sort_order: i }).eq('id', finalOrder[i]).eq('route_id', s.route_id)
     }
-    await client.from('circulation_route_suggestions').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', body.suggestion_id)
-    return NextResponse.json({ ok: true })
+    await client.from('circulation_route_suggestions')
+      .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+      .eq('id', body.suggestion_id)
+    return NextResponse.json({ ok: true, new_stops_created: tempToReal.size })
   }
 
   // Reject
