@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
   const [routesRes, stopsRes, delivRes] = await Promise.all([
     sb.from('circulation_routes').select('id, name, city').in('id', routeIds).order('sort_order').order('name'),
     sb.from('circulation_stops').select('*').in('route_id', routeIds).eq('active', true).order('sort_order'),
-    sb.from('circulation_deliveries').select('id, route_id').in('route_id', routeIds).eq('driver_id', driver.user_id).eq('month', month),
+    sb.from('circulation_deliveries').select('id, route_id, status, gas_amount, gas_receipt_url, pickup_load_json').in('route_id', routeIds).eq('driver_id', driver.user_id).eq('month', month),
   ])
 
   // Lazily create delivery rows for every route the driver owns this month.
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
   const deliveryIds = Array.from(existingByRoute.values())
   const { data: existingStops } = await sb
     .from('circulation_delivery_stops')
-    .select('id, delivery_id, stop_id, checked, checked_at, notes, flag, flag_note')
+    .select('id, delivery_id, stop_id, checked, checked_at, notes, driver_note, leftovers, leftovers_json, flag, flag_note, photo_urls')
     .in('delivery_id', deliveryIds)
 
   const haveByPair = new Set((existingStops ?? []).map(r => `${r.delivery_id}:${r.stop_id}`))
@@ -125,15 +125,33 @@ export async function GET(req: NextRequest) {
   // Re-pull (now complete) delivery_stops
   const { data: finalDeliveryStops } = await sb
     .from('circulation_delivery_stops')
-    .select('id, delivery_id, stop_id, checked, checked_at, notes, flag, flag_note')
+    .select('id, delivery_id, stop_id, checked, checked_at, notes, driver_note, leftovers, leftovers_json, flag, flag_note, photo_urls')
     .in('delivery_id', deliveryIds)
+
+  // Enrich delivery entries with status + gas + pickup_load so the client
+  // can prefill the invoice sheet and pickup-load sheet without an extra
+  // roundtrip. Falls back to defaults for lazily-created deliveries that
+  // don't yet have these fields populated.
+  type DelSelect = { id: string; route_id: string; status?: string | null; gas_amount?: number | null; gas_receipt_url?: string | null; pickup_load_json?: Record<string, number> | null }
+  const delByRoute = new Map<string, DelSelect>()
+  for (const d of ((delivRes.data ?? []) as DelSelect[])) delByRoute.set(d.route_id, d)
 
   return NextResponse.json({
     driver,
     month,
     routes:         routesRes.data ?? [],
     stops:          stopsRes.data ?? [],
-    deliveries:     Array.from(existingByRoute.entries()).map(([routeId, id]) => ({ id, route_id: routeId })),
+    deliveries:     Array.from(existingByRoute.entries()).map(([routeId, id]) => {
+      const extra = delByRoute.get(routeId)
+      return {
+        id,
+        route_id:          routeId,
+        status:            extra?.status ?? 'draft',
+        gas_amount:        extra?.gas_amount ?? null,
+        gas_receipt_url:   extra?.gas_receipt_url ?? null,
+        pickup_load_json:  extra?.pickup_load_json ?? {},
+      }
+    }),
     deliveryStops:  finalDeliveryStops ?? [],
   })
 }
@@ -147,7 +165,7 @@ export async function POST(req: NextRequest) {
   if (!driver) return NextResponse.json({ error: 'Not a driver' }, { status: 403 })
 
   const body = await req.json().catch(() => null) as {
-    action?:           'submit-delivery' | 'submit-all' | 'suggest-route-order'
+    action?:           'submit-delivery' | 'submit-all' | 'suggest-route-order' | 'save-pickup-load' | 'save-gas'
     delivery_id?:      string
     delivery_stop_id?: string
     checked?:          boolean
@@ -162,8 +180,32 @@ export async function POST(req: NextRequest) {
     route_id?:         string           // for suggest-route-order
     stop_order?:       string[]         // for suggest-route-order — stop ids in suggested order
     suggestion_note?:  string           // for suggest-route-order
+    gas_amount?:       number           // dollar amount for save-gas + submit-delivery
+    pickup_load_json?: Record<string, number>  // per-pub bundle counts picked up
   } | null
   if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
+
+  // ── save-pickup-load: driver logs bundle counts picked up at Pubs Plus ──
+  if (body.action === 'save-pickup-load') {
+    if (!body.delivery_id) return NextResponse.json({ error: 'delivery_id required' }, { status: 400 })
+    const { data: d } = await sb.from('circulation_deliveries').select('id, driver_id, status').eq('id', body.delivery_id).maybeSingle()
+    if (!d || (d as { driver_id: string }).driver_id !== driver.user_id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if ((d as { status?: string }).status !== 'draft') return NextResponse.json({ error: 'Delivery locked' }, { status: 409 })
+    const { error } = await sb.from('circulation_deliveries').update({ pickup_load_json: body.pickup_load_json ?? {} }).eq('id', body.delivery_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  // ── save-gas: driver logs gas amount (receipt uploaded separately) ──
+  if (body.action === 'save-gas') {
+    if (!body.delivery_id) return NextResponse.json({ error: 'delivery_id required' }, { status: 400 })
+    const { data: d } = await sb.from('circulation_deliveries').select('id, driver_id, status').eq('id', body.delivery_id).maybeSingle()
+    if (!d || (d as { driver_id: string }).driver_id !== driver.user_id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if ((d as { status?: string }).status !== 'draft') return NextResponse.json({ error: 'Delivery locked' }, { status: 409 })
+    const { error } = await sb.from('circulation_deliveries').update({ gas_amount: body.gas_amount ?? null }).eq('id', body.delivery_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
 
   const sb = admin()
 

@@ -25,7 +25,7 @@ export const dynamic  = 'force-dynamic'
 
 interface PubRow      { id: string; short_name: string; name: string; abbrev: string; color_hex: string; print_total: number; holdback: number; sort_order: number }
 interface RouteRow    { id: string; name: string; active: boolean }
-interface StopRow     { route_id: string; quantities: Record<string, number> | null; active: boolean; is_pickup?: boolean | null; not_delivering?: boolean | null }
+interface StopRow     { id: string; route_id: string; quantities: Record<string, number> | null; active: boolean; is_pickup?: boolean | null; not_delivering?: boolean | null }
 interface DriverRow   { user_id: string; active: boolean }
 interface DeliveryRow { id: string; month: string; driver_id: string; route_id: string; stops_completed: number | null; pay_calculated: number | null; status: string; submitted_at: string | null; driver_name?: string; route_name?: string }
 
@@ -58,11 +58,24 @@ export default async function CirculationDashboard() {
   let pendingRequests = 0
   let pendingInvoices = 0
 
+  // Low performers: stops with the highest cumulative leftover copies
+  // across the last 90 days of submitted/paid deliveries. Waste % =
+  // leftovers / total copies dropped. Anything > 20% is worth reviewing.
+  let lowPerformers: Array<{
+    stop_id:   string
+    stop_name: string
+    address:   string | null
+    route_name: string
+    dropped:   number       // total copies expected to be delivered
+    leftover:  number       // total returned unused
+    wastePct:  number       // 0-100
+  }> = []
+
   try {
     const [pubsRes, routesRes, stopsRes, driversRes, cReqRes, lReqRes, invRes, delRes] = await Promise.all([
       sb.from('circulation_publications').select('id, short_name, name, abbrev, color_hex, print_total, holdback, sort_order').order('sort_order'),
       sb.from('circulation_routes').select('id, name, active').eq('market', dbKey).order('name'),
-      sb.from('circulation_stops').select('route_id, quantities, active, is_pickup, not_delivering').eq('market', dbKey),
+      sb.from('circulation_stops').select('id, route_id, quantities, active, is_pickup, not_delivering').eq('market', dbKey),
       sb.from('circulation_drivers').select('user_id, active').eq('market', dbKey),
       sb.from('circulation_change_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
       sb.from('circulation_location_requests').select('id', { count: 'exact', head: true }).eq('market', dbKey).eq('status', 'pending'),
@@ -101,6 +114,63 @@ export default async function CirculationDashboard() {
       driver_name: driverNameMap.get(r.driver_id) ?? '(driver)',
       route_name:  r.circulation_routes?.name ?? '(route)',
     }))
+
+    // Low performers — leftovers rolled up per stop over the past
+    // ~90 days. We use a rough date filter (last 3 month strings) then
+    // aggregate client-side in JS so we don't need a Postgres function.
+    const monthCodes: string[] = []
+    const now = new Date()
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      monthCodes.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    }
+    const { data: recentDelsForLP } = await sb
+      .from('circulation_deliveries')
+      .select('id')
+      .eq('market', dbKey)
+      .in('month', monthCodes)
+      .in('status', ['submitted', 'paid'])
+    const delIds = ((recentDelsForLP ?? []) as Array<{ id: string }>).map(r => r.id)
+    if (delIds.length > 0) {
+      const { data: lpStops } = await sb
+        .from('circulation_delivery_stops')
+        .select('stop_id, leftovers, circulation_stops(id, name, address, route_id)')
+        .in('delivery_id', delIds)
+        .gt('leftovers', 0)
+      type LPRow = { stop_id: string; leftovers: number; circulation_stops?: { id: string; name: string; address: string | null; route_id: string } | { id: string; name: string; address: string | null; route_id: string }[] | null }
+      const agg = new Map<string, { name: string; address: string | null; route_id: string; leftover: number; dropped: number }>()
+      for (const row of ((lpStops ?? []) as unknown as LPRow[])) {
+        const s = Array.isArray(row.circulation_stops) ? row.circulation_stops[0] : row.circulation_stops
+        if (!s) continue
+        const cur = agg.get(s.id) ?? { name: s.name, address: s.address, route_id: s.route_id, leftover: 0, dropped: 0 }
+        cur.leftover += row.leftovers ?? 0
+        agg.set(s.id, cur)
+      }
+      // Compute total dropped per stop across all its quantities × number of runs.
+      const dropByStop = new Map<string, number>()
+      for (const s of stops) {
+        if (!s.active || s.is_pickup || s.not_delivering) continue
+        const totalQty = Object.values(s.quantities ?? {}).reduce((sum: number, v) => sum + (typeof v === 'number' ? v : 0), 0)
+        dropByStop.set(s.id, totalQty)
+      }
+      const routeNameById = new Map(routes.map(r => [r.id, r.name]))
+      lowPerformers = Array.from(agg.entries()).map(([stopId, v]) => {
+        const dropPerRun = dropByStop.get(stopId) ?? 0
+        const dropped = dropPerRun * monthCodes.length
+        const wastePct = dropped > 0 ? Math.round((v.leftover / dropped) * 100) : 100
+        return {
+          stop_id:    stopId,
+          stop_name:  v.name,
+          address:    v.address,
+          route_name: routeNameById.get(v.route_id) ?? '(route)',
+          dropped,
+          leftover:   v.leftover,
+          wastePct,
+        }
+      })
+      .sort((a, b) => (b.wastePct - a.wastePct) || (b.leftover - a.leftover))
+      .slice(0, 8)
+    }
   } catch { tableMissing = true }
 
   // ── Aggregations matching admin/index.php ──────────────────────────────
@@ -307,6 +377,52 @@ export default async function CirculationDashboard() {
             )}
           </div>
         </div>
+
+        {/* ── Low performers — stops with the highest leftover % over
+             the last 3 months. Directly maps to the v3 admin/index.php
+             "Low Performers" widget. Actionable: if a stop keeps
+             returning half its drop, cut the qty or pause it. ── */}
+        {lowPerformers.length > 0 && (
+          <div className="card" style={{ marginTop: 18 }}>
+            <div className="card-header">
+              <span className="card-title">Low performers — high leftover stops</span>
+              <span className="text-muted text-sm">Last 3 months</span>
+            </div>
+            <p className="text-sub text-sm" style={{ marginBottom: 12 }}>
+              Stops that keep returning unused copies. Cut the qty or pause them so budget goes to routes that move.
+            </p>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Stop</th>
+                  <th>Route</th>
+                  <th style={{ textAlign: 'right' }}>Dropped</th>
+                  <th style={{ textAlign: 'right' }}>Leftover</th>
+                  <th style={{ textAlign: 'right' }}>Waste %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lowPerformers.map(lp => {
+                  const sev = lp.wastePct >= 50 ? 'badge-red' : lp.wastePct >= 25 ? 'badge-amber' : 'badge-gray'
+                  return (
+                    <tr key={lp.stop_id}>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{lp.stop_name}</div>
+                        {lp.address && <div className="text-sub text-xs">{lp.address}</div>}
+                      </td>
+                      <td className="text-sub text-sm">{lp.route_name}</td>
+                      <td className="mono" style={{ textAlign: 'right' }}>{lp.dropped.toLocaleString()}</td>
+                      <td className="mono" style={{ textAlign: 'right' }}>{lp.leftover.toLocaleString()}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span className={`badge ${sev}`}>{lp.wastePct}%</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* ── Importer (kept from prior build — needed for migration from
              the legacy PHP portal). Hidden when there's existing data. ── */}

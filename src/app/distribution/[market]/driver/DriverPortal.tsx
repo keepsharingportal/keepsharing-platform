@@ -41,17 +41,27 @@ interface Stop       {
   lng?:           number | null
   created_at?:    string | null
 }
-interface Delivery      { id: string; route_id: string; status?: string }
+interface Delivery      {
+  id: string
+  route_id: string
+  status?: string
+  gas_amount?: number | null
+  gas_receipt_url?: string | null
+  pickup_load_json?: Record<string, number>
+}
 interface DeliveryStop  {
-  id:          string
-  delivery_id: string
-  stop_id:     string
-  checked:     boolean
-  checked_at:  string | null
-  notes:       string | null
-  driver_note: string | null
-  flag:        string | null
-  flag_note:   string | null
+  id:             string
+  delivery_id:    string
+  stop_id:        string
+  checked:        boolean
+  checked_at:     string | null
+  notes:          string | null
+  driver_note:    string | null
+  leftovers:      number
+  leftovers_json: Record<string, number> | null
+  flag:           string | null
+  flag_note:      string | null
+  photo_urls:     string[]
 }
 interface ApiResponse {
   driver:        { user_id: string; market: string; full_name: string; rate_per_stop?: number }
@@ -92,11 +102,17 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   const [err,         setErr]         = useState<string | null>(null)
   const [activeRouteId, setActiveRouteId] = useState<string | null>(null)
   const [showMap,     setShowMap]     = useState(false)
+  const [sessionDead, setSessionDead] = useState(false)
 
-  // ── Sheets state — all three sheets share the same open/closed pattern
-  const [noteSheet, setNoteSheet] = useState<null | { dsId: string; stopName: string; text: string }>(null)
+  // ── Sheets state — the details sheet replaces the note sheet and
+  // includes leftovers + photo POD alongside the note textarea. Pickup
+  // stops open the pickup-load sheet instead. Invoice sheet gets gas
+  // fields for the whole run.
+  const [detailsSheet, setDetailsSheet] = useState<null | { dsId: string; stopId: string; stopName: string; text: string; leftovers: Record<string, number>; pubKeys: string[] }>(null)
   const [flagSheet, setFlagSheet] = useState<null | { stopId: string; deliveryStopId: string; stopName: string; type: string; detail: string; notes: string }>(null)
-  const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; submitting: boolean }>(null)
+  const [pickupSheet, setPickupSheet] = useState<null | { stopName: string; load: Record<string, number>; pubKeys: string[] }>(null)
+  const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; gasAmount: string; submitting: boolean }>(null)
+  const [scrollToId, setScrollToId] = useState<string | null>(null)
 
   // ── Toast for "Sent to Jason for review" and similar micro-feedback
   const [toast, setToast] = useState<string | null>(null)
@@ -110,11 +126,13 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   // ── Initial load ─────────────────────────────────────────────────────
   useEffect(() => {
     fetch('/api/circulation/driver')
-      .then(r => r.ok ? r.json() : Promise.reject('Failed to load'))
+      .then(async r => {
+        if (r.status === 401 || r.status === 403) { setSessionDead(true); throw new Error('session') }
+        if (!r.ok) throw new Error('Failed to load')
+        return r.json()
+      })
       .then((j: ApiResponse) => {
         setData(j)
-        // Prefer ?route=<id> from the URL (dashboard links pass it) then
-        // fall back to the first route in the assignment list.
         const urlRoute = new URLSearchParams(window.location.search).get('route')
         if (urlRoute && j.routes.some(r => r.id === urlRoute)) {
           setActiveRouteId(urlRoute)
@@ -122,8 +140,40 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
           setActiveRouteId(j.routes[0].id)
         }
       })
-      .catch(e => setErr(typeof e === 'string' ? e : 'Could not load'))
+      .catch(e => { if (e?.message !== 'session') setErr(typeof e === 'string' ? e : 'Could not load') })
   }, [])
+
+  // ── Session keepalive — poll every 5 min. If the server tells us
+  //    we're no longer authenticated (403), show the reconnect banner.
+  //    Matches v3 driver/index.php's ping-every-5-minutes behavior.
+  useEffect(() => {
+    const iv = setInterval(async () => {
+      try {
+        const r = await fetch('/api/circulation/driver?ping=1', { cache: 'no-store' })
+        if (r.status === 401 || r.status === 403) setSessionDead(true)
+      } catch { /* offline — leave state alone */ }
+    }, 5 * 60 * 1000)
+    return () => clearInterval(iv)
+  }, [])
+
+  // ── Map-marker click scrolls the corresponding stop card into view.
+  //    Uses smooth-scroll with 'center' block so the card ends up mid-
+  //    screen with a brief pulse highlight the driver can spot.
+  useEffect(() => {
+    if (!scrollToId) return
+    const el = document.getElementById(`stop-card-${scrollToId}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.style.transition = 'box-shadow 0.4s ease'
+      el.style.boxShadow = '0 0 0 4px #1A5FA8, 0 1px 4px rgba(0,0,0,.06)'
+      const timer = setTimeout(() => {
+        el.style.boxShadow = '0 1px 4px rgba(0,0,0,.06)'
+        setScrollToId(null)
+      }, 900)
+      return () => clearTimeout(timer)
+    }
+    setScrollToId(null)
+  }, [scrollToId])
 
   // ── Derived view for the active route ────────────────────────────────
   const view = useMemo(() => {
@@ -175,17 +225,70 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
     }).catch(() => {})
   }
 
-  async function saveNote() {
-    if (!noteSheet) return
-    const dsId = noteSheet.dsId
-    const text = noteSheet.text.trim()
-    patchDeliveryStop(dsId, { driver_note: text || null })
+  // Save the stop details sheet: note + per-pub leftovers. Photos upload
+  // instantly on selection so we don't need to persist them here.
+  async function saveDetails() {
+    if (!detailsSheet) return
+    const dsId = detailsSheet.dsId
+    const text = detailsSheet.text.trim()
+    const leftoversJson = Object.fromEntries(
+      Object.entries(detailsSheet.leftovers).filter(([, v]) => v > 0),
+    )
+    const leftoversTotal = Object.values(leftoversJson).reduce((s, v) => s + v, 0)
+    patchDeliveryStop(dsId, { driver_note: text || null, leftovers: leftoversTotal, leftovers_json: leftoversJson })
     await fetch('/api/circulation/driver', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ delivery_stop_id: dsId, driver_note: text }),
+      body:    JSON.stringify({
+        delivery_stop_id: dsId,
+        driver_note:      text,
+        leftovers:        leftoversTotal,
+        leftovers_json:   leftoversJson,
+      }),
     }).catch(() => {})
-    setNoteSheet(null)
+    setDetailsSheet(null)
+  }
+
+  // Upload a stop photo. Fires as soon as the file input changes.
+  async function uploadStopPhoto(dsId: string, file: File): Promise<string | null> {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', 'stop-photo')
+    form.append('ref', JSON.stringify({ deliveryStopId: dsId }))
+    const res = await fetch('/api/circulation/driver/upload', { method: 'POST', body: form })
+    if (!res.ok) { flashToast('Photo upload failed'); return null }
+    const j = await res.json() as { url: string }
+    patchDeliveryStop(dsId, {
+      photo_urls: [...(data?.deliveryStops.find(x => x.id === dsId)?.photo_urls ?? []), j.url],
+    })
+    return j.url
+  }
+
+  async function removeStopPhoto(dsId: string, url: string) {
+    await fetch('/api/circulation/driver/upload', {
+      method:  'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ url, kind: 'stop-photo', ref: { deliveryStopId: dsId } }),
+    })
+    patchDeliveryStop(dsId, {
+      photo_urls: (data?.deliveryStops.find(x => x.id === dsId)?.photo_urls ?? []).filter(u => u !== url),
+    })
+  }
+
+  async function savePickupLoad() {
+    if (!pickupSheet || !view) return
+    const cleaned = Object.fromEntries(Object.entries(pickupSheet.load).filter(([, v]) => v > 0))
+    await fetch('/api/circulation/driver', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'save-pickup-load', delivery_id: view.deliveryId, pickup_load_json: cleaned }),
+    })
+    setData(prev => prev ? ({
+      ...prev,
+      deliveries: prev.deliveries.map(d => d.id === view.deliveryId ? { ...d, pickup_load_json: cleaned } : d),
+    }) : prev)
+    setPickupSheet(null)
+    flashToast('Load count saved')
   }
 
   async function sendFlag() {
@@ -207,6 +310,17 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
     if (!invoiceSheet || !view) return
     setInvoiceSheet({ ...invoiceSheet, submitting: true })
     try {
+      // Persist gas amount first if the driver typed one — the submit
+      // step reads it off the delivery, so it needs to be saved before
+      // we flip status to 'submitted' (which locks the row).
+      const gas = parseFloat(invoiceSheet.gasAmount)
+      if (!Number.isNaN(gas) && gas >= 0) {
+        await fetch('/api/circulation/driver', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ action: 'save-gas', delivery_id: view.deliveryId, gas_amount: gas }),
+        })
+      }
       const res = await fetch('/api/circulation/driver', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -217,7 +331,6 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
         }),
       })
       if (!res.ok) throw new Error('Submit failed')
-      // Refresh — status will flip to 'submitted' and the UI will lock.
       const refresh = await fetch('/api/circulation/driver').then(r => r.json() as Promise<ApiResponse>)
       setData(refresh)
       setInvoiceSheet(null)
@@ -226,6 +339,22 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
       setInvoiceSheet(invoiceSheet ? { ...invoiceSheet, submitting: false } : null)
       flashToast('Submit failed — try again')
     }
+  }
+
+  async function uploadGasReceipt(file: File) {
+    if (!view) return
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', 'gas-receipt')
+    form.append('ref', JSON.stringify({ deliveryId: view.deliveryId }))
+    const res = await fetch('/api/circulation/driver/upload', { method: 'POST', body: form })
+    if (!res.ok) { flashToast('Receipt upload failed'); return }
+    const j = await res.json() as { url: string }
+    setData(prev => prev ? ({
+      ...prev,
+      deliveries: prev.deliveries.map(d => d.id === view.deliveryId ? { ...d, gas_receipt_url: j.url } : d),
+    }) : prev)
+    flashToast('Receipt uploaded')
   }
 
   async function signOut() {
@@ -255,6 +384,19 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 
   return (
     <div style={outerStyle}>
+      {sessionDead && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
+          background: '#DC2626', color: 'white', padding: '12px 16px', textAlign: 'center',
+          fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+        }}>
+          Session expired.{' '}
+          <a href="/distribution/login" style={{ color: 'white', textDecoration: 'underline', marginLeft: 4 }}>
+            Sign in again
+          </a>{' '}
+          to keep working.
+        </div>
+      )}
       <div style={appStyle}>
 
         {/* ── Top bar ─────────────────────────────────────── */}
@@ -300,7 +442,14 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
         </div>
 
         {/* ── Mini map (lazy) ─────────────────────────────── */}
-        {showMap && <MiniMap stops={view.stops} byStop={view.byStop} onClose={() => setShowMap(false)} />}
+        {showMap && (
+          <MiniMap
+            stops={view.stops}
+            byStop={view.byStop}
+            onClose={() => setShowMap(false)}
+            onStopClick={(id) => { setShowMap(false); setScrollToId(id) }}
+          />
+        )}
 
         {/* ── Route tabs (multi-route) ────────────────────── */}
         {data.routes.length > 1 && (
@@ -340,6 +489,9 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             const isDone   = !isPickup && !isPaused && !!ds.checked
             const isNew    = !isPickup && !isPaused && !!stop.created_at && stop.created_at.substring(0, 7) === CURRENT_YM
             const locked   = view.submitted
+            const pubKeys  = stop.quantities ? Object.keys(stop.quantities).sort() : []
+            const leftoversNow = (ds.leftovers_json ?? {}) as Record<string, number>
+            const leftoversTotal = Object.values(leftoversNow).reduce((s, v) => s + v, 0)
 
             const borderCol = isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : '#E2E8F0'
             const cardStyle: React.CSSProperties = {
@@ -357,15 +509,34 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             }
 
             return (
-              <div key={stop.id} style={cardStyle}>
-                {/* Check area — 64px wide tap target */}
+              <div key={stop.id} id={`stop-card-${stop.id}`} style={cardStyle}>
+                {/* Check area — 64px wide tap target. On PICKUP stops the
+                    tap opens the load-count sheet instead of toggling
+                    a checkbox (there's nothing to check off). */}
                 <button
-                  onClick={() => !isPickup && !isPaused && !locked && toggleCheck(ds)}
-                  disabled={isPickup || isPaused || locked}
+                  onClick={() => {
+                    if (locked) return
+                    if (isPickup) {
+                      const load = (view.stops.filter(s => !s.is_pickup && !s.not_delivering)
+                        .reduce((acc, s) => {
+                          for (const k of Object.keys(s.quantities ?? {})) {
+                            acc[k] = (acc[k] ?? 0) + (s.quantities?.[k] ?? 0)
+                          }
+                          return acc
+                        }, {} as Record<string, number>))
+                      const loadKeys = Object.keys(load).sort()
+                      const currentLoad = (data.deliveries.find(d => d.route_id === activeRouteId)?.pickup_load_json ?? {}) as Record<string, number>
+                      setPickupSheet({ stopName: stop.name, load: { ...load, ...currentLoad }, pubKeys: loadKeys })
+                      return
+                    }
+                    if (isPaused) return
+                    toggleCheck(ds)
+                  }}
+                  disabled={isPaused || locked}
                   style={{
                     width: 64, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '16px 0', background: 'transparent', border: 'none',
-                    cursor: (isPickup || isPaused || locked) ? 'default' : 'pointer',
+                    cursor: (isPaused || locked) ? 'default' : 'pointer',
                   }}
                 >
                   <div style={{
@@ -421,6 +592,19 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                       📌 {stop.notes}
                     </div>
                   )}
+                  {/* Leftover + photo indicators — inline, so the driver
+                      knows what they logged without having to open the
+                      details sheet again. */}
+                  {(leftoversTotal > 0 || (ds.photo_urls?.length ?? 0) > 0) && !isPickup && !isPaused && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 11, color: '#64748B', flexWrap: 'wrap' }}>
+                      {leftoversTotal > 0 && (
+                        <span>📦 {leftoversTotal} leftover ({Object.entries(leftoversNow).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')})</span>
+                      )}
+                      {(ds.photo_urls?.length ?? 0) > 0 && (
+                        <span>📸 {ds.photo_urls.length} photo{ds.photo_urls.length === 1 ? '' : 's'}</span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Publication pills + pickup/paused badges */}
                   <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
@@ -458,13 +642,21 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                   )}
                 </div>
 
-                {/* Actions (note + flag) — only for deliverable stops on unsubmitted routes */}
+                {/* Actions (details + flag) — only for deliverable stops on unsubmitted routes.
+                    The details icon now opens a combined sheet with note + leftovers + photos. */}
                 {!isPickup && !isPaused && !locked && (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 12px 10px 2px', gap: 8, flexShrink: 0 }}>
                     <button
-                      onClick={() => setNoteSheet({ dsId: ds.id, stopName: stop.name, text: ds.driver_note ?? '' })}
+                      onClick={() => setDetailsSheet({
+                        dsId: ds.id,
+                        stopId: stop.id,
+                        stopName: stop.name,
+                        text: ds.driver_note ?? '',
+                        leftovers: leftoversNow,
+                        pubKeys,
+                      })}
                       style={actBtnStyle}
-                      title="Add note"
+                      title="Details, leftovers, photo"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                         <path d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
@@ -513,7 +705,10 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                 </div>
               </div>
               <button
-                onClick={() => setInvoiceSheet({ notes: '', submitting: false })}
+                onClick={() => {
+                  const del = data.deliveries.find(d => d.id === view.deliveryId)
+                  setInvoiceSheet({ notes: '', gasAmount: del?.gas_amount != null ? String(del.gas_amount) : '', submitting: false })
+                }}
                 disabled={doneCount === 0}
                 style={{
                   width: '100%', padding: 16,
@@ -547,18 +742,120 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 
       {/* ── Sheets ────────────────────────────────────────── */}
 
-      {noteSheet && (
-        <Sheet onClose={() => setNoteSheet(null)} title={noteSheet.stopName}>
-          <textarea
-            value={noteSheet.text}
-            onChange={e => setNoteSheet({ ...noteSheet, text: e.target.value })}
-            placeholder="e.g. Left with manager, near entrance…"
-            style={sheetTextareaStyle}
-            autoFocus
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button onClick={saveNote} style={sheetSaveStyle}>Save</button>
-            <button onClick={() => setNoteSheet(null)} style={sheetCancelStyle}>Cancel</button>
+      {detailsSheet && (() => {
+        const ds = data.deliveryStops.find(x => x.id === detailsSheet.dsId)
+        const photos = ds?.photo_urls ?? []
+        return (
+          <Sheet onClose={() => setDetailsSheet(null)} title={detailsSheet.stopName}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>
+              Note for this stop
+            </div>
+            <textarea
+              value={detailsSheet.text}
+              onChange={e => setDetailsSheet({ ...detailsSheet, text: e.target.value })}
+              placeholder="e.g. Left with manager, near entrance…"
+              style={sheetTextareaStyle}
+              autoFocus
+            />
+
+            {/* Leftovers per publication */}
+            {detailsSheet.pubKeys.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>
+                  Leftovers per publication
+                </div>
+                <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>How many copies came back unused?</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {detailsSheet.pubKeys.map(pub => (
+                    <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1E293B' }}>
+                      <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        inputMode="numeric"
+                        value={detailsSheet.leftovers[pub] ?? 0}
+                        onChange={e => setDetailsSheet({
+                          ...detailsSheet,
+                          leftovers: { ...detailsSheet.leftovers, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
+                        })}
+                        style={{ width: 60, padding: '6px 8px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit' }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Photo POD */}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>
+                Proof-of-delivery photos
+              </div>
+              <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>Snap a photo of where you left the copies.</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {photos.map(url => (
+                  <div key={url} style={{ position: 'relative' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="POD" style={{ width: 68, height: 68, objectFit: 'cover', borderRadius: 8, border: '1px solid #E2E8F0' }} />
+                    <button
+                      onClick={() => removeStopPhoto(detailsSheet.dsId, url)}
+                      style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#DC2626', color: 'white', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label="Remove photo"
+                    >×</button>
+                  </div>
+                ))}
+                <label style={{ width: 68, height: 68, borderRadius: 8, border: '1.5px dashed #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F8FAFC' }}>
+                  <span style={{ fontSize: 24, color: '#64748B' }}>+</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const f = e.target.files?.[0]
+                      if (f) await uploadStopPhoto(detailsSheet.dsId, f)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button onClick={saveDetails} style={sheetSaveStyle}>Save</button>
+              <button onClick={() => setDetailsSheet(null)} style={sheetCancelStyle}>Cancel</button>
+            </div>
+          </Sheet>
+        )
+      })()}
+
+      {/* Pickup load sheet — driver logs how many bundles per pub picked up */}
+      {pickupSheet && (
+        <Sheet onClose={() => setPickupSheet(null)} title={`Load at ${pickupSheet.stopName}`}>
+          <div style={{ fontSize: 13, color: '#64748B', marginBottom: 10 }}>
+            How many bundles did you pick up? (Route needs about the same as last month.)
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {pickupSheet.pubKeys.map(pub => (
+              <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#1E293B' }}>
+                <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+                <input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={pickupSheet.load[pub] ?? 0}
+                  onChange={e => setPickupSheet({
+                    ...pickupSheet,
+                    load: { ...pickupSheet.load, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
+                  })}
+                  style={{ width: 80, padding: '8px 10px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 15, fontFamily: 'inherit' }}
+                />
+              </label>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button onClick={savePickupLoad} style={sheetSaveStyle}>Save load count</button>
+            <button onClick={() => setPickupSheet(null)} style={sheetCancelStyle}>Cancel</button>
           </div>
         </Sheet>
       )}
@@ -601,38 +898,92 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
         </Sheet>
       )}
 
-      {invoiceSheet && (
-        <Sheet onClose={() => setInvoiceSheet(null)} title="Submit invoice">
-          <div style={{ background: '#F8FAFC', borderRadius: 10, padding: '12px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: 12, color: '#64748B' }}>Stops</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{doneCount}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, color: '#64748B' }}>Payout</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#16A34A', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
-                ${earnings.toFixed(2)}
+      {invoiceSheet && (() => {
+        const del = data.deliveries.find(d => d.id === view.deliveryId)
+        const gasNum = parseFloat(invoiceSheet.gasAmount)
+        const gasVal = Number.isNaN(gasNum) ? 0 : gasNum
+        const totalWithGas = earnings + gasVal
+        return (
+          <Sheet onClose={() => setInvoiceSheet(null)} title="Submit invoice">
+            <div style={{ background: '#F8FAFC', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                <span style={{ color: '#64748B' }}>Stops delivered</span>
+                <span>{doneCount} × ${rate.toFixed(2)} = ${earnings.toFixed(2)}</span>
+              </div>
+              {gasVal > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                  <span style={{ color: '#64748B' }}>Gas expense</span>
+                  <span>${gasVal.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: 8, marginTop: 4, fontWeight: 700, fontSize: 15 }}>
+                <span>Total payout</span>
+                <span style={{ color: '#16A34A', fontFamily: '"DM Mono", ui-monospace, monospace' }}>${totalWithGas.toFixed(2)}</span>
               </div>
             </div>
-          </div>
-          <textarea
-            value={invoiceSheet.notes}
-            onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
-            placeholder="Notes for Jason (optional)…"
-            style={{ ...sheetTextareaStyle, height: 70 }}
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button
-              onClick={submitInvoice}
-              disabled={invoiceSheet.submitting}
-              style={sheetSaveStyle}
-            >
-              {invoiceSheet.submitting ? 'Submitting…' : 'Confirm & submit'}
-            </button>
-            <button onClick={() => setInvoiceSheet(null)} style={sheetCancelStyle}>Cancel</button>
-          </div>
-        </Sheet>
-      )}
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>
+                Gas / fuel this run <span style={{ fontWeight: 400, color: '#94A3B8', textTransform: 'none' }}>(optional)</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: '0 0 auto' }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: 15, fontFamily: '"DM Mono", ui-monospace, monospace' }}>$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    inputMode="decimal"
+                    value={invoiceSheet.gasAmount}
+                    onChange={e => setInvoiceSheet({ ...invoiceSheet, gasAmount: e.target.value })}
+                    placeholder="0.00"
+                    style={{ width: 120, padding: '10px 10px 10px 22px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 15, fontFamily: '"DM Mono", ui-monospace, monospace' }}
+                  />
+                </div>
+                <label style={{
+                  padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 8,
+                  fontSize: 13, fontWeight: 600, color: '#1E293B', background: 'white',
+                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
+                }}>
+                  {del?.gas_receipt_url ? '📸 Replace receipt' : '📸 Add receipt photo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const f = e.target.files?.[0]
+                      if (f) await uploadGasReceipt(f)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                {del?.gas_receipt_url && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={del.gas_receipt_url} alt="Receipt" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #E2E8F0' }} />
+                )}
+              </div>
+            </div>
+
+            <textarea
+              value={invoiceSheet.notes}
+              onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
+              placeholder="Notes for Jason (optional)…"
+              style={{ ...sheetTextareaStyle, height: 70 }}
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button
+                onClick={submitInvoice}
+                disabled={invoiceSheet.submitting}
+                style={sheetSaveStyle}
+              >
+                {invoiceSheet.submitting ? 'Submitting…' : 'Confirm & submit'}
+              </button>
+              <button onClick={() => setInvoiceSheet(null)} style={sheetCancelStyle}>Cancel</button>
+            </div>
+          </Sheet>
+        )
+      })()}
     </div>
   )
 }
@@ -640,12 +991,17 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 // ── Mini map ───────────────────────────────────────────────────────────
 // Google Maps embed via @vis.gl/react-google-maps — swaps out v3's Leaflet
 // implementation because the rest of the portal already uses Google Maps.
-function MiniMap({ stops, byStop, onClose }: { stops: Stop[]; byStop: Map<string, DeliveryStop>; onClose: () => void }) {
+function MiniMap({ stops, byStop, onClose, onStopClick }: {
+  stops: Stop[]
+  byStop: Map<string, DeliveryStop>
+  onClose: () => void
+  onStopClick: (stopId: string) => void
+}) {
   const [loaded, setLoaded] = useState(false)
   useEffect(() => { setLoaded(true) }, [])
   return (
     <div style={{ height: 240, position: 'relative', flexShrink: 0, borderBottom: '2px solid rgba(255,255,255,.1)' }}>
-      {loaded && <MapInline stops={stops} byStop={byStop} />}
+      {loaded && <MapInline stops={stops} byStop={byStop} onStopClick={onStopClick} />}
       <button onClick={onClose} style={{ position: 'absolute', top: 8, right: 8, zIndex: 500, background: 'white', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
         ✕ Close map
       </button>
@@ -653,9 +1009,7 @@ function MiniMap({ stops, byStop, onClose }: { stops: Stop[]; byStop: Map<string
   )
 }
 
-// Split out so the Google Maps package only bundles when the driver
-// actually opens the map. Inlines the API key check.
-function MapInline({ stops, byStop }: { stops: Stop[]; byStop: Map<string, DeliveryStop> }) {
+function MapInline({ stops, byStop, onStopClick }: { stops: Stop[]; byStop: Map<string, DeliveryStop>; onStopClick: (id: string) => void }) {
   const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   const withCoords = stops.filter(s => s.lat != null && s.lng != null)
 
@@ -669,18 +1023,19 @@ function MapInline({ stops, byStop }: { stops: Stop[]; byStop: Map<string, Deliv
       No geocoded stops on this route
     </div>
   }
-
-  // Dynamic import so the map package doesn't bloat the initial checklist.
-  // Handled by a wrapper component below.
-  return <MiniMapDynamic stops={withCoords} byStop={byStop} apiKey={GOOGLE_MAPS_KEY} />
+  return <MiniMapDynamic stops={withCoords} byStop={byStop} apiKey={GOOGLE_MAPS_KEY} onStopClick={onStopClick} />
 }
 
-// Wrapper — imports the @vis.gl package lazily.
-function MiniMapDynamic({ stops, byStop, apiKey }: { stops: Stop[]; byStop: Map<string, DeliveryStop>; apiKey: string }) {
+function MiniMapDynamic({ stops, byStop, apiKey, onStopClick }: {
+  stops: Stop[]
+  byStop: Map<string, DeliveryStop>
+  apiKey: string
+  onStopClick: (id: string) => void
+}) {
   const [Pkg, setPkg] = useState<null | {
     APIProvider: React.ComponentType<{ apiKey: string; children: React.ReactNode }>
     Map: React.ComponentType<{ mapId?: string; defaultCenter: { lat: number; lng: number }; defaultZoom: number; style: React.CSSProperties; children: React.ReactNode }>
-    AdvancedMarker: React.ComponentType<{ position: { lat: number; lng: number }; children: React.ReactNode }>
+    AdvancedMarker: React.ComponentType<{ position: { lat: number; lng: number }; onClick?: () => void; children: React.ReactNode }>
   }>(null)
 
   useEffect(() => {
@@ -701,8 +1056,8 @@ function MiniMapDynamic({ stops, byStop, apiKey }: { stops: Stop[]; byStop: Map<
           const isPickup = !!s.is_pickup
           const color = isPickup ? '#1A5FA8' : isDone ? '#16A34A' : '#0F2640'
           return (
-            <AdvancedMarker key={s.id} position={{ lat: s.lat!, lng: s.lng! }}>
-              <div style={{ width: 16, height: 16, borderRadius: '50%', background: color, border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,.3)' }} />
+            <AdvancedMarker key={s.id} position={{ lat: s.lat!, lng: s.lng! }} onClick={() => onStopClick(s.id)}>
+              <div title={s.name} style={{ width: 18, height: 18, borderRadius: '50%', background: color, border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,.3)', cursor: 'pointer' }} />
             </AdvancedMarker>
           )
         })}

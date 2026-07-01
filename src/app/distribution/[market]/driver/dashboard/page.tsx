@@ -148,7 +148,7 @@ export default async function DriverDashboardPage({ params }: PageProps) {
 
       <div className="page-header">
         <div>
-          <h1 className="ph-title">My routes</h1>
+          <h1 className="ph-title">Driver&apos;s Dashboard</h1>
           <div className="text-muted text-sm">{monthLabel} · {firstName}</div>
         </div>
       </div>

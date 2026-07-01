@@ -19,6 +19,9 @@ export interface DeliveryProgressRow {
   submitted_at:     string | null
   paid_at:          string | null
   month:            string
+  gas_amount:       number | null
+  gas_receipt_url:  string | null
+  pickup_load_json: Record<string, number> | null
 }
 
 interface FocusStop {
@@ -34,6 +37,7 @@ interface FocusStop {
   driver_note:    string | null
   leftovers:      number
   leftovers_json: Record<string, number> | null
+  photo_urls:     string[]
 }
 
 interface Props {
@@ -133,6 +137,19 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
             </span>
             {d.submitted_at && <span>Submitted {new Date(d.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
             {d.leftovers > 0 && <span className="inline-flex items-center gap-1 text-portal-amber font-semibold"><Package size={11} /> {d.leftovers} leftover</span>}
+            {d.gas_amount != null && d.gas_amount > 0 && (
+              <span className="inline-flex items-center gap-1 text-portal-blue font-semibold">
+                ⛽ {fmtMoney(d.gas_amount)} gas
+                {d.gas_receipt_url && (
+                  <a href={d.gas_receipt_url} target="_blank" rel="noopener noreferrer" className="ml-1 text-portal-blue hover:underline">receipt →</a>
+                )}
+              </span>
+            )}
+            {d.pickup_load_json && Object.keys(d.pickup_load_json).length > 0 && (
+              <span className="inline-flex items-center gap-1 font-semibold">
+                📦 Loaded {Object.entries(d.pickup_load_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')}
+              </span>
+            )}
           </div>
         </div>
 
@@ -168,6 +185,16 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                           ? Object.entries(s.leftovers_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(', ')
                           : `${s.leftovers} copies`}
                       </p>
+                    )}
+                    {(s.photo_urls?.length ?? 0) > 0 && (
+                      <div className="mt-1 flex gap-1 flex-wrap">
+                        {s.photo_urls.map(url => (
+                          <a key={url} href={url} target="_blank" rel="noopener noreferrer" title="Open full size">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="POD" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 4, border: '1px solid #E2E8F0' }} />
+                          </a>
+                        ))}
+                      </div>
                     )}
                   </div>
                   {s.checked && s.checked_at && (

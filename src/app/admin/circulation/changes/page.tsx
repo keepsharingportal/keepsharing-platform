@@ -20,7 +20,10 @@ export default async function ChangesPage({ searchParams }: PageProps) {
   const market = ctx.viewingAll ? 'rrp' : ctx.activeMarket
   const region = regionForMarket(market)
   const dbKey  = region.slug
-  const filter = sp.filter === 'all' ? 'all' : 'pending'
+  const filter: 'pending' | 'all' | 'history' =
+    sp.filter === 'all' ? 'all' :
+    sp.filter === 'history' ? 'history' :
+    'pending'
 
   const sb = createAdminClient()
   let rows: ChangeRequestRow[] = []
@@ -34,9 +37,17 @@ export default async function ChangesPage({ searchParams }: PageProps) {
         circulation_drivers(full_name)
       `)
       .eq('market', dbKey)
-      .order('created_at', { ascending: false })
       .limit(200)
-    if (filter === 'pending') q = q.eq('status', 'pending')
+    if (filter === 'pending') {
+      q = q.eq('status', 'pending').order('created_at', { ascending: false })
+    } else if (filter === 'history') {
+      // Show only reviewed rows (approved / rejected) in reverse-chrono
+      // by reviewed_at so the newest decisions land at the top.
+      q = q.in('status', ['approved', 'rejected'])
+        .order('reviewed_at', { ascending: false, nullsFirst: false })
+    } else {
+      q = q.order('created_at', { ascending: false })
+    }
     const { data } = await q
 
     type Joined = ChangeRequestRow & {

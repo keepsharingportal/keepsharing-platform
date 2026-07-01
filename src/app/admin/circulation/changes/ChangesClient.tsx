@@ -24,7 +24,7 @@ export interface ChangeRequestRow {
   driver_name: string
 }
 
-interface Props { filter: 'pending' | 'all'; rows: ChangeRequestRow[] }
+interface Props { filter: 'pending' | 'all' | 'history'; rows: ChangeRequestRow[] }
 
 export function ChangesClient({ filter, rows }: Props) {
   const router = useRouter()
@@ -55,8 +55,9 @@ export function ChangesClient({ filter, rows }: Props) {
           <h1 className="ph-title">Change requests</h1>
         </div>
         <div className="ph-actions">
-          <Link href="/admin/circulation/changes?filter=pending" className={`btn btn-sm ${filter !== 'all' ? 'btn-primary' : 'btn-ghost'}`}>Pending</Link>
-          <Link href="/admin/circulation/changes?filter=all"     className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`}>All</Link>
+          <Link href="/admin/circulation/changes?filter=pending" className={`btn btn-sm ${filter === 'pending' ? 'btn-primary' : 'btn-ghost'}`}>Pending</Link>
+          <Link href="/admin/circulation/changes?filter=all"     className={`btn btn-sm ${filter === 'all'     ? 'btn-primary' : 'btn-ghost'}`}>All</Link>
+          <Link href="/admin/circulation/changes?filter=history" className={`btn btn-sm ${filter === 'history' ? 'btn-primary' : 'btn-ghost'}`}>History</Link>
         </div>
       </div>
 
@@ -64,7 +65,7 @@ export function ChangesClient({ filter, rows }: Props) {
 
         {rows.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-            <p className="text-sub">No {filter !== 'all' ? 'pending ' : ''}change requests.</p>
+            <p className="text-sub">No {filter === 'pending' ? 'pending ' : filter === 'history' ? 'reviewed ' : ''}change requests.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -115,8 +116,16 @@ export function ChangesClient({ filter, rows }: Props) {
                       </button>
                     </div>
                   ) : (
-                    <div className="text-muted text-xs">
-                      Reviewed {r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                    <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      {r.status === 'approved' ? '✓ Approved' : r.status === 'rejected' ? '✕ Rejected' : 'Reviewed'}
+                      {r.reviewed_at && (
+                        <> · {new Date(r.reviewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</>
+                      )}
+                      {r.admin_note && (
+                        <div style={{ marginTop: 4, color: 'var(--color-portal-sub)', fontStyle: 'italic' }}>
+                          Admin note: &ldquo;{r.admin_note}&rdquo;
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -41,6 +41,7 @@ export default async function DeliveriesPage({ searchParams }: PageProps) {
           id, route_id, driver_id, month, status,
           stops_completed, pay_calculated, pay_final, adjustment_note,
           submitted_at, paid_at,
+          gas_amount, gas_receipt_url, pickup_load_json,
           circulation_routes(name),
           circulation_drivers(full_name)
         `)

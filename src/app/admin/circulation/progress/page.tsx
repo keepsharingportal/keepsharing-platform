@@ -42,6 +42,7 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       sort_order: number; is_pickup: boolean; not_delivering: boolean;
       checked: boolean; checked_at: string | null; driver_note: string | null;
       leftovers: number; leftovers_json: Record<string, number> | null;
+      photo_urls: string[];
     }>
   } | null = null
 
@@ -52,6 +53,7 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       .select(`
         id, route_id, driver_id, month, status, stops_completed,
         pay_calculated, pay_final, submitted_at, paid_at,
+        gas_amount, gas_receipt_url, pickup_load_json,
         circulation_routes(name),
         circulation_drivers(full_name)
       `)
@@ -63,6 +65,8 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       id: string; route_id: string; driver_id: string; month: string; status: string;
       stops_completed: number; pay_calculated: number; pay_final: number | null;
       submitted_at: string | null; paid_at: string | null;
+      gas_amount: number | null; gas_receipt_url: string | null;
+      pickup_load_json: Record<string, number> | null;
       circulation_routes?: { name: string } | null;
       circulation_drivers?: { full_name: string } | null;
     }
@@ -94,19 +98,22 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       rows = baseRows.map(r => {
         const c = counts.get(r.id) ?? { total: 0, done: 0, leftovers: 0 }
         return {
-          id:             r.id,
-          driver_name:    r.circulation_drivers?.full_name ?? '(unknown driver)',
-          route_name:     r.circulation_routes?.name ?? '(route)',
-          status:         r.status,
-          total:          c.total,
-          done:           c.done,
-          leftovers:      c.leftovers,
-          stops_completed: r.stops_completed,
-          pay_calculated: r.pay_calculated,
-          pay_final:      r.pay_final,
-          submitted_at:   r.submitted_at,
-          paid_at:        r.paid_at,
-          month:          r.month,
+          id:               r.id,
+          driver_name:      r.circulation_drivers?.full_name ?? '(unknown driver)',
+          route_name:       r.circulation_routes?.name ?? '(route)',
+          status:           r.status,
+          total:            c.total,
+          done:             c.done,
+          leftovers:        c.leftovers,
+          stops_completed:  r.stops_completed,
+          pay_calculated:   r.pay_calculated,
+          pay_final:        r.pay_final,
+          submitted_at:     r.submitted_at,
+          paid_at:          r.paid_at,
+          month:            r.month,
+          gas_amount:       r.gas_amount,
+          gas_receipt_url:  r.gas_receipt_url,
+          pickup_load_json: r.pickup_load_json,
         }
       })
     }
@@ -125,11 +132,12 @@ export default async function ProgressPage({ searchParams }: PageProps) {
       if (focused) {
         const { data: dsRows } = await sb
           .from('circulation_delivery_stops')
-          .select('id, stop_id, checked, checked_at, driver_note, leftovers, leftovers_json, circulation_stops(name, address, city, sort_order, is_pickup, not_delivering)')
+          .select('id, stop_id, checked, checked_at, driver_note, leftovers, leftovers_json, photo_urls, circulation_stops(name, address, city, sort_order, is_pickup, not_delivering)')
           .eq('delivery_id', focus)
         type Det = {
           id: string; stop_id: string; checked: boolean; checked_at: string | null;
           driver_note: string | null; leftovers: number; leftovers_json: Record<string, number> | null;
+          photo_urls: string[] | null;
           circulation_stops?: { name: string; address: string | null; city: string | null; sort_order: number; is_pickup: boolean; not_delivering: boolean } | null;
         }
         const detailed = (dsRows as Det[] | null ?? [])
@@ -146,6 +154,7 @@ export default async function ProgressPage({ searchParams }: PageProps) {
             driver_note:  d.driver_note,
             leftovers:    d.leftovers,
             leftovers_json: d.leftovers_json,
+            photo_urls:   d.photo_urls ?? [],
           }))
           .sort((a, b) => (b.is_pickup ? 1 : 0) - (a.is_pickup ? 1 : 0) || a.sort_order - b.sort_order)
         focusDetail = { delivery: focused, stops: detailed }

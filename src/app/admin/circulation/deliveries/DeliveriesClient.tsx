@@ -21,6 +21,9 @@ export interface DeliveryRow {
   paid_at:          string | null
   driver_name:      string
   route_name:       string
+  gas_amount:       number | null
+  gas_receipt_url:  string | null
+  pickup_load_json: Record<string, number> | null
 }
 
 interface Props {
@@ -106,8 +109,10 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
                 <th>Route</th>
                 <th>Month</th>
                 <th style={{ textAlign: 'center' }}>Stops</th>
-                <th style={{ textAlign: 'right' }}>Pay</th>
-                <th>Notes</th>
+                <th style={{ textAlign: 'right' }}>Stop pay</th>
+                <th style={{ textAlign: 'right' }}>Gas</th>
+                <th style={{ textAlign: 'right' }}>Total</th>
+                <th>Extras</th>
                 <th>Status</th>
                 <th>Submitted</th>
                 <th />
@@ -115,24 +120,46 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
             </thead>
             <tbody>
               {deliveries.length === 0 && (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32, color: 'var(--color-portal-muted)' }}>
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 32, color: 'var(--color-portal-muted)' }}>
                   No deliveries for {fmtMonthLong(month)}.
                 </td></tr>
               )}
               {deliveries.map(d => {
                 const badgeCls = d.status === 'submitted' ? 'badge-amber' : d.status === 'paid' ? 'badge-green' : 'badge-gray'
-                const pay = d.pay_final ?? d.pay_calculated ?? 0
+                const stopPay  = d.pay_final ?? d.pay_calculated ?? 0
+                // gas_amount is stored as dollars (NUMERIC) — convert to
+                // whatever unit stopPay is in. fmtMoney treats input as
+                // cents, so we multiply gas dollars × 100 for the total.
+                const gasCents = d.gas_amount != null ? Math.round(Number(d.gas_amount) * 100) : 0
+                const total    = Number(stopPay) + gasCents
+                const pickupSummary = d.pickup_load_json
+                  ? Object.entries(d.pickup_load_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')
+                  : ''
                 return (
                   <tr key={d.id}>
                     <td><strong>{d.driver_name}</strong></td>
                     <td className="text-sub text-sm">{d.route_name}</td>
                     <td className="mono text-sm">{d.month}</td>
                     <td className="mono" style={{ textAlign: 'center' }}>{d.stops_completed ?? 0}</td>
-                    <td className="mono fw-700" style={{ textAlign: 'right', color: 'var(--color-portal-green)' }}>
-                      {fmtMoney(pay)}
+                    <td className="mono" style={{ textAlign: 'right' }}>
+                      {fmtMoney(stopPay)}
                     </td>
-                    <td className="text-sub" style={{ fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {d.adjustment_note ?? ''}
+                    <td className="mono" style={{ textAlign: 'right', color: gasCents > 0 ? 'var(--color-portal-text)' : 'var(--color-portal-muted)' }}>
+                      {gasCents > 0 ? (
+                        <>
+                          {fmtMoney(gasCents)}
+                          {d.gas_receipt_url && (
+                            <a href={d.gas_receipt_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 6, fontSize: 10, textDecoration: 'underline' }}>rcpt</a>
+                          )}
+                        </>
+                      ) : '—'}
+                    </td>
+                    <td className="mono fw-700" style={{ textAlign: 'right', color: 'var(--color-portal-green)' }}>
+                      {fmtMoney(total)}
+                    </td>
+                    <td className="text-sub" style={{ fontSize: 11, maxWidth: 220 }}>
+                      {pickupSummary && <div>📦 Loaded {pickupSummary}</div>}
+                      {d.adjustment_note && <div style={{ marginTop: 2 }}>{d.adjustment_note}</div>}
                     </td>
                     <td><span className={`badge ${badgeCls}`}>{d.status[0].toUpperCase() + d.status.slice(1)}</span></td>
                     <td className="text-muted" style={{ fontSize: 12 }}>

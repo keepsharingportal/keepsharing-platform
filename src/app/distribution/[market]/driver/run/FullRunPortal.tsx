@@ -19,10 +19,17 @@ interface Stop       {
   not_delivering: boolean; is_pickup?: boolean; is_advertiser?: boolean;
   notes?: string | null; lat?: number | null; lng?: number | null; created_at?: string | null;
 }
-interface Delivery      { id: string; route_id: string; status?: string }
+interface Delivery      {
+  id: string; route_id: string; status?: string;
+  gas_amount?: number | null; gas_receipt_url?: string | null;
+  pickup_load_json?: Record<string, number>;
+}
 interface DeliveryStop  {
   id: string; delivery_id: string; stop_id: string; checked: boolean; checked_at: string | null;
-  notes: string | null; driver_note: string | null; flag: string | null; flag_note: string | null;
+  notes: string | null; driver_note: string | null;
+  leftovers: number; leftovers_json: Record<string, number> | null;
+  photo_urls: string[];
+  flag: string | null; flag_note: string | null;
 }
 interface ApiResponse {
   driver:        { user_id: string; market: string; full_name: string; rate_per_stop?: number }
@@ -56,10 +63,12 @@ const CURRENT_YM = (() => {
 export function FullRunPortal({ market, driverName }: { market: string; driverName: string }) {
   const [data, setData] = useState<ApiResponse | null>(null)
   const [err,  setErr]  = useState<string | null>(null)
+  const [sessionDead, setSessionDead] = useState(false)
 
-  const [noteSheet, setNoteSheet] = useState<null | { dsId: string; stopName: string; text: string }>(null)
+  const [detailsSheet, setDetailsSheet] = useState<null | { dsId: string; stopId: string; stopName: string; text: string; leftovers: Record<string, number>; pubKeys: string[] }>(null)
   const [flagSheet, setFlagSheet] = useState<null | { stopId: string; deliveryStopId: string; stopName: string; type: string; detail: string; notes: string }>(null)
-  const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; submitting: boolean }>(null)
+  const [pickupSheet, setPickupSheet] = useState<null | { stopName: string; deliveryId: string; load: Record<string, number>; pubKeys: string[] }>(null)
+  const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; gasAmount: string; targetDeliveryId: string; submitting: boolean }>(null)
 
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -71,9 +80,23 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
 
   useEffect(() => {
     fetch('/api/circulation/driver')
-      .then(r => r.ok ? r.json() : Promise.reject('Failed to load'))
+      .then(async r => {
+        if (r.status === 401 || r.status === 403) { setSessionDead(true); throw new Error('session') }
+        if (!r.ok) throw new Error('Failed to load')
+        return r.json()
+      })
       .then((j: ApiResponse) => setData(j))
-      .catch(e => setErr(typeof e === 'string' ? e : 'Could not load'))
+      .catch(e => { if (e?.message !== 'session') setErr(typeof e === 'string' ? e : 'Could not load') })
+  }, [])
+
+  useEffect(() => {
+    const iv = setInterval(async () => {
+      try {
+        const r = await fetch('/api/circulation/driver?ping=1', { cache: 'no-store' })
+        if (r.status === 401 || r.status === 403) setSessionDead(true)
+      } catch { /* offline */ }
+    }, 5 * 60 * 1000)
+    return () => clearInterval(iv)
   }, [])
 
   const view = useMemo(() => {
@@ -130,17 +153,76 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     }).catch(() => {})
   }
 
-  async function saveNote() {
-    if (!noteSheet) return
-    const dsId = noteSheet.dsId
-    const text = noteSheet.text.trim()
-    patchDeliveryStop(dsId, { driver_note: text || null })
+  async function saveDetails() {
+    if (!detailsSheet) return
+    const dsId = detailsSheet.dsId
+    const text = detailsSheet.text.trim()
+    const leftoversJson = Object.fromEntries(Object.entries(detailsSheet.leftovers).filter(([, v]) => v > 0))
+    const leftoversTotal = Object.values(leftoversJson).reduce((s, v) => s + v, 0)
+    patchDeliveryStop(dsId, { driver_note: text || null, leftovers: leftoversTotal, leftovers_json: leftoversJson })
     await fetch('/api/circulation/driver', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ delivery_stop_id: dsId, driver_note: text }),
+      body:    JSON.stringify({
+        delivery_stop_id: dsId,
+        driver_note:      text,
+        leftovers:        leftoversTotal,
+        leftovers_json:   leftoversJson,
+      }),
     }).catch(() => {})
-    setNoteSheet(null)
+    setDetailsSheet(null)
+  }
+
+  async function uploadStopPhoto(dsId: string, file: File): Promise<string | null> {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', 'stop-photo')
+    form.append('ref', JSON.stringify({ deliveryStopId: dsId }))
+    const res = await fetch('/api/circulation/driver/upload', { method: 'POST', body: form })
+    if (!res.ok) { flashToast('Photo upload failed'); return null }
+    const j = await res.json() as { url: string }
+    patchDeliveryStop(dsId, { photo_urls: [...(data?.deliveryStops.find(x => x.id === dsId)?.photo_urls ?? []), j.url] })
+    return j.url
+  }
+
+  async function removeStopPhoto(dsId: string, url: string) {
+    await fetch('/api/circulation/driver/upload', {
+      method:  'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ url, kind: 'stop-photo', ref: { deliveryStopId: dsId } }),
+    })
+    patchDeliveryStop(dsId, { photo_urls: (data?.deliveryStops.find(x => x.id === dsId)?.photo_urls ?? []).filter(u => u !== url) })
+  }
+
+  async function savePickupLoad() {
+    if (!pickupSheet) return
+    const cleaned = Object.fromEntries(Object.entries(pickupSheet.load).filter(([, v]) => v > 0))
+    await fetch('/api/circulation/driver', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'save-pickup-load', delivery_id: pickupSheet.deliveryId, pickup_load_json: cleaned }),
+    })
+    setData(prev => prev ? ({
+      ...prev,
+      deliveries: prev.deliveries.map(d => d.id === pickupSheet.deliveryId ? { ...d, pickup_load_json: cleaned } : d),
+    }) : prev)
+    setPickupSheet(null)
+    flashToast('Load count saved')
+  }
+
+  async function uploadGasReceipt(deliveryId: string, file: File) {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('kind', 'gas-receipt')
+    form.append('ref', JSON.stringify({ deliveryId }))
+    const res = await fetch('/api/circulation/driver/upload', { method: 'POST', body: form })
+    if (!res.ok) { flashToast('Receipt upload failed'); return }
+    const j = await res.json() as { url: string }
+    setData(prev => prev ? ({
+      ...prev,
+      deliveries: prev.deliveries.map(d => d.id === deliveryId ? { ...d, gas_receipt_url: j.url } : d),
+    }) : prev)
+    flashToast('Receipt uploaded')
   }
 
   async function sendFlag() {
@@ -162,6 +244,16 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     if (!invoiceSheet) return
     setInvoiceSheet({ ...invoiceSheet, submitting: true })
     try {
+      // Persist the gas expense to the target delivery (single row —
+      // driver picks which route the gas belongs to via the sheet).
+      const gas = parseFloat(invoiceSheet.gasAmount)
+      if (!Number.isNaN(gas) && gas >= 0 && invoiceSheet.targetDeliveryId) {
+        await fetch('/api/circulation/driver', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ action: 'save-gas', delivery_id: invoiceSheet.targetDeliveryId, gas_amount: gas }),
+        })
+      }
       const res = await fetch('/api/circulation/driver', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,6 +284,19 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
 
   return (
     <div style={outerStyle}>
+      {sessionDead && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
+          background: '#DC2626', color: 'white', padding: '12px 16px', textAlign: 'center',
+          fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+        }}>
+          Session expired.{' '}
+          <a href="/distribution/login" style={{ color: 'white', textDecoration: 'underline', marginLeft: 4 }}>
+            Sign in again
+          </a>{' '}
+          to keep working.
+        </div>
+      )}
       <div style={{ ...appStyle, maxWidth: 600 }}>
 
         <div style={topBarStyle}>
@@ -260,6 +365,9 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                 const isDone   = !isPickup && !isPaused && !!ds.checked
                 const isNew    = !isPickup && !isPaused && !!stop.created_at && stop.created_at.substring(0, 7) === CURRENT_YM
                 const locked   = section.submitted
+                const pubKeys  = stop.quantities ? Object.keys(stop.quantities).sort() : []
+                const leftoversNow = (ds.leftovers_json ?? {}) as Record<string, number>
+                const leftoversTotal = Object.values(leftoversNow).reduce((s, v) => s + v, 0)
 
                 const borderCol = isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : '#E2E8F0'
                 const cardStyle: React.CSSProperties = {
@@ -272,11 +380,28 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                 }
 
                 return (
-                  <div key={stop.id} style={cardStyle}>
+                  <div key={stop.id} id={`stop-card-${stop.id}`} style={cardStyle}>
                     <button
-                      onClick={() => !isPickup && !isPaused && !locked && toggleCheck(ds, section.submitted)}
-                      disabled={isPickup || isPaused || locked}
-                      style={{ width: 64, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0', background: 'transparent', border: 'none', cursor: (isPickup || isPaused || locked) ? 'default' : 'pointer' }}
+                      onClick={() => {
+                        if (locked) return
+                        if (isPickup) {
+                          const load = section.stops.filter(s => !s.is_pickup && !s.not_delivering)
+                            .reduce((acc, s) => {
+                              for (const k of Object.keys(s.quantities ?? {})) {
+                                acc[k] = (acc[k] ?? 0) + (s.quantities?.[k] ?? 0)
+                              }
+                              return acc
+                            }, {} as Record<string, number>)
+                          const loadKeys = Object.keys(load).sort()
+                          const currentLoad = (section.delivery.pickup_load_json ?? {}) as Record<string, number>
+                          setPickupSheet({ stopName: stop.name, deliveryId: section.delivery.id, load: { ...load, ...currentLoad }, pubKeys: loadKeys })
+                          return
+                        }
+                        if (isPaused) return
+                        toggleCheck(ds, section.submitted)
+                      }}
+                      disabled={isPaused || locked}
+                      style={{ width: 64, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0', background: 'transparent', border: 'none', cursor: (isPaused || locked) ? 'default' : 'pointer' }}
                     >
                       <div style={{
                         width: 38, height: 38, borderRadius: '50%',
@@ -313,6 +438,16 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                       {stop.notes && !isPickup && (
                         <div style={{ fontSize: 11, color: '#64748B', marginTop: 4, fontStyle: 'italic' }}>📌 {stop.notes}</div>
                       )}
+                      {(leftoversTotal > 0 || (ds.photo_urls?.length ?? 0) > 0) && !isPickup && !isPaused && (
+                        <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 11, color: '#64748B', flexWrap: 'wrap' }}>
+                          {leftoversTotal > 0 && (
+                            <span>📦 {leftoversTotal} leftover ({Object.entries(leftoversNow).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')})</span>
+                          )}
+                          {(ds.photo_urls?.length ?? 0) > 0 && (
+                            <span>📸 {ds.photo_urls.length} photo{ds.photo_urls.length === 1 ? '' : 's'}</span>
+                          )}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
                         {stop.quantities && Object.entries(stop.quantities).map(([pub, qty]) => {
                           if (!qty || isPickup) return null
@@ -341,8 +476,13 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                     {!isPickup && !isPaused && !locked && (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 12px 10px 2px', gap: 8, flexShrink: 0 }}>
                         <button
-                          onClick={() => setNoteSheet({ dsId: ds.id, stopName: stop.name, text: ds.driver_note ?? '' })}
-                          style={actBtnStyle} title="Add note"
+                          onClick={() => setDetailsSheet({
+                            dsId: ds.id, stopId: stop.id, stopName: stop.name,
+                            text: ds.driver_note ?? '',
+                            leftovers: leftoversNow,
+                            pubKeys,
+                          })}
+                          style={actBtnStyle} title="Details, leftovers, photo"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                             <path d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" />
@@ -388,7 +528,15 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                 </div>
               </div>
               <button
-                onClick={() => setInvoiceSheet({ notes: '', submitting: false })}
+                onClick={() => {
+                  const first = view.sections[0]?.delivery
+                  setInvoiceSheet({
+                    notes: '',
+                    gasAmount: first?.gas_amount != null ? String(first.gas_amount) : '',
+                    targetDeliveryId: first?.id ?? '',
+                    submitting: false,
+                  })
+                }}
                 disabled={view.totalDone === 0}
                 style={{
                   width: '100%', padding: 16,
@@ -416,18 +564,100 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
         </div>
       )}
 
-      {noteSheet && (
-        <Sheet onClose={() => setNoteSheet(null)} title={noteSheet.stopName}>
-          <textarea
-            value={noteSheet.text}
-            onChange={e => setNoteSheet({ ...noteSheet, text: e.target.value })}
-            placeholder="e.g. Left with manager, near entrance…"
-            style={sheetTextareaStyle}
-            autoFocus
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button onClick={saveNote} style={sheetSaveStyle}>Save</button>
-            <button onClick={() => setNoteSheet(null)} style={sheetCancelStyle}>Cancel</button>
+      {detailsSheet && (() => {
+        const ds = data.deliveryStops.find(x => x.id === detailsSheet.dsId)
+        const photos = ds?.photo_urls ?? []
+        return (
+          <Sheet onClose={() => setDetailsSheet(null)} title={detailsSheet.stopName}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>Note for this stop</div>
+            <textarea
+              value={detailsSheet.text}
+              onChange={e => setDetailsSheet({ ...detailsSheet, text: e.target.value })}
+              placeholder="e.g. Left with manager, near entrance…"
+              style={sheetTextareaStyle}
+              autoFocus
+            />
+            {detailsSheet.pubKeys.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>Leftovers per publication</div>
+                <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>How many copies came back unused?</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {detailsSheet.pubKeys.map(pub => (
+                    <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1E293B' }}>
+                      <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+                      <input
+                        type="number" min={0} inputMode="numeric"
+                        value={detailsSheet.leftovers[pub] ?? 0}
+                        onChange={e => setDetailsSheet({
+                          ...detailsSheet,
+                          leftovers: { ...detailsSheet.leftovers, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
+                        })}
+                        style={{ width: 60, padding: '6px 8px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit' }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>Proof-of-delivery photos</div>
+              <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>Snap a photo of where you left the copies.</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {photos.map(url => (
+                  <div key={url} style={{ position: 'relative' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="POD" style={{ width: 68, height: 68, objectFit: 'cover', borderRadius: 8, border: '1px solid #E2E8F0' }} />
+                    <button
+                      onClick={() => removeStopPhoto(detailsSheet.dsId, url)}
+                      style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#DC2626', color: 'white', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label="Remove photo"
+                    >×</button>
+                  </div>
+                ))}
+                <label style={{ width: 68, height: 68, borderRadius: 8, border: '1.5px dashed #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F8FAFC' }}>
+                  <span style={{ fontSize: 24, color: '#64748B' }}>+</span>
+                  <input
+                    type="file" accept="image/*" capture="environment"
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const f = e.target.files?.[0]
+                      if (f) await uploadStopPhoto(detailsSheet.dsId, f)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button onClick={saveDetails} style={sheetSaveStyle}>Save</button>
+              <button onClick={() => setDetailsSheet(null)} style={sheetCancelStyle}>Cancel</button>
+            </div>
+          </Sheet>
+        )
+      })()}
+
+      {pickupSheet && (
+        <Sheet onClose={() => setPickupSheet(null)} title={`Load at ${pickupSheet.stopName}`}>
+          <div style={{ fontSize: 13, color: '#64748B', marginBottom: 10 }}>How many bundles did you pick up?</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            {pickupSheet.pubKeys.map(pub => (
+              <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#1E293B' }}>
+                <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+                <input
+                  type="number" min={0} inputMode="numeric"
+                  value={pickupSheet.load[pub] ?? 0}
+                  onChange={e => setPickupSheet({
+                    ...pickupSheet,
+                    load: { ...pickupSheet.load, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
+                  })}
+                  style={{ width: 80, padding: '8px 10px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 15, fontFamily: 'inherit' }}
+                />
+              </label>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button onClick={savePickupLoad} style={sheetSaveStyle}>Save load count</button>
+            <button onClick={() => setPickupSheet(null)} style={sheetCancelStyle}>Cancel</button>
           </div>
         </Sheet>
       )}
@@ -470,36 +700,84 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
         </Sheet>
       )}
 
-      {invoiceSheet && view && (
-        <Sheet onClose={() => setInvoiceSheet(null)} title="Submit all invoices">
-          <div style={{ background: '#F8FAFC', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-            {view.sections.map(section => (
-              <div key={section.route.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
-                <span style={{ color: '#64748B' }}>{section.route.name}</span>
-                <span>{section.done} stops — ${(section.done * rate).toFixed(2)}</span>
+      {invoiceSheet && view && (() => {
+        const targetDel = data.deliveries.find(d => d.id === invoiceSheet.targetDeliveryId)
+        const gasNum = parseFloat(invoiceSheet.gasAmount)
+        const gasVal = Number.isNaN(gasNum) ? 0 : gasNum
+        const totalWithGas = earnings + gasVal
+        return (
+          <Sheet onClose={() => setInvoiceSheet(null)} title="Submit all invoices">
+            <div style={{ background: '#F8FAFC', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+              {view.sections.map(section => (
+                <div key={section.route.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                  <span style={{ color: '#64748B' }}>{section.route.name}</span>
+                  <span>{section.done} stops — ${(section.done * rate).toFixed(2)}</span>
+                </div>
+              ))}
+              {gasVal > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
+                  <span style={{ color: '#64748B' }}>Gas expense</span>
+                  <span>${gasVal.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: 8, marginTop: 4, fontWeight: 700, fontSize: 15 }}>
+                <span>Total payout</span>
+                <span style={{ color: '#16A34A', fontFamily: '"DM Mono", ui-monospace, monospace' }}>${totalWithGas.toFixed(2)}</span>
               </div>
-            ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: 8, marginTop: 4, fontWeight: 700, fontSize: 15 }}>
-              <span>Total payout</span>
-              <span style={{ color: '#16A34A', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
-                ${earnings.toFixed(2)}
-              </span>
             </div>
-          </div>
-          <textarea
-            value={invoiceSheet.notes}
-            onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
-            placeholder="Notes for Jason (optional)…"
-            style={{ ...sheetTextareaStyle, height: 70 }}
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button onClick={submitAll} disabled={invoiceSheet.submitting} style={sheetSaveStyle}>
-              {invoiceSheet.submitting ? 'Submitting…' : 'Confirm & submit all'}
-            </button>
-            <button onClick={() => setInvoiceSheet(null)} style={sheetCancelStyle}>Cancel</button>
-          </div>
-        </Sheet>
-      )}
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 6 }}>
+                Gas / fuel this run <span style={{ fontWeight: 400, color: '#94A3B8', textTransform: 'none' }}>(optional)</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: '0 0 auto' }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontSize: 15, fontFamily: '"DM Mono", ui-monospace, monospace' }}>$</span>
+                  <input
+                    type="number" step="0.01" min={0} inputMode="decimal"
+                    value={invoiceSheet.gasAmount}
+                    onChange={e => setInvoiceSheet({ ...invoiceSheet, gasAmount: e.target.value })}
+                    placeholder="0.00"
+                    style={{ width: 120, padding: '10px 10px 10px 22px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 15, fontFamily: '"DM Mono", ui-monospace, monospace' }}
+                  />
+                </div>
+                <label style={{ padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#1E293B', background: 'white', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {targetDel?.gas_receipt_url ? '📸 Replace receipt' : '📸 Add receipt photo'}
+                  <input
+                    type="file" accept="image/*" capture="environment"
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const f = e.target.files?.[0]
+                      if (f && invoiceSheet.targetDeliveryId) await uploadGasReceipt(invoiceSheet.targetDeliveryId, f)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                {targetDel?.gas_receipt_url && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={targetDel.gas_receipt_url} alt="Receipt" style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #E2E8F0' }} />
+                )}
+              </div>
+              <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 6, lineHeight: 1.4 }}>
+                Attached to the first route&apos;s delivery for accounting.
+              </p>
+            </div>
+
+            <textarea
+              value={invoiceSheet.notes}
+              onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
+              placeholder="Notes for Jason (optional)…"
+              style={{ ...sheetTextareaStyle, height: 70 }}
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button onClick={submitAll} disabled={invoiceSheet.submitting} style={sheetSaveStyle}>
+                {invoiceSheet.submitting ? 'Submitting…' : 'Confirm & submit all'}
+              </button>
+              <button onClick={() => setInvoiceSheet(null)} style={sheetCancelStyle}>Cancel</button>
+            </div>
+          </Sheet>
+        )
+      })()}
     </div>
   )
 }
