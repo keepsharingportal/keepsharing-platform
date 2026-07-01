@@ -105,10 +105,36 @@ export default async function DriverDashboardPage({ params }: PageProps) {
     for (const s of (stopsCount ?? []) as Array<{ route_id: string }>) {
       totalByRoute.set(s.route_id, (totalByRoute.get(s.route_id) ?? 0) + 1)
     }
+
+    // For DRAFT deliveries, stops_completed is 0 — the real count lives on
+    // circulation_delivery_stops.checked. Pull the per-stop check-off
+    // state for every delivery and count eligible+checked here so the
+    // dashboard reflects mid-run progress.
+    const delIds = dels.map(d => d.id)
+    const liveDoneByDelivery = new Map<string, number>()
+    if (delIds.length > 0) {
+      const { data: dsRows } = await admin
+        .from('circulation_delivery_stops')
+        .select('delivery_id, checked, circulation_stops!inner(is_pickup, not_delivering)')
+        .in('delivery_id', delIds)
+      type DSRow = { delivery_id: string; checked: boolean; circulation_stops?: { is_pickup: boolean; not_delivering: boolean } | { is_pickup: boolean; not_delivering: boolean }[] | null }
+      for (const row of ((dsRows ?? []) as DSRow[])) {
+        const sc = Array.isArray(row.circulation_stops) ? row.circulation_stops[0] : row.circulation_stops
+        if (!sc || sc.is_pickup || sc.not_delivering) continue
+        if (!row.checked) continue
+        liveDoneByDelivery.set(row.delivery_id, (liveDoneByDelivery.get(row.delivery_id) ?? 0) + 1)
+      }
+    }
+
     for (const r of myRoutes) {
       const del = dels.find(d => d.route_id === r.id) ?? null
       const total = totalByRoute.get(r.id) ?? 0
-      const done  = del?.stops_completed ?? 0
+      // Submitted: trust stops_completed (locked). Draft: count live from
+      // delivery_stops so mid-run progress is visible.
+      const submitted = !!del && ['submitted', 'paid'].includes(del.status)
+      const done  = submitted
+        ? (del?.stops_completed ?? 0)
+        : (del ? (liveDoneByDelivery.get(del.id) ?? 0) : 0)
       const pct   = total > 0 ? Math.round((done / total) * 100) : 0
       stats.set(r.id, { delivery: del, total, done, pct })
       totalDone += done
@@ -147,12 +173,16 @@ export default async function DriverDashboardPage({ params }: PageProps) {
   return (
     <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
 
-      <div className="page-header">
+      <div className="page-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <KeepSharingBrand size="md" showLLC />
-          <div className="text-muted text-sm" style={{ marginTop: 6 }}>
-            {firstName} · {monthLabel}
+          <div style={{ fontSize: 12, color: 'var(--color-portal-sub)', fontStyle: 'italic', marginTop: 6 }}>
+            The leading voice in <span style={{ color: '#1A5FA8', fontWeight: 600 }}>&ldquo;your community&rdquo;</span>
           </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-portal-text)' }}>{driver.full_name}</div>
+          <div className="text-muted text-sm">{monthLabel}</div>
         </div>
       </div>
 
