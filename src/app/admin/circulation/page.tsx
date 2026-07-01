@@ -405,10 +405,12 @@ export default async function CirculationDashboard() {
                 {lowPerformers.map(lp => {
                   const sev = lp.wastePct >= 50 ? 'badge-red' : lp.wastePct >= 25 ? 'badge-amber' : 'badge-gray'
                   return (
-                    <tr key={lp.stop_id}>
+                    <tr key={lp.stop_id} style={{ cursor: 'pointer' }}>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{lp.stop_name}</div>
-                        {lp.address && <div className="text-sub text-xs">{lp.address}</div>}
+                        <Link href={`/admin/circulation/stops/${lp.stop_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--color-portal-blue)' }}>{lp.stop_name}</div>
+                          {lp.address && <div className="text-sub text-xs">{lp.address}</div>}
+                        </Link>
                       </td>
                       <td className="text-sub text-sm">{lp.route_name}</td>
                       <td className="mono" style={{ textAlign: 'right' }}>{lp.dropped.toLocaleString()}</td>

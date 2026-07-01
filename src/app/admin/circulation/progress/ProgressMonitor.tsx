@@ -194,7 +194,11 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold ${s.checked ? 'text-portal-sub line-through' : 'text-portal-text'}`}>
-                      {s.name}
+                      {s.stop_id ? (
+                        <Link href={`/admin/circulation/stops/${s.stop_id}`} className="hover:underline" style={{ color: 'inherit' }}>
+                          {s.name}
+                        </Link>
+                      ) : s.name}
                       {s.not_delivering && <span className="ml-2 text-[10px] text-portal-red">(not delivering)</span>}
                     </p>
                     {s.address && <p className="text-[11px] text-portal-sub">{s.address}{s.city ? `, ${s.city}` : ''}</p>}

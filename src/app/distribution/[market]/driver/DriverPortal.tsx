@@ -109,6 +109,18 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   // stops open the pickup-load sheet instead. Invoice sheet gets gas
   // fields for the whole run.
   const [detailsSheet, setDetailsSheet] = useState<null | { dsId: string; stopId: string; stopName: string; text: string; leftovers: Record<string, number>; pubKeys: string[] }>(null)
+  const [historySheet, setHistorySheet] = useState<null | { stopId: string; stopName: string; address: string; presetNotes: string | null; history: Array<{ month: string; status: string; checked: boolean; driver_note: string | null; leftovers: number; leftovers_json: Record<string, number> | null; photo_urls: string[] }> | null }>(null)
+  async function openStopHistory(stopId: string, stopName: string, address: string, presetNotes: string | null) {
+    setHistorySheet({ stopId, stopName, address, presetNotes, history: null })
+    try {
+      const res = await fetch(`/api/circulation/driver/stop-history?stop_id=${encodeURIComponent(stopId)}`)
+      if (!res.ok) throw new Error('Load failed')
+      const j = await res.json() as { history: Array<{ month: string; status: string; checked: boolean; driver_note: string | null; leftovers: number; leftovers_json: Record<string, number> | null; photo_urls: string[] }> }
+      setHistorySheet(prev => prev ? { ...prev, history: j.history } : prev)
+    } catch {
+      setHistorySheet(prev => prev ? { ...prev, history: [] } : prev)
+    }
+  }
   const [flagSheet, setFlagSheet] = useState<null | { stopId: string; deliveryStopId: string; stopName: string; type: string; detail: string; notes: string }>(null)
   const [pickupSheet, setPickupSheet] = useState<null | { stopName: string; load: Record<string, number>; pubKeys: string[] }>(null)
   const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; gasAmount: string; submitting: boolean }>(null)
@@ -560,11 +572,20 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 
                 {/* Stop info */}
                 <div style={{ flex: 1, padding: '13px 6px 13px 0', minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 15, fontWeight: 600, lineHeight: 1.3,
-                    color: isDone ? '#94A3B8' : '#1E293B',
-                    textDecoration: isDone ? 'line-through' : 'none',
-                  }}>
+                  <button
+                    onClick={() => !isPickup && !isPaused && openStopHistory(stop.id, stop.name, [stop.address, stop.city].filter(Boolean).join(', '), stop.notes ?? null)}
+                    disabled={isPickup || isPaused}
+                    style={{
+                      display: 'inline-block', textAlign: 'left',
+                      fontSize: 15, fontWeight: 600, lineHeight: 1.3,
+                      color: isDone ? '#94A3B8' : '#1E293B',
+                      textDecoration: isDone ? 'line-through' : 'none',
+                      background: 'transparent', border: 'none', padding: 0,
+                      cursor: (isPickup || isPaused) ? 'default' : 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                    title={isPickup || isPaused ? undefined : 'Tap for stop details & history'}
+                  >
                     {stop.name}
                     {isNew && !isDone && (
                       <span style={{ fontSize: 9, fontWeight: 700, background: '#1A5FA8', color: 'white', padding: '1px 6px', borderRadius: 8, marginLeft: 6, verticalAlign: 'middle', letterSpacing: '.3px' }}>
@@ -574,7 +595,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                     {stop.is_advertiser && !isPickup && (
                       <span title="Advertiser — give them a big smile!" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 4, background: '#FEF3C7', color: '#92400E', fontSize: 11, fontWeight: 800, marginLeft: 6, verticalAlign: 'middle' }}>★</span>
                     )}
-                  </div>
+                  </button>
 
                   {stop.address && (
                     <div style={{ fontSize: 12, color: '#64748B', marginTop: 3, lineHeight: 1.4 }}>
@@ -984,6 +1005,85 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
           </Sheet>
         )
       })()}
+
+      {/* Stop history sheet — tap a stop name to see address + directions
+          + your last 6 months of runs at this location. */}
+      {historySheet && (
+        <Sheet onClose={() => setHistorySheet(null)} title={historySheet.stopName}>
+          <div style={{ fontSize: 13, color: '#64748B', marginBottom: 6 }}>
+            {historySheet.address || 'No address on file'}
+          </div>
+          {historySheet.address && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(historySheet.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12, padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
+            >
+              🧭 Directions
+            </a>
+          )}
+
+          {historySheet.presetNotes && (
+            <div style={{ marginTop: 8, padding: '8px 12px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, fontSize: 12, color: '#1A5FA8', fontStyle: 'italic' }}>
+              📌 {historySheet.presetNotes}
+            </div>
+          )}
+
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginTop: 16, marginBottom: 8 }}>
+            Your last 6 months here
+          </div>
+
+          {historySheet.history === null ? (
+            <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', padding: 16 }}>Loading…</div>
+          ) : historySheet.history.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', padding: 16 }}>
+              First time here! No history to show yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {historySheet.history.map(h => {
+                const monthLbl = h.month ? new Date(h.month + '-01T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'
+                const leftoverStr = h.leftovers_json && Object.keys(h.leftovers_json).length > 0
+                  ? Object.entries(h.leftovers_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')
+                  : (h.leftovers > 0 ? `${h.leftovers} copies` : '')
+                return (
+                  <div key={h.month + h.status} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{monthLbl}</div>
+                      {h.checked ? (
+                        <span style={{ fontSize: 10, fontWeight: 700, background: '#DCFCE7', color: '#166534', padding: '2px 8px', borderRadius: 999 }}>Delivered</span>
+                      ) : (
+                        <span style={{ fontSize: 10, fontWeight: 700, background: '#E2E8F0', color: '#64748B', padding: '2px 8px', borderRadius: 999 }}>Skipped</span>
+                      )}
+                    </div>
+                    {leftoverStr && (
+                      <div style={{ fontSize: 12, color: '#B45309', marginTop: 2 }}>📦 Leftover: {leftoverStr}</div>
+                    )}
+                    {h.driver_note && (
+                      <div style={{ fontSize: 12, color: '#1A5FA8', marginTop: 2, fontStyle: 'italic' }}>📝 {h.driver_note}</div>
+                    )}
+                    {h.photo_urls.length > 0 && (
+                      <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+                        {h.photo_urls.map(url => (
+                          <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="POD" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, border: '1px solid #E2E8F0' }} />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+            <button onClick={() => setHistorySheet(null)} style={{ ...sheetSaveStyle, background: '#F1F5F9', color: '#1E293B' }}>Close</button>
+          </div>
+        </Sheet>
+      )}
     </div>
   )
 }
