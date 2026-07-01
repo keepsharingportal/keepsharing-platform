@@ -273,8 +273,8 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                           {inProgress ? 'Continue route →' : 'Start route →'}
                         </Link>
                       )}
-                      <Link href={`/distribution/${market}/driver?route=${r.id}`} className="btn btn-ghost" style={{ textAlign: 'center', fontSize: 13 }}>
-                        ☰ View as list
+                      <Link href={`/distribution/${market}/driver/stops?route=${r.id}`} className="btn btn-ghost" style={{ textAlign: 'center', fontSize: 13 }}>
+                        📋 Stops
                       </Link>
                       <Link href={`/distribution/${market}/driver/map?route=${r.id}`} className="btn btn-ghost" style={{ textAlign: 'center', fontSize: 13 }}>
                         📍 View as map
