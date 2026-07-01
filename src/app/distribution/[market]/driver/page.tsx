@@ -1,20 +1,16 @@
-// /distribution/[market]/driver — driver mobile portal.
+// /distribution/[market]/driver — driver entry point.
 //
-// Auth-gated. Anonymous visitors get a "log in" prompt. Logged-in users
-// who aren't drivers see a "no driver access" message. Drivers see their
-// route(s) for the current month with a mobile-first tap-to-check
-// checklist.
+// Routing:
+//   ?route=<id>  → renders the per-route checklist (DriverPortal)
+//   (no route)   → redirects to /distribution/[market]/driver/dashboard
+//                  so drivers land on their My Routes overview first
 //
-// This is the MVP — covers the core daily-use case (check off stops,
-// add notes, flag issues). Deferred to follow-ups:
-//   - Monthly submit flow (mark delivery as 'submitted')
-//   - Invoice history
-//   - Print view
-//   - Route reorder suggestions
-//   - Map toggle on mobile (single-route only for now)
+// This differs from v3 (which landed on the checklist directly) because
+// the user wants Dashboard as the login landing so drivers see stats,
+// invoice history, and can pick a route before diving in.
 
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Navigation as NavIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -23,7 +19,10 @@ import { DriverPortal } from './DriverPortal'
 
 export const dynamic = 'force-dynamic'
 
-interface PageProps { params: Promise<{ market: string }> }
+interface PageProps {
+  params:       Promise<{ market: string }>
+  searchParams: Promise<{ route?: string }>
+}
 
 export async function generateMetadata({ params }: PageProps) {
   const { market } = await params
@@ -33,8 +32,9 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function DriverPortalPage({ params }: PageProps) {
+export default async function DriverPortalPage({ params, searchParams }: PageProps) {
   const { market } = await params
+  const sp = await searchParams
   if (!ALL_MARKET_SLUGS.includes(market)) notFound()
 
   const supabase = await createClient()
@@ -72,6 +72,11 @@ export default async function DriverPortalPage({ params }: PageProps) {
       </Centered>
     )
   }
+
+  // Dashboard is the landing page. Only render the checklist when the
+  // driver explicitly navigates to a specific route via ?route=<id>.
+  const routeParam = sp.route?.trim()
+  if (!routeParam) redirect(`/distribution/${market}/driver/dashboard`)
 
   return <DriverPortal market={market} driverName={driverRow.full_name} />
 }

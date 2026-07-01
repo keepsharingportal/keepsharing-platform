@@ -268,11 +268,25 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                 {driverName} · {monthLabel}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>
-              <button onClick={() => setShowMap(v => !v)} style={topBtnStyle(showMap)} title="Show map">🗺</button>
-              <a href={`/distribution/${market}/driver/print?route=${view.route.id}`} style={topBtnStyle(false)} title="Print sheet">🖨</a>
-              <a href={`/distribution/${market}/driver/dashboard`} style={topBtnStyle(false)} title="My routes">🏠</a>
-              <button onClick={signOut} style={{ ...topBtnStyle(false), padding: '2px 4px' }}>Sign out</button>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>
+              <IconButton onClick={() => setShowMap(v => !v)} active={showMap} label="Map">
+                <MapIcon />
+              </IconButton>
+              <IconLink href={`/distribution/${market}/driver/print?route=${view.route.id}`} label="Print">
+                <PrinterIcon />
+              </IconLink>
+              <IconLink href={`/distribution/${market}/driver/dashboard`} label="Dashboard">
+                <HomeIcon />
+              </IconLink>
+              <button
+                onClick={signOut}
+                style={{
+                  color: 'rgba(255,255,255,.75)', fontSize: 13, fontWeight: 500,
+                  background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)',
+                  borderRadius: 8, padding: '6px 12px',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >Sign out</button>
             </div>
           </div>
           {/* Progress */}
@@ -327,16 +341,19 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             const isNew    = !isPickup && !isPaused && !!stop.created_at && stop.created_at.substring(0, 7) === CURRENT_YM
             const locked   = view.submitted
 
+            const borderCol = isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : '#E2E8F0'
             const cardStyle: React.CSSProperties = {
               background:  isDone ? '#F0FDF4' : isPaused ? '#FFFBEB' : isPickup ? '#EFF6FF' : isNew ? '#EFF6FF' : 'white',
-              borderColor: isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : 'transparent',
               opacity:     isPaused ? 0.7 : 1,
               borderRadius: 14,
               display: 'flex',
               alignItems: 'stretch',
               overflow: 'hidden',
               boxShadow: '0 1px 4px rgba(0,0,0,.06)',
-              border: '1.5px solid',
+              border: `1.5px solid ${borderCol}`,
+              flexShrink: 0, // CRITICAL: without this, flex-direction:column parent
+                             // shrinks every card to a horizontal line when the list
+                             // overflows. Fixed 2026-06-27 after driver report.
             }
 
             return (
@@ -783,6 +800,51 @@ function topBtnStyle(active: boolean): React.CSSProperties {
     fontSize: 11, background: 'none', border: 'none', cursor: 'pointer',
     fontFamily: 'inherit', padding: '2px 4px', textDecoration: 'none',
   }
+}
+
+// ── Icon buttons for the top bar ───────────────────────────────────────
+function iconButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 8,
+    background: active ? 'rgba(255,255,255,.15)' : 'rgba(255,255,255,.08)',
+    border: '1px solid rgba(255,255,255,.15)',
+    color: 'white',
+    cursor: 'pointer', fontFamily: 'inherit',
+    padding: 0, textDecoration: 'none',
+  }
+}
+function IconButton({ onClick, active, label, children }: { onClick: () => void; active?: boolean; label: string; children: React.ReactNode }) {
+  return <button onClick={onClick} title={label} aria-label={label} style={iconButtonStyle(!!active)}>{children}</button>
+}
+function IconLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+  return <a href={href} title={label} aria-label={label} style={iconButtonStyle(false)}>{children}</a>
+}
+function MapIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+      <line x1="8" y1="2" x2="8" y2="18" />
+      <line x1="16" y1="6" x2="16" y2="22" />
+    </svg>
+  )
+}
+function PrinterIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  )
+}
+function HomeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  )
 }
 function routeTabBtn(active: boolean): React.CSSProperties {
   return {

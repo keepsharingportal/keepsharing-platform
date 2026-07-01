@@ -204,9 +204,30 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                 {driverName} · {monthLabel}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>
-              <a href={`/distribution/${market}/driver/dashboard`} style={topBtnStyle} title="My routes">🏠</a>
-              <button onClick={signOut} style={{ ...topBtnStyle, padding: '2px 4px' }}>Sign out</button>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>
+              <a
+                href={`/distribution/${market}/driver/dashboard`}
+                title="Dashboard" aria-label="Dashboard"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36, borderRadius: 8,
+                  background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)',
+                  color: 'white', textDecoration: 'none',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </a>
+              <button
+                onClick={signOut}
+                style={{
+                  color: 'rgba(255,255,255,.75)', fontSize: 13, fontWeight: 500,
+                  background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)',
+                  borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >Sign out</button>
             </div>
           </div>
           <div style={{ background: 'rgba(255,255,255,.15)', borderRadius: 3, height: 5, marginTop: 10 }}>
@@ -240,13 +261,14 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                 const isNew    = !isPickup && !isPaused && !!stop.created_at && stop.created_at.substring(0, 7) === CURRENT_YM
                 const locked   = section.submitted
 
+                const borderCol = isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : '#E2E8F0'
                 const cardStyle: React.CSSProperties = {
                   background:  isDone ? '#F0FDF4' : isPaused ? '#FFFBEB' : isPickup ? '#EFF6FF' : isNew ? '#EFF6FF' : 'white',
-                  borderColor: isDone ? '#86EFAC' : isPaused ? '#FDE68A' : isPickup ? '#BFDBFE' : isNew ? '#93C5FD' : 'transparent',
                   opacity: isPaused ? 0.7 : 1,
                   borderRadius: 14, display: 'flex', alignItems: 'stretch',
                   overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.06)',
-                  border: '1.5px solid',
+                  border: `1.5px solid ${borderCol}`,
+                  flexShrink: 0,  // Prevent column flex from collapsing cards to lines.
                 }
 
                 return (
