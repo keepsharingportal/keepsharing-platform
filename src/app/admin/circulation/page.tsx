@@ -29,9 +29,9 @@ interface StopRow     { id: string; route_id: string; quantities: Record<string,
 interface DriverRow   { user_id: string; active: boolean }
 interface DeliveryRow { id: string; month: string; driver_id: string; route_id: string; stops_completed: number | null; pay_calculated: number | null; status: string; submitted_at: string | null; driver_name?: string; route_name?: string }
 
-function fmtMoney(cents: number | null): string {
-  const dollars = (cents ?? 0) / 100
-  return dollars.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
+// pay values are stored as DOLLARS (NUMERIC), not cents.
+function fmtMoney(dollars: number | null): string {
+  return (dollars ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
 }
 
 function bundles(used: number): string {

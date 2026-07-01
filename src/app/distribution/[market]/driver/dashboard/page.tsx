@@ -111,7 +111,7 @@ export default async function DriverDashboardPage({ params }: PageProps) {
       const pct   = total > 0 ? Math.round((done / total) * 100) : 0
       stats.set(r.id, { delivery: del, total, done, pct })
       totalDone += done
-      totalPay  += done * (driver.rate_per_stop / 100)  // rate stored in cents
+      totalPay  += done * driver.rate_per_stop  // rate stored as dollars (NUMERIC)
     }
   }
 
@@ -208,7 +208,7 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                 const del = st.delivery
                 const submitted   = del && ['submitted', 'paid'].includes(del.status)
                 const inProgress  = st.done > 0 && !submitted
-                const paid        = (del?.pay_final ?? del?.pay_calculated ?? 0) / 100
+                const paid        = del?.pay_final ?? del?.pay_calculated ?? 0
                 return (
                   <div key={r.id} className="card mb-3">
                     <div className="card-header">
@@ -282,7 +282,7 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                     <tbody>
                       {invoices.map(inv => {
                         const label = new Date(inv.month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                        const pay   = (inv.pay_final ?? inv.pay_calculated ?? 0) / 100
+                        const pay   = inv.pay_final ?? inv.pay_calculated ?? 0
                         const paid  = inv.status === 'paid'
                         return (
                           <>

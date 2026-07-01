@@ -252,7 +252,7 @@ export function DriverReorderClient({ routeId, market, pickup, draggable, pubKey
                         type="number"
                         min={0}
                         inputMode="numeric"
-                        value={draftQty[pub] ?? 0}
+                        value={draftQty[pub] || ''}
                         onChange={e => setDraftQty({
                           ...draftQty,
                           [pub]: Math.max(0, parseInt(e.target.value || '0', 10)),

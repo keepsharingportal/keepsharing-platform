@@ -300,7 +300,7 @@ function ReviewPanel({
               <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
               <input
                 type="number" min={0} inputMode="numeric"
-                value={quantities[pub] ?? 0}
+                value={quantities[pub] || ''}
                 onChange={e => setQuantities({ ...quantities, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) })}
                 style={{ width: 70, padding: '6px 8px' }}
               />

@@ -33,9 +33,10 @@ interface Props {
   stragglers:  Array<{ user_id: string; full_name: string }>
 }
 
-function fmtMoney(cents: number | null): string {
-  const dollars = (cents ?? 0) / 100
-  return dollars.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
+// pay_calculated / pay_final are stored as DOLLARS in NUMERIC columns
+// (not cents). Don't divide.
+function fmtMoney(dollars: number | null): string {
+  return (dollars ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
 }
 
 function fmtMonthLabel(month: string): string {
@@ -126,12 +127,9 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
               )}
               {deliveries.map(d => {
                 const badgeCls = d.status === 'submitted' ? 'badge-amber' : d.status === 'paid' ? 'badge-green' : 'badge-gray'
-                const stopPay  = d.pay_final ?? d.pay_calculated ?? 0
-                // gas_amount is stored as dollars (NUMERIC) — convert to
-                // whatever unit stopPay is in. fmtMoney treats input as
-                // cents, so we multiply gas dollars × 100 for the total.
-                const gasCents = d.gas_amount != null ? Math.round(Number(d.gas_amount) * 100) : 0
-                const total    = Number(stopPay) + gasCents
+                const stopPay  = Number(d.pay_final ?? d.pay_calculated ?? 0)
+                const gas      = d.gas_amount != null ? Number(d.gas_amount) : 0
+                const total    = stopPay + gas
                 const pickupSummary = d.pickup_load_json
                   ? Object.entries(d.pickup_load_json).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ')
                   : ''
@@ -144,10 +142,10 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
                     <td className="mono" style={{ textAlign: 'right' }}>
                       {fmtMoney(stopPay)}
                     </td>
-                    <td className="mono" style={{ textAlign: 'right', color: gasCents > 0 ? 'var(--color-portal-text)' : 'var(--color-portal-muted)' }}>
-                      {gasCents > 0 ? (
+                    <td className="mono" style={{ textAlign: 'right', color: gas > 0 ? 'var(--color-portal-text)' : 'var(--color-portal-muted)' }}>
+                      {gas > 0 ? (
                         <>
-                          {fmtMoney(gasCents)}
+                          {fmtMoney(gas)}
                           {d.gas_receipt_url && (
                             <a href={d.gas_receipt_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 6, fontSize: 10, textDecoration: 'underline' }}>rcpt</a>
                           )}
@@ -201,7 +199,8 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
 }
 
 function PaySheet({ delivery, onClose, onSaved }: { delivery: DeliveryRow; onClose: () => void; onSaved: () => void }) {
-  const calc = (delivery.pay_calculated ?? 0) / 100
+  // pay_calculated is stored as dollars (NUMERIC). Don't convert.
+  const calc = Number(delivery.pay_calculated ?? 0)
   const [amount, setAmount] = useState<number>(calc)
   const [note,   setNote]   = useState('')
   const [busy,   setBusy]   = useState(false)
@@ -211,8 +210,8 @@ function PaySheet({ delivery, onClose, onSaved }: { delivery: DeliveryRow; onClo
     setBusy(true)
     setErr(null)
     try {
-      const cents = Math.round(amount * 100)
-      const requiresNote = cents !== (delivery.pay_calculated ?? 0)
+      // Send dollars to the API — same units as pay_calculated in the DB.
+      const requiresNote = amount !== calc
       if (requiresNote && !note.trim()) {
         setErr('Adjustment note required when amount differs from the calculated value.')
         setBusy(false); return
@@ -223,7 +222,7 @@ function PaySheet({ delivery, onClose, onSaved }: { delivery: DeliveryRow; onClo
         body:    JSON.stringify({
           id: delivery.id,
           action: 'mark-paid',
-          pay_final: cents,
+          pay_final: amount,
           adjustment_note: note.trim() || null,
         }),
       })

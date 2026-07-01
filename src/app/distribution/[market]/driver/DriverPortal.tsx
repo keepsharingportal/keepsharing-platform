@@ -773,7 +773,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                         type="number"
                         min={0}
                         inputMode="numeric"
-                        value={detailsSheet.leftovers[pub] ?? 0}
+                        value={detailsSheet.leftovers[pub] || ''}
                         onChange={e => setDetailsSheet({
                           ...detailsSheet,
                           leftovers: { ...detailsSheet.leftovers, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
@@ -843,7 +843,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                   type="number"
                   min={0}
                   inputMode="numeric"
-                  value={pickupSheet.load[pub] ?? 0}
+                  value={pickupSheet.load[pub] || ''}
                   onChange={e => setPickupSheet({
                     ...pickupSheet,
                     load: { ...pickupSheet.load, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) },
