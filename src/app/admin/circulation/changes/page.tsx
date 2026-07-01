@@ -7,7 +7,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { regionForMarket } from '@/lib/circulation/regions'
-import { ChangesClient, type ChangeRequestRow } from './ChangesClient'
+import { ChangesClient, type ChangeRequestRow, type StopDetail } from './ChangesClient'
 
 export const metadata = { title: 'Change Requests — Distribution Portal' }
 export const dynamic  = 'force-dynamic'
@@ -55,24 +55,31 @@ export default async function ChangesPage({ searchParams }: PageProps) {
     const routeIds  = Array.from(new Set(baseRows.map(r => r.route_id).filter(Boolean) as string[]))
     const driverIds = Array.from(new Set(baseRows.map(r => r.driver_id).filter(Boolean) as string[]))
 
-    const [stopNames, routeNames, driverNames] = await Promise.all([
-      stopIds.length   > 0 ? sb.from('circulation_stops').select('id, name').in('id', stopIds)
-        : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+    // Fetch full stop details (not just name) so the reviewer can see the
+    // current address + quantities and edit them inline without leaving
+    // the page.
+    const [stopDetails, routeNames, driverNames] = await Promise.all([
+      stopIds.length   > 0 ? sb.from('circulation_stops').select('id, name, address, city, zip, notes, quantities, active, not_delivering, not_delivering_note').in('id', stopIds)
+        : Promise.resolve({ data: [] as Array<StopDetail> }),
       routeIds.length  > 0 ? sb.from('circulation_routes').select('id, name').in('id', routeIds)
         : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
       driverIds.length > 0 ? sb.from('circulation_drivers').select('user_id, full_name').in('user_id', driverIds)
         : Promise.resolve({ data: [] as Array<{ user_id: string; full_name: string }> }),
     ])
-    const stopMap   = new Map(((stopNames.data   ?? []) as Array<{ id: string; name: string }>).map(x => [x.id, x.name]))
+    const stopMap   = new Map(((stopDetails.data ?? []) as StopDetail[]).map(x => [x.id, x]))
     const routeMap  = new Map(((routeNames.data  ?? []) as Array<{ id: string; name: string }>).map(x => [x.id, x.name]))
     const driverMap = new Map(((driverNames.data ?? []) as Array<{ user_id: string; full_name: string }>).map(x => [x.user_id, x.full_name]))
 
-    rows = baseRows.map(r => ({
-      ...r,
-      stop_name:   r.stop_id   ? stopMap.get(r.stop_id)     ?? null      : null,
-      route_name:  r.route_id  ? routeMap.get(r.route_id)   ?? '(route)' : '(route)',
-      driver_name: r.driver_id ? driverMap.get(r.driver_id) ?? '(driver)': '(driver)',
-    }))
+    rows = baseRows.map(r => {
+      const stop = r.stop_id ? stopMap.get(r.stop_id) ?? null : null
+      return {
+        ...r,
+        stop_name:    stop?.name ?? null,
+        stop_details: stop,
+        route_name:   r.route_id  ? routeMap.get(r.route_id)   ?? '(route)' : '(route)',
+        driver_name:  r.driver_id ? driverMap.get(r.driver_id) ?? '(driver)': '(driver)',
+      }
+    })
   } catch (e) {
     // Surface the error to the UI instead of silently returning zero rows —
     // that hid a badge/list mismatch for a full afternoon. PostgrestError

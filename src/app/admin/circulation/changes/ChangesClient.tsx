@@ -3,46 +3,81 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Check, X } from 'lucide-react'
+import { Check, X, Edit3, PauseCircle, Trash2, ChevronDown } from 'lucide-react'
+
+export interface StopDetail {
+  id:                  string
+  name:                string
+  address:             string | null
+  city:                string | null
+  zip:                 string | null
+  notes:               string | null
+  quantities:          Record<string, number> | null
+  active:              boolean
+  not_delivering:      boolean
+  not_delivering_note: string | null
+}
 
 export interface ChangeRequestRow {
-  id:          string
-  type:        string
-  status:      string
-  stop_id:     string | null
-  route_id:    string | null
-  driver_id:   string | null
-  field_name:  string | null
-  old_value:   string | null
-  new_value:   string | null
-  notes:       string | null
-  admin_note:  string | null
-  created_at:  string
-  reviewed_at: string | null
-  stop_name:   string | null
-  route_name:  string
-  driver_name: string
+  id:           string
+  type:         string
+  status:       string
+  stop_id:      string | null
+  route_id:     string | null
+  driver_id:    string | null
+  field_name:   string | null
+  old_value:    string | null
+  new_value:    string | null
+  notes:        string | null
+  admin_note:   string | null
+  created_at:   string
+  reviewed_at:  string | null
+  stop_name:    string | null
+  stop_details: StopDetail | null
+  route_name:   string
+  driver_name:  string
 }
 
 interface Props { filter: 'pending' | 'all' | 'history'; rows: ChangeRequestRow[]; loadErr?: string | null }
 
 export function ChangesClient({ filter, rows, loadErr }: Props) {
   const router = useRouter()
-  const [busy, setBusy] = useState<string | null>(null)
+  const [busy, setBusy]           = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  async function act(id: string, action: 'approve' | 'reject') {
+  async function reject(id: string) {
+    const note = window.prompt('Reason for rejecting (optional, shown to driver):', '')
+    if (note === null) return
     setBusy(id)
     try {
       const res = await fetch('/api/admin/circulation/change-requests', {
         method:  'PATCH',
         headers: { 'content-type': 'application/json' },
-        body:    JSON.stringify({ id, action }),
+        body:    JSON.stringify({ id, action: 'reject', admin_note: note || null }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         alert(j.error ?? 'Action failed.')
         return
       }
+      router.refresh()
+    } finally { setBusy(null) }
+  }
+
+  async function applyEdit(id: string, updates: Record<string, unknown>, adminNote?: string) {
+    setBusy(id)
+    try {
+      const res = await fetch('/api/admin/circulation/change-requests', {
+        method:  'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ id, action: 'apply', updates, admin_note: adminNote ?? null }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        alert(j.error ?? 'Save failed.')
+        return
+      }
+      setExpandedId(null)
       router.refresh()
     } finally { setBusy(null) }
   }
@@ -78,10 +113,11 @@ export function ChangesClient({ filter, rows, loadErr }: Props) {
             {rows.map(r => {
               const typeCls = r.type === 'close' ? 'badge-red' : r.type === 'new' ? 'badge-green' : 'badge-amber'
               const stCls   = r.status === 'approved' ? 'badge-green' : r.status === 'rejected' ? 'badge-red' : 'badge-amber'
+              const isExpanded = expandedId === r.id
               return (
                 <div key={r.id} className="card">
                   <div className="flex items-center gap-2 mb-2" style={{ flexWrap: 'wrap' }}>
-                    <span className={`badge ${typeCls}`}>{r.type[0].toUpperCase() + r.type.slice(1)}</span>
+                    <span className={`badge ${typeCls}`}>{prettyType(r.type)}</span>
                     <span className={`badge ${stCls}`}>{r.status[0].toUpperCase() + r.status.slice(1)}</span>
                     <span className="text-sub text-sm">{r.driver_name} · {r.route_name}</span>
                     <span className="text-muted ml-auto" style={{ fontSize: 12 }}>
@@ -89,38 +125,46 @@ export function ChangesClient({ filter, rows, loadErr }: Props) {
                     </span>
                   </div>
                   <div className="fw-600 mb-2">{r.stop_name ?? 'New location'}</div>
-                  {r.type === 'edit' && r.field_name && (
-                    <div style={{
-                      background: 'var(--color-portal-bg)', borderRadius: 6,
-                      padding: '10px 14px', fontSize: 13, marginBottom: 10,
-                      display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8,
-                    }}>
-                      <div>
-                        <div className="text-muted text-xs mb-1">Field</div>
-                        <strong>{r.field_name}</strong>
-                      </div>
-                      <div>
-                        <div className="text-muted text-xs mb-1">Was</div>
-                        <span style={{ color: 'var(--color-portal-red)' }}>{r.old_value ?? '—'}</span>
-                      </div>
-                      <div>
-                        <div className="text-muted text-xs mb-1">Now</div>
-                        <span style={{ color: 'var(--color-portal-green)', fontWeight: 600 }}>{r.new_value ?? '—'}</span>
-                      </div>
-                    </div>
-                  )}
                   {r.notes && (
-                    <div className="text-sub text-sm mb-3" style={{ fontStyle: 'italic' }}>&ldquo;{r.notes}&rdquo;</div>
-                  )}
-                  {r.status === 'pending' ? (
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => act(r.id, 'approve')} disabled={busy === r.id} className="btn btn-green btn-sm">
-                        <Check size={12} /> Approve &amp; apply
-                      </button>
-                      <button type="button" onClick={() => act(r.id, 'reject')} disabled={busy === r.id} className="btn btn-red btn-sm">
-                        <X size={12} /> Reject
-                      </button>
+                    <div className="text-sub text-sm mb-3" style={{
+                      fontStyle: 'italic', background: '#F8FAFC',
+                      padding: '8px 12px', borderRadius: 6, borderLeft: '3px solid #1A5FA8',
+                    }}>
+                      &ldquo;{r.notes}&rdquo;
                     </div>
+                  )}
+
+                  {r.status === 'pending' ? (
+                    <>
+                      <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                          disabled={busy === r.id}
+                          className="btn btn-primary btn-sm"
+                        >
+                          <Edit3 size={12} /> {isExpanded ? 'Cancel review' : 'Review & edit'}
+                          <ChevronDown size={12} style={{ transform: isExpanded ? 'rotate(180deg)' : undefined, transition: 'transform .15s' }} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => reject(r.id)}
+                          disabled={busy === r.id}
+                          className="btn btn-red btn-sm"
+                        >
+                          <X size={12} /> Reject
+                        </button>
+                      </div>
+
+                      {isExpanded && (
+                        <ReviewPanel
+                          row={r}
+                          busy={busy === r.id}
+                          onApply={(updates, adminNote) => applyEdit(r.id, updates, adminNote)}
+                          onCancel={() => setExpandedId(null)}
+                        />
+                      )}
+                    </>
                   ) : (
                     <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
                       {r.status === 'approved' ? '✓ Approved' : r.status === 'rejected' ? '✕ Rejected' : 'Reviewed'}
@@ -142,4 +186,176 @@ export function ChangesClient({ filter, rows, loadErr }: Props) {
       </div>
     </div>
   )
+}
+
+// ── Review panel ─────────────────────────────────────────────────────────
+// Expands under the card when admin clicks Review. Pre-fills with the
+// stop's current values; admin edits, then picks an action.
+function ReviewPanel({
+  row, busy, onApply, onCancel,
+}: {
+  row: ChangeRequestRow
+  busy: boolean
+  onApply: (updates: Record<string, unknown>, adminNote?: string) => void
+  onCancel: () => void
+}) {
+  const s = row.stop_details
+  const [name,          setName]          = useState(s?.name ?? '')
+  const [address,       setAddress]       = useState(s?.address ?? '')
+  const [city,          setCity]           = useState(s?.city ?? '')
+  const [zip,           setZip]            = useState(s?.zip ?? '')
+  const [notes,         setNotes]          = useState(s?.notes ?? '')
+  const [quantities,    setQuantities]     = useState<Record<string, number>>(s?.quantities ?? {})
+  const [pauseReason,   setPauseReason]    = useState('Closed for the season')
+  const [adminNote,     setAdminNote]      = useState('')
+
+  const pubKeys = Object.keys(quantities).length > 0
+    ? Object.keys(quantities).sort()
+    : ['rrp', 'boom'] // reasonable default if no quantities on file
+
+  function saveEdits() {
+    const updates: Record<string, unknown> = {
+      name:       name.trim() || null,
+      address:    address.trim() || null,
+      city:       city.trim() || null,
+      zip:        zip.trim() || null,
+      notes:      notes.trim() || null,
+      quantities: Object.fromEntries(Object.entries(quantities).filter(([, v]) => v > 0)),
+    }
+    onApply(updates, adminNote.trim() || undefined)
+  }
+
+  function markNotDelivering() {
+    if (!window.confirm('Pause deliveries to this stop? It will stay on the map but drivers won\'t stop there.')) return
+    onApply({ not_delivering: true, not_delivering_note: pauseReason.trim() || 'Closed by driver request' }, adminNote.trim() || undefined)
+  }
+
+  function deletePermanently() {
+    if (!window.confirm('Deactivate this stop entirely? It will disappear from every driver route and the public map. (You can restore later in Routes & Stops.)')) return
+    onApply({ active: false, not_delivering: true, not_delivering_note: 'Deactivated by admin' }, adminNote.trim() || undefined)
+  }
+
+  if (!s) {
+    // "new" type — no existing stop. Fall back to a compact panel
+    // pointing the admin at the add-stop flow.
+    return (
+      <div style={{ marginTop: 12, padding: 14, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 13, lineHeight: 1.5 }}>
+        <div style={{ marginBottom: 8 }}>
+          <strong>New stop request.</strong> The driver flagged a location that isn&apos;t on any route yet.
+        </div>
+        <div className="text-sub mb-3">
+          Go to <Link href="/admin/circulation/routes" style={{ color: 'var(--color-portal-blue)', textDecoration: 'underline' }}>Routes &amp; Stops</Link> and add the stop, then come back here and click Approve.
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => onApply({}, adminNote.trim() || 'Approved — stop was added manually')}
+            disabled={busy}
+            className="btn btn-green btn-sm"
+          >
+            <Check size={12} /> Approve (marked as handled)
+          </button>
+          <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">Cancel</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      marginTop: 12, padding: 14,
+      background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 10 }}>
+        Edit this stop
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
+        <div className="fg">
+          <label>Name</label>
+          <input value={name} onChange={e => setName(e.target.value)} />
+        </div>
+        <div className="fg">
+          <label>Zip</label>
+          <input value={zip} onChange={e => setZip(e.target.value)} />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
+        <div className="fg">
+          <label>Address</label>
+          <input value={address} onChange={e => setAddress(e.target.value)} />
+        </div>
+        <div className="fg">
+          <label>City</label>
+          <input value={city} onChange={e => setCity(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="fg" style={{ marginBottom: 8 }}>
+        <label>Copies per publication</label>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+          {pubKeys.map(pub => (
+            <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1E293B' }}>
+              <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+              <input
+                type="number" min={0} inputMode="numeric"
+                value={quantities[pub] ?? 0}
+                onChange={e => setQuantities({ ...quantities, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) })}
+                style={{ width: 70, padding: '6px 8px' }}
+              />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="fg" style={{ marginBottom: 12 }}>
+        <label>Stop notes (for driver)</label>
+        <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Ask for Bob at the counter" />
+      </div>
+
+      <div className="fg" style={{ marginBottom: 12 }}>
+        <label>Admin note <span style={{ fontWeight: 400, color: 'var(--color-portal-muted)' }}>(shown to driver in confirmation)</span></label>
+        <input value={adminNote} onChange={e => setAdminNote(e.target.value)} placeholder="e.g. Cut the drop from 25 to 10 per driver's request" />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" onClick={saveEdits} disabled={busy} className="btn btn-green btn-sm">
+          <Check size={12} /> Save changes &amp; approve
+        </button>
+        <button type="button" onClick={markNotDelivering} disabled={busy} className="btn btn-amber btn-sm" title="Keep on the map, but drivers skip">
+          <PauseCircle size={12} /> Pause this stop
+        </button>
+        <button type="button" onClick={deletePermanently} disabled={busy} className="btn btn-red btn-sm" title="Fully remove from routes and public map">
+          <Trash2 size={12} /> Deactivate stop
+        </button>
+        <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">Cancel</button>
+      </div>
+
+      {(s.not_delivering || !s.active) && (
+        <p style={{ marginTop: 10, fontSize: 11, color: '#92400E' }}>
+          Current state: {s.not_delivering ? 'paused (not delivering)' : ''}{s.not_delivering && !s.active ? ' + ' : ''}{!s.active ? 'deactivated' : ''}
+          {s.not_delivering_note && ` — "${s.not_delivering_note}"`}
+        </p>
+      )}
+
+      {/* Pause reason input — surfaced only when the admin's about to click Pause */}
+      <input
+        value={pauseReason}
+        onChange={e => setPauseReason(e.target.value)}
+        placeholder="Reason for pause"
+        style={{ marginTop: 8, fontSize: 12, padding: '6px 10px', border: '1px solid #E2E8F0', borderRadius: 6, background: 'white', width: '100%' }}
+      />
+    </div>
+  )
+}
+
+function prettyType(t: string): string {
+  return ({
+    close: 'Closed',
+    edit:  'Edit',
+    qty:   'Quantity',
+    new:   'New stop',
+    move:  'Move',
+  } as Record<string, string>)[t] ?? t
 }
