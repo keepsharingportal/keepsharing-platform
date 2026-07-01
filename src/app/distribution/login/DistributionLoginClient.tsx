@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Check, ArrowRight, Mail, KeyRound, Loader2 } from 'lucide-react'
+import { KeepSharingBrand } from '@/components/KeepSharingBrand'
 
 type Mode = 'password' | 'magic' | 'reset'
 
@@ -204,11 +205,9 @@ function Shell({ children }: { children: React.ReactNode }) {
       padding: 20,
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, fontWeight: 700, color: 'white', letterSpacing: '-.5px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.3))' }}>
-            Keep<span style={{ color: '#60A5FA' }}>Sharing</span>
-          </div>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'rgba(255,255,255,.35)', marginTop: 6 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.3))' }}>
+          <KeepSharingBrand size="md" theme="dark" showLLC />
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, color: 'rgba(255,255,255,.35)', marginTop: 8 }}>
             Distribution Portal
           </div>
         </div>

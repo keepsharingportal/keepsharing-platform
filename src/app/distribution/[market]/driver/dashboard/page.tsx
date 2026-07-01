@@ -10,6 +10,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ALL_MARKET_SLUGS, marketDisplayName } from '@/lib/markets'
+import { KeepSharingBrand } from '@/components/KeepSharingBrand'
 
 export const dynamic = 'force-dynamic'
 
@@ -148,8 +149,10 @@ export default async function DriverDashboardPage({ params }: PageProps) {
 
       <div className="page-header">
         <div>
-          <h1 className="ph-title">Driver&apos;s Dashboard</h1>
-          <div className="text-muted text-sm">{monthLabel} · {firstName}</div>
+          <KeepSharingBrand size="md" showLLC />
+          <div className="text-muted text-sm" style={{ marginTop: 6 }}>
+            {firstName} · {monthLabel}
+          </div>
         </div>
       </div>
 
