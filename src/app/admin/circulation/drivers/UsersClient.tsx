@@ -129,9 +129,12 @@ export function UsersClient({ market, drivers, routes }: Props) {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Info size={16} style={{ color: 'var(--color-portal-blue, #1a5fa8)', marginTop: 2, flexShrink: 0 }} />
             <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-portal-text)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 4 }}>How drivers sign in — passwordless, magic link only</div>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>How drivers sign in — three options, sessions last 30 days</div>
               <div style={{ color: 'var(--color-portal-sub)' }}>
-                When you add a user, they get a welcome email with a one-tap sign-in link (valid 1 hour). No password is ever set — Supabase authenticates them by email. If the email never lands, use <strong>Send login link</strong> to resend it or <strong>Copy sign-in link</strong> to text/DM the URL directly.
+                <strong>1. One-tap link</strong> (default) — Add User sends a welcome email with a magic sign-in link. Click <em>Send login link</em> to resend or <em>Copy sign-in link</em> to text/DM the URL.<br />
+                <strong>2. Password</strong> — Open Edit and use <em>Send password-reset email</em> (driver picks their own) or <em>Set password directly</em> (you pick, hand it to them).<br />
+                <strong>3. Magic link on demand</strong> — Drivers can always request one at <a href="https://drivers.keepsharing.com/distribution/login" target="_blank" rel="noreferrer" style={{ color: 'var(--color-portal-blue)', textDecoration: 'underline' }}>drivers.keepsharing.com</a>.<br />
+                Once signed in, drivers stay signed in for 30 days — they will not be logged out during a route.
               </div>
             </div>
           </div>
@@ -251,6 +254,51 @@ function UserModal({ market, routes, existing, onClose, onSaved }: {
   const [routeIds,    setRouteIds]    = useState<Set<string>>(new Set(existing?.route_ids ?? []))
   const [busy, setBusy] = useState(false)
   const [err,  setErr]  = useState<string | null>(null)
+
+  // Password panel — Edit mode only
+  const [pwdMode, setPwdMode] = useState<'closed' | 'set'>('closed')
+  const [newPwd,  setNewPwd]  = useState('')
+  const [pwdBusy, setPwdBusy] = useState<'reset' | 'set' | null>(null)
+  const [pwdMsg,  setPwdMsg]  = useState<string | null>(null)
+
+  async function sendResetEmail() {
+    if (!existing) return
+    setPwdBusy('reset'); setPwdMsg(null)
+    try {
+      const res = await fetch('/api/admin/circulation/drivers/reset-password', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ user_id: existing.user_id }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setPwdMsg(`Failed: ${j.error ?? 'unknown error'}`); return }
+      let msg = `Password-reset email sent to ${j.email}.`
+      if (j.manualLink) {
+        try {
+          await navigator.clipboard.writeText(j.manualLink)
+          msg += ' A copy of the reset link is on your clipboard as a backup — paste it into a text if the email is slow.'
+        } catch { /* clipboard blocked */ }
+      }
+      setPwdMsg(msg)
+    } finally { setPwdBusy(null) }
+  }
+
+  async function setDirectPassword() {
+    if (!existing) return
+    if (newPwd.length < 8) { setPwdMsg('Password must be at least 8 characters.'); return }
+    setPwdBusy('set'); setPwdMsg(null)
+    try {
+      const res = await fetch('/api/admin/circulation/drivers/set-password', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ user_id: existing.user_id, password: newPwd }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setPwdMsg(`Failed: ${j.error ?? 'unknown error'}`); return }
+      setPwdMsg(`Password set. Share it with ${existing.full_name} through a secure channel — this dialog will forget it as soon as you close.`)
+      // Deliberately do NOT clear newPwd — admin still needs to read/copy it.
+    } finally { setPwdBusy(null) }
+  }
 
   function toggleRoute(id: string) {
     setRouteIds(prev => {
@@ -393,6 +441,91 @@ function UserModal({ market, routes, existing, onClose, onSaved }: {
           <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
         </div>
 
+        {existing && (
+          <div className="fg" style={{
+            padding: 14,
+            borderRadius: 10,
+            border: '1px solid var(--color-portal-border, #e2e8f0)',
+            background: '#fafbfc',
+            marginTop: 8,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: 'var(--color-portal-sub)', marginBottom: 8 }}>
+              Password & sign-in
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--color-portal-sub)', lineHeight: 1.5, marginBottom: 10 }}>
+              Drivers can sign in three ways: <strong>password</strong>, <strong>magic link</strong> (email), or <strong>one-tap link</strong> from an admin. Sessions last 30 days without re-auth.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button
+                type="button"
+                onClick={sendResetEmail}
+                disabled={pwdBusy !== null}
+                className="btn btn-ghost btn-sm"
+              >
+                {pwdBusy === 'reset' ? 'Sending…' : 'Send password-reset email'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPwdMode(pwdMode === 'set' ? 'closed' : 'set'); setPwdMsg(null) }}
+                className="btn btn-ghost btn-sm"
+              >
+                {pwdMode === 'set' ? 'Cancel set password' : 'Set password directly'}
+              </button>
+            </div>
+
+            {pwdMode === 'set' && (
+              <div style={{ marginTop: 12, padding: 12, background: 'white', borderRadius: 8, border: '1px solid var(--color-portal-border, #e2e8f0)' }}>
+                <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.3px', color: 'var(--color-portal-sub)', textTransform: 'uppercase' }}>
+                  New password (min 8 chars)
+                </label>
+                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                  <input
+                    type="text"
+                    value={newPwd}
+                    onChange={e => setNewPwd(e.target.value)}
+                    placeholder="Type or generate a password"
+                    autoComplete="off"
+                    style={{ flex: 1, fontFamily: 'ui-monospace, monospace' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Simple readable temp password — memorable-ish for drivers.
+                      const words = ['route','stop','issue','pack','print','deliver','morning','sunny','coffee','magazine']
+                      const w = words[Math.floor(Math.random() * words.length)]
+                      const n = Math.floor(1000 + Math.random() * 9000)
+                      setNewPwd(`${w}-${n}!`)
+                    }}
+                    className="btn btn-ghost btn-sm"
+                    title="Generate a readable temp password"
+                  >
+                    Generate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={setDirectPassword}
+                    disabled={pwdBusy === 'set' || newPwd.length < 8}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {pwdBusy === 'set' ? 'Saving…' : 'Save password'}
+                  </button>
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--color-portal-sub)', marginTop: 8, lineHeight: 1.4 }}>
+                  Share this password with the driver through a secure channel (in-person, encrypted DM, or password manager). This dialog will forget it once you close.
+                </p>
+              </div>
+            )}
+
+            {pwdMsg && (
+              <p style={{
+                marginTop: 10, padding: '8px 10px', borderRadius: 6, fontSize: 12, lineHeight: 1.5,
+                background: pwdMsg.startsWith('Failed') ? '#fee2e2' : '#dcfce7',
+                color:      pwdMsg.startsWith('Failed') ? '#7f1d1d' : '#14532d',
+              }}>{pwdMsg}</p>
+            )}
+          </div>
+        )}
+
         {err && <p className="text-sm" style={{ color: 'var(--color-portal-red)' }}>{err}</p>}
 
         <div className="modal-footer">
@@ -411,7 +544,7 @@ function UserModal({ market, routes, existing, onClose, onSaved }: {
             lineHeight: 1.55,
             color: 'var(--color-portal-text)',
           }}>
-            <strong>Passwordless sign-in.</strong> On save, this driver gets a welcome email with a one-tap sign-in link (valid 1 hour). No password is ever set — Supabase authenticates them by email. If the email doesn't land, use <em>Send login link</em> or <em>Copy sign-in link</em> from the row after creating.
+            <strong>Sign-in flow.</strong> On save, this driver gets a welcome email with a one-tap sign-in link (valid 1 hour). Sessions last 30 days — they won&apos;t be logged out mid-route. If they want a password instead, edit this user after creating and use <em>Send password-reset email</em>.
           </div>
         )}
       </div>
