@@ -237,7 +237,7 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
       }),
     }).catch(() => {})
     setFlagSheet(null)
-    flashToast('Sent to Jason for review')
+    flashToast('Issue reported — admin will review')
   }
 
   async function submitAll() {
@@ -690,11 +690,11 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
           <textarea
             value={flagSheet.notes}
             onChange={e => setFlagSheet({ ...flagSheet, notes: e.target.value })}
-            placeholder="Notes for Jason…"
+            placeholder="Notes for admin…"
             style={{ ...sheetTextareaStyle, height: 70 }}
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button onClick={sendFlag} style={sheetSaveStyle}>Send to Jason</button>
+            <button onClick={sendFlag} style={sheetSaveStyle}>Report issue</button>
             <button onClick={() => setFlagSheet(null)} style={sheetCancelStyle}>Cancel</button>
           </div>
         </Sheet>
@@ -766,7 +766,7 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
             <textarea
               value={invoiceSheet.notes}
               onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
-              placeholder="Notes for Jason (optional)…"
+              placeholder="Notes for admin (optional)…"
               style={{ ...sheetTextareaStyle, height: 70 }}
             />
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>

@@ -181,7 +181,7 @@ export function DriverReorderClient({ routeId, market, pickup, draggable, pubKey
         <p className="text-sub text-sm mb-4" style={{ lineHeight: 1.6 }}>
           Tap <strong>+ Add stop</strong> to propose a new location. Drag stops to reorder them.
           Tap the <strong>🗑 trash icon</strong> on the right of any stop to mark it for removal (tap <strong>Undo</strong> to change your mind).
-          Everything goes to Jason for approval before your delivery route updates. Publications Plus stays first.
+          Everything goes to admin for approval before your delivery route updates. Publications Plus stays first.
         </p>
 
         {pickup && (
@@ -365,7 +365,7 @@ export function DriverReorderClient({ routeId, market, pickup, draggable, pubKey
                   )}
                   {isRemoved && (
                     <div style={{ fontSize: 11, color: '#7F1D1D', marginTop: 4, fontStyle: 'italic' }}>
-                      Marked for removal — pending Jason&apos;s approval
+                      Marked for removal — pending admin approval
                     </div>
                   )}
                 </div>
@@ -447,14 +447,14 @@ export function DriverReorderClient({ routeId, market, pickup, draggable, pubKey
           <div><strong>Add a stop</strong> — Tap <strong>+ Add stop</strong> at the top, fill in the name/address, pick where it goes in the route.</div>
           <div><strong>Reorder</strong> — Drag any stop up or down to change the delivery order.</div>
           <div><strong>Remove a stop</strong> — Tap the <strong>🗑 trash icon</strong> on the right side of any stop. It will turn red with a strikethrough and a <strong>REMOVE</strong> badge. Tap <strong>Undo</strong> to keep it.</div>
-          <div><strong>Note (optional)</strong> — Explain why you&apos;re making these changes so Jason has context.</div>
-          <div><strong>Send</strong> — Tap <strong>Send changes for review</strong>. Jason gets an email and reviews everything at once.</div>
+          <div><strong>Note (optional)</strong> — Explain why you&apos;re making these changes so admin has context.</div>
+          <div><strong>Send</strong> — Tap <strong>Send changes for review</strong>. Admin gets an email and reviews everything at once.</div>
           <div style={{
             marginTop: 12, padding: 10,
             background: 'var(--color-portal-bg)', borderRadius: 8,
             fontSize: 12,
           }}>
-            Your current delivery route stays the same until Jason approves the changes. Publications Plus is always first and can&apos;t be moved or removed.
+            Your current delivery route stays the same until admin approves the changes. Publications Plus is always first and can&apos;t be moved or removed.
           </div>
         </div>
       </div>

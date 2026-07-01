@@ -98,7 +98,7 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
       })
       if (!res.ok) throw new Error('submit')
       setSheet(null)
-      flashToast('Sent to Jason for review')
+      flashToast('Issue reported — admin will review')
     } catch {
       setSheet(sheet ? { ...sheet, submitting: false } : null)
       flashToast('Could not send — try again')
@@ -136,6 +136,16 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
         </div>
 
         <div style={{ padding: '10px 12px 16px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', flex: 1 }}>
+
+          {/* How-to note above the list */}
+          <div style={{
+            background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10,
+            padding: '10px 14px', marginBottom: 6, fontSize: 12, color: '#1A5FA8',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span style={{ fontSize: 16 }}>👆</span>
+            <span>Tap any stop for details, directions, history &amp; to report an issue</span>
+          </div>
 
           {stops.map((s, i) => {
             const isPickup = s.is_pickup
@@ -299,7 +309,7 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
                       color: '#B91C1C', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    🚩 Send Jason an issue about this stop
+                    🚩 Report an issue with this stop
                   </button>
                 ) : (
                   <div>
@@ -329,12 +339,12 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
                     <textarea
                       value={sheet.flagNotes}
                       onChange={e => setSheet({ ...sheet, flagNotes: e.target.value })}
-                      placeholder="Notes for Jason…"
+                      placeholder="Notes for admin…"
                       style={{ ...sheetTextareaStyle, height: 70 }}
                     />
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                       <button onClick={submitFlag} disabled={sheet.submitting} style={sheetSaveStyle}>
-                        {sheet.submitting ? 'Sending…' : 'Send to Jason'}
+                        {sheet.submitting ? 'Sending…' : 'Report issue'}
                       </button>
                       <button onClick={() => setSheet({ ...sheet, showFlag: false })} style={sheetCancelStyle}>Cancel</button>
                     </div>

@@ -126,7 +126,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   const [invoiceSheet, setInvoiceSheet] = useState<null | { notes: string; gasAmount: string; submitting: boolean }>(null)
   const [scrollToId, setScrollToId] = useState<string | null>(null)
 
-  // ── Toast for "Sent to Jason for review" and similar micro-feedback
+  // ── Toast for "Issue reported" and similar micro-feedback
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   function flashToast(msg: string) {
@@ -315,7 +315,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
       }),
     }).catch(() => {})
     setFlagSheet(null)
-    flashToast('Sent to Jason for review')
+    flashToast('Issue reported — admin will review')
   }
 
   async function submitInvoice() {
@@ -909,11 +909,11 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
           <textarea
             value={flagSheet.notes}
             onChange={e => setFlagSheet({ ...flagSheet, notes: e.target.value })}
-            placeholder="Notes for Jason…"
+            placeholder="Notes for admin…"
             style={{ ...sheetTextareaStyle, height: 70 }}
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button onClick={sendFlag} style={sheetSaveStyle}>Send to Jason</button>
+            <button onClick={sendFlag} style={sheetSaveStyle}>Report issue</button>
             <button onClick={() => setFlagSheet(null)} style={sheetCancelStyle}>Cancel</button>
           </div>
         </Sheet>
@@ -989,7 +989,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             <textarea
               value={invoiceSheet.notes}
               onChange={e => setInvoiceSheet({ ...invoiceSheet, notes: e.target.value })}
-              placeholder="Notes for Jason (optional)…"
+              placeholder="Notes for admin (optional)…"
               style={{ ...sheetTextareaStyle, height: 70 }}
             />
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
