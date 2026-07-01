@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Plus, Mail, Link2, Check, Info } from 'lucide-react'
 export interface DriverRow {
   user_id:       string
   full_name:     string
@@ -36,6 +36,8 @@ export function UsersClient({ market, drivers, routes }: Props) {
   const router = useRouter()
   const [modal,    setModal]    = useState<null | { kind: 'new' } | { kind: 'edit'; driver: DriverRow }>(null)
   const [busy,     setBusy]     = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [toast,    setToast]    = useState<string | null>(null)
 
   async function toggleActive(d: DriverRow) {
     setBusy(d.user_id)
@@ -54,6 +56,50 @@ export function UsersClient({ market, drivers, routes }: Props) {
     } finally { setBusy(null) }
   }
 
+  async function sendLoginLink(d: DriverRow) {
+    setBusy(d.user_id)
+    setToast(null)
+    try {
+      const res = await fetch('/api/admin/circulation/drivers/resend-welcome', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ user_id: d.user_id }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setToast(`Failed: ${j.error ?? 'unknown error'}`); return }
+      if (j.skipped) {
+        setToast(`Queued for ${d.email} — but ${j.reason}`)
+      } else if (j.delivered) {
+        setToast(`Login link sent to ${d.email}. Valid for 1 hour.`)
+      } else {
+        setToast(`Queued for ${d.email}. Cron will deliver within 24 hours.`)
+      }
+    } finally {
+      setBusy(null)
+      setTimeout(() => setToast(null), 7000)
+    }
+  }
+
+  async function copySignInLink(d: DriverRow) {
+    setBusy(d.user_id)
+    try {
+      const res = await fetch('/api/admin/circulation/drivers/signin-link', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ user_id: d.user_id }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || !j.url) { setToast(`Failed: ${j.error ?? 'unknown error'}`); return }
+      await navigator.clipboard.writeText(j.url)
+      setCopiedId(d.user_id)
+      setToast(`Sign-in link copied. Paste it into a text or DM to ${d.full_name}. Valid 1 hour.`)
+      setTimeout(() => setCopiedId(null), 2500)
+    } finally {
+      setBusy(null)
+      setTimeout(() => setToast(null), 7000)
+    }
+  }
+
   return (
     <div className="portal-app flex flex-col flex-1 min-h-0 bg-portal-bg">
 
@@ -69,6 +115,40 @@ export function UsersClient({ market, drivers, routes }: Props) {
       </div>
 
       <div className="content-body overflow-y-auto">
+
+        {/* How-it-works panel — the driver-login process is passwordless,
+            magic-link only. Editors kept looking for a password field
+            during add-user; this explains why there isn't one. */}
+        <div className="card" style={{
+          padding: '14px 16px',
+          marginBottom: 16,
+          background: 'var(--color-portal-blue-lt, #eaf2ff)',
+          border: '1px solid var(--color-portal-blue, #1a5fa8)',
+          borderLeft: '4px solid var(--color-portal-blue, #1a5fa8)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <Info size={16} style={{ color: 'var(--color-portal-blue, #1a5fa8)', marginTop: 2, flexShrink: 0 }} />
+            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-portal-text)' }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>How drivers sign in — passwordless, magic link only</div>
+              <div style={{ color: 'var(--color-portal-sub)' }}>
+                When you add a user, they get a welcome email with a one-tap sign-in link (valid 1 hour). No password is ever set — Supabase authenticates them by email. If the email never lands, use <strong>Send login link</strong> to resend it or <strong>Copy sign-in link</strong> to text/DM the URL directly.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {toast && (
+          <div className="card" style={{
+            padding: '10px 14px',
+            marginBottom: 12,
+            background: toast.startsWith('Failed') ? '#fee2e2' : '#dcfce7',
+            border: `1px solid ${toast.startsWith('Failed') ? '#dc2626' : '#16a34a'}`,
+            fontSize: 13,
+            color: toast.startsWith('Failed') ? '#7f1d1d' : '#14532d',
+          }}>
+            {toast}
+          </div>
+        )}
 
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
@@ -104,8 +184,27 @@ export function UsersClient({ market, drivers, routes }: Props) {
                   </td>
                   <td className="mono">{d.rate_per_stop > 0 ? fmtMoney(d.rate_per_stop) : '-'}</td>
                   <td><span className={`badge ${d.active ? 'badge-green' : 'badge-gray'}`}>{d.active ? 'Active' : 'Inactive'}</span></td>
-                  <td className="flex gap-2">
+                  <td className="flex gap-2 flex-wrap">
                     <button type="button" onClick={() => setModal({ kind: 'edit', driver: d })} className="btn btn-ghost btn-xs">Edit</button>
+                    <button
+                      type="button"
+                      onClick={() => sendLoginLink(d)}
+                      disabled={busy === d.user_id}
+                      className="btn btn-ghost btn-xs"
+                      title="Regenerate + email the one-tap sign-in link now"
+                    >
+                      <Mail size={11} /> Send login link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copySignInLink(d)}
+                      disabled={busy === d.user_id}
+                      className="btn btn-ghost btn-xs"
+                      title="Copy a one-tap sign-in URL so you can text or DM it to the driver"
+                    >
+                      {copiedId === d.user_id ? <Check size={11} /> : <Link2 size={11} />}
+                      {copiedId === d.user_id ? 'Copied' : 'Copy sign-in link'}
+                    </button>
                     <button
                       type="button"
                       onClick={() => toggleActive(d)}
@@ -303,9 +402,17 @@ function UserModal({ market, routes, existing, onClose, onSaved }: {
           <button type="button" onClick={onClose} className="btn btn-ghost">Cancel</button>
         </div>
         {!existing && (
-          <p className="text-muted text-xs" style={{ marginTop: 12 }}>
-            New users receive a magic-link email to set their password on first login. No password is handed out here.
-          </p>
+          <div style={{
+            marginTop: 14,
+            padding: '10px 12px',
+            borderRadius: 8,
+            background: 'var(--color-portal-blue-lt, #eaf2ff)',
+            fontSize: 12,
+            lineHeight: 1.55,
+            color: 'var(--color-portal-text)',
+          }}>
+            <strong>Passwordless sign-in.</strong> On save, this driver gets a welcome email with a one-tap sign-in link (valid 1 hour). No password is ever set — Supabase authenticates them by email. If the email doesn't land, use <em>Send login link</em> or <em>Copy sign-in link</em> from the row after creating.
+          </div>
         )}
       </div>
     </div>
