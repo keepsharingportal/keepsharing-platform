@@ -75,8 +75,17 @@ export default async function ChangesPage({ searchParams }: PageProps) {
     }))
   } catch (e) {
     // Surface the error to the UI instead of silently returning zero rows —
-    // that hid a badge/list mismatch for a full afternoon.
-    loadErr = e instanceof Error ? e.message : String(e)
+    // that hid a badge/list mismatch for a full afternoon. PostgrestError
+    // objects aren't Error instances so guard for the {message, code, hint,
+    // details} shape too.
+    if (e instanceof Error) {
+      loadErr = e.message
+    } else if (e && typeof e === 'object') {
+      const err = e as { message?: string; code?: string; details?: string; hint?: string }
+      loadErr = [err.message, err.code && `(${err.code})`, err.details, err.hint].filter(Boolean).join(' — ') || JSON.stringify(e)
+    } else {
+      loadErr = String(e)
+    }
   }
 
   return <ChangesClient filter={filter} rows={rows} loadErr={loadErr} />
