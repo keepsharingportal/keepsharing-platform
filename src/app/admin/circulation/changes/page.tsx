@@ -27,46 +27,57 @@ export default async function ChangesPage({ searchParams }: PageProps) {
 
   const sb = createAdminClient()
   let rows: ChangeRequestRow[] = []
+  let loadErr: string | null = null
+
+  // Two-step query so we never lose the request rows because a foreign
+  // key join errors out. First pull change_requests by themselves, then
+  // fetch stop/route/driver names in batched IN queries.
   try {
     let q = sb.from('circulation_change_requests')
-      .select(`
-        id, type, status, stop_id, route_id, driver_id, field_name,
-        old_value, new_value, notes, admin_note, created_at, reviewed_at,
-        circulation_stops(name),
-        circulation_routes(name),
-        circulation_drivers(full_name)
-      `)
+      .select('id, type, status, stop_id, route_id, driver_id, field_name, old_value, new_value, notes, admin_note, created_at, reviewed_at')
       .eq('market', dbKey)
       .limit(200)
     if (filter === 'pending') {
       q = q.eq('status', 'pending').order('created_at', { ascending: false })
     } else if (filter === 'history') {
-      // Show only reviewed rows (approved / rejected) in reverse-chrono
-      // by reviewed_at so the newest decisions land at the top.
       q = q.in('status', ['approved', 'rejected'])
         .order('reviewed_at', { ascending: false, nullsFirst: false })
     } else {
       q = q.order('created_at', { ascending: false })
     }
-    const { data } = await q
+    const { data, error } = await q
+    if (error) throw error
 
-    type Joined = ChangeRequestRow & {
-      circulation_stops?:   { name?: string } | { name?: string }[] | null
-      circulation_routes?:  { name?: string } | { name?: string }[] | null
-      circulation_drivers?: { full_name?: string } | { full_name?: string }[] | null
-    }
-    rows = ((data ?? []) as unknown as Joined[]).map(r => {
-      const s  = Array.isArray(r.circulation_stops)   ? r.circulation_stops[0]   : r.circulation_stops
-      const ro = Array.isArray(r.circulation_routes)  ? r.circulation_routes[0]  : r.circulation_routes
-      const d  = Array.isArray(r.circulation_drivers) ? r.circulation_drivers[0] : r.circulation_drivers
-      return {
-        ...r,
-        stop_name:   s?.name ?? null,
-        route_name:  ro?.name ?? '(route)',
-        driver_name: d?.full_name ?? '(driver)',
-      }
-    })
-  } catch { /* table missing */ }
+    const baseRows = (data ?? []) as Array<Omit<ChangeRequestRow, 'stop_name' | 'route_name' | 'driver_name'>>
 
-  return <ChangesClient filter={filter} rows={rows} />
+    // Batch-fetch names — only run each roundtrip if the ids exist.
+    const stopIds   = Array.from(new Set(baseRows.map(r => r.stop_id).filter(Boolean) as string[]))
+    const routeIds  = Array.from(new Set(baseRows.map(r => r.route_id).filter(Boolean) as string[]))
+    const driverIds = Array.from(new Set(baseRows.map(r => r.driver_id).filter(Boolean) as string[]))
+
+    const [stopNames, routeNames, driverNames] = await Promise.all([
+      stopIds.length   > 0 ? sb.from('circulation_stops').select('id, name').in('id', stopIds)
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+      routeIds.length  > 0 ? sb.from('circulation_routes').select('id, name').in('id', routeIds)
+        : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),
+      driverIds.length > 0 ? sb.from('circulation_drivers').select('user_id, full_name').in('user_id', driverIds)
+        : Promise.resolve({ data: [] as Array<{ user_id: string; full_name: string }> }),
+    ])
+    const stopMap   = new Map(((stopNames.data   ?? []) as Array<{ id: string; name: string }>).map(x => [x.id, x.name]))
+    const routeMap  = new Map(((routeNames.data  ?? []) as Array<{ id: string; name: string }>).map(x => [x.id, x.name]))
+    const driverMap = new Map(((driverNames.data ?? []) as Array<{ user_id: string; full_name: string }>).map(x => [x.user_id, x.full_name]))
+
+    rows = baseRows.map(r => ({
+      ...r,
+      stop_name:   r.stop_id   ? stopMap.get(r.stop_id)     ?? null      : null,
+      route_name:  r.route_id  ? routeMap.get(r.route_id)   ?? '(route)' : '(route)',
+      driver_name: r.driver_id ? driverMap.get(r.driver_id) ?? '(driver)': '(driver)',
+    }))
+  } catch (e) {
+    // Surface the error to the UI instead of silently returning zero rows —
+    // that hid a badge/list mismatch for a full afternoon.
+    loadErr = e instanceof Error ? e.message : String(e)
+  }
+
+  return <ChangesClient filter={filter} rows={rows} loadErr={loadErr} />
 }

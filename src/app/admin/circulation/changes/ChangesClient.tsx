@@ -24,9 +24,9 @@ export interface ChangeRequestRow {
   driver_name: string
 }
 
-interface Props { filter: 'pending' | 'all' | 'history'; rows: ChangeRequestRow[] }
+interface Props { filter: 'pending' | 'all' | 'history'; rows: ChangeRequestRow[]; loadErr?: string | null }
 
-export function ChangesClient({ filter, rows }: Props) {
+export function ChangesClient({ filter, rows, loadErr }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState<string | null>(null)
 
@@ -62,6 +62,12 @@ export function ChangesClient({ filter, rows }: Props) {
       </div>
 
       <div className="content-body overflow-y-auto">
+
+        {loadErr && (
+          <div className="alert alert-red mb-4" style={{ background: '#FEE2E2', border: '1px solid #DC2626', color: '#7F1D1D', padding: 14, borderRadius: 8, marginBottom: 16 }}>
+            <strong>Load error:</strong> {loadErr}
+          </div>
+        )}
 
         {rows.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: 48 }}>
