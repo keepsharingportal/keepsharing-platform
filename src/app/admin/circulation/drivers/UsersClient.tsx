@@ -119,6 +119,34 @@ export function UsersClient({ market, drivers, routes }: Props) {
         {/* How-it-works panel — the driver-login process is passwordless,
             magic-link only. Editors kept looking for a password field
             during add-user; this explains why there isn't one. */}
+        {/* Publisher onboarding — visible reminder that this page is for
+            drivers only; area managers ("Publishers") get set up separately
+            with market-scoped access via Settings > Users. */}
+        <div className="card" style={{
+          padding: '12px 16px',
+          marginBottom: 12,
+          background: '#FFFBEB',
+          border: '1px solid #F59E0B',
+          borderLeft: '4px solid #F59E0B',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <Info size={16} style={{ color: '#B45309', marginTop: 2, flexShrink: 0 }} />
+            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-portal-text)' }}>
+              <div style={{ fontWeight: 700, marginBottom: 4, color: '#92400E' }}>Drivers vs. Publishers</div>
+              <div style={{ color: 'var(--color-portal-sub)' }}>
+                This page manages <strong>drivers</strong> (the people delivering) for the {market.toUpperCase()} market.
+                To onboard a <strong>Publisher</strong> (area manager who oversees drivers, sees invoices, reviews change requests
+                for their own market), go to{' '}
+                <a href="/admin/settings/users" style={{ color: 'var(--color-portal-blue)', textDecoration: 'underline', fontWeight: 600 }}>
+                  Settings → Users
+                </a>{' '}
+                and create them with role = <em>Publisher</em> scoped to their market. Publishers see their market only;
+                you as super admin see everything.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="card" style={{
           padding: '14px 16px',
           marginBottom: 16,
