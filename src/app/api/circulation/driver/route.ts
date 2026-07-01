@@ -191,6 +191,7 @@ export async function POST(req: NextRequest) {
       notes?:     string
       quantities?: Record<string, number>
     }>
+    remove_stop_ids?:  string[]          // for suggest-route-order — existing stop UUIDs to remove
   } | null
   if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
 
@@ -252,13 +253,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const removeStopIds = Array.isArray(body.remove_stop_ids)
+      ? body.remove_stop_ids.filter(id => typeof id === 'string' && id.length > 0)
+      : []
+
     const { data: inserted, error } = await sb.from('circulation_route_suggestions').insert({
-      route_id:   body.route_id,
-      driver_id:  driver.user_id,
-      stop_order: JSON.stringify(body.stop_order),
-      new_stops:  newStops,
-      status:     'pending',
-      note:       body.suggestion_note ?? null,
+      route_id:        body.route_id,
+      driver_id:       driver.user_id,
+      stop_order:      JSON.stringify(body.stop_order),
+      new_stops:       newStops,
+      remove_stop_ids: removeStopIds,
+      status:          'pending',
+      note:            body.suggestion_note ?? null,
     }).select('id').single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

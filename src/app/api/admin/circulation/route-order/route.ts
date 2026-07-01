@@ -152,12 +152,12 @@ export async function PATCH(req: NextRequest) {
     // the current route, create any new stops, then apply the reorder.
     const { data: sugg } = await client
       .from('circulation_route_suggestions')
-      .select('id, route_id, stop_order, suggestion, new_stops')
+      .select('id, route_id, stop_order, suggestion, new_stops, remove_stop_ids')
       .eq('id', body.suggestion_id)
       .maybeSingle()
     if (!sugg) return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })
     type NewStop = { temp_id: string; name: string; address?: string; city?: string; zip?: string; notes?: string; quantities?: Record<string, number> }
-    type S = { id: string; route_id: string; stop_order: unknown; suggestion: unknown; new_stops: NewStop[] | null }
+    type S = { id: string; route_id: string; stop_order: unknown; suggestion: unknown; new_stops: NewStop[] | null; remove_stop_ids: string[] | null }
     const s = sugg as S
 
     // Prefer the newer `stop_order` field but fall back to legacy
@@ -205,8 +205,29 @@ export async function PATCH(req: NextRequest) {
       tempToReal.set(ns.temp_id, (created as { id: string }).id)
     }
 
-    // Substitute temp_ids in the order with real UUIDs.
-    const finalOrder = ids.map(id => tempToReal.get(id) ?? id)
+    // Substitute temp_ids in the order with real UUIDs, then strip any
+    // stops the driver marked for removal (they've already been reordered
+    // OUT of the list on the driver side, but be defensive).
+    const removeSet = new Set(Array.isArray(s.remove_stop_ids) ? s.remove_stop_ids : [])
+    const finalOrder = ids
+      .map(id => tempToReal.get(id) ?? id)
+      .filter(id => !removeSet.has(id))
+
+    // Deactivate every stop marked for removal. active=false hides it
+    // from every driver route + the public map; delivery_stops history
+    // is preserved via the FK. Admin can restore in Routes & Stops.
+    if (removeSet.size > 0) {
+      const { error: rmErr } = await client
+        .from('circulation_stops')
+        .update({
+          active:              false,
+          not_delivering:      true,
+          not_delivering_note: 'Removed by driver request',
+        })
+        .in('id', Array.from(removeSet))
+        .eq('route_id', s.route_id)
+      if (rmErr) return NextResponse.json({ error: `Failed to remove stops: ${rmErr.message}` }, { status: 500 })
+    }
 
     // Snapshot BEFORE writing the new order so admin can restore.
     const { data: prior } = await client
@@ -229,7 +250,11 @@ export async function PATCH(req: NextRequest) {
     await client.from('circulation_route_suggestions')
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', body.suggestion_id)
-    return NextResponse.json({ ok: true, new_stops_created: tempToReal.size })
+    return NextResponse.json({
+      ok:                true,
+      new_stops_created: tempToReal.size,
+      stops_removed:     removeSet.size,
+    })
   }
 
   // Reject
