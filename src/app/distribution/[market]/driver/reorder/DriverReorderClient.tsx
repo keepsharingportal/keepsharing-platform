@@ -7,11 +7,12 @@ interface StopLite { id: string; sort_order: number; name: string; address: stri
 
 interface Props {
   routeId:   string
+  market:    string
   pickup:    StopLite | null
   draggable: StopLite[]
 }
 
-export function DriverReorderClient({ routeId, pickup, draggable }: Props) {
+export function DriverReorderClient({ routeId, market, pickup, draggable }: Props) {
   const router = useRouter()
   const [order, setOrder] = useState<StopLite[]>(draggable)
   const [note,  setNote]  = useState('')
@@ -50,7 +51,7 @@ export function DriverReorderClient({ routeId, pickup, draggable }: Props) {
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(j.error ?? 'Submit failed.'); return }
-      router.push(`/distribution/${routeId.split('-')[0] || ''}/driver/dashboard`)
+      router.push(`/distribution/${market}/driver/dashboard`)
     } finally { setBusy(false) }
   }
 
@@ -89,7 +90,14 @@ export function DriverReorderClient({ routeId, pickup, draggable }: Props) {
                 cursor: 'grab', userSelect: 'none', touchAction: 'none',
               }}
             >
-              <span style={{ color: '#CBD5E1', fontSize: 16 }}>⠿</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#CBD5E1" style={{ flexShrink: 0 }}>
+                <circle cx="9"  cy="5"  r="1.5" />
+                <circle cx="15" cy="5"  r="1.5" />
+                <circle cx="9"  cy="12" r="1.5" />
+                <circle cx="15" cy="12" r="1.5" />
+                <circle cx="9"  cy="19" r="1.5" />
+                <circle cx="15" cy="19" r="1.5" />
+              </svg>
               <div style={{
                 width: 26, height: 26, borderRadius: '50%',
                 background: 'var(--color-portal-bg)',
@@ -123,7 +131,7 @@ export function DriverReorderClient({ routeId, pickup, draggable }: Props) {
 
         <div className="flex gap-2">
           <button type="button" onClick={submit} disabled={busy} className="btn btn-primary">
-            {busy ? 'Sending…' : 'Send suggestion'}
+            {busy ? 'Sending…' : 'Send suggestion for review'}
           </button>
         </div>
       </div>

@@ -1,18 +1,15 @@
-// /distribution/[market]/driver/map — Full-screen route map (Google).
+// /distribution/[market]/driver/map — Verbatim port of v3 driver/map.php.
 //
-// Port of driver/map.php from the v3_FINAL portal source. Server
-// component fetches the driver's assigned routes + stops; rendering
-// lives in DriverMapClient (Client Component) because Next.js 16
-// requires `next/dynamic` with `ssr: false` to live in a Client
-// Component, not a Server Component.
+// Requires ?route=<id>. Renders that route's stops on a full-screen
+// Google Map with the v3 marker vocabulary (pickup / delivery-numbered /
+// paused) and a legend in the bottom-left corner. No route filter —
+// map.php shows one route at a time, matching v3.
 
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ALL_MARKET_SLUGS, marketDisplayName } from '@/lib/markets'
-import { DriverMapClient } from './DriverMapClient'
+import { DriverMapClient, type DriverMapStop } from './DriverMapClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +21,6 @@ interface PageProps {
 export default async function DriverMapPage({ params, searchParams }: PageProps) {
   const { market } = await params
   const sp = await searchParams
-  const routeFilter = sp.route?.trim() || null
   if (!ALL_MARKET_SLUGS.includes(market)) notFound()
 
   const supabase = await createClient()
@@ -46,56 +42,48 @@ export default async function DriverMapPage({ params, searchParams }: PageProps)
     )
   }
 
-  // Assigned route ids
-  const { data: assigns } = await admin
+  const routeId = sp.route?.trim()
+  if (!routeId) redirect(`/distribution/${market}/driver/dashboard`)
+
+  // Verify the driver is assigned to this route (skip for admins/editors,
+  // matching v3 map.php lines 12-17).
+  const { data: assignRow } = await admin
     .from('circulation_driver_routes')
     .select('route_id')
     .eq('driver_id', user.id)
-  const routeIds = ((assigns ?? []) as Array<{ route_id: string }>).map(a => a.route_id)
-  const filteredIds = routeFilter && routeIds.includes(routeFilter) ? [routeFilter] : routeIds
+    .eq('route_id', routeId)
+    .maybeSingle()
+  if (!assignRow) redirect(`/distribution/${market}/driver/dashboard`)
 
-  const [routesRes, stopsRes] = filteredIds.length === 0
-    ? [{ data: [] }, { data: [] }]
-    : await Promise.all([
-        admin.from('circulation_routes')
-          .select('id, name')
-          .eq('market', market)
-          .in('id', filteredIds)
-          .order('sort_order')
-          .order('name'),
-        admin.from('circulation_stops')
-          .select('id, route_id, name, address, city, zip, lat, lng, ad_level, is_advertiser, is_featured, website, instagram, facebook, tiktok, logo_path')
-          .eq('market', market)
-          .eq('active', true)
-          .in('route_id', filteredIds),
-      ])
+  const { data: route } = await admin
+    .from('circulation_routes')
+    .select('id, name')
+    .eq('market', market)
+    .eq('id', routeId)
+    .eq('active', true)
+    .maybeSingle()
+  if (!route) redirect(`/distribution/${market}/driver/dashboard`)
 
-  type RouteLite = { id: string; name: string }
-  type StopRow   = { id: string; route_id: string; name: string; address: string | null; city: string | null; zip: string | null; lat: number | null; lng: number | null; ad_level: string | null; is_advertiser: boolean; is_featured: boolean; website: string | null; instagram: string | null; facebook: string | null; tiktok: string | null; logo_path: string | null }
-  const routes = (routesRes.data ?? []) as RouteLite[]
-  const stops  = (stopsRes.data  ?? []) as StopRow[]
+  const { data: stopsData } = await admin
+    .from('circulation_stops')
+    .select('id, route_id, name, address, city, zip, lat, lng, sort_order, is_pickup, not_delivering, notes')
+    .eq('market', market)
+    .eq('route_id', routeId)
+    .eq('active', true)
+    .order('is_pickup', { ascending: false })
+    .order('sort_order')
+
+  const stops = ((stopsData ?? []) as Array<{
+    id: string; route_id: string; name: string; address: string | null; city: string | null;
+    zip: string | null; lat: number | null; lng: number | null; sort_order: number;
+    is_pickup: boolean; not_delivering: boolean; notes: string | null;
+  }>).map(s => ({ ...s, zip: s.zip }) as DriverMapStop)
 
   return (
-    <div className="portal-app" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div className="page-header">
-        <div>
-          <h1 className="ph-title">Route map</h1>
-          <div className="text-muted text-sm">{routes.length} route{routes.length === 1 ? '' : 's'} · {stops.length} stop{stops.length === 1 ? '' : 's'}</div>
-        </div>
-        <div className="ph-actions">
-          <Link href={`/distribution/${market}/driver/dashboard`} className="btn btn-ghost btn-sm">
-            <ArrowLeft size={14} /> My routes
-          </Link>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <DriverMapClient
-          stops={stops.map(s => ({ ...s, ad_level: s.ad_level ?? undefined }))}
-          routes={routes}
-          showFilter={routes.length > 1}
-        />
-      </div>
-    </div>
+    <DriverMapClient
+      stops={stops}
+      routeName={(route as { name: string }).name}
+      market={market}
+    />
   )
 }

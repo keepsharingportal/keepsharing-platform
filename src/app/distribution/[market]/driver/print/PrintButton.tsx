@@ -5,9 +5,9 @@ export function PrintButton() {
     <button
       type="button"
       onClick={() => window.print()}
-      style={{ padding: '6px 12px', background: '#1E3A5F', color: 'white', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+      style={{ padding: '10px 20px', background: '#1E3A5F', color: 'white', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
     >
-      🖨 Print
+      🖨 Print this sheet
     </button>
   )
 }

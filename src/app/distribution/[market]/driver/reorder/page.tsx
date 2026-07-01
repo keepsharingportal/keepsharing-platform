@@ -113,6 +113,7 @@ export default async function DriverReorderPage({ params, searchParams }: PagePr
 
         <DriverReorderClient
           routeId={routeId!}
+          market={market}
           pickup={pickup}
           draggable={draggable}
         />
