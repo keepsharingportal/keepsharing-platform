@@ -185,6 +185,8 @@ export async function POST(req: NextRequest) {
   } | null
   if (!body) return NextResponse.json({ error: 'Empty body' }, { status: 400 })
 
+  const sb = admin()
+
   // ── save-pickup-load: driver logs bundle counts picked up at Pubs Plus ──
   if (body.action === 'save-pickup-load') {
     if (!body.delivery_id) return NextResponse.json({ error: 'delivery_id required' }, { status: 400 })
@@ -206,8 +208,6 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   }
-
-  const sb = admin()
 
   // ── suggest-route-order: driver proposes a new stop order for a route ───
   if (body.action === 'suggest-route-order') {
