@@ -7,6 +7,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { regionForMarket } from '@/lib/circulation/regions'
+import { publicMapUrl, publicRequestUrl } from '@/lib/markets'
 import { SettingsClient } from './SettingsClient'
 
 export const metadata = { title: 'Settings — Distribution Portal' }
@@ -27,13 +28,21 @@ export default async function SettingsPage() {
     }
   } catch { /* table missing */ }
 
-  // Build public-map links from the brands/publications visible in this market.
+  // Build public-map links from the brands/publications visible in this
+  // market. Use absolute URLs pointing at the brand's public host so the
+  // link opens on the reader-facing domain (riverregionparents.com etc)
+  // instead of the admin host (which the proxy rewrites to /admin/...).
   const publicMapLinks = region.publications.map(p => ({
     label: `${p.toUpperCase()} public map`,
-    href:  `/distribution/${p}/map`,
+    href:  publicMapUrl(p),
   }))
 
   return (
-    <SettingsClient market={dbKey} initial={settings} publicMapLinks={publicMapLinks} />
+    <SettingsClient
+      market={dbKey}
+      initial={settings}
+      publicMapLinks={publicMapLinks}
+      requestFormUrl={publicRequestUrl(region.publications[0] ?? dbKey)}
+    />
   )
 }

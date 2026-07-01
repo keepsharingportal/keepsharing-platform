@@ -11,7 +11,8 @@ import Link from 'next/link'
 interface Props {
   market:   string
   initial:  Record<string, string>
-  publicMapLinks: Array<{ label: string; href: string }>
+  publicMapLinks:  Array<{ label: string; href: string }>
+  requestFormUrl?: string
 }
 
 const SETTINGS_FIELDS = {
@@ -37,7 +38,7 @@ const SETTINGS_FIELDS = {
   ],
 } as const
 
-export function SettingsClient({ market, initial, publicMapLinks }: Props) {
+export function SettingsClient({ market, initial, publicMapLinks, requestFormUrl }: Props) {
   const [vals,    setVals]    = useState<Record<string, string>>(initial)
   const [busy,    setBusy]    = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
@@ -104,7 +105,7 @@ export function SettingsClient({ market, initial, publicMapLinks }: Props) {
                 {l.label} ↗
               </Link>
             ))}
-            <Link href={`/distribution/${market}/request`} target="_blank" className="btn btn-ghost btn-sm">
+            <Link href={requestFormUrl ?? `/distribution/${market}/request`} target="_blank" className="btn btn-ghost btn-sm">
               Pickup request form ↗
             </Link>
           </div>

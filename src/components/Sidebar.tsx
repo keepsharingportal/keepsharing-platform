@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from '@/components/admin/BrandSwitcher'
+import { publicMapUrl } from '@/lib/markets'
 
 // ── NAV item types ─────────────────────────────────────────────────────────
 
@@ -252,8 +253,8 @@ const NAV: NavItem[] = [
       { name: 'Publications',      href: '/admin/circulation/publications'               },
       { name: 'Resources',         href: '/admin/circulation/resources'                  },
       { name: 'Location Requests', href: '/admin/circulation/requests',   badgeKey: 'pending_requests'   },
-      { name: 'RRP Public Map',    href: '/distribution/rrp/map',         external: true },
-      { name: 'RR 50+ Public Map', href: '/distribution/rr50plus/map',    external: true },
+      { name: 'RRP Public Map',    href: publicMapUrl('rrp'),      external: true },
+      { name: 'RR 50+ Public Map', href: publicMapUrl('rr50plus'), external: true },
       { name: 'Email Center',      href: '/admin/circulation/emails'                     },
       { name: 'Settings',          href: '/admin/circulation/settings'                   },
     ],

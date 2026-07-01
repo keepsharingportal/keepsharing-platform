@@ -61,6 +61,24 @@ export function marketDisplayName(slug: string): string {
   return MARKETS.find(m => m.slug === slug)?.displayName ?? slug
 }
 
+/** Absolute URL for a market's public pickup-location map. Uses the
+ *  brand's publicHost so links open on the reader-facing domain instead
+ *  of app.keepsharing.com (where the proxy rewrites /distribution to
+ *  /admin/distribution and 404s). */
+export function publicMapUrl(slug: string): string {
+  const host = MARKETS.find(m => m.slug === slug)?.publicHost
+  if (!host) return `/distribution/${slug}/map`
+  return `https://${host}/distribution/${slug}/map`
+}
+
+/** Absolute URL for a market's public pickup-request form. Same
+ *  rationale as publicMapUrl — the admin host proxies away /distribution. */
+export function publicRequestUrl(slug: string): string {
+  const host = MARKETS.find(m => m.slug === slug)?.publicHost
+  if (!host) return `/distribution/${slug}/request`
+  return `https://${host}/distribution/${slug}/request`
+}
+
 export function marketShort(slug: string): string {
   if (slug === ALL_MARKETS_SLUG) return 'ALL'
   return MARKETS.find(m => m.slug === slug)?.short ?? slug.toUpperCase()
