@@ -23,7 +23,7 @@ import {
 } from '@/components/articles/CommunitySpotlightsCrossPromo'
 import { ArticleGallery, type GalleryImage } from '@/components/articles/ArticleGallery'
 import { WashiTape } from '@/components/articles/BrandDecor'
-import { getSpotlightTemplate } from '@/lib/articles/spotlight-templates'
+import { getSpotlightTemplate, defaultSpotlightTypeForColumn } from '@/lib/articles/spotlight-templates'
 import { getColumnBrand } from '@/lib/articles/column-brand'
 import { getColumnBranding } from '@/lib/column-branding'
 import { GrandsFeatureHero }    from '@/components/articles/grands/GrandsFeatureHero'
@@ -407,9 +407,16 @@ export default async function ArticlePage({ params }: PageParams) {
   // Play Ball / Sports Spotlight: structured Q&A added on top of the article
   // body when spotlight_type is set. Three templates (athlete/coach/volunteer)
   // each with a 5-cell top strip and a Quick Hits sidebar.
-  const spotlightType = (article.spotlight_type as string | null) ?? null
-  const spotlightData = (article.spotlight_data as Record<string, unknown> | null) ?? null
-  const isSpotlight   = spotlightType !== null
+  //
+  // Grands / Teacher / Mom each have exactly ONE valid spotlight_type so we
+  // fall back to the column-implied default when the editor didn't set the
+  // field explicitly. Play Ball keeps its manual choice (3 valid types).
+  // Without this fallback, a fresh Grands article renders as a plain
+  // article — no wordmark hero, no Q&A cards, no Family Moments gallery.
+  const rawSpotlightType = (article.spotlight_type as string | null) ?? null
+  const spotlightType    = rawSpotlightType ?? defaultSpotlightTypeForColumn(column)
+  const spotlightData    = (article.spotlight_data as Record<string, unknown> | null) ?? null
+  const isSpotlight      = spotlightType !== null
 
   // Photo gallery — JSONB array from migration 099. Renders below the body,
   // above Quick Hits for spotlights or above the author bio otherwise.

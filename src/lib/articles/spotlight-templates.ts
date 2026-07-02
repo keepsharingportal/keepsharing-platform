@@ -206,6 +206,20 @@ export function getSpotlightOptionsForColumn(columnSlug: string | null | undefin
 // from the keys above for clarity. Slugs match content-taxonomy entries.
 export const SPOTLIGHT_ENABLED_COLUMNS = ['play-ball', 'teacher-of-month', 'mom-to-mom', 'grands-greatest']
 
+// Three of the four spotlight columns have exactly ONE valid
+// spotlight_type — the column identity already implies the layout.
+// This helper returns that implied type so the branded magazine
+// package renders even when the editor forgot to set spotlight_type
+// on a new article. Play Ball is intentionally excluded because it
+// carries three distinct types (athlete/coach/volunteer) and the
+// editor genuinely must choose.
+export function defaultSpotlightTypeForColumn(columnSlug: string | null | undefined): SpotlightType | null {
+  if (columnSlug === 'grands-greatest')  return 'grand'
+  if (columnSlug === 'teacher-of-month') return 'teacher'
+  if (columnSlug === 'mom-to-mom')       return 'mom'
+  return null
+}
+
 export function getSpotlightTemplate(type: string | null | undefined): SpotlightTemplate | null {
   if (!type) return null
   return SPOTLIGHT_TEMPLATES[type as SpotlightType] ?? null

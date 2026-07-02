@@ -341,8 +341,14 @@ export default function ArticleEditPage({ params }: Props) {
         setSocialIgCaption  ((data.social_ig_caption  as string | null) ?? '')
         setSocialVoiceTone  ((data.social_voice_tone  as string | null) ?? '')
         setSocialMode       (((data.social_mode as string | null) ?? 'hook') === 'per-platform' ? 'per-platform' : 'hook')
-        // Spotlight (Play Ball Athlete / Coach / Volunteer)
-        setSpotlightType((data.spotlight_type as string | null) ?? '')
+        // Spotlight (Play Ball Athlete / Coach / Volunteer / Teacher / Mom / Grand)
+        // For the three single-type columns we pre-select the only valid type
+        // when the article was saved without one, so re-saving persists the
+        // right value and the public page renders the branded layout.
+        const { defaultSpotlightTypeForColumn } = await import('@/lib/articles/spotlight-templates')
+        const savedType = (data.spotlight_type as string | null) ?? ''
+        const impliedType = defaultSpotlightTypeForColumn(data.column_slug as string | null) ?? ''
+        setSpotlightType(savedType || impliedType)
         const sd = data.spotlight_data
         if (sd && typeof sd === 'object' && !Array.isArray(sd)) {
           const flat: Record<string, string> = {}
@@ -387,6 +393,16 @@ export default function ArticleEditPage({ params }: Props) {
       column_slug: colSlug,
       guide_slug:  colSlug && !f.guide_slug ? colSlug : f.guide_slug,
     }))
+    // Auto-pick the spotlight type for single-type spotlight columns
+    // (Grands / Teacher / Mom) so the branded magazine layout renders
+    // without the editor having to remember to set it. Play Ball keeps
+    // its manual chooser (3 valid types). Only overwrites when the
+    // current selection is empty — don't step on the editor's choice.
+    if (!spotlightType) {
+      if (colSlug === 'grands-greatest')  setSpotlightType('grand')
+      else if (colSlug === 'teacher-of-month') setSpotlightType('teacher')
+      else if (colSlug === 'mom-to-mom')  setSpotlightType('mom')
+    }
   }
 
   // ── Save ────────────────────────────────────────────────────────────────────
