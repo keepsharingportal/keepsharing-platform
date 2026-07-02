@@ -410,6 +410,16 @@ export default function ArticleEditPage({ params }: Props) {
   async function save(mode: SaveMode) {
     if (!form.title.trim()) { setSaveMsg({ text: 'Title is required.', ok: false }); return }
 
+    // Play Ball is the one spotlight column that can't auto-default —
+    // it carries three types (athlete/coach/volunteer) and rendering
+    // needs the right template. Block publish (not draft — the editor
+    // may still be gathering info) so the branded layout is guaranteed
+    // on every published Play Ball article.
+    if (mode === 'publish' && form.column_slug === 'play-ball' && !spotlightType) {
+      setSaveMsg({ text: 'Play Ball articles need a spotlight type (Athlete, Coach, or Volunteer) before publishing.', ok: false })
+      return
+    }
+
     setSaving(true)
     setSaveMsg(null)
 

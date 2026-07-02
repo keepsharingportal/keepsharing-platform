@@ -129,11 +129,30 @@ function NewArticlePage() {
       column_slug: colSlug,
       guide_slug:  colSlug || f.guide_slug,
     }))
+    // Auto-pick the spotlight type for single-type spotlight columns
+    // (Grands / Teacher / Mom). Play Ball keeps its manual chooser
+    // because it carries three valid types. Only overwrites when the
+    // current selection is empty so we don't stomp an editor's choice.
+    if (!spotlightType) {
+      if (colSlug === 'grands-greatest')  setSpotlightType('grand')
+      else if (colSlug === 'teacher-of-month') setSpotlightType('teacher')
+      else if (colSlug === 'mom-to-mom')  setSpotlightType('mom')
+    }
   }
 
   async function save(mode: SaveMode) {
     if (!form.title.trim()) { setSaveMsg({ text: 'Title is required.', ok: false }); return }
     if (!form.slug.trim())  { setSaveMsg({ text: 'URL slug is required.', ok: false }); return }
+
+    // Play Ball is the one spotlight column that can't auto-default —
+    // it carries three types (athlete/coach/volunteer) and rendering
+    // needs the right template. Block publish (not draft — the editor
+    // may still be gathering info) so the branded layout is guaranteed
+    // on every published Play Ball article.
+    if (mode === 'publish' && form.column_slug === 'play-ball' && !spotlightType) {
+      setSaveMsg({ text: 'Play Ball articles need a spotlight type (Athlete, Coach, or Volunteer) before publishing.', ok: false })
+      return
+    }
 
     setSaving(true)
     setSaveMsg(null)
