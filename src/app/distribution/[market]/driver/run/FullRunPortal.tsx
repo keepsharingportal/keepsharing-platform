@@ -450,7 +450,7 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                           )}
                         </div>
                       )}
-                      <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                         {stop.quantities && Object.entries(stop.quantities).map(([pub, qty]) => {
                           if (!qty || isPickup) return null
                           const col = pubColor(pub)
@@ -462,17 +462,17 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
                         })}
                         {isPickup && (<span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#DBEAFE', color: '#1A5FA8', fontFamily: '"DM Mono", ui-monospace, monospace' }}>📦 Load here</span>)}
                         {isPaused && (<span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#FEF3C7', color: '#92400E', fontFamily: '"DM Mono", ui-monospace, monospace' }}>⏸ Not delivering</span>)}
+                        {stop.address && !isPickup && !isPaused && (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 12px', borderRadius: 12, fontSize: 14, fontWeight: 800, background: '#1A5FA8', color: 'white', textDecoration: 'none', fontFamily: '"DM Mono", ui-monospace, monospace' }}
+                          >
+                            📍 MAP
+                          </a>
+                        )}
                       </div>
-                      {stop.address && !isPickup && !isPaused && (
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
-                        >
-                          📍 Map
-                        </a>
-                      )}
                     </div>
 
                     {!isPickup && !isPaused && !locked && (

@@ -8,6 +8,7 @@
 // the rrp region by default (matches every other page in this section).
 
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
 import { regionForMarket } from '@/lib/circulation/regions'
@@ -33,6 +34,13 @@ export async function GET() {
   }
   const dbKey = regionForMarket(market).slug
 
+  // Read the deliveries ack cookie. When present, filter pending
+  // deliveries to only those submitted AFTER the ack — the admin has
+  // seen everything up to that timestamp already, so the badge should
+  // stay quiet until something new lands.
+  const cookieStore = await cookies()
+  const deliveriesAckAt = cookieStore.get('circulation_deliveries_ack_at')?.value ?? null
+
   try {
     const client = sb()
     // route_suggestions has no market column — filter via routeIds in market.
@@ -41,6 +49,14 @@ export async function GET() {
       .select('id')
       .eq('market', dbKey)
     const routeIds = ((routes ?? []) as Array<{ id: string }>).map(r => r.id)
+
+    let deliveriesQuery = client.from('circulation_deliveries')
+      .select('id', { count: 'exact', head: true })
+      .eq('market', dbKey)
+      .eq('status', 'submitted')
+    if (deliveriesAckAt) {
+      deliveriesQuery = deliveriesQuery.gt('submitted_at', deliveriesAckAt)
+    }
 
     const [changes, requests, deliveries, suggestions] = await Promise.all([
       client.from('circulation_change_requests')
@@ -51,10 +67,7 @@ export async function GET() {
         .select('id', { count: 'exact', head: true })
         .eq('market', dbKey)
         .eq('status', 'pending'),
-      client.from('circulation_deliveries')
-        .select('id', { count: 'exact', head: true })
-        .eq('market', dbKey)
-        .eq('status', 'submitted'),
+      deliveriesQuery,
       routeIds.length === 0
         ? Promise.resolve({ count: 0 } as { count: number })
         : client.from('circulation_route_suggestions')

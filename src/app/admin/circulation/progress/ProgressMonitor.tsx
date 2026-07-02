@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Check, MapPin, Package, MessageSquare, ChevronRight, RefreshCw, PauseCircle, PlayCircle, Edit3, X as XIcon } from 'lucide-react'
+import { Check, MapPin, Package, MessageSquare, ChevronRight, PauseCircle, PlayCircle, Edit3, X as XIcon } from 'lucide-react'
 
 export interface DeliveryProgressRow {
   id:               string
@@ -301,22 +301,16 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
 
   return (
     <div className="space-y-4">
-      {/* Auto-refresh toggle. Defaults ON because that's the page's whole
-          job; ops can pause it when stepping away. */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <button
-          onClick={() => { router.refresh(); setLastRefresh(new Date()) }}
-          className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-white border-portal-border text-portal-text hover:border-portal-border-2 inline-flex items-center gap-1.5"
-          title="Refresh now"
-        >
-          <RefreshCw size={11} /> Refresh
-        </button>
+      {/* Auto-refresh status strip. The manual Refresh button was removed —
+          page auto-refreshes every 2 min and admins can pause via the
+          toggle when stepping away. */}
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <div className="text-[11px] text-portal-sub inline-flex items-center gap-2">
           <span>Last updated {lastRefresh.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' })}</span>
           <button
             onClick={() => setAutoRefresh(a => !a)}
             className="inline-flex items-center gap-1 text-portal-blue hover:underline"
-            title={autoRefresh ? 'Pause 30-second auto-refresh' : 'Resume 30-second auto-refresh'}
+            title={autoRefresh ? 'Pause 2-minute auto-refresh' : 'Resume 2-minute auto-refresh'}
           >
             {autoRefresh ? <><PauseCircle size={11} /> Auto-refresh on</> : <><PlayCircle size={11} /> Auto-refresh off</>}
           </button>

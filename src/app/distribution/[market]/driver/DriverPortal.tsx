@@ -632,8 +632,10 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                     </div>
                   )}
 
-                  {/* Publication pills + pickup/paused badges */}
-                  <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
+                  {/* Publication pills + pickup/paused badges + Map — all
+                      on one line at the same visual weight so the row reads
+                      as one compact info strip. */}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                     {stop.quantities && Object.entries(stop.quantities).map(([pub, qty]) => {
                       if (!qty || isPickup) return null
                       const col = pubColor(pub)
@@ -653,19 +655,17 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                         ⏸ Not delivering
                       </span>
                     )}
+                    {stop.address && !isPickup && !isPaused && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 12px', borderRadius: 12, fontSize: 14, fontWeight: 800, background: '#1A5FA8', color: 'white', textDecoration: 'none', fontFamily: '"DM Mono", ui-monospace, monospace' }}
+                      >
+                        📍 MAP
+                      </a>
+                    )}
                   </div>
-
-                  {/* Get directions — this is a keeper from my earlier build; v3 didn't have it but drivers immediately asked for it */}
-                  {stop.address && !isPickup && !isPaused && (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
-                    >
-                      📍 Map
-                    </a>
-                  )}
                 </div>
 
                 {/* Actions (details + flag) — only for deliverable stops on unsubmitted routes.

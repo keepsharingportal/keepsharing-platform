@@ -4,7 +4,7 @@
 // Month chip selector + stragglers banner + table + Mark paid modal.
 // Mirrors admin/deliveries.php from the v3_FINAL portal source.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 export interface DeliveryRow {
@@ -52,6 +52,17 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
   const router = useRouter()
   const [paySheet, setPaySheet] = useState<null | DeliveryRow>(null)
   const [busy, setBusy] = useState(false)
+
+  // Acknowledge the current pending queue as seen so the sidebar's red
+  // 'Deliveries' badge clears on visit. Server sets a cookie the counts
+  // endpoint reads; new submissions after this ack still trigger a badge.
+  // Dispatches a refresh-sidebar-counts event after so the badge updates
+  // right away instead of waiting for the next 60s poll.
+  useEffect(() => {
+    fetch('/api/admin/circulation/deliveries/ack', { method: 'POST' })
+      .then(() => { window.dispatchEvent(new Event('refresh-sidebar-counts')) })
+      .catch(() => {})
+  }, [])
 
   async function reopen(id: string) {
     if (!confirm('Reopen so the driver can resubmit?')) return

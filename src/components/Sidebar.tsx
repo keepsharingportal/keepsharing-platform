@@ -464,8 +464,17 @@ export function Sidebar() {
     pull()
     const id = setInterval(pull, 60_000)
     const onFocus = () => pull()
+    // Pages can dispatch this event after mutating state that affects
+    // sidebar badges (e.g. the Deliveries page acks the queue on mount).
+    const onRefreshCounts = () => pull()
     window.addEventListener('focus', onFocus)
-    return () => { cancelled = true; clearInterval(id); window.removeEventListener('focus', onFocus) }
+    window.addEventListener('refresh-sidebar-counts', onRefreshCounts)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('refresh-sidebar-counts', onRefreshCounts)
+    }
   }, [])
 
   const isSettingsTier = role === 'super' || role === 'admin'
