@@ -60,6 +60,57 @@ function matchBoldQuestion(pHtml: string): { html: string; iconHint: string | nu
   return { html: inner, iconHint }
 }
 
+// Heuristic question detector: a paragraph is a question if the WHOLE
+// paragraph is a single short line (< 260 chars) ending in "?". Falls
+// back for editors who type Q&A prose naturally instead of remembering
+// to bold each question with the toolbar's B button. Keeps the parser
+// permissive so the branded Q&A cards render "for free" on every
+// spotlight, matching June's polished template.
+//
+// Guardrails: must be short-form (rules out multi-sentence answers that
+// happen to end in ?), must not be in the NON_QUESTION_LABELS bucket,
+// and must not contain a nested blockquote/list (structural content).
+function matchProseQuestion(pHtml: string): { html: string; iconHint: string | null } | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const raw  = inner[1].trim()
+  const text = stripTags(raw)
+  if (text.length < 6 || text.length > 260) return null
+  if (!/\?[\s”"']*$/.test(text)) return null
+  // Reject if there's more than one sentence terminator inside the
+  // paragraph (a question is one line, not a paragraph closing on ?).
+  const terminatorCount = (text.match(/[.!?]/g) || []).length
+  if (terminatorCount > 2) return null
+  const norm = text.replace(/[:.!?\s”"']+$/g, '').toLowerCase().trim()
+  if (NON_QUESTION_LABELS.has(norm)) return null
+  // Nested structural elements → not a Q prompt.
+  if (/<(blockquote|ul|ol|table|figure)\b/i.test(raw)) return null
+
+  let cleaned  = raw
+  let iconHint: string | null = null
+  const hintMatch = cleaned.match(ICON_HINT_RE)
+  if (hintMatch) {
+    iconHint = hintMatch[1].toLowerCase()
+    cleaned  = cleaned.replace(ICON_HINT_RE, '').trim()
+  }
+  return { html: cleaned, iconHint }
+}
+
+// Prose lead-quote detector: when the article body doesn't wrap the
+// lede in <blockquote>, but the FIRST paragraph is a short quoted line
+// (curly or straight quotes, < 320 chars), lift it as the pull quote
+// so the purple hero card renders. Same "editors type naturally"
+// story as matchProseQuestion.
+function matchProseLeadQuote(pHtml: string): { quote: string; attribution: string } | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const text = stripTags(inner[1])
+  if (text.length < 8 || text.length > 320) return null
+  // Must open with an opening quote character and close with one too.
+  if (!/^[“"'‘][\s\S]+[”"'’]/.test(text)) return null
+  return splitQuoteAndAttribution(text)
+}
+
 function isGrandMomentHeading(chunk: string): boolean {
   if (!/^<h3\b/i.test(chunk)) return false
   const text = stripTags(chunk).toLowerCase().replace(/[:.!?\s]+$/g, '').trim()
@@ -74,7 +125,10 @@ function splitQuoteAndAttribution(raw: string): { quote: string; attribution: st
 }
 
 export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
-  // 1. Lift the FIRST <blockquote> as the pull quote
+  // 1. Lift the FIRST <blockquote> as the pull quote. When the editor
+  //    didn't use the blockquote button, fall back to detecting a
+  //    quoted first paragraph — that covers the natural "editor types
+  //    prose" case where the lede quote is just wrapped in "…" chars.
   let workingBody = bodyHtml
   let leadPullQuote: GrandsBodyParts['leadPullQuote'] = null
   const bqMatch = bodyHtml.match(BLOCKQUOTE_RE)
@@ -82,6 +136,15 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
     const split = splitQuoteAndAttribution(bqMatch[1])
     if (split.quote) leadPullQuote = split
     workingBody = bodyHtml.replace(bqMatch[0], '')
+  } else {
+    const firstPara = bodyHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)
+    if (firstPara) {
+      const prose = matchProseLeadQuote(firstPara[0])
+      if (prose?.quote) {
+        leadPullQuote = prose
+        workingBody = bodyHtml.replace(firstPara[0], '')
+      }
+    }
   }
 
   // 2. Walk paragraphs + h3 chunks. Bold-question paragraph starts a Q&A
@@ -134,7 +197,14 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
       continue
     }
 
-    const q = matchBoldQuestion(chunk)
+    // Question detection: bold-wrapped first (editor followed the
+    // convention), then prose-based fallback (short paragraph ending
+    // in "?") so an editor typing natural Q&A prose still gets the
+    // branded cards. The prose fallback is only tried once we're
+    // outside the intro — the first paragraph OR two are treated as
+    // lede so we don't accidentally treat a rhetorical opener as a
+    // question. Overrideable by bolding.
+    const q = matchBoldQuestion(chunk) ?? matchProseQuestion(chunk)
     if (q !== null) {
       flushPair()
       seenFirstQuestion = true

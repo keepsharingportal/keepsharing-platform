@@ -55,6 +55,36 @@ function matchBoldQuestion(pHtml: string): string | null {
   return m[1].trim()
 }
 
+// Prose question fallback: a short standalone paragraph ending in "?"
+// is treated as a question when the editor didn't bold it. Mirrors the
+// Grands parser so a naturally-typed Q&A body still produces MomQACards
+// without asking the editor to remember the bold convention.
+function matchProseQuestion(pHtml: string): string | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const raw  = inner[1].trim()
+  const text = stripTags(raw)
+  if (text.length < 6 || text.length > 260) return null
+  if (!/\?[\s”"']*$/.test(text)) return null
+  const terminatorCount = (text.match(/[.!?]/g) || []).length
+  if (terminatorCount > 2) return null
+  const norm = text.replace(/[:.!?\s”"']+$/g, '').toLowerCase().trim()
+  if (NON_QUESTION_LABELS.has(norm)) return null
+  if (/<(blockquote|ul|ol|table|figure)\b/i.test(raw)) return null
+  return raw
+}
+
+// Prose lead-quote fallback: quoted first paragraph becomes the lede
+// pull quote when there's no <blockquote>.
+function matchProseLeadQuote(pHtml: string): { quote: string; attribution: string } | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const text = stripTags(inner[1])
+  if (text.length < 8 || text.length > 320) return null
+  if (!/^[“"'‘][\s\S]+[”"'’]/.test(text)) return null
+  return splitQuoteAndAttribution(text)
+}
+
 // Match a paragraph that opens with a speaker label (`Name: text`).
 // Returns the speaker initials/name and the cleaned body text (with
 // the `Name:` prefix and any wrapping <strong> stripped, but other
@@ -143,7 +173,9 @@ function detectsSpeakerConvention(chunks: string[]): { questioner: string; answe
 }
 
 export function parseMomBody(bodyHtml: string): MomBodyParts {
-  // 1. Lift the FIRST <blockquote> as the pull quote
+  // 1. Lift the FIRST <blockquote> as the pull quote. Falls back to
+  //    a quoted first paragraph so editors don't have to use the
+  //    blockquote button for the branded card to render.
   let workingBody = bodyHtml
   let leadPullQuote: MomBodyParts['leadPullQuote'] = null
   const bqMatch = bodyHtml.match(BLOCKQUOTE_RE)
@@ -151,6 +183,15 @@ export function parseMomBody(bodyHtml: string): MomBodyParts {
     const split = splitQuoteAndAttribution(bqMatch[1])
     if (split.quote) leadPullQuote = split
     workingBody = bodyHtml.replace(bqMatch[0], '')
+  } else {
+    const firstPara = bodyHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)
+    if (firstPara) {
+      const prose = matchProseLeadQuote(firstPara[0])
+      if (prose?.quote) {
+        leadPullQuote = prose
+        workingBody = bodyHtml.replace(firstPara[0], '')
+      }
+    }
   }
 
   const chunks = workingBody.match(PARA_OR_HEADING_RE) ?? []
@@ -239,7 +280,11 @@ export function parseMomBody(bodyHtml: string): MomBodyParts {
       }
     }
     for (const chunk of mainChunks) {
-      const q = matchBoldQuestion(chunk)
+      // Bold-wrapped first (editor followed the convention), then prose
+      // fallback (short paragraph ending in "?") so a Mom Q&A body
+      // typed as natural prose still produces MomQACards without any
+      // formatting hints.
+      const q = matchBoldQuestion(chunk) ?? matchProseQuestion(chunk)
       if (q !== null) {
         flush()
         seenFirstQuestion = true
