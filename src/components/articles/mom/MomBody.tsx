@@ -38,11 +38,35 @@ interface Props {
    *  header ("Phyllis Palmer: Her Story"). When omitted, the heading
    *  falls back to a generic "Q&A". */
   subjectName?: string | null
+  /** Structured Q&A pairs from spotlight_data.qa_pairs. When set (and
+   *  non-empty) they render as the MomQACards VERBATIM — no body
+   *  parsing, no heuristics. Canonical authoring path going forward;
+   *  body parsing stays as backward compat for older content. */
+  structuredPairs?: Array<{ q: string; a: string }> | null
 }
 
-export function MomBody({ body, subjectName }: Props) {
+function paragraphize(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g, '<br />')}</p>`)
+    .join('')
+}
+
+export function MomBody({ body, subjectName, structuredPairs }: Props) {
   const safeHtml = sanitizeHtml(body, SANITIZE_OPTS)
-  const { qaPairs, introParas, rapidFireItems } = parseMomBody(safeHtml)
+  const parsed   = parseMomBody(safeHtml)
+  const { introParas, rapidFireItems } = parsed
+
+  const cleanedStructured = (structuredPairs ?? [])
+    .filter(p => (p.q?.trim() || p.a?.trim()))
+  const qaPairs = cleanedStructured.length > 0
+    ? cleanedStructured.map(p => ({
+        question: p.q.trim(),
+        answer:   paragraphize(p.a),
+      }))
+    : parsed.qaPairs
 
   const sectionTitle = subjectName?.trim()
     ? `${subjectName.trim()}: Her Story`

@@ -88,6 +88,8 @@ function NewArticlePage() {
   const [galleryImages,   setGalleryImages]   = useState<GalleryImage[]>([])
   const [spotlightType,   setSpotlightType]   = useState<string>('')
   const [spotlightData,   setSpotlightData]   = useState<Record<string, string>>({})
+  // Structured Q&A pairs — merged into spotlight_data.qa_pairs on save.
+  const [qaPairs, setQaPairs] = useState<Array<{ q: string; a: string }>>([])
 
   // SEO seed carried over from a Query Brief link. Stored separately
   // from the form's content fields so it travels to the API as
@@ -161,15 +163,19 @@ function NewArticlePage() {
     const editStatus   = mode === 'draft' ? 'draft' : mode === 'publish' ? 'approved' : 'pending'
     const published_at = published ? new Date().toISOString() : null
 
-    // Mom-style spotlights flatten {bio, town, ...} → spotlight_data only
-    // when a type is actually selected. Cleared otherwise so a half-set
-    // spotlight doesn't leak through.
+    // Spotlight — vitals + structured Q&A pairs merged into
+    // spotlight_data when a type is set. qa_pairs is skipped when
+    // empty so old rows without pairs don't sprout an empty array.
     const spotlightPayload: Record<string, unknown> = spotlightType
       ? (() => {
-          const cleaned: Record<string, string> = {}
+          const cleaned: Record<string, unknown> = {}
           for (const [k, v] of Object.entries(spotlightData)) {
             if (v && v.trim()) cleaned[k] = v.trim()
           }
+          const cleanedPairs = qaPairs
+            .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
+            .filter(p => p.q || p.a)
+          if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
           return { spotlight_type: spotlightType, spotlight_data: cleaned }
         })()
       : { spotlight_type: null, spotlight_data: {} }
@@ -513,8 +519,10 @@ function NewArticlePage() {
               columnSlug={form.column_slug}
               spotlightType={spotlightType}
               spotlightData={spotlightData}
+              qaPairs={qaPairs}
               onTypeChange={setSpotlightType}
               onDataChange={setSpotlightData}
+              onQaPairsChange={setQaPairs}
             />
           )}
 

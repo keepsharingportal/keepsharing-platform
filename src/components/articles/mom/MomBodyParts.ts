@@ -55,6 +55,27 @@ function matchBoldQuestion(pHtml: string): string | null {
   return m[1].trim()
 }
 
+// Directive prompt fallback: interview prompts often lead with the
+// subject's name + comma + a directive verb ("Phyllis, tell us about
+// your family."). Ends in a period, not a "?", so matchProseQuestion
+// below misses it.
+const DIRECTIVE_VERBS = /(tell|share|walk|describe|give|talk|explain|show|say|paint|take|start)/i
+const NAME_PREFIX_RE  = /^[“"']?[A-Z][A-Za-z'-]{1,20}[,]\s+/
+function matchDirectivePrompt(pHtml: string): string | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const raw  = inner[1].trim()
+  const text = stripTags(raw)
+  if (text.length < 8 || text.length > 200) return null
+  if (!NAME_PREFIX_RE.test(text)) return null
+  const afterComma = text.replace(NAME_PREFIX_RE, '')
+  if (!DIRECTIVE_VERBS.test(afterComma.split(/\s+/)[0] ?? '')) return null
+  const terminatorCount = (text.match(/[.!?]/g) || []).length
+  if (terminatorCount > 1) return null
+  if (/<(blockquote|ul|ol|table|figure)\b/i.test(raw)) return null
+  return raw
+}
+
 // Prose question fallback: a short standalone paragraph ending in "?"
 // is treated as a question when the editor didn't bold it. Mirrors the
 // Grands parser so a naturally-typed Q&A body still produces MomQACards
@@ -280,11 +301,10 @@ export function parseMomBody(bodyHtml: string): MomBodyParts {
       }
     }
     for (const chunk of mainChunks) {
-      // Bold-wrapped first (editor followed the convention), then prose
-      // fallback (short paragraph ending in "?") so a Mom Q&A body
-      // typed as natural prose still produces MomQACards without any
-      // formatting hints.
-      const q = matchBoldQuestion(chunk) ?? matchProseQuestion(chunk)
+      // Question detection cascade: bold → directive prompt → prose "?"
+      // (see Grands parser for the full rationale). Catches natural
+      // interview prose in all three common forms.
+      const q = matchBoldQuestion(chunk) ?? matchDirectivePrompt(chunk) ?? matchProseQuestion(chunk)
       if (q !== null) {
         flush()
         seenFirstQuestion = true

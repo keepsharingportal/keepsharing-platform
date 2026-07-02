@@ -88,6 +88,12 @@ interface Props {
    *  ("Debbie's Grand Story"). When omitted, the heading falls back to
    *  "Their Grand Story". */
   subjectName?: string | null
+  /** Structured Q&A pairs from spotlight_data.qa_pairs. When set (and
+   *  non-empty) they render as the Q&A cards VERBATIM — no body parsing,
+   *  no heuristic detection, no wondering whether the editor bolded the
+   *  right thing. This is the new canonical authoring path for Grands
+   *  articles; body parsing stays as backward compat for older content. */
+  structuredPairs?: Array<{ q: string; a: string }> | null
 }
 
 function possessive(name: string): string {
@@ -95,9 +101,34 @@ function possessive(name: string): string {
   return `${name}’s`
 }
 
-export function GrandsBody({ body, subjectName }: Props) {
+// Convert plain-text answer to minimal HTML so paragraph breaks render.
+// Structured Q&A comes in as newline-separated text; the QAItem component
+// expects HTML for its answer content.
+function paragraphize(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g, '<br />')}</p>`)
+    .join('')
+}
+
+export function GrandsBody({ body, subjectName, structuredPairs }: Props) {
   const safeHtml = sanitizeHtml(body, SANITIZE_OPTS)
-  const { qaPairs, introParas, grandMoment } = parseGrandsBody(safeHtml)
+  const parsed   = parseGrandsBody(safeHtml)
+  const { introParas, grandMoment } = parsed
+
+  // Structured pairs win when set. Falls back to body-parsed pairs
+  // (the legacy path — still works for every existing article).
+  const cleanedStructured = (structuredPairs ?? [])
+    .filter(p => (p.q?.trim() || p.a?.trim()))
+  const qaPairs = cleanedStructured.length > 0
+    ? cleanedStructured.map(p => ({
+        question: p.q.trim(),
+        answer:   paragraphize(p.a),
+        iconHint: null as string | null,
+      }))
+    : parsed.qaPairs
 
   const trimmedName = subjectName?.trim() ?? ''
   const sectionTitle = trimmedName

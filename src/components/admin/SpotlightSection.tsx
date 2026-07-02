@@ -14,16 +14,23 @@ import {
 } from '@/lib/articles/spotlight-templates'
 import { HelpTip } from '@/components/admin/AdminHelp'
 
+export interface QaPair { q: string; a: string }
+
 interface Props {
   columnSlug:    string
   spotlightType: string
   spotlightData: Record<string, string>
+  /** Structured Q&A pairs for Grands + Mom. Managed as its own state
+   *  because Record<string,string> can't hold arrays. Merged into
+   *  spotlight_data.qa_pairs on save by the parent page. */
+  qaPairs?:      QaPair[]
   onTypeChange:  (v: string) => void
   onDataChange:  (v: Record<string, string>) => void
+  onQaPairsChange?: (v: QaPair[]) => void
 }
 
 export function SpotlightSection({
-  columnSlug, spotlightType, spotlightData, onTypeChange, onDataChange,
+  columnSlug, spotlightType, spotlightData, qaPairs, onTypeChange, onDataChange, onQaPairsChange,
 }: Props) {
   const tpl     = getSpotlightTemplate(spotlightType || null)
   const options = getSpotlightOptionsForColumn(columnSlug)
@@ -133,6 +140,93 @@ export function SpotlightSection({
               ))}
             </div>
           </div>
+
+          {/* Q&A Cards — the reliable authoring path for Grands + Mom.
+              Each pair renders as a styled Q&A card verbatim, in this
+              order. Eliminates the "did I bold the question" and
+              "does this end in ?" guesswork of body parsing.
+              Leaving this empty falls back to parsing the article body
+              (backward compat for older articles). */}
+          {(columnSlug === 'grands-greatest' || columnSlug === 'mom-to-mom') && onQaPairsChange && (
+            <div className="border-t border-amber-900/20 pt-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
+                  Q&amp;A Cards
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onQaPairsChange([...(qaPairs ?? []), { q: '', a: '' }])}
+                  className="text-[11px] font-semibold text-amber-900 hover:text-amber-950 underline"
+                >
+                  + Add Q&amp;A
+                </button>
+              </div>
+              <p className="text-[11px] text-amber-900/70 mb-3">
+                Copy the question or prompt into the Q box, the answer into the A box.
+                Renders as styled Q&amp;A cards on the article in this order — no formatting tricks needed.
+              </p>
+              <div className="space-y-3">
+                {(qaPairs ?? []).map((pair, i) => (
+                  <div key={i} className="rounded-md border border-amber-900/20 bg-white/60 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
+                        Q&amp;A #{i + 1}
+                      </span>
+                      <div className="flex items-center gap-2 text-[10px]">
+                        {i > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = [...(qaPairs ?? [])]
+                              ;[next[i - 1], next[i]] = [next[i], next[i - 1]]
+                              onQaPairsChange(next)
+                            }}
+                            className="text-amber-900 hover:text-amber-950"
+                          >↑ Up</button>
+                        )}
+                        {i < (qaPairs ?? []).length - 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = [...(qaPairs ?? [])]
+                              ;[next[i + 1], next[i]] = [next[i], next[i + 1]]
+                              onQaPairsChange(next)
+                            }}
+                            className="text-amber-900 hover:text-amber-950"
+                          >↓ Down</button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => onQaPairsChange((qaPairs ?? []).filter((_, idx) => idx !== i))}
+                          className="text-red-700 hover:text-red-900"
+                        >Remove</button>
+                      </div>
+                    </div>
+                    <textarea
+                      className={inp + ' font-semibold min-h-[36px] resize-y'}
+                      value={pair.q}
+                      onChange={e => onQaPairsChange((qaPairs ?? []).map((p, idx) => idx === i ? { ...p, q: e.target.value } : p))}
+                      placeholder="Question or prompt (e.g. Jacqueline, tell us about your grandchildren.)"
+                      rows={1}
+                    />
+                    <textarea
+                      className={inp + ' min-h-[80px] resize-y'}
+                      value={pair.a}
+                      onChange={e => onQaPairsChange((qaPairs ?? []).map((p, idx) => idx === i ? { ...p, a: e.target.value } : p))}
+                      placeholder="Answer (paragraph breaks preserved — hit Enter twice for a new paragraph)"
+                      rows={3}
+                    />
+                  </div>
+                ))}
+                {(!qaPairs || qaPairs.length === 0) && (
+                  <p className="text-[11px] text-amber-900/60 italic bg-white/40 rounded-md p-3">
+                    No Q&amp;A pairs yet. Click <strong>+ Add Q&amp;A</strong> to build the interview one pair at a time,
+                    or leave empty to let the parser detect Q&amp;A from the article body.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Quick Hits Q&A — only when the template defines them (Play Ball). */}
           {tpl.quickHits.length > 0 && (

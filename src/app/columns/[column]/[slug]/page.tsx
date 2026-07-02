@@ -890,10 +890,18 @@ export default async function ArticlePage({ params }: PageParams) {
                  question + answer, no white card frames). An optional
                  AGrandMoment break renders where the editor placed an
                  <h3>A Grand Moment</h3> + paragraph in the body. The
-                 lead pull quote was already lifted upstream. */
+                 lead pull quote was already lifted upstream.
+                 Structured qa_pairs from the Spotlight editor override
+                 body parsing — the reliable authoring path. */
               <GrandsBody
                 body={article.body ?? ''}
                 subjectName={grandsSubjectName}
+                structuredPairs={
+                  Array.isArray(spotlightData?.qa_pairs)
+                    ? (spotlightData.qa_pairs as Array<{ q?: string; a?: string }>)
+                        .map(p => ({ q: String(p.q ?? ''), a: String(p.a ?? '') }))
+                    : null
+                }
               />
             ) : isMomFeature ? (
               /* Mom to Mom — intro prose with a coral drop cap, then a
@@ -919,6 +927,12 @@ export default async function ArticlePage({ params }: PageParams) {
                   if (author && author.toLowerCase() !== 'staff') return author
                   return null
                 })()}
+                structuredPairs={
+                  Array.isArray(spotlightData?.qa_pairs)
+                    ? (spotlightData.qa_pairs as Array<{ q?: string; a?: string }>)
+                        .map(p => ({ q: String(p.q ?? ''), a: String(p.a ?? '') }))
+                    : null
+                }
               />
             ) : (
               <ArticleBody

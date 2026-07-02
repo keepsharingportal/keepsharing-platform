@@ -259,6 +259,10 @@ export default function ArticleEditPage({ params }: Props) {
   // is the JSONB blob keyed by template field key.
   const [spotlightType, setSpotlightType] = useState<string>('')
   const [spotlightData, setSpotlightData] = useState<Record<string, string>>({})
+  // Structured Q&A pairs — stored inside spotlight_data.qa_pairs on save
+  // but kept as its own state slice because Record<string,string> can't
+  // hold arrays. Grands + Mom only; other columns ignore this state.
+  const [qaPairs, setQaPairs] = useState<Array<{ q: string; a: string }>>([])
 
   // Photo gallery (migration 099) — array of { url, thumbnail_url, alt, caption }.
   // Rendered as a branded lightbox grid below the article body on the public site.
@@ -352,12 +356,27 @@ export default function ArticleEditPage({ params }: Props) {
         const sd = data.spotlight_data
         if (sd && typeof sd === 'object' && !Array.isArray(sd)) {
           const flat: Record<string, string> = {}
+          const rawPairs = (sd as Record<string, unknown>).qa_pairs
           for (const [k, v] of Object.entries(sd as Record<string, unknown>)) {
+            // qa_pairs lives in its own state slice — skip so we don't
+            // stringify the array into the vitals map.
+            if (k === 'qa_pairs') continue
             flat[k] = v == null ? '' : String(v)
           }
           setSpotlightData(flat)
+          if (Array.isArray(rawPairs)) {
+            setQaPairs(
+              (rawPairs as Array<Record<string, unknown>>).map(p => ({
+                q: String(p.q ?? ''),
+                a: String(p.a ?? ''),
+              })),
+            )
+          } else {
+            setQaPairs([])
+          }
         } else {
           setSpotlightData({})
+          setQaPairs([])
         }
         // Gallery — JSONB array. Filter out anything missing a URL so a bad
         // record can't crash the editor.
@@ -483,15 +502,20 @@ export default function ArticleEditPage({ params }: Props) {
     }
     if (published_at !== undefined) payload.published_at = published_at
 
-    // Spotlight (Play Ball Athlete / Coach / Volunteer)
+    // Spotlight (Play Ball Athlete / Coach / Volunteer + Grands + Mom + Teacher)
     // Only persist when type is set; otherwise null both fields so the
-    // public render stays default.
+    // public render stays default. qa_pairs is merged in as its own
+    // key inside spotlight_data — the article page reads it back out.
     if (spotlightType) {
       payload.spotlight_type = spotlightType
-      const cleaned: Record<string, string> = {}
+      const cleaned: Record<string, unknown> = {}
       for (const [k, v] of Object.entries(spotlightData)) {
         if (v && v.trim()) cleaned[k] = v.trim()
       }
+      const cleanedPairs = qaPairs
+        .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
+        .filter(p => p.q || p.a)
+      if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
       payload.spotlight_data = cleaned
     } else {
       payload.spotlight_type = null
@@ -1156,8 +1180,10 @@ export default function ArticleEditPage({ params }: Props) {
                 columnSlug={form.column_slug}
                 spotlightType={spotlightType}
                 spotlightData={spotlightData}
+                qaPairs={qaPairs}
                 onTypeChange={setSpotlightType}
                 onDataChange={setSpotlightData}
+                onQaPairsChange={setQaPairs}
               />
             )}
 

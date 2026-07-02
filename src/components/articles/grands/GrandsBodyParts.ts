@@ -60,6 +60,32 @@ function matchBoldQuestion(pHtml: string): { html: string; iconHint: string | nu
   return { html: inner, iconHint }
 }
 
+// Heuristic prompt-directive detector: an interview prompt often starts
+// with the subject's name + comma + a directive verb ("Jacqueline, tell
+// us about your grandchildren."). Ends in a period, not a question mark,
+// so matchProseQuestion below misses it. This catches that pattern so
+// natural interview prose gets styled Q&A cards without asking the
+// editor to bold anything.
+const DIRECTIVE_VERBS = /(tell|share|walk|describe|give|talk|explain|show|say|paint|take|start)/i
+const NAME_PREFIX_RE  = /^[“"']?[A-Z][A-Za-z'-]{1,20}[,]\s+/  // "Jacqueline, ..." / "Big Al, ..."
+function matchDirectivePrompt(pHtml: string): { html: string; iconHint: string | null } | null {
+  const inner = pHtml.match(/^<p\b[^>]*>([\s\S]*?)<\/p>\s*$/i)
+  if (!inner) return null
+  const raw  = inner[1].trim()
+  const text = stripTags(raw)
+  if (text.length < 8 || text.length > 200) return null
+  if (!NAME_PREFIX_RE.test(text)) return null
+  // The word AFTER the comma must be a directive verb — rules out
+  // "Sarah, my mother, used to say..." which isn't a prompt.
+  const afterComma = text.replace(NAME_PREFIX_RE, '')
+  if (!DIRECTIVE_VERBS.test(afterComma.split(/\s+/)[0] ?? '')) return null
+  // Must be one short line, not a paragraph that starts with a name.
+  const terminatorCount = (text.match(/[.!?]/g) || []).length
+  if (terminatorCount > 1) return null
+  if (/<(blockquote|ul|ol|table|figure)\b/i.test(raw)) return null
+  return { html: raw, iconHint: null }
+}
+
 // Heuristic question detector: a paragraph is a question if the WHOLE
 // paragraph is a single short line (< 260 chars) ending in "?". Falls
 // back for editors who type Q&A prose naturally instead of remembering
@@ -197,14 +223,16 @@ export function parseGrandsBody(bodyHtml: string): GrandsBodyParts {
       continue
     }
 
-    // Question detection: bold-wrapped first (editor followed the
-    // convention), then prose-based fallback (short paragraph ending
-    // in "?") so an editor typing natural Q&A prose still gets the
-    // branded cards. The prose fallback is only tried once we're
-    // outside the intro — the first paragraph OR two are treated as
-    // lede so we don't accidentally treat a rhetorical opener as a
-    // question. Overrideable by bolding.
-    const q = matchBoldQuestion(chunk) ?? matchProseQuestion(chunk)
+    // Question detection cascade:
+    //   1. Bold-wrapped (editor used the B button — winning convention).
+    //   2. Directive prompt ("Jacqueline, tell us about your...") —
+    //      catches statement-form prompts common in real interviews.
+    //   3. Prose question (short paragraph ending in "?") — catches
+    //      standard question-form prompts.
+    // Any of the three lifts the paragraph into a Q&A card so natural
+    // interview prose renders as the branded template with zero
+    // formatting hints from the editor.
+    const q = matchBoldQuestion(chunk) ?? matchDirectivePrompt(chunk) ?? matchProseQuestion(chunk)
     if (q !== null) {
       flushPair()
       seenFirstQuestion = true
