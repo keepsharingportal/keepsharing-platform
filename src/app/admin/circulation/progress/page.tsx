@@ -74,30 +74,41 @@ export default async function ProgressPage({ searchParams }: PageProps) {
     const baseRows = (dels as Joined[] | null ?? [])
 
     // Counts of total + checked + leftovers per delivery, computed from
-    // delivery_stops for accuracy (matches the PHP query).
+    // delivery_stops for accuracy (matches the PHP query). Also
+    // aggregates leftovers_json per publication so multi-pub routes
+    // (RRP + BOOM) can show a per-pub breakdown instead of just the
+    // summed total.
     if (baseRows.length > 0) {
       const ids = baseRows.map(r => r.id)
       const { data: ds } = await sb
         .from('circulation_delivery_stops')
-        .select('delivery_id, checked, leftovers, circulation_stops!inner(is_pickup, not_delivering)')
+        .select('delivery_id, checked, leftovers, leftovers_json, circulation_stops!inner(is_pickup, not_delivering)')
         .in('delivery_id', ids)
       type DSRow = {
         delivery_id: string; checked: boolean; leftovers: number;
+        leftovers_json: Record<string, number> | null;
         circulation_stops?: { is_pickup: boolean; not_delivering: boolean } | null;
       }
       const dsRows = (ds as DSRow[] | null ?? [])
-      const counts = new Map<string, { total: number; done: number; leftovers: number }>()
+      const counts = new Map<string, { total: number; done: number; leftovers: number; leftoverByPub: Record<string, number> }>()
       for (const d of dsRows) {
         const eligible = !d.circulation_stops?.is_pickup && !d.circulation_stops?.not_delivering
         if (!eligible) continue
-        const cur = counts.get(d.delivery_id) ?? { total: 0, done: 0, leftovers: 0 }
+        const cur = counts.get(d.delivery_id) ?? { total: 0, done: 0, leftovers: 0, leftoverByPub: {} }
         cur.total++
         if (d.checked) cur.done++
         cur.leftovers += d.leftovers ?? 0
+        if (d.leftovers_json && typeof d.leftovers_json === 'object') {
+          for (const [pub, v] of Object.entries(d.leftovers_json)) {
+            if (typeof v === 'number' && v > 0) {
+              cur.leftoverByPub[pub] = (cur.leftoverByPub[pub] ?? 0) + v
+            }
+          }
+        }
         counts.set(d.delivery_id, cur)
       }
       rows = baseRows.map(r => {
-        const c = counts.get(r.id) ?? { total: 0, done: 0, leftovers: 0 }
+        const c = counts.get(r.id) ?? { total: 0, done: 0, leftovers: 0, leftoverByPub: {} }
         return {
           id:               r.id,
           driver_name:      r.circulation_drivers?.full_name ?? '(unknown driver)',
@@ -106,6 +117,7 @@ export default async function ProgressPage({ searchParams }: PageProps) {
           total:            c.total,
           done:             c.done,
           leftovers:        c.leftovers,
+          leftover_by_pub:  c.leftoverByPub,
           stops_completed:  r.stops_completed,
           pay_calculated:   r.pay_calculated,
           pay_final:        r.pay_final,

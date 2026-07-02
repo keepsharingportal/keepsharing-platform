@@ -13,6 +13,7 @@ export interface DeliveryProgressRow {
   total:            number
   done:             number
   leftovers:        number
+  leftover_by_pub:  Record<string, number>
   stops_completed:  number
   pay_calculated:   number
   pay_final:        number | null
@@ -125,6 +126,24 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
   if (focusDetail) {
     const d = focusDetail.delivery
     const pct = d.total > 0 ? Math.round(d.done / d.total * 100) : 0
+
+    // Aggregate leftovers per publication across every stop on this
+    // delivery. For routes that carry multiple publications (RRP + BOOM)
+    // the per-pub breakdown is more actionable than the summed total.
+    const leftoverByPub = new Map<string, number>()
+    for (const s of focusDetail.stops) {
+      const j = s.leftovers_json
+      if (j && typeof j === 'object') {
+        for (const [pub, v] of Object.entries(j)) {
+          if (typeof v === 'number' && v > 0) {
+            leftoverByPub.set(pub, (leftoverByPub.get(pub) ?? 0) + v)
+          }
+        }
+      }
+    }
+    const perPubEntries = Array.from(leftoverByPub.entries()).sort(([a], [b]) => a.localeCompare(b))
+    const hasPerPub     = perPubEntries.length > 0
+
     return (
       <div className="space-y-4">
         <button onClick={backToList} className="text-xs text-portal-blue hover:underline inline-flex items-center gap-1">
@@ -160,7 +179,20 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
               )
             })()}
             {d.submitted_at && <span>Submitted {new Date(d.submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
-            {d.leftovers > 0 && <span className="inline-flex items-center gap-1 text-portal-amber font-semibold"><Package size={11} /> {d.leftovers} leftover</span>}
+            {hasPerPub ? (
+              <span className="inline-flex items-center gap-1 text-portal-amber font-semibold">
+                <Package size={11} />
+                Leftover:{' '}
+                {perPubEntries.map(([pub, count], i) => (
+                  <span key={pub}>
+                    {i > 0 && <span className="text-portal-muted"> · </span>}
+                    <span className="font-mono">{pub.toUpperCase()} {count}</span>
+                  </span>
+                ))}
+              </span>
+            ) : d.leftovers > 0 && (
+              <span className="inline-flex items-center gap-1 text-portal-amber font-semibold"><Package size={11} /> {d.leftovers} leftover</span>
+            )}
             {d.gas_amount != null && d.gas_amount > 0 && (
               <span className="inline-flex items-center gap-1 text-portal-blue font-semibold">
                 ⛽ {fmtMoney(d.gas_amount)} gas
@@ -359,11 +391,27 @@ export function ProgressMonitor({ rows, months, activeMonth, focusDetail }: Prop
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  {r.leftovers > 0 && (
-                    <p className="mt-2 text-[11px] text-portal-amber inline-flex items-center gap-1">
-                      <Package size={10} /> {r.leftovers} total leftover this run
-                    </p>
-                  )}
+                  {r.leftovers > 0 && (() => {
+                    const perPub = Object.entries(r.leftover_by_pub ?? {}).filter(([, v]) => v > 0).sort(([a], [b]) => a.localeCompare(b))
+                    return (
+                      <p className="mt-2 text-[11px] text-portal-amber inline-flex items-center gap-1 flex-wrap">
+                        <Package size={10} />
+                        {perPub.length > 0 ? (
+                          <>
+                            Leftover:{' '}
+                            {perPub.map(([pub, v], i) => (
+                              <span key={pub}>
+                                {i > 0 && <span className="text-portal-muted"> · </span>}
+                                <span className="font-mono">{pub.toUpperCase()} {v}</span>
+                              </span>
+                            ))}
+                          </>
+                        ) : (
+                          <>{r.leftovers} total leftover this run</>
+                        )}
+                      </p>
+                    )
+                  })()}
                 </button>
               </li>
             )
