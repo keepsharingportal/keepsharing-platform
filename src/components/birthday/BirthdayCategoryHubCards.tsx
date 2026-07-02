@@ -340,9 +340,11 @@ export function BirthdayCategoryHubCards({ countsByCategory }: {
                 <h3 className="text-lg md:text-xl font-black text-white leading-tight mb-1.5 drop-shadow-sm">
                   {b.label}
                 </h3>
-                <p className="hidden md:block text-xs text-white/85 leading-snug line-clamp-2 mb-3">
-                  {b.blurb}
-                </p>
+                <div className="hidden md:block mb-3">
+                  <p className="text-xs text-white/85 leading-snug line-clamp-2">
+                    {b.blurb}
+                  </p>
+                </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-white group-hover:gap-1.5 transition-all">
                     Explore <ArrowRight className="h-3 w-3" />
