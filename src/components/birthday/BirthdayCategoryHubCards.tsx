@@ -325,7 +325,7 @@ export function BirthdayCategoryHubCards({ countsByCategory }: {
             <Link
               key={b.slug}
               href={`/birthday-party-guide/category/${b.slug}`}
-              className="group relative overflow-hidden rounded-2xl aspect-[4/5] md:aspect-[4/3] flex flex-col justify-end hover:shadow-lg transition-shadow"
+              className="group relative overflow-hidden rounded-2xl min-h-[200px] md:min-h-[220px] flex flex-col justify-end hover:shadow-lg transition-shadow"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${b.gradient}`} />
 

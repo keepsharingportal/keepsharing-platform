@@ -126,45 +126,60 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
   }
 
   /* ── Compact (free tier on directory pages) ──────────────────────────── */
-  // No hero photo (so featured visually dominates), tight list-row
-  // layout: name + location on one line, hook truncated, phone +
-  // website inline. Roughly 1/3 the vertical height of standard.
+  // Self-sufficient list row — no click-through to a detail page,
+  // because directory-only listings have nothing there worth the tap
+  // beyond the description that's already on the card. Instead: full
+  // description with a 2-line clamp, phone as a tel: link, website as
+  // an external link. Parents get what they need without leaving the
+  // category page.
+  //
+  // Featured tier still gets the standard/featured variant with a
+  // click-through — where an advertiser has actually filled in a
+  // gallery / packages / hours worth showing off.
   if (variant === 'compact') {
+    const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : null
+    const webHref = listing.website_url
+      ? (listing.website_url.startsWith('http') ? listing.website_url : `https://${listing.website_url}`)
+      : null
     return (
-      <Link href={`/${guideUrlSlug}/listings/${listing.slug}`}
-        className="group block rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all p-3 sm:p-4"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors leading-snug truncate">
-              {listing.business_name}
-            </h3>
-            {location && (
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
-                <MapPin className="h-3 w-3 shrink-0" /> {location}
-              </p>
+      <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <h3 className="font-bold text-sm text-foreground leading-snug">
+          {listing.business_name}
+        </h3>
+        {location && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <MapPin className="h-3 w-3 shrink-0" /> {location}
+          </p>
+        )}
+        {listing.card_hook && (
+          <p className="text-[13px] text-foreground/75 leading-relaxed mt-1.5 line-clamp-3">
+            {listing.card_hook}
+          </p>
+        )}
+        {(telHref || webHref) && (
+          <div className="flex flex-wrap items-center gap-2 mt-2.5">
+            {telHref && phone && (
+              <a
+                href={telHref}
+                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground bg-muted/60 hover:bg-muted rounded-full px-2.5 py-1 transition-colors"
+              >
+                <Phone className="h-3 w-3" /> {phone}
+              </a>
             )}
-            {listing.card_hook && (
-              <p className="text-[12px] text-muted-foreground/80 leading-snug mt-1 line-clamp-1">
-                {listing.card_hook}
-              </p>
+            {webHref && domain && (
+              <a
+                href={webHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-primary hover:text-primary/80 rounded-full px-2.5 py-1 border border-primary/30 hover:border-primary/50 transition-colors max-w-[200px]"
+              >
+                <Globe className="h-3 w-3 shrink-0" />
+                <span className="truncate">{domain}</span>
+              </a>
             )}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-1.5">
-              {phone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-2.5 w-2.5" /> {phone}
-                </span>
-              )}
-              {domain && (
-                <span className="inline-flex items-center gap-1 truncate max-w-[140px]">
-                  <Globe className="h-2.5 w-2.5 shrink-0" /> {domain}
-                </span>
-              )}
-            </div>
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-        </div>
-      </Link>
+        )}
+      </div>
     )
   }
 
