@@ -14,22 +14,15 @@ import { createClient } from '@supabase/supabase-js'
 import { loadBrandContext } from '@/lib/brand-context'
 
 import { BigBirthdayBashHero }    from '@/components/birthday/BigBirthdayBashHero'
-import { BirthdayJumpNav }        from '@/components/birthday/BirthdayJumpNav'
-import { BirthdayThisMonth }      from '@/components/birthday/BirthdayThisMonth'
 import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
 import { BirthdayCategoryHubCards } from '@/components/birthday/BirthdayCategoryHubCards'
-import { RealRiverRegionParties } from '@/components/birthday/RealRiverRegionParties'
 import { BirthdayArticles }       from '@/components/birthday/BirthdayArticles'
 import { GiftGuidesByAge }        from '@/components/birthday/GiftGuidesByAge'
 import { BirthdayPoll }           from '@/components/birthday/BirthdayPoll'
-import { MomToMomTips }           from '@/components/birthday/MomToMomTips'
 import { BirthdayMap }            from '@/components/birthday/BirthdayMap'
 import { BirthdayInsiderSignup }  from '@/components/birthday/BirthdayInsiderSignup'
 import { BirthdaySidebarSponsor } from '@/components/birthday/BirthdaySidebarSponsor'
-import { BirthdaySectionSponsor } from '@/components/birthday/BirthdaySectionSponsor'
-import { BirthdayBuzz }           from '@/components/birthday/BirthdayBuzz'
 import { FeaturedBirthdayPros }   from '@/components/birthday/FeaturedBirthdayPros'
-import { BirthdayQuickLinks }     from '@/components/birthday/BirthdayQuickLinks'
 import { SidebarDealsCard }       from '@/components/birthday/SidebarDealsCard'
 
 export const revalidate = 600
@@ -85,21 +78,12 @@ export default async function BirthdayPartyGuidePage() {
   const hv = heroVertical as { hero_image_url?: string | null; display_name?: string | null; subtitle?: string | null } | null
 
   // Single batched load — all blocks paint together rather than waterfall.
-  // Themes / budget tiers / freebies / printables removed from the
-  // page per editor request — queries dropped to keep the page tight.
+  // Themes / budget tiers / freebies / printables / Real Parties / Mom
+  // Tips / Buzz removed from the page per editor request — queries
+  // dropped to keep the page tight.
   const [
-    partiesRes, tipsRes,
     pollRes, articlesRes, listingCountsRes, sectionSponsorRes, buzzRes, dealsRes,
   ] = await Promise.all([
-    supabase.from('birthday_real_parties')
-      .select('*').eq('status', 'approved').eq('brand_slug', brandSlug)
-      .order('display_order', { ascending: true })
-      .order('created_at',    { ascending: false })
-      .limit(9),
-    supabase.from('birthday_mom_tips')
-      .select('*').eq('is_active', true)
-      .or(`brand_slug.eq.${brandSlug},brand_slug.is.null`)
-      .order('display_order').limit(6),
     supabase.from('weekly_polls')
       .select('id, question, options, vote_counts, total_votes, opens_at, closes_at, is_active')
       .eq('is_active', true)
@@ -179,35 +163,40 @@ export default async function BirthdayPartyGuidePage() {
       if (extra) categoryCountsObj[extra] = (categoryCountsObj[extra] ?? 0) + 1
     }
   }
-  const totalListings = linkedListings.length
+
+  // Shape the section-sponsor row into the HeroSponsorCard-friendly
+  // payload the hero component expects. Falls back to null (placeholder
+  // state) when no active sponsor is booked; the hero renders a Claim
+  // This Spot card instead so the sale is always visible.
+  const sponsorRow = sectionSponsorRes.data as
+    | { id: string; ad_headline: string | null; ad_description: string | null; ad_link: string | null; ad_image_url: string | null; advertiser: { business_name?: string; slug?: string | null } | null }
+    | null
+  const heroSponsor = sponsorRow?.advertiser?.business_name
+    ? {
+        businessName: sponsorRow.advertiser.business_name,
+        slug:         sponsorRow.advertiser.slug ?? null,
+        headline:     sponsorRow.ad_headline ?? null,
+        description:  sponsorRow.ad_description ?? null,
+        imageUrl:     sponsorRow.ad_image_url ?? null,
+        link:         sponsorRow.ad_link ?? null,
+        placementId:  sponsorRow.id,
+      }
+    : null
 
   return (
     <main className="bg-[#fffaf5]">
       <BigBirthdayBashHero
-        totalListings={totalListings}
-        totalCategories={Object.keys(categoryCountsObj).length}
         heroImageUrl={hv?.hero_image_url ?? null}
         title={hv?.display_name ?? null}
         subtitle={hv?.subtitle ?? null}
+        sponsor={heroSponsor}
       />
-      <BirthdayJumpNav />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        {/* Top section sponsor banner */}
-        <BirthdaySectionSponsor sponsor={(sectionSponsorRes.data as Record<string, unknown> | null) ?? null} />
 
-        {/* Quick-action tiles — jump straight to Finder / Deals / Timeline / Share */}
-        <div className="mt-6">
-          <BirthdayQuickLinks />
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8 mt-6">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Main column — the journey */}
           <div className="lg:col-span-2 space-y-12">
-
-            <section id="this-month">
-              <BirthdayThisMonth />
-            </section>
 
             {/* Featured Birthday Pros = paid editorial spotlights.
                 Hero + 4 supporting magazine layout. Filter to vendor_spotlight
@@ -218,25 +207,16 @@ export default async function BirthdayPartyGuidePage() {
               />
             </section>
 
-            {/* Birthday Buzz = community chatter (milestones, mom stories,
-                tips, editor picks). Excludes vendor_spotlight rows because
-                those live in Featured Pros above. */}
-            <section id="buzz">
-              <BirthdayBuzz
-                buzz={normalizeBuzz(buzzRes.data ?? []).filter(b => b.kind !== 'vendor_spotlight')}
-              />
-            </section>
-
-            <section id="timeline">
-              <PlanningTimeline brandSlug={brandSlug} />
-            </section>
-
+            {/* Category hub cards — main navigation into the vendor
+                directory. Moved up from below the Planning Timeline so
+                the "what can I browse" question gets answered right
+                after readers see the Featured Pros. */}
             <section id="vendors">
               <BirthdayCategoryHubCards countsByCategory={categoryCountsObj} />
             </section>
 
-            <section id="real-parties">
-              <RealRiverRegionParties parties={(partiesRes.data ?? []) as Array<Record<string, unknown>>} />
+            <section id="timeline">
+              <PlanningTimeline brandSlug={brandSlug} />
             </section>
 
             <section id="articles">
@@ -245,10 +225,6 @@ export default async function BirthdayPartyGuidePage() {
 
             <section id="gift-guides">
               <GiftGuidesByAge />
-            </section>
-
-            <section id="tips">
-              <MomToMomTips tips={(tipsRes.data ?? []) as Array<Record<string, unknown>>} brandSlug={brandSlug} />
             </section>
 
           </div>

@@ -4,18 +4,25 @@
 // the verticals table (same pattern as FRG / Mom Knows Best). Editor
 // uploads via /admin/verticals/birthday-bash/edit. Falls back to a
 // gradient when no image is set so the hero is never blank.
+//
+// A HeroSponsorCard renders at the bottom of the hero, matching the
+// FRG / Games / etc. top-section-sponsor pattern. Placeholder card
+// with a Claim CTA renders when no sponsor is booked so the sale is
+// visible every month regardless.
 
 import Image from 'next/image'
+import { HeroSponsorCard, type HeroSponsor } from '@/components/verticals/HeroSponsorCard'
 
 interface Props {
-  totalListings:   number
-  totalCategories: number
-  heroImageUrl?:   string | null
-  title?:          string | null
-  subtitle?:       string | null
+  heroImageUrl?: string | null
+  title?:        string | null
+  subtitle?:     string | null
+  /** Active section sponsor for this vertical. Null renders the
+   *  placeholder Claim This Spot card. */
+  sponsor?:      HeroSponsor | null
 }
 
-export function BigBirthdayBashHero({ totalListings, totalCategories, heroImageUrl, title, subtitle }: Props) {
+export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: Props) {
   const displayTitle    = title    ?? 'The Big Birthday Bash'
   const displaySubtitle = subtitle ?? 'Every venue, vendor, theme and tip for planning your kid\'s birthday in the River Region. Local moms have tested every one.'
   // Split the last word out so we can highlight it (e.g. "Bash")
@@ -41,7 +48,7 @@ export function BigBirthdayBashHero({ totalListings, totalCategories, heroImageU
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/65" />
       </div>
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28 text-white">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 text-white">
         <div className="text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
             🎂 The Ultimate Planning Portal
@@ -52,26 +59,21 @@ export function BigBirthdayBashHero({ totalListings, totalCategories, heroImageU
           <p className="text-base sm:text-lg lg:text-xl text-white/90 mt-4 max-w-2xl mx-auto leading-relaxed">
             {displaySubtitle}
           </p>
+        </div>
 
-          <div className="mt-7 flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-sm">
-            <Stat n={totalListings} label="vetted vendors" />
-            <span className="opacity-30">•</span>
-            <Stat n={totalCategories} label="categories" />
-            <span className="opacity-30">•</span>
-            <Stat label="real River Region" subline="parties shared" />
-          </div>
+        {/* Sponsor card — matches the FRG / Games hero-embedded pattern
+            so the section sponsor lives in the top of the page and is
+            visible on first paint. */}
+        <div className="mt-10">
+          <HeroSponsorCard
+            sponsor={sponsor ?? null}
+            sponsorLabel="This Birthday Bash Is Sponsored By"
+            verticalSlug="birthday-bash"
+            placeholderName="Your Business Here"
+            placeholderTagline="Own the Birthday Bash — your business anchors every River Region birthday plan for the whole month."
+          />
         </div>
       </div>
-    </div>
-  )
-}
-
-function Stat({ n, label, subline }: { n?: number; label: string; subline?: string }) {
-  return (
-    <div className="text-center">
-      {n !== undefined && <div className="text-2xl sm:text-3xl font-black text-white">{n}</div>}
-      <div className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-white/80">{label}</div>
-      {subline && <div className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-white/80">{subline}</div>}
     </div>
   )
 }
