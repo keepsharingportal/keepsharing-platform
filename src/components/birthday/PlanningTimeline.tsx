@@ -1,9 +1,11 @@
 // Planning Timeline — interactive countdown checklist + email capture
-// for time-anchored reminders. Mom enters child's name + party date,
-// gets a drip of reminders matching where she is in the planning arc.
+// for the printable planner PDF. Mom checks off the phases inline as
+// she plans, then drops her name + email to get the tape-to-fridge
+// version delivered right away.
 //
-// The drip itself fires from a cron (separate sprint); this component
-// captures the row and shows a "you're set" confirmation.
+// The email is sent by /api/birthday/subscribe when a lead_magnets row
+// with source='timeline-checklist' has the PDF and delivery copy
+// configured; managed at /admin/lead-magnets.
 'use client'
 
 import { useState } from 'react'
@@ -55,8 +57,7 @@ const PHASES = [
 export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
   const [done,       setDone]       = useState<Set<string>>(new Set())
   const [email,      setEmail]      = useState('')
-  const [childName,  setChildName]  = useState('')
-  const [partyDate,  setPartyDate]  = useState('')
+  const [parentName, setParentName] = useState('')
   const [busy,       setBusy]       = useState(false)
   const [submitted,  setSubmitted]  = useState(false)
   const [error,      setError]      = useState<string | null>(null)
@@ -81,10 +82,13 @@ export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
       const res = await fetch('/api/birthday/subscribe', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
+        // API's `child_first_name` field is repurposed to carry the
+        // parent's first name — that's what the email's {{first_name}}
+        // token needs to render "Hi Sarah,". Renaming the wire field
+        // would be a bigger churn than the value delivers.
         body:    JSON.stringify({
           email:            email.trim(),
-          child_first_name: childName.trim() || null,
-          party_date:       partyDate || null,
+          child_first_name: parentName.trim() || null,
           source:           'timeline-checklist',
           brand_slug:       brandSlug,
         }),
@@ -103,7 +107,7 @@ export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
           <h2 className="text-[16px] font-bold">Your Planning Timeline</h2>
         </div>
         <p className="text-[12px] text-white/90 mt-1">
-          The checklist every River Region mom needs. Check off as you go — and get the printable PDF + email reminders below.
+          The checklist every River Region mom needs. Check off as you go — and grab the printable PDF below.
         </p>
       </div>
 
@@ -162,33 +166,27 @@ export function PlanningTimeline({ brandSlug }: { brandSlug: string }) {
           <div className="flex items-start gap-3 text-[13px] text-slate-800">
             <CheckCircle2 size={18} className="text-[#84cc16] shrink-0 mt-0.5" />
             <div>
-              <strong>You&apos;re on the list.</strong> Watch your inbox — we&apos;ll send the printable checklist PDF
-              and remind you of each phase as the party gets closer.
+              <strong>You&apos;re on the list.</strong> Check your inbox — the printable checklist PDF is on its way.
             </div>
           </div>
         ) : (
           <form onSubmit={subscribe} className="space-y-3">
             <div className="flex items-center gap-2 text-slate-900">
               <Mail size={16} className="text-[#ff7a59]" />
-              <h3 className="text-[14px] font-bold">Get the printable PDF + reminders</h3>
+              <h3 className="text-[14px] font-bold">Get the printable PDF</h3>
             </div>
             <p className="text-[12px] text-slate-600 leading-relaxed">
-              Drop your email + your child&apos;s party date and we&apos;ll send the full checklist PDF now,
-              plus a friendly reminder at 6 weeks, 4 weeks, 2 weeks, and the week of.
+              Drop your name and email and we&apos;ll send the full checklist PDF — tape it to the fridge and tick off the boxes as you go.
             </p>
-            <div className="grid sm:grid-cols-3 gap-2">
+            <div className="grid sm:grid-cols-2 gap-2">
+              <input
+                type="text" value={parentName} onChange={e => setParentName(e.target.value)}
+                placeholder="your first name"
+                className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ff7a59]"
+              />
               <input
                 type="email" required value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="your email"
-                className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ff7a59]"
-              />
-              <input
-                type="text" value={childName} onChange={e => setChildName(e.target.value)}
-                placeholder="kid's first name (optional)"
-                className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ff7a59]"
-              />
-              <input
-                type="date" value={partyDate} onChange={e => setPartyDate(e.target.value)}
                 className="px-3 py-2 text-[13px] border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ff7a59]"
               />
             </div>
