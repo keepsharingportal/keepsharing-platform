@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { CrudInput, CrudTextarea, CrudActiveToggle, CrudSelect } from '@/components/admin/BirthdayCrudHelpers'
+import { EmailBodyEditor } from '@/components/admin/EmailBodyEditor'
 import { Loader2, Save, Upload, FileText, ExternalLink, Mail, Eye, Plus, Trash2, ChevronDown, Tag, X } from 'lucide-react'
 
 export interface LeadMagnet {
@@ -478,13 +479,21 @@ function LeadMagnetCard({ row: initial, onUpdated, onDeleted }: {
             onChange={e => update('email_subject', e.target.value)}
             placeholder="Your Big Birthday Bash Planner is here"
           />
-          <CrudTextarea
-            label="Email body (HTML)"
-            hint="Tokens: {{first_name}}, {{file_url}}, {{party_date}}. Put {{file_url}} in a link/button so the recipient can download the PDF."
-            rows={16}
-            value={row.email_body}
-            onChange={e => update('email_body', e.target.value)}
-          />
+          <div>
+            <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">
+              Email body
+            </label>
+            <p className="text-[11px] text-portal-muted mb-1.5">
+              Use the toolbar to format. The <strong>Insert</strong> row drops personalization tokens or a download button — no need to remember the exact syntax.
+            </p>
+            <EmailBodyEditor
+              value={row.email_body}
+              onChange={html => update('email_body', html)}
+              placeholder="Write the delivery email your subscribers will receive…"
+              minHeight={280}
+              showDownloadButtonInsert
+            />
+          </div>
           <button type="button" onClick={() => setPreview(true)}
             className="inline-flex items-center gap-1 text-[11px] font-bold text-portal-blue hover:underline">
             <Eye size={11} /> Preview rendered email
