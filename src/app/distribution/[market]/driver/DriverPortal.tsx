@@ -72,12 +72,17 @@ interface ApiResponse {
   deliveryStops: DeliveryStop[]
 }
 
-// Flag vocabulary — matches v3 index.php's 4-button grid.
+// Category vocabulary — the quick on-run reporter. For form-driven
+// pre-filled edits with proposed_changes, drivers use the Stops browser
+// page (📋 Stops on the dashboard). This checklist flag stays a quick
+// tap-and-note mechanism so mid-delivery reports don't require a form.
 const FLAGS: Array<{ key: string; label: string }> = [
   { key: 'closed',        label: 'Location closed' },
-  { key: 'wrong_address', label: 'Wrong address' },
-  { key: 'wrong_qty',     label: 'Wrong quantity' },
+  { key: 'wrong_address', label: 'Address change' },
+  { key: 'wrong_qty',     label: 'Change mag totals' },
+  { key: 'new_contact',   label: 'New contact' },
   { key: 'new_stop',      label: 'New stop nearby' },
+  { key: 'other',         label: 'Other' },
 ]
 
 // Publication pill colors — v3 uses RRP blue-tint + Boom amber-tint.

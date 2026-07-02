@@ -27,12 +27,14 @@ function admin() {
   )
 }
 
-// Same flag → change_request.type mapping the checklist uses.
+// flag → change_request.type mapping. Includes new categories from
+// the redesigned "Edit Stop or Report Issue" driver flow.
 const FLAG_TO_TYPE: Record<string, string> = {
   closed:        'close',
   wrong_address: 'edit',
   wrong_qty:     'qty',
   new_stop:      'new',
+  new_contact:   'contact',
   other:         'edit',
 }
 
@@ -56,10 +58,13 @@ export async function POST(req: NextRequest) {
   if (!driver) return NextResponse.json({ error: 'Not a driver' }, { status: 403 })
 
   const body = await req.json().catch(() => null) as {
-    stop_id?:   string
-    flag?:      string
-    notes?:     string
-    detail?:    string
+    stop_id?:          string
+    flag?:             string
+    notes?:            string
+    detail?:           string
+    /** Structured edits the driver proposes, e.g. { address, city, zip }
+     *  for wrong_address or { quantities: {rrp: 15} } for wrong_qty. */
+    proposed_changes?: Record<string, unknown>
   } | null
   if (!body?.stop_id || !body.flag) {
     return NextResponse.json({ error: 'stop_id + flag required' }, { status: 400 })
@@ -87,14 +92,19 @@ export async function POST(req: NextRequest) {
                   :                                null
   const combined  = [body.detail, body.notes].filter(Boolean).join(' — ')
 
+  const proposedChanges = body.proposed_changes && typeof body.proposed_changes === 'object' && Object.keys(body.proposed_changes).length > 0
+    ? body.proposed_changes
+    : null
+
   const { error: insErr } = await sb.from('circulation_change_requests').insert({
-    market:     (stop as { market: string }).market,
-    stop_id:    (stop as { id: string }).id,
-    route_id:   (stop as { route_id: string }).route_id,
-    driver_id:  driver.user_id,
-    type:       reqType,
-    field_name: fieldName,
-    notes:      combined || null,
+    market:           (stop as { market: string }).market,
+    stop_id:          (stop as { id: string }).id,
+    route_id:         (stop as { route_id: string }).route_id,
+    driver_id:        driver.user_id,
+    type:             reqType,
+    field_name:       fieldName,
+    notes:            combined || null,
+    proposed_changes: proposedChanges,
   })
   if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
 

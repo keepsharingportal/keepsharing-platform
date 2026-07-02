@@ -34,7 +34,7 @@ export default async function ChangesPage({ searchParams }: PageProps) {
   // fetch stop/route/driver names in batched IN queries.
   try {
     let q = sb.from('circulation_change_requests')
-      .select('id, type, status, stop_id, route_id, driver_id, field_name, old_value, new_value, notes, admin_note, created_at, reviewed_at')
+      .select('id, type, status, stop_id, route_id, driver_id, field_name, old_value, new_value, notes, admin_note, proposed_changes, created_at, reviewed_at')
       .eq('market', dbKey)
       .limit(200)
     if (filter === 'pending') {
@@ -59,7 +59,7 @@ export default async function ChangesPage({ searchParams }: PageProps) {
     // current address + quantities and edit them inline without leaving
     // the page.
     const [stopDetails, routeNames, driverNames] = await Promise.all([
-      stopIds.length   > 0 ? sb.from('circulation_stops').select('id, name, address, city, zip, notes, quantities, active, not_delivering, not_delivering_note').in('id', stopIds)
+      stopIds.length   > 0 ? sb.from('circulation_stops').select('id, name, address, city, zip, notes, quantities, contact_name, contact_phone, contact_email, active, not_delivering, not_delivering_note').in('id', stopIds)
         : Promise.resolve({ data: [] as Array<StopDetail> }),
       routeIds.length  > 0 ? sb.from('circulation_routes').select('id, name').in('id', routeIds)
         : Promise.resolve({ data: [] as Array<{ id: string; name: string }> }),

@@ -175,6 +175,7 @@ export async function POST(req: NextRequest) {
     leftovers_json?:   Record<string, number>
     flag?:             string | null
     flag_note?:        string | null
+    proposed_changes?: Record<string, unknown> | null
     driver_notes?:     string           // for submit-delivery: route-level invoice note
     month?:            string           // YYYY-MM for submit-all
     route_id?:         string           // for suggest-route-order
@@ -357,27 +358,36 @@ export async function POST(req: NextRequest) {
     !r.flag &&
     parent.route_id && stopRow?.market
   ) {
-    // Map flag → change_request.type vocab (edit | close | new | qty | move).
+    // Map flag → change_request.type vocab (edit | close | new | qty |
+    // contact | move).
     const flagToType: Record<string, string> = {
       closed:        'close',
       wrong_address: 'edit',
       wrong_qty:     'qty',
       new_stop:      'new',
+      new_contact:   'contact',
       other:         'edit',
     }
     const reqType   = flagToType[body.flag] ?? 'edit'
     const fieldName = body.flag === 'wrong_address' ? 'address'
                     : body.flag === 'wrong_qty'    ? 'quantity'
                     :                                null
+    // Structured driver edits — same shape as the standalone
+    // change-request endpoint. When present, admin's review panel
+    // pre-fills with these values.
+    const proposedChanges = body.proposed_changes && typeof body.proposed_changes === 'object' && Object.keys(body.proposed_changes).length > 0
+      ? body.proposed_changes
+      : null
     try {
       await sb.from('circulation_change_requests').insert({
-        market:    stopRow.market,
-        stop_id:   r.stop_id,
-        route_id:  parent.route_id,
-        driver_id: driver.user_id,
-        type:      reqType,
-        field_name: fieldName,
-        notes:     body.flag_note ?? null,
+        market:           stopRow.market,
+        stop_id:          r.stop_id,
+        route_id:         parent.route_id,
+        driver_id:        driver.user_id,
+        type:             reqType,
+        field_name:       fieldName,
+        notes:            body.flag_note ?? null,
+        proposed_changes: proposedChanges,
       })
     } catch { /* don't block driver on this */ }
 

@@ -13,29 +13,33 @@ export interface StopDetail {
   zip:                 string | null
   notes:               string | null
   quantities:          Record<string, number> | null
+  contact_name:        string | null
+  contact_phone:       string | null
+  contact_email:       string | null
   active:              boolean
   not_delivering:      boolean
   not_delivering_note: string | null
 }
 
 export interface ChangeRequestRow {
-  id:           string
-  type:         string
-  status:       string
-  stop_id:      string | null
-  route_id:     string | null
-  driver_id:    string | null
-  field_name:   string | null
-  old_value:    string | null
-  new_value:    string | null
-  notes:        string | null
-  admin_note:   string | null
-  created_at:   string
-  reviewed_at:  string | null
-  stop_name:    string | null
-  stop_details: StopDetail | null
-  route_name:   string
-  driver_name:  string
+  id:               string
+  type:             string
+  status:           string
+  stop_id:          string | null
+  route_id:         string | null
+  driver_id:        string | null
+  field_name:       string | null
+  old_value:        string | null
+  new_value:        string | null
+  notes:            string | null
+  admin_note:       string | null
+  proposed_changes: Record<string, unknown> | null
+  created_at:       string
+  reviewed_at:      string | null
+  stop_name:        string | null
+  stop_details:     StopDetail | null
+  route_name:       string
+  driver_name:      string
 }
 
 interface Props { filter: 'pending' | 'all' | 'history'; rows: ChangeRequestRow[]; loadErr?: string | null }
@@ -200,12 +204,24 @@ function ReviewPanel({
   onCancel: () => void
 }) {
   const s = row.stop_details
-  const [name,          setName]          = useState(s?.name ?? '')
-  const [address,       setAddress]       = useState(s?.address ?? '')
-  const [city,          setCity]           = useState(s?.city ?? '')
-  const [zip,           setZip]            = useState(s?.zip ?? '')
-  const [notes,         setNotes]          = useState(s?.notes ?? '')
-  const [quantities,    setQuantities]     = useState<Record<string, number>>(s?.quantities ?? {})
+  // Pre-fill from driver's proposed_changes when present — that's the
+  // whole point of the new "Edit Stop or Report Issue" flow. Falls back
+  // to the stop's current values so the panel still works for old
+  // flag-only requests.
+  const p = (row.proposed_changes ?? {}) as Record<string, unknown>
+  const pStr = (k: string) => typeof p[k] === 'string' ? p[k] as string : null
+  const proposedQuantities = (p.quantities && typeof p.quantities === 'object') ? p.quantities as Record<string, number> : null
+  const hasProposed = row.proposed_changes && Object.keys(row.proposed_changes).length > 0
+
+  const [name,          setName]          = useState(pStr('name')          ?? s?.name          ?? '')
+  const [address,       setAddress]       = useState(pStr('address')       ?? s?.address       ?? '')
+  const [city,          setCity]           = useState(pStr('city')          ?? s?.city          ?? '')
+  const [zip,           setZip]            = useState(pStr('zip')           ?? s?.zip           ?? '')
+  const [notes,         setNotes]          = useState(pStr('notes')         ?? s?.notes         ?? '')
+  const [quantities,    setQuantities]     = useState<Record<string, number>>(proposedQuantities ?? s?.quantities ?? {})
+  const [contactName,   setContactName]    = useState(pStr('contact_name')  ?? s?.contact_name  ?? '')
+  const [contactPhone,  setContactPhone]   = useState(pStr('contact_phone') ?? s?.contact_phone ?? '')
+  const [contactEmail,  setContactEmail]   = useState(pStr('contact_email') ?? s?.contact_email ?? '')
   const [pauseReason,   setPauseReason]    = useState('Closed for the season')
   const [adminNote,     setAdminNote]      = useState('')
 
@@ -215,12 +231,15 @@ function ReviewPanel({
 
   function saveEdits() {
     const updates: Record<string, unknown> = {
-      name:       name.trim() || null,
-      address:    address.trim() || null,
-      city:       city.trim() || null,
-      zip:        zip.trim() || null,
-      notes:      notes.trim() || null,
-      quantities: Object.fromEntries(Object.entries(quantities).filter(([, v]) => v > 0)),
+      name:          name.trim()          || null,
+      address:       address.trim()       || null,
+      city:          city.trim()          || null,
+      zip:           zip.trim()           || null,
+      notes:         notes.trim()         || null,
+      quantities:    Object.fromEntries(Object.entries(quantities).filter(([, v]) => v > 0)),
+      contact_name:  contactName.trim()   || null,
+      contact_phone: contactPhone.trim()  || null,
+      contact_email: contactEmail.trim()  || null,
     }
     onApply(updates, adminNote.trim() || undefined)
   }
@@ -267,8 +286,17 @@ function ReviewPanel({
       background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8,
     }}>
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 10 }}>
-        Edit this stop
+        Review &amp; edit
       </div>
+
+      {hasProposed && (
+        <div style={{
+          background: '#EFF6FF', border: '1px solid #BFDBFE', borderLeft: '3px solid #1A5FA8',
+          borderRadius: 6, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#1A5FA8',
+        }}>
+          <strong>Driver proposed these edits.</strong> Fields below are pre-filled with the driver&apos;s values — tweak anything then click <em>Save changes &amp; approve</em>.
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
         <div className="fg">
@@ -312,6 +340,24 @@ function ReviewPanel({
       <div className="fg" style={{ marginBottom: 12 }}>
         <label>Stop notes (for driver)</label>
         <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Ask for Bob at the counter" />
+      </div>
+
+      {/* Contact info — pre-filled from the driver's proposed_changes when
+          they submitted a 'New contact' change, otherwise the stop's
+          current values. Admin can edit any field before approving. */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 8, marginBottom: 12 }}>
+        <div className="fg">
+          <label>Contact name</label>
+          <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="e.g. Bob Smith" />
+        </div>
+        <div className="fg">
+          <label>Phone</label>
+          <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="334-555-0100" />
+        </div>
+        <div className="fg">
+          <label>Email</label>
+          <input value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="bob@example.com" />
+        </div>
       </div>
 
       <div className="fg" style={{ marginBottom: 12 }}>

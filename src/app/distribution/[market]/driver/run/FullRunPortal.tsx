@@ -42,9 +42,11 @@ interface ApiResponse {
 
 const FLAGS: Array<{ key: string; label: string }> = [
   { key: 'closed',        label: 'Location closed' },
-  { key: 'wrong_address', label: 'Wrong address' },
-  { key: 'wrong_qty',     label: 'Wrong quantity' },
+  { key: 'wrong_address', label: 'Address change' },
+  { key: 'wrong_qty',     label: 'Change mag totals' },
+  { key: 'new_contact',   label: 'New contact' },
   { key: 'new_stop',      label: 'New stop nearby' },
+  { key: 'other',         label: 'Other' },
 ]
 
 const PUB_COLORS: Record<string, { bg: string; fg: string }> = {

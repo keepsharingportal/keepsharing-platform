@@ -67,7 +67,7 @@ export default async function DriverStopsPage({ params, searchParams }: PageProp
   // Every active stop on the route, sorted pickup-first then by sort_order.
   const { data: stopsData } = await admin
     .from('circulation_stops')
-    .select('id, sort_order, name, address, city, zip, quantities, notes, is_pickup, not_delivering, not_delivering_note, is_advertiser')
+    .select('id, sort_order, name, address, city, zip, quantities, notes, contact_name, contact_phone, contact_email, is_pickup, not_delivering, not_delivering_note, is_advertiser')
     .eq('market', market)
     .eq('route_id', routeId)
     .eq('active', true)
@@ -79,6 +79,9 @@ export default async function DriverStopsPage({ params, searchParams }: PageProp
     address: string | null; city: string | null; zip: string | null;
     quantities: Record<string, number> | null;
     notes: string | null;
+    contact_name: string | null;
+    contact_phone: string | null;
+    contact_email: string | null;
     is_pickup: boolean; not_delivering: boolean;
     not_delivering_note: string | null;
     is_advertiser: boolean;

@@ -20,6 +20,9 @@ interface Stop {
   zip:                 string | null
   quantities:          Record<string, number> | null
   notes:               string | null
+  contact_name?:       string | null
+  contact_phone?:      string | null
+  contact_email?:      string | null
   is_pickup:           boolean
   not_delivering:      boolean
   not_delivering_note: string | null
@@ -45,11 +48,17 @@ interface HistoryEntry {
   photo_urls:     string[]
 }
 
-const FLAGS: Array<{ key: string; label: string }> = [
-  { key: 'closed',        label: 'Location closed' },
-  { key: 'wrong_address', label: 'Wrong address' },
-  { key: 'wrong_qty',     label: 'Wrong quantity' },
-  { key: 'new_stop',      label: 'New stop nearby' },
+// Category vocabulary for the "Edit Stop or Report Issue" driver flow.
+// Each category may open an editable form pre-filled with the stop's
+// current values. Admin review pre-fills with these proposed edits.
+type CategoryKey = 'closed' | 'wrong_address' | 'wrong_qty' | 'new_contact' | 'new_stop' | 'other'
+const CATEGORIES: Array<{ key: CategoryKey; label: string; icon: string }> = [
+  { key: 'closed',        label: 'Location closed',  icon: '🚫' },
+  { key: 'wrong_address', label: 'Address change',   icon: '📍' },
+  { key: 'wrong_qty',     label: 'Change mag totals', icon: '📚' },
+  { key: 'new_contact',   label: 'New contact',      icon: '👤' },
+  { key: 'new_stop',      label: 'New stop nearby',  icon: '➕' },
+  { key: 'other',         label: 'Other',            icon: '📝' },
 ]
 
 const PUB_COLORS: Record<string, { bg: string; fg: string }> = {
@@ -60,8 +69,24 @@ function pubColor(key: string) {
   return PUB_COLORS[key.toUpperCase()] ?? { bg: '#F1F5F9', fg: '#64748B' }
 }
 
+interface SheetState {
+  stop:        Stop
+  history:     HistoryEntry[] | null
+  // 'closed' opens the sheet with the report UI already visible; null
+  // means the report UI is hidden. Picking a category opens the form.
+  category:    CategoryKey | null
+  reportOpen:  boolean
+  // Per-category form state — only the relevant subset is used per
+  // category, but keeping one flat state keeps the JSX simple.
+  addressForm: { address: string; city: string; zip: string }
+  qtyForm:     Record<string, number>
+  contactForm: { contact_name: string; contact_phone: string; contact_email: string }
+  notes:       string
+  submitting:  boolean
+}
+
 export function StopsBrowserClient({ market, driverName, route, stops }: Props) {
-  const [sheet,    setSheet]    = useState<null | { stop: Stop; history: HistoryEntry[] | null; showFlag: boolean; flagType: string; flagDetail: string; flagNotes: string; submitting: boolean }>(null)
+  const [sheet, setSheet] = useState<SheetState | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   function flashToast(msg: string) {
@@ -71,7 +96,17 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
   }
 
   async function openStop(stop: Stop) {
-    setSheet({ stop, history: null, showFlag: false, flagType: 'closed', flagDetail: '', flagNotes: '', submitting: false })
+    setSheet({
+      stop,
+      history:     null,
+      reportOpen:  false,
+      category:    null,
+      addressForm: { address: stop.address ?? '', city: stop.city ?? '', zip: stop.zip ?? '' },
+      qtyForm:     { ...(stop.quantities ?? {}) },
+      contactForm: { contact_name: stop.contact_name ?? '', contact_phone: stop.contact_phone ?? '', contact_email: stop.contact_email ?? '' },
+      notes:       '',
+      submitting:  false,
+    })
     try {
       const res = await fetch(`/api/circulation/driver/stop-history?stop_id=${encodeURIComponent(stop.id)}`)
       if (!res.ok) throw new Error('load')
@@ -82,23 +117,62 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
     }
   }
 
-  async function submitFlag() {
+  // Compose the proposed_changes payload for the current category.
+  function buildPayload(s: SheetState): { flag: CategoryKey; proposed_changes: Record<string, unknown> | null; detail: string; notes: string } | null {
+    if (!s.category) return null
+    let proposed: Record<string, unknown> | null = null
+    let detail = ''
+    switch (s.category) {
+      case 'wrong_address':
+        proposed = {
+          address: s.addressForm.address.trim() || null,
+          city:    s.addressForm.city.trim()    || null,
+          zip:     s.addressForm.zip.trim()     || null,
+        }
+        detail = [proposed.address, proposed.city, proposed.zip].filter(Boolean).join(', ')
+        break
+      case 'wrong_qty':
+        proposed = { quantities: Object.fromEntries(Object.entries(s.qtyForm).filter(([, v]) => typeof v === 'number' && v >= 0)) }
+        detail = Object.entries(proposed.quantities as Record<string, number>).map(([k, v]) => `${k.toUpperCase()}: ${v}`).join(' · ')
+        break
+      case 'new_contact':
+        proposed = {
+          contact_name:  s.contactForm.contact_name.trim()  || null,
+          contact_phone: s.contactForm.contact_phone.trim() || null,
+          contact_email: s.contactForm.contact_email.trim() || null,
+        }
+        detail = [proposed.contact_name, proposed.contact_phone, proposed.contact_email].filter(Boolean).join(' · ')
+        break
+      case 'closed':
+      case 'new_stop':
+      case 'other':
+      default:
+        proposed = null
+        break
+    }
+    return { flag: s.category, proposed_changes: proposed, detail, notes: s.notes }
+  }
+
+  async function submitChange() {
     if (!sheet) return
+    const payload = buildPayload(sheet)
+    if (!payload) return
     setSheet({ ...sheet, submitting: true })
     try {
       const res = await fetch('/api/circulation/driver/change-request', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          stop_id: sheet.stop.id,
-          flag:    sheet.flagType,
-          detail:  sheet.flagDetail,
-          notes:   sheet.flagNotes,
+          stop_id:          sheet.stop.id,
+          flag:             payload.flag,
+          detail:           payload.detail,
+          notes:            payload.notes,
+          proposed_changes: payload.proposed_changes,
         }),
       })
       if (!res.ok) throw new Error('submit')
       setSheet(null)
-      flashToast('Issue reported — admin will review')
+      flashToast('Change submitted — admin will review')
     } catch {
       setSheet(sheet ? { ...sheet, submitting: false } : null)
       flashToast('Could not send — try again')
@@ -292,62 +366,156 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
               </div>
             )}
 
-            {/* Report a problem */}
+            {/* Edit stop or report issue */}
             {!s.is_pickup && (
               <>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginTop: 16, marginBottom: 8 }}>
-                  Report a problem
+                  Edit stop or report issue
                 </div>
-                {!sheet.showFlag ? (
+                {!sheet.reportOpen ? (
                   <button
                     type="button"
-                    onClick={() => setSheet({ ...sheet, showFlag: true })}
+                    onClick={() => setSheet({ ...sheet, reportOpen: true })}
                     style={{
                       width: '100%', padding: '10px 12px',
-                      background: '#FEF2F2', border: '1.5px dashed #FCA5A5',
+                      background: '#EFF6FF', border: '1.5px dashed #93C5FD',
                       borderRadius: 10, fontSize: 13, fontWeight: 600,
-                      color: '#B91C1C', cursor: 'pointer', fontFamily: 'inherit',
+                      color: '#1A5FA8', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    🚩 Report an issue with this stop
+                    ✎ Edit stop or report issue
                   </button>
                 ) : (
                   <div>
+                    <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>What&apos;s the change?</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                      {FLAGS.map(f => (
+                      {CATEGORIES.map(c => (
                         <button
-                          key={f.key}
+                          key={c.key}
                           type="button"
-                          onClick={() => setSheet({ ...sheet, flagType: f.key })}
+                          onClick={() => setSheet({ ...sheet, category: c.key })}
                           style={{
-                            padding: '11px 8px',
-                            border: '1.5px solid ' + (sheet.flagType === f.key ? '#0F2640' : '#E2E8F0'),
-                            borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                            background: sheet.flagType === f.key ? '#EFF6FF' : 'white',
-                            color: sheet.flagType === f.key ? '#0F2640' : '#64748B',
+                            padding: '10px 8px',
+                            border: '1.5px solid ' + (sheet.category === c.key ? '#0F2640' : '#E2E8F0'),
+                            borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            background: sheet.category === c.key ? '#EFF6FF' : 'white',
+                            color: sheet.category === c.key ? '#0F2640' : '#64748B',
                             fontFamily: 'inherit', textAlign: 'center',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                           }}
-                        >{f.label}</button>
+                        >
+                          <span style={{ fontSize: 18 }}>{c.icon}</span>
+                          {c.label}
+                        </button>
                       ))}
                     </div>
-                    <input
-                      value={sheet.flagDetail}
-                      onChange={e => setSheet({ ...sheet, flagDetail: e.target.value })}
-                      placeholder="Details…"
-                      style={sheetInputStyle}
-                    />
-                    <textarea
-                      value={sheet.flagNotes}
-                      onChange={e => setSheet({ ...sheet, flagNotes: e.target.value })}
-                      placeholder="Notes for admin…"
-                      style={{ ...sheetTextareaStyle, height: 70 }}
-                    />
-                    <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      <button onClick={submitFlag} disabled={sheet.submitting} style={sheetSaveStyle}>
-                        {sheet.submitting ? 'Sending…' : 'Report issue'}
-                      </button>
-                      <button onClick={() => setSheet({ ...sheet, showFlag: false })} style={sheetCancelStyle}>Cancel</button>
-                    </div>
+
+                    {/* Per-category form */}
+                    {sheet.category === 'wrong_address' && (
+                      <div style={{ marginBottom: 10 }}>
+                        <FormLabel>Current address on file</FormLabel>
+                        <div style={{ fontSize: 12, color: '#94A3B8', marginBottom: 6 }}>
+                          {[s.address, s.city, s.zip].filter(Boolean).join(', ') || 'None on file'}
+                        </div>
+                        <FormLabel>New address</FormLabel>
+                        <input
+                          value={sheet.addressForm.address}
+                          onChange={e => setSheet({ ...sheet, addressForm: { ...sheet.addressForm, address: e.target.value } })}
+                          placeholder="123 Main St"
+                          style={sheetInputStyle}
+                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
+                          <input
+                            value={sheet.addressForm.city}
+                            onChange={e => setSheet({ ...sheet, addressForm: { ...sheet.addressForm, city: e.target.value } })}
+                            placeholder="City"
+                            style={sheetInputStyle}
+                          />
+                          <input
+                            value={sheet.addressForm.zip}
+                            onChange={e => setSheet({ ...sheet, addressForm: { ...sheet.addressForm, zip: e.target.value } })}
+                            placeholder="Zip"
+                            style={sheetInputStyle}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {sheet.category === 'wrong_qty' && (
+                      <div style={{ marginBottom: 10 }}>
+                        <FormLabel>Change copies per publication</FormLabel>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 8 }}>
+                          {(Object.keys(sheet.qtyForm).length > 0 ? Object.keys(sheet.qtyForm).sort() : ['rrp', 'boom']).map(pub => (
+                            <label key={pub} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#1E293B' }}>
+                              <span style={{ fontWeight: 700, fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</span>
+                              <input
+                                type="number" min={0} inputMode="numeric"
+                                value={sheet.qtyForm[pub] || ''}
+                                onChange={e => setSheet({ ...sheet, qtyForm: { ...sheet.qtyForm, [pub]: Math.max(0, parseInt(e.target.value || '0', 10)) } })}
+                                style={{ width: 80, padding: '8px 10px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 14, fontFamily: 'inherit' }}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#94A3B8' }}>
+                          Currently: {Object.entries(s.quantities ?? {}).filter(([, v]) => v > 0).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ') || 'none set'}
+                        </div>
+                      </div>
+                    )}
+
+                    {sheet.category === 'new_contact' && (
+                      <div style={{ marginBottom: 10 }}>
+                        <FormLabel>Contact name</FormLabel>
+                        <input
+                          value={sheet.contactForm.contact_name}
+                          onChange={e => setSheet({ ...sheet, contactForm: { ...sheet.contactForm, contact_name: e.target.value } })}
+                          placeholder="e.g. Bob Smith, Store Manager"
+                          style={sheetInputStyle}
+                        />
+                        <FormLabel>Phone</FormLabel>
+                        <input
+                          value={sheet.contactForm.contact_phone}
+                          onChange={e => setSheet({ ...sheet, contactForm: { ...sheet.contactForm, contact_phone: e.target.value } })}
+                          placeholder="334-555-0100"
+                          type="tel"
+                          style={sheetInputStyle}
+                        />
+                        <FormLabel>Email</FormLabel>
+                        <input
+                          value={sheet.contactForm.contact_email}
+                          onChange={e => setSheet({ ...sheet, contactForm: { ...sheet.contactForm, contact_email: e.target.value } })}
+                          placeholder="bob@example.com"
+                          type="email"
+                          style={sheetInputStyle}
+                        />
+                      </div>
+                    )}
+
+                    {(sheet.category === 'closed' || sheet.category === 'new_stop' || sheet.category === 'other') && (
+                      <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8, fontStyle: 'italic' }}>
+                        {sheet.category === 'closed' && 'Admin will mark this location closed and stop deliveries.'}
+                        {sheet.category === 'new_stop' && 'Describe the new location in the notes below.'}
+                        {sheet.category === 'other' && 'Explain the issue in the notes below.'}
+                      </div>
+                    )}
+
+                    {sheet.category && (
+                      <>
+                        <FormLabel>Notes for admin {sheet.category !== 'other' ? '(optional)' : '(required)'}</FormLabel>
+                        <textarea
+                          value={sheet.notes}
+                          onChange={e => setSheet({ ...sheet, notes: e.target.value })}
+                          placeholder={sheet.category === 'closed' ? 'When did they close? Anything to add?' : 'Extra context…'}
+                          style={{ ...sheetTextareaStyle, height: 70 }}
+                        />
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                          <button onClick={submitChange} disabled={sheet.submitting || !sheet.category} style={sheetSaveStyle}>
+                            {sheet.submitting ? 'Sending…' : 'Send for approval'}
+                          </button>
+                          <button onClick={() => setSheet({ ...sheet, reportOpen: false, category: null })} style={sheetCancelStyle}>Cancel</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </>
@@ -359,6 +527,14 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
           </Sheet>
         )
       })()}
+    </div>
+  )
+}
+
+function FormLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: '#64748B', marginBottom: 4, marginTop: 8 }}>
+      {children}
     </div>
   )
 }
