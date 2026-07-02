@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   TrendingUp, CalendarDays, BookOpen, Star,
-  ArrowRight, Users, Briefcase, Map, Sparkles,
+  ArrowRight, Users, Briefcase, Map, Sparkles, Cake,
 } from 'lucide-react'
 import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
@@ -660,30 +660,34 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Promoted guides — Family Resource Guide (evergreen) + the
-            monthly featured guide. Two equal-billing cards sit here
+        {/* Promoted guides — Birthday Party Guide (seasonal takeover) +
+            the monthly featured guide. Two equal-billing cards sit here
             right under the hero so both get prominent placement
             without competing with the spotlight rotation in the
-            sidebar. When `featuredGuide` happens to BE FRG, the
-            second card hides itself and the FRG card spans the row. */}
+            sidebar. The birthday guide holds the wide slot while
+            it's the active featured planning portal; the Family
+            Resource Guide is still one click away via the Featured
+            Categories row below and the main nav. */}
         {(() => {
-          const featuredIsFRG = featuredGuide?.url_slug === 'family-resource-guide'
+          const featuredIsBirthday = featuredGuide?.url_slug === 'birthday-party-guide'
           // Block the Summer Fun guide from showing in this slot until
           // its content is ready. When guide_configs picks it for the
-          // current month, we just hide the second tile and let FRG
-          // span full-width.
+          // current month, we just hide the second tile and let the
+          // birthday card span full-width.
           const featuredIsNotReady = featuredGuide?.url_slug === 'summer-fun-guide'
-          const showFeatured  = !!featuredGuide && !featuredIsFRG && !featuredIsNotReady
+          const showFeatured  = !!featuredGuide && !featuredIsBirthday && !featuredIsNotReady
           return (
             <section className={`grid gap-3 md:gap-5 ${showFeatured ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
-              {/* Family Resource Guide — always here */}
+              {/* Birthday Party Guide — seasonal takeover of the wide
+                  hero promo. Everything birthday-related lives on
+                  /birthday-party-guide so this card is the on-ramp. */}
               <Link
-                href="/family-resource-guide"
+                href="/birthday-party-guide"
                 className="relative rounded-3xl overflow-hidden h-[260px] md:h-[280px] group cursor-pointer block shadow-sm"
               >
                 <Image
-                  src="/images/heroes/family-resource-hero.jpg"
-                  alt="Family Resource Guide"
+                  src="/images/heroes/birthday-party-hero.jpg"
+                  alt="The Big Birthday Bash — River Region Birthday Planning Portal"
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -693,24 +697,25 @@ export default async function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7">
                   <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-accent-foreground mb-3 shadow-lg">
-                    <Map className="h-5 w-5" />
+                    <Cake className="h-5 w-5" />
                   </div>
                   <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
-                    Your Map
+                    2026 Guide
                   </span>
                   <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Family Resource Guide
+                    The Big Birthday Bash
                   </h3>
                   <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Schools, pediatricians, festivals worth driving to, the parks worth bookmarking — everything moms wish someone had told them in their first month.
+                    Venues, cakes, entertainers, rentals, and gift shops — every River Region birthday vendor in one place. Plan the party without the tab avalanche.
                   </p>
                   <div className="flex items-center text-sm font-bold text-accent">
-                    Explore Guide <ArrowRight className="ml-1 h-4 w-4" />
+                    Explore the Guide <ArrowRight className="ml-1 h-4 w-4" />
                   </div>
                 </div>
               </Link>
 
-              {/* Monthly featured guide — hidden when it's also FRG */}
+              {/* Monthly featured guide — hidden when it's also the
+                  birthday guide (avoids duplicating the wide card). */}
               {showFeatured && featuredGuide && (
                 <Link
                   href={`/${featuredGuide.url_slug}`}

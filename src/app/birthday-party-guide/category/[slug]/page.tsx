@@ -113,22 +113,43 @@ export default async function BirthdayCategoryPage({ params }: Props) {
   // tier rows surface first; we de-dup by advertiser_account_id later
   // (a vendor can appear in multiple CSV categories within the bucket
   // and we don't want to render them twice on the same page).
-  const { data } = await supabase
-    .from('guide_listings')
-    .select(`
-      id, listing_tier, display_order, guide_data,
-      advertiser_accounts (
-        id, slug, business_name, card_hook, hero_photo_url,
-        neighborhood, city_state_zip, website_url, office_phone,
-        has_military_discount, is_veteran_owned, is_woman_owned,
-        is_minority_owned, is_locally_owned
-      )
-    `)
-    .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-    .in('category', bucket.categories)
-    .eq('is_published', true)
-    .order('display_order', { ascending: true })
-    .limit(500)
+  //
+  // Two queries: primary category IN the bucket, OR extra_categories
+  // overlaps the bucket. Merged + deduped by row id below. Two queries
+  // over one .or() filter because PostgREST filter escaping around
+  // category names with slashes and hyphens gets fragile — safer to
+  // let Supabase build each filter separately.
+  const listingSelect = `
+    id, listing_tier, display_order, guide_data,
+    advertiser_accounts (
+      id, slug, business_name, card_hook, hero_photo_url,
+      neighborhood, city_state_zip, website_url, office_phone,
+      has_military_discount, is_veteran_owned, is_woman_owned,
+      is_minority_owned, is_locally_owned
+    )
+  `
+  const [primaryRes, extraRes] = await Promise.all([
+    supabase.from('guide_listings').select(listingSelect)
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
+      .in('category', bucket.categories)
+      .eq('is_published', true)
+      .order('display_order', { ascending: true })
+      .limit(500),
+    supabase.from('guide_listings').select(listingSelect)
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
+      .overlaps('extra_categories', bucket.categories)
+      .eq('is_published', true)
+      .order('display_order', { ascending: true })
+      .limit(500),
+  ])
+  const rawRows = [...(primaryRes.data ?? []), ...(extraRes.data ?? [])]
+  const seenRowId = new Set<string>()
+  const mergedRows = rawRows.filter(r => {
+    const id = (r as { id: string }).id
+    if (seenRowId.has(id)) return false
+    seenRowId.add(id); return true
+  })
+  const data = mergedRows
 
   const rows = (data ?? []) as unknown as ListingRow[]
 
@@ -149,20 +170,38 @@ export default async function BirthdayCategoryPage({ params }: Props) {
   const featured = uniq.filter(l => FEATURED_TIERS.includes(tierById.get(l.id) ?? ''))
   const standard = uniq.filter(l => !FEATURED_TIERS.includes(tierById.get(l.id) ?? ''))
 
-  // Counts per CSV category for the sub-cards. Built off the raw rows
-  // (not the deduped set) so each sub shows its true row count even
-  // when a vendor straddles two categories within the bucket.
-  type CountRow = { category: string | null }
+  // Counts per CSV category for the sub-cards. Cross-listed rows
+  // count toward each of their extra_categories entries as well as
+  // the primary — the vendor genuinely belongs in both.
+  type CountRow = { id: string; category: string | null; extra_categories: string[] | null }
   const countsByCategory: Record<string, number> = {}
-  const { data: countRows } = await supabase
-    .from('guide_listings')
-    .select('category')
-    .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
-    .in('category', bucket.categories)
-    .eq('is_published', true)
-    .limit(2000)
-  for (const r of (countRows ?? []) as CountRow[]) {
-    if (r.category) countsByCategory[r.category] = (countsByCategory[r.category] ?? 0) + 1
+  const [primaryCountRes, extraCountRes] = await Promise.all([
+    supabase.from('guide_listings')
+      .select('id, category, extra_categories')
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
+      .in('category', bucket.categories)
+      .eq('is_published', true)
+      .limit(2000),
+    supabase.from('guide_listings')
+      .select('id, category, extra_categories')
+      .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
+      .overlaps('extra_categories', bucket.categories)
+      .eq('is_published', true)
+      .limit(2000),
+  ])
+  const bucketSet = new Set(bucket.categories)
+  const seenCountId = new Set<string>()
+  const dedupedCountRows = ([...(primaryCountRes.data ?? []), ...(extraCountRes.data ?? [])] as CountRow[])
+    .filter(r => { if (seenCountId.has(r.id)) return false; seenCountId.add(r.id); return true })
+  for (const r of dedupedCountRows) {
+    if (r.category && bucketSet.has(r.category)) {
+      countsByCategory[r.category] = (countsByCategory[r.category] ?? 0) + 1
+    }
+    for (const extra of r.extra_categories ?? []) {
+      if (bucketSet.has(extra)) {
+        countsByCategory[extra] = (countsByCategory[extra] ?? 0) + 1
+      }
+    }
   }
 
   // Sidebar — featured spotlights pulled from any featured listing

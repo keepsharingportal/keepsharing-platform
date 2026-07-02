@@ -122,8 +122,11 @@ export default async function BirthdayPartyGuidePage() {
     // Birthday-party-guide listings — slim category-count query that
     // feeds the hub cards. Full vendor cards live on the per-category
     // landing pages now (see /birthday-party-guide/category/[slug]).
+    // extra_categories lets a single vendor row appear in multiple
+    // buckets (e.g. Escapology under both Entertainment and Places to
+    // Party — Misc) — one CRM record, cross-listed in the UI.
     supabase.from('guide_listings')
-      .select('category, advertiser_accounts(id)')
+      .select('category, extra_categories, advertiser_accounts(id)')
       .in('guide_type_slug', ['birthday-party', 'birthday-party-guide'])
       .eq('is_published', true)
       .limit(500),
@@ -154,12 +157,17 @@ export default async function BirthdayPartyGuidePage() {
       .limit(2),
   ])
 
-  // Birthday vendor listings — joined to advertiser_accounts so the
-  // hub cards can count per-bucket. The full categorized list moved to
+  // Birthday vendor listings — the full categorized list moved to
   // dedicated /birthday-party-guide/category/[slug] pages, so the
-  // portal page only needs counts, not full payloads.
+  // portal page only needs per-bucket counts, not full payloads.
+  // Only rows linked to an advertiser_account render on the category
+  // pages (that's where their detail page + card content comes from),
+  // so we count the same set here for accurate bucket totals.
+  // extra_categories rows count toward each extra bucket as well as
+  // the primary — the vendor genuinely belongs in all of them.
   type RawListing = {
-    category: string | null
+    category:            string | null
+    extra_categories:    string[] | null
     advertiser_accounts: { id: string } | null
   }
   const rawListings = (listingCountsRes.data ?? []) as unknown as RawListing[]
@@ -167,6 +175,9 @@ export default async function BirthdayPartyGuidePage() {
   const categoryCountsObj: Record<string, number> = {}
   for (const l of linkedListings) {
     if (l.category) categoryCountsObj[l.category] = (categoryCountsObj[l.category] ?? 0) + 1
+    for (const extra of l.extra_categories ?? []) {
+      if (extra) categoryCountsObj[extra] = (categoryCountsObj[extra] ?? 0) + 1
+    }
   }
   const totalListings = linkedListings.length
 
