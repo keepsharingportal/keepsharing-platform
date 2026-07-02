@@ -209,12 +209,20 @@ function ArticleGalleryLightbox({ images, startIndex, onClose, brand }: Lightbox
             // and avoids generic / misleading labels like "WINNER" on
             // columns where the subject isn't a contest winner (Grands,
             // Mom to Mom).
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={brand.logoUrl}
-              alt={brand.left}
-              className="h-8 md:h-10 w-auto max-w-[260px] object-contain"
-            />
+            //
+            // Wrap in a white chip so full-color wordmarks (Grands is
+            // dark purple + navy, designed for a cream body background)
+            // render legibly against a branded header — otherwise the
+            // logo goes dark-on-dark on columns whose primary color is
+            // purple / dark blue.
+            <div className="bg-white rounded-md px-2.5 py-1 md:px-3 md:py-1.5 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={brand.logoUrl}
+                alt={brand.left}
+                className="h-6 md:h-8 w-auto max-w-[240px] object-contain block"
+              />
+            </div>
           ) : (
             <>
               <span className="text-xs md:text-sm font-black uppercase tracking-[0.16em] truncate">
