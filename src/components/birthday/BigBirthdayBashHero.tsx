@@ -2,8 +2,10 @@
 //
 // Hero image is editor-managed: pulled from the 'birthday-bash' row in
 // the verticals table (same pattern as FRG / Mom Knows Best). Editor
-// uploads via /admin/verticals/birthday-bash/edit. Falls back to a
-// gradient when no image is set so the hero is never blank.
+// uploads via /admin/verticals/birthday-bash/edit. When no custom
+// image is set we render the packed-balloons stock hero instead of
+// a plain gradient — the portal is birthday-themed, the fallback
+// should be too.
 //
 // A HeroSponsorCard renders at the bottom of the hero, matching the
 // FRG / Games / etc. top-section-sponsor pattern. Placeholder card
@@ -12,6 +14,8 @@
 
 import Image from 'next/image'
 import { HeroSponsorCard, type HeroSponsor } from '@/components/verticals/HeroSponsorCard'
+
+const DEFAULT_HERO_IMAGE = '/images/heroes/birthday-party-hero.jpg'
 
 interface Props {
   heroImageUrl?: string | null
@@ -32,19 +36,14 @@ export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: 
   return (
     <div className="relative overflow-hidden border-b border-black/5">
       <div className="absolute inset-0">
-        {heroImageUrl ? (
-          <Image
-            src={heroImageUrl}
-            alt={displayTitle}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-        ) : (
-          // Brand-gradient fallback — no broken image, ever
-          <div className="absolute inset-0 bg-gradient-to-br from-[#ff7a59] via-[#ff9d8a] to-[#ffd9cc]" />
-        )}
+        <Image
+          src={heroImageUrl || DEFAULT_HERO_IMAGE}
+          alt={displayTitle}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/65" />
       </div>
 
