@@ -41,6 +41,25 @@ export function SpotlightSection({
     : columnSlug === 'grands-greatest'  ? '💛 Grands Are the Greatest'
     :                                     'Community Spotlight'
 
+  // Column-aware label + placeholder for the Featured Name field.
+  // The article render uses this as the FIRST source for the section
+  // header ("Debbie's Grand Story", "Phyllis Palmer: Her Story", etc.)
+  // so an editor never has to hope the parser derives the right name
+  // from the title. Falls back to title-before-colon / nickname /
+  // author_name only when this field is blank.
+  const subjectLabel =
+    columnSlug === 'play-ball'          ? 'Featured Athlete / Coach / Volunteer'
+    : columnSlug === 'teacher-of-month' ? 'Featured Teacher'
+    : columnSlug === 'mom-to-mom'       ? 'Featured Mom'
+    : columnSlug === 'grands-greatest'  ? 'Featured Grandparent'
+    :                                     'Featured Person'
+  const subjectPlaceholder =
+    columnSlug === 'play-ball'          ? 'e.g. Harper Loves'
+    : columnSlug === 'teacher-of-month' ? 'e.g. Beth Noble'
+    : columnSlug === 'mom-to-mom'       ? 'e.g. Phyllis Palmer'
+    : columnSlug === 'grands-greatest'  ? 'e.g. Jacqueline Fortson (or nickname like "Me Me")'
+    :                                     'Featured person name'
+
   function setValue(key: string, value: string) {
     onDataChange({ ...spotlightData, [key]: value })
   }
@@ -65,6 +84,36 @@ export function SpotlightSection({
 
       {tpl && (
         <>
+          {/* Featured Name — canonical place to record who the
+              spotlight is about. Grands uses it as the Q&A section
+              header ("Debbie's Grand Story"); Mom to Mom uses it for
+              the "[Name]: Her Story" header. Teacher / Play Ball
+              currently key off the article title on the hero but
+              storing the name here means we can wire it into more
+              places (SEO metadata, sidebar bio, cross-promo) without
+              chasing editors down every time. */}
+          <div>
+            <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1.5">
+              {subjectLabel}
+            </label>
+            <input
+              className={inp}
+              value={spotlightData.subject_name ?? ''}
+              onChange={e => setValue('subject_name', e.target.value)}
+              placeholder={subjectPlaceholder}
+            />
+            <p className="text-[11px] text-amber-900/70 mt-1">
+              {columnSlug === 'grands-greatest'
+                ? `Renders as the Q&A section header — e.g. "${spotlightData.subject_name?.trim() || 'Name'}'s Grand Story".`
+                : columnSlug === 'mom-to-mom'
+                ? `Renders as the Q&A section header — e.g. "${spotlightData.subject_name?.trim() || 'Name'}: Her Story".`
+                : columnSlug === 'teacher-of-month'
+                ? 'Recorded for SEO + cross-promo. The article title still leads on the hero.'
+                : 'Recorded for SEO + cross-promo. The article title still leads on the hero.'}
+              {' '}Optional; falls back to the article title.
+            </p>
+          </div>
+
           {/* Top Strip vitals */}
           <div>
             <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2">

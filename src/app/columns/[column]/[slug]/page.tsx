@@ -450,13 +450,33 @@ export default async function ArticlePage({ params }: PageParams) {
   const grandsNominateHref = isGrandsFeature
     ? (getNominateCTA(column)?.href ?? '/submit/grands-are-the-greatest')
     : ''
-  // Subject's first name for the Q&A section heading — derived from the
-  // article title's pre-colon portion ("Debbie Peavy: The Joy..." →
-  // "Debbie Peavy"), then taking just the first word so we get
-  // "Debbie's Grand Story" instead of "Debbie Peavy's Grand Story".
-  const grandsSubjectName = isGrandsFeature && typeof article.title === 'string'
-    ? (article.title.includes(':') ? article.title.split(':')[0] : article.title).trim().split(/\s+/)[0]
-    : null
+  // Subject's name for the Q&A section heading. Priority:
+  //   1. spotlight_data.subject_name  — dedicated editorial field
+  //      (SpotlightSection input, "Featured Grandparent"). Always wins
+  //      when set; that's the whole point of the field.
+  //   2. Title before first colon ("Debbie Peavy: The Joy..." → "Debbie")
+  //      — matches the June name-first title convention.
+  //   3. Grandparent nickname from the snapshot ("Me Me", "Debbs & Big Al"
+  //      → "Me Me" / "Debbs") — for thematic titles like July's
+  //      "Why Everyone Wants to Be Spoiled by 'Me Me'" where the subject
+  //      isn't in the title.
+  //   4. Null — GrandsBody falls back to "Their Grand Story".
+  const grandsSubjectName = (() => {
+    if (!isGrandsFeature) return null
+    const explicit = (spotlightData?.subject_name as string | undefined)?.trim()
+    if (explicit) return explicit
+    if (typeof article.title === 'string' && article.title.includes(':')) {
+      return article.title.split(':')[0].trim().split(/\s+/)[0]
+    }
+    const nickname = (spotlightData?.grand_nickname as string | undefined)?.trim()
+    if (nickname) {
+      // Split on & / "and" / commas so a couple's nickname ("Debbs & Big Al")
+      // yields the leading name ("Debbs"). Keep multi-word nicknames intact
+      // otherwise ("Me Me" stays "Me Me").
+      return nickname.split(/\s*(?:&|\band\b|,|\/)\s*/i)[0].trim() || null
+    }
+    return null
+  })()
 
   // Play Ball gets the same magazine-feature treatment as Grands —
   // dedicated hero (logo + photo w/ yellow tape), snapshot strip + lead
@@ -879,16 +899,26 @@ export default async function ArticlePage({ params }: PageParams) {
               /* Mom to Mom — intro prose with a coral drop cap, then a
                  stack of MomQACards under a "[Subject Name]: Her Story"
                  header, then a styled Rapid Fire module. Subject name
-                 is derived from the part of the article title before
-                 the first colon (e.g. "Phyllis Palmer: Pours Heart..."
-                 → "Phyllis Palmer"); falls back to the whole title. */
+                 rules:
+                   1. Title before first colon ("Phyllis Palmer: Pours
+                      Heart..." → "Phyllis Palmer").
+                   2. author_name (when it isn't the generic "Staff" byline).
+                   3. Null — MomBody falls back to the generic "Q&A" heading.
+                 Before the author_name fallback, thematic titles without a
+                 colon rendered the whole title as the section header
+                 ("How I Learned...: Her Story") which read as broken. */
               <MomBody
                 body={article.body ?? ''}
-                subjectName={
-                  typeof article.title === 'string' && article.title.includes(':')
-                    ? article.title.split(':')[0].trim()
-                    : (article.title as string | null) ?? null
-                }
+                subjectName={(() => {
+                  const explicit = (spotlightData?.subject_name as string | undefined)?.trim()
+                  if (explicit) return explicit
+                  if (typeof article.title === 'string' && article.title.includes(':')) {
+                    return article.title.split(':')[0].trim()
+                  }
+                  const author = (article.author_name as string | null)?.trim()
+                  if (author && author.toLowerCase() !== 'staff') return author
+                  return null
+                })()}
               />
             ) : (
               <ArticleBody
