@@ -633,18 +633,18 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                       if (!qty || isPickup) return null
                       const col = pubColor(pub)
                       return (
-                        <span key={pub} style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 10, background: col.bg, color: col.fg, fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                        <span key={pub} style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: col.bg, color: col.fg, fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                           {pub.toUpperCase()} {qty}
                         </span>
                       )
                     })}
                     {isPickup && (
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 10, background: '#DBEAFE', color: '#1A5FA8', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#DBEAFE', color: '#1A5FA8', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                         📦 Load here
                       </span>
                     )}
                     {isPaused && (
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 10, background: '#FEF3C7', color: '#92400E', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#FEF3C7', color: '#92400E', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                         ⏸ Not delivering
                       </span>
                     )}
@@ -653,12 +653,12 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
                   {/* Get directions — this is a keeper from my earlier build; v3 didn't have it but drivers immediately asked for it */}
                   {stop.address && !isPickup && !isPaused && (
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([stop.address, stop.city, stop.zip].filter(Boolean).join(', '))}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
                     >
-                      🧭 Directions
+                      📍 Map
                     </a>
                   )}
                 </div>
@@ -1015,12 +1015,12 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
           </div>
           {historySheet.address && (
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(historySheet.address)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(historySheet.address)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12, padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
             >
-              🧭 Directions
+              📍 Map
             </a>
           )}
 

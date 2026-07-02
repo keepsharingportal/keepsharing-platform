@@ -192,18 +192,18 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
                       if (!qty || isPickup) return null
                       const col = pubColor(pub)
                       return (
-                        <span key={pub} style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: col.bg, color: col.fg, fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                        <span key={pub} style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: col.bg, color: col.fg, fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                           {pub.toUpperCase()} {qty}
                         </span>
                       )
                     })}
                     {isPickup && (
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#DBEAFE', color: '#1A5FA8', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#DBEAFE', color: '#1A5FA8', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                         📦 Load here
                       </span>
                     )}
                     {isPaused && (
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#FEF3C7', color: '#92400E', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, padding: '3px 12px', borderRadius: 12, background: '#FEF3C7', color: '#92400E', fontFamily: '"DM Mono", ui-monospace, monospace' }}>
                         ⏸ Paused
                       </span>
                     )}
@@ -233,12 +233,12 @@ export function StopsBrowserClient({ market, driverName, route, stops }: Props) 
             )}
             {fullAddress && (
               <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
               >
-                🧭 Directions
+                📍 View on Map
               </a>
             )}
             {s.notes && (

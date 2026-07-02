@@ -214,12 +214,12 @@ function MapWithMarkers({
               )}
               {s.address && !s.is_pickup && !s.not_delivering && (
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([s.address, s.city, s.zip].filter(Boolean).join(', '))}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([s.address, s.city, s.zip].filter(Boolean).join(', '))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ display: 'inline-block', marginTop: 6, padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: '#1A5FA8', color: 'white', textDecoration: 'none' }}
                 >
-                  🧭 Directions
+                  📍 View on Map
                 </a>
               )}
             </div>
