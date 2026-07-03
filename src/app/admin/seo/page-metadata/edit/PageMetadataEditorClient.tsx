@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Save, Sparkles, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Save, Sparkles, Loader2, CheckCircle2, AlertTriangle, Upload } from 'lucide-react'
 import type { PageMetadataOverride } from '@/lib/seo/page-metadata-overrides'
 
 interface Props {
@@ -27,6 +27,32 @@ export function PageMetadataEditorClient({ route, brandSlug, initial }: Props) {
   const [aiBusy, setAiBusy] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
   const [saved,  setSaved]  = useState(false)
+  const [uploadingOg,      setUploadingOg]      = useState(false)
+  const [uploadingTwitter, setUploadingTwitter] = useState(false)
+  const [uploadingPin,     setUploadingPin]     = useState(false)
+  const ogFileInputRef      = useRef<HTMLInputElement>(null)
+  const twitterFileInputRef = useRef<HTMLInputElement>(null)
+  const pinFileInputRef     = useRef<HTMLInputElement>(null)
+
+  async function uploadImage(file: File, target: 'og' | 'twitter' | 'pin') {
+    const setBusy = target === 'og' ? setUploadingOg : target === 'twitter' ? setUploadingTwitter : setUploadingPin
+    setBusy(true); setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('context', `social-share-${target}`)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setError((j as { error?: string })?.error ?? 'Upload failed'); return }
+      const url = (j as { url?: string }).url
+      if (!url) { setError('Upload returned no URL'); return }
+      if      (target === 'og')      setOgImageUrl(url)
+      else if (target === 'twitter') setTwitterImage(url)
+      else                            setPinImageUrl(url)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed')
+    } finally { setBusy(false) }
+  }
 
   async function save() {
     setSaving(true); setError(null); setSaved(false)
@@ -100,8 +126,23 @@ export function PageMetadataEditorClient({ route, brandSlug, initial }: Props) {
         <Field label="OG description" hint={`${ogDescription.length}/155 chars · the share blurb`}>
           <textarea rows={3} className={`${inputCls} resize-vertical`} value={ogDescription} onChange={e => setOgDescription(e.target.value)} placeholder="Inherits from page description if blank" />
         </Field>
-        <Field label="OG image URL" hint="1200×630 (1.91:1) recommended">
-          <input type="text" className={inputCls} value={ogImageUrl} onChange={e => setOgImageUrl(e.target.value)} placeholder="Inherits from coded default if blank" />
+        <Field label="OG image" hint="1200×630 (1.91:1) recommended · uploads are auto-resized + WebP-encoded">
+          <div className="flex gap-2">
+            <input type="text" className={`${inputCls} flex-1`} value={ogImageUrl} onChange={e => setOgImageUrl(e.target.value)} placeholder="Paste a URL or click Upload →" />
+            <button
+              type="button"
+              onClick={() => ogFileInputRef.current?.click()}
+              disabled={uploadingOg}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-portal-navy bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-50 whitespace-nowrap"
+            >
+              {uploadingOg ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+              {uploadingOg ? 'Uploading…' : 'Upload'}
+            </button>
+            <input
+              ref={ogFileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'og'); e.target.value = '' }}
+            />
+          </div>
         </Field>
 
         <hr className="border-portal-border" />
@@ -119,15 +160,45 @@ export function PageMetadataEditorClient({ route, brandSlug, initial }: Props) {
         <Field label="Twitter description" hint="Inherits OG description if blank">
           <textarea rows={2} className={`${inputCls} resize-vertical`} value={twitterDesc} onChange={e => setTwitterDesc(e.target.value)} placeholder="(uses OG description)" />
         </Field>
-        <Field label="Twitter image URL" hint="Inherits OG image if blank">
-          <input type="text" className={inputCls} value={twitterImage} onChange={e => setTwitterImage(e.target.value)} placeholder="(uses OG image)" />
+        <Field label="Twitter image" hint="Inherits OG image if blank">
+          <div className="flex gap-2">
+            <input type="text" className={`${inputCls} flex-1`} value={twitterImage} onChange={e => setTwitterImage(e.target.value)} placeholder="(uses OG image)" />
+            <button
+              type="button"
+              onClick={() => twitterFileInputRef.current?.click()}
+              disabled={uploadingTwitter}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-portal-navy bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-50 whitespace-nowrap"
+            >
+              {uploadingTwitter ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+              {uploadingTwitter ? 'Uploading…' : 'Upload'}
+            </button>
+            <input
+              ref={twitterFileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'twitter'); e.target.value = '' }}
+            />
+          </div>
         </Field>
 
         <hr className="border-portal-border" />
 
         <h2 className="text-[14px] font-bold text-portal-text">Pinterest</h2>
-        <Field label="Pinterest image URL" hint="1000×1500 (2:3) recommended">
-          <input type="text" className={inputCls} value={pinImageUrl} onChange={e => setPinImageUrl(e.target.value)} placeholder="(falls back to OG image)" />
+        <Field label="Pinterest image" hint="1000×1500 (2:3) recommended">
+          <div className="flex gap-2">
+            <input type="text" className={`${inputCls} flex-1`} value={pinImageUrl} onChange={e => setPinImageUrl(e.target.value)} placeholder="(falls back to OG image)" />
+            <button
+              type="button"
+              onClick={() => pinFileInputRef.current?.click()}
+              disabled={uploadingPin}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-portal-navy bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-50 whitespace-nowrap"
+            >
+              {uploadingPin ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+              {uploadingPin ? 'Uploading…' : 'Upload'}
+            </button>
+            <input
+              ref={pinFileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'pin'); e.target.value = '' }}
+            />
+          </div>
         </Field>
         <Field label="Pinterest description" hint="Up to 500 chars · keyword-rich; emojis OK">
           <textarea rows={3} className={`${inputCls} resize-vertical`} value={pinDescription} onChange={e => setPinDescription(e.target.value)} placeholder="(falls back to OG description)" />
