@@ -13,6 +13,8 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { loadBrandContext } from '@/lib/brand-context'
 
+import { Navigation }              from '@/components/Navigation'
+import { PublicFooter }            from '@/components/PublicFooter'
 import { BigBirthdayBashHero }    from '@/components/birthday/BigBirthdayBashHero'
 import { PlanningTimeline }       from '@/components/birthday/PlanningTimeline'
 import { BirthdayCategoryHubCards } from '@/components/birthday/BirthdayCategoryHubCards'
@@ -184,6 +186,8 @@ export default async function BirthdayPartyGuidePage() {
     : null
 
   return (
+    <div className="public-page">
+      <Navigation />
     <main className="bg-[#fffaf5]">
       <BigBirthdayBashHero
         heroImageUrl={hv?.hero_image_url ?? null}
@@ -244,5 +248,7 @@ export default async function BirthdayPartyGuidePage() {
         </div>
       </div>
     </main>
+      <PublicFooter />
+    </div>
   )
 }

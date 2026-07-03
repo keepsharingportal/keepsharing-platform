@@ -28,7 +28,7 @@ interface Props {
 
 export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: Props) {
   const displayTitle    = title    ?? 'The Big Birthday Bash'
-  const displaySubtitle = subtitle ?? 'Every venue, vendor, theme and tip for planning your kid\'s birthday in the River Region. Local moms have tested every one.'
+  const displaySubtitle = subtitle ?? 'Plan Your Child\'s Next Birthday Celebration'
   // Split the last word out so we can highlight it (e.g. "Bash")
   const titleParts = displayTitle.match(/^(.*)\s+(\S+)$/)
   const titleHead  = titleParts ? titleParts[1] : displayTitle
@@ -49,9 +49,6 @@ export function BigBirthdayBashHero({ heroImageUrl, title, subtitle, sponsor }: 
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 text-white">
         <div className="text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] font-bold uppercase tracking-[0.2em] mb-4">
-            🎂 The Ultimate Planning Portal
-          </div>
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.05] tracking-tight">
             {titleHead}{titleTail && <> <span className="text-[#ff7a59]">{titleTail}</span></>}
           </h1>
