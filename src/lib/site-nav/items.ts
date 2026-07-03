@@ -82,6 +82,10 @@ export const HEADER_TOP_LEVEL: NavItem[] = [
   { key: 'header.school-zone',       label: 'School Zone',      href: '/school-zone'           },
   { key: 'header.calendar.dropdown', label: 'Calendar',         href: '#calendar'              },
   { key: 'header.games',             label: 'Games & Prizes',   href: '/games'                 },
+  // Birthdays is a top-level entry (not tucked under Guides) because
+  // the Big Birthday Bash portal is the only "guide" that's ready
+  // enough to promote from the top nav during launch.
+  { key: 'header.birthdays',         label: 'Birthdays',        href: '/birthday-party-guide'  },
   { key: 'header.articles',        label: 'Articles',         href: '/articles'              },
   { key: 'header.partners',        label: 'Partner With Us',  href: '/partners'              },
   // Hidden during launch — restore when content is ready:
