@@ -309,23 +309,6 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           })}
         </section>
 
-        {/* SPONSORED AD SLOT — placeholder until tied into ad_placements */}
-        <div className="relative bg-gradient-to-r from-primary/10 to-secondary/10 border border-border/50 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 group transition-colors hover:border-primary/30">
-          <span className="absolute top-4 right-6 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Advertisement</span>
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Escape Room Montgomery</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Love puzzles? Bring the whole family for a real-life challenge. Book today and get 15% off with code <strong className="text-foreground">PARENT15</strong>.
-            </p>
-          </div>
-          <a
-            href="#"
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground font-bold text-sm px-6 py-3 hover:bg-primary/90 transition-colors"
-          >
-            Book Now <ChevronRight className="h-4 w-4" />
-          </a>
-        </div>
-
         {/* PRIZE INFO */}
         <section className="bg-card border border-border/50 rounded-3xl px-6 py-12 md:px-12 md:py-14 text-center">
           <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
