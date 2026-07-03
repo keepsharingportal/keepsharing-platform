@@ -113,30 +113,35 @@ async function sendMagnetEmail(args: {
 }
 
 async function syncToGhl(args: {
-  magnet:    LeadMagnetRow
+  magnet:    LeadMagnetRow | null
   brandSlug: string
   email:     string
   firstName: string | null
 }): Promise<void> {
-  const { magnet } = args
-  const tags = (magnet.ghl_tags ?? []).filter(t => t && t.trim().length > 0)
-  if (tags.length === 0 && !magnet.ghl_workflow_id) return
+  // Every birthday signup lands on the brand's main email list —
+  // `${brandSlug}-main-email` matches the tag /api/newsletter/subscribe
+  // uses by default so all captures across the site funnel into one
+  // canonical GHL segment. Magnet-configured tags (e.g. per-freebie
+  // segmentation) layer on top when set.
+  const mainTag    = `${args.brandSlug}-main-email`
+  const magnetTags = (args.magnet?.ghl_tags ?? []).filter(t => t && t.trim().length > 0)
+  const tags       = Array.from(new Set([mainTag, ...magnetTags]))
   try {
     const res = await upsertContact({
       publicationSlug: args.brandSlug,
       email:           args.email,
       firstName:       args.firstName ?? undefined,
-      tags:            tags.length > 0 ? tags : undefined,
+      tags,
     })
     if (!res.success || !res.contactId) {
-      console.warn(`[birthday-subscribe] GHL upsert failed for '${magnet.slug}': ${res.error ?? 'no contactId'}`)
+      console.warn(`[birthday-subscribe] GHL upsert failed for '${args.magnet?.slug ?? 'newsletter'}': ${res.error ?? 'no contactId'}`)
       return
     }
-    if (magnet.ghl_workflow_id) {
+    if (args.magnet?.ghl_workflow_id) {
       await triggerWorkflow({
         publicationSlug: args.brandSlug,
         contactId:       res.contactId,
-        workflowId:      magnet.ghl_workflow_id,
+        workflowId:      args.magnet.ghl_workflow_id,
       }).catch(e => console.warn('[birthday-subscribe] GHL workflow trigger failed:', e))
     }
   } catch (e) {
@@ -194,8 +199,12 @@ export async function POST(req: NextRequest) {
   // is tiny (one signup per request); switch to parallel if it ever matters.
   if (magnet) {
     await sendMagnetEmail({ magnet, email, firstName, partyDate })
-    await syncToGhl({ magnet, brandSlug, email, firstName })
   }
+  // GHL sync ALWAYS runs — every capture must land on the brand's
+  // main email list. Magnet-configured tags/workflow layer on top
+  // when a magnet is matched; when it isn't, the contact still gets
+  // the base `${brandSlug}-main-email` tag.
+  await syncToGhl({ magnet, brandSlug, email, firstName })
 
   return NextResponse.json({ ok: true })
 }
