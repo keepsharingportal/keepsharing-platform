@@ -484,21 +484,9 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
                 <ArrowRight className="h-4 w-4 text-accent shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
               </Link>
 
-              {!isSchoolBits && (
-                <Link
-                  href="/summer-fun-guide"
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-all group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                    <span className="text-xl">☀️</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-foreground">Summer Fun Guide</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">Camps, splash pads & day trips</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-amber-600 shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-              )}
+              {/* Summer Fun Guide cross-promo hidden — guide content not
+                  ready yet. Restore this Link block when the guide is
+                  publishable. */}
             </div>
 
             {/* Cross-pollination — more articles from the same vertical

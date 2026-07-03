@@ -27,7 +27,9 @@ export default async function NeighborhoodPage({ params }: Props) {
 
   const sections = [
     { label: "School News",           desc: `Latest from ${meta.schoolDistrict}`, emoji: "🏫", href: `/school-news?area=${neighborhood}` },
-    { label: "Summer Fun Guide",      desc: "Camps and activities near you",      emoji: "☀️", href: `/summer-fun-guide?area=${neighborhood}` },
+    // Summer Fun Guide tile hidden — guide content not ready yet.
+    // Restore when publishable:
+    // { label: "Summer Fun Guide",      desc: "Camps and activities near you",      emoji: "☀️", href: `/summer-fun-guide?area=${neighborhood}` },
     { label: "Student Spotlight",     desc: "Remarkable students in your area",   emoji: "🎓", href: `/rrp/student-spotlight` },
     { label: "Local Kid Cool Things", desc: "Kids doing amazing things here",     emoji: "🌟", href: `/rrp/local-kid` },
     { label: "Parent Poll",           desc: "This month's community question",    emoji: "📊", href: `/rrp/parent-poll` },

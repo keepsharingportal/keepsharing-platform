@@ -72,12 +72,11 @@ const EDUCATION_GUIDE = {
   cta:   'Browse schools',
 }
 
-// Secondary guides — smaller treatment below the featured Education Guide.
-const SECONDARY_GUIDES = [
-  { label: 'After-School Guide', href: '/afterschool-guide',     desc: 'Programs & enrichment activities'     },
-  { label: 'Childcare Guide',    href: '/childcare-guide',       desc: 'Daycares, preschools & care options'  },
-  { label: 'Summer Camp Guide',  href: '/summer-camp-guide',     desc: 'Camps & summer learning programs'     },
-]
+// Secondary guides — hidden until content is ready. Only the Birthday
+// Party Guide is publishable right now; keeping the array declaration
+// so the surrounding SectionHead + grid layout can render an empty
+// array-safe state (see conditional below in the render).
+const SECONDARY_GUIDES: Array<{ label: string; href: string; desc: string }> = []
 
 // ── Data layer ────────────────────────────────────────────────────────────────
 
@@ -616,25 +615,29 @@ export default async function SchoolZonePage() {
           </div>
         </section>
 
-        {/* ── Secondary guides — Childcare, After-School, Special Needs ── */}
-        <section>
-          <SectionHead icon={Heart} title="More Family Resources" />
-          <div className="grid sm:grid-cols-3 gap-4">
-            {SECONDARY_GUIDES.map(r => (
-              <Link key={r.href} href={r.href}
-                className="group flex flex-col gap-2 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
-                <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{r.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{r.desc}</p>
-                <span className="text-xs font-bold text-primary flex items-center gap-1 mt-auto group-hover:gap-1.5 transition-all">
-                  Explore <ArrowRight className="h-3 w-3" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* ── Secondary guides — hidden while SECONDARY_GUIDES is empty.
+             Restore by populating that array once the After-School /
+             Childcare / Summer Camp guides are content-complete. ── */}
+        {SECONDARY_GUIDES.length > 0 && (
+          <section>
+            <SectionHead icon={Heart} title="More Family Resources" />
+            <div className="grid sm:grid-cols-3 gap-4">
+              {SECONDARY_GUIDES.map(r => (
+                <Link key={r.href} href={r.href}
+                  className="group flex flex-col gap-2 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{r.label}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{r.desc}</p>
+                  <span className="text-xs font-bold text-primary flex items-center gap-1 mt-auto group-hover:gap-1.5 transition-all">
+                    Explore <ArrowRight className="h-3 w-3" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Events CTA ── */}
         <section className="rounded-2xl bg-gradient-to-r from-secondary/10 via-primary/5 to-accent/10 border border-border/40 p-8 md:p-10">
