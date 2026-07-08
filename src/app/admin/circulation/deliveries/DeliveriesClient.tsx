@@ -27,6 +27,7 @@ export interface DeliveryRow {
 }
 
 interface Props {
+  market:      string
   month:       string
   months:      string[]
   deliveries:  DeliveryRow[]
@@ -48,10 +49,32 @@ function fmtMonthLong(month: string): string {
   return new Date(y, (m ?? 1) - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }
 
-export function DeliveriesClient({ month, months, deliveries, stragglers }: Props) {
+export function DeliveriesClient({ market, month, months, deliveries, stragglers }: Props) {
   const router = useRouter()
   const [paySheet, setPaySheet] = useState<null | DeliveryRow>(null)
   const [busy, setBusy] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState<string | null>(null)
+
+  async function resendBookkeeperInvoices() {
+    const invoiceable = deliveries.filter(d => d.status === 'submitted' || d.status === 'paid' || d.status === 'reviewed').length
+    if (invoiceable === 0) {
+      setResendMsg('Nothing to resend — no submitted invoices this month.')
+      return
+    }
+    if (!confirm(`Send ${invoiceable} invoice ${invoiceable === 1 ? 'summary' : 'summaries'} to the bookkeeper for ${fmtMonthLong(month)}?`)) return
+    setResending(true); setResendMsg(null)
+    try {
+      const res = await fetch('/api/admin/circulation/deliveries', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify({ action: 'resend-bookkeeper-invoices', market, month }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setResendMsg(j.error ?? 'Resend failed.'); return }
+      setResendMsg(`Queued ${(j as { queued?: number }).queued ?? 0} for the bookkeeper.`)
+    } finally { setResending(false) }
+  }
 
   // Acknowledge the current pending queue as seen so the sidebar's red
   // 'Deliveries' badge clears on visit. Server sets a cookie the counts
@@ -88,6 +111,22 @@ export function DeliveriesClient({ month, months, deliveries, stragglers }: Prop
       <div className="page-header">
         <div>
           <h1 className="ph-title">Deliveries</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {resendMsg && (
+            <span className="text-sm" style={{ color: resendMsg.startsWith('Queued') ? 'var(--color-portal-green)' : 'var(--color-portal-muted)' }}>
+              {resendMsg}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={resendBookkeeperInvoices}
+            disabled={resending}
+            className="btn btn-ghost btn-sm"
+            title="Fire the bookkeeper invoice-summary email for every submitted route this month."
+          >
+            {resending ? 'Sending…' : `Send bookkeeper copies for ${fmtMonthLabel(month)}`}
+          </button>
         </div>
       </div>
 

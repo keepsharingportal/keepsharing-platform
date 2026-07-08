@@ -85,6 +85,7 @@ export default async function DeliveriesPage({ searchParams }: PageProps) {
 
   return (
     <DeliveriesClient
+      market={dbKey}
       month={month}
       months={months}
       deliveries={deliveries}

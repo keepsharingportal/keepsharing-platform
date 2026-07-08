@@ -12,6 +12,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { renderTemplate, getSettings } from '@/lib/circulation/email'
 import { enqueue } from '@/lib/circulation/emailQueue'
+import { enqueueBookkeeperInvoice } from '@/lib/circulation/bookkeeperInvoice'
 import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
@@ -563,43 +564,26 @@ async function submitOneDelivery(
       }
     }
 
-    // Bookkeeper invoice summary — inline template so we don't require
-    // an editor-managed row for this to work. Rate + gas + total spelled
-    // out so the check-writer has everything on one screen.
+    // Bookkeeper invoice summary — shared builder in
+    // lib/circulation/bookkeeperInvoice so the admin resend action can
+    // fire the identical email for backfills.
     const bookkeeperEmail = (settings.admin_email || '').trim()
     if (bookkeeperEmail) {
-      const total = pay + gas
-      const subject = `Invoice — ${drvRow?.full_name ?? 'Driver'} · ${routeName || 'Route'} · ${monthLabel}`
-      const body    = `
-        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;">
-          <p style="margin:0 0 12px;">A driver just submitted a route invoice. Details for payment:</p>
-          <table style="border-collapse:collapse;width:100%;font-size:14px;">
-            <tbody>
-              <tr><td style="padding:6px 0;color:#555;">Driver</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(drvRow?.full_name ?? '')}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Route</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(routeName)}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Month</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(monthLabel)}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Stops delivered</td><td style="padding:6px 0;font-weight:600;">${done}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Rate per stop</td><td style="padding:6px 0;font-weight:600;">$${rate.toFixed(2)}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Stop pay</td><td style="padding:6px 0;font-weight:600;">$${pay.toFixed(2)}</td></tr>
-              <tr><td style="padding:6px 0;color:#555;">Gas</td><td style="padding:6px 0;font-weight:600;">$${gas.toFixed(2)}</td></tr>
-              <tr><td style="padding:10px 0 6px;border-top:1px solid #eee;color:#111;font-weight:700;">Total owed</td><td style="padding:10px 0 6px;border-top:1px solid #eee;font-weight:700;color:#111;">$${total.toFixed(2)}</td></tr>
-            </tbody>
-          </table>
-          ${notesText ? `<p style="margin:14px 0 0;font-size:13px;color:#333;"><strong>Driver notes:</strong> ${escapeHtml(notesText)}</p>` : ''}
-          <p style="margin:18px 0 0;font-size:12px;color:#666;">
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/admin/circulation/deliveries" style="color:#1A5FA8;">Open in portal →</a>
-          </p>
-        </div>`
-      await enqueue({
-        market:              driver.market,
-        template_key:        'bookkeeper_invoice_summary',
-        to_email:            bookkeeperEmail,
-        to_name:             null,
-        subject,
-        body_html:           body,
-        reply_to:            settings.ops_email || null,
-        related_delivery_id: deliveryId,
-        related_driver_id:   driver.user_id,
+      const monthValue = (monthRow.data as { month?: string } | null)?.month ?? ''
+      await enqueueBookkeeperInvoice({
+        market:          driver.market,
+        deliveryId,
+        driverId:        driver.user_id,
+        driverName:      drvRow?.full_name ?? '',
+        routeName,
+        month:           monthValue,
+        stops:           done,
+        ratePerStop:     rate,
+        stopPay:         pay,
+        gasAmount:       gas,
+        driverNotes:     notesText,
+        bookkeeperEmail,
+        opsEmailReplyTo: settings.ops_email || null,
       })
     }
   } catch { /* ignore — submission still succeeds */ }

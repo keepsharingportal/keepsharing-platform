@@ -12,6 +12,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
 import { renderTemplate, getSettings } from '@/lib/circulation/email'
 import { enqueue } from '@/lib/circulation/emailQueue'
+import { enqueueBookkeeperInvoice } from '@/lib/circulation/bookkeeperInvoice'
 import { regionForMarket } from '@/lib/circulation/regions'
 
 export const runtime = 'nodejs'
@@ -91,7 +92,7 @@ export async function PATCH(req: NextRequest) {
   await requireAdmin()
   const body = await req.json().catch(() => null) as {
     id?:               string
-    action?:           'mark-paid' | 'mark-reviewed' | 'reopen'
+    action?:           'mark-paid' | 'mark-reviewed' | 'reopen' | 'resend-bookkeeper-invoice'
     pay_final?:        number
     adjustment_note?:  string
   } | null
@@ -190,5 +191,123 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (body.action === 'resend-bookkeeper-invoice') {
+    const enqueued = await resendOne(client, body.id)
+    if (!enqueued.ok) return NextResponse.json({ error: enqueued.error }, { status: enqueued.status ?? 500 })
+    return NextResponse.json({ ok: true })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
+
+// ── POST: bulk resend bookkeeper invoices for a market + month ──
+// Body: { market, month }  → resends the bookkeeper email for every
+// row in that market/month with status IN (submitted, reviewed, paid).
+// Draft rows are skipped — they haven't been submitted yet, so there's
+// nothing to invoice. Response includes the count queued so the admin
+// UI can confirm.
+export async function POST(req: NextRequest) {
+  await requireAdmin()
+  const body = await req.json().catch(() => null) as {
+    market?: string
+    month?:  string
+    action?: 'resend-bookkeeper-invoices'
+  } | null
+  if (body?.action !== 'resend-bookkeeper-invoices') {
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+  }
+  const market = (body.market ?? '').trim()
+  const month  = (body.month  ?? '').trim()
+  if (!market || !month) {
+    return NextResponse.json({ error: 'market + month required' }, { status: 400 })
+  }
+
+  const client   = sb()
+  const settings = await getSettings(market)
+  const bookkeeperEmail = (settings.admin_email ?? '').trim()
+  if (!bookkeeperEmail) {
+    return NextResponse.json({ error: 'No bookkeeper email configured for this market.' }, { status: 400 })
+  }
+
+  const { data: rows, error } = await client
+    .from('circulation_deliveries')
+    .select('id, driver_id, route_id, month, status, stops_completed, pay_calculated, gas_amount, driver_notes, circulation_drivers(full_name, rate_per_stop), circulation_routes(name)')
+    .eq('market', market)
+    .eq('month',  month)
+    .in('status', ['submitted', 'reviewed', 'paid'])
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  type Row = {
+    id: string; driver_id: string; route_id: string; month: string; status: string
+    stops_completed: number | null; pay_calculated: number | null
+    gas_amount: number | null; driver_notes: string | null
+    circulation_drivers?: { full_name?: string; rate_per_stop?: number } | null
+    circulation_routes?:  { name?: string } | null
+  }
+  let queued = 0
+  for (const r of (rows ?? []) as Row[]) {
+    const stops = r.stops_completed ?? 0
+    const rate  = Number(r.circulation_drivers?.rate_per_stop ?? 0)
+    const pay   = Number(r.pay_calculated ?? 0)
+    const gas   = Number(r.gas_amount     ?? 0)
+    await enqueueBookkeeperInvoice({
+      market,
+      deliveryId:      r.id,
+      driverId:        r.driver_id,
+      driverName:      r.circulation_drivers?.full_name ?? '',
+      routeName:       r.circulation_routes?.name ?? '',
+      month:           r.month,
+      stops,
+      ratePerStop:     rate,
+      stopPay:         pay,
+      gasAmount:       gas,
+      driverNotes:     r.driver_notes,
+      bookkeeperEmail,
+      opsEmailReplyTo: settings.ops_email || null,
+    })
+    queued++
+  }
+  return NextResponse.json({ ok: true, queued })
+}
+
+// Per-row resend used by PATCH { action: 'resend-bookkeeper-invoice', id }.
+// Returns discriminated result so the caller can pick the right HTTP code.
+async function resendOne(
+  client: ReturnType<typeof sb>,
+  deliveryId: string,
+): Promise<{ ok: true } | { ok: false; error: string; status?: number }> {
+  const { data: row, error } = await client
+    .from('circulation_deliveries')
+    .select('id, market, driver_id, route_id, month, stops_completed, pay_calculated, gas_amount, driver_notes, circulation_drivers(full_name, rate_per_stop), circulation_routes(name)')
+    .eq('id', deliveryId)
+    .maybeSingle()
+  if (error) return { ok: false, error: error.message }
+  if (!row)  return { ok: false, error: 'Delivery not found', status: 404 }
+  type Row = {
+    id: string; market: string; driver_id: string; route_id: string; month: string
+    stops_completed: number | null; pay_calculated: number | null
+    gas_amount: number | null; driver_notes: string | null
+    circulation_drivers?: { full_name?: string; rate_per_stop?: number } | null
+    circulation_routes?:  { name?: string } | null
+  }
+  const r = row as Row
+  const settings = await getSettings(r.market)
+  const bookkeeperEmail = (settings.admin_email ?? '').trim()
+  if (!bookkeeperEmail) return { ok: false, error: 'No bookkeeper email configured for this market.', status: 400 }
+  await enqueueBookkeeperInvoice({
+    market:          r.market,
+    deliveryId:      r.id,
+    driverId:        r.driver_id,
+    driverName:      r.circulation_drivers?.full_name ?? '',
+    routeName:       r.circulation_routes?.name ?? '',
+    month:           r.month,
+    stops:           r.stops_completed ?? 0,
+    ratePerStop:     Number(r.circulation_drivers?.rate_per_stop ?? 0),
+    stopPay:         Number(r.pay_calculated ?? 0),
+    gasAmount:       Number(r.gas_amount     ?? 0),
+    driverNotes:     r.driver_notes,
+    bookkeeperEmail,
+    opsEmailReplyTo: settings.ops_email || null,
+  })
+  return { ok: true }
 }
