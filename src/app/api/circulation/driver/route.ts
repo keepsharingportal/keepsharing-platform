@@ -513,20 +513,29 @@ async function submitOneDelivery(
     .eq('id', deliveryId)
   if (upErr) return { ok: false, error: upErr.message, status: 500 }
 
-  // Enqueue invoice-confirmation email to the driver. Best-effort —
-  // queue failures don't block the submission.
+  // Enqueue invoice-confirmation email to the driver AND an invoice
+  // summary to the bookkeeper (admin_email in settings). Best-effort
+  // in both cases — queue failures don't block the submission.
   try {
-    const drvRow = drv as { full_name?: string; email?: string } | null
+    const drvRow  = drv as { full_name?: string; email?: string } | null
+    const region  = regionForMarket(driver.market)
+    const { data: route } = await sb
+      .from('circulation_routes')
+      .select('name')
+      .eq('id', del.route_id)
+      .maybeSingle()
+    const monthRow = await sb.from('circulation_deliveries')
+      .select('month, gas_amount, driver_notes')
+      .eq('id', deliveryId).maybeSingle()
+    const monthLabel = formatMonth((monthRow.data as { month?: string } | null)?.month ?? '')
+    const gas        = Number((monthRow.data as { gas_amount?: number } | null)?.gas_amount ?? 0)
+    const notesText  = String((monthRow.data as { driver_notes?: string | null } | null)?.driver_notes ?? '').trim()
+    const routeName  = (route as { name?: string } | null)?.name ?? ''
+    const settings   = await getSettings(driver.market)
+
+    // Driver confirmation (unchanged behavior).
     if (drvRow?.email) {
-      const region = regionForMarket(driver.market)
-      const { data: route } = await sb
-        .from('circulation_routes')
-        .select('name')
-        .eq('id', del.route_id)
-        .maybeSingle()
-      const monthLabel = formatMonth((await sb.from('circulation_deliveries').select('month').eq('id', deliveryId).maybeSingle()).data?.month as string ?? '')
-      const settings   = await getSettings(driver.market)
-      const rendered   = await renderTemplate({
+      const rendered = await renderTemplate({
         market:  driver.market,
         key:     'driver_invoice_confirm',
         context: {
@@ -534,7 +543,7 @@ async function submitOneDelivery(
           month:      monthLabel,
           stops:      done,
           pay:        pay.toFixed(2),
-          route_name: (route as { name?: string } | null)?.name ?? '',
+          route_name: routeName,
         },
         brandName:  region.name + ' Distribution',
         brandColor: '#1A5FA8',
@@ -552,6 +561,46 @@ async function submitOneDelivery(
           related_driver_id:   driver.user_id,
         })
       }
+    }
+
+    // Bookkeeper invoice summary — inline template so we don't require
+    // an editor-managed row for this to work. Rate + gas + total spelled
+    // out so the check-writer has everything on one screen.
+    const bookkeeperEmail = (settings.admin_email || '').trim()
+    if (bookkeeperEmail) {
+      const total = pay + gas
+      const subject = `Invoice — ${drvRow?.full_name ?? 'Driver'} · ${routeName || 'Route'} · ${monthLabel}`
+      const body    = `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;">
+          <p style="margin:0 0 12px;">A driver just submitted a route invoice. Details for payment:</p>
+          <table style="border-collapse:collapse;width:100%;font-size:14px;">
+            <tbody>
+              <tr><td style="padding:6px 0;color:#555;">Driver</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(drvRow?.full_name ?? '')}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Route</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(routeName)}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Month</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(monthLabel)}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Stops delivered</td><td style="padding:6px 0;font-weight:600;">${done}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Rate per stop</td><td style="padding:6px 0;font-weight:600;">$${rate.toFixed(2)}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Stop pay</td><td style="padding:6px 0;font-weight:600;">$${pay.toFixed(2)}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;">Gas</td><td style="padding:6px 0;font-weight:600;">$${gas.toFixed(2)}</td></tr>
+              <tr><td style="padding:10px 0 6px;border-top:1px solid #eee;color:#111;font-weight:700;">Total owed</td><td style="padding:10px 0 6px;border-top:1px solid #eee;font-weight:700;color:#111;">$${total.toFixed(2)}</td></tr>
+            </tbody>
+          </table>
+          ${notesText ? `<p style="margin:14px 0 0;font-size:13px;color:#333;"><strong>Driver notes:</strong> ${escapeHtml(notesText)}</p>` : ''}
+          <p style="margin:18px 0 0;font-size:12px;color:#666;">
+            <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/admin/circulation/deliveries" style="color:#1A5FA8;">Open in portal →</a>
+          </p>
+        </div>`
+      await enqueue({
+        market:              driver.market,
+        template_key:        'bookkeeper_invoice_summary',
+        to_email:            bookkeeperEmail,
+        to_name:             null,
+        subject,
+        body_html:           body,
+        reply_to:            settings.ops_email || null,
+        related_delivery_id: deliveryId,
+        related_driver_id:   driver.user_id,
+      })
     }
   } catch { /* ignore — submission still succeeds */ }
 

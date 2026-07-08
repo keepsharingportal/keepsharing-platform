@@ -18,10 +18,13 @@ interface Props {
 const SETTINGS_FIELDS = {
   general: [
     { key: 'site_name',         label: 'Site name',                       type: 'text',  help: '' },
-    { key: 'admin_email',       label: 'Admin email (invoices + change requests)', type: 'email', help: '' },
-    { key: 'ops_email',         label: 'Distribution manager email',      type: 'email', help: 'Receives driver submissions, changes, and requests.' },
+    // 'admin_email' is the DB key we already have — repurposed as the
+    // bookkeeper mailbox. Whoever's on the check-writing side gets the
+    // per-route invoice summary (stops · rate · gas · total). The admin
+    // sees everything inside the portal itself, so no separate mailbox.
+    { key: 'admin_email',       label: 'Bookkeeper email',                type: 'email', help: 'Gets an invoice summary each time a driver submits a route — stops delivered, rate, gas, total.' },
+    { key: 'ops_email',         label: 'Distribution manager email',      type: 'email', help: 'Gets driver change requests (closed stops, wrong address, etc.) and pickup requests.' },
     { key: 'owner_email',       label: 'Owner / publisher email',         type: 'email', help: 'Receives summaries + critical alerts.' },
-    { key: 'bookkeeper_email',  label: 'Bookkeeper email (optional CC)',  type: 'email', help: 'Leave blank to skip — invoices won’t CC the bookkeeper.' },
   ],
   delivery: [
     { key: 'bundle_size',       label: 'Bundle size (mags per bundle)', type: 'number', help: '' },
