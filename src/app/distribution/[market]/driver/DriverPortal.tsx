@@ -500,7 +500,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
              stack. If they have multiple routes, they also see the
              all-routes total on the right so they can load the car in
              one trip. */}
-        {view && Object.keys(activeRouteMags).length > 0 && (
+        {view && Object.keys(activeRouteMags).filter(p => activeRouteMags[p] > 0).length > 0 && (
           <div style={{
             background:  '#F8FAFC',
             borderBottom:'1px solid #E2E8F0',
@@ -513,7 +513,7 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.08em', marginRight: 4 }}>
               Load for {data && data.routes.length > 1 ? 'this route' : 'today'}
             </span>
-            {Object.keys(activeRouteMags).sort().map(pub => {
+            {Object.keys(activeRouteMags).filter(p => activeRouteMags[p] > 0).sort().map(pub => {
               const mags = activeRouteMags[pub]
               const b    = bundlesFor(mags, bundleSize)
               return (
@@ -536,13 +536,13 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             })}
             {/* All-routes total — only when multi-route so the driver
                 can pack the car once for the whole day. */}
-            {data && data.routes.length > 1 && Object.keys(allRoutesMags).length > 0 && (
+            {data && data.routes.length > 1 && Object.keys(allRoutesMags).filter(p => allRoutesMags[p] > 0).length > 0 && (
               <details style={{ marginLeft: 'auto', fontSize: 11 }}>
                 <summary style={{ cursor: 'pointer', color: '#1A5FA8', fontWeight: 700 }}>
                   All routes ({data.routes.length}) →
                 </summary>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                  {Object.keys(allRoutesMags).sort().map(pub => {
+                  {Object.keys(allRoutesMags).filter(p => allRoutesMags[p] > 0).sort().map(pub => {
                     const mags = allRoutesMags[pub]
                     const b    = bundlesFor(mags, bundleSize)
                     return (

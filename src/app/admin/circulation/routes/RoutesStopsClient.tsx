@@ -156,6 +156,10 @@ export function RoutesStopsClient({ market, pubs, routes, currentRoute, stops, a
                     <span className="badge badge-gray">{activeStopsCount} active stops</span>
                     {pubs.map(p => {
                       const t       = pubTotals[p.id]   ?? 0
+                      // Skip pubs this route doesn't actually carry.
+                      // Otherwise a Montgomery route with no GPP mags
+                      // still renders a 'GPP 0 · 0 bundles' badge.
+                      if (t <= 0) return null
                       const bundles = pubBundles[p.id]  ?? 0
                       const short   = p.short_name.toLowerCase()
                       const cls     = short === 'rrp' ? 'badge-rrp' : 'badge-boom'

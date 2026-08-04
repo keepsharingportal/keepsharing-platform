@@ -241,14 +241,17 @@ export default async function DriverDashboardPage({ params }: PageProps) {
               All routes combined into one run for easier delivery
             </div>
             {/* Grand-total load — how many bundles to grab for the WHOLE
-                day when the driver does the Full Run. One chip per pub. */}
-            {Object.keys(magsAllRoutes).length > 0 && (
+                day when the driver does the Full Run. One chip per pub.
+                Filter to pubs with > 0 mags so publications the driver
+                doesn't actually carry (e.g. GPP for a Montgomery route)
+                don't render as a zero chip. */}
+            {Object.keys(magsAllRoutes).filter(p => magsAllRoutes[p] > 0).length > 0 && (
               <div style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', marginBottom: 6 }}>
                   Load for the full run
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {Object.keys(magsAllRoutes).sort().map(pub => {
+                  {Object.keys(magsAllRoutes).filter(p => magsAllRoutes[p] > 0).sort().map(pub => {
                     const mags = magsAllRoutes[pub]
                     const b    = Math.ceil(mags / bundleSize)
                     return (
@@ -316,7 +319,11 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                         with no quantities yet). */}
                     {(() => {
                       const routeMags = magsByRoute.get(r.id) ?? {}
-                      const pubs      = Object.keys(routeMags).sort()
+                      // Filter to pubs the driver actually carries on
+                      // this route (mags > 0). Otherwise a stop with
+                      // a { gpp: 0 } placeholder shows a 'GPP 0'
+                      // chip on a route that doesn't deliver GPP.
+                      const pubs      = Object.keys(routeMags).filter(p => routeMags[p] > 0).sort()
                       if (pubs.length === 0) return null
                       return (
                         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
