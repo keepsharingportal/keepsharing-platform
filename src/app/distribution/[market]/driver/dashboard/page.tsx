@@ -91,19 +91,31 @@ export default async function DriverDashboardPage({ params }: PageProps) {
   const stats = new Map<string, RouteStat>()
   let totalDone = 0
   let totalPay  = 0
+  // Bundle math state — mags-per-pub totals per route + across all
+  // routes. Populated from the same stops query below (widened to
+  // include quantities). Rendered as chips in the Full Run banner
+  // and under each route card so the driver knows what to load.
+  const magsByRoute: Map<string, Record<string, number>> = new Map()
+  const magsAllRoutes: Record<string, number> = {}
 
   if (myRoutes.length > 0) {
     const { data: stopsCount } = await admin
       .from('circulation_stops')
-      .select('route_id')
+      .select('route_id, quantities')
       .eq('market', market)
       .eq('active', true)
       .eq('is_pickup', false)
       .eq('not_delivering', false)
       .in('route_id', myRoutes.map(r => r.id))
     const totalByRoute = new Map<string, number>()
-    for (const s of (stopsCount ?? []) as Array<{ route_id: string }>) {
+    for (const s of (stopsCount ?? []) as Array<{ route_id: string; quantities: Record<string, number> | null }>) {
       totalByRoute.set(s.route_id, (totalByRoute.get(s.route_id) ?? 0) + 1)
+      const routeMags = magsByRoute.get(s.route_id) ?? {}
+      for (const [pub, qty] of Object.entries(s.quantities ?? {})) {
+        routeMags[pub] = (routeMags[pub] ?? 0) + qty
+        magsAllRoutes[pub] = (magsAllRoutes[pub] ?? 0) + qty
+      }
+      magsByRoute.set(s.route_id, routeMags)
     }
 
     // For DRAFT deliveries, stops_completed is 0 — the real count lives on
@@ -143,6 +155,18 @@ export default async function DriverDashboardPage({ params }: PageProps) {
   }
 
   const anyActive = Array.from(stats.values()).some(s => !s.delivery || !['submitted', 'paid'].includes(s.delivery.status))
+
+  // Bundle size for this market. Drives the "load N bundles" chips
+  // rendered in the Full Run banner + under each route card. Defaults
+  // to 25 (the seed value in migration 114) when the setting hasn't
+  // been written.
+  const { data: bundleSizeRow } = await admin
+    .from('circulation_settings')
+    .select('value')
+    .eq('market', market)
+    .eq('key', 'bundle_size')
+    .maybeSingle()
+  const bundleSize = Math.max(1, parseInt((bundleSizeRow as { value?: string } | null)?.value ?? '25', 10) || 25)
 
   // Pending route-order suggestions count. Legacy dashboard surfaced
   // this so drivers knew their reorder request was still in admin's
@@ -213,9 +237,41 @@ export default async function DriverDashboardPage({ params }: PageProps) {
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,.7)', marginBottom: 4 }}>
               You have {myRoutes.length} routes this month
             </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 12 }}>
               All routes combined into one run for easier delivery
             </div>
+            {/* Grand-total load — how many bundles to grab for the WHOLE
+                day when the driver does the Full Run. One chip per pub. */}
+            {Object.keys(magsAllRoutes).length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', marginBottom: 6 }}>
+                  Load for the full run
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {Object.keys(magsAllRoutes).sort().map(pub => {
+                    const mags = magsAllRoutes[pub]
+                    const b    = Math.ceil(mags / bundleSize)
+                    return (
+                      <span key={pub} style={{
+                        display:      'inline-flex',
+                        alignItems:   'center',
+                        gap:          6,
+                        background:   'rgba(255,255,255,.12)',
+                        border:       '1px solid rgba(255,255,255,.18)',
+                        borderRadius: 8,
+                        padding:      '5px 9px',
+                        fontSize:     12,
+                        color:        'white',
+                      }}>
+                        <strong style={{ fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</strong>
+                        <span style={{ fontWeight: 700 }}>{b} {b === 1 ? 'bundle' : 'bundles'}</span>
+                        <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 11 }}>({mags} mags)</span>
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             <Link
               href={`/distribution/${market}/driver/run`}
               className="btn btn-primary"
@@ -252,9 +308,42 @@ export default async function DriverDashboardPage({ params }: PageProps) {
                           ? <span className="badge badge-amber">In Progress</span>
                           : <span className="badge badge-gray">Not started</span>}
                     </div>
-                    <div className="text-sub" style={{ fontSize: 13, marginBottom: 12 }}>
+                    <div className="text-sub" style={{ fontSize: 13, marginBottom: 8 }}>
                       {st.total} stops · {monthLabel}
                     </div>
+                    {/* Per-route load — one chip per pub. Skip when the
+                        route has no assigned mags (e.g. a new route
+                        with no quantities yet). */}
+                    {(() => {
+                      const routeMags = magsByRoute.get(r.id) ?? {}
+                      const pubs      = Object.keys(routeMags).sort()
+                      if (pubs.length === 0) return null
+                      return (
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+                          {pubs.map(pub => {
+                            const mags = routeMags[pub]
+                            const b    = Math.ceil(mags / bundleSize)
+                            return (
+                              <span key={pub} style={{
+                                display:      'inline-flex',
+                                alignItems:   'center',
+                                gap:          5,
+                                background:   '#F1F5F9',
+                                border:       '1px solid #E2E8F0',
+                                borderRadius: 6,
+                                padding:      '3px 7px',
+                                fontSize:     11,
+                                color:        '#334155',
+                              }}>
+                                <strong style={{ fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</strong>
+                                <span style={{ fontWeight: 700 }}>{b}</span>
+                                <span style={{ color: '#64748B' }}>({mags})</span>
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
                     <div style={{ background: 'var(--color-portal-bg)', borderRadius: 4, height: 6, marginBottom: 6 }}>
                       <div style={{ height: 6, borderRadius: 4, background: '#16A34A', width: `${st.pct}%`, transition: 'width .3s' }} />
                     </div>
