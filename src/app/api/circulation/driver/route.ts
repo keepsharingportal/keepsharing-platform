@@ -137,9 +137,25 @@ export async function GET(req: NextRequest) {
   const delByRoute = new Map<string, DelSelect>()
   for (const d of ((delivRes.data ?? []) as DelSelect[])) delByRoute.set(d.route_id, d)
 
+  // Bundle size — driver dashboard renders "N bundles to load" per pub
+  // per route, so it needs to know how many mags fit in a bundle for
+  // this market. Falls back to 25 (the seeded default in migration 114)
+  // when the setting hasn't been written yet.
+  const bundleSizeRow = await sb
+    .from('circulation_settings')
+    .select('value')
+    .eq('market', driver.market)
+    .eq('key', 'bundle_size')
+    .maybeSingle()
+  const bundleSize = Math.max(
+    1,
+    parseInt((bundleSizeRow.data as { value?: string } | null)?.value ?? '25', 10) || 25,
+  )
+
   return NextResponse.json({
     driver,
     month,
+    bundle_size:    bundleSize,
     routes:         routesRes.data ?? [],
     stops:          stopsRes.data ?? [],
     deliveries:     Array.from(existingByRoute.entries()).map(([routeId, id]) => {

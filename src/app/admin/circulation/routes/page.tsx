@@ -38,7 +38,14 @@ interface StopRow  {
   quantities: Record<string, number> | null;
 }
 
-function bundles(used: number): number { return Math.round(used / 50) }
+// Bundle math — mags per bundle comes from circulation_settings so the
+// admin can change it without a code push. Round UP (Math.ceil) because
+// you can't ship a half-bundle; a route needing 51 mags with a bundle
+// size of 25 needs THREE bundles (75), not two.
+function bundles(used: number, bundleSize: number): number {
+  if (bundleSize <= 0) return 0
+  return Math.ceil(used / bundleSize)
+}
 
 export default async function RoutesStopsPage({ searchParams }: PageProps) {
   const sp     = await searchParams
@@ -48,7 +55,7 @@ export default async function RoutesStopsPage({ searchParams }: PageProps) {
   const dbKey  = region.slug
   const sb     = createAdminClient()
 
-  const [pubsRes, routesRes] = await Promise.all([
+  const [pubsRes, routesRes, bundleSizeRes] = await Promise.all([
     sb.from('circulation_publications').select('id, short_name, name, abbrev, sort_order').order('sort_order'),
     sb.from('circulation_routes')
       .select('id, name, city, active, sort_order')
@@ -56,7 +63,9 @@ export default async function RoutesStopsPage({ searchParams }: PageProps) {
       .order('active', { ascending: false })
       .order('sort_order')
       .order('name'),
+    sb.from('circulation_settings').select('value').eq('market', dbKey).eq('key', 'bundle_size').maybeSingle(),
   ])
+  const bundleSize = Math.max(1, parseInt((bundleSizeRes.data as { value?: string } | null)?.value ?? '25', 10) || 25)
   const pubs   = (pubsRes.data ?? [])   as PubRow[]
   const routes = (routesRes.data ?? []) as RouteRow[]
 
@@ -91,7 +100,7 @@ export default async function RoutesStopsPage({ searchParams }: PageProps) {
     let t = 0
     for (const s of activeStops) t += s.quantities?.[p.short_name] ?? 0
     pubTotals[p.id]  = t
-    pubBundles[p.id] = bundles(t)
+    pubBundles[p.id] = bundles(t, bundleSize)
   }
 
   return (

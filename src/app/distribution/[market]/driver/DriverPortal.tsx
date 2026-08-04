@@ -66,10 +66,32 @@ interface DeliveryStop  {
 interface ApiResponse {
   driver:        { user_id: string; market: string; full_name: string; rate_per_stop?: number }
   month:         string
+  bundle_size?:  number
   routes:        Route[]
   stops:         Stop[]
   deliveries:    Delivery[]
   deliveryStops: DeliveryStop[]
+}
+
+// Bundle math for the load display. Round UP (Math.ceil) because a
+// route needing 51 mags with a bundle size of 25 needs THREE bundles.
+function bundlesFor(mags: number, bundleSize: number): number {
+  if (bundleSize <= 0) return 0
+  return Math.ceil(mags / bundleSize)
+}
+
+// Compute { pubKey → mag total } across the deliverable stops for a
+// given set of stops. Skips pickup + not_delivering rows since those
+// don't get magazines.
+function sumMagsByPub(stops: Stop[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const s of stops) {
+    if (s.is_pickup || s.not_delivering) continue
+    for (const [pub, qty] of Object.entries(s.quantities ?? {})) {
+      out[pub] = (out[pub] ?? 0) + qty
+    }
+  }
+  return out
 }
 
 // Category vocabulary — the quick on-run reporter. For form-driven
@@ -221,6 +243,20 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 
   const rate = data?.driver?.rate_per_stop ?? 0
   const monthLabel = data?.month ? new Date(data.month + '-01T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
+  const bundleSize = data?.bundle_size ?? 25
+
+  // Load counts. `activeRouteMags` is the current route's mag total per
+  // pub (drives the per-route "Load for this route" strip).
+  // `allRoutesMags` sums across every route this driver has this month
+  // (drives the total shown when they have more than one route).
+  const activeRouteMags = useMemo(
+    () => view ? sumMagsByPub(view.stops) : {},
+    [view],
+  )
+  const allRoutesMags = useMemo(
+    () => data ? sumMagsByPub(data.stops) : {},
+    [data],
+  )
 
   // ── Optimistic local update helper ───────────────────────────────────
   function patchDeliveryStop(dsId: string, patch: Partial<DeliveryStop>) {
@@ -457,6 +493,80 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
             <span>{view.pct}%</span>
           </div>
         </div>
+
+        {/* ── Load strip — bundles to load for THIS route ─────
+             Each pub gets a chip with its bundle count + raw mag total
+             so the driver knows exactly what to grab out of the pickup
+             stack. If they have multiple routes, they also see the
+             all-routes total on the right so they can load the car in
+             one trip. */}
+        {view && Object.keys(activeRouteMags).length > 0 && (
+          <div style={{
+            background:  '#F8FAFC',
+            borderBottom:'1px solid #E2E8F0',
+            padding:     '10px 16px',
+            display:     'flex',
+            gap:         8,
+            flexWrap:    'wrap',
+            alignItems:  'center',
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.08em', marginRight: 4 }}>
+              Load for {data && data.routes.length > 1 ? 'this route' : 'today'}
+            </span>
+            {Object.keys(activeRouteMags).sort().map(pub => {
+              const mags = activeRouteMags[pub]
+              const b    = bundlesFor(mags, bundleSize)
+              return (
+                <span key={pub} style={{
+                  display:      'inline-flex',
+                  alignItems:   'center',
+                  gap:          6,
+                  background:   '#fff',
+                  border:       '1px solid #E2E8F0',
+                  borderRadius: 8,
+                  padding:      '4px 8px',
+                  fontSize:     12,
+                  color:        '#0F172A',
+                }}>
+                  <strong style={{ fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</strong>
+                  <span style={{ fontWeight: 700 }}>{b} {b === 1 ? 'bundle' : 'bundles'}</span>
+                  <span style={{ color: '#64748B', fontSize: 11 }}>({mags} mags)</span>
+                </span>
+              )
+            })}
+            {/* All-routes total — only when multi-route so the driver
+                can pack the car once for the whole day. */}
+            {data && data.routes.length > 1 && Object.keys(allRoutesMags).length > 0 && (
+              <details style={{ marginLeft: 'auto', fontSize: 11 }}>
+                <summary style={{ cursor: 'pointer', color: '#1A5FA8', fontWeight: 700 }}>
+                  All routes ({data.routes.length}) →
+                </summary>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  {Object.keys(allRoutesMags).sort().map(pub => {
+                    const mags = allRoutesMags[pub]
+                    const b    = bundlesFor(mags, bundleSize)
+                    return (
+                      <span key={pub} style={{
+                        display:      'inline-flex',
+                        alignItems:   'center',
+                        gap:          4,
+                        background:   '#EFF6FF',
+                        border:       '1px solid #BFDBFE',
+                        borderRadius: 8,
+                        padding:      '3px 7px',
+                        fontSize:     11,
+                        color:        '#1E3A8A',
+                      }}>
+                        <strong style={{ fontFamily: '"DM Mono", ui-monospace, monospace' }}>{pub.toUpperCase()}</strong>
+                        <span style={{ fontWeight: 700 }}>{b}</span>
+                      </span>
+                    )
+                  })}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
 
         {/* ── Mini map (lazy) ─────────────────────────────── */}
         {showMap && (
