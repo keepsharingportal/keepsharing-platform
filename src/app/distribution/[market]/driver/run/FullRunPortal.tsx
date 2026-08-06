@@ -11,6 +11,7 @@
 // toast) is identical — the two views share the same visual vocabulary.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { enqueueDriverSave, subscribeToQueue, drainNow } from '@/lib/circulation/driverSaveQueue'
 
 interface Route      { id: string; name: string; city: string | null }
 interface Stop       {
@@ -80,6 +81,15 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     toastTimer.current = setTimeout(() => setToast(null), 2500)
   }
 
+  // Save queue — every write persists to localStorage and retries so a
+  // mid-run refresh / dropped signal doesn't lose a check-off.
+  const [pendingSaves, setPendingSaves] = useState(0)
+  useEffect(() => {
+    const unsub = subscribeToQueue(q => setPendingSaves(q.length))
+    void drainNow()
+    return () => { unsub() }
+  }, [])
+
   useEffect(() => {
     fetch('/api/circulation/driver')
       .then(async r => {
@@ -148,11 +158,10 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     if (sectionSubmitted) return
     const next = !ds.checked
     patchDeliveryStop(ds.id, { checked: next, checked_at: next ? new Date().toISOString() : null })
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ delivery_stop_id: ds.id, checked: next }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-check:${ds.id}`, {
+      delivery_stop_id: ds.id,
+      checked:          next,
+    })
   }
 
   async function saveDetails() {
@@ -162,17 +171,14 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
     const leftoversJson = Object.fromEntries(Object.entries(detailsSheet.leftovers).filter(([, v]) => v > 0))
     const leftoversTotal = Object.values(leftoversJson).reduce((s, v) => s + v, 0)
     patchDeliveryStop(dsId, { driver_note: text || null, leftovers: leftoversTotal, leftovers_json: leftoversJson })
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        delivery_stop_id: dsId,
-        driver_note:      text,
-        leftovers:        leftoversTotal,
-        leftovers_json:   leftoversJson,
-      }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-details:${dsId}`, {
+      delivery_stop_id: dsId,
+      driver_note:      text,
+      leftovers:        leftoversTotal,
+      leftovers_json:   leftoversJson,
+    })
     setDetailsSheet(null)
+    flashToast('Details saved')
   }
 
   async function uploadStopPhoto(dsId: string, file: File): Promise<string | null> {
@@ -199,10 +205,10 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
   async function savePickupLoad() {
     if (!pickupSheet) return
     const cleaned = Object.fromEntries(Object.entries(pickupSheet.load).filter(([, v]) => v > 0))
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action: 'save-pickup-load', delivery_id: pickupSheet.deliveryId, pickup_load_json: cleaned }),
+    enqueueDriverSave(`pickup-load:${pickupSheet.deliveryId}`, {
+      action:           'save-pickup-load',
+      delivery_id:      pickupSheet.deliveryId,
+      pickup_load_json: cleaned,
     })
     setData(prev => prev ? ({
       ...prev,
@@ -229,15 +235,11 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
 
   async function sendFlag() {
     if (!flagSheet) return
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        delivery_stop_id: flagSheet.deliveryStopId,
-        flag:             flagSheet.type,
-        flag_note:        [flagSheet.detail, flagSheet.notes].filter(Boolean).join(' — '),
-      }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-flag:${flagSheet.deliveryStopId}`, {
+      delivery_stop_id: flagSheet.deliveryStopId,
+      flag:             flagSheet.type,
+      flag_note:        [flagSheet.detail, flagSheet.notes].filter(Boolean).join(' — '),
+    })
     setFlagSheet(null)
     flashToast('Issue reported — admin will review')
   }
@@ -309,6 +311,22 @@ export function FullRunPortal({ market, driverName }: { market: string; driverNa
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', marginTop: 2 }}>
                 {driverName} · {monthLabel}
+                {pendingSaves > 0 && (
+                  <span style={{
+                    display:      'inline-flex',
+                    alignItems:   'center',
+                    gap:          4,
+                    marginLeft:   8,
+                    padding:      '1px 6px',
+                    borderRadius: 6,
+                    background:   'rgba(245,158,11,.25)',
+                    color:        '#FBBF24',
+                    fontWeight:   700,
+                    fontSize:     10,
+                  }} title="Saving your changes in the background — safe to keep working">
+                    ⚡ syncing {pendingSaves}
+                  </span>
+                )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>

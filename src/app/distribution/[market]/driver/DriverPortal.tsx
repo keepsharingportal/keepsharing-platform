@@ -21,6 +21,7 @@
 // the numeric values the same.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { enqueueDriverSave, subscribeToQueue, drainNow } from '@/lib/circulation/driverSaveQueue'
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface Route      { id: string; name: string; city: string | null }
@@ -162,6 +163,18 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
     toastTimer.current = setTimeout(() => setToast(null), 2500)
   }
 
+  // ── Save queue — every write goes through localStorage-backed queue.
+  // Count exposed here drives the header "N unsynced" badge so the
+  // driver can see when the app is catching up.
+  const [pendingSaves, setPendingSaves] = useState(0)
+  useEffect(() => {
+    const unsub = subscribeToQueue(q => setPendingSaves(q.length))
+    // Drain right away on mount — replays anything left over from a
+    // refresh, tab close, or offline period.
+    void drainNow()
+    return () => { unsub() }
+  }, [])
+
   // ── Initial load ─────────────────────────────────────────────────────
   useEffect(() => {
     fetch('/api/circulation/driver')
@@ -267,15 +280,19 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   }
 
   // ── Actions ──────────────────────────────────────────────────────────
+  // Every write goes through enqueueDriverSave — persists to
+  // localStorage and retries so a bad signal at Pubs Plus or a mid-
+  // run refresh can't lose a check-off or a leftover count. Keys are
+  // stable per stop / delivery so multiple edits coalesce into the
+  // latest state.
   async function toggleCheck(ds: DeliveryStop) {
     if (view?.submitted) return
     const next = !ds.checked
     patchDeliveryStop(ds.id, { checked: next, checked_at: next ? new Date().toISOString() : null })
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ delivery_stop_id: ds.id, checked: next }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-check:${ds.id}`, {
+      delivery_stop_id: ds.id,
+      checked:          next,
+    })
   }
 
   // Save the stop details sheet: note + per-pub leftovers. Photos upload
@@ -289,17 +306,14 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
     )
     const leftoversTotal = Object.values(leftoversJson).reduce((s, v) => s + v, 0)
     patchDeliveryStop(dsId, { driver_note: text || null, leftovers: leftoversTotal, leftovers_json: leftoversJson })
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        delivery_stop_id: dsId,
-        driver_note:      text,
-        leftovers:        leftoversTotal,
-        leftovers_json:   leftoversJson,
-      }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-details:${dsId}`, {
+      delivery_stop_id: dsId,
+      driver_note:      text,
+      leftovers:        leftoversTotal,
+      leftovers_json:   leftoversJson,
+    })
     setDetailsSheet(null)
+    flashToast('Details saved')
   }
 
   // Upload a stop photo. Fires as soon as the file input changes.
@@ -331,10 +345,10 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
   async function savePickupLoad() {
     if (!pickupSheet || !view) return
     const cleaned = Object.fromEntries(Object.entries(pickupSheet.load).filter(([, v]) => v > 0))
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action: 'save-pickup-load', delivery_id: view.deliveryId, pickup_load_json: cleaned }),
+    enqueueDriverSave(`pickup-load:${view.deliveryId}`, {
+      action:           'save-pickup-load',
+      delivery_id:      view.deliveryId,
+      pickup_load_json: cleaned,
     })
     setData(prev => prev ? ({
       ...prev,
@@ -346,15 +360,11 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
 
   async function sendFlag() {
     if (!flagSheet) return
-    await fetch('/api/circulation/driver', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        delivery_stop_id: flagSheet.deliveryStopId,
-        flag:             flagSheet.type,
-        flag_note:        [flagSheet.detail, flagSheet.notes].filter(Boolean).join(' — '),
-      }),
-    }).catch(() => {})
+    enqueueDriverSave(`stop-flag:${flagSheet.deliveryStopId}`, {
+      delivery_stop_id: flagSheet.deliveryStopId,
+      flag:             flagSheet.type,
+      flag_note:        [flagSheet.detail, flagSheet.notes].filter(Boolean).join(' — '),
+    })
     setFlagSheet(null)
     flashToast('Issue reported — admin will review')
   }
@@ -461,6 +471,22 @@ export function DriverPortal({ market, driverName }: { market: string; driverNam
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', marginTop: 2 }}>
                 {driverName} · {monthLabel}
+                {pendingSaves > 0 && (
+                  <span style={{
+                    display:      'inline-flex',
+                    alignItems:   'center',
+                    gap:          4,
+                    marginLeft:   8,
+                    padding:      '1px 6px',
+                    borderRadius: 6,
+                    background:   'rgba(245,158,11,.25)',
+                    color:        '#FBBF24',
+                    fontWeight:   700,
+                    fontSize:     10,
+                  }} title="Saving your changes in the background — safe to keep working">
+                    ⚡ syncing {pendingSaves}
+                  </span>
+                )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, marginLeft: 10 }}>
