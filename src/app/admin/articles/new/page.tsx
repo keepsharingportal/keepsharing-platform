@@ -165,22 +165,23 @@ function NewArticlePage() {
     const editStatus   = mode === 'draft' ? 'draft' : mode === 'publish' ? 'approved' : 'pending'
     const published_at = published ? new Date().toISOString() : null
 
-    // Spotlight — vitals + structured Q&A pairs merged into
-    // spotlight_data when a type is set. qa_pairs is skipped when
-    // empty so old rows without pairs don't sprout an empty array.
-    const spotlightPayload: Record<string, unknown> = spotlightType
-      ? (() => {
-          const cleaned: Record<string, unknown> = {}
-          for (const [k, v] of Object.entries(spotlightData)) {
-            if (v && v.trim()) cleaned[k] = v.trim()
-          }
-          const cleanedPairs = qaPairs
-            .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
-            .filter(p => p.q || p.a)
-          if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
-          return { spotlight_type: spotlightType, spotlight_data: cleaned }
-        })()
-      : { spotlight_type: null, spotlight_data: {} }
+    // Spotlight + panel data. spotlight_data holds arbitrary keys the
+    // various column panels write (Spotlight vitals, Grands Q&A,
+    // Education Matters sponsor + focus, etc). ALWAYS write it so
+    // non-spotlight column panels don't lose data when there's no
+    // spotlight_type. spotlight_type stays gated on the dropdown
+    // since it drives which spotlight LAYOUT renders.
+    const spotlightPayload: Record<string, unknown> = (() => {
+      const cleaned: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(spotlightData)) {
+        if (v && v.trim()) cleaned[k] = v.trim()
+      }
+      const cleanedPairs = qaPairs
+        .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
+        .filter(p => p.q || p.a)
+      if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
+      return { spotlight_type: spotlightType || null, spotlight_data: cleaned }
+    })()
 
     try {
       const res = await fetch('/api/admin/articles', {

@@ -504,25 +504,23 @@ export default function ArticleEditPage({ params }: Props) {
     }
     if (published_at !== undefined) payload.published_at = published_at
 
-    // Spotlight (Play Ball Athlete / Coach / Volunteer + Grands + Mom + Teacher)
-    // Only persist when type is set; otherwise null both fields so the
-    // public render stays default. qa_pairs is merged in as its own
-    // key inside spotlight_data — the article page reads it back out.
-    if (spotlightType) {
-      payload.spotlight_type = spotlightType
-      const cleaned: Record<string, unknown> = {}
-      for (const [k, v] of Object.entries(spotlightData)) {
-        if (v && v.trim()) cleaned[k] = v.trim()
-      }
-      const cleanedPairs = qaPairs
-        .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
-        .filter(p => p.q || p.a)
-      if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
-      payload.spotlight_data = cleaned
-    } else {
-      payload.spotlight_type = null
-      payload.spotlight_data = {}
+    // Spotlight + panel data. spotlight_data holds arbitrary keys the
+    // various column panels write (Play Ball Quick Hits, Grands Q&A,
+    // Education Matters sponsor + focus, etc). ALWAYS write it so
+    // non-spotlight column panels (Education Matters) don't lose
+    // their data when the row has no spotlight_type. spotlight_type
+    // stays gated on the dropdown selection since it drives which
+    // spotlight LAYOUT renders.
+    const cleaned: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(spotlightData)) {
+      if (v && v.trim()) cleaned[k] = v.trim()
     }
+    const cleanedPairs = qaPairs
+      .map(p => ({ q: p.q.trim(), a: p.a.trim() }))
+      .filter(p => p.q || p.a)
+    if (cleanedPairs.length > 0) cleaned.qa_pairs = cleanedPairs
+    payload.spotlight_type = spotlightType || null
+    payload.spotlight_data = cleaned
 
     // Photo gallery — always persist (an empty array clears prior images).
     // Strip any rows still missing a URL just in case.

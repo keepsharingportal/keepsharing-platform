@@ -264,18 +264,23 @@ function SuperintendentCard({ district }: { district: DistrictConfig }) {
             {location}
           </p>
         </div>
-        <div className="relative min-h-[260px] bg-slate-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={superintendent.photoUrl}
-            alt={superintendent.name}
-            className="absolute inset-0 h-full w-full object-cover"
-            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-          />
-          {/* Fallback avatar shows through when the photo URL 404s. */}
-          <div className="absolute inset-0 flex items-center justify-center text-slate-400 pointer-events-none">
-            <UserRound className="h-24 w-24" strokeWidth={1.4} />
-          </div>
+        <div
+          className="relative min-h-[260px] flex items-center justify-center text-slate-300"
+          style={{
+            backgroundColor:   '#F1F5F9',
+            backgroundImage:   `url(${superintendent.photoUrl})`,
+            backgroundSize:    'cover',
+            backgroundPosition: 'center',
+          }}
+          role="img"
+          aria-label={superintendent.name}
+        >
+          {/* Fallback avatar shows through underneath. When the photo
+              URL 404s the browser paints nothing on top so this icon
+              stays visible. When the URL resolves, the CSS background
+              image covers this. Using background-image (not <img>)
+              avoids the broken-image icon a real <img> would show. */}
+          <UserRound className="h-24 w-24" strokeWidth={1.2} />
         </div>
       </div>
     </aside>
@@ -463,13 +468,17 @@ function CommunityPartnerInline({ sponsor }: { sponsor: EducationSponsor }) {
           href={sponsor.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg border px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition hover:text-white"
+          className="edu-partner-btn inline-flex shrink-0 items-center justify-center rounded-lg border px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition"
           style={{ borderColor: THEME.navy, color: THEME.navy }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.backgroundColor = THEME.navy }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
         >
           Learn More
         </a>
+        <style>{`
+          .edu-partner-btn:hover {
+            background-color: ${THEME.navy};
+            color: #fff;
+          }
+        `}</style>
       </div>
     </aside>
   )
