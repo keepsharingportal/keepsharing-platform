@@ -47,6 +47,9 @@ import { MomBody }               from '@/components/articles/mom/MomBody'
 import { MomNominationBox }      from '@/components/articles/mom/MomNominationBox'
 import { parseMomBody }          from '@/components/articles/mom/MomBodyParts'
 import { getNominateCTA }        from '@/lib/articles/nominate-cta'
+import { EducationMattersLayout, type EducationSponsor, type EducationGalleryPhoto } from '@/components/education/EducationMattersLayout'
+import { MoreEducationMatters }  from '@/components/education/MoreEducationMatters'
+import { isEducationMattersColumn, getDistrictForColumn, EDUCATION_DISTRICTS } from '@/lib/education-matters/districts'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -623,6 +626,106 @@ export default async function ArticlePage({ params }: PageParams) {
     ],
     seoCtx.publicOrigin,
   )
+
+  // ── Education Matters early-return ─────────────────────────────────────
+  // Reusable superintendent column layout — district identity + bio /
+  // photo / title / location come from the hardcoded district config,
+  // so the editor only writes the per-month article. Sponsor + focus
+  // come from spotlight_data JSONB on the article row (see
+  // /admin/articles/[id]/edit sponsor panel below).
+  if (isEducationMattersColumn(column)) {
+    const district = getDistrictForColumn(column)!
+    const sd = (article.spotlight_data as Record<string, string> | null) ?? {}
+    const sponsor: EducationSponsor | null = sd.sponsor_name?.trim()
+      ? {
+          name:        sd.sponsor_name.trim(),
+          url:         sd.sponsor_url?.trim() || '#',
+          logoUrl:     sd.sponsor_logo_url?.trim() || null,
+          imageUrl:    sd.sponsor_image_url?.trim() || null,
+          tagline:     sd.sponsor_tagline?.trim() || null,
+          description: sd.sponsor_description?.trim() || null,
+          buttonText:  sd.sponsor_button_text?.trim() || null,
+        }
+      : null
+    const gallery: EducationGalleryPhoto[] = Array.isArray(article.gallery_images)
+      ? (article.gallery_images as Array<{ url?: string; alt?: string | null; caption?: string | null }>)
+          .filter(g => !!g?.url)
+          .map(g => ({ url: g.url as string, alt: g.alt ?? null, caption: g.caption ?? null }))
+      : []
+    // Latest article per OTHER district — powers the sidebar
+    // MoreEducationMatters module. Kept small (one query per district)
+    // because the volume is 3 lookups; a monthly cadence keeps this
+    // cheap and lets the admin swap articles without cache churn.
+    const otherDistrictSlugs = EDUCATION_DISTRICTS.map(d => d.slug).filter(s => s !== column)
+    const { data: otherLatestRaw } = await supabaseForExtras
+      .from('guide_articles')
+      .select('slug, title, column_slug, published_at, created_at')
+      .in('column_slug', otherDistrictSlugs)
+      .eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(20)
+    const otherLatest = (otherLatestRaw ?? []) as Array<{ slug: string; title: string; column_slug: string }>
+    const seenCol = new Set<string>()
+    const seriesItems = otherDistrictSlugs.map(dSlug => {
+      const hit = otherLatest.find(r => r.column_slug === dSlug && !seenCol.has(dSlug))
+      if (hit) seenCol.add(dSlug)
+      return hit
+        ? { slug: dSlug, href: `/columns/${dSlug}/${hit.slug}`, label: 'Read latest message' }
+        : { slug: dSlug, href: `/columns/${dSlug}`,             label: 'View all messages'  }
+    })
+
+    const monthLabel = article.published_at
+      ? new Date(article.published_at as string).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      : ''
+    const authorByline = (article.author_name as string | null)?.trim() || 'By River Region Parents'
+
+    return (
+      <div className="min-h-screen bg-background public-page">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(articleLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbsLd) }} />
+        <Navigation />
+        <div className="border-b border-border/40 bg-background">
+          <div className="container py-3">
+            <Breadcrumbs
+              items={[
+                { label: 'Home',        href: '/'                  },
+                { label: 'School Zone', href: '/school-zone'       },
+                { label: 'Education Matters', href: '/columns/education-matters' },
+                { label: district.shortName,  href: `/columns/${district.slug}` },
+                { label: article.title as string },
+              ]}
+            />
+          </div>
+        </div>
+        <TrackArticleView articleId={article.id as string} />
+        <EducationMattersLayout
+          district={district}
+          article={{
+            title:           article.title as string,
+            deck:            (article.subtitle as string | null)?.trim() || (article.excerpt as string | null)?.trim() || null,
+            publishedLabel:  publishedDate,
+            readTimeMinutes,
+            authorByline:    authorByline.startsWith('By ') ? authorByline : `By ${authorByline}`,
+            focusOverride:   sd.focus?.trim() || null,
+            monthLabel,
+            bodyHtml:        (article.body as string) ?? '',
+            pullQuote:       sd.pull_quote?.trim() || null,
+            sponsor,
+            gallery,
+          }}
+          sidebar={
+            <ArticleSidebar
+              stickyAd={stickyAdMapped}
+              sponsoredAd={null}
+              trending={trendingMapped}
+              topSlot={<MoreEducationMatters activeSlug={column} items={seriesItems} />}
+            />
+          }
+        />
+        <PublicFooter />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background public-page">

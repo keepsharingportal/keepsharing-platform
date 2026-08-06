@@ -8,7 +8,9 @@ import { RichArticleEditor } from '@/components/admin/RichArticleEditor'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
 import { SpotlightSection } from '@/components/admin/SpotlightSection'
+import { EducationMattersSection } from '@/components/admin/EducationMattersSection'
 import { SPOTLIGHT_ENABLED_COLUMNS } from '@/lib/articles/spotlight-templates'
+import { isEducationMattersColumn } from '@/lib/education-matters/districts'
 import { GUIDES, CONTENT_TOPICS, columnsByVertical, findColumn, columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
@@ -523,6 +525,14 @@ function NewArticlePage() {
               onTypeChange={setSpotlightType}
               onDataChange={setSpotlightData}
               onQaPairsChange={setQaPairs}
+            />
+          )}
+
+          {isEducationMattersColumn(form.column_slug) && (
+            <EducationMattersSection
+              columnSlug={form.column_slug}
+              spotlightData={spotlightData}
+              onDataChange={setSpotlightData}
             />
           )}
 

@@ -16,6 +16,8 @@ import { MARKETS, siblingBrandsInFamily } from '@/lib/markets'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import { GalleryEditor, type GalleryImage } from '@/components/admin/GalleryEditor'
 import { SpotlightSection } from '@/components/admin/SpotlightSection'
+import { EducationMattersSection } from '@/components/admin/EducationMattersSection'
+import { isEducationMattersColumn } from '@/lib/education-matters/districts'
 import { HelpTip, FieldHint, SectionHelp } from '@/components/admin/AdminHelp'
 import { FeatureInHeroToggle } from '@/components/admin/FeatureInHeroToggle'
 import { ContributorArticleLayout } from '@/components/articles/templates/ContributorArticleLayout'
@@ -1184,6 +1186,18 @@ export default function ArticleEditPage({ params }: Props) {
                 onTypeChange={setSpotlightType}
                 onDataChange={setSpotlightData}
                 onQaPairsChange={setQaPairs}
+              />
+            )}
+
+            {/* Education Matters — reusable superintendent template.
+                Only renders on the 4 district columns. Fills sponsor +
+                focus into spotlight_data JSONB; district branding + bio
+                come from the hardcoded config. */}
+            {isEducationMattersColumn(form.column_slug) && (
+              <EducationMattersSection
+                columnSlug={form.column_slug}
+                spotlightData={spotlightData}
+                onDataChange={setSpotlightData}
               />
             )}
 
