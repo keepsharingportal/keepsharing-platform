@@ -75,11 +75,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Montgomery, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      authorSlug: 'montgomery-superintendent',
-      name:       'Superintendent Name',
+      authorSlug: 'zickeyous-byrd',
+      name:       'Dr. Zickeyous Byrd',
       title:      'Superintendent',
       photoUrl:   '/images/superintendents/montgomery.jpg',
-      bio:        'Placeholder bio — edit at /admin/seo/authors/montgomery-superintendent.',
+      bio:        'Bio maintained in the seo_authors row — edit at /admin/seo/authors/zickeyous-byrd.',
     },
   },
   {
@@ -109,11 +109,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Wetumpka, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      authorSlug: 'elmore-superintendent',
-      name:       'Superintendent Name',
+      authorSlug: 'richard-dennis',
+      name:       'Richard Dennis',
       title:      'Superintendent',
       photoUrl:   '/images/superintendents/elmore.jpg',
-      bio:        'Placeholder bio — edit at /admin/seo/authors/elmore-superintendent.',
+      bio:        'Bio maintained in the seo_authors row — edit at /admin/seo/authors/richard-dennis.',
     },
   },
   {
@@ -126,11 +126,15 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Prattville, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
+      // Editor edited the seeded 'autauga-superintendent' row in place
+      // (updating display_name to 'Lyman Woodfin') instead of creating
+      // a new slug — so the DB row still lives at this slug. Fine for
+      // now; slug is admin-only surface area.
       authorSlug: 'autauga-superintendent',
-      name:       'Superintendent Name',
+      name:       'Lyman Woodfin',
       title:      'Superintendent',
       photoUrl:   '/images/superintendents/autauga.jpg',
-      bio:        'Placeholder bio — edit at /admin/seo/authors/autauga-superintendent.',
+      bio:        'Bio maintained in the seo_authors row — edit at /admin/seo/authors/autauga-superintendent.',
     },
   },
 ]
