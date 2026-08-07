@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { Save, Sparkles, Loader2, CheckCircle2, AlertTriangle, Upload } from 'lucide-react'
 import type { PageMetadataOverride } from '@/lib/seo/page-metadata-overrides'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 interface Props {
   route:     string
@@ -38,12 +39,15 @@ export function PageMetadataEditorClient({ route, brandSlug, initial }: Props) {
     const setBusy = target === 'og' ? setUploadingOg : target === 'twitter' ? setUploadingTwitter : setUploadingPin
     setBusy(true); setError(null)
     try {
+      // Client-side compression keeps big source photos under Vercel's
+      // ~4.5 MB body cap. No-op for files already under the trigger.
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', compressed)
       fd.append('context', `social-share-${target}`)
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setError((j as { error?: string })?.error ?? 'Upload failed'); return }
+      if (!res.ok) { setError((j as { error?: string })?.error ?? `Upload failed (HTTP ${res.status})`); return }
       const url = (j as { url?: string }).url
       if (!url) { setError('Upload returned no URL'); return }
       if      (target === 'og')      setOgImageUrl(url)

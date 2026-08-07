@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, CheckCircle2, AlertTriangle, Trash2, Upload, Loader2 } from 'lucide-react'
 import type { AuthorProfile, SocialUrl } from '@/lib/seo/authors'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const PLATFORMS = ['twitter', 'linkedin', 'instagram', 'facebook', 'tiktok', 'website', 'other'] as const
 
@@ -19,12 +20,17 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
   async function uploadHeadshot(file: File) {
     setUploadingHeadshot(true); setError(null)
     try {
+      // Client-side compression so a 3-5 MB headshot doesn't blow past
+      // Vercel's ~4.5 MB serverless body cap. compressIfLarge is a
+      // no-op for files already under the trigger threshold; larger
+      // files get downscaled to a 3000 px long edge at JPEG q0.9.
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', compressed)
       fd.append('context', `author-headshot-${form.authorSlug}`)
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setError((j as { error?: string })?.error ?? 'Upload failed'); return }
+      if (!res.ok) { setError((j as { error?: string })?.error ?? `Upload failed (HTTP ${res.status})`); return }
       const url = (j as { url?: string }).url
       if (!url) { setError('Upload returned no URL'); return }
       update('headshotUrl', url)

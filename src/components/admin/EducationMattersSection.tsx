@@ -22,6 +22,7 @@
 import { useRef, useState } from 'react'
 import { Loader2, Upload, GraduationCap } from 'lucide-react'
 import { getDistrictForColumn } from '@/lib/education-matters/districts'
+import { compressIfLarge } from '@/lib/admin/compress-image'
 
 interface Props {
   columnSlug:     string
@@ -47,12 +48,15 @@ export function EducationMattersSection({ columnSlug, spotlightData, onDataChang
     const setBusy = target === 'logo' ? setUploadingLogo : setUploadingImage
     setBusy(true); setUploadError(null)
     try {
+      // Client-side compression keeps big source photos under Vercel's
+      // ~4.5 MB body cap. No-op for files already under the trigger.
+      const compressed = await compressIfLarge(file)
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', compressed)
       fd.append('context', `education-matters-sponsor-${target}`)
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setUploadError((j as { error?: string })?.error ?? 'Upload failed'); return }
+      if (!res.ok) { setUploadError((j as { error?: string })?.error ?? `Upload failed (HTTP ${res.status})`); return }
       const url = (j as { url?: string }).url
       if (!url) { setUploadError('Upload returned no URL'); return }
       set(target === 'logo' ? 'sponsor_logo_url' : 'sponsor_image_url', url)
