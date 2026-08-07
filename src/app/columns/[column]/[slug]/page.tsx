@@ -272,6 +272,16 @@ export default async function ArticlePage({ params }: PageParams) {
 
   const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAdPool, otherSpotlights } = data
 
+  // Education Matters — force the district superintendent as the author.
+  // Applied early so it flows through both the visible byline and every
+  // downstream SEO surface (JSON-LD, author-profile lookup, structured
+  // data). Overrides whatever author_name the editor may have typed —
+  // for these columns the byline IS the superintendent by definition.
+  const emDistrictForAuthor = getDistrictForColumn(column)
+  if (emDistrictForAuthor) {
+    (article as { author_name?: string | null }).author_name = emDistrictForAuthor.superintendent.name
+  }
+
   // Pick 1-3 inline body ads based on article length, distribute by
   // rotation_weight. One advertiser = exclusive in every position;
   // multiple advertisers share, weighted by their tier.

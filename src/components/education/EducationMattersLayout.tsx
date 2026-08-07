@@ -140,12 +140,6 @@ export function EducationMattersLayout({ article, district, sidebar }: Props) {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <article className="space-y-8 min-w-0">
           {article.sponsor && <EducationSponsorStrip sponsor={article.sponsor} />}
-          <EducationAtAGlance
-            district={district}
-            monthLabel={article.monthLabel}
-            readTimeMinutes={article.readTimeMinutes}
-            focus={article.focusOverride?.trim() || district.focusDefault}
-          />
           {pullQuote && (
             <EducationPullQuote quote={pullQuote} attribution={district.superintendent.name} />
           )}
@@ -186,8 +180,8 @@ function EducationMattersLogo() {
           <p className="text-3xl font-black uppercase tracking-[0.08em] md:text-5xl" style={{ color: THEME.navy }}>
             Education Matters
           </p>
-          <p className="mt-2 text-xs font-black uppercase tracking-[0.22em]" style={{ color: THEME.teal }}>
-            Insights. Updates. Impact.
+          <p className="mt-2 text-xs font-black uppercase tracking-[0.14em]" style={{ color: THEME.teal }}>
+            Monthly Updates From Our River Region School Superintendents
           </p>
         </div>
       </div>
