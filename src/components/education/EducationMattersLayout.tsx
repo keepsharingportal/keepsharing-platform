@@ -283,21 +283,22 @@ function SuperintendentCard({
         </div>
         <div
           className="relative min-h-[260px] flex items-center justify-center text-slate-300"
-          style={{
-            backgroundColor:   '#F1F5F9',
-            backgroundImage:   `url(${superintendent.photoUrl})`,
-            backgroundSize:    'cover',
-            backgroundPosition: 'center',
-          }}
-          role="img"
-          aria-label={superintendent.name}
+          style={{ backgroundColor: '#F1F5F9' }}
         >
-          {/* Fallback avatar shows through underneath. When the photo
-              URL 404s the browser paints nothing on top so this icon
-              stays visible. When the URL resolves, the CSS background
-              image covers this. Using background-image (not <img>)
-              avoids the broken-image icon a real <img> would show. */}
-          <UserRound className="h-24 w-24" strokeWidth={1.2} />
+          {superintendent.photoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={superintendent.photoUrl}
+              alt={superintendent.name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            /* No photo → show generic icon. When a photoUrl exists we
+               render only the <img>; the icon-and-background-image
+               approach painted the icon on TOP of the loaded photo
+               because CSS backgrounds sit BEHIND children. */
+            <UserRound className="h-24 w-24" strokeWidth={1.2} />
+          )}
         </div>
       </div>
     </aside>
