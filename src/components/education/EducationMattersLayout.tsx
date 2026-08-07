@@ -29,6 +29,19 @@ import {
 } from 'lucide-react'
 
 import { EDUCATION_DISTRICTS, districtColumnUrl, type DistrictConfig } from '@/lib/education-matters/districts'
+import type { AuthorProfile } from '@/lib/seo/authors'
+
+// Resolve the display name / title / photo / bio from the DB profile
+// (editor-managed in /admin/seo/authors) with a fallback to the code-
+// embedded district config for any field the DB row leaves empty.
+function resolveSuperintendent(district: DistrictConfig, profile: AuthorProfile | null) {
+  return {
+    name:     profile?.displayName?.trim()     || district.superintendent.name,
+    title:    profile?.jobTitle?.trim()        || district.superintendent.title,
+    photoUrl: profile?.headshotUrl?.trim()     || district.superintendent.photoUrl,
+    bio:      profile?.bio?.trim()             || district.superintendent.bio,
+  }
+}
 
 // ── Theme (mirrors the user-supplied palette) ────────────────────────────
 const THEME = {
@@ -78,6 +91,10 @@ export interface EducationMattersArticle {
 interface Props {
   article:         EducationMattersArticle
   district:        DistrictConfig
+  /** Editor-managed superintendent profile (seo_authors row). When
+   *  set, its fields win over the code-embedded fallback in the
+   *  district config. Missing fields fall through per-field. */
+  superintendentProfile?: AuthorProfile | null
   /** Slot for the shared right rail (Weekly Scoop / More Education
    *  Matters / Trending Now / AdSlot). Rendered as-is so we don't lock
    *  the layout to a specific sidebar composition. */
@@ -86,12 +103,13 @@ interface Props {
 
 // ── Layout ───────────────────────────────────────────────────────────────
 
-export function EducationMattersLayout({ article, district, sidebar }: Props) {
+export function EducationMattersLayout({ article, district, superintendentProfile, sidebar }: Props) {
   const { paragraphs, driftedPullQuote } = splitBodyForLayout(article.bodyHtml, !!article.pullQuote)
   const pullQuote = article.pullQuote ?? driftedPullQuote
   const midpoint  = Math.max(1, Math.min(paragraphs.length - 1, Math.ceil(paragraphs.length / 2)))
   const firstHalf  = paragraphs.slice(0, midpoint)
   const secondHalf = paragraphs.slice(midpoint)
+  const superintendent = resolveSuperintendent(district, superintendentProfile ?? null)
 
   return (
     <main className="mx-auto max-w-7xl px-5 py-8" style={{ color: THEME.text }}>
@@ -133,7 +151,7 @@ export function EducationMattersLayout({ article, district, sidebar }: Props) {
             </span>
           </div>
         </div>
-        <SuperintendentCard district={district} />
+        <SuperintendentCard district={district} superintendent={superintendent} />
       </section>
 
       {/* Main + sidebar */}
@@ -141,7 +159,7 @@ export function EducationMattersLayout({ article, district, sidebar }: Props) {
         <article className="space-y-8 min-w-0">
           {article.sponsor && <EducationSponsorStrip sponsor={article.sponsor} />}
           {pullQuote && (
-            <EducationPullQuote quote={pullQuote} attribution={district.superintendent.name} />
+            <EducationPullQuote quote={pullQuote} attribution={superintendent.name} />
           )}
 
           <EducationArticleBody paragraphs={firstHalf} showDropCap />
@@ -156,7 +174,7 @@ export function EducationMattersLayout({ article, district, sidebar }: Props) {
             <EducationPhotoGallery photos={article.gallery} accent={district.accent} />
           )}
 
-          <SuperintendentBio district={district} />
+          <SuperintendentBio superintendent={superintendent} />
         </article>
 
         {/* Right rail — Weekly Scoop / More Education Matters / Trending
@@ -230,8 +248,13 @@ function EducationDistrictTabs({ activeSlug }: { activeSlug: string }) {
   )
 }
 
-function SuperintendentCard({ district }: { district: DistrictConfig }) {
-  const { superintendent, fullName, location } = district
+function SuperintendentCard({
+  district, superintendent,
+}: {
+  district: DistrictConfig
+  superintendent: ReturnType<typeof resolveSuperintendent>
+}) {
+  const { fullName, location } = district
   return (
     <aside
       className="overflow-hidden rounded-2xl border bg-white shadow-[0_14px_34px_rgba(8,38,74,0.14)]"
@@ -478,8 +501,11 @@ function CommunityPartnerInline({ sponsor }: { sponsor: EducationSponsor }) {
   )
 }
 
-function SuperintendentBio({ district }: { district: DistrictConfig }) {
-  const { superintendent } = district
+function SuperintendentBio({
+  superintendent,
+}: {
+  superintendent: ReturnType<typeof resolveSuperintendent>
+}) {
   return (
     <aside className="rounded-2xl border p-5" style={{ borderColor: THEME.border, backgroundColor: THEME.softNavy }}>
       <div className="flex items-start gap-4">

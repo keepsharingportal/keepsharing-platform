@@ -21,12 +21,20 @@
 //   - Photos (optional; stored in gallery_images)
 
 export interface DistrictSuperintendent {
-  name:      string
-  title:     string
-  /** Public URL of the headshot. Drop the file into /public/images/superintendents
-   *  and reference it here. Falls back to a neutral avatar when missing. */
-  photoUrl:  string
-  bio:       string
+  /** author_slug in the seo_authors table — the DB is the source of
+   *  truth for name / bio / photo / title. Editor updates them at
+   *  /admin/seo/authors/[slug]. The code fields below are a safety
+   *  net if the row is missing. */
+  authorSlug: string
+  /** Fallback fields, used when the DB row is missing OR the field
+   *  is empty on the row. Once the seo_authors seed migration has
+   *  run, DB values win. */
+  name:       string
+  title:      string
+  /** Public URL of the headshot. When migrated to seo_authors this
+   *  is used only if the DB row has no headshot_url. */
+  photoUrl:   string
+  bio:        string
 }
 
 export interface DistrictConfig {
@@ -67,10 +75,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Montgomery, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      name:     'Superintendent Name',
-      title:    'Superintendent',
-      photoUrl: '/images/superintendents/montgomery.jpg',
-      bio:      'Placeholder bio — update in src/lib/education-matters/districts.ts once we have the Montgomery Public Schools superintendent’s real bio and headshot.',
+      authorSlug: 'montgomery-superintendent',
+      name:       'Superintendent Name',
+      title:      'Superintendent',
+      photoUrl:   '/images/superintendents/montgomery.jpg',
+      bio:        'Placeholder bio — edit at /admin/seo/authors/montgomery-superintendent.',
     },
   },
   {
@@ -83,10 +92,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Pike Road, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      name:     'Dr. Jason Goodwin',
-      title:    'Superintendent',
-      photoUrl: '/images/superintendents/pike-road.jpg',
-      bio:      'Dr. Jason Goodwin is the Superintendent of Pike Road Schools and has dedicated his career to serving students as a teacher, coach, principal, and district leader. He believes great schools are built on strong relationships, high expectations, and a shared commitment to excellence, with every decision focused on what is best for students.',
+      authorSlug: 'jason-goodwin',
+      name:       'Dr. Jason Goodwin',
+      title:      'Superintendent',
+      photoUrl:   '/images/superintendents/pike-road.jpg',
+      bio:        'Dr. Jason Goodwin is the Superintendent of Pike Road Schools and has dedicated his career to serving students as a teacher, coach, principal, and district leader. He believes great schools are built on strong relationships, high expectations, and a shared commitment to excellence, with every decision focused on what is best for students.',
     },
   },
   {
@@ -99,10 +109,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Wetumpka, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      name:     'Superintendent Name',
-      title:    'Superintendent',
-      photoUrl: '/images/superintendents/elmore.jpg',
-      bio:      'Placeholder bio — update in src/lib/education-matters/districts.ts once we have the Elmore County Schools superintendent’s real bio and headshot.',
+      authorSlug: 'elmore-superintendent',
+      name:       'Superintendent Name',
+      title:      'Superintendent',
+      photoUrl:   '/images/superintendents/elmore.jpg',
+      bio:        'Placeholder bio — edit at /admin/seo/authors/elmore-superintendent.',
     },
   },
   {
@@ -115,10 +126,11 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     location:     'Prattville, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
-      name:     'Superintendent Name',
-      title:    'Superintendent',
-      photoUrl: '/images/superintendents/autauga.jpg',
-      bio:      'Placeholder bio — update in src/lib/education-matters/districts.ts once we have the Autauga County Schools superintendent’s real bio and headshot.',
+      authorSlug: 'autauga-superintendent',
+      name:       'Superintendent Name',
+      title:      'Superintendent',
+      photoUrl:   '/images/superintendents/autauga.jpg',
+      bio:        'Placeholder bio — edit at /admin/seo/authors/autauga-superintendent.',
     },
   },
 ]

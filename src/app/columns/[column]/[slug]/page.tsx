@@ -272,14 +272,24 @@ export default async function ArticlePage({ params }: PageParams) {
 
   const { article, column: columnData, trending, series, stickyAd, sponsoredAd, inlineAdPool, otherSpotlights } = data
 
-  // Education Matters — force the district superintendent as the author.
-  // Applied early so it flows through both the visible byline and every
-  // downstream SEO surface (JSON-LD, author-profile lookup, structured
-  // data). Overrides whatever author_name the editor may have typed —
-  // for these columns the byline IS the superintendent by definition.
+  // Education Matters — force the district superintendent as the
+  // author. Applied early so it flows through the visible byline AND
+  // every downstream SEO surface (JSON-LD, author-profile card at the
+  // bottom of the article, structured data). Prefers the display_name
+  // from the seo_authors row (editor-managed) then falls back to the
+  // district config's code-embedded name.
   const emDistrictForAuthor = getDistrictForColumn(column)
+  let emSuperintendentProfile: import('@/lib/seo/authors').AuthorProfile | null = null
   if (emDistrictForAuthor) {
-    (article as { author_name?: string | null }).author_name = emDistrictForAuthor.superintendent.name
+    const { loadAuthorProfile } = await import('@/lib/seo/authors')
+    const adminSb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
+    emSuperintendentProfile = await loadAuthorProfile(adminSb, emDistrictForAuthor.superintendent.authorSlug)
+    const nameFromProfile = emSuperintendentProfile?.displayName?.trim()
+    ;(article as { author_name?: string | null }).author_name =
+      nameFromProfile || emDistrictForAuthor.superintendent.name
   }
 
   // Pick 1-3 inline body ads based on article length, distribute by
@@ -710,6 +720,7 @@ export default async function ArticlePage({ params }: PageParams) {
         <TrackArticleView articleId={article.id as string} />
         <EducationMattersLayout
           district={district}
+          superintendentProfile={emSuperintendentProfile}
           article={{
             title:           article.title as string,
             deck:            (article.subtitle as string | null)?.trim() || (article.excerpt as string | null)?.trim() || null,
