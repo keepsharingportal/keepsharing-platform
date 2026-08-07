@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react'
+import { Save, CheckCircle2, AlertTriangle, Trash2, Upload, Loader2 } from 'lucide-react'
 import type { AuthorProfile, SocialUrl } from '@/lib/seo/authors'
 
 const PLATFORMS = ['twitter', 'linkedin', 'instagram', 'facebook', 'tiktok', 'website', 'other'] as const
@@ -13,6 +13,25 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
   const [saved,  setSaved]  = useState(false)
+  const [uploadingHeadshot, setUploadingHeadshot] = useState(false)
+  const headshotFileRef = useRef<HTMLInputElement>(null)
+
+  async function uploadHeadshot(file: File) {
+    setUploadingHeadshot(true); setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('context', `author-headshot-${form.authorSlug}`)
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setError((j as { error?: string })?.error ?? 'Upload failed'); return }
+      const url = (j as { url?: string }).url
+      if (!url) { setError('Upload returned no URL'); return }
+      update('headshotUrl', url)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed')
+    } finally { setUploadingHeadshot(false) }
+  }
 
   function update<K extends keyof AuthorProfile>(k: K, v: AuthorProfile[K]) {
     setForm(f => ({ ...f, [k]: v }))
@@ -70,8 +89,37 @@ export function AuthorEditorClient({ initial }: { initial: AuthorProfile }) {
           />
         </Field>
 
-        <Field label="Headshot URL" hint="Full URL to a square portrait (CDN, Supabase storage, etc.)">
-          <input className="w-full px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text" value={form.headshotUrl ?? ''} onChange={e => update('headshotUrl', e.target.value || null)} />
+        <Field label="Headshot" hint="Square portrait works best. Uploads go to Supabase Storage and get resized + WebP-encoded automatically.">
+          <div className="flex gap-2 items-start">
+            <input
+              className="flex-1 px-3 py-2 text-[13px] border border-portal-border-2 rounded-lg outline-none focus:border-portal-blue bg-white text-portal-text"
+              value={form.headshotUrl ?? ''}
+              onChange={e => update('headshotUrl', e.target.value || null)}
+              placeholder="Paste a URL or click Upload →"
+            />
+            <button
+              type="button"
+              onClick={() => headshotFileRef.current?.click()}
+              disabled={uploadingHeadshot}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-portal-navy bg-white border border-portal-border-2 rounded-lg hover:bg-portal-bg disabled:opacity-50 whitespace-nowrap"
+            >
+              {uploadingHeadshot ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+              {uploadingHeadshot ? 'Uploading…' : 'Upload'}
+            </button>
+            <input
+              ref={headshotFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) uploadHeadshot(f); e.target.value = '' }}
+            />
+          </div>
+          {form.headshotUrl && (
+            <div className="mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={form.headshotUrl} alt="" className="h-24 w-24 rounded-lg object-cover ring-1 ring-portal-border-2 bg-portal-bg" />
+            </div>
+          )}
         </Field>
 
         <Field label="Credentials (comma-separated)" hint="MD, RD, MS-Education, Certified Teacher, etc. Emitted as hasCredential.">

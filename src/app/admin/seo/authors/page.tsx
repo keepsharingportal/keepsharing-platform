@@ -35,12 +35,21 @@ export default async function AuthorsPage() {
     tally.set(slug, cur)
   }
 
+  // Pull every saved profile row too — a profile may exist for someone
+  // who hasn't been published under yet (e.g. superintendents seeded
+  // via migration 216, guest columnists queued for launch). Merge into
+  // the tally so they show up in the list with an articleCount of 0.
+  const profiles = await listAuthorProfiles(sb)
+  const profileBySlug = new Map(profiles.map(p => [p.authorSlug, p]))
+  for (const p of profiles) {
+    if (!tally.has(p.authorSlug)) {
+      tally.set(p.authorSlug, { name: p.displayName, count: 0 })
+    }
+  }
+
   const distinct: DistinctAuthor[] = Array.from(tally.entries())
     .map(([slug, v]) => ({ slug, name: v.name, articleCount: v.count }))
     .sort((a, b) => b.articleCount - a.articleCount)
-
-  const profiles = await listAuthorProfiles(sb)
-  const profileBySlug = new Map(profiles.map(p => [p.authorSlug, p]))
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
