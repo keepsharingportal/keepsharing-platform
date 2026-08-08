@@ -50,7 +50,6 @@ import { getNominateCTA }        from '@/lib/articles/nominate-cta'
 import { EducationMattersLayout, type EducationSponsor, type EducationGalleryPhoto } from '@/components/education/EducationMattersLayout'
 import { MoreEducationMatters }  from '@/components/education/MoreEducationMatters'
 import { isEducationMattersColumn, getDistrictForColumn, EDUCATION_DISTRICTS } from '@/lib/education-matters/districts'
-import { getActiveSponsorship } from '@/lib/education-matters/column-sponsorships'
 import {
   SectionSponsorMobile, SectionSponsorSidebar, SectionSponsorOutro,
 } from '@/components/articles/SectionSponsor'
@@ -657,24 +656,19 @@ export default async function ArticlePage({ params }: PageParams) {
   if (isEducationMattersColumn(column)) {
     const district = getDistrictForColumn(column)!
     const sd = (article.spotlight_data as Record<string, string> | null) ?? {}
-    // Sponsor now lives in column_sponsorships (persistent-creative for
-    // a date range), not per-article spotlight_data. Picked by article
-    // publish date; falls back to today for drafts so previews still
-    // render the currently-active sponsor.
-    const sponsorRow = await getActiveSponsorship(
-      supabaseForExtras,
-      column,
-      (article.published_at as string | null) ?? null,
-    )
-    const sponsor: EducationSponsor | null = sponsorRow
+    // Sponsor uses the canonical section-sponsor pipeline — same
+    // ad_placements row that every other column with a sponsor uses
+    // (placement_type='section_sponsor', context_slug=<column>).
+    // sectionSponsor was already fetched above via getActiveSectionSponsor.
+    const sponsor: EducationSponsor | null = sectionSponsor
       ? {
-          name:        sponsorRow.sponsor_name,
-          url:         sponsorRow.sponsor_url?.trim() || '#',
-          logoUrl:     sponsorRow.sponsor_logo_url,
-          imageUrl:    sponsorRow.sponsor_image_url,
-          tagline:     sponsorRow.sponsor_tagline,
-          description: sponsorRow.sponsor_description,
-          buttonText:  sponsorRow.sponsor_button_text,
+          name:        sectionSponsor.sponsor_name,
+          url:         sectionSponsor.cta_url?.trim() || '#',
+          logoUrl:     sectionSponsor.logo_url,
+          imageUrl:    sectionSponsor.image_url,
+          tagline:     sectionSponsor.sponsor_message,
+          description: sectionSponsor.description,
+          buttonText:  sectionSponsor.cta_label,
         }
       : null
     const gallery: EducationGalleryPhoto[] = Array.isArray(article.gallery_images)

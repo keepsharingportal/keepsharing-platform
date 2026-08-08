@@ -105,7 +105,6 @@ const NAV: NavItem[] = [
       { name: 'Approval Queue',  href: '/admin/articles/review'                },
       { name: 'Trash',           href: '/admin/articles/trash'                 },
       { name: 'Column Branding', href: '/admin/column-branding',  accent: true },
-      { name: 'Education Matters Sponsors', href: '/admin/education-matters/sponsors' },
       { name: 'Authors',         href: '/admin/articles/authors'               },
       { name: 'Contributors',    href: '/admin/contributors'                   },
       { name: 'Editorial Calendar', href: '/admin/editorial-calendar'           },

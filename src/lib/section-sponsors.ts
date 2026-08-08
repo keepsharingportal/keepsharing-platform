@@ -25,6 +25,14 @@ export interface SectionSponsor {
   accent_color:    string | null
   start_date:      string
   end_date:        string
+  /** Longer paragraph beneath the tagline. Only used by richer sponsor
+   *  layouts (Education Matters); the standard SectionSponsorMobile/
+   *  Sidebar/Outro/Banner components ignore it, so populating it on
+   *  other columns is harmless. Sourced from ad_placements.ad_description. */
+  description:     string | null
+  /** Optional hero image (photo) beside/below the logo — again only
+   *  read by richer layouts. Sourced from ad_placements.ad_image_url. */
+  image_url:       string | null
 }
 
 // Per-request memoization — when both the mobile strip and desktop sidebar
@@ -41,7 +49,7 @@ export const getActiveSectionSponsor = cache(async (
   // column. starts_at/ends_at are timestamptz; we compare against now().
   const { data, error } = await supabase
     .from('ad_placements')
-    .select('id, context_slug, advertiser_account_id, ad_eyebrow, ad_headline, ad_link, ad_cta_label, logo_url, sponsor_tagline, accent_color, starts_at, ends_at')
+    .select('id, context_slug, advertiser_account_id, ad_eyebrow, ad_headline, ad_description, ad_link, ad_cta_label, ad_image_url, logo_url, sponsor_tagline, accent_color, starts_at, ends_at')
     .eq('placement_type', 'section_sponsor')
     .eq('context_slug',   columnSlug)
     .eq('is_active',      true)
@@ -57,8 +65,9 @@ export const getActiveSectionSponsor = cache(async (
   // components expect. Keeps the public render code unchanged.
   const r = data as {
     id: string; context_slug: string | null; advertiser_account_id: string | null;
-    ad_eyebrow: string | null; ad_headline: string | null; ad_link: string | null;
-    ad_cta_label: string | null; logo_url: string | null; sponsor_tagline: string | null;
+    ad_eyebrow: string | null; ad_headline: string | null; ad_description: string | null;
+    ad_link: string | null; ad_cta_label: string | null; ad_image_url: string | null;
+    logo_url: string | null; sponsor_tagline: string | null;
     accent_color: string | null; starts_at: string | null; ends_at: string | null
   }
   return {
@@ -74,5 +83,7 @@ export const getActiveSectionSponsor = cache(async (
     accent_color:    r.accent_color,
     start_date:      (r.starts_at ?? '').slice(0, 10),
     end_date:        (r.ends_at   ?? '').slice(0, 10),
+    description:     r.ad_description,
+    image_url:       r.ad_image_url,
   }
 })

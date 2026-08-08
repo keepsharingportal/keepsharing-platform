@@ -8,10 +8,11 @@
 // (spotlight_data was already available and is unused for these
 // non-spotlight columns).
 //
-// SPONSOR IS NO LONGER EDITED HERE. It's managed as a persistent
-// contract at /admin/education-matters/sponsors (see column_sponsorships
-// migration 218). One sponsor per district for a date range, auto-picks
-// by article publish date. Removes monthly re-entry.
+// SPONSOR IS NOT EDITED HERE. Education Matters uses the same
+// section-sponsor pipeline as every other column: create an ad_placement
+// with placement_type='section_sponsor' and context_slug=<district-column-slug>
+// at /admin/ads. One row covers the entire contract period; the article
+// picks it up automatically. No per-article sponsor entry.
 //
 // Keys we write on this article's spotlight_data:
 //   focus       — This Month's Focus (At a Glance card)
@@ -78,15 +79,13 @@ export function EducationMattersSection({ columnSlug, spotlightData, onDataChang
       <div className="rounded-md border border-teal-300 bg-white p-3 text-[11px] text-teal-900/80 flex items-start gap-2">
         <Info size={13} className="mt-0.5 shrink-0 text-teal-700" />
         <span>
-          <strong>Sponsor</strong> is managed as an annual contract at{' '}
-          <Link
-            href="/admin/education-matters/sponsors"
-            className="font-semibold text-teal-800 underline hover:text-teal-900"
-          >
-            /admin/education-matters/sponsors
+          <strong>Sponsor</strong> lives at{' '}
+          <Link href="/admin/ads" className="font-semibold text-teal-800 underline hover:text-teal-900">
+            /admin/ads
           </Link>
-          . Set it once per district for the contract period; every article in that district picks
-          it up automatically based on publish date.
+          {' '}(same place as every other column&apos;s section sponsor). Create a new placement
+          with type <code>section_sponsor</code> and context <code>{district.slug}</code>, then set
+          the contract start/end. Every article in this district picks it up automatically.
         </span>
       </div>
     </div>
