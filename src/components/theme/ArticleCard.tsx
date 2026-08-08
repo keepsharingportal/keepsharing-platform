@@ -45,6 +45,14 @@ interface Props {
   article: ArticleData
   showAuthor?: boolean
   variant?: 'default' | 'compact'
+  /** Optional lookup {column_slug → superintendent photo URL} used
+   *  ONLY when the article is an Education Matters column and has no
+   *  uploaded hero. Pages that render many EM cards (homepage Latest
+   *  Stories, district hub) pre-fetch this once and pass it down so
+   *  the branded card shows the real superintendent's face instead
+   *  of the district logo fallback. Undefined → cards fall back to
+   *  the logo layout gracefully. */
+  emSuperintendentPhotos?: Record<string, { photoUrl: string | null }>
 }
 
 function fmtDate(iso: string | null | undefined) {
@@ -52,7 +60,7 @@ function fmtDate(iso: string | null | undefined) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function ArticleCard({ article, showAuthor = true, variant = 'default' }: Props) {
+export function ArticleCard({ article, showAuthor = true, variant = 'default', emSuperintendentPhotos }: Props) {
   const url = articleHref(article)
 
   // Education Matters articles carry a district-specific column slug
@@ -90,6 +98,10 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : undefined
 
+  const emSupPhotoUrl = emDistrict && emSuperintendentPhotos
+    ? emSuperintendentPhotos[emDistrict.slug]?.photoUrl ?? null
+    : null
+
   const dateStr = fmtDate(article.published_at ?? article.created_at)
 
   const isNew = (() => {
@@ -103,7 +115,11 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
       <Link href={url} className="group flex gap-3.5 items-start">
         <div className="relative shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden bg-muted">
           {isBrandedEmCard && emDistrict ? (
-            <EducationMattersBrandedHero district={emDistrict} compact />
+            <EducationMattersBrandedHero
+              district={emDistrict}
+              superintendentPhotoUrl={emSupPhotoUrl}
+              compact
+            />
           ) : (
             <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
               className="group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 96px, 112px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
@@ -128,6 +144,7 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
             district={emDistrict}
             monthLabel={emMonthLabel}
             title={article.title}
+            superintendentPhotoUrl={emSupPhotoUrl}
             compact
           />
         ) : (

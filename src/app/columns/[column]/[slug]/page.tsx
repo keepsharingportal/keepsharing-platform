@@ -728,12 +728,14 @@ export default async function ArticlePage({ params }: PageParams) {
           article={{
             title:           article.title as string,
             // Deck (line under the title): editor-authored subtitle or
-            // excerpt wins. When both are empty we derive a ~160-char
-            // lead from the body so the hero never looks bare — same
-            // helper the OG description uses so it stays coherent.
+            // excerpt only. Skip the body-derived fallback here — the
+            // full body renders immediately below, so a derived first-
+            // sentence deck ends up duplicating the article's opener.
+            // Editor writes an excerpt when they want a deck; empty →
+            // no deck, and the title flows straight to the body.
             deck:            (article.subtitle as string | null)?.trim()
                              || (article.excerpt as string | null)?.trim()
-                             || deriveLeadFromBody(article.body as string | null) || null,
+                             || null,
             publishedLabel:  publishedDate,
             readTimeMinutes,
             authorByline:    authorByline.startsWith('By ') ? authorByline : `By ${authorByline}`,

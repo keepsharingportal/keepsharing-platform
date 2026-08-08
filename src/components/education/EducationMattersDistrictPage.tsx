@@ -65,6 +65,10 @@ export function EducationMattersDistrictPage({
   district, superintendentProfile, featured, pastArticles, sectionSponsor, peerItems,
 }: Props) {
   const superintendent = resolveSuperintendent(district, superintendentProfile)
+  // Pass the DB-loaded superintendent photo down to every card on this
+  // page. When present it drives the "photo layout" variant of the
+  // branded hero (matches the article page superintendent card DNA).
+  const supPhoto = superintendentProfile?.headshotUrl?.trim() || null
 
   // Map the shared SectionSponsor shape (fed by ad_placements
   // section_sponsor rows) into the richer EducationSponsor shape the
@@ -94,7 +98,7 @@ export function EducationMattersDistrictPage({
       <section className="mb-10 grid gap-8 lg:grid-cols-[0.85fr_1fr] lg:items-center">
         <SuperintendentCard district={district} superintendent={superintendent} />
         {featured
-          ? <ThisMonthsMessage district={district} featured={featured} />
+          ? <ThisMonthsMessage district={district} featured={featured} superintendentPhotoUrl={supPhoto} />
           : <NoMessageYet district={district} />}
       </section>
 
@@ -124,7 +128,7 @@ export function EducationMattersDistrictPage({
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {pastArticles.map(a => (
-              <PastMessageCard key={a.id} article={a} district={district} />
+              <PastMessageCard key={a.id} article={a} district={district} superintendentPhotoUrl={supPhoto} />
             ))}
           </div>
         </section>
@@ -141,7 +145,13 @@ export function EducationMattersDistrictPage({
 
 // ── This Month's Message (featured article panel) ────────────────────
 
-function ThisMonthsMessage({ district, featured }: { district: DistrictConfig; featured: DistrictArticleCard }) {
+function ThisMonthsMessage({
+  district, featured, superintendentPhotoUrl,
+}: {
+  district: DistrictConfig
+  featured: DistrictArticleCard
+  superintendentPhotoUrl?: string | null
+}) {
   const dateLabel = featured.published_at
     ? new Date(featured.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : ''
@@ -174,6 +184,7 @@ function ThisMonthsMessage({ district, featured }: { district: DistrictConfig; f
             district={district}
             monthLabel={monthLabel}
             title={featured.title}
+            superintendentPhotoUrl={superintendentPhotoUrl}
           />
         )}
         <span
@@ -260,7 +271,13 @@ function NoMessageYet({ district }: { district: DistrictConfig }) {
 
 // ── Archive card ──────────────────────────────────────────────────────
 
-function PastMessageCard({ article, district }: { article: DistrictArticleCard; district: DistrictConfig }) {
+function PastMessageCard({
+  article, district, superintendentPhotoUrl,
+}: {
+  article: DistrictArticleCard
+  district: DistrictConfig
+  superintendentPhotoUrl?: string | null
+}) {
   const href = `/columns/${district.slug}/${stripColumnPrefix(article.slug, district.slug)}`
   const dateLabel = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -287,6 +304,7 @@ function PastMessageCard({ article, district }: { article: DistrictArticleCard; 
             district={district}
             monthLabel={monthLabel}
             title={article.title}
+            superintendentPhotoUrl={superintendentPhotoUrl}
             compact
           />
         )}

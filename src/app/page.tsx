@@ -488,6 +488,13 @@ export default async function HomePage() {
     featuredCategories, magazineIssues,
   } = await getHomepageData(brandCtx.slug, brandChrome.homepageRotationColumns)
 
+  // Superintendent photos for the branded EM cards in Latest Stories.
+  // One query for all 4 rows; passed down to ArticleCard so cards
+  // without an uploaded hero can show the real superintendent's face
+  // instead of the district-logo fallback.
+  const { loadSuperintendentPhotos } = await import('@/lib/education-matters/superintendent-photos')
+  const emSuperintendentPhotos = await loadSuperintendentPhotos(getSupabase())
+
   const fallbackTrending = [
     { id: '1', label: 'Summer Camp Guide 2026',           href: '/summer-camp-guide',      emoji: '⛺' },
     { id: '2', label: 'Family Resource Guide',             href: '/family-resource-guide',  emoji: '🏠' },
@@ -964,7 +971,11 @@ export default async function HomePage() {
               {articles.length > 0 ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {articles.slice(0, 8).map(a => (
-                    <ArticleCard key={a.id} article={a as Parameters<typeof ArticleCard>[0]['article']} />
+                    <ArticleCard
+                      key={a.id}
+                      article={a as Parameters<typeof ArticleCard>[0]['article']}
+                      emSuperintendentPhotos={emSuperintendentPhotos}
+                    />
                   ))}
                 </div>
               ) : (
