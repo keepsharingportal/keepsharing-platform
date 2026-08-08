@@ -1,6 +1,6 @@
 'use client'
 
-// ── Admin editor panel — Education Matters sponsor + focus ─────────────
+// ── Admin editor panel — Education Matters per-article overrides ───────
 //
 // Renders in the admin article editor when the selected column is one
 // of the four Education Matters districts. Fields stored inside the
@@ -8,21 +8,18 @@
 // (spotlight_data was already available and is unused for these
 // non-spotlight columns).
 //
+// SPONSOR IS NO LONGER EDITED HERE. It's managed as a persistent
+// contract at /admin/education-matters/sponsors (see column_sponsorships
+// migration 218). One sponsor per district for a date range, auto-picks
+// by article publish date. Removes monthly re-entry.
+//
 // Keys we write on this article's spotlight_data:
-//   sponsor_name           — headline of the sponsor strip
-//   sponsor_url            — Learn More destination
-//   sponsor_tagline        — one-line kicker under the name
-//   sponsor_description    — small line under the tagline
-//   sponsor_logo_url       — right-side logo (optional)
-//   sponsor_image_url      — right-side hero image (optional)
-//   sponsor_button_text    — Learn More override
-//   focus                  — This Month's Focus (At a Glance card)
-//   pull_quote             — override the auto-detected blockquote
+//   focus       — This Month's Focus (At a Glance card)
+//   pull_quote  — override the auto-detected blockquote
 
-import { useRef, useState } from 'react'
-import { Loader2, Upload, GraduationCap } from 'lucide-react'
+import { GraduationCap, Info } from 'lucide-react'
+import Link from 'next/link'
 import { getDistrictForColumn } from '@/lib/education-matters/districts'
-import { compressIfLarge } from '@/lib/admin/compress-image'
 
 interface Props {
   columnSlug:     string
@@ -32,11 +29,6 @@ interface Props {
 
 export function EducationMattersSection({ columnSlug, spotlightData, onDataChange }: Props) {
   const district = getDistrictForColumn(columnSlug)
-  const [uploadingLogo,  setUploadingLogo]  = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
-  const [uploadError,    setUploadError]    = useState<string | null>(null)
-  const logoInputRef  = useRef<HTMLInputElement>(null)
-  const imageInputRef = useRef<HTMLInputElement>(null)
 
   if (!district) return null
 
@@ -44,29 +36,7 @@ export function EducationMattersSection({ columnSlug, spotlightData, onDataChang
     onDataChange({ ...spotlightData, [key]: value })
   }
 
-  async function upload(file: File, target: 'logo' | 'image') {
-    const setBusy = target === 'logo' ? setUploadingLogo : setUploadingImage
-    setBusy(true); setUploadError(null)
-    try {
-      // Client-side compression keeps big source photos under Vercel's
-      // ~4.5 MB body cap. No-op for files already under the trigger.
-      const compressed = await compressIfLarge(file)
-      const fd = new FormData()
-      fd.append('file', compressed)
-      fd.append('context', `education-matters-sponsor-${target}`)
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok) { setUploadError((j as { error?: string })?.error ?? `Upload failed (HTTP ${res.status})`); return }
-      const url = (j as { url?: string }).url
-      if (!url) { setUploadError('Upload returned no URL'); return }
-      set(target === 'logo' ? 'sponsor_logo_url' : 'sponsor_image_url', url)
-    } catch (e) {
-      setUploadError(e instanceof Error ? e.message : 'Upload failed')
-    } finally { setBusy(false) }
-  }
-
   const inp = 'w-full px-3.5 py-2.5 text-sm rounded-lg border border-portal-border outline-none focus:border-portal-blue bg-white'
-  const btn = 'inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold text-portal-navy bg-white border border-portal-border rounded-lg hover:bg-portal-bg disabled:opacity-50 whitespace-nowrap'
 
   return (
     <div className="rounded-lg border border-teal-200 bg-teal-50/60 p-4 space-y-4">
@@ -76,7 +46,7 @@ export function EducationMattersSection({ columnSlug, spotlightData, onDataChang
       </div>
       <p className="text-[11px] text-teal-900/70 -mt-2">
         District branding + <strong>{district.superintendent.name}</strong>&apos;s bio and photo auto-fill from
-        the district config. Only fill in the per-month sponsor + focus here.
+        the district config. Only fill in the per-month focus + pull quote here.
       </p>
 
       {/* Focus (At a Glance) */}
@@ -104,71 +74,21 @@ export function EducationMattersSection({ columnSlug, spotlightData, onDataChang
         <p className="text-[11px] text-teal-900/60 mt-1">If blank, the layout lifts the first blockquote from the body instead.</p>
       </div>
 
-      {/* Sponsor block */}
-      <div className="border-t border-teal-200 pt-4 space-y-3">
-        <p className="text-[11px] font-black text-teal-900 uppercase tracking-wider">Monthly Sponsor (optional)</p>
-        <p className="text-[11px] text-teal-900/70 -mt-2">Renders as a strip under the hero + a small &ldquo;Community Partner&rdquo; mention mid-article. Leave the Name blank to hide both.</p>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Sponsor Name">
-            <input className={inp} value={spotlightData.sponsor_name ?? ''} onChange={e => set('sponsor_name', e.target.value)} placeholder="e.g. Pike Road Coffee Shop" />
-          </Field>
-          <Field label="Learn More URL">
-            <input className={inp} type="url" value={spotlightData.sponsor_url ?? ''} onChange={e => set('sponsor_url', e.target.value)} placeholder="https://…" />
-          </Field>
-        </div>
-
-        <Field label="Tagline (one line)">
-          <input className={inp} value={spotlightData.sponsor_tagline ?? ''} onChange={e => set('sponsor_tagline', e.target.value)} placeholder="Proud supporter of Pike Road families and schools." />
-        </Field>
-        <Field label="Description (short paragraph)">
-          <textarea className={inp + ' min-h-[52px] resize-y'} rows={2} value={spotlightData.sponsor_description ?? ''} onChange={e => set('sponsor_description', e.target.value)} placeholder="Thank you for all you do to make our community strong." />
-        </Field>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Button Text">
-            <input className={inp} value={spotlightData.sponsor_button_text ?? ''} onChange={e => set('sponsor_button_text', e.target.value)} placeholder="Learn More" />
-          </Field>
-          <div />
-        </div>
-
-        <Field label="Sponsor Logo (right side, above image)">
-          <div className="flex gap-2">
-            <input className={`${inp} flex-1`} value={spotlightData.sponsor_logo_url ?? ''} onChange={e => set('sponsor_logo_url', e.target.value)} placeholder="Paste URL or upload →" />
-            <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className={btn}>
-              {uploadingLogo ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-              {uploadingLogo ? 'Uploading…' : 'Upload'}
-            </button>
-            <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) upload(f, 'logo'); e.target.value = '' }} />
-          </div>
-        </Field>
-
-        <Field label="Sponsor Image (right side, below logo)">
-          <div className="flex gap-2">
-            <input className={`${inp} flex-1`} value={spotlightData.sponsor_image_url ?? ''} onChange={e => set('sponsor_image_url', e.target.value)} placeholder="Paste URL or upload →" />
-            <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploadingImage} className={btn}>
-              {uploadingImage ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-              {uploadingImage ? 'Uploading…' : 'Upload'}
-            </button>
-            <input ref={imageInputRef} type="file" accept="image/*" className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) upload(f, 'image'); e.target.value = '' }} />
-          </div>
-        </Field>
-
-        {uploadError && (
-          <p className="text-[11px] text-portal-red">Upload error: {uploadError}</p>
-        )}
+      {/* Sponsor management pointer */}
+      <div className="rounded-md border border-teal-300 bg-white p-3 text-[11px] text-teal-900/80 flex items-start gap-2">
+        <Info size={13} className="mt-0.5 shrink-0 text-teal-700" />
+        <span>
+          <strong>Sponsor</strong> is managed as an annual contract at{' '}
+          <Link
+            href="/admin/education-matters/sponsors"
+            className="font-semibold text-teal-800 underline hover:text-teal-900"
+          >
+            /admin/education-matters/sponsors
+          </Link>
+          . Set it once per district for the contract period; every article in that district picks
+          it up automatically based on publish date.
+        </span>
       </div>
-    </div>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-[10px] font-bold text-teal-900 uppercase tracking-wider mb-1.5">{label}</label>
-      {children}
     </div>
   )
 }
