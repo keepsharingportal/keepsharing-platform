@@ -7,12 +7,19 @@ import { articleHref } from '@/lib/articles/slug'
 import { ArrowRight } from 'lucide-react'
 import { isEducationMattersColumn, getDistrictForColumn } from '@/lib/education-matters/districts'
 import { EducationMattersBrandedHero } from '@/components/education/EducationMattersBrandedHero'
+import { deriveLeadFromBody } from '@/lib/articles/excerpt'
 
 interface ArticleData {
   id:              string
   title:           string
   slug:            string
   excerpt?:        string | null
+  /** Optional. When the query includes body and the editor hasn't
+   *  written an excerpt, the card auto-derives a ~160-char teaser
+   *  from the body so every card carries a preview line. Callers
+   *  that don't want the extra payload can omit body — cards then
+   *  fall back to title-only (previous behavior). */
+  body?:           string | null
   hero_image_url?: string | null
   category?:       string | null
   column_slug?:    string | null
@@ -102,6 +109,11 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default', e
     ? emSuperintendentPhotos[emDistrict.slug]?.photoUrl ?? null
     : null
 
+  // Effective teaser — editor's excerpt wins, otherwise derive a
+  // sentence-aware ~160-char lead from the body. Empty string
+  // (== null in the render check below) when neither is available.
+  const effectiveExcerpt = (article.excerpt?.trim()) || deriveLeadFromBody(article.body)
+
   const dateStr = fmtDate(article.published_at ?? article.created_at)
 
   const isNew = (() => {
@@ -187,9 +199,9 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default', e
       <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors">
         {article.title}
       </h3>
-      {article.excerpt && (
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed -mt-0.5">
-          {article.excerpt}
+      {effectiveExcerpt && (
+        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed -mt-0.5">
+          {effectiveExcerpt}
         </p>
       )}
 

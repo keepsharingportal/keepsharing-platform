@@ -18,6 +18,7 @@ import {
   type DistrictArticleCard, type DistrictPageSidebarItem,
 } from '@/components/education/EducationMattersDistrictPage'
 import { loadAuthorProfile } from '@/lib/seo/authors'
+import { deriveLeadFromBody } from '@/lib/articles/excerpt'
 
 export const revalidate = 600
 
@@ -90,7 +91,9 @@ export default async function ColumnLandingPage({ params }: PageParams) {
   const [columnRes, articlesRes, sectionSponsor] = await Promise.all([
     supabase.from('monthly_columns').select('*').eq('slug', column).maybeSingle(),
     supabase.from('guide_articles')
-      .select('id, title, slug, excerpt, hero_image_url, author_name, published_at')
+      // body included so the per-card teaser can auto-derive when
+      // no editor excerpt exists. See ArticleCard for the fallback.
+      .select('id, title, slug, excerpt, body, hero_image_url, author_name, published_at')
       .eq('column_slug', column)
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false }),
@@ -114,6 +117,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
     const district = getDistrictForColumn(column)!
     const rows = articles as Array<{
       id: string; title: string; slug: string; excerpt: string | null;
+      body: string | null;
       hero_image_url: string | null; author_name: string | null;
       published_at: string | null; read_time_minutes?: number | null
     }>
@@ -122,6 +126,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
       slug:              a.slug,
       title:             a.title,
       excerpt:           a.excerpt,
+      body:              a.body,
       hero_image_url:    a.hero_image_url,
       author_name:       a.author_name,
       published_at:      a.published_at,
@@ -325,6 +330,11 @@ export default async function ColumnLandingPage({ params }: PageParams) {
                 ? new Date(a.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : ''
 
+              // Editor's excerpt wins, otherwise auto-derive a
+              // sentence-aware ~160-char lead from the body so every
+              // card carries a teaser line, not just a title.
+              const cardTeaser = a.excerpt?.trim() || deriveLeadFromBody(a.body)
+
               return (
                 <Link key={a.id} href={articleUrl} className="group flex flex-col gap-3">
                   <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-muted">
@@ -349,8 +359,8 @@ export default async function ColumnLandingPage({ params }: PageParams) {
                     <h2 className="font-bold text-base leading-snug group-hover:text-primary transition-colors text-foreground line-clamp-2">
                       {a.title}
                     </h2>
-                    {a.excerpt && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{a.excerpt}</p>
+                    {cardTeaser && (
+                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{cardTeaser}</p>
                     )}
                     <div className="flex items-center gap-2 text-xs text-muted-foreground pt-0.5">
                       {a.author_name && <span className="font-medium text-foreground/70">{a.author_name}</span>}

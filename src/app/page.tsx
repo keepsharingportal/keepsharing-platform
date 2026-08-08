@@ -158,7 +158,12 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       .eq('status', 'published').gte('start_date', today)
       .order('start_date').limit(6),
     supabase.from('guide_articles')
-      .select('id, title, slug, hero_image_url, excerpt, guide_slug, column_slug, author_name, published_at, created_at')
+      // body included so ArticleCard can auto-derive a ~160-char
+      // teaser when the editor hasn't written an excerpt. Payload
+      // cost is real (bodies are 5-30KB) but acceptable for the
+      // ~8 cards rendered on Latest Stories; migrate to a stored
+      // derived_excerpt column later if it starts hurting TTFB.
+      .select('id, title, slug, hero_image_url, excerpt, body, guide_slug, column_slug, author_name, published_at, created_at')
       .eq('published', true)
       .or(brandFilter)
       // Exclude every column that already has dedicated homepage real estate:

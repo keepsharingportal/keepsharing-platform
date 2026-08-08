@@ -34,12 +34,17 @@ import {
 } from './EducationMattersLayout'
 import { MoreEducationMatters } from './MoreEducationMatters'
 import { EducationMattersBrandedHero } from './EducationMattersBrandedHero'
+import { deriveLeadFromBody } from '@/lib/articles/excerpt'
 
 export interface DistrictArticleCard {
   id:              string
   slug:            string
   title:           string
   excerpt:         string | null
+  /** Present when the caller included body in the query — enables
+   *  the auto-derived teaser fallback on cards without an editor
+   *  excerpt. Falls back to no teaser when omitted. */
+  body:            string | null
   hero_image_url:  string | null
   author_name:     string | null
   published_at:    string | null
@@ -200,11 +205,16 @@ function ThisMonthsMessage({
             {featured.title}
           </Link>
         </h3>
-        {featured.excerpt && (
-          <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 line-clamp-3">
-            {featured.excerpt}
-          </p>
-        )}
+        {(() => {
+          // Editor's excerpt wins, then derive from body — cards always
+          // carry a teaser line, not just a title.
+          const teaser = featured.excerpt?.trim() || deriveLeadFromBody(featured.body)
+          return teaser ? (
+            <p className="mt-2.5 text-[15px] leading-relaxed text-slate-700 line-clamp-3">
+              {teaser}
+            </p>
+          ) : null
+        })()}
         <div className="mt-3.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
           {featured.author_name && (
             <span className="inline-flex items-center gap-1.5">
@@ -319,9 +329,12 @@ function PastMessageCard({
         <h4 className="font-serif text-lg font-bold leading-snug transition group-hover:opacity-80 line-clamp-2" style={{ color: THEME.navy }}>
           {article.title}
         </h4>
-        {article.excerpt && (
-          <p className="text-sm leading-relaxed text-slate-600 line-clamp-2">{article.excerpt}</p>
-        )}
+        {(() => {
+          const teaser = article.excerpt?.trim() || deriveLeadFromBody(article.body)
+          return teaser ? (
+            <p className="text-sm leading-relaxed text-slate-600 line-clamp-3">{teaser}</p>
+          ) : null
+        })()}
         <div className="mt-auto flex items-center gap-2 pt-1 text-xs text-slate-500">
           {article.author_name && <span className="font-semibold text-slate-700">{article.author_name}</span>}
           {article.author_name && dateLabel && <span className="text-slate-300">•</span>}
