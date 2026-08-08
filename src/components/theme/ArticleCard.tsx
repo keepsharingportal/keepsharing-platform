@@ -5,6 +5,8 @@ import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { ArrowRight } from 'lucide-react'
+import { isEducationMattersColumn, getDistrictForColumn } from '@/lib/education-matters/districts'
+import { EducationMattersBrandedHero } from '@/components/education/EducationMattersBrandedHero'
 
 interface ArticleData {
   id:              string
@@ -53,20 +55,40 @@ function fmtDate(iso: string | null | undefined) {
 export function ArticleCard({ article, showAuthor = true, variant = 'default' }: Props) {
   const url = articleHref(article)
 
-  const categoryLabel = article.column_slug
-    ? (COLUMN_LABELS[article.column_slug] ?? article.column_slug)
-    : article.guide_slug
-      ? article.guide_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-      : article.category ?? 'Feature'
+  // Education Matters articles carry a district-specific column slug
+  // (education-matters-<district>). When no hero is uploaded we render
+  // a branded district card in place of the generic stock fallback —
+  // reader sees the district's real brand color + logo (or district
+  // name typography if the logo file isn't in the repo yet) and
+  // recognizes which district this message is from before reading the
+  // title. Real uploaded hero still wins.
+  const emDistrict = isEducationMattersColumn(article.column_slug ?? null)
+    ? getDistrictForColumn(article.column_slug ?? null)
+    : null
+  const isBrandedEmCard = !!emDistrict && !article.hero_image_url
 
-  const badgeStyle = article.column_slug
-    ? (COLUMN_BADGE_STYLE[article.column_slug] ?? 'bg-background/90 text-foreground backdrop-blur')
-    : 'bg-background/90 text-foreground backdrop-blur'
+  const categoryLabel = emDistrict
+    ? `${emDistrict.shortName} Schools`
+    : article.column_slug
+      ? (COLUMN_LABELS[article.column_slug] ?? article.column_slug)
+      : article.guide_slug
+        ? article.guide_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        : article.category ?? 'Feature'
+
+  const badgeStyle = emDistrict
+    ? 'text-white'  // background comes from inline style below (district accent)
+    : article.column_slug
+      ? (COLUMN_BADGE_STYLE[article.column_slug] ?? 'bg-background/90 text-foreground backdrop-blur')
+      : 'bg-background/90 text-foreground backdrop-blur'
 
   const heroSrc = article.hero_image_url || getFallbackByContext(
     article.column_slug ?? article.guide_slug ?? 'parenting',
     article.id,
   )
+
+  const emMonthLabel = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    : undefined
 
   const dateStr = fmtDate(article.published_at ?? article.created_at)
 
@@ -80,8 +102,12 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
     return (
       <Link href={url} className="group flex gap-3.5 items-start">
         <div className="relative shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden bg-muted">
-          <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
-            className="group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 96px, 112px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
+          {isBrandedEmCard && emDistrict ? (
+            <EducationMattersBrandedHero district={emDistrict} compact />
+          ) : (
+            <Image src={heroSrc} alt={article.title} fill style={{ objectFit: 'cover', objectPosition: 'center top' }}
+              className="group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 96px, 112px" unoptimized={shouldSkipNextOptimizer(article.hero_image_url)} />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-sm md:text-base leading-snug line-clamp-3 group-hover:text-primary transition-colors">
@@ -97,21 +123,37 @@ export function ArticleCard({ article, showAuthor = true, variant = 'default' }:
     <Link href={url} className="group flex flex-col gap-2.5 cursor-pointer">
       {/* Image */}
       <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-muted">
-        <Image
-          src={heroSrc}
-          alt={article.title}
-          fill
-          style={{ objectFit: 'cover', objectPosition: 'center top' }}
-          className="group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 640px) 100vw, 33vw"
-          unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
-        />
-        {/* Category badge */}
-        <div className="absolute top-3 left-3">
-          <span className={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${badgeStyle}`}>
-            {categoryLabel}
-          </span>
-        </div>
+        {isBrandedEmCard && emDistrict ? (
+          <EducationMattersBrandedHero
+            district={emDistrict}
+            monthLabel={emMonthLabel}
+            title={article.title}
+            compact
+          />
+        ) : (
+          <Image
+            src={heroSrc}
+            alt={article.title}
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center top' }}
+            className="group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 100vw, 33vw"
+            unoptimized={shouldSkipNextOptimizer(article.hero_image_url)}
+          />
+        )}
+        {/* Category badge — hidden when branded EM card renders since
+            the whole card IS the district identity; the badge would be
+            redundant and cluttery on top of the logo. */}
+        {!isBrandedEmCard && (
+          <div className="absolute top-3 left-3">
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${badgeStyle}`}
+              style={emDistrict ? { backgroundColor: emDistrict.accent } : undefined}
+            >
+              {categoryLabel}
+            </span>
+          </div>
+        )}
         {/* New badge */}
         {isNew && (
           <div className="absolute top-3 right-3">

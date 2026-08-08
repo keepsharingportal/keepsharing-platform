@@ -47,10 +47,21 @@ export interface DistrictConfig {
   fullName:       string
   /** Small pill on the hero (e.g. "PIKE ROAD"). */
   countyLabel:    string
-  /** Brand color the district's tab + accents render in. */
+  /** District's real brand color. Drives district tabs, accent bars,
+   *  and the branded hero card that renders when an article has no
+   *  uploaded hero image. Pulled from each district's own logo, not
+   *  arbitrary — so cards read as instantly-recognizable district
+   *  identity. */
   accent:         string
-  /** Softer tint of the same color for filled backgrounds. */
+  /** Softer tint of the same color for filled backgrounds (superintendent
+   *  card left panel, tab hover states). */
   softAccent:     string
+  /** Path to the district's logo PNG under /public. Rendered white-on-
+   *  brand-color inside the branded hero card. When the file is missing
+   *  (404), the card falls back to rendering the district name in big
+   *  block letters — so the layout ships and works even before the logo
+   *  asset lands in the repo. */
+  logoUrl:        string
   /** "City, State" line under the superintendent name. */
   location:       string
   /** Default value for "This Month's Focus" when the editor doesn't
@@ -70,8 +81,9 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     shortName:    'Montgomery',
     fullName:     'Montgomery Public Schools',
     countyLabel:  'Montgomery',
-    accent:       '#138F8F',
-    softAccent:   '#E8F5F4',
+    accent:       '#7B152D',  // MPS maroon (matches the shield/dome logo)
+    softAccent:   '#F7E9EC',
+    logoUrl:      '/images/districts/montgomery.png',
     location:     'Montgomery, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
@@ -87,8 +99,9 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     shortName:    'Pike Road',
     fullName:     'Pike Road Schools',
     countyLabel:  'Pike Road',
-    accent:       '#08264A',
-    softAccent:   '#EDF3F8',
+    accent:       '#1B2A55',  // PRS navy (matches PRS shield)
+    softAccent:   '#EDF0F7',
+    logoUrl:      '/images/districts/pike-road.png',
     location:     'Pike Road, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
@@ -104,8 +117,9 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     shortName:    'Elmore County',
     fullName:     'Elmore County Schools',
     countyLabel:  'Elmore County',
-    accent:       '#F4C21B',
-    softAccent:   '#FFF7D6',
+    accent:       '#1E3766',  // ECPS navy (matches the round shield inner)
+    softAccent:   '#EAF0F8',
+    logoUrl:      '/images/districts/elmore.png',
     location:     'Wetumpka, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {
@@ -121,8 +135,9 @@ export const EDUCATION_DISTRICTS: DistrictConfig[] = [
     shortName:    'Autauga County',
     fullName:     'Autauga County Schools',
     countyLabel:  'Autauga County',
-    accent:       '#6F2C8F',
-    softAccent:   '#FAF6FC',
+    accent:       '#B0201F',  // ACS red (from the district site header + logo accent)
+    softAccent:   '#FBECEB',
+    logoUrl:      '/images/districts/autauga.png',
     location:     'Prattville, Alabama',
     focusDefault: 'Superintendent’s Message',
     superintendent: {

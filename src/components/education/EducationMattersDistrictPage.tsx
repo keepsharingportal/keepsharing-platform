@@ -23,7 +23,6 @@ import { ArrowRight, CalendarDays, Clock, UserRound, GraduationCap } from 'lucid
 import type { AuthorProfile } from '@/lib/seo/authors'
 import type { SectionSponsor } from '@/lib/section-sponsors'
 import type { DistrictConfig } from '@/lib/education-matters/districts'
-import { getFallbackByContext } from '@/lib/image-fallbacks'
 import {
   EDUCATION_THEME as THEME,
   EducationMattersLogo,
@@ -34,6 +33,7 @@ import {
   type EducationSponsor,
 } from './EducationMattersLayout'
 import { MoreEducationMatters } from './MoreEducationMatters'
+import { EducationMattersBrandedHero } from './EducationMattersBrandedHero'
 
 export interface DistrictArticleCard {
   id:              string
@@ -145,8 +145,10 @@ function ThisMonthsMessage({ district, featured }: { district: DistrictConfig; f
   const dateLabel = featured.published_at
     ? new Date(featured.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : ''
-  const heroUrl  = featured.hero_image_url || getFallbackByContext(district.slug, featured.id)
-  const href     = `/columns/${district.slug}/${stripColumnPrefix(featured.slug, district.slug)}`
+  const monthLabel = featured.published_at
+    ? new Date(featured.published_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : ''
+  const href = `/columns/${district.slug}/${stripColumnPrefix(featured.slug, district.slug)}`
 
   return (
     <article
@@ -154,16 +156,26 @@ function ThisMonthsMessage({ district, featured }: { district: DistrictConfig; f
       style={{ borderColor: THEME.border, backgroundColor: '#FFFFFF' }}
     >
       <div className="relative aspect-[16/10] w-full bg-slate-100">
-        <Image
-          src={heroUrl}
-          alt={featured.title}
-          fill
-          style={{ objectFit: 'cover' }}
-          sizes="(max-width: 1024px) 100vw, 55vw"
-          unoptimized
-          priority
-        />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
+        {featured.hero_image_url ? (
+          <>
+            <Image
+              src={featured.hero_image_url}
+              alt={featured.title}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              unoptimized
+              priority
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/25 to-transparent" />
+          </>
+        ) : (
+          <EducationMattersBrandedHero
+            district={district}
+            monthLabel={monthLabel}
+            title={featured.title}
+          />
+        )}
         <span
           className="absolute left-4 top-4 inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white"
           style={{ backgroundColor: district.accent }}
@@ -249,24 +261,35 @@ function NoMessageYet({ district }: { district: DistrictConfig }) {
 // ── Archive card ──────────────────────────────────────────────────────
 
 function PastMessageCard({ article, district }: { article: DistrictArticleCard; district: DistrictConfig }) {
-  const heroUrl  = article.hero_image_url || getFallbackByContext(district.slug, article.id)
-  const href     = `/columns/${district.slug}/${stripColumnPrefix(article.slug, district.slug)}`
+  const href = `/columns/${district.slug}/${stripColumnPrefix(article.slug, district.slug)}`
   const dateLabel = article.published_at
     ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : ''
+  const monthLabel = article.published_at
+    ? new Date(article.published_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : ''
 
   return (
     <Link href={href} className="group flex flex-col overflow-hidden rounded-2xl border bg-white transition hover:shadow-[0_12px_28px_rgba(8,38,74,0.10)]" style={{ borderColor: THEME.border }}>
       <div className="relative aspect-[3/2] bg-slate-100">
-        <Image
-          src={heroUrl}
-          alt={article.title}
-          fill
-          style={{ objectFit: 'cover' }}
-          className="transition-transform duration-500 group-hover:scale-[1.03]"
-          sizes="(max-width: 768px) 100vw, 33vw"
-          unoptimized
-        />
+        {article.hero_image_url ? (
+          <Image
+            src={article.hero_image_url}
+            alt={article.title}
+            fill
+            style={{ objectFit: 'cover' }}
+            className="transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes="(max-width: 768px) 100vw, 33vw"
+            unoptimized
+          />
+        ) : (
+          <EducationMattersBrandedHero
+            district={district}
+            monthLabel={monthLabel}
+            title={article.title}
+            compact
+          />
+        )}
         <span
           className="absolute left-3 top-3 inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-sm"
           style={{ backgroundColor: district.accent }}

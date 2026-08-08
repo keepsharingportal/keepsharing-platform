@@ -268,7 +268,7 @@ export function SuperintendentCard({
           style={{ background: `linear-gradient(135deg, ${THEME.navy} 0%, ${THEME.deepNavy} 100%)` }}
         >
           <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: '#5FCFCF' }}>
-            This Month’s Superintendent
+            {district.countyLabel} Superintendent
           </p>
           <h3 className="mt-5 font-serif text-3xl font-bold leading-tight">
             {superintendent.name}
