@@ -34,7 +34,7 @@ import type { AuthorProfile } from '@/lib/seo/authors'
 // Resolve the display name / title / photo / bio from the DB profile
 // (editor-managed in /admin/seo/authors) with a fallback to the code-
 // embedded district config for any field the DB row leaves empty.
-function resolveSuperintendent(district: DistrictConfig, profile: AuthorProfile | null) {
+export function resolveSuperintendent(district: DistrictConfig, profile: AuthorProfile | null) {
   return {
     name:     profile?.displayName?.trim()     || district.superintendent.name,
     title:    profile?.jobTitle?.trim()        || district.superintendent.title,
@@ -189,7 +189,9 @@ export function EducationMattersLayout({ article, district, superintendentProfil
 
 // ── Sub-components ───────────────────────────────────────────────────────
 
-function EducationMattersLogo() {
+export { THEME as EDUCATION_THEME }
+
+export function EducationMattersLogo() {
   return (
     <div className="inline-flex flex-col">
       <div className="flex items-center gap-3">
@@ -207,7 +209,7 @@ function EducationMattersLogo() {
   )
 }
 
-function EducationDistrictTabs({ activeSlug }: { activeSlug: string }) {
+export function EducationDistrictTabs({ activeSlug }: { activeSlug: string }) {
   return (
     <nav
       aria-label="Education Matters districts"
@@ -248,7 +250,7 @@ function EducationDistrictTabs({ activeSlug }: { activeSlug: string }) {
   )
 }
 
-function SuperintendentCard({
+export function SuperintendentCard({
   district, superintendent,
 }: {
   district: DistrictConfig
@@ -305,7 +307,7 @@ function SuperintendentCard({
   )
 }
 
-function EducationSponsorStrip({ sponsor }: { sponsor: EducationSponsor }) {
+export function EducationSponsorStrip({ sponsor }: { sponsor: EducationSponsor }) {
   return (
     <section
       className="relative overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(8,38,74,0.08)]"

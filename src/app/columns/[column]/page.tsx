@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { ArrowRight } from 'lucide-react'
 import type { Metadata } from 'next'
@@ -11,6 +12,12 @@ import { SectionSponsorBanner } from '@/components/articles/SectionSponsor'
 import { NominateCTA } from '@/components/articles/NominateCTA'
 import { getActiveSectionSponsor } from '@/lib/section-sponsors'
 import { getNominateCTA } from '@/lib/articles/nominate-cta'
+import { isEducationMattersColumn, getDistrictForColumn, EDUCATION_DISTRICTS } from '@/lib/education-matters/districts'
+import {
+  EducationMattersDistrictPage,
+  type DistrictArticleCard, type DistrictPageSidebarItem,
+} from '@/components/education/EducationMattersDistrictPage'
+import { loadAuthorProfile } from '@/lib/seo/authors'
 
 export const revalidate = 600
 
@@ -95,6 +102,109 @@ export default async function ColumnLandingPage({ params }: PageParams) {
   const hasNominateCTA = !!getNominateCTA(column)
 
   const articles   = articlesRes.data ?? []
+
+  // ── Education Matters — magazine-style district hub ────────────────
+  // The generic "column archive" template below is not the right shape
+  // for a superintendent's monthly-message page. Every Education Matters
+  // district gets its own hub: masthead + district tabs, superintendent
+  // card paired with the newest article, sponsor strip, past-messages
+  // archive, and the peer-district cross-nav module. Chrome + sponsor
+  // pipeline are shared with the article page.
+  if (isEducationMattersColumn(column)) {
+    const district = getDistrictForColumn(column)!
+    const rows = articles as Array<{
+      id: string; title: string; slug: string; excerpt: string | null;
+      hero_image_url: string | null; author_name: string | null;
+      published_at: string | null; read_time_minutes?: number | null
+    }>
+    const mapped: DistrictArticleCard[] = rows.map(a => ({
+      id:                a.id,
+      slug:              a.slug,
+      title:             a.title,
+      excerpt:           a.excerpt,
+      hero_image_url:    a.hero_image_url,
+      author_name:       a.author_name,
+      published_at:      a.published_at,
+      read_time_minutes: a.read_time_minutes ?? null,
+    }))
+    const [featured, ...pastArticles] = mapped
+
+    // Superintendent profile (bio + headshot for the card) — same DB
+    // lookup path the article page uses.
+    const superintendentProfile = await loadAuthorProfile(supabase, district.superintendent.authorSlug)
+
+    // Peer districts: latest article slug from each of the OTHER 3, so
+    // "More Education Matters" links deep-link into that district's
+    // most recent message instead of just its hub page when possible.
+    const otherSlugs = EDUCATION_DISTRICTS.map(d => d.slug).filter(s => s !== column)
+    const { data: peerLatestRaw } = await supabase
+      .from('guide_articles')
+      .select('slug, column_slug, published_at')
+      .in('column_slug', otherSlugs)
+      .eq('published', true)
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .limit(20)
+    const peerLatest = (peerLatestRaw ?? []) as Array<{ slug: string; column_slug: string }>
+    const seenPeer = new Set<string>()
+    const peerItems: DistrictPageSidebarItem[] = otherSlugs.map(dSlug => {
+      const hit = peerLatest.find(r => r.column_slug === dSlug && !seenPeer.has(dSlug))
+      if (hit) seenPeer.add(dSlug)
+      const bareSlug = hit ? hit.slug.replace(new RegExp(`^${dSlug}-`), '') : null
+      return hit && bareSlug
+        ? { slug: dSlug, href: `/columns/${dSlug}/${bareSlug}`, label: 'Read latest message' }
+        : { slug: dSlug, href: `/columns/${dSlug}`,             label: 'View all messages'  }
+    })
+
+    // JSON-LD: ItemList (articles in this district) + BreadcrumbList.
+    // Self-contained here so the hub is a proper landing page for
+    // search engines, not just an editorial pivot.
+    const { loadBrandContext: _emLoadBrand } = await import('@/lib/brand-context')
+    const { itemListJsonLd: _emItemLd, breadcrumbJsonLd: _emCrumbsLd, jsonLdScript: _emJsonLd } = await import('@/lib/seo/jsonld')
+    const emCtx = await _emLoadBrand()
+    const emItemLd = _emItemLd({
+      name: `Education Matters — ${district.fullName}`,
+      items: mapped.slice(0, 20).map(a => ({
+        name:  a.title,
+        url:   `${emCtx.publicOrigin}/columns/${column}/${a.slug.replace(new RegExp(`^${column}-`), '')}`,
+        image: a.hero_image_url ?? undefined,
+      })),
+    })
+    const emCrumbsLd = _emCrumbsLd([
+      { name: 'Home',              path: '/'                          },
+      { name: 'School Zone',       path: '/school-zone'               },
+      { name: 'Education Matters', path: '/columns/education-matters' },
+      { name: district.shortName,  path: `/columns/${column}`         },
+    ], emCtx.publicOrigin)
+
+    return (
+      <div className="min-h-screen bg-background public-page">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _emJsonLd(emItemLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: _emJsonLd(emCrumbsLd) }} />
+        <Navigation />
+        <div className="border-b border-border/40 bg-background">
+          <div className="container py-3">
+            <Breadcrumbs
+              items={[
+                { label: 'Home',              href: '/'                             },
+                { label: 'School Zone',       href: '/school-zone'                  },
+                { label: 'Education Matters', href: '/columns/education-matters'    },
+                { label: district.shortName },
+              ]}
+            />
+          </div>
+        </div>
+        <EducationMattersDistrictPage
+          district={district}
+          superintendentProfile={superintendentProfile}
+          featured={featured ?? null}
+          pastArticles={pastArticles}
+          sectionSponsor={sectionSponsor}
+          peerItems={peerItems}
+        />
+        <PublicFooter />
+      </div>
+    )
+  }
 
   // Tolerate missing monthly_columns metadata — some editorial buckets
   // (frg-best-of, frg-newcomer, etc.) don't have monthly_columns rows

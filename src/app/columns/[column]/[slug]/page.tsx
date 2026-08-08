@@ -727,7 +727,13 @@ export default async function ArticlePage({ params }: PageParams) {
           superintendentProfile={emSuperintendentProfile}
           article={{
             title:           article.title as string,
-            deck:            (article.subtitle as string | null)?.trim() || (article.excerpt as string | null)?.trim() || null,
+            // Deck (line under the title): editor-authored subtitle or
+            // excerpt wins. When both are empty we derive a ~160-char
+            // lead from the body so the hero never looks bare — same
+            // helper the OG description uses so it stays coherent.
+            deck:            (article.subtitle as string | null)?.trim()
+                             || (article.excerpt as string | null)?.trim()
+                             || deriveLeadFromBody(article.body as string | null) || null,
             publishedLabel:  publishedDate,
             readTimeMinutes,
             authorByline:    authorByline.startsWith('By ') ? authorByline : `By ${authorByline}`,

@@ -84,6 +84,19 @@ const UNSPLASH = {
     'https://images.unsplash.com/photo-1543269864-e3c379c29469?w=1200&q=80&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1200&q=80&auto=format&fit=crop',
   ],
+  education_matters: [
+    // Superintendent-column-appropriate: campuses, classrooms in use,
+    // engaged students, teacher-and-class moments. Wider pool (8) so
+    // 4 districts × 1 article/month = ~48 slots before any collision.
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80&auto=format&fit=crop', // pencil on notebook
+    'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80&auto=format&fit=crop', // students at desks
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=80&auto=format&fit=crop', // hands raised class
+    'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1200&q=80&auto=format&fit=crop', // classroom books
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop', // library shelves
+    'https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=1200&q=80&auto=format&fit=crop', // school corridor
+    'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=1200&q=80&auto=format&fit=crop', // graduation caps
+    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1200&q=80&auto=format&fit=crop', // school building exterior
+  ],
   summer_fun: [
     'https://images.unsplash.com/photo-1527090526205-beaac8dc3c62?w=1200&q=80&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1530041930197-ff16ac917b0e?w=1200&q=80&auto=format&fit=crop',
@@ -136,7 +149,7 @@ export function getFallbackByContext(
     ['school-bits', 'school_zone'],
     ['school-zone', 'school_zone'],
     ['teacher-of-month', 'school_zone'],
-    ['education-matters', 'school_zone'],
+    ['education-matters', 'education_matters'],  // dedicated pool — 4 districts × ~1 article/mo each; larger pool avoids the same photo twice per district
     ['student-spotlight', 'students'],
     ['school', 'school_zone'],
     ['private-school', 'school_zone'],
