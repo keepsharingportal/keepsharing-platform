@@ -162,6 +162,42 @@ export async function findPossibleDuplicates(opts: FindOpts): Promise<DuplicateM
 }
 
 /**
+ * Collapse exact-duplicate events for DISPLAY.
+ *
+ * findPossibleDuplicates() above is the admin-side warning path — it flags
+ * likely dupes for a human to merge, but the create route only warns, so
+ * duplicates do reach the DB (the homepage was showing "Teen Night" twice,
+ * same date, same time, side by side).
+ *
+ * This is the reader-facing backstop: two rows with the same normalized
+ * title on the same date at the same time are one event as far as a reader
+ * is concerned, whatever the data says. Deliberately strict — same title
+ * AND date AND time — so genuinely separate sessions of the same event
+ * (a 10am and a 2pm storytime) both still show.
+ *
+ * First occurrence wins, so callers should order before deduping. Fetch
+ * more rows than you intend to render and slice AFTER this, or a collapsed
+ * pair leaves you short.
+ */
+export function dedupeEventsForDisplay<
+  T extends { title: string; start_date?: string | null; start_time?: string | null },
+>(events: T[]): T[] {
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const ev of events) {
+    const key = [
+      normalizeTitle(ev.title ?? ''),
+      ev.start_date ?? '',
+      ev.start_time ?? '',
+    ].join('|')
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(ev)
+  }
+  return out
+}
+
+/**
  * Convenience wrapper that builds its own service-role client. Use from
  * API routes only — never from a browser bundle.
  */

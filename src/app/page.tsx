@@ -14,6 +14,8 @@ import { getFallback, getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { columnLabel, columnBadgeStyle, columnTintStyle } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
+import { formatEventTime } from '@/lib/calendar/format'
+import { dedupeEventsForDisplay } from '@/lib/calendar/duplicates'
 import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/RecentIssuesCarousel'
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
@@ -153,15 +155,20 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       .eq('featured_month', currentMonth)
       .eq('is_active', true)
       .maybeSingle(),
+    // Over-fetch: exact duplicates are collapsed below (calendar feeds +
+    // manual adds both land in this table and the create route only warns),
+    // so pulling 6 here would leave gaps in the 6-card grid whenever a pair
+    // collapses. Secondary sort on start_time keeps same-day events in a
+    // sensible order rather than whatever the planner returns.
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published').gte('start_date', today)
-      .order('start_date').limit(6),
+      .order('start_date').order('start_time', { nullsFirst: false }).limit(18),
     supabase.from('guide_articles')
       // body included so ArticleCard can auto-derive a ~160-char
       // teaser when the editor hasn't written an excerpt. Payload
       // cost is real (bodies are 5-30KB) but acceptable for the
-      // ~8 cards rendered on Latest Stories; migrate to a stored
+      // 6 cards rendered on Latest Stories; migrate to a stored
       // derived_excerpt column later if it starts hurting TTFB.
       .select('id, title, slug, hero_image_url, excerpt, body, guide_slug, column_slug, author_name, published_at, created_at')
       .eq('published', true)
@@ -173,7 +180,7 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       //   - mom-knows-best has its own dedicated sidebar block
       //   - frg-best-of has its own Best Of block
       .not('column_slug', 'in', '(mom-to-mom,teacher-of-month,teacher-of-the-month,grands-greatest,grands-are-the-greatest,play-ball,school-bits,mom-knows-best,frg-best-of)')
-      .order('published_at', { ascending: false, nullsFirst: false }).limit(8),
+      .order('published_at', { ascending: false, nullsFirst: false }).limit(6),
     // All four homepage ad slots support rotation. We pull up to 3
     // active rows per slot and pick one weighted by rotation_weight
     // below — a single active ad still always renders (rotation collapses
@@ -263,15 +270,13 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       }
     }
   }
-  if (!featuredGuide) {
-    // Off-season fallback: any active guide so the tile isn't empty.
-    const { data: anyGuide } = await supabase
-      .from('guide_types')
-      .select('slug, url_slug, display_name, hero_image_url, pitch')
-      .order('display_order', { ascending: true })
-      .limit(1).maybeSingle()
-    featuredGuide = anyGuide
-  }
+  // No off-season fallback by design. This used to grab "any active guide
+  // ordered by display_order limit 1" so the tile was never empty, but that
+  // resolved to Newcomer / Family Resource Guide — so the homepage announced
+  // "THIS MONTH: Family Resource Guide" in August, and FRG rendered twice
+  // (featured tile + category card). A month with no guide assigned now
+  // hides the tile and lets the Birthday card span full width, which is
+  // honest. Assign months in /admin/guides/<slug>/edit.
 
   // ── Hero + Community Spotlights rotation (4-column shuffle) ───────────────
   // Latest published article per rotation column. Shuffle and pick:
@@ -345,6 +350,23 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       desc:  'Local services, health & support',
       href:  '/family-resource-guide',
       image: sectionHeroes['newcomer'] ?? '/images/heroes/family-resource-hero.jpg',
+    },
+    {
+      // Parent Picks — the 4th tile this row was built for (the grid has
+      // always been md:grid-cols-4). The franchise is fully specced: a live
+      // nomination form, an AI draft generator, a WP import mapping, and a
+      // monthly print section.
+      //
+      // It points at the nomination form, NOT a /parent-picks hub, because
+      // no such hub exists and there are zero published parent-picks
+      // articles — a gateway tile to an empty section is worse than none.
+      // Repoint href at the hub once there's content to land on.
+      title: 'Parent Picks',
+      desc:  'Nominate a local business you love',
+      href:  '/submit/parent-picks',
+      // No business-specific hero asset yet; local-guides is the closest
+      // existing one (same stand-in approach as the School Zone tile).
+      image: '/images/heroes/local-guides-hero.jpg',
     },
     // Summer Fun tile hidden — guide content not ready yet. Restore by
     // adding the tile back here once /summer-fun-guide is publishable.
@@ -451,7 +473,9 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     bloggers:          bloggersRes.data ?? [],
     featuredGuide,
     spotlights,
-    events:            eventsRes.data ?? [],
+    // Collapse exact dupes (same title + date + time), then take the 6 the
+    // grid renders. Must slice AFTER the dedupe, not before.
+    events:            dedupeEventsForDisplay(eventsRes.data ?? []).slice(0, 6),
     articles:          articlesRes.data ?? [],
     inlineAd,
     sidebarAd,
@@ -690,42 +714,6 @@ export default async function HomePage() {
           const showFeatured  = !!featuredGuide && !featuredIsBirthday && !featuredIsNotReady
           return (
             <section className={`grid gap-3 md:gap-5 ${showFeatured ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
-              {/* Birthday Party Guide — seasonal takeover of the wide
-                  hero promo. Everything birthday-related lives on
-                  /birthday-party-guide so this card is the on-ramp. */}
-              <Link
-                href="/birthday-party-guide"
-                className="relative rounded-3xl overflow-hidden h-[260px] md:h-[280px] group cursor-pointer block shadow-sm"
-              >
-                <Image
-                  src="/images/heroes/birthday-party-hero.jpg"
-                  alt="The Big Birthday Bash — River Region Birthday Planning Portal"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  unoptimized
-                  className="group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7">
-                  <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-accent-foreground mb-3 shadow-lg">
-                    <Cake className="h-5 w-5" />
-                  </div>
-                  <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
-                    2026 Guide
-                  </span>
-                  <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    The Big Birthday Bash
-                  </h3>
-                  <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Venues, cakes, entertainers, rentals, and gift shops — every River Region birthday vendor in one place. Plan the party without the tab avalanche.
-                  </p>
-                  <div className="flex items-center text-sm font-bold text-accent">
-                    Explore the Guide <ArrowRight className="ml-1 h-4 w-4" />
-                  </div>
-                </div>
-              </Link>
-
               {/* Monthly featured guide — hidden when it's also the
                   birthday guide (avoids duplicating the wide card). */}
               {showFeatured && featuredGuide && (
@@ -764,6 +752,42 @@ export default async function HomePage() {
                   </div>
                 </Link>
               )}
+
+              {/* Birthday Party Guide — seasonal takeover of the wide
+                  hero promo. Everything birthday-related lives on
+                  /birthday-party-guide so this card is the on-ramp. */}
+              <Link
+                href="/birthday-party-guide"
+                className="relative rounded-3xl overflow-hidden h-[260px] md:h-[280px] group cursor-pointer block shadow-sm"
+              >
+                <Image
+                  src="/images/heroes/birthday-party-hero.jpg"
+                  alt="The Big Birthday Bash — River Region Birthday Planning Portal"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  unoptimized
+                  className="group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7">
+                  <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-accent-foreground mb-3 shadow-lg">
+                    <Cake className="h-5 w-5" />
+                  </div>
+                  <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
+                    2026 Guide
+                  </span>
+                  <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    The Big Birthday Bash
+                  </h3>
+                  <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    Venues, cakes, entertainers, rentals, and gift shops — every River Region birthday vendor in one place. Plan the party without the tab avalanche.
+                  </p>
+                  <div className="flex items-center text-sm font-bold text-accent">
+                    Explore the Guide <ArrowRight className="ml-1 h-4 w-4" />
+                  </div>
+                </div>
+              </Link>
             </section>
           )
         })()}
@@ -830,6 +854,7 @@ export default async function HomePage() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {events.map((ev) => {
                     const date   = ev.start_date ? fmtEventDate(ev.start_date) : null
+                    const time   = formatEventTime(ev.start_time)
                     const imgSrc = ev.hero_image_url || getFallbackByContext(ev.category, ev.slug ?? ev.id)
                     return (
                       <Link
@@ -856,8 +881,8 @@ export default async function HomePage() {
                         <div className="p-3.5">
                           <h4 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">{ev.title}</h4>
                           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
-                            {ev.start_time && <span>{ev.start_time}</span>}
-                            {ev.start_time && ev.location_name && <span>·</span>}
+                            {time && <span>{time}</span>}
+                            {time && ev.location_name && <span>·</span>}
                             {ev.location_name && <span className="truncate">{ev.location_name}</span>}
                           </div>
                         </div>
@@ -975,7 +1000,14 @@ export default async function HomePage() {
               />
               {articles.length > 0 ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {articles.slice(0, 8).map(a => (
+                  {/* 6, not 8. This grid is 2-up at sm and 3-up at lg, and 8
+                      divides evenly into neither — the last row rendered two
+                      cards against an empty third cell, directly beside the
+                      point where the 4-col aside has run out of content, which
+                      is what produced the large blank block at the bottom of
+                      the page. 6 is the largest count that fills whole rows at
+                      BOTH breakpoints. "View All" covers discovery. */}
+                  {articles.slice(0, 6).map(a => (
                     <ArticleCard
                       key={a.id}
                       article={a as Parameters<typeof ArticleCard>[0]['article']}

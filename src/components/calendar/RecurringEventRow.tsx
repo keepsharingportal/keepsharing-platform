@@ -16,18 +16,10 @@ import { Calendar, Clock, MapPin, Repeat } from 'lucide-react'
 import { categoryLabel } from '@/lib/calendar-taxonomy'
 import { effectiveCategory } from '@/lib/calendar/classify'
 import type { CalEvent } from './CalendarClient'
+import { formatEventTime as fmtTime } from '@/lib/calendar/format'
 
 interface Props {
   event: CalEvent
-}
-
-function fmtTime(t: string | null | undefined): string | null {
-  if (!t) return null
-  const [h, m] = t.split(':').map(Number)
-  if (Number.isNaN(h) || Number.isNaN(m)) return t
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hour12 = ((h + 11) % 12) + 1
-  return `${hour12}:${String(m).padStart(2, '0')} ${period}`
 }
 
 function fmtShortDate(d: string): string {

@@ -93,7 +93,10 @@ export function chromeForBrand(brand: Brand): BrandChrome {
   const family = (v?.template_family ?? brand.market?.family ?? 'parents') as 'parents' | 'fifty-plus'
   const D = family === 'fifty-plus' ? FIFTY_PLUS_DEFAULTS : PARENTS_DEFAULTS
   return {
-    tagline:                 v?.tagline                   ?? (family === 'fifty-plus' ? 'Live Where Life Matters' : `${brand.displayName} — local stories, every month.`),
+    // Family defaults. Each brand overrides via brand_voice.tagline; the
+    // parents default is the shared cover line rather than a generated string
+    // restating the wordmark that sits directly above it.
+    tagline:                 v?.tagline                   ?? (family === 'fifty-plus' ? 'Live Where Life Matters' : 'Live Local, Love Local, Parent Local'),
     logoUrl:                 v?.logo_url                  ?? null,
     primaryColorHex:         v?.primary_color_hex         ?? D.primary,
     accentColorHex:          v?.accent_color_hex          ?? D.accent,

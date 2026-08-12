@@ -28,20 +28,31 @@ export interface MarketDef {
    *  <regionLabel> moms", "Reach <regionLabel> families". Lets each brand
    *  refer to its readership without saying "River Region" everywhere. */
   regionLabel: string
+  /** The towns the brand actually covers, most-recognizable first. Rendered
+   *  in the footer as "Serving A, B, C and more."
+   *
+   *  Why this exists: regionLabel ("River Region") is an insider term. Someone
+   *  who moved to Prattville six weeks ago doesn't know they live in the River
+   *  Region, and search engines don't either — readers search "Prattville
+   *  childcare", not "River Region childcare". Naming the towns is both a
+   *  clarity fix for newcomers and the local-SEO signal regionLabel can't be.
+   *
+   *  Empty array renders nothing. Sibling brands: fill these in. */
+  serviceArea: string[]
 }
 
 export const MARKETS: MarketDef[] = [
-  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'riverregionparents.com',     regionLabel: 'River Region' },
+  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'riverregionparents.com',     regionLabel: 'River Region',     serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
   // Fifty-plus brands. River Region 50+ was previously slugged 'boom' (the
   // "BOOM" brand) — migration 169 renames it and all user data references.
   // Future markets follow the same xx50plus pattern (mb50plus, es50plus,
   // ao50plus, gp50plus). Domains write out "plus" because URL-encoding
   // turns "+" into "%2B" which is ugly + breaks share links.
-  { slug: 'rr50plus', short: 'R50+', displayName: 'River Region 50+',          city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregion50plus.com',      regionLabel: 'River Region' },
-  { slug: 'aop',      short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika' },
-  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay' },
-  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore' },
-  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola' },
+  { slug: 'rr50plus', short: 'R50+', displayName: 'River Region 50+',          city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregion50plus.com',      regionLabel: 'River Region',      serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
+  { slug: 'aop',      short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika',    serviceArea: [] },
+  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay',        serviceArea: [] },
+  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore',     serviceArea: [] },
+  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola', serviceArea: [] },
 ]
 
 export const ALL_MARKET_SLUGS: string[] = MARKETS.map(m => m.slug)

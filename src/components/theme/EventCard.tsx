@@ -36,6 +36,7 @@ import { Calendar, Clock, MapPin, Star } from 'lucide-react'
 import { categoryLabel } from '@/lib/calendar-taxonomy'
 import { effectiveCategory } from '@/lib/calendar/classify'
 import { CategoryGraphic } from '@/components/calendar/CategoryGraphic'
+import { formatEventTime as fmtTime } from '@/lib/calendar/format'
 
 interface EventData {
   id:              string
@@ -61,14 +62,9 @@ function fmtLongDate(d: string): string {
   })
 }
 
-function fmtTime(t: string | null | undefined): string | null {
-  if (!t) return null
-  const [h, m] = t.split(':').map(Number)
-  if (Number.isNaN(h) || Number.isNaN(m)) return t
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hour12 = ((h + 11) % 12) + 1
-  return `${hour12}:${String(m).padStart(2, '0')} ${period}`
-}
+// fmtTime now comes from lib/calendar/format (imported at the top of this
+// file) — it was a local copy, and the homepage never got one, which is why
+// it rendered raw 24-hour values.
 
 export function EventCard({ event }: Props) {
   const href            = `/calendar/events/${event.slug ?? event.id}`

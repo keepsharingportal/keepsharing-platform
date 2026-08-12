@@ -154,3 +154,29 @@ export function cleanWpExcerpt(raw: string): string {
   const text     = decoded.replace(/<[^>]+>/g, '').trim()
   return text.slice(0, 300).replace(/\s+/g, ' ').trim()
 }
+
+/**
+ * Clean an imported post title.
+ *
+ * Titles previously went in raw while bodies and excerpts were cleaned, so
+ * artifacts that never reached article copy still landed in headlines — the
+ * homepage was rendering "You've Made It to August---Your Parenting Survival
+ * Award is in the Mail" with a literal triple hyphen.
+ *
+ * Deliberately lighter than cleanWpContent: no markdown conversion, no
+ * shortcode extraction. Decode entities, normalize ASCII dash runs to real
+ * typographic dashes, collapse whitespace.
+ */
+export function cleanWpTitle(raw: string): string {
+  return decodeEntities(raw)
+    .replace(/<[^>]+>/g, '')
+    // 3+ hyphens → em dash; exactly 2 → en dash. Ordered longest-first so
+    // the 2-hyphen rule can't chew a 3-hyphen run first.
+    .replace(/-{3,}/g, '—')
+    .replace(/(?<![-\w])--(?!-)/g, '–')
+    // " - " used as a sentence break → em dash (leave hyphenated words alone)
+    .replace(/\s+-\s+/g, ' — ')
+    .replace(/\.{3,}/g, '…')
+    .replace(/\s+/g, ' ')
+    .trim()
+}

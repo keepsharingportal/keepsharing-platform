@@ -47,7 +47,7 @@ function InstagramIcon({ size = 16 }: { size?: number }) {
 
 const DEFAULT_BRAND_SLUG = 'rrp'
 const RRP_CHROME_FALLBACK: BrandChrome = {
-  tagline:                 'The Go-To Resource for River Region Families',
+  tagline:                 'Live Local, Love Local, Parent Local',
   logoUrl:                 null,
   primaryColorHex:         '#ef6442',
   accentColorHex:          '#1a2744',
@@ -103,8 +103,6 @@ export async function PublicFooter(props: FooterBrandProps = {}) {
   const wordmarkBase = lastSpace > 0 ? displayName.slice(0, lastSpace) + ' ' : displayName
   const wordmarkAccent = lastSpace > 0 ? displayName.slice(lastSpace + 1) : ''
   const year = new Date().getFullYear()
-  // Used in the muted "hyper-local hub" line.
-  const audienceLead = 'community connection'
 
   // For each column, pull in the matching catalog items + any custom
   // items the admin nested under the column's parent_key. The footer
@@ -151,9 +149,20 @@ export async function PublicFooter(props: FooterBrandProps = {}) {
               </div>
               <span className="text-sm font-medium text-muted-foreground">{chrome.tagline}</span>
             </div>
-            <p className="text-muted-foreground max-w-sm mb-6">
-              Your hyper-local hub for {audienceLead} in {market.city}, {market.state}.
-            </p>
+            {/* The wordmark and tagline above already carry the brand promise;
+             *  this line carries the geography. A third "Your hyper-local hub
+             *  for community connection in <city>, <state>." line used to sit
+             *  here — generic filler whose city/state the serving line states
+             *  better, so it was removed rather than reworded.
+             *
+             *  Names the towns rather than leaning on the insider "River Region"
+             *  label: newcomers and search engines both need the town names.
+             *  Renders nothing for brands whose serviceArea isn't filled in. */}
+            {market.serviceArea.length > 0 && (
+              <p className="text-muted-foreground max-w-sm mb-6">
+                Serving {market.serviceArea.join(', ')} and more.
+              </p>
+            )}
             <div className="flex items-center gap-3 text-muted-foreground">
               {chrome.contactEmail && (
                 <a

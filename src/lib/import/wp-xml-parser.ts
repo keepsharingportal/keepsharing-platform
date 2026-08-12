@@ -4,7 +4,7 @@
 // Extracts posts, skips pages/attachments, preserves all fields needed
 // to populate guide_articles.
 
-import { cleanWpContent, cleanWpExcerpt } from './vc-cleanup'
+import { cleanWpContent, cleanWpExcerpt, cleanWpTitle } from './vc-cleanup'
 import { mapWpCategories } from './wp-category-mapper'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -120,7 +120,11 @@ export function parseWpXml(xmlText: string): ParsedWpXml {
     if (postType !== 'post') continue
     if (postStatus !== 'publish' && postStatus !== 'draft') continue
 
-    const title       = decodeXmlEntities(getText(item, 'title'))
+    // cleanWpTitle runs after XML entity decoding: it normalizes the ASCII
+    // dash runs ("August---Your Survival Award") that WordPress exports carry
+    // and that used to reach headlines untouched, since only bodies and
+    // excerpts were being cleaned.
+    const title       = cleanWpTitle(decodeXmlEntities(getText(item, 'title')))
     const wpPostName  = getText(item, 'wp:post_name')
     const link        = getText(item, 'link')
     const pubDateRaw  = getText(item, 'wp:post_date')

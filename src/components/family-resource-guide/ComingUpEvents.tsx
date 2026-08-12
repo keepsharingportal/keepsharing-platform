@@ -9,6 +9,9 @@ import { ArrowRight, Send, CalendarDays } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { SectionHeader } from '@/components/theme'
 import { Button } from '@/components/ui/button'
+// Compact variant ("5:30pm") — this surface deliberately runs tighter than
+// the card format. Both variants live in lib/calendar/format.ts.
+import { formatEventTimeCompact as fmtTime } from '@/lib/calendar/format'
 
 interface CalendarEvent {
   id:             string
@@ -33,16 +36,6 @@ function fmtEventDate(iso: string | null) {
     month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
     day:   d.getDate().toString(),
   }
-}
-
-function fmtTime(time: string | null) {
-  if (!time) return null
-  const [h, m] = time.split(':').map(Number)
-  if (isNaN(h)) return null
-  const hour12  = ((h + 11) % 12) + 1
-  const period  = h < 12 ? 'am' : 'pm'
-  const minutes = m && m > 0 ? `:${String(m).padStart(2, '0')}` : ''
-  return `${hour12}${minutes}${period}`
 }
 
 export function ComingUpEvents({ events }: Props) {

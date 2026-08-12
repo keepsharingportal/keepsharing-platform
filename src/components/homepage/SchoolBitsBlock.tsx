@@ -179,9 +179,14 @@ export async function SchoolBitsBlock() {
     <section>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
+        {/* "From School Zone" rather than bare "School Zone": the category
+            row above already has a School Zone gateway tile, and two blocks
+            with the identical label read as the page repeating itself. Matches
+            the existing "From Mom Knows Best" convention — the tile is the
+            door, this is the content behind it. */}
         <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
           <GraduationCap className="h-6 w-6 text-primary" />
-          School Zone
+          From School Zone
         </h2>
         <Link href="/school-zone" className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
           Explore School Zone <ArrowRight className="h-4 w-4" />

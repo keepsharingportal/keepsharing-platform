@@ -35,7 +35,7 @@ export async function Navigation(props: NavigationProps = {}) {
   const lastSpace = market.displayName.lastIndexOf(' ')
   const wordmarkBase   = lastSpace > 0 ? market.displayName.slice(0, lastSpace) + ' ' : market.displayName
   const wordmarkAccent = lastSpace > 0 ? market.displayName.slice(lastSpace + 1) : ''
-  const tagline        = props.chrome?.tagline         ?? 'The Go-To Resource for River Region Families'
+  const tagline        = props.chrome?.tagline         ?? 'Live Local, Love Local, Parent Local'
   const logoUrl        = props.chrome?.logoUrl         ?? null
   const primaryColor   = props.chrome?.primaryColorHex
 
