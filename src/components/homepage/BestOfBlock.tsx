@@ -35,11 +35,6 @@ async function getBestOfArticles(): Promise<Article[]> {
   } catch { return [] }
 }
 
-function fmtDate(iso: string | null) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-}
-
 function teaser(a: Article): string | null {
   return (a.excerpt && a.excerpt.trim()) || (a.subtitle && a.subtitle.trim()) || null
 }
@@ -80,8 +75,11 @@ function FeaturedCard({ article }: { article: Article }) {
             {blurb}
           </p>
         )}
+        {/* No date. These are evergreen "best of" lists, not news — the whole
+            set published with the June issue, so stamping "Jun 2026" on a
+            parks or coffee-shop roundup made year-round content read as two
+            months stale without making it any less useful. */}
         <div className="flex items-center gap-3 text-white/60 text-xs">
-          <span>{fmtDate(article.published_at)}</span>
           <span className="flex items-center gap-1 text-white font-bold group-hover:gap-1.5 transition-all ml-auto">
             Read the List <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -118,10 +116,10 @@ function SmallCard({ article }: { article: Article }) {
             Best Of
           </span>
         </div>
+        {/* Date deliberately omitted — see the note on the featured card. */}
         <h4 className="font-semibold text-sm md:text-base leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-3">
           {article.title}
         </h4>
-        <span className="text-[11px] text-muted-foreground mt-1.5">{fmtDate(article.published_at)}</span>
       </div>
     </Link>
   )
