@@ -591,7 +591,12 @@ export default async function HomePage() {
                   <span className={`inline-block rounded-full text-xs font-bold uppercase tracking-wider mb-4 px-3 py-1 ${columnBadgeStyle(mainFeature.column_slug)}`}>
                     {mainFeature.column_slug ? columnLabel(mainFeature.column_slug) : 'Feature Story'}
                   </span>
-                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                  {/* Headline clamped on mobile only. Below lg the hero is
+                      aspect-[16/9] (~201px tall at a 390px viewport) with this
+                      copy anchored to the bottom, so an unclamped editor-supplied
+                      headline grows upward until it pushes this badge out of
+                      frame. Desktop has lg:min-h-[500px] and needs no clamp. */}
+                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 line-clamp-3 lg:line-clamp-none" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                     {mainFeature.title}
                   </h1>
                   {mainFeature.excerpt && (
@@ -610,7 +615,7 @@ export default async function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                   <Badge className="bg-primary text-primary-foreground border-none mb-4 font-semibold">Mom to Mom</Badge>
-                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                  <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4 line-clamp-3 lg:line-clamp-none" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                     Real stories from {brandCtx.market.regionLabel} moms
                   </h1>
                 </div>
@@ -735,6 +740,14 @@ export default async function HomePage() {
                     <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground mb-3 shadow-lg">
                       <Sparkles className="h-5 w-5" />
                     </div>
+                    {/* line-clamp-3 on the pitch below is load-bearing on
+                        mobile: this card is a fixed h-[260px] with
+                        overflow-hidden and the copy is absolutely positioned
+                        from the bottom. Live pitches run 148-188 chars, which
+                        at 390px wide fills the card to within a few pixels —
+                        a narrower phone, a two-line title, or an editor typing
+                        a longer subtitle (it's an editable field) silently
+                        clipped the text. The clamp makes it fit by construction. */}
                     <span className="inline-block rounded-full bg-white/15 backdrop-blur text-[10px] font-black uppercase tracking-[0.14em] text-white px-2.5 py-0.5 mb-2">
                       This Month
                     </span>
@@ -742,7 +755,7 @@ export default async function HomePage() {
                       {featuredGuide.display_name}
                     </h3>
                     {featuredGuide.pitch && (
-                      <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug line-clamp-3" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                         {featuredGuide.pitch}
                       </p>
                     )}
@@ -780,7 +793,7 @@ export default async function HomePage() {
                   <h3 className="text-xl md:text-2xl font-bold text-white leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                     The Big Birthday Bash
                   </h3>
-                  <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                  <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug line-clamp-3" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                     Venues, cakes, entertainers, rentals, and gift shops — every River Region birthday vendor in one place. Plan the party without the tab avalanche.
                   </p>
                   <div className="flex items-center text-sm font-bold text-accent">
