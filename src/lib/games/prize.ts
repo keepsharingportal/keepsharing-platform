@@ -26,8 +26,13 @@ interface GamesPrizeConfig {
 // make the pluralization checks below ("winnersPerDraw === 1") impossible
 // comparisons and fail the build the moment the value isn't 3.
 export const GAMES_PRIZE: GamesPrizeConfig = {
-  winnersPerDraw: 3,
-  amountUsd: 10,
+  // One larger winner beats three small ones: $10 split three ways reads as
+  // barely worth a form fill, and consolidating raises the perceived value
+  // without raising spend ($100/mo here vs the $120/mo the 3 x $10 draw cost).
+  // Cadence stays weekly deliberately — "new drawing Monday" is the
+  // return-visit trigger, and game_scores groups entries by iso_week.
+  winnersPerDraw: 1,
+  amountUsd: 25,
   drawDay: 'Monday',
 }
 

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { GAMES_PRIZE } from '@/lib/games/prize'
 
 export const runtime = 'nodejs'
 
@@ -71,7 +72,9 @@ export async function POST(req: NextRequest) {
       first_name:   s.first_name,
       last_initial: (s.last_name?.[0] ?? '').toUpperCase() || null,
       email:        s.email,
-      prize_amount: 10.00,
+      // Was hardcoded 10.00 — reads from the prize config so the recorded
+      // payout can't drift from what the site promised the player.
+      prize_amount: GAMES_PRIZE.amountUsd,
     }
   })
 

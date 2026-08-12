@@ -18,7 +18,7 @@ import { isoWeekString } from '@/lib/games/weekly'
 import { DifficultyChooser } from './DifficultyChooser'
 import { createClient } from '@supabase/supabase-js'
 import { buildPageMetadata } from '@/lib/seo/metadata'
-import { prizeHeadline, prizeShortLine, prizeWinnersLabel } from '@/lib/games/prize'
+import { GAMES_PRIZE, prizeAmount, prizeHeadline, prizeShortLine, prizeWinnersLabel } from '@/lib/games/prize'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
@@ -214,18 +214,33 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
               version got dropped because it repeats the subhead and
               adds visual noise without telling the player anything
               they don't already know. */}
-          {lastWeek && lastWeek.winners.length > 0 && (
-            <div className="inline-flex items-center gap-2 mb-8 rounded-full bg-background/80 border border-primary/30 px-4 py-2 shadow-sm max-w-full">
+          {/* Winners block. Previously a small pill that rendered ONLY when a
+              draw had happened — and since no draw ever had, it never appeared
+              at all, so the page promised a weekly prize with zero proof that
+              anyone had ever won. Now it's a real card, and it has a
+              before-the-first-draw state that pushes participation instead of
+              rendering nothing. */}
+          {lastWeek && lastWeek.winners.length > 0 ? (
+            <div className="inline-flex flex-col items-center gap-1 mb-8 rounded-2xl bg-background border-2 border-primary/40 px-6 py-4 shadow-md max-w-full">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-primary">
+                <Trophy className="h-3.5 w-3.5 shrink-0" />
+                {prizeWinnersLabel()}
+              </span>
+              <strong className="text-xl md:text-2xl font-black text-foreground leading-tight">
+                {lastWeek.winners
+                  .sort((a, b) => a.slot - b.slot)
+                  .map(w => `${w.first_name} ${w.last_initial}.`)
+                  .join(', ')}
+              </strong>
+              <span className="text-xs text-muted-foreground">
+                {lastWeek.week_label} · next drawing {GAMES_PRIZE.drawDay}
+              </span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 mb-8 rounded-2xl bg-background border-2 border-primary/40 px-5 py-3 shadow-md max-w-full">
               <Trophy className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-sm font-semibold text-foreground">
-                {prizeWinnersLabel()}:&nbsp;
-                <strong className="text-primary">
-                  {lastWeek.winners
-                    .sort((a, b) => a.slot - b.slot)
-                    .map(w => `${w.first_name} ${w.last_initial}.`)
-                    .join(', ')}
-                </strong>
-                {' '}<span className="text-muted-foreground font-normal">({lastWeek.week_label})</span>
+              <span className="text-sm md:text-base font-bold text-foreground">
+                First {prizeAmount()} drawing this {GAMES_PRIZE.drawDay} — play today to be in it
               </span>
             </div>
           )}
@@ -315,16 +330,17 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
             <Gift className="h-7 w-7" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">3 Winners. $10 Each. Every Week.</h2>
+          <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">{prizeAmount()} Every {GAMES_PRIZE.drawDay}. One Winner.</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Play any of our brain games, complete the challenge, and submit your score.
-            Every completion = one entry into Monday&apos;s drawing.
+            Every completion = one entry into {GAMES_PRIZE.drawDay}&apos;s drawing — so the
+            more you play, the better your odds.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
             {[
               { n: '01', label: 'Play Daily',     desc: 'New puzzles every morning. Stack up entries all week long.' },
               { n: '02', label: 'Beat the Level', desc: 'Find the connections, answer the trivia, beat the timer.' },
-              { n: '03', label: 'Win Monday',     desc: '3 random winners drawn every Monday — each gets $10 Venmo or PayPal.' },
+              { n: '03', label: `Win ${GAMES_PRIZE.drawDay}`, desc: `${GAMES_PRIZE.winnersPerDraw === 1 ? 'One random winner is' : `${GAMES_PRIZE.winnersPerDraw} random winners are`} drawn every ${GAMES_PRIZE.drawDay} — ${prizeAmount()} by Venmo or PayPal.` },
             ].map(step => (
               <div key={step.n} className="bg-muted/50 rounded-2xl p-6">
                 <p className="text-3xl font-black text-primary/30 mb-2">{step.n}</p>
