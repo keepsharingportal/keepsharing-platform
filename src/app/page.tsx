@@ -20,6 +20,7 @@ import { RecentIssuesCarousel, type RecentIssue } from '@/components/homepage/Re
 import { NewsletterPhoneCard } from '@/components/homepage/NewsletterPhoneCard'
 import { SchoolBitsBlock } from '@/components/homepage/SchoolBitsBlock'
 import { BestOfBlock } from '@/components/homepage/BestOfBlock'
+import { GamesPromoBlock } from '@/components/homepage/GamesPromoBlock'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 import { ArticleCard, SectionHeader } from '@/components/theme'
 import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
@@ -830,6 +831,11 @@ export default async function HomePage() {
         </section>
 
         {/* Summer Fun Block hidden — guide content not ready yet. */}
+
+        {/* Family Brain Games — sits directly under the category tiles so the
+            games have a front door on the highest-traffic page. /games was
+            previously reachable from the top nav only. */}
+        <GamesPromoBlock />
 
         {/* Best of the Region — featured block above the portal */}
         <BestOfBlock />

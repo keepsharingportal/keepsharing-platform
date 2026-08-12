@@ -17,6 +17,7 @@ import type {
   WordSearchPayload, MemoryPayload, FamilyConnectPayload, FamilyConnectGroup,
 } from '@/lib/games/types'
 import { POINTS_PER_CORRECT } from '@/lib/games/types'
+import { prizeShortLine } from '@/lib/games/prize'
 
 interface PoolItem { id: string; payload: Record<string, unknown> }
 
@@ -1501,7 +1502,7 @@ function WinScreen({
               Drop your name in this week&apos;s drawing
             </p>
             <p className="text-center text-xs text-muted-foreground mb-4">
-              3 winners every Monday · $10 each · every completion = one entry
+              {prizeShortLine()} · every completion = one entry
             </p>
             <form onSubmit={submit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">

@@ -153,6 +153,23 @@ export async function POST(req: NextRequest) {
         ghl_response: { error: e instanceof Error ? e.message : String(e) },
       }).eq('id', scoreId!)
     }
+  } else {
+    // No webhook configured. This used to be a silent no-op: the row kept its
+    // initial ghl_status of 'pending' forever, with no log line and no failed
+    // row to notice. Every entry captured before this change — real parents
+    // with names, emails and phone numbers — sat in game_scores and never
+    // reached GHL, and nothing anywhere said so.
+    //
+    // Mark it failed and say why, so a missing env var shows up as a broken
+    // integration rather than as an indefinitely-pending one.
+    console.error(
+      '[submit-score] GHL_GAMES_WEBHOOK_URL is not set — game entry saved to ' +
+      'game_scores but NOT delivered to GHL. Set it in the Vercel project env.',
+    )
+    await supabase.from('game_scores').update({
+      ghl_status:   'failed',
+      ghl_response: { error: 'GHL_GAMES_WEBHOOK_URL not configured' },
+    }).eq('id', scoreId!)
   }
 
   revalidatePath('/games')

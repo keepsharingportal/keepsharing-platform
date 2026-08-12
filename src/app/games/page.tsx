@@ -18,6 +18,7 @@ import { isoWeekString } from '@/lib/games/weekly'
 import { DifficultyChooser } from './DifficultyChooser'
 import { createClient } from '@supabase/supabase-js'
 import { buildPageMetadata } from '@/lib/seo/metadata'
+import { prizeHeadline, prizeShortLine, prizeWinnersLabel } from '@/lib/games/prize'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
@@ -143,7 +144,7 @@ const GAME_ICONS: Record<GameId, { Icon: React.ElementType }> = {
 // any real recent scores so the ticker always has something to scroll.
 const SEED_TICKER: string[] = [
   '🎉 New brain games every morning',
-  '💵 3 winners every week — $10 each',
+  `💵 ${prizeShortLine()}`,
   '🧠 Every game played = one more entry',
   '👋 Be one of the first to play today',
   '✨ Share your score for the daily brag',
@@ -205,7 +206,7 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-foreground mb-4 leading-[1.05]">Family Brain Games</h1>
           <p className="text-lg md:text-xl font-semibold text-foreground/85 max-w-2xl mx-auto mb-6 leading-snug">
-            Three $10 winners every Monday. The most fun a parent can have in 15 minutes.
+            {prizeHeadline()}. The most fun a parent can have in 15 minutes.
           </p>
 
           {/* Winners pill — only renders when last week actually has
@@ -217,7 +218,7 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
             <div className="inline-flex items-center gap-2 mb-8 rounded-full bg-background/80 border border-primary/30 px-4 py-2 shadow-sm max-w-full">
               <Trophy className="h-4 w-4 text-primary shrink-0" />
               <span className="text-sm font-semibold text-foreground">
-                Last week&apos;s $10 winners:&nbsp;
+                {prizeWinnersLabel()}:&nbsp;
                 <strong className="text-primary">
                   {lastWeek.winners
                     .sort((a, b) => a.slot - b.slot)

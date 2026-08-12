@@ -11,6 +11,7 @@ import { isoWeek, isoWeekString, dailyContent } from '@/lib/games/weekly'
 import { DrawWinnerButton } from './DrawWinnerButton'
 import { AnnouncePanel } from './AnnouncePanel'
 import { GeneratePanel } from './GeneratePanel'
+import { GAMES_PRIZE, prizeAdminLabel, prizeAmount } from '@/lib/games/prize'
 
 // Daily rotation needs at least this many distinct days of variety per
 // (game, difficulty) so the same content doesn't recycle. Same value
@@ -156,7 +157,7 @@ export default async function GamesAdminPage() {
             <h1 className="text-xl font-bold text-portal-text tracking-tight">Brain Games</h1>
           </div>
           <p className="text-sm text-portal-sub">
-            Daily challenge content + leaderboard + weekly 3 × $10 drawing.
+            Daily challenge content + leaderboard + weekly {prizeAdminLabel()} drawing.
             {weekLabel} · {weekEntries.length} entries this week.
           </p>
         </div>
@@ -188,7 +189,7 @@ export default async function GamesAdminPage() {
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">2. Daily rotation, weekly draw</p>
-            <p>Players see fresh content every UTC midnight (same puzzles for everyone that day — bragging rights stay honest). On Mondays you draw <strong>3 × $10 winners</strong> from the week&apos;s entries at the bottom of this page. Re-draw overwrites all 3 slots.</p>
+            <p>Players see fresh content every UTC midnight (same puzzles for everyone that day — bragging rights stay honest). On Mondays you draw <strong>{prizeAdminLabel()} winners</strong> from the week&apos;s entries at the bottom of this page. Re-draw overwrites all 3 slots.</p>
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">3. Each tier targets a different audience</p>
@@ -365,7 +366,7 @@ export default async function GamesAdminPage() {
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <Trophy size={14} className="text-portal-blue" />
-              <h2 className="text-sm font-bold text-portal-text">Weekly 3 × $10 winners — {weekLabel}</h2>
+              <h2 className="text-sm font-bold text-portal-text">Weekly {prizeAdminLabel()} winners — {weekLabel}</h2>
             </div>
             <div className="p-5">
               {weekEntries.length === 0 ? (
@@ -379,7 +380,7 @@ export default async function GamesAdminPage() {
                 />
               )}
               <p className="text-[11px] text-portal-muted mt-3 leading-relaxed">
-                Each play this week counts as one entry. Click the button to pick 3 random winners (each gets $10).
+                Each play this week counts as one entry. Click the button to pick {GAMES_PRIZE.winnersPerDraw} random winner(s) (each gets {prizeAmount()}).
                 Re-drawing overwrites all 3 slots. Full audit trail in <code className="bg-portal-row-hover px-1 rounded">game_scores</code> + <code className="bg-portal-row-hover px-1 rounded">game_winners</code>.
               </p>
             </div>
