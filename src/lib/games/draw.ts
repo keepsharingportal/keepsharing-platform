@@ -119,10 +119,30 @@ export async function isDrawArmed(client?: SupabaseClient): Promise<boolean> {
   }
 }
 
+/**
+ * Who gets the payout instruction. Comma-separated, because this is the one
+ * email in the system that must not go missing: if it does, a reader has been
+ * named a winner on the public page and never paid.
+ *
+ * That matters here specifically. jason@riverregionparents.com is a cPanel
+ * address forwarded to Gmail, and forwarding re-sends from the cPanel server's
+ * IP, which isn't in the domain's SPF record — so the forwarded copy fails SPF
+ * where the original passed. Gmail weighs that against content, and "You won
+ * $25" reads like a lottery scam. A magic-link email survived the same forward
+ * because nothing about it looks like fraud. Listing a second, directly
+ * delivered address costs one duplicate email a week and removes a single
+ * point of failure that has already swallowed mail once.
+ */
+function ownerEmails(): string[] {
+  const raw = process.env.GAMES_DRAW_NOTIFY_EMAIL
+           ?? process.env.SUBMISSIONS_EDITOR_EMAIL
+           ?? 'jason@riverregionparents.com'
+  return raw.split(',').map(s => s.trim()).filter(Boolean)
+}
+
+/** Display form of the above — for result payloads and admin copy. */
 function ownerEmail(): string {
-  return process.env.GAMES_DRAW_NOTIFY_EMAIL
-      ?? process.env.SUBMISSIONS_EDITOR_EMAIL
-      ?? 'jason@riverregionparents.com'
+  return ownerEmails().join(', ')
 }
 
 function fromAddress(): string {
@@ -331,7 +351,7 @@ async function emailWinners(
         // hello@ — a send-only address. Without this, every "yes please, here's
         // my Venmo" reply lands in a mailbox nobody reads and the winner is
         // never paid.
-        replyTo: ownerEmail(),
+        replyTo: ownerEmails()[0],
         subject: subjectFor(mode, `You won ${prizeAmount()} — River Region Parents Family Brain Games`),
         html: `
           ${previewBanner(mode, `${w.first_name} <${w.email}>`)}
@@ -374,7 +394,7 @@ async function emailOwnerResult(
   try {
     await client.emails.send({
       from:    fromAddress(),
-      to:      live ? ownerEmail() : previewTo,
+      to:      live ? ownerEmails() : [previewTo],
       subject: subjectFor(mode, `Action needed: pay ${winners.length === 1 ? 'this week\'s winner' : 'this week\'s winners'} ($${total}) — ${weekIso}`),
       html: `
         ${previewBanner(mode, winners.map(w => `${w.first_name} <${w.email}>`).join(', '))}
@@ -426,7 +446,7 @@ async function emailOwnerNoEntries(
   try {
     await client.emails.send({
       from:    fromAddress(),
-      to:      mode === 'preview' ? previewTo : ownerEmail(),
+      to:      mode === 'preview' ? [previewTo] : ownerEmails(),
       subject: subjectFor(mode, `No Family Brain Games entries this week — ${weekIso}`),
       html: `
         <p><strong>Family Brain Games — ${esc(weekIso)}</strong></p>
