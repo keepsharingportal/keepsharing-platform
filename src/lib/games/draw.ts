@@ -310,6 +310,13 @@ function previewBanner(mode: DrawMode, wouldGoTo: string): string {
     </div>`
 }
 
+/** Plain-text twin of previewBanner, for the text/plain alternative. */
+function previewBannerText(mode: DrawMode, wouldGoTo: string): string {
+  if (mode !== 'preview') return ''
+  return `*** PREVIEW — this is a rehearsal. No winner was recorded, no money is owed, `
+       + `and ${wouldGoTo} was not contacted. The live email below is exactly what they would receive. ***\n\n`
+}
+
 async function emailWinners(
   winners: DrawnWinner[], weekIso: string, mode: DrawMode, previewTo: string,
 ): Promise<NotifyStatus> {
@@ -320,6 +327,11 @@ async function emailWinners(
       await client.emails.send({
         from:    fromAddress(),
         to:      mode === 'preview' ? previewTo : w.email,
+        // The body tells the winner to reply to arrange payment, but From is
+        // hello@ — a send-only address. Without this, every "yes please, here's
+        // my Venmo" reply lands in a mailbox nobody reads and the winner is
+        // never paid.
+        replyTo: ownerEmail(),
         subject: subjectFor(mode, `You won ${prizeAmount()} — River Region Parents Family Brain Games`),
         html: `
           ${previewBanner(mode, `${w.first_name} <${w.email}>`)}
@@ -331,6 +343,17 @@ async function emailWinners(
              <a href="${siteUrl()}/games">${siteUrl().replace(/^https?:\/\//, '')}/games</a>.</p>
           <p>— River Region Parents</p>
         `,
+        // Every send carries a text/plain alternative. An HTML-only message is
+        // a long-standing spam-filter signal, and this one has the worst
+        // possible shape for a filter: an unexpected "you won money" subject
+        // from a domain with no sending history.
+        text:
+          `${previewBannerText(mode, `${w.first_name} <${w.email}>`)}` +
+          `Hi ${w.first_name},\n\n` +
+          `You won this week's ${prizeAmount()} Family Brain Games drawing (${weekIso}). Congratulations!\n\n` +
+          `Just reply to this email and we'll arrange getting your ${prizeAmount()} to you.\n\n` +
+          `Thanks for playing — new puzzles go up every morning at ${siteUrl()}/games\n\n` +
+          `— River Region Parents`,
       })
     }
     return 'sent'
@@ -373,6 +396,20 @@ async function emailOwnerResult(
                same pool — the name above is one possible outcome, not a
                reservation.</p>`}
       `,
+      text:
+        `${previewBannerText(mode, winners.map(w => `${w.first_name} <${w.email}>`).join(', '))}` +
+        `Family Brain Games — ${weekIso}\n\n` +
+        `The weekly draw ${live ? 'ran automatically' : 'was rehearsed in preview mode'}. ` +
+        `${entries} entr${entries === 1 ? 'y' : 'ies'} from ${players} player${players === 1 ? '' : 's'}.\n\n` +
+        `${live ? `Pay out $${total} total:` : `Would have paid out $${total} total:`}\n` +
+        winners.map(w => `  - ${w.first_name} ${w.last_initial ?? ''}. — ${w.email} — $${w.prize_amount}`).join('\n') +
+        `\n\n` +
+        (live
+          ? `${winners.length === 1 ? 'The winner has' : 'Winners have'} already been emailed and told ` +
+            `to reply to arrange payment. They are live on ${siteUrl()}/games`
+          : `Nobody was emailed, nothing was recorded, and this week is still available for a real ` +
+            `draw. The live run would pick again from the same pool — the name above is one possible ` +
+            `outcome, not a reservation.`),
     })
     return 'sent'
   } catch (e) {
@@ -397,6 +434,11 @@ async function emailOwnerNoEntries(
         <p>Nothing is broken — this is the expected result for a week with no entries.
            Worth a promo push if it repeats.</p>
       `,
+      text:
+        `Family Brain Games — ${weekIso}\n\n` +
+        `Nobody completed a game last week, so no draw was run and nothing is owed.\n\n` +
+        `Nothing is broken — this is the expected result for a week with no entries. ` +
+        `Worth a promo push if it repeats.`,
     })
     return 'sent'
   } catch (e) {
