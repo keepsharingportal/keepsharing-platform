@@ -8,10 +8,11 @@ import { Trophy, Users, Sparkles, BookOpen, BookMarked, AlertTriangle } from 'lu
 import { createClient } from '@supabase/supabase-js'
 import { GAMES, DIFFICULTIES, ROUNDS_PER_SESSION, type Difficulty, type GameId } from '@/lib/games/types'
 import { isoWeek, isoWeekString, dailyContent } from '@/lib/games/weekly'
-import { DrawWinnerButton } from './DrawWinnerButton'
+import { DrawPanel, type DrawWeek } from './DrawPanel'
+import { isDrawArmed } from '@/lib/games/draw'
 import { AnnouncePanel } from './AnnouncePanel'
 import { GeneratePanel } from './GeneratePanel'
-import { GAMES_PRIZE, prizeAdminLabel, prizeAmount } from '@/lib/games/prize'
+import { prizeAdminLabel } from '@/lib/games/prize'
 
 // Daily rotation needs at least this many distinct days of variety per
 // (game, difficulty) so the same content doesn't recycle. Same value
@@ -36,6 +37,17 @@ function weekDateRange(d: Date = new Date()): string {
   const sunday = new Date(monday); sunday.setUTCDate(sunday.getUTCDate() + 6)
   const fmt = (x: Date) => x.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
   return `${fmt(monday)}–${fmt(sunday)}`
+}
+
+/** Date range for an arbitrary ISO year+week — the draw panel lists past weeks,
+ *  not just the current one, so weekDateRange(Date) isn't enough on its own.
+ *  ISO week 1 is the week containing Jan 4, so its Monday anchors the rest. */
+function isoWeekLabel(year: number, week: number): string {
+  const jan4   = new Date(Date.UTC(year, 0, 4))
+  const dayNum = (jan4.getUTCDay() + 6) % 7
+  const monday = new Date(jan4)
+  monday.setUTCDate(jan4.getUTCDate() - dayNum + (week - 1) * 7)
+  return `Week ${week} (${weekDateRange(monday)})`
 }
 
 interface ScoreRow {
@@ -121,19 +133,56 @@ export default async function GamesAdminPage() {
   type WeekRow = { id: string; first_name: string; last_name: string; email: string; phone: string | null; game_type: string; score: number }
   const weekEntries = (weekEntryData ?? []) as WeekRow[]
 
-  // 5. Already-recorded winners for this week (so admin sees the saved picks)
+  // 5. Is game_winners reachable? The draw panel needs to know which weeks are
+  //    already drawn; the per-week winner list it builds below replaces the
+  //    single-week lookup this used to do.
   const winnersProbe = await supabase.from('game_winners').select('id').limit(1)
   const winnersAvailable = !winnersProbe.error
-  let existingWinners: { slot: number; first_name: string; last_initial: string }[] = []
-  if (winnersAvailable) {
-    const { data: w } = await supabase
-      .from('game_winners')
-      .select('slot, first_name, last_initial')
-      .eq('market', 'rrp')
-      .eq('week_iso', weekIso)
-      .order('slot', { ascending: true })
-    if (w) existingWinners = w as { slot: number; first_name: string; last_initial: string }[]
+
+  // 5b. Every week that has drawable entries, for the draw panel's week picker.
+  //     The draw operates on COMPLETED weeks, so showing only the current week
+  //     (which is usually still filling up) would leave the operator no way to
+  //     rehearse against a real pool or to backfill a week that was missed.
+  //     Entries without an email can never be contacted, so they aren't
+  //     eligible and aren't counted here — the pool the panel advertises has to
+  //     be the pool the draw actually uses.
+  let drawWeeks: DrawWeek[] = []
+  if (poolAvailable) {
+    const { data: allEntries } = await supabase
+      .from('game_scores')
+      .select('iso_year, iso_week, email')
+      .not('email', 'is', null)
+
+    const { data: drawnRows } = winnersAvailable
+      ? await supabase.from('game_winners').select('week_iso').eq('market', 'rrp')
+      : { data: null }
+    const drawn = new Set((drawnRows ?? []).map(r => (r as { week_iso: string }).week_iso))
+
+    const buckets = new Map<string, { year: number; week: number; entries: number; players: Set<string> }>()
+    for (const row of (allEntries ?? []) as { iso_year: number; iso_week: number; email: string }[]) {
+      const iso = `${row.iso_year}-W${String(row.iso_week).padStart(2, '0')}`
+      const b = buckets.get(iso) ?? { year: row.iso_year, week: row.iso_week, entries: 0, players: new Set<string>() }
+      b.entries += 1
+      b.players.add(row.email.toLowerCase())
+      buckets.set(iso, b)
+    }
+
+    drawWeeks = [...buckets.entries()]
+      .map(([iso, b]) => ({
+        iso,
+        label:        isoWeekLabel(b.year, b.week),
+        entry_count:  b.entries,
+        player_count: b.players.size,
+        drawn:        drawn.has(iso),
+      }))
+      .sort((a, b) => b.iso.localeCompare(a.iso))   // newest first
   }
+
+  const drawArmed = await isDrawArmed()
+  const drawOwnerHint =
+    process.env.GAMES_DRAW_NOTIFY_EMAIL
+    ?? process.env.SUBMISSIONS_EDITOR_EMAIL
+    ?? 'jason@riverregionparents.com'
 
   // 6. AI proposal queue depth (for the badge on the generate panel)
   const proposalsProbe = await supabase.from('game_content_proposals').select('id').limit(1)
@@ -189,7 +238,7 @@ export default async function GamesAdminPage() {
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">2. Daily rotation, weekly draw</p>
-            <p>Players see fresh content every UTC midnight (same puzzles for everyone that day — bragging rights stay honest). On Mondays you draw <strong>{prizeAdminLabel()} winners</strong> from the week&apos;s entries at the bottom of this page. Re-draw overwrites all 3 slots.</p>
+            <p>Players see fresh content every UTC midnight (same puzzles for everyone that day — bragging rights stay honest). The <strong>{prizeAdminLabel()} draw</strong> runs itself every Monday 8am Central once armed at the bottom of this page — no clicking required. A drawn week is locked and can never be redrawn.</p>
           </div>
           <div>
             <p className="font-bold text-portal-text mb-1">3. Each tier targets a different audience</p>
@@ -362,26 +411,23 @@ export default async function GamesAdminPage() {
             webhookConfigured={Boolean(process.env.GHL_GAMES_ANNOUNCEMENT_WEBHOOK_URL || process.env.GHL_NEWSLETTER_WEBHOOK_URL)}
           />
 
-          {/* WEEKLY 3 × $10 WINNER DRAW */}
+          {/* WEEKLY DRAW — arm switch, rehearsal, and manual/backfill run */}
           <section className="bg-white border border-portal-border rounded-lg overflow-hidden">
             <div className="px-5 py-3 border-b border-portal-border bg-portal-bg flex items-center gap-2">
               <Trophy size={14} className="text-portal-blue" />
-              <h2 className="text-sm font-bold text-portal-text">Weekly {prizeAdminLabel()} winners — {weekLabel}</h2>
+              <h2 className="text-sm font-bold text-portal-text">Weekly {prizeAdminLabel()} draw</h2>
             </div>
             <div className="p-5">
-              {weekEntries.length === 0 ? (
-                <p className="text-sm text-portal-muted">No entries yet for {weekLabel}.</p>
-              ) : (
-                <DrawWinnerButton
-                  scores={weekEntries}
-                  weekLabel={weekLabel}
-                  weekIso={weekIso}
-                  existingWinners={existingWinners}
-                />
-              )}
-              <p className="text-[11px] text-portal-muted mt-3 leading-relaxed">
-                Each play this week counts as one entry. Click the button to pick {GAMES_PRIZE.winnersPerDraw} random winner(s) (each gets {prizeAmount()}).
-                Re-drawing overwrites all 3 slots. Full audit trail in <code className="bg-portal-row-hover px-1 rounded">game_scores</code> + <code className="bg-portal-row-hover px-1 rounded">game_winners</code>.
+              <DrawPanel weeks={drawWeeks} armed={drawArmed} ownerHint={drawOwnerHint} />
+              <p className="text-[11px] text-portal-muted mt-4 leading-relaxed">
+                Every completed game is one entry, so a player with three plays has three chances.
+                Selection is <code className="bg-portal-row-hover px-1 rounded">crypto.randomInt</code> on
+                the server — uniform, and auditable after the fact — and each draw records the entry and
+                player counts alongside the winner. A week that has been drawn can never be redrawn, by
+                the cron or from here. Audit trail in{' '}
+                <code className="bg-portal-row-hover px-1 rounded">game_scores</code>,{' '}
+                <code className="bg-portal-row-hover px-1 rounded">game_winners</code> and{' '}
+                <code className="bg-portal-row-hover px-1 rounded">admin_audit_log</code>.
               </p>
             </div>
           </section>

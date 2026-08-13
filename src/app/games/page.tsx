@@ -19,6 +19,7 @@ import { DifficultyChooser } from './DifficultyChooser'
 import { createClient } from '@supabase/supabase-js'
 import { buildPageMetadata } from '@/lib/seo/metadata'
 import { GAMES_PRIZE, prizeAmount, prizeHeadline, prizeShortLine, prizeWinnersLabel } from '@/lib/games/prize'
+import { isDrawArmed } from '@/lib/games/draw'
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
@@ -167,6 +168,12 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
     : SEED_TICKER
   const lastWeek = await lastWeeksWinners()
 
+  // Is the weekly draw actually running? Until an admin arms it from
+  // /admin/games the Monday cron records nothing and emails nobody, so the
+  // hero must not tell readers a drawing happens this Monday — the one thing
+  // worse than no prize is a prize we announced and didn't award.
+  const drawArmed = await isDrawArmed()
+
   // Sponsor lookup — same system as School Zone + Calendar. When a sponsor
   // is booked via /admin/ads (placement_type='section_sponsor',
   // context_slug='games'), it replaces the hardcoded "Brainy Kids Academy".
@@ -236,14 +243,14 @@ export default async function GamesHubPage({ searchParams }: PageProps) {
                 {lastWeek.week_label} · next drawing {GAMES_PRIZE.drawDay}
               </span>
             </div>
-          ) : (
+          ) : drawArmed ? (
             <div className="inline-flex items-center gap-2 mb-8 rounded-2xl bg-background border-2 border-primary/40 px-5 py-3 shadow-md max-w-full">
               <Trophy className="h-4 w-4 text-primary shrink-0" />
               <span className="text-sm md:text-base font-bold text-foreground">
                 First {prizeAmount()} drawing this {GAMES_PRIZE.drawDay} — play today to be in it
               </span>
             </div>
-          )}
+          ) : null}
 
           {/* Sponsor — YMCA-inline-ad layout, with a small label
               above the box. Reads from ad_placements via

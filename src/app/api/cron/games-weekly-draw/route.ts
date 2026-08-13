@@ -15,6 +15,14 @@
 // Useful query params:
 //   ?secret=...        manual trigger
 //   &week=2026-W32     draw a specific week (backfill); still idempotent
+//   &mode=preview      rehearse: real selection, writes nothing, emails only
+//                      the owner. Ignores the armed flag on purpose — preview
+//                      is what you run BEFORE arming.
+//
+// The live draw is gated on site_settings.games_draw_enabled. Until an admin
+// arms it from /admin/games this route records nothing and returns
+// {"status":"disabled"} — so the Monday cron being scheduled is not the same
+// thing as the drawing having started.
 //
 // Optional env:
 //   GAMES_DRAW_NOTIFY_EMAIL  where the payout instruction goes
@@ -39,10 +47,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const weekParam = new URL(req.url).searchParams.get('week') ?? undefined
+  const params    = new URL(req.url).searchParams
+  const weekParam = params.get('week') ?? undefined
+  const mode      = params.get('mode') === 'preview' ? 'preview' as const : 'live' as const
 
   try {
-    const result = await runWeeklyDraw({ weekIso: weekParam })
+    const result = await runWeeklyDraw({ weekIso: weekParam, mode })
 
     // Refresh the hub so the winners pill shows the new name immediately
     // instead of waiting for the next revalidate window.
