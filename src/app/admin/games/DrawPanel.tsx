@@ -47,7 +47,7 @@ interface DrawResult {
 interface Props {
   weeks:     DrawWeek[]
   armed:     boolean
-  ownerHint: string        // where preview mail lands, shown so it can be checked
+  ownerHint: string        // owner address — where LIVE payout instructions go
 }
 
 export function DrawPanel({ weeks, armed, ownerHint }: Props) {
@@ -56,6 +56,11 @@ export function DrawPanel({ weeks, armed, ownerHint }: Props) {
   const [busy,    setBusy]    = useState<'preview' | 'live' | 'arm' | null>(null)
   const [result,  setResult]  = useState<DrawResult | null>(null)
   const [err,     setErr]     = useState<string | null>(null)
+  // Typed in, not inferred. This was a hardcoded owner fallback, then the
+  // acting admin's session email, and both times the rehearsal landed in an
+  // inbox nobody was watching and looked like a delivery failure. The one
+  // question a rehearsal must never leave open is where the mail went.
+  const [previewTo, setPreviewTo] = useState(ownerHint)
 
   const selected = weeks.find(w => w.iso === week)
 
@@ -72,7 +77,7 @@ export function DrawPanel({ weeks, armed, ownerHint }: Props) {
     try {
       const res  = await fetch('/api/admin/games/draw', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ week_iso: week, mode }),
+        body: JSON.stringify({ week_iso: week, mode, preview_to: previewTo.trim() }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setErr(json?.error ?? `HTTP ${res.status}`); return }
@@ -164,9 +169,25 @@ export function DrawPanel({ weeks, armed, ownerHint }: Props) {
             </select>
           </div>
 
+          <div>
+            <label htmlFor="preview-to" className="block text-[11px] font-bold uppercase tracking-wider text-portal-sub mb-1">
+              Send preview to
+            </label>
+            <input
+              id="preview-to" type="email" value={previewTo}
+              onChange={e => setPreviewTo(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full sm:w-auto min-w-[22rem] max-w-full border border-portal-border rounded-lg px-3 py-2 text-sm bg-white"
+            />
+            <p className="text-[11px] text-portal-sub mt-1">
+              Preview only. A live draw always emails the real winner and sends the payout
+              instruction to <strong>{ownerHint}</strong>, whatever is typed here.
+            </p>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-2">
             <button
-              type="button" onClick={() => run('preview')} disabled={busy !== null || !week}
+              type="button" onClick={() => run('preview')} disabled={busy !== null || !week || !previewTo.trim()}
               className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-sm font-bold border-2 border-portal-navy text-portal-navy rounded-lg hover:bg-portal-bg disabled:opacity-40"
             >
               {busy === 'preview' ? <RefreshCw size={14} className="animate-spin" /> : <Eye size={14} />}
@@ -183,11 +204,11 @@ export function DrawPanel({ weeks, armed, ownerHint }: Props) {
           </div>
 
           <p className="text-[11px] text-portal-sub leading-relaxed">
-            Preview runs the real selection against the real entries and sends both emails to{' '}
-            <strong>your own address</strong> instead of the player, so you can read exactly what a
-            winner receives before anyone does. Nothing is written, and the week stays available for a
-            real draw. A <em>live</em> draw emails the winner and sends the payout instruction to{' '}
-            <strong>{ownerHint}</strong>.
+            Preview runs the real selection against the real entries and sends both emails to the
+            address above instead of to the player, so you can read exactly what a winner receives
+            before anyone does. Nothing is written, and the week stays available for a real draw.
+            &ldquo;Sent&rdquo; below means Resend accepted the message — if it then doesn&apos;t
+            arrive, the answer is in the Resend dashboard&apos;s delivery log, not here.
           </p>
         </>
       )}

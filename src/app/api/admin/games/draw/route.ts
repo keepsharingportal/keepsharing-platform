@@ -32,19 +32,26 @@ export async function POST(req: NextRequest) {
   const gate = await requireAal2()
   if (!gate.ok) return gate.response
 
-  const body    = await req.json().catch(() => ({})) as { week_iso?: string; mode?: string }
+  const body    = await req.json().catch(() => ({})) as { week_iso?: string; mode?: string; preview_to?: string }
   const weekIso = (body.week_iso ?? '').trim() || undefined
   const mode    = body.mode === 'live' ? 'live' as const : 'preview' as const
+  const previewTo = (body.preview_to ?? '').trim()
 
   if (weekIso && !/^\d{4}-W\d{2}$/.test(weekIso)) {
     return NextResponse.json({ error: 'week_iso must be YYYY-Www (e.g., 2026-W26)' }, { status: 400 })
   }
+  // Only shape-checked. It steers rehearsal mail only — a live draw ignores it
+  // entirely and mails the real winner and the owner — and the caller is an
+  // admin who has already cleared a second factor.
+  if (previewTo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(previewTo)) {
+    return NextResponse.json({ error: 'preview_to must be a valid email address' }, { status: 400 })
+  }
 
   try {
-    // Rehearsal mail goes to whoever clicked Preview, not to the configured
-    // owner address — otherwise the first rehearsal lands in an inbox the
-    // operator isn't watching and reads as "no email arrived".
-    const result = await runWeeklyDraw({ weekIso, mode, previewTo: ctx.email ?? undefined })
+    // Rehearsal mail goes exactly where the operator typed. Inferring it — from
+    // the owner env var, then from the session — sent two rehearsals to inboxes
+    // nobody was watching, and both times looked like the email had failed.
+    const result = await runWeeklyDraw({ weekIso, mode, previewTo: previewTo || undefined })
 
     // Previews are recorded too. "Who rehearsed which week, and who came up"
     // is exactly what you want in the log if a reader ever disputes a result.
