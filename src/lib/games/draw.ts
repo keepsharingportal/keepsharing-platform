@@ -37,11 +37,18 @@
 //
 // ── Preview mode ─────────────────────────────────────────────────────────────
 // mode: 'preview' runs the real selection against the real pool but writes
-// NOTHING and emails no reader — both emails go to the owner, subject-prefixed,
-// so the whole flow (auth, env, Resend, template rendering, payout copy) can be
-// rehearsed end to end without spending a dollar or contacting a player.
-// Preview deliberately ignores the armed flag: rehearsing is what you do BEFORE
-// arming, so blocking it there would defeat the point.
+// NOTHING and emails no reader — both emails go to the person who asked for the
+// rehearsal, subject-prefixed, so the whole flow (auth, env, Resend, template
+// rendering, payout copy) can be rehearsed end to end without spending a dollar
+// or contacting a player. Preview deliberately ignores the armed flag:
+// rehearsing is what you do BEFORE arming, so blocking it there would defeat
+// the point.
+//
+// previewTo is the acting admin's own address. It used to fall through to
+// ownerEmail(), which meant the first real rehearsal mailed a hardcoded owner
+// address the operator wasn't watching and looked exactly like "no email
+// arrived". A rehearsal that lands somewhere you aren't looking is not a
+// rehearsal.
 
 import { randomInt } from 'node:crypto'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -156,10 +163,14 @@ interface ScoreRow {
  * one entry"), and it's what makes repeat play worth something.
  */
 export async function runWeeklyDraw(
-  opts: { weekIso?: string; now?: Date; mode?: DrawMode } = {},
+  opts: { weekIso?: string; now?: Date; mode?: DrawMode; previewTo?: string } = {},
 ): Promise<DrawResult> {
   const supabase = sb()
   const mode     = opts.mode ?? 'live'
+  // Where a rehearsal's mail lands. The acting admin when we know them (the
+  // admin route passes their session email), the owner otherwise — the cron's
+  // ?mode=preview has no session to draw an address from.
+  const previewTo = opts.previewTo?.trim() || ownerEmail()
   const target   = opts.weekIso
     ? { iso: opts.weekIso, year: Number(opts.weekIso.slice(0, 4)), week: Number(opts.weekIso.slice(6)) }
     : lastCompletedWeek(opts.now)
@@ -207,12 +218,12 @@ export async function runWeeklyDraw(
   const playerCount = new Set(pool.map(s => (s.email ?? '').toLowerCase())).size
 
   if (pool.length === 0) {
-    const notify = await emailOwnerNoEntries(target.iso, mode)
+    const notify = await emailOwnerNoEntries(target.iso, mode, previewTo)
     return {
       ...base, status: 'no_entries',
       entry_count: 0, player_count: 0, winners: [],
       notify_winner: null, notify_owner: notify,
-      notified_to: ownerEmail(),
+      notified_to: mode === 'preview' ? previewTo : ownerEmail(),
     }
   }
 
@@ -250,17 +261,17 @@ export async function runWeeklyDraw(
     if (insErr) throw new Error(`game_winners write failed: ${insErr.message}`)
   }
 
-  const notifyWinner = await emailWinners(winners, target.iso, mode)
-  const notifyOwner  = await emailOwnerResult(winners, target.iso, pool.length, playerCount, mode)
+  const notifyWinner = await emailWinners(winners, target.iso, mode, previewTo)
+  const notifyOwner  = await emailOwnerResult(winners, target.iso, pool.length, playerCount, mode, previewTo)
 
   return {
     ...base,
     status: mode === 'preview' ? 'preview' : 'drawn',
     entry_count: pool.length, player_count: playerCount,
     winners, notify_winner: notifyWinner, notify_owner: notifyOwner,
-    // In preview every email goes to the owner — never to the player whose
-    // name came up. That's the whole point of the mode.
-    notified_to: mode === 'preview' ? ownerEmail() : winners.map(w => w.email).join(', '),
+    // In preview every email goes to whoever asked for the rehearsal — never to
+    // the player whose name came up. That's the whole point of the mode.
+    notified_to: mode === 'preview' ? previewTo : winners.map(w => w.email).join(', '),
   }
 }
 
@@ -300,7 +311,7 @@ function previewBanner(mode: DrawMode, wouldGoTo: string): string {
 }
 
 async function emailWinners(
-  winners: DrawnWinner[], weekIso: string, mode: DrawMode,
+  winners: DrawnWinner[], weekIso: string, mode: DrawMode, previewTo: string,
 ): Promise<NotifyStatus> {
   const client = resend()
   if (!client) return 'not_configured'
@@ -308,7 +319,7 @@ async function emailWinners(
     for (const w of winners) {
       await client.emails.send({
         from:    fromAddress(),
-        to:      mode === 'preview' ? ownerEmail() : w.email,
+        to:      mode === 'preview' ? previewTo : w.email,
         subject: subjectFor(mode, `You won ${prizeAmount()} — River Region Parents Family Brain Games`),
         html: `
           ${previewBanner(mode, `${w.first_name} <${w.email}>`)}
@@ -330,7 +341,8 @@ async function emailWinners(
 }
 
 async function emailOwnerResult(
-  winners: DrawnWinner[], weekIso: string, entries: number, players: number, mode: DrawMode,
+  winners: DrawnWinner[], weekIso: string, entries: number, players: number,
+  mode: DrawMode, previewTo: string,
 ): Promise<NotifyStatus> {
   const client = resend()
   if (!client) return 'not_configured'
@@ -339,7 +351,7 @@ async function emailOwnerResult(
   try {
     await client.emails.send({
       from:    fromAddress(),
-      to:      ownerEmail(),
+      to:      live ? ownerEmail() : previewTo,
       subject: subjectFor(mode, `Action needed: pay ${winners.length === 1 ? 'this week\'s winner' : 'this week\'s winners'} ($${total}) — ${weekIso}`),
       html: `
         ${previewBanner(mode, winners.map(w => `${w.first_name} <${w.email}>`).join(', '))}
@@ -369,13 +381,15 @@ async function emailOwnerResult(
   }
 }
 
-async function emailOwnerNoEntries(weekIso: string, mode: DrawMode): Promise<NotifyStatus> {
+async function emailOwnerNoEntries(
+  weekIso: string, mode: DrawMode, previewTo: string,
+): Promise<NotifyStatus> {
   const client = resend()
   if (!client) return 'not_configured'
   try {
     await client.emails.send({
       from:    fromAddress(),
-      to:      ownerEmail(),
+      to:      mode === 'preview' ? previewTo : ownerEmail(),
       subject: subjectFor(mode, `No Family Brain Games entries this week — ${weekIso}`),
       html: `
         <p><strong>Family Brain Games — ${esc(weekIso)}</strong></p>

@@ -184,8 +184,10 @@ export function DrawPanel({ weeks, armed, ownerHint }: Props) {
 
           <p className="text-[11px] text-portal-sub leading-relaxed">
             Preview runs the real selection against the real entries and sends both emails to{' '}
-            <strong>{ownerHint}</strong> instead of the player, so you can read exactly what a winner
-            receives before anyone does. Nothing is written, and the week stays available for a real draw.
+            <strong>your own address</strong> instead of the player, so you can read exactly what a
+            winner receives before anyone does. Nothing is written, and the week stays available for a
+            real draw. A <em>live</em> draw emails the winner and sends the payout instruction to{' '}
+            <strong>{ownerHint}</strong>.
           </p>
         </>
       )}

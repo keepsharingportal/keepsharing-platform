@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await runWeeklyDraw({ weekIso, mode })
+    // Rehearsal mail goes to whoever clicked Preview, not to the configured
+    // owner address — otherwise the first rehearsal lands in an inbox the
+    // operator isn't watching and reads as "no email arrived".
+    const result = await runWeeklyDraw({ weekIso, mode, previewTo: ctx.email ?? undefined })
 
     // Previews are recorded too. "Who rehearsed which week, and who came up"
     // is exactly what you want in the log if a reader ever disputes a result.
@@ -53,10 +56,15 @@ export async function POST(req: NextRequest) {
       after:        result.winners.length ? { winners: result.winners } : null,
       meta: {
         mode,
-        status:       result.status,
-        entry_count:  result.entry_count,
-        player_count: result.player_count,
-        notified_to:  result.notified_to,
+        status:        result.status,
+        entry_count:   result.entry_count,
+        player_count:  result.player_count,
+        notified_to:   result.notified_to,
+        // Whether Resend actually accepted each send. Without these the log can
+        // say a draw ran but not whether anyone was told, which is the first
+        // thing you need to know when someone reports no email arriving.
+        notify_winner: result.notify_winner,
+        notify_owner:  result.notify_owner,
       },
     })
 
