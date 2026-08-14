@@ -289,7 +289,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // value that ties to a section anchor on the parent guide. Falls
   // through to a 3-tier crumb when there's no category.
   const breadcrumbCategoryHref = listing?.category
-    ? `/${urlSlug}#dir-${(listing.category as string).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    ? `/${urlSlug}?category=${encodeURIComponent(listing.category as string)}`
     : null
 
   // Sibling categories for the sidebar "Browse other categories"
@@ -389,7 +389,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
         <div className="absolute top-6 left-6 flex flex-col gap-2">
           {listing?.category && (
             <Link
-              href={`/${urlSlug}#dir-${(listing.category as string).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              href={`/${urlSlug}?category=${encodeURIComponent(listing.category as string)}`}
               className="inline-flex items-center gap-1.5 text-sm font-medium bg-background/80 backdrop-blur-sm text-foreground hover:text-primary px-3 py-1.5 rounded-full border border-border/50 transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
@@ -831,7 +831,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     {siblingCategories.map(({ cat, count, isCurrent }) => (
                       <Link
                         key={cat}
-                        href={`/${urlSlug}#dir-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                        href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}
                         className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors ${
                           isCurrent
                             ? 'bg-primary/10 text-primary font-bold'

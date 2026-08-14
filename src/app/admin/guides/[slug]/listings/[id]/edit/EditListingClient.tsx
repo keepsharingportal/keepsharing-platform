@@ -12,6 +12,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 import {
   ArrowLeft, Save, Trash2, Loader2, AlertCircle, ExternalLink,
   Building2, BookOpen, Tag, Link2, Sparkles, Unlink,
@@ -303,8 +304,18 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
             <input type="text" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} className={inp} />
           </FieldRow>
         </div>
-        <FieldRow label="Hero photo URL" hint="Shown on featured-tier listings.">
-          <input type="url" value={heroPhoto} onChange={e => setHeroPhoto(e.target.value)} className={inp} placeholder="https://" />
+        {/* Same uploader and same Sharp pipeline the article editor uses:
+            EXIF-rotated, resized to max 1600px, re-encoded WebP q82 with a
+            400px thumbnail, stored in the listings/ prefix. This was a plain
+            "paste a URL" box, which meant a hero photo was whatever file the
+            business happened to send — routinely a 4MB straight-from-the-phone
+            JPEG served at full size on a page most readers open on mobile. */}
+        <FieldRow label="Hero photo" hint="Shown on featured-tier listings. Resized and converted to WebP automatically.">
+          <HeroImageUpload
+            value={heroPhoto}
+            onChange={setHeroPhoto}
+            context="listing"
+          />
         </FieldRow>
       </Section>
 

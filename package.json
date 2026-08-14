@@ -55,6 +55,7 @@
     "rrule": "^2.8.1",
     "sanitize-html": "^2.17.4",
     "server-only": "^0.0.1",
+    "sharp": "^0.34.5",
     "stripe": "^22.1.0",
     "tailwind-merge": "^3.5.0"
   },
