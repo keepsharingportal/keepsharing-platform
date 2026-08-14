@@ -11,7 +11,13 @@ interface Props {
 
 export function ListingMap({ address, cityStateZip, businessName }: Props) {
   const fullAddress = [address, cityStateZip].filter(Boolean).join(', ')
-  if (!fullAddress) return null
+  // A street address is required, not just a city. This used to render on
+  // cityStateZip alone, so a listing that only knows "Montgomery, AL" got a
+  // map card whose link searched Google for the entire city — and, because the
+  // preview behind it is a decorative stock photo of a world map rather than
+  // the actual location, it read as a broken map rather than a missing one.
+  // Better to show nothing than to point a parent at the wrong place.
+  if (!address?.trim() || !fullAddress) return null
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`
   const mapPreviewUrl = 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80&auto=format&fit=crop'

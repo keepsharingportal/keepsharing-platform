@@ -76,6 +76,14 @@ const GUIDE_GRADIENTS: Record<string, string> = {
   'childcare':      'linear-gradient(135deg, #581c87 0%, #7c3aed 45%, #a855f7 100%)',
   'healthy-kids':   'linear-gradient(135deg, #14532d 0%, #16a34a 45%, #22c55e 100%)',
   'newcomer':       'linear-gradient(135deg, #7c2d12 0%, #c2410c 45%, #f97316 100%)',
+  // These three were missing, so every listing in them rendered the plain grey
+  // fallback — a tall, empty slab where the other guides get a branded hero.
+  // Colours match each guide's identity elsewhere on the site: afterschool
+  // reuses the education blue, birthday the magenta of its category pages,
+  // special-needs the rose/violet of its hub.
+  'afterschool':    'linear-gradient(135deg, #1e3a8a 0%, #4338ca 45%, #6366f1 100%)',
+  'birthday-party': 'linear-gradient(135deg, #86198f 0%, #c026d3 45%, #e879f9 100%)',
+  'special-needs':  'linear-gradient(135deg, #831843 0%, #be185d 45%, #a855f7 100%)',
 }
 
 // Used to resolve display names / URL slugs for "Featured in Guides" chips.
@@ -298,7 +306,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       if (!a.isCurrent && b.isCurrent) return 1
       return b.count - a.count
     })
-    .slice(0, 8)
+  // No slice. This capped at 8, so the After-School Guide's sidebar silently
+  // dropped 6 of its 14 categories — Volleyball, Horses, Skating, Drama,
+  // Swimming & Scuba and Miscellaneous — with nothing indicating more existed.
+  // Same cap the guide home page had, and the same fix: this widget IS the
+  // navigation, so hiding categories from it hides them from the site.
 
   // Dedupe related listings by advertiser_account_id so a vendor with
   // multiple category listings in the same guide doesn't render twice.
@@ -438,7 +450,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                 </div>
 
                 {/* Tagline */}
-                {acct.card_hook && (
+                {/* Suppressed when it's just the opening of the About text
+                    below. card_hook is derived from the guide description for
+                    directory listings, so showing both printed the same
+                    sentences twice, a screen apart, the first copy truncated. */}
+                {acct.card_hook && !(guideData.description ?? '').startsWith(String(acct.card_hook).replace(/…$/, '').trim()) && (
                   <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{acct.card_hook}</p>
                 )}
 
