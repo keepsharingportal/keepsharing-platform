@@ -250,6 +250,10 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const businessReachable = Boolean(
     (acct.contact_email ?? acct.email) || acct.office_phone || acct.contact_phone || acct.mobile_phone,
   )
+  // With an email on file the inquiry goes straight to the business, reply-to
+  // the reader, editor cc'd. Without one an editor still has to phone them, so
+  // the form has to promise the slower thing rather than overstate it.
+  const directToBusiness = Boolean(acct.contact_email)
   const showMessageForm = acct.accepts_messages !== false && acct.id && businessReachable
 
   // Build "Featured in Guides" chip list from all published guide_listings for this advertiser
@@ -633,7 +637,9 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     Request Info
                   </CardTitle>
                   <p className="text-white/80 mt-2">
-                    Send your question and our team will pass it to {acct.business_name} within 1 business day.
+                    {directToBusiness
+                      ? `Your question goes straight to ${acct.business_name} — they reply to you directly.`
+                      : `Send your question and our team will pass it to ${acct.business_name} within 1 business day.`}
                   </p>
                 </CardHeader>
                 <CardContent className="p-8">
@@ -641,6 +647,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     advertiserAccountId={acct.id}
                     advertiserName={acct.business_name}
                     guideTypeSlug={guideSlug}
+                    directToBusiness={directToBusiness}
                   />
                 </CardContent>
               </Card>

@@ -19,9 +19,16 @@ interface Props {
   advertiserAccountId: string
   advertiserName:      string
   guideTypeSlug:       string
+  /**
+   * True when we hold an email for the business, so the message goes straight
+   * to them with the reader's address as reply-to. False for phone-only
+   * listings, where an editor still has to make the call — the copy has to say
+   * which of the two is happening, because they promise different things.
+   */
+  directToBusiness?:   boolean
 }
 
-export function ListingMessageForm({ advertiserAccountId, advertiserName, guideTypeSlug }: Props) {
+export function ListingMessageForm({ advertiserAccountId, advertiserName, guideTypeSlug, directToBusiness = false }: Props) {
   const [name,     setName]    = useState('')
   const [email,    setEmail]   = useState('')
   const [phone,    setPhone]   = useState('')
@@ -66,7 +73,15 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
           <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-3" />
           <h3 className="font-bold text-foreground mb-2">Thanks — we&apos;ve got it.</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> and follow up within 1 business day. If you included a phone number, expect a call from a local 334 area code.
+            {directToBusiness ? (
+              <>
+                Your message just went straight to <span className="font-semibold text-foreground">{advertiserName}</span>, and their reply comes back to the email you gave us. We&apos;re copied in, so tell us if you don&apos;t hear anything.
+              </>
+            ) : (
+              <>
+                Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> and follow up within 1 business day. If you included a phone number, expect a call from a local 334 area code.
+              </>
+            )}
           </p>
         </CardContent>
       </Card>
@@ -81,7 +96,15 @@ export function ListingMessageForm({ advertiserAccountId, advertiserName, guideT
           Request Info Through River Region Parents
         </h3>
         <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-          Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> within 1 business day. Prefer to reach them directly? Use the contact links above.
+          {directToBusiness ? (
+            <>
+              Sends straight to <span className="font-semibold text-foreground">{advertiserName}</span> — they reply to you directly, and we&apos;re copied in so nothing gets lost.
+            </>
+          ) : (
+            <>
+              Our team will pass your message to <span className="font-semibold text-foreground">{advertiserName}</span> within 1 business day. Prefer to reach them directly? Use the contact links above.
+            </>
+          )}
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
