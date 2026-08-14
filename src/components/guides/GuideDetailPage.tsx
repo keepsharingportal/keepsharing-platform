@@ -14,6 +14,7 @@ import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
+import { GuideCategoryBlocks } from '@/components/guides/GuideCategoryBlocks'
 import type { Metadata } from 'next'
 
 function getSupabase() {
@@ -83,9 +84,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     }
     return a
   }
+  // Every featured listing shows on the guide home page, not a rotating 3.
+  // These are the paying advertisers and there are rarely more than a dozen
+  // per guide — hiding two thirds of them behind a reload sells them short and
+  // makes the page's most valuable content the least reliable to find. Order is
+  // still shuffled so no one advertiser permanently owns the top slot.
   const featured = categoryFilter
     ? (featuredAll ?? [])
-    : shuffle(featuredAll ?? []).slice(0, 3)
+    : shuffle(featuredAll ?? [])
 
   // Standard listings — only loaded when a category is selected. On the guide
   // home page we intentionally don't show the standard directory; users pick
@@ -239,37 +245,22 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
             {categories.length >= 4 && (
               <section>
                 <SectionHeader title="Browse by Category" icon={Filter} />
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                  {categories.slice(0, 8).map(([cat, cnt]) => {
-                    const active = categoryFilter === cat
-                    return (
-                      <Link
-                        key={cat}
-                        href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}
-                        className={`flex items-center justify-between px-3.5 py-3 rounded-xl border transition-colors ${
-                          active
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-card border-border hover:border-primary/40 hover:bg-primary/5'
-                        }`}
-                      >
-                        <span className="text-sm font-semibold leading-tight truncate">{cat}</span>
-                        <span className={`text-xs font-bold tabular-nums shrink-0 ml-2 ${active ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                          {cnt}
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </div>
-                {categories.length > 8 && (
-                  <p className="text-xs text-muted-foreground mt-3">
-                    {categories.length - 8} more {categories.length - 8 === 1 ? 'category' : 'categories'} in the sidebar filter.
-                  </p>
-                )}
+                {/* Every category, as colour blocks. This was 8 grey outline
+                    chips with truncated labels ("Dance, Gymnastics & …") and a
+                    line of text sending the rest to a sidebar filter — so on
+                    the After-School Guide, 6 of 14 categories were effectively
+                    invisible, including every one a parent might be searching
+                    for by name. */}
+                <GuideCategoryBlocks
+                  categories={categories}
+                  urlSlug={urlSlug}
+                  activeFilter={categoryFilter}
+                />
               </section>
             )}
 
-            {/* Featured providers. Home view rotates 3 from the full pool;
-                category view shows every featured listing in that category. */}
+            {/* Featured providers — every one of them, on both the guide home
+                page and the category view. */}
             {featured && featured.length > 0 && (
               <section>
                 <SectionHeader
@@ -277,7 +268,12 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   icon={Star}
                   iconColor="accent"
                 />
-                <div className="space-y-5">
+                {/* Two across from lg up. The featured card is internally
+                    side-by-side already (image left, copy right), so a single
+                    column wasted half the width and pushed a 10-listing guide
+                    into an unreadably long scroll. Stays single-column below lg
+                    so the card's own two-column split doesn't get crushed. */}
+                <div className="grid gap-5 lg:grid-cols-2">
                   {featured.map(l => {
                     const a = l.advertiser_accounts as unknown as Parameters<typeof ListingCard>[0]['listing'] | null
                     if (!a) return null
@@ -387,15 +383,17 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                             </CardContent>
                           </Card>
                         )}
+                        {/* Free listings sit under the featured ones and get
+                            deliberately less: no photo, a clamped description,
+                            and no detail page — just the name, area, and
+                            tappable phone and website a parent needs to make
+                            contact. Featured keeps the photo, the full copy,
+                            and a page of its own. */}
                         <ListingCard
                           listing={{ ...a, card_hook: hook } as Parameters<typeof ListingCard>[0]['listing']}
                           guideUrlSlug={urlSlug}
                           guideContext={guide.slug}
-                          variant="standard"
-                          // A detail page is a paid perk now, so a free listing
-                          // shows its full description and tappable contact
-                          // details here instead of a link to a 404.
-                          linkToDetail={false}
+                          variant="compact"
                         />
                       </div>
                     )
