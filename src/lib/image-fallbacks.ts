@@ -154,6 +154,12 @@ export function getFallbackByContext(
     ['school', 'school_zone'],
     ['private-school', 'school_zone'],
     ['education', 'school_zone'],
+    // Both spellings: guide_types.slug is 'afterschool' (no hyphen) while the
+    // URL slug is 'after-school-guide'. Only the hyphenated token was listed,
+    // so every After-School listing fell through to the 'school' token below
+    // and got classroom-and-school-bus stock photos instead of the activity
+    // imagery this guide is about. Must stay above 'school'.
+    ['afterschool', 'education'],
     ['after-school', 'education'],
     ['summer-fun', 'summer_fun'],
     ['summer', 'summer_fun'],

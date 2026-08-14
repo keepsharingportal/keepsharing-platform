@@ -281,10 +281,19 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                   {featured.map(l => {
                     const a = l.advertiser_accounts as unknown as Parameters<typeof ListingCard>[0]['listing'] | null
                     if (!a) return null
+                    // Fall back to the guide's own description when the account
+                    // has no card_hook — the standard cards below already do
+                    // this, but featured didn't, so the most prominent cards on
+                    // the page were the ones most likely to render with no
+                    // copy at all. On the After-School Guide that was 5 of the
+                    // 10 featured listings, every one of them a paying
+                    // advertiser.
+                    const gd = (l.guide_data ?? {}) as Record<string, string>
+                    const withHook = a.card_hook ? a : { ...a, card_hook: gd.description ?? null }
                     return (
                       <ListingCard
                         key={l.id}
-                        listing={a}
+                        listing={withHook}
                         guideUrlSlug={urlSlug}
                         guideContext={guide.slug}
                         variant="featured"
