@@ -51,10 +51,28 @@ function fmtPhone(p: string | null | undefined): string | null {
   return p
 }
 
+/**
+ * Hostname for display, or null when the value isn't actually a web address.
+ *
+ * This used to `catch { return url }`, so anything an editor typed into the
+ * website field rendered verbatim behind a globe icon as though it were a
+ * working link. One advertiser record holds the literal string
+ * "Facebook: Tonya-Speeds-Dance-Connection", which showed up on the guide as a
+ * website and went nowhere when tapped. Bad data in that column is normal —
+ * it's hand-maintained — so the card has to refuse to render it rather than
+ * trust it. Every caller already gates its link on this returning a value.
+ */
 function rootDomain(url: string | null | undefined): string | null {
   if (!url) return null
-  try { return new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace(/^www\./, '') }
-  catch { return url }
+  const raw = url.trim()
+  // A web address has no spaces and has a dot in the host. "Facebook: Some-Page"
+  // and "Call for details" both fail here, which is the point.
+  if (/\s/.test(raw)) return null
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+  try {
+    const host = new URL(candidate).hostname.replace(/^www\./, '')
+    return host.includes('.') ? host : null
+  } catch { return null }
 }
 
 export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'standard', linkToDetail = true }: Props) {
@@ -104,30 +122,27 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
               className="flex-wrap"
             />
 
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-              {phone && (
+            {/* Phone only. The advertiser's own website is deliberately NOT
+                linked from this card: the featured card's job is to send the
+                reader to the detail page we control, where the outbound link
+                is a TrackedContactLink and the visit shows up in the
+                advertiser's contact events. A raw link here leaked the reader
+                off-site from the guide, untracked, and competed with the
+                card's own primary action. Calling is different — it's the
+                reader completing the journey, not leaving early. */}
+            {phone && (
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <a href={`tel:${listing.office_phone}`}
                   className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
                   <Phone className="h-3.5 w-3.5" /> {phone}
                 </a>
-              )}
-              {domain && listing.website_url && (
-                <a href={listing.website_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-primary transition-colors font-medium">
-                  <Globe className="h-3.5 w-3.5" /> {domain}
-                </a>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 mt-auto">
               <Button asChild size="sm" className="rounded-full">
                 <Link href={`/${guideUrlSlug}/listings/${listing.slug}`}>View Full Profile</Link>
               </Button>
-              {listing.website_url && (
-                <Button asChild size="sm" variant="outline" className="rounded-full">
-                  <a href={listing.website_url} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                </Button>
-              )}
             </div>
           </div>
         </div>
