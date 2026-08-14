@@ -66,25 +66,10 @@ const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
   'special-needs':  { ages: 'Ages Served', specialty: 'Specialty', services: 'Services', insurance: 'Insurance' },
 }
 
-// Branded gradient backgrounds when a listing has no real hero photo. Keyed by
-// guide_types.slug. Better than serving a random Unsplash image that may not
-// match the listing's actual character (e.g. a library getting a beach photo).
-const GUIDE_GRADIENTS: Record<string, string> = {
-  'summer-fun':     'linear-gradient(135deg, #4c1d0d 0%, #9a3412 45%, #d97706 100%)',
-  'summer-camp':    'linear-gradient(135deg, #064e3b 0%, #047857 45%, #10b981 100%)',
-  'private-school': 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 45%, #3b82f6 100%)',
-  'childcare':      'linear-gradient(135deg, #581c87 0%, #7c3aed 45%, #a855f7 100%)',
-  'healthy-kids':   'linear-gradient(135deg, #14532d 0%, #16a34a 45%, #22c55e 100%)',
-  'newcomer':       'linear-gradient(135deg, #7c2d12 0%, #c2410c 45%, #f97316 100%)',
-  // These three were missing, so every listing in them rendered the plain grey
-  // fallback — a tall, empty slab where the other guides get a branded hero.
-  // Colours match each guide's identity elsewhere on the site: afterschool
-  // reuses the education blue, birthday the magenta of its category pages,
-  // special-needs the rose/violet of its hub.
-  'afterschool':    'linear-gradient(135deg, #1e3a8a 0%, #4338ca 45%, #6366f1 100%)',
-  'birthday-party': 'linear-gradient(135deg, #86198f 0%, #c026d3 45%, #e879f9 100%)',
-  'special-needs':  'linear-gradient(135deg, #831843 0%, #be185d 45%, #a855f7 100%)',
-}
+// No gradient fallback map any more. Colour washes behind the hero fought the
+// site's warm, light palette and read as filler; each guide already has a real
+// hero photograph (guide_types.hero_image_url), which is on-brand and actually
+// tells you what the guide is about. See heroSrc below.
 
 // Used to resolve display names / URL slugs for "Featured in Guides" chips.
 // Keys are guide_types.slug values (internal), not url_slug values.
@@ -139,7 +124,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // so we cannot derive it with a string operation — we must query the table.
   const { data: guide } = await supabase
     .from('guide_types')
-    .select('slug, display_name, url_slug')
+    .select('slug, display_name, url_slug, hero_image_url')
     .eq('url_slug', urlSlug)
     .single()
 
@@ -272,7 +257,12 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     .filter(f => f.val)
 
   const heroImg     = acct.hero_photo_url || null
-  const heroGradient = GUIDE_GRADIENTS[guideSlug] ?? 'linear-gradient(135deg, #1f2937, #374151, #6b7280)'
+  // Listing photo first, then the guide's own hero photo. A listing with no
+  // photo of its own still gets a real, topical image rather than a slab of
+  // colour — and it's the same picture the guide hub uses, so the pages read as
+  // one place.
+  const guideHero = (guide?.hero_image_url ?? null) as string | null
+  const heroSrc   = heroImg ?? guideHero
   const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
   const hasRealGallery = !!heroImg || galleryImgs.length > 0
 
@@ -365,19 +355,25 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       </div>
 
       {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-      <div className="h-64 md:h-96 w-full relative" style={!heroImg ? { background: heroGradient } : undefined}>
-        {heroImg && (
+      {/* Shorter when the listing has no photo of its own — a full 24rem band
+          of guide-level imagery is scene-setting, not content, and it was
+          pushing the actual listing below the fold. */}
+      <div className={`${heroImg ? 'h-64 md:h-96' : 'h-44 md:h-64'} w-full relative bg-muted`}>
+        {heroSrc && (
           <Image
-            src={heroImg}
-            alt={acct.business_name}
+            src={heroSrc}
+            alt={heroImg ? acct.business_name : `${guide?.display_name ?? 'Guide'} listings`}
             fill
             style={{ objectFit: 'cover' }}
             sizes="100vw"
             priority
-            unoptimized={shouldSkipNextOptimizer(heroImg)}
+            unoptimized={shouldSkipNextOptimizer(heroSrc)}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {/* Heavier scrim over the guide-level photo: it's backdrop, not the
+            subject, and the eyebrow has to stay readable over whatever the
+            guide's hero happens to show. */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-background ${heroImg ? 'via-background/40' : 'via-background/60'} to-transparent`} />
         {/* Photo-less hero: guide name only. This used to repeat the business
             name in large type, which — with the h1 in the card below and the
             "About {name}" heading under that — put the same words on screen
