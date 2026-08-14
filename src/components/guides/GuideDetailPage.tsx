@@ -388,10 +388,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
                           </Card>
                         )}
                         <ListingCard
-                          listing={a as Parameters<typeof ListingCard>[0]['listing']}
+                          listing={{ ...a, card_hook: hook } as Parameters<typeof ListingCard>[0]['listing']}
                           guideUrlSlug={urlSlug}
                           guideContext={guide.slug}
                           variant="standard"
+                          // A detail page is a paid perk now, so a free listing
+                          // shows its full description and tappable contact
+                          // details here instead of a link to a 404.
+                          linkToDetail={false}
                         />
                       </div>
                     )

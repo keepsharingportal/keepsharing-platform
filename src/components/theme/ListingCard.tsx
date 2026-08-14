@@ -31,6 +31,16 @@ interface Props {
   // where featured tier should win visually — small list-row with no
   // photo, ~1/3 the vertical space of 'standard'.
   variant?:     'standard' | 'featured' | 'compact'
+  /**
+   * Whether this card links through to a listing detail page.
+   *
+   * A detail page is now a paid perk: only featured listings have one, so a
+   * free listing's card must carry everything a parent needs on its own —
+   * tap-to-call phone, website, address, full description — rather than
+   * teasing a "View Details" link that leads nowhere. Defaults to true so
+   * featured cards and any other caller keep their existing behaviour.
+   */
+  linkToDetail?: boolean
 }
 
 function fmtPhone(p: string | null | undefined): string | null {
@@ -47,7 +57,7 @@ function rootDomain(url: string | null | undefined): string | null {
   catch { return url }
 }
 
-export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'standard' }: Props) {
+export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'standard', linkToDetail = true }: Props) {
   const heroSrc = listing.hero_photo_url || getFallbackByContext(guideContext, listing.slug)
   const phone   = fmtPhone(listing.office_phone)
   const domain  = rootDomain(listing.website_url)
@@ -184,8 +194,18 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
   }
 
   /* ── Standard ─────────────────────────────────────────────────────────── */
+  // Linked (featured) cards stay one big anchor. Unlinked (free) cards must
+  // not be wrapped in one, so the phone and website inside them are reachable
+  // — nesting interactive elements inside an anchor is invalid and swallows
+  // the taps that matter most to a parent on a phone.
+  const Wrapper = linkToDetail
+    ? ({ children }: { children: React.ReactNode }) => (
+        <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} className="group block h-full">{children}</Link>
+      )
+    : ({ children }: { children: React.ReactNode }) => <div className="group block h-full">{children}</div>
+
   return (
-    <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} className="group block h-full">
+    <Wrapper>
       <div className="overflow-hidden rounded-2xl border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col h-full">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted shrink-0">
@@ -210,7 +230,10 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
           )}
 
           {listing.card_hook && (
-            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+            // Linked cards clamp to 2 lines because the full text is one tap
+            // away. Unlinked cards are the whole listing, so clamping here
+            // would hide detail with nowhere to go and read as truncation.
+            <p className={`text-sm text-muted-foreground leading-relaxed flex-1${linkToDetail ? ' line-clamp-2' : ''}`}>
               {listing.card_hook}
             </p>
           )}
@@ -219,23 +242,42 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
           {(phone || domain) && (
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground pt-1 border-t border-border/40">
               {phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> {phone}
-                </span>
+                // Tappable only on unlinked cards — inside the anchor this
+                // would be a nested interactive element.
+                linkToDetail ? (
+                  <span className="flex items-center gap-1">
+                    <Phone className="h-3 w-3" /> {phone}
+                  </span>
+                ) : (
+                  <a href={`tel:${listing.office_phone?.replace(/[^\d+]/g, '')}`}
+                     className="flex items-center gap-1 hover:text-primary font-medium">
+                    <Phone className="h-3 w-3" /> {phone}
+                  </a>
+                )
               )}
               {domain && (
-                <span className="flex items-center gap-1 truncate max-w-[150px]">
-                  <Globe className="h-3 w-3 shrink-0" /> {domain}
-                </span>
+                linkToDetail ? (
+                  <span className="flex items-center gap-1 truncate max-w-[150px]">
+                    <Globe className="h-3 w-3 shrink-0" /> {domain}
+                  </span>
+                ) : (
+                  <a href={listing.website_url?.startsWith('http') ? listing.website_url : `https://${listing.website_url}`}
+                     target="_blank" rel="noopener noreferrer"
+                     className="flex items-center gap-1 truncate max-w-[180px] hover:text-primary font-medium">
+                    <Globe className="h-3 w-3 shrink-0" /> {domain}
+                  </a>
+                )
               )}
             </div>
           )}
 
-          <span className="text-primary text-sm font-semibold flex items-center gap-1 mt-auto pt-1">
-            View Details <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-          </span>
+          {linkToDetail && (
+            <span className="text-primary text-sm font-semibold flex items-center gap-1 mt-auto pt-1">
+              View Details <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          )}
         </div>
       </div>
-    </Link>
+    </Wrapper>
   )
 }

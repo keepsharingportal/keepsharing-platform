@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
@@ -203,6 +203,22 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // guideSlug is resolved above (after guide_types query)
   const guideData   = (listing?.guide_data ?? {}) as Record<string, string>
   const isFeatured  = ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'].includes(listing?.listing_tier ?? '')
+
+  // ── Detail pages are a paid perk ──────────────────────────────────────────
+  // Only featured listings get one. A free listing renders in full on its
+  // guide's category page instead — full description, tap-to-call phone, and
+  // website — so nothing a parent needs is behind this redirect.
+  //
+  // Redirect rather than notFound(): these URLs were public and linked (the
+  // Birthday Party Guide alone had ~180 of them), and sending a real visitor
+  // to their category page is far better than a 404. Permanent, so search
+  // engines consolidate rather than keep retrying. Listing pages were never in
+  // the sitemap — PRIVATE_PREFIXES excludes /[guide]/listings/ — so there is
+  // no indexed inventory to lose here.
+  if (listing && !isFeatured) {
+    const category = typeof listing.category === 'string' ? listing.category : null
+    permanentRedirect(category ? `/${urlSlug}?category=${encodeURIComponent(category)}` : `/${urlSlug}`)
+  }
   // GUIDE_SCHEMAS (per-guide field+section manifests) takes precedence
   // over the legacy GUIDE_FIELD_LABELS map when present. Schema-driven
   // guides also reorder listing_sections by their declared section_type
