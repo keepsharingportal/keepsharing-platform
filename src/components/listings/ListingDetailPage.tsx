@@ -242,7 +242,15 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const cityZip = (acct.city_state_zip ?? null) as string | null
   const email   = (acct.contact_email ?? acct.email ?? null) as string | null
 
-  const showMessageForm = acct.accepts_messages !== false && acct.id
+  // The form's promise is "our team will pass it to {business} within 1
+  // business day", and an editor can only do that if we hold an email or a
+  // phone number for them. Without either, the form takes a parent's question
+  // and quietly strands it — worse than not offering the form at all. So it
+  // requires a reachable business, not just accepts_messages.
+  const businessReachable = Boolean(
+    (acct.contact_email ?? acct.email) || acct.office_phone || acct.contact_phone || acct.mobile_phone,
+  )
+  const showMessageForm = acct.accepts_messages !== false && acct.id && businessReachable
 
   // Build "Featured in Guides" chip list from all published guide_listings for this advertiser
   const guideSlugsForAdvertiser = [...new Set([
@@ -366,13 +374,14 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        {/* When there's no photo, show the business name large in the gradient */}
+        {/* Photo-less hero: guide name only. This used to repeat the business
+            name in large type, which — with the h1 in the card below and the
+            "About {name}" heading under that — put the same words on screen
+            three times inside one viewport. The card's h1 is the one that
+            stays, since it sits with the logo, badges and address. */}
         {!heroImg && (
           <div className="absolute inset-x-0 bottom-12 md:bottom-16 px-6 text-center pointer-events-none">
-            <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">{guide?.display_name ?? 'Local Listing'}</p>
-            <h2 className="text-white text-3xl md:text-5xl font-black leading-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
-              {acct.business_name}
-            </h2>
+            <p className="text-white/70 text-sm font-bold uppercase tracking-widest">{guide?.display_name ?? 'Local Listing'}</p>
           </div>
         )}
 
@@ -435,15 +444,42 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         </Badge>
                       )}
                     </div>
-                    {/* Business name */}
-                    <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-                      {acct.business_name}
-                    </h1>
-                    {/* Location */}
-                    {(address ?? cityZip) && (
+
+                    {/* Logo + name. The hero overlay above already carries the
+                        business name, and "About {name}" follows below, so this
+                        card printing it a third time was pure repetition — the
+                        name now lives here as the page's single h1 and the hero
+                        overlay drops its copy. The logo sits beside it, which is
+                        the first place an advertiser looks for their brand. */}
+                    <div className="flex items-center gap-4 mb-4">
+                      {acct.logo_url && (
+                        <div className="relative h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-xl border border-border bg-white overflow-hidden">
+                          <Image
+                            src={String(acct.logo_url)}
+                            alt={`${acct.business_name} logo`}
+                            fill
+                            // contain, not cover: a logo cropped to fill its box
+                            // is a mangled logo.
+                            style={{ objectFit: 'contain' }}
+                            sizes="80px"
+                            unoptimized={shouldSkipNextOptimizer(String(acct.logo_url))}
+                            className="p-1.5"
+                          />
+                        </div>
+                      )}
+                      <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight min-w-0">
+                        {acct.business_name}
+                      </h1>
+                    </div>
+
+                    {/* Full address — street plus city/state/zip. Showing the
+                        street alone ("3370 Harrison Rd") reads as a truncated
+                        address and doesn't tell a parent which town it's in,
+                        which is the first thing they need to know. */}
+                    {(address || cityZip) && (
                       <div className="flex items-center gap-2 text-muted-foreground font-medium">
                         <MapPin className="h-5 w-5 text-primary shrink-0" />
-                        <span>{address ?? cityZip}</span>
+                        <span>{[address, cityZip].filter(Boolean).join(', ')}</span>
                       </div>
                     )}
                   </div>

@@ -92,6 +92,57 @@ async function notifyAdmin(args: {
   }
 }
 
+/**
+ * Backup notification over Resend, used when the GHL send doesn't land.
+ * Plain text as well as HTML — an HTML-only message from a domain with little
+ * sending history is exactly the shape spam filters hold onto, and this one
+ * carries a lead we cannot afford to lose.
+ */
+async function notifyAdminViaResend(
+  args: Parameters<typeof notifyAdmin>[0],
+  ghlReason?: string,
+): Promise<{ sent: boolean; via?: string; reason?: string }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    console.error(
+      '[listings/message] inquiry saved but NOT notified — GHL failed (%s) and ' +
+      'RESEND_API_KEY is unset. Inquiry %s is sitting unread in listing_messages.',
+      ghlReason, args.inquiryId,
+    )
+    return { sent: false, reason: `ghl: ${ghlReason}; resend: no API key` }
+  }
+  try {
+    const { Resend } = await import('resend')
+    const contact = [args.contactEmail, args.contactPhone].filter(Boolean).join(' · ') || 'no contact on file'
+    await new Resend(key).emails.send({
+      from:    process.env.SUBMISSIONS_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>',
+      to:      [ADMIN_EMAIL],
+      replyTo: args.parentEmail,
+      subject: `Listing inquiry — ${args.businessName} (from ${args.parentName})`,
+      html: `
+        <p><strong>New listing inquiry — ${args.businessName}</strong></p>
+        <p>${args.parentName} &lt;${args.parentEmail}&gt;${args.parentPhone ? ` · ${args.parentPhone}` : ''}</p>
+        <blockquote style="border-left:3px solid #ddd;padding-left:12px;color:#444">${args.message}</blockquote>
+        <p>Pass to: ${contact}</p>
+        <p style="font-size:11px;color:#888">Inquiry ${args.inquiryId}${args.sourceUrl ? ` · ${args.sourceUrl}` : ''}<br>
+        Sent via Resend because the GHL notification failed (${ghlReason}).</p>`,
+      text:
+        `New listing inquiry — ${args.businessName}\n\n` +
+        `${args.parentName} <${args.parentEmail}>${args.parentPhone ? ` · ${args.parentPhone}` : ''}\n\n` +
+        `${args.message}\n\n` +
+        `Pass to: ${contact}\n` +
+        `Inquiry ${args.inquiryId}${args.sourceUrl ? ` · ${args.sourceUrl}` : ''}\n` +
+        `Sent via Resend because the GHL notification failed (${ghlReason}).`,
+    })
+    return { sent: true, via: 'resend' }
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e)
+    console.error('[listings/message] BOTH notification paths failed for inquiry %s: ghl=%s resend=%s',
+      args.inquiryId, ghlReason, reason)
+    return { sent: false, reason: `ghl: ${ghlReason}; resend: ${reason}` }
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const required = ['advertiser_account_id', 'parent_name', 'parent_email', 'message']
@@ -127,9 +178,9 @@ export async function POST(req: NextRequest) {
     .eq('id', body.advertiser_account_id)
     .maybeSingle()
 
-  // Fire-and-forget — don't fail the request if GHL is down/unconfigured.
-  // The inquiry is already saved; admin can still review at /admin/inquiries.
-  const notification = await notifyAdmin({
+  // Don't fail the request if notification is down — the inquiry is already
+  // saved and reviewable in admin.
+  const args = {
     businessName:  acct?.business_name ?? 'Unknown business',
     contactEmail:  acct?.contact_email ?? null,
     contactPhone:  acct?.office_phone ?? acct?.contact_phone ?? acct?.mobile_phone ?? null,
@@ -139,7 +190,25 @@ export async function POST(req: NextRequest) {
     parentPhone:   body.parent_phone ?? null,
     message:       body.message,
     sourceUrl:     body.source_url ?? `${SITE_URL}/`,
-  })
+  }
 
-  return NextResponse.json({ success: true, admin_notified: notification.sent })
+  let notification: { sent: boolean; via?: string; reason?: string } = await notifyAdmin(args)
+
+  // Resend fallback. GHL was the only notification path, so an expired token
+  // or a GHL outage meant a parent's question landed in listing_messages and
+  // nobody was told — the form promises a reply within one business day, and
+  // the row alone doesn't keep that promise. Resend is the path we know
+  // delivers, so it backs up the primary rather than replacing it.
+  if (!notification.sent) {
+    notification = await notifyAdminViaResend(args, notification.reason)
+  }
+
+  return NextResponse.json({
+    success: true,
+    admin_notified: notification.sent,
+    // Surfaced so a failure is visible to whoever is testing the form rather
+    // than living only in server logs.
+    notify_via: notification.sent ? notification.via ?? 'ghl' : null,
+    notify_error: notification.sent ? null : notification.reason ?? 'unknown',
+  })
 }
