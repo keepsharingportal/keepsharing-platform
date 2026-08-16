@@ -87,6 +87,13 @@ const GUIDE_URL_MAP: Record<string, { displayName: string; urlSlug: string }> = 
   'special-needs':   { displayName: 'Special Needs Guide',      urlSlug: 'special-needs-guide' },
 }
 
+// Tiers that count as featured — a detail page, the big card, the badge.
+// Was an inline array literal in two places; a Set here so the "does this
+// listing have its own page in that guide?" test can't drift between them.
+const FEATURED_TIERS = new Set([
+  'featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight',
+])
+
 // Icon + color rotation for the key facts row
 const FACT_CONFIG = [
   { Icon: CheckCircle2, bg: 'bg-primary/10',   text: 'text-primary' },
@@ -164,10 +171,13 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
       .neq('advertiser_account_id', acct.id)
       .order('listing_tier', { ascending: true })
       .limit(20),
-    // All guides this advertiser is published in (for "Featured in Guides" chips)
+    // All guides this advertiser is published in (for "Featured in Guides"
+    // chips). Tier and category come along because they decide where each chip
+    // should point: a featured listing has its own page in that guide, a free
+    // one doesn't and should land on its category instead.
     supabase
       .from('guide_listings')
-      .select('guide_type_slug')
+      .select('guide_type_slug, listing_tier, category')
       .eq('advertiser_account_id', acct.id)
       .eq('is_published', true),
     // Editorial articles from this guide — guide_articles.guide_slug stores the URL slug
@@ -195,7 +205,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
 
   // guideSlug is resolved above (after guide_types query)
   const guideData   = (listing?.guide_data ?? {}) as Record<string, string>
-  const isFeatured  = ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'].includes(listing?.listing_tier ?? '')
+  const isFeatured  = FEATURED_TIERS.has(listing?.listing_tier ?? '')
 
   // ── Detail pages are a paid perk ──────────────────────────────────────────
   // Only featured listings get one. A free listing renders in full on its
@@ -242,13 +252,43 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const showMessageForm = acct.accepts_messages !== false && acct.id && businessReachable
 
   // Build "Featured in Guides" chip list from all published guide_listings for this advertiser
+  // Each chip points at this business INSIDE that guide, not at the guide's
+  // front door. They used to link to /{guide}, so "also in the Special Needs
+  // Guide" dropped the reader on a hub of 139 businesses with no indication
+  // which one they had just been reading about — they had to go and find it
+  // again. Now: the listing's own page in that guide when it has one, and its
+  // category there when it doesn't.
+  type AdvGuideRow = { guide_type_slug: string; listing_tier: string | null; category: string | null }
+  const advGuideRows = (allGuideListings ?? []) as AdvGuideRow[]
+
+  const rowFor = (slug: string): AdvGuideRow | undefined =>
+    advGuideRows.find(r => r.guide_type_slug === slug)
+      ?? (slug === guideSlug
+        ? { guide_type_slug: guideSlug, listing_tier: (listing?.listing_tier as string) ?? null, category: (listing?.category as string) ?? null }
+        : undefined)
+
   const guideSlugsForAdvertiser = [...new Set([
     guideSlug,
-    ...(allGuideListings ?? []).map((l: { guide_type_slug: string }) => l.guide_type_slug),
+    ...advGuideRows.map(l => l.guide_type_slug),
   ])]
+
   const featuredInGuides = guideSlugsForAdvertiser
-    .map(slug => GUIDE_URL_MAP[slug])
-    .filter(Boolean) as Array<{ displayName: string; urlSlug: string }>
+    .map(slug => {
+      const meta = GUIDE_URL_MAP[slug]
+      if (!meta) return null
+      const row  = rowFor(slug)
+      const isFeaturedThere = FEATURED_TIERS.has(row?.listing_tier ?? '')
+      // Featured → its own page in that guide. Otherwise the category, because
+      // free listings have no detail page and the bare guide URL is a dead end
+      // for finding one business among a hundred.
+      const href = isFeaturedThere
+        ? `/${meta.urlSlug}/listings/${acct.slug}`
+        : row?.category
+          ? `/${meta.urlSlug}?category=${encodeURIComponent(row.category)}`
+          : `/${meta.urlSlug}`
+      return { ...meta, href, isCurrent: slug === guideSlug }
+    })
+    .filter(Boolean) as Array<{ displayName: string; urlSlug: string; href: string; isCurrent: boolean }>
 
   // Key facts: only field-label entries that have data
   const keyFacts = Object.entries(fieldLabels)
@@ -608,17 +648,32 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                 </h3>
                 <div className="flex flex-wrap gap-4">
                   {featuredInGuides.map(g => (
-                    <Link
-                      key={g.urlSlug}
-                      href={`/${g.urlSlug}`}
-                      className="bg-background border border-border/50 px-5 py-3 rounded-2xl flex items-center gap-3 hover:border-primary/50 hover:shadow-md transition-all group"
-                    >
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
-                        <BookOpen className="h-4 w-4" />
+                    g.isCurrent ? (
+                      // The guide being read. Rendering it as a link pointed
+                      // the reader back at the page they're already on.
+                      <div
+                        key={g.urlSlug}
+                        className="bg-primary/5 border border-primary/30 px-5 py-3 rounded-2xl flex items-center gap-3"
+                      >
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <BookOpen className="h-4 w-4" />
+                        </div>
+                        <span className="font-bold text-sm">{g.displayName}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">You&apos;re here</span>
                       </div>
-                      <span className="font-bold text-sm">{g.displayName}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </Link>
+                    ) : (
+                      <Link
+                        key={g.urlSlug}
+                        href={g.href}
+                        className="bg-background border border-border/50 px-5 py-3 rounded-2xl flex items-center gap-3 hover:border-primary/50 hover:shadow-md transition-all group"
+                      >
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                          <BookOpen className="h-4 w-4" />
+                        </div>
+                        <span className="font-bold text-sm">{g.displayName}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </Link>
+                    )
                   ))}
                 </div>
               </div>
