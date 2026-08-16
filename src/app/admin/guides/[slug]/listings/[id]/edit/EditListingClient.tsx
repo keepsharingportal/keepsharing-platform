@@ -13,6 +13,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
+import { GalleryUpload } from '@/components/admin/GalleryUpload'
 import {
   ArrowLeft, Save, Trash2, Loader2, AlertCircle, ExternalLink,
   Building2, BookOpen, Tag, Link2, Sparkles, Unlink,
@@ -45,6 +46,8 @@ export interface EditableListing {
   neighborhood:          string | null
   hero_photo_url:        string | null
   hero_photo_orig_path?: string | null
+  logo_url?:             string | null
+  gallery_image_urls?:   string[] | null
   card_hook:             string | null
   guide_data:            Record<string, unknown> | null
   linked_advertiser_name: string | null
@@ -80,6 +83,8 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
   // drag-a-region cropper can re-frame without a re-upload. Lives on the
   // advertiser account (migration 227); mirrored there on save.
   const [heroOrigPath, setHeroOrigPath] = useState<string | null>(listing.hero_photo_orig_path ?? null)
+  const [logoUrl,      setLogoUrl]      = useState(listing.logo_url ?? '')
+  const [gallery,      setGallery]      = useState<string[]>(listing.gallery_image_urls ?? [])
 
   // Guide placement
   const [tier,        setTier]        = useState(listing.listing_tier ?? 'community')
@@ -127,6 +132,10 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
         neighborhood:    neighborhood.trim() || null,
         hero_photo_url:  heroPhoto.trim()    || null,
         hero_photo_orig_path: heroOrigPath,
+        // Account-only columns — the PATCH route mirrors these onto the linked
+        // advertiser, which is where the public pages read them from.
+        logo_url:            logoUrl.trim() || null,
+        gallery_image_urls:  gallery,
         card_hook:       cardHook.trim()     || null,
         notes:           notes.trim()        || null,
         listing_tier:    tier,
@@ -331,6 +340,32 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
             origPath={heroOrigPath}
             onOrigPathChange={setHeroOrigPath}
           />
+        </FieldRow>
+
+        {/* Logo — context 'listing' keeps natural aspect on purpose. A logo
+            cover-cropped to 16:9 or 1:1 is a mangled logo; the listing page
+            renders it object-contain in a padded box. */}
+        <FieldRow label="Logo" hint="Shown beside the business name on the listing page. Not cropped.">
+          <HeroImageUpload
+            value={logoUrl}
+            onChange={setLogoUrl}
+            context="listing"
+            emptyWarning={false}
+          />
+        </FieldRow>
+
+        {/* Gallery lives on the advertiser account, so it needs a linked
+            business — the PATCH route rejects it otherwise rather than
+            silently dropping the photos. */}
+        <FieldRow label="Photo gallery" hint="Shown under About on the listing page. First four appear.">
+          {listing.advertiser_account_id ? (
+            <GalleryUpload value={gallery} onChange={setGallery} />
+          ) : (
+            <p className="text-[11px] text-portal-amber font-semibold">
+              Link this listing to a business (above) before adding gallery photos —
+              the gallery is stored on the business record.
+            </p>
+          )}
         </FieldRow>
       </Section>
 

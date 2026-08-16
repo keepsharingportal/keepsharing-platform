@@ -16,7 +16,10 @@ const EDITABLE = new Set([
   // Identity / display
   'business_name', 'office_phone', 'mobile_phone', 'website_url',
   'contact_email', 'address', 'city_state_zip', 'neighborhood',
-  'hero_photo_url', 'hero_photo_orig_path', 'card_hook',
+  'hero_photo_url', 'card_hook',
+  // Live only on advertiser_accounts — accepted here, stripped from the
+  // guide_listings update, and mirrored across. See ACCOUNT_ONLY below.
+  'hero_photo_orig_path', 'gallery_image_urls', 'logo_url',
   // Guide-specific
   'category', 'listing_tier', 'listing_year',
   'is_published', 'display_order', 'notes', 'tags',
@@ -54,17 +57,27 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   const supabase = createAdminClient()
 
-  // hero_photo_orig_path only exists on advertiser_accounts — it's mirrored
-  // below, not stored on the listing row.
-  const origPath = 'hero_photo_orig_path' in updates ? updates.hero_photo_orig_path : undefined
-  delete updates.hero_photo_orig_path
+  // Columns that exist on advertiser_accounts but NOT on guide_listings.
+  // Leaving them in the listing update would fail the whole PATCH with a
+  // "column does not exist" error, so they're held aside and mirrored below.
+  const ACCOUNT_ONLY = ['hero_photo_orig_path', 'gallery_image_urls', 'logo_url'] as const
+  const accountOnlyPatch: Record<string, unknown> = {}
+  for (const k of ACCOUNT_ONLY) {
+    if (k in updates) {
+      accountOnlyPatch[k] = updates[k]
+      delete updates[k]
+    }
+  }
 
-  const { data, error } = await supabase
-    .from('guide_listings')
-    .update(updates)
-    .eq('id', id)
-    .select('*')
-    .single()
+  if (Object.keys(updates).length === 0 && Object.keys(accountOnlyPatch).length === 0) {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+  }
+
+  // An edit touching only account-only fields (a gallery or logo change) has
+  // nothing to write here, so just read the row back for its account id.
+  const { data, error } = Object.keys(updates).length > 0
+    ? await supabase.from('guide_listings').update(updates).eq('id', id).select('*').single()
+    : await supabase.from('guide_listings').select('*').eq('id', id).single()
   if (error) {
     console.error('[guide-listings PATCH]', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -88,9 +101,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   ]
   let mirrored: string[] = []
   if (acctId) {
-    const acctPatch: Record<string, unknown> = {}
+    const acctPatch: Record<string, unknown> = { ...accountOnlyPatch }
     for (const k of MIRRORED) if (k in updates) acctPatch[k] = updates[k]
-    if (origPath !== undefined) acctPatch.hero_photo_orig_path = origPath
     if (Object.keys(acctPatch).length > 0) {
       acctPatch.updated_at = new Date().toISOString()
       const { error: acctErr } = await supabase
@@ -108,6 +120,13 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       }
       mirrored = Object.keys(acctPatch)
     }
+  } else if (Object.keys(accountOnlyPatch).length > 0) {
+    // Gallery, logo and the saved original have nowhere to live without an
+    // account, so say so rather than accepting the edit and dropping it.
+    return NextResponse.json(
+      { error: 'Link this listing to a business before adding a gallery, logo or re-croppable hero.' },
+      { status: 400 },
+    )
   }
 
   return NextResponse.json({ listing: data, mirrored_to_advertiser: mirrored })

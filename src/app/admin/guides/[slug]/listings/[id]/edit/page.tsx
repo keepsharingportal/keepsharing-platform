@@ -50,7 +50,7 @@ export default async function EditListingPage({ params }: Props) {
         business_name, office_phone, mobile_phone, website_url,
         contact_email, address, city_state_zip, neighborhood,
         hero_photo_url, card_hook, guide_data,
-        advertiser:advertiser_account_id (id, business_name, slug, hero_photo_url, hero_photo_orig_path)
+        advertiser:advertiser_account_id (id, business_name, slug, hero_photo_url, hero_photo_orig_path, logo_url, gallery_image_urls)
       `)
       .eq('id', id)
       .maybeSingle(),
@@ -66,6 +66,7 @@ export default async function EditListingPage({ params }: Props) {
   type LinkedAdv = {
     id: string; business_name: string; slug: string | null
     hero_photo_url: string | null; hero_photo_orig_path: string | null
+    logo_url: string | null; gallery_image_urls: string[] | null
   }
   type Raw = Omit<EditableListing, 'linked_advertiser_name'> & {
     advertiser: LinkedAdv | LinkedAdv[] | null
@@ -80,6 +81,8 @@ export default async function EditListingPage({ params }: Props) {
     // stale value whenever the two have drifted.
     hero_photo_url:       linkedAdv?.hero_photo_url ?? raw.hero_photo_url ?? null,
     hero_photo_orig_path: linkedAdv?.hero_photo_orig_path ?? null,
+    logo_url:             linkedAdv?.logo_url ?? null,
+    gallery_image_urls:   linkedAdv?.gallery_image_urls ?? [],
   }
 
   const advertisers = ((advRes.data ?? []) as Array<{ id: string; business_name: string; kind: string | null }>)

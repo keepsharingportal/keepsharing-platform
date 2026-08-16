@@ -264,7 +264,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   const guideHero = (guide?.hero_image_url ?? null) as string | null
   const heroSrc   = heroImg ?? guideHero
   const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
-  const hasRealGallery = !!heroImg || galleryImgs.length > 0
+  // Needs actual gallery photos. Gating on the hero too meant a listing with
+  // one photo rendered a "Gallery" heading above a single image identical to
+  // the banner directly above it. The hero is still included in the grid below
+  // when a gallery exists, since it gives the set context.
+  const hasRealGallery = galleryImgs.length > 0
 
   // Schema-driven section ordering. If the guide has a schema, we
   // render the rich sections in the schema-declared order; any sections
