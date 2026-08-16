@@ -1,24 +1,12 @@
-import { Fraunces, DM_Sans } from 'next/font/google'
 import { PublicHeader } from '@/components/PublicHeader'
 import { MobileNav } from '@/components/family-guide/MobileNav'
 import { MobileFilterStrip } from '@/components/family-guide/MobileFilterStrip'
 import { MobileStickyPromo } from '@/components/family-guide/MobileStickyPromo'
 import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup'
+import { dmSans, fraunces } from '@/lib/fonts'
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['300', '500', '700', '900'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-})
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  weight: ['300', '400', '500', '600'],
-  display: 'swap',
-})
+
 
 export default function NewcomerGuideLayout({ children }: { children: React.ReactNode }) {
   return (

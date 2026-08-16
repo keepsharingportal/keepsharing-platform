@@ -1,19 +1,6 @@
-import { Fraunces, DM_Sans } from 'next/font/google'
+import { dmSans, fraunces } from '@/lib/fonts'
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['300', '500', '700', '900'],
-  style: ['normal', 'italic'],
-  display: 'swap',
-})
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  weight: ['300', '400', '500', '600'],
-  display: 'swap',
-})
 
 export default function AdvertiseLayout({ children }: { children: React.ReactNode }) {
   return (

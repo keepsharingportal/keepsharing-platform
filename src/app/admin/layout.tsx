@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { DM_Sans, DM_Mono } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { MfaNudgeBanner } from '@/components/admin/MfaNudgeBanner'
 import { getAdminContext } from '@/lib/admin/auth'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { dmMono, dmSans } from '@/lib/fonts'
+
 
 /** Read the AAL claim from the current session's JWT. Returns 'aal1' for
  *  password/magic-link-only sessions, 'aal2' once the user has cleared a
@@ -32,18 +33,6 @@ async function readSessionAal(): Promise<'aal1' | 'aal2' | null> {
 // Match the Distribution Portal (portal.css) so admin pages share a
 // consistent typographic feel. Only loaded on admin routes; the public
 // site keeps Geist Sans.
-const dmSans = DM_Sans({
-  variable: '--font-dm-sans',
-  weight:   ['400', '500', '600', '700'],
-  subsets:  ['latin'],
-  display:  'swap',
-})
-const dmMono = DM_Mono({
-  variable: '--font-dm-mono',
-  weight:   ['400', '500'],
-  subsets:  ['latin'],
-  display:  'swap',
-})
 
 export const metadata: Metadata = {
   title: 'KeepSharing Admin',
