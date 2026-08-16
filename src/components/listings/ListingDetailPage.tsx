@@ -434,7 +434,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
             unoptimized={shouldSkipNextOptimizer(heroSrc)}
           />
         ) : (
-          <ListingImagePlaceholder name={acct.business_name} size="lg" />
+          <ListingImagePlaceholder size="lg" />
         )}
         {/* Scrim only over a real photo. Over the placeholder it would just
             grey out an already-muted panel. */}
@@ -538,7 +538,6 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         // one is uploaded, and so adding a logo later doesn't
                         // reflow the whole header.
                         <ListingLogoPlaceholder
-                          name={acct.business_name}
                           className="h-16 w-16 md:h-20 md:w-20 shrink-0"
                         />
                       )}
@@ -1075,7 +1074,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         className="group-hover:scale-105 transition-transform duration-500"
                       />
                       ) : (
-                        <ListingImagePlaceholder name={ra.business_name} />
+                        <ListingImagePlaceholder />
                       )}
                     </div>
                     <div className="p-6">

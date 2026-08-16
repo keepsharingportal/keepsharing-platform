@@ -81,7 +81,7 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
   // Only the business's own photo. A stock fallback put a picture of somebody
   // else's studio on this card and readers reasonably took it for this one —
   // and it hid which listings still need a photo, because every card looked
-  // finished. No photo now means a monogram placeholder.
+  // finished. No photo now means the generic placeholder mark.
   const heroSrc = listing.hero_photo_url || null
   const phone   = fmtPhone(listing.office_phone)
   const domain  = rootDomain(listing.website_url)
@@ -101,7 +101,7 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
                 style={{ objectFit: 'cover' }} unoptimized sizes="(max-width: 768px) 100vw, 40vw"
               />
             ) : (
-              <ListingImagePlaceholder name={listing.business_name} size="lg" />
+              <ListingImagePlaceholder size="lg" />
             )}
             <Badge variant="accent" className="absolute top-3 left-3 shadow-sm">
               <Star className="h-3 w-3 mr-1 fill-current" /> Featured Partner
@@ -242,7 +242,7 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
               sizes="(max-width: 640px) 100vw, 33vw" unoptimized
             />
           ) : (
-            <ListingImagePlaceholder name={listing.business_name} />
+            <ListingImagePlaceholder />
           )}
         </div>
 
