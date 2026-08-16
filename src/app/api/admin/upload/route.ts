@@ -28,6 +28,7 @@ import sharp from 'sharp'
 const BUCKET              = 'article-media'             // public — web variants + thumbs
 const BUCKET_HERO_ORIG    = 'article-hero-orig'         // private — saved hero originals for re-crop
 const BUCKET_PROFILE_ORIG = 'article-profile-orig'      // private — saved profile-image originals for re-crop
+const BUCKET_LISTING_ORIG = 'listing-hero-orig'         // private — saved listing hero originals for re-crop
 const MAX_BYTES           = 15 * 1024 * 1024            // 15 MB raw limit (Vercel platform caps at ~4.5 MB; client compresses bigger files first)
 const WEB_MAX_WIDTH       = 1600
 const THUMB_WIDTH         = 400
@@ -86,7 +87,11 @@ async function processAndUpload(args: {
   declaredType?: string | null
 }) {
   const { buffer, originalName, context, declaredType } = args
-  const isHero    = context === 'article-hero'
+  // 'listing-hero' shares article-hero's 16:9 geometry: the featured listing
+  // card and the listing detail hero are both landscape bands, so a business
+  // gets the same framing control an article does.
+  const isListingHero = context === 'listing-hero'
+  const isHero    = context === 'article-hero' || isListingHero
   const isProfile = context === 'article-profile'
 
   const meta = await sharp(buffer).metadata()
@@ -130,7 +135,7 @@ async function processAndUpload(args: {
     .toBuffer()
 
   const uid       = crypto.randomUUID().slice(0, 8)
-  const prefix    = context === 'listing' ? 'listings' : 'articles'
+  const prefix    = (context === 'listing' || isListingHero) ? 'listings' : 'articles'
   const webPath   = storagePath(prefix, `${uid}.webp`)
   const thumbPath = storagePath(prefix, `${uid}-thumb.webp`)
 
@@ -155,8 +160,12 @@ async function processAndUpload(args: {
   let origPath: string | undefined
   if (isHero || isProfile) {
     const ext         = inferExt(originalName, declaredType ?? null) || 'jpg'
-    const origBucket  = isHero ? BUCKET_HERO_ORIG : BUCKET_PROFILE_ORIG
-    const origPrefix  = isHero ? 'hero-orig'      : 'profile-orig'
+    const origBucket  = isListingHero ? BUCKET_LISTING_ORIG
+                      : isHero        ? BUCKET_HERO_ORIG
+                      :                 BUCKET_PROFILE_ORIG
+    const origPrefix  = isListingHero ? 'listing-hero-orig'
+                      : isHero        ? 'hero-orig'
+                      :                 'profile-orig'
     const origRelPath = storagePath(origPrefix, `${uid}.${ext}`)
     await supabase.storage.createBucket(origBucket, { public: false }).catch(() => {})
     const origUp = await supabase.storage
@@ -180,7 +189,7 @@ async function processAndUpload(args: {
         original_filename: originalName,
         storage_url:      url,
         thumbnail_url:    thumbnailUrl,
-        asset_type:       context === 'listing' ? 'listing-image' : 'article-image',
+        asset_type:       (context === 'listing' || isListingHero) ? 'listing-image' : 'article-image',
         upload_source:    declaredType?.startsWith('url:') ? 'editor-url-import' : 'editor-upload',
         file_size_bytes:  webBuffer.data.length,
         width_px:         webW,

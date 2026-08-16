@@ -28,6 +28,12 @@ import { X, RefreshCw, Check, Crop } from 'lucide-react'
 interface Props {
   articleId:    string
   type:         'hero' | 'profile'
+  /**
+   * Which record the id belongs to. Listings crop to the same 16:9 as an
+   * article hero but live in advertiser_accounts behind their own routes, so
+   * the entity has to be explicit rather than inferred from `type`.
+   */
+  entity?:      'article' | 'advertiser'
   /** Called with the new public URL on success so the parent can update its preview + form. */
   onApply:      (newUrl: string) => void
   onClose:      () => void
@@ -42,13 +48,17 @@ interface Box {
 
 const ASPECT = { hero: 16 / 9, profile: 1 } as const
 
-export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
+export function ArticleCropModal({ articleId, type, entity = 'article', onApply, onClose }: Props) {
+  // Base path for both the source-image GET and the re-crop POST.
+  const apiBase = entity === 'advertiser'
+    ? `/api/admin/advertisers/${articleId}`
+    : `/api/admin/articles/${articleId}`
   const imgRef       = useRef<HTMLImageElement | null>(null)
   const containerRef = useRef<HTMLDivElement  | null>(null)
 
   // Source image — fetched from the private bucket via our admin endpoint.
   // `?t=` cache-busts when the modal reopens after a save.
-  const imageUrl = `/api/admin/articles/${articleId}/original-image?type=${type}`
+  const imageUrl = `${apiBase}/original-image?type=${type}`
 
   const [imageReady, setImageReady] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
@@ -151,8 +161,10 @@ export function ArticleCropModal({ articleId, type, onApply, onClose }: Props) {
 
     try {
       const endpoint = type === 'profile' ? 'recrop-profile' : 'recrop-hero'
-      const urlKey   = type === 'profile' ? 'profile_image_url' : 'hero_image_url'
-      const res  = await fetch(`/api/admin/articles/${articleId}/${endpoint}`, {
+      const urlKey   = entity === 'advertiser'
+        ? 'hero_photo_url'
+        : type === 'profile' ? 'profile_image_url' : 'hero_image_url'
+      const res  = await fetch(`${apiBase}/${endpoint}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ region }),

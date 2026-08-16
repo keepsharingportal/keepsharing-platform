@@ -44,6 +44,7 @@ export interface EditableListing {
   city_state_zip:        string | null
   neighborhood:          string | null
   hero_photo_url:        string | null
+  hero_photo_orig_path?: string | null
   card_hook:             string | null
   guide_data:            Record<string, unknown> | null
   linked_advertiser_name: string | null
@@ -75,6 +76,10 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
   const [cityStateZip, setCityStateZip] = useState(listing.city_state_zip ?? '')
   const [neighborhood, setNeighborhood] = useState(listing.neighborhood ?? '')
   const [heroPhoto,    setHeroPhoto]    = useState(listing.hero_photo_url ?? '')
+  // Path to the uncropped upload, so the 9-way gravity picker and the
+  // drag-a-region cropper can re-frame without a re-upload. Lives on the
+  // advertiser account (migration 227); mirrored there on save.
+  const [heroOrigPath, setHeroOrigPath] = useState<string | null>(listing.hero_photo_orig_path ?? null)
 
   // Guide placement
   const [tier,        setTier]        = useState(listing.listing_tier ?? 'community')
@@ -121,6 +126,7 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
         city_state_zip:  cityStateZip.trim() || null,
         neighborhood:    neighborhood.trim() || null,
         hero_photo_url:  heroPhoto.trim()    || null,
+        hero_photo_orig_path: heroOrigPath,
         card_hook:       cardHook.trim()     || null,
         notes:           notes.trim()        || null,
         listing_tier:    tier,
@@ -310,11 +316,20 @@ export function EditListingClient({ slug, guideName, listing, advertisers }: Pro
             "paste a URL" box, which meant a hero photo was whatever file the
             business happened to send — routinely a 4MB straight-from-the-phone
             JPEG served at full size on a page most readers open on mobile. */}
-        <FieldRow label="Hero photo" hint="Shown on featured-tier listings. Resized and converted to WebP automatically.">
+        <FieldRow
+          label="Hero photo"
+          hint="Shown on featured listings. Auto-resized to 16:9 WebP; re-crop with the compass or the zoom tool without re-uploading."
+        >
           <HeroImageUpload
             value={heroPhoto}
             onChange={setHeroPhoto}
-            context="listing"
+            context="listing-hero"
+            // Re-crop acts on the advertiser account, which is where the
+            // public pages read the hero from. Unlinked listings still upload
+            // fine; they just can't re-crop, and the picker says so.
+            articleId={listing.advertiser_account_id ?? undefined}
+            origPath={heroOrigPath}
+            onOrigPathChange={setHeroOrigPath}
           />
         </FieldRow>
       </Section>

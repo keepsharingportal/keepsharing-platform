@@ -27,8 +27,13 @@ interface Props {
   value:    string
   onChange: (url: string) => void
   /** Which Sharp pipeline branch to run server-side. */
-  context?: 'article' | 'article-hero' | 'article-profile' | 'listing' | 'asset'
-  /** Required for the GravityPicker (re-crop endpoint needs the article id). */
+  context?: 'article' | 'article-hero' | 'article-profile' | 'listing' | 'listing-hero' | 'asset'
+  /**
+   * Row id the re-crop endpoint acts on — an article id for the article
+   * contexts, an advertiser_accounts id for 'listing-hero'. Named for its
+   * first use; kept rather than renamed so existing article call sites don't
+   * all have to change.
+   */
   articleId?: string
   /** Set on upload when context is article-hero / article-profile so the parent can persist it. */
   origPath?: string | null
@@ -42,8 +47,21 @@ interface Props {
 
 // Contexts that opt into the re-crop flow. Used in a few places so worth
 // pulling out — keeps the conditional checks readable.
-function isRecropContext(c: string | undefined): c is 'article-hero' | 'article-profile' {
-  return c === 'article-hero' || c === 'article-profile'
+function isRecropContext(c: string | undefined): c is 'article-hero' | 'article-profile' | 'listing-hero' {
+  return c === 'article-hero' || c === 'article-profile' || c === 'listing-hero'
+}
+
+// Where the re-crop lives and which key holds the new URL in the response.
+// Listings are a different table behind a different route, so this can't be
+// derived from the context string alone.
+function recropTarget(context: string | undefined, id: string) {
+  if (context === 'listing-hero') {
+    return { url: `/api/admin/advertisers/${id}/recrop-hero`, key: 'hero_photo_url', noun: 'listing' }
+  }
+  if (context === 'article-profile') {
+    return { url: `/api/admin/articles/${id}/recrop-profile`, key: 'profile_image_url', noun: 'article' }
+  }
+  return { url: `/api/admin/articles/${id}/recrop-hero`, key: 'hero_image_url', noun: 'article' }
 }
 
 function isSupabaseUrl(url: string): boolean {
@@ -192,19 +210,19 @@ export function HeroImageUpload({
   // form doesn't care which kind it is.
   async function recrop(gravity: string) {
     if (!articleId) {
-      setError('Save the article first — re-crop needs an article ID.')
+      setError(`Save the ${recropTarget(context, '').noun} first — re-crop needs a saved record.`)
       return
     }
     if (!origPath) {
       setError('Re-crop needs a saved original — re-upload a fresh image first.')
       return
     }
-    const endpoint = context === 'article-profile' ? 'recrop-profile' : 'recrop-hero'
-    const urlKey   = context === 'article-profile' ? 'profile_image_url' : 'hero_image_url'
+    const target = recropTarget(context, articleId)
+    const urlKey = target.key
     setRecropBusy(gravity)
     setError(null)
     try {
-      const res  = await fetch(`/api/admin/articles/${articleId}/${endpoint}`, {
+      const res  = await fetch(target.url, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ gravity }),
@@ -296,15 +314,16 @@ export function HeroImageUpload({
       {isRecropContext(context) && value && (
         <GravityPicker
           label={context === 'article-profile' ? 'Re-crop image (1:1)' : 'Re-crop hero (16:9)'}
+          /* eslint-disable-next-line react/jsx-no-leaked-render */
           enabled={canRecrop}
           busyGravity={recropBusy}
           onPick={recrop}
           onZoomClick={canRecrop ? () => setCropOpen(true) : undefined}
           hint={
             !articleId
-              ? 'Save the article once to enable re-crop.'
+              ? `Save the ${recropTarget(context, '').noun} once to enable re-crop.`
               : !origPath
-                ? `Upload a fresh image to enable re-crop (legacy ${context === 'article-profile' ? 'profile photos' : 'heroes'} have no saved original).`
+                ? `Upload a fresh image to enable re-crop (pasted URLs and older ${context === 'article-profile' ? 'profile photos' : 'heroes'} have no saved original).`
                 : null
           }
         />
@@ -314,6 +333,7 @@ export function HeroImageUpload({
         <ArticleCropModal
           articleId={articleId}
           type={context === 'article-profile' ? 'profile' : 'hero'}
+          entity={context === 'listing-hero' ? 'advertiser' : 'article'}
           onApply={(newUrl) => {
             onChange(newUrl)
             setUrlDraft(newUrl)

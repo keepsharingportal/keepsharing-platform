@@ -50,7 +50,7 @@ export default async function EditListingPage({ params }: Props) {
         business_name, office_phone, mobile_phone, website_url,
         contact_email, address, city_state_zip, neighborhood,
         hero_photo_url, card_hook, guide_data,
-        advertiser:advertiser_account_id (id, business_name, slug)
+        advertiser:advertiser_account_id (id, business_name, slug, hero_photo_url, hero_photo_orig_path)
       `)
       .eq('id', id)
       .maybeSingle(),
@@ -63,14 +63,23 @@ export default async function EditListingPage({ params }: Props) {
 
   if (listingRes.error || !listingRes.data) return notFound()
 
+  type LinkedAdv = {
+    id: string; business_name: string; slug: string | null
+    hero_photo_url: string | null; hero_photo_orig_path: string | null
+  }
   type Raw = Omit<EditableListing, 'linked_advertiser_name'> & {
-    advertiser: { id: string; business_name: string; slug: string | null } | { id: string; business_name: string; slug: string | null }[] | null
+    advertiser: LinkedAdv | LinkedAdv[] | null
   }
   const raw = listingRes.data as unknown as Raw
   const linkedAdv = Array.isArray(raw.advertiser) ? raw.advertiser[0] : raw.advertiser
   const listing: EditableListing = {
     ...raw,
     linked_advertiser_name: linkedAdv?.business_name ?? null,
+    // Hero comes from the advertiser account, because that is what the public
+    // pages render. Reading it off guide_listings would show the editor a
+    // stale value whenever the two have drifted.
+    hero_photo_url:       linkedAdv?.hero_photo_url ?? raw.hero_photo_url ?? null,
+    hero_photo_orig_path: linkedAdv?.hero_photo_orig_path ?? null,
   }
 
   const advertisers = ((advRes.data ?? []) as Array<{ id: string; business_name: string; kind: string | null }>)

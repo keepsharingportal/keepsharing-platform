@@ -9,7 +9,10 @@
 import { HeroImageUpload } from '@/components/admin/HeroImageUpload'
 
 type Advertiser = Record<string, unknown> & {
-  hero_photo_url?: string | null
+  id:                     string
+  hero_photo_url?:        string | null
+  /** Saved uncropped upload — required for the re-crop tools (migration 227). */
+  hero_photo_orig_path?:  string | null
 }
 
 interface Props {
@@ -31,13 +34,22 @@ export function HeroPhotoStep({ advertiser, onSave }: Props) {
 
       <div className="grid lg:grid-cols-[1fr,280px] gap-6">
         <div>
+          {/* 'listing-hero' rather than 'asset': same 16:9 crop, saved
+              original, and 9-way gravity + drag-a-region re-crop the article
+              editor has had since migration 100. On 'asset' this step could
+              upload but never re-frame, so a photo whose subject sat off-centre
+              had to be re-shot or re-cropped outside the tool. */}
           <HeroImageUpload
             value={advertiser.hero_photo_url ?? ''}
             onChange={url => onSave({ hero_photo_url: url || null })}
-            context="asset"
+            context="listing-hero"
+            articleId={advertiser.id}
+            origPath={advertiser.hero_photo_orig_path ?? null}
+            onOrigPathChange={p => onSave({ hero_photo_orig_path: p })}
           />
           <p className="text-[10px] text-portal-muted mt-3 leading-relaxed">
-            Large files are auto-resized to fit the listing page. JPEG, PNG, WebP, GIF supported.
+            Auto-resized and cropped to 16:9 WebP. Use the compass or zoom tool to re-frame
+            without re-uploading. JPEG, PNG, WebP, GIF supported.
           </p>
         </div>
 
