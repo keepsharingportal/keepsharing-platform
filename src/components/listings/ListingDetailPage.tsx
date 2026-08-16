@@ -206,6 +206,22 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
 
   // guideSlug is resolved above (after guide_types query)
   const guideData   = (listing?.guide_data ?? {}) as Record<string, string>
+
+  // ── Multi-location businesses ─────────────────────────────────────────────
+  // A YMCA association isn't one address. The source data expressed that as
+  // three streets crammed into one address cell (Prattville) or eleven
+  // branches crammed into a phone cell (Montgomery) — both unreadable, and
+  // both invisible once they hit a field meant for one value. guide_data.locations
+  // holds them structurally so they can be rendered as a list.
+  //
+  // Note these are two different YMCA associations, not branches of each
+  // other, which is why each carries its own label rather than a shared one.
+  type Loc = { label?: string | null; address?: string | null; phone?: string | null; alt_phone?: string | null }
+  const rawGuideData    = (listing?.guide_data ?? {}) as Record<string, unknown>
+  const locations       = Array.isArray(rawGuideData.locations) ? rawGuideData.locations as Loc[] : []
+  const locationPhones  = Array.isArray(rawGuideData.location_phones) ? rawGuideData.location_phones as Loc[] : []
+  const locationsLabel  = typeof rawGuideData.locations_label === 'string' ? rawGuideData.locations_label : 'Locations'
+  const isMultiLocation = locations.length > 1
   const isFeatured  = FEATURED_TIERS.has(listing?.listing_tier ?? '')
 
   // ── Detail pages are a paid perk ──────────────────────────────────────────
@@ -535,7 +551,17 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         street alone ("3370 Harrison Rd") reads as a truncated
                         address and doesn't tell a parent which town it's in,
                         which is the first thing they need to know. */}
-                    {(address || cityZip) && (
+                    {isMultiLocation ? (
+                      // "Various Locations" is what the CRM holds for these,
+                      // which is true but tells a parent nothing. Say how many
+                      // and where, and list them properly below.
+                      <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                        <MapPin className="h-5 w-5 text-primary shrink-0" />
+                        <span>
+                          {locations.length} locations{cityZip ? ` · ${cityZip.replace(/,\s*\d{5}(,\s*\d{5})*$/, '')}` : ''}
+                        </span>
+                      </div>
+                    ) : (address || cityZip) && (
                       <div className="flex items-center gap-2 text-muted-foreground font-medium">
                         <MapPin className="h-5 w-5 text-primary shrink-0" />
                         <span>{[address, cityZip].filter(Boolean).join(', ')}</span>
@@ -592,6 +618,63 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                 )}
                 {guideData.description && (
                   <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{guideData.description}</p>
+                )}
+              </div>
+            )}
+
+            {/* ── Locations ────────────────────────────────────────────────
+                For businesses that genuinely operate from several sites. The
+                branch list is the single most useful thing on the page for
+                them — "which one is near my child's school" is the actual
+                question — and it was previously buried inside an address or
+                phone field where it rendered as one unreadable run of text. */}
+            {locations.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-foreground">{locationsLabel}</h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {locations.map((loc, i) => (
+                    <div key={i} className="rounded-2xl border border-border/60 bg-card p-4 flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        {loc.label && (
+                          <p className="font-bold text-sm text-foreground leading-snug">{loc.label}</p>
+                        )}
+                        {loc.address && (
+                          <p className="text-sm text-muted-foreground leading-snug">{loc.address}</p>
+                        )}
+                        {loc.phone && (
+                          <a href={`tel:${loc.phone.replace(/[^\d+]/g, '')}`}
+                             className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1 mt-1">
+                            <Phone className="h-3 w-3" /> {loc.phone}
+                          </a>
+                        )}
+                        {loc.alt_phone && (
+                          <a href={`tel:${loc.alt_phone.replace(/[^\d+]/g, '')}`}
+                             className="text-xs font-semibold text-muted-foreground hover:text-primary ml-3">
+                            or {loc.alt_phone}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Numbers published for the organisation rather than for one
+                    site. Kept separate because guessing which branch a number
+                    belongs to would be inventing a fact. */}
+                {locationPhones.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
+                    {locationPhones.map((p, i) => (
+                      <span key={i} className="text-sm text-muted-foreground">
+                        {p.label && <span className="font-semibold text-foreground">{p.label}: </span>}
+                        {p.phone && (
+                          <a href={`tel:${p.phone.replace(/[^\d+]/g, '')}`} className="font-semibold text-primary hover:underline">
+                            {p.phone}
+                          </a>
+                        )}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
