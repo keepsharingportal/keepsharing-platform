@@ -19,6 +19,7 @@ import {
   Share2, Heart, MessageCircle, Star, ArrowLeft, Filter,
 } from 'lucide-react'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { ListingImagePlaceholder, ListingLogoPlaceholder } from '@/components/listings/ListingImagePlaceholder'
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { schemaForGuide } from '@/lib/guides/schemas'
@@ -165,7 +166,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     // after dedup below.
     supabase
       .from('guide_listings')
-      .select('id, advertiser_account_id, advertiser_accounts ( slug, business_name, neighborhood, city_state_zip )')
+      .select('id, advertiser_account_id, advertiser_accounts ( slug, business_name, neighborhood, city_state_zip, hero_photo_url )')
       .eq('guide_type_slug', guideSlug)
       .eq('is_published', true)
       .neq('advertiser_account_id', acct.id)
@@ -301,8 +302,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // photo of its own still gets a real, topical image rather than a slab of
   // colour — and it's the same picture the guide hub uses, so the pages read as
   // one place.
-  const guideHero = (guide?.hero_image_url ?? null) as string | null
-  const heroSrc   = heroImg ?? guideHero
+  // Only this business's own photo. The guide's hero was standing in, which
+  // made every photo-less listing in a guide look identical above the fold and
+  // gave no signal about which ones still need a picture. No photo now shows a
+  // monogram panel instead.
+  const heroSrc = heroImg
   const galleryImgs  = (acct.gallery_image_urls ?? []) as string[]
   // Needs actual gallery photos. Gating on the hero too meant a listing with
   // one photo rendered a "Gallery" heading above a single image identical to
@@ -364,7 +368,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   type RelatedRow = {
     id: string
     advertiser_account_id: string | null
-    advertiser_accounts: { slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null } | null
+    advertiser_accounts: { slug: string; business_name: string; neighborhood?: string | null; city_state_zip?: string | null; hero_photo_url?: string | null } | null
   }
   const relatedSeen = new Set<string>()
   const relatedDeduped: RelatedRow[] = []
@@ -403,21 +407,24 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
           of guide-level imagery is scene-setting, not content, and it was
           pushing the actual listing below the fold. */}
       <div className={`${heroImg ? 'h-64 md:h-96' : 'h-44 md:h-64'} w-full relative bg-muted`}>
-        {heroSrc && (
+        {heroSrc ? (
           <Image
             src={heroSrc}
-            alt={heroImg ? acct.business_name : `${guide?.display_name ?? 'Guide'} listings`}
+            alt={acct.business_name}
             fill
             style={{ objectFit: 'cover' }}
             sizes="100vw"
             priority
             unoptimized={shouldSkipNextOptimizer(heroSrc)}
           />
+        ) : (
+          <ListingImagePlaceholder name={acct.business_name} size="lg" />
         )}
-        {/* Heavier scrim over the guide-level photo: it's backdrop, not the
-            subject, and the eyebrow has to stay readable over whatever the
-            guide's hero happens to show. */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-background ${heroImg ? 'via-background/40' : 'via-background/60'} to-transparent`} />
+        {/* Scrim only over a real photo. Over the placeholder it would just
+            grey out an already-muted panel. */}
+        {heroImg && (
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        )}
         {/* Photo-less hero: guide name only. This used to repeat the business
             name in large type, which — with the h1 in the card below and the
             "About {name}" heading under that — put the same words on screen
@@ -496,7 +503,7 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         overlay drops its copy. The logo sits beside it, which is
                         the first place an advertiser looks for their brand. */}
                     <div className="flex items-center gap-4 mb-4">
-                      {acct.logo_url && (
+                      {acct.logo_url ? (
                         <div className="relative h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-xl border border-border bg-white overflow-hidden">
                           <Image
                             src={String(acct.logo_url)}
@@ -510,6 +517,14 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                             className="p-1.5"
                           />
                         </div>
+                      ) : (
+                        // Holds the slot so the logo's place is visible before
+                        // one is uploaded, and so adding a logo later doesn't
+                        // reflow the whole header.
+                        <ListingLogoPlaceholder
+                          name={acct.business_name}
+                          className="h-16 w-16 md:h-20 md:w-20 shrink-0"
+                        />
                       )}
                       <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight min-w-0">
                         {acct.business_name}
@@ -962,8 +977,13 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                     className="bg-card rounded-3xl border border-border/50 overflow-hidden hover:shadow-xl transition-all group block"
                   >
                     <div className="aspect-video overflow-hidden relative">
+                      {/* This rail served a stock photo unconditionally — even
+                          for businesses that HAVE a hero photo, so a real one
+                          was being ignored in favour of a fake one. Now: the
+                          business's own photo, or a monogram. */}
+                      {ra.hero_photo_url ? (
                       <Image
-                        src={getFallbackByContext(guideSlug, ra.slug)}
+                        src={ra.hero_photo_url}
                         alt={ra.business_name}
                         fill
                         style={{ objectFit: 'cover' }}
@@ -971,6 +991,9 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
                         unoptimized
                         className="group-hover:scale-105 transition-transform duration-500"
                       />
+                      ) : (
+                        <ListingImagePlaceholder name={ra.business_name} />
+                      )}
                     </div>
                     <div className="p-6">
                       <h4 className="font-bold text-lg group-hover:text-primary transition-colors mb-1 leading-snug">

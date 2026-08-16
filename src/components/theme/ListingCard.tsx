@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MapPin, Phone, Globe, ChevronRight, Star } from 'lucide-react'
-import { getFallbackByContext } from '@/lib/image-fallbacks'
+import { ListingImagePlaceholder } from '@/components/listings/ListingImagePlaceholder'
 import { ListingBadges } from '@/components/listings/ListingBadges'
 
 export interface ListingData {
@@ -75,8 +75,14 @@ function rootDomain(url: string | null | undefined): string | null {
   } catch { return null }
 }
 
-export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'standard', linkToDetail = true }: Props) {
-  const heroSrc = listing.hero_photo_url || getFallbackByContext(guideContext, listing.slug)
+// guideContext stays in Props (every call site passes it) but is no longer
+// read — it only ever selected which stock photo to fake.
+export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkToDetail = true }: Props) {
+  // Only the business's own photo. A stock fallback put a picture of somebody
+  // else's studio on this card and readers reasonably took it for this one —
+  // and it hid which listings still need a photo, because every card looked
+  // finished. No photo now means a monogram placeholder.
+  const heroSrc = listing.hero_photo_url || null
   const phone   = fmtPhone(listing.office_phone)
   const domain  = rootDomain(listing.website_url)
   const location = listing.neighborhood ?? listing.city_state_zip ?? null
@@ -89,10 +95,14 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
         <div className="h-1 bg-gradient-to-r from-accent via-accent/80 to-accent/50" />
         <div className="flex flex-col md:flex-row">
           <div className="md:w-2/5 relative aspect-video md:aspect-auto min-h-[180px]">
-            <Image
-              src={heroSrc} alt={listing.business_name} fill
-              style={{ objectFit: 'cover' }} unoptimized sizes="(max-width: 768px) 100vw, 40vw"
-            />
+            {heroSrc ? (
+              <Image
+                src={heroSrc} alt={listing.business_name} fill
+                style={{ objectFit: 'cover' }} unoptimized sizes="(max-width: 768px) 100vw, 40vw"
+              />
+            ) : (
+              <ListingImagePlaceholder name={listing.business_name} size="lg" />
+            )}
             <Badge variant="accent" className="absolute top-3 left-3 shadow-sm">
               <Star className="h-3 w-3 mr-1 fill-current" /> Featured Partner
             </Badge>
@@ -224,12 +234,16 @@ export function ListingCard({ listing, guideUrlSlug, guideContext, variant = 'st
       <div className="overflow-hidden rounded-2xl border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col h-full">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted shrink-0">
-          <Image
-            src={heroSrc} alt={listing.business_name} fill
-            style={{ objectFit: 'cover' }}
-            className="group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, 33vw" unoptimized
-          />
+          {heroSrc ? (
+            <Image
+              src={heroSrc} alt={listing.business_name} fill
+              style={{ objectFit: 'cover' }}
+              className="group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 100vw, 33vw" unoptimized
+            />
+          ) : (
+            <ListingImagePlaceholder name={listing.business_name} />
+          )}
         </div>
 
         {/* Content */}
