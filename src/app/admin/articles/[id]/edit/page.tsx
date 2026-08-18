@@ -778,7 +778,6 @@ export default function ArticleEditPage({ params }: Props) {
                 socialFbCaption={socialFbCaption}
                 socialIgCaption={socialIgCaption}
                 socialVoiceTone={socialVoiceTone}
-                autoPostToSocial={autoPostToSocial}
                 autoPostedAt={autoPostedAt}
                 onChangeSocialMode={setSocialMode}
                 onChangeSocialHook={setSocialHook}
@@ -1460,12 +1459,123 @@ const SOCIAL_TONES = [
   { value: 'funny',       label: 'Funny — light, playful' },
 ] as const
 
+/**
+ * Share the prepared copy to Facebook + Instagram, now or at a chosen time.
+ *
+ * The captions and hero image are written up front precisely so that sharing is
+ * one action taken when the team is ready. Before this the only trigger was the
+ * publish transition, which forced two unrelated decisions together and pushed
+ * the post an hour into the future inside GHL — so "share it now" was never
+ * actually available, and nobody could tell from this screen whether anything
+ * had gone out.
+ */
+function ShareNowButton({
+  articleId, autoPostedAt, hasCopy,
+}: {
+  articleId:    string
+  autoPostedAt: string | null
+  hasCopy:      boolean
+}) {
+  const [busy,    setBusy]    = useState(false)
+  const [result,  setResult]  = useState<null | { ok: boolean; error?: string; facebook?: { ok: boolean; error?: string }; instagram?: { ok: boolean; error?: string }; scheduledAt?: string | null }>(null)
+  const [showWhen, setShowWhen] = useState(false)
+  const [when,    setWhen]    = useState('')
+  const alreadyShared = Boolean(autoPostedAt)
+
+  async function share(scheduleAt?: string) {
+    setBusy(true); setResult(null)
+    try {
+      const res = await fetch(`/api/admin/articles/${articleId}/share-social`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ scheduleAt: scheduleAt || undefined, force: alreadyShared }),
+      })
+      setResult(await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` })))
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : 'Share failed' })
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div className="rounded-lg border border-portal-border bg-portal-bg p-3 space-y-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => share()}
+          disabled={busy || !hasCopy}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-bold rounded-lg bg-portal-navy text-white hover:bg-portal-navy/90 disabled:opacity-40"
+        >
+          {busy ? 'Sharing…' : alreadyShared ? 'Share again now' : 'Share now'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowWhen(v => !v)}
+          disabled={busy || !hasCopy}
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-[12px] font-semibold rounded-lg border border-portal-border text-portal-text hover:bg-white disabled:opacity-40"
+        >
+          Schedule instead
+        </button>
+        <span className="text-[11px] text-portal-sub">
+          Posts to Facebook + Instagram with the copy above.
+        </span>
+      </div>
+
+      {showWhen && (
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="datetime-local"
+            value={when}
+            onChange={e => setWhen(e.target.value)}
+            className="border border-portal-border rounded-lg px-2.5 py-1.5 text-[12px] bg-white"
+          />
+          <button
+            type="button"
+            onClick={() => when && share(new Date(when).toISOString())}
+            disabled={busy || !when}
+            className="px-3 py-1.5 text-[12px] font-bold rounded-lg bg-portal-navy text-white disabled:opacity-40"
+          >
+            Schedule
+          </button>
+        </div>
+      )}
+
+      {!hasCopy && (
+        <p className="text-[11px] text-portal-amber font-semibold">
+          Write a hook or per-platform captions above first — there&apos;s nothing to post yet.
+        </p>
+      )}
+
+      {alreadyShared && !result && (
+        <p className="text-[11px] text-portal-sub">
+          Last shared {new Date(autoPostedAt!).toLocaleString()}.
+        </p>
+      )}
+
+      {result && (
+        <div className={`text-[11px] font-semibold ${result.ok ? 'text-portal-green' : 'text-portal-red'}`}>
+          {result.ok ? (
+            <>
+              {result.scheduledAt
+                ? `Scheduled for ${new Date(result.scheduledAt).toLocaleString()}.`
+                : 'Posted.'}{' '}
+              {result.facebook && `Facebook: ${result.facebook.ok ? 'ok' : result.facebook.error}`}
+              {result.instagram && ` · Instagram: ${result.instagram.ok ? 'ok' : result.instagram.error}`}
+            </>
+          ) : (
+            <>{result.error ?? 'Share failed'}</>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function InlineSocialSharingPanel({
   articleId,
   title, excerpt, heroImageUrl,
   socialMode,
   socialHook, socialFbCaption, socialIgCaption, socialVoiceTone,
-  autoPostToSocial, autoPostedAt,
+  autoPostedAt,
   onChangeSocialMode,
   onChangeSocialHook, onChangeSocialFbCaption, onChangeSocialIgCaption, onChangeSocialVoiceTone,
 }: {
@@ -1478,8 +1588,7 @@ function InlineSocialSharingPanel({
   socialFbCaption:          string
   socialIgCaption:          string
   socialVoiceTone:          string
-  /** Whether publishing will actually dispatch these captions. */
-  autoPostToSocial:         boolean
+  /** Last successful share, so the button can offer "share again". */
   autoPostedAt:             string | null
   onChangeSocialMode:       (v: 'hook' | 'per-platform') => void
   onChangeSocialHook:       (v: string) => void
@@ -1694,23 +1803,11 @@ function InlineSocialSharingPanel({
                 captions on save.
               </p>
 
-              {/* Captions written but nothing will send them. This is the state
-                  the Mark Hall article was in: both captions saved, auto-post
-                  off, so publishing posted nothing and pasting the link into
-                  Facebook by hand used the SEO card instead. Neither is wrong,
-                  but nothing on this panel said so. */}
-              {!autoPostToSocial && !autoPostedAt && (socialFbCaption.trim() || socialIgCaption.trim()) && (
-                <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-3 py-2.5">
-                  <p className="text-[11px] text-portal-amber font-bold mb-0.5">
-                    These captions won&apos;t be posted anywhere yet.
-                  </p>
-                  <p className="text-[11px] text-portal-sub leading-relaxed">
-                    They only send when <strong>Auto-post to Facebook + Instagram on publish</strong> is
-                    ticked in the right-hand panel. Pasting the article link into Facebook yourself uses
-                    the SEO title, description and image instead — never these captions.
-                  </p>
-                </div>
-              )}
+              <ShareNowButton
+                articleId={articleId}
+                autoPostedAt={autoPostedAt}
+                hasCopy={Boolean(socialFbCaption.trim() || socialIgCaption.trim() || socialHook.trim())}
+              />
             </div>
           )}
 

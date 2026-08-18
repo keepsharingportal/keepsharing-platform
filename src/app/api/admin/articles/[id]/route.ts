@@ -178,126 +178,24 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     //   - Includes hero image + canonical article link (FB)
     //   - GHL handles the actual dispatch + analytics
     if (!wasPublished && nowPublished && wantAutoPost && !prior?.auto_posted_at) {
+      // Delegates to the same shareArticleToSocial() the manual "Share now"
+      // button calls, so publish-time and on-demand sharing can't drift apart.
+      //
+      // Two behaviours changed here. It used to build the GHL payload inline
+      // and hardcode scheduleDate to +1 hour, so pressing publish posted
+      // nothing for an hour and the only place to see or amend it was GHL —
+      // which defeats the point of writing the captions up front. And it
+      // stamped auto_posted_at even when every platform failed, locking the
+      // article out of a retry. Now: posts immediately, and only stamps on a
+      // real success.
       void (async () => {
         try {
-          const sb2 = supabaseAdmin()
-          // Pull the row we just wrote so the prepared social_hook + FB +
-          // IG captions ride with the GHL push. If the editor wrote
-          // verbatim captions (per-platform mode), those post as-is. If
-          // we're in hook mode, the auto-trigger above will have written
-          // a voice-on hook; we send that as the FB caption and let GHL
-          // copy it to IG.
-          const { data: rowAll } = await sb2
-            .from('guide_articles')
-            .select(`
-              brand_slug, title, slug, column_slug, hero_image_url,
-              social_mode, social_hook, social_fb_caption, social_ig_caption
-            `)
-            .eq('id', id)
-            .maybeSingle()
-          const row = rowAll as null | {
-            brand_slug: string | null
-            title: string
-            slug: string
-            column_slug: string | null
-            hero_image_url: string | null
-            social_mode: 'hook' | 'per-platform' | null
-            social_hook: string | null
-            social_fb_caption: string | null
-            social_ig_caption: string | null
-          }
-          if (!row) return
-          const brand = row.brand_slug ?? 'rrp'
-
-          // Resolve the captions to actually post. per-platform mode wins
-          // when both overrides are present; otherwise fall back to the hook.
-          const mode = row.social_mode ?? 'hook'
-          const fbCaption = (mode === 'per-platform' && row.social_fb_caption?.trim())
-            ? row.social_fb_caption.trim()
-            : (row.social_hook?.trim() || row.title)
-          const igCaption = (mode === 'per-platform' && row.social_ig_caption?.trim())
-            ? row.social_ig_caption.trim()
-            : (row.social_hook?.trim() || row.title)
-
-          // GHL Social Planner push. Connected accounts come from GHL's
-          // OAuth set per brand. Schedule +1 hour so the editor has a
-          // window to amend the captions in GHL before they fire.
-          const { listSocialAccounts, createSocialPost } = await import('@/lib/ghl-social')
-          const { accounts } = await listSocialAccounts(brand)
-          const fbAccount = accounts.find(a => a.platform === 'facebook')
-          const igAccount = accounts.find(a => a.platform === 'instagram')
-          const scheduleDate = new Date(Date.now() + 60 * 60 * 1000).toISOString()
-          const publicHost = brand === 'rrp' ? 'riverregionparents.com'
-                           : brand === 'rr50plus' ? 'riverregion50plus.com'
-                           : brand === 'aop' ? 'auburnopelikaparents.com'
-                           : brand === 'mbp' ? 'mobilebayparents.com'
-                           : brand === 'esp' ? 'easternshoreparents.com'
-                           : 'greaterpensacolaparents.com'
-          const articleLink = row.column_slug
-            ? `https://${publicHost}/columns/${row.column_slug}/${row.slug}`
-            : `https://${publicHost}/articles/${row.slug}`
-
-          const results: Array<{ platform: string; ok: boolean; postId?: string; error?: string }> = []
-          if (fbAccount && fbCaption.trim()) {
-            const r = await createSocialPost({
-              brandSlug:    brand,
-              accountIds:   [fbAccount.id],
-              caption:      fbCaption,
-              imageUrl:     row.hero_image_url,
-              link:         articleLink,
-              scheduleDate,
-            })
-            results.push({ platform: 'facebook', ok: r.ok, postId: r.postId, error: r.error })
-          }
-          if (igAccount && igCaption.trim() && row.hero_image_url) {
-            const r = await createSocialPost({
-              brandSlug:    brand,
-              accountIds:   [igAccount.id],
-              caption:      igCaption,
-              imageUrl:     row.hero_image_url,
-              scheduleDate,
-            })
-            results.push({ platform: 'instagram', ok: r.ok, postId: r.postId, error: r.error })
-          }
-
-          const anyOk = results.some(r => r.ok)
-
-          // Log each posted platform as a social_plan_slot row so the
-          // unified calendar at /admin/social/calendar can show editors
-          // every scheduled GHL post — strategist plans + article auto-
-          // posts + urgent inserts — in one place. plan_id is null
-          // because this isn't part of a weekly strategist plan; urgency
-          // is 'direct' to distinguish from manual urgent inserts.
-          const scheduledAtIso = scheduleDate
-          for (const r of results) {
-            if (!r.ok) continue
-            await sb2.from('social_plan_slot').insert({
-              plan_id:       null,
-              day_of_week:   new Date(scheduledAtIso).getUTCDay(),
-              slot:          'midday',  // label-only; not load-bearing for direct posts
-              scheduled_for: scheduledAtIso,
-              source_kind:   'article',
-              source_id:     id,
-              platforms:     [r.platform],
-              fb_caption:    r.platform === 'facebook'  ? fbCaption : null,
-              ig_caption:    r.platform === 'instagram' ? igCaption : null,
-              image_url:     row.hero_image_url,
-              status:        'dispatched',
-              ghl_post_id:   r.postId ?? null,
-              urgency:       'direct',
-            })
-          }
-
-          // Stamp auto_posted_at so we don't re-push on a republish.
-          // Always stamp, even on partial failure — operator can hand-fix.
-          await sb2.from('guide_articles').update({
-            auto_posted_at: new Date().toISOString(),
-          }).eq('id', id)
-
-          if (!anyOk) console.error('[ghl-auto-push] no platforms posted', results)
-          else        console.info('[ghl-auto-push] pushed', { id, results })
+          const { shareArticleToSocial } = await import('@/lib/social/share-article')
+          const r = await shareArticleToSocial(id)
+          if (r.ok) console.info('[article-share] posted', { id, fb: r.facebook, ig: r.instagram })
+          else      console.error('[article-share] nothing posted', { id, error: r.error })
         } catch (e) {
-          console.error('[ghl-auto-push] failed', e)
+          console.error('[article-share] failed', e)
         }
       })()
     }
