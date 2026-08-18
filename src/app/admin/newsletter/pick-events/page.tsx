@@ -305,7 +305,7 @@ export default async function NewsletterPicksPage({ searchParams }: PageProps) {
             the headline/blurb per pick, then copy the rendered HTML into your email tool.
           </p>
         </div>
-        <Link href="/calendar" target="_blank" rel="noreferrer"
+        <Link href="/admin/go/calendar" target="_blank" rel="noreferrer"
           className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
           View public calendar →
         </Link>

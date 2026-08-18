@@ -43,7 +43,7 @@ export default async function BirthdayClubPage() {
       </div>
 
       <div className="p-6 max-w-6xl space-y-4">
-        <Link href="/birthday-party-guide/sponsor" target="_blank"
+        <Link href="/admin/go/birthday-party-guide/sponsor" target="_blank"
           className="block bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 hover:from-amber-100 hover:to-orange-100">
           <div className="flex items-center gap-3">
             <Building2 size={18} className="text-amber-600 shrink-0" />

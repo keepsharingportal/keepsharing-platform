@@ -62,7 +62,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
             <p className="text-xs text-portal-sub mt-0.5">Bulk-approve incoming spotlights. Selected rows publish immediately.</p>
           </div>
           <Link
-            href="/submit/student-spotlight"
+            href="/admin/go/submit/student-spotlight"
             target="_blank"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
           >
@@ -105,7 +105,7 @@ export default async function SpotlightReviewPage({ searchParams }: PageProps) {
                 : 'Switch tabs above to see other queues.'}
             </p>
             <Link
-              href="/submit/student-spotlight"
+              href="/admin/go/submit/student-spotlight"
               target="_blank"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-portal-navy text-white rounded-full hover:opacity-90 transition-colors"
             >

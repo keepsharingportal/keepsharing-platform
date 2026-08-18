@@ -535,7 +535,7 @@ export default async function SponsorInventoryPage({
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{stats.pct}%</span>
                     </div>
-                    <Link href={`/partners/guide/${guide.slug}`} target="_blank" style={{ fontSize: 11, color: '#6b7280', textDecoration: 'none' }}>
+                    <Link href={`/admin/go/partners/guide/${guide.slug}`} target="_blank" style={{ fontSize: 11, color: '#6b7280', textDecoration: 'none' }}>
                       Public page →
                     </Link>
                   </div>

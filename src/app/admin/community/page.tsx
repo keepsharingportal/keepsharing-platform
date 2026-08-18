@@ -174,7 +174,7 @@ export default async function AdminCommunityPage({
         <div className="ph-actions">
           <Link href="/admin/editorial" className="btn btn-ghost btn-sm">Editorial Pipeline →</Link>
           <Link href="/admin/editorial/approval" className="btn btn-ghost btn-sm">Approval Desk →</Link>
-          <Link href="/submit" target="_blank" className="btn btn-blue btn-sm">Public Gateway ↗</Link>
+          <Link href="/admin/go/submit" target="_blank" className="btn btn-blue btn-sm">Public Gateway ↗</Link>
         </div>
       </div>
 

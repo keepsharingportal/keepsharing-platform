@@ -37,7 +37,7 @@ export default async function PartnerReviewPage({ params }: Props) {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <Link href={`/partners/${slug}`} target="_blank" style={{ padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: '1px solid rgba(0,0,0,0.15)', backgroundColor: 'white', color: '#333', textDecoration: 'none' }}>
+            <Link href={`/admin/go/partners/${slug}`} target="_blank" style={{ padding: '9px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: '1px solid rgba(0,0,0,0.15)', backgroundColor: 'white', color: '#333', textDecoration: 'none' }}>
               Preview page ↗
             </Link>
             <PublishPartnerButton accountId={account.id} slug={slug} currentStatus={account.onboarding_status} />

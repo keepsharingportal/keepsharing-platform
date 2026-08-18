@@ -424,7 +424,7 @@ export default async function OnboardingPage() {
                     {/* Quick links */}
                     <div style={{ display: 'flex', gap: 10, marginTop: 14, paddingTop: 12, borderTop: '1px solid #f3f4f6', flexWrap: 'wrap' }}>
                       {acc.sponsor_guide_slug && (
-                        <Link href={`/partners/guide/${acc.sponsor_guide_slug}`} target="_blank" style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textDecoration: 'none' }}>
+                        <Link href={`/admin/go/partners/guide/${acc.sponsor_guide_slug}`} target="_blank" style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textDecoration: 'none' }}>
                           Guide page →
                         </Link>
                       )}

@@ -119,7 +119,7 @@ export default async function PrintQueuePage() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <a
-                        href={`/articles/${a.slug}/print`}
+                        href={`/admin/go/articles/${a.slug}/print`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-portal-blue hover:text-portal-blue-dk text-xs font-bold inline-flex items-center gap-1"

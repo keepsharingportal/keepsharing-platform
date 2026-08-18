@@ -216,7 +216,7 @@ export default async function CirculationDashboard() {
         <div className="ph-actions">
           <span className="text-muted mono">{monthLabel}</span>
           <Link
-            href={`/distribution/${dbKey}/driver`}
+            href={`/admin/go/distribution/${dbKey}/driver`}
             target="_blank"
             className="btn btn-ghost btn-sm"
           >

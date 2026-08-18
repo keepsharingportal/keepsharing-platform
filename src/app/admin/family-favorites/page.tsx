@@ -171,7 +171,7 @@ export default async function FamilyFavoritesAdminPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Link href="/family-favorites" target="_blank" style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '7px 14px', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: 6 }}>
+            <Link href="/admin/go/family-favorites" target="_blank" style={{ fontSize: 12, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '7px 14px', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: 6 }}>
               Public page →
             </Link>
             {!season && (
@@ -194,7 +194,7 @@ export default async function FamilyFavoritesAdminPage() {
               <button style={{ fontSize: 13, fontWeight: 700, color: '#fff', padding: '11px 24px', backgroundColor: '#b8860b', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
                 Create {new Date().getFullYear() + 1} Season
               </button>
-              <Link href="/family-favorites" target="_blank" style={{ fontSize: 13, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '11px 24px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 8 }}>
+              <Link href="/admin/go/family-favorites" target="_blank" style={{ fontSize: 13, fontWeight: 600, color: '#374151', textDecoration: 'none', padding: '11px 24px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 8 }}>
                 Preview public page →
               </Link>
             </div>

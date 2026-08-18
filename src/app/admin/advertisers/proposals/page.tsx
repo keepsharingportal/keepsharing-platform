@@ -429,7 +429,7 @@ export default async function ProposalsPage({
                               <span style={{ fontSize: 16 }}>{guide.emoji}</span>
                               <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{guide.name}</p>
                             </div>
-                            <Link href={`/partners/guide/${guide.slug}`} target="_blank" style={{ fontSize: 11, color: '#6b7280', textDecoration: 'none' }}>
+                            <Link href={`/admin/go/partners/guide/${guide.slug}`} target="_blank" style={{ fontSize: 11, color: '#6b7280', textDecoration: 'none' }}>
                               View page →
                             </Link>
                           </div>

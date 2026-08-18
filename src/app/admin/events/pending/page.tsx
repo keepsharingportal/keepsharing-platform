@@ -86,7 +86,7 @@ export default async function PendingEventsPage() {
         </h1>
         <p className="text-sm text-portal-sub mt-0.5">
           Events submitted by the community via{' '}
-          <Link href="/calendar/submit" className="text-portal-blue hover:underline">/calendar/submit</Link>.
+          <Link href="/admin/go/calendar/submit" className="text-portal-blue hover:underline">/calendar/submit</Link>.
           Approve to publish, or reject with reason.
         </p>
       </div>

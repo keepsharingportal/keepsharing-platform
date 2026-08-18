@@ -52,14 +52,14 @@ export default async function BirthdayAdminHub() {
         </Link>
         <h1 className="text-[18px] font-bold text-portal-text">🎂 The Big Birthday Bash</h1>
         <p className="text-[12px] text-portal-sub mt-1">
-          Manage every editor-touchable block on the <Link href="/birthday-party-guide" target="_blank" className="text-portal-blue hover:underline">public Birthday Bash page</Link>.
+          Manage every editor-touchable block on the <Link href="/admin/go/birthday-party-guide" target="_blank" className="text-portal-blue hover:underline">public Birthday Bash page</Link>.
         </p>
       </div>
 
       <div className="p-6 max-w-5xl space-y-4">
 
         {/* Sales tool pointer */}
-        <Link href="/birthday-party-guide/sponsor" target="_blank"
+        <Link href="/admin/go/birthday-party-guide/sponsor" target="_blank"
           className="block bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 hover:from-amber-100 hover:to-orange-100 transition-colors">
           <div className="flex items-center gap-3">
             <Star size={20} className="text-amber-600 shrink-0" />

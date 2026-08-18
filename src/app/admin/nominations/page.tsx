@@ -107,7 +107,7 @@ export default function NominationsPage() {
             </span>
           )}
         </div>
-        <Link href={`/nominate/${activeType}`} target="_blank"
+        <Link href={`/admin/go/nominate/${activeType}`} target="_blank"
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg transition-colors">
           <ExternalLink size={13} /> Nomination Form
         </Link>

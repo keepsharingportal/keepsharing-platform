@@ -28,7 +28,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           <p className="text-sm text-portal-sub">Status: <strong>{p.status}</strong> · {p.viewed_count ?? 0} views · Created {new Date(p.created_at).toLocaleDateString()}</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href={`/proposal/${p.token_slug}`} target="_blank" className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg">
+          <Link href={`/admin/go/proposal/${p.token_slug}`} target="_blank" className="px-4 py-2 text-sm font-semibold border border-portal-border-2 rounded-lg text-portal-text hover:bg-portal-bg">
             View Public Page ↗
           </Link>
         </div>

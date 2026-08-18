@@ -210,7 +210,7 @@ export default async function GamesAdminPage() {
             {weekLabel} · {weekEntries.length} entries this week.
           </p>
         </div>
-        <Link href="/games" target="_blank" rel="noreferrer"
+        <Link href="/admin/go/games" target="_blank" rel="noreferrer"
           className="text-sm font-semibold text-portal-text bg-white border border-portal-border rounded-lg px-3 py-2 hover:bg-portal-bg">
           View public Games page →
         </Link>

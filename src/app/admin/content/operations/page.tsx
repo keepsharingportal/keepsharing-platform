@@ -404,7 +404,7 @@ export default async function ContentOperationsPage() {
                         <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ fontSize: 16 }}>{row.guide.emoji}</span>
-                            <Link href={`/partners/guide/${row.guide.slug}`} target="_blank" style={{ fontSize: 13, fontWeight: 600, color: '#374151', textDecoration: 'none' }}>
+                            <Link href={`/admin/go/partners/guide/${row.guide.slug}`} target="_blank" style={{ fontSize: 13, fontWeight: 600, color: '#374151', textDecoration: 'none' }}>
                               {row.guide.shortName}
                             </Link>
                           </div>

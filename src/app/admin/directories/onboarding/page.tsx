@@ -133,7 +133,7 @@ export default async function OnboardingQueuePage({ searchParams }: Props) {
                         Open wizard
                       </Link>
                       {r.slug && (
-                        <a href={`/birthday-party-guide/listings/${r.slug}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`/admin/go/birthday-party-guide/listings/${r.slug}`} target="_blank" rel="noopener noreferrer"
                           className="text-portal-sub hover:text-portal-blue text-[10px] font-bold inline-flex items-center gap-0.5">
                           Live <ExternalLink size={9} />
                         </a>

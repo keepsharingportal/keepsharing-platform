@@ -77,7 +77,7 @@ export default async function InquiriesPage() {
             <p className="text-xs text-portal-muted mt-1">
               When a family submits the &quot;Request Info&quot; form on any listing page, it appears here.
             </p>
-            <Link href="/family-resource-guide" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-portal-blue hover:underline">
+            <Link href="/admin/go/family-resource-guide" className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-portal-blue hover:underline">
               View public guide <ExternalLink size={11} />
             </Link>
           </div>

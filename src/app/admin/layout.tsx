@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { MfaNudgeBanner } from '@/components/admin/MfaNudgeBanner'
 import { getAdminContext } from '@/lib/admin/auth'
+import { AdminBrandProvider } from '@/components/admin/PublicLink'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { dmMono, dmSans } from '@/lib/fonts'
@@ -148,7 +149,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className="flex-1 flex flex-col overflow-hidden bg-portal-bg font-[family-name:var(--font-dm-sans)] text-portal-text">
         <AdminHeader />
         <MfaNudgeBanner />
-        {children}
+        {/* Carries the selected brand to client components so any link to a
+            reader-facing page can be absolutised onto that brand's own domain.
+            app.keepsharing.com serves no public routes — they 307 to login. */}
+        <AdminBrandProvider activeMarket={ctx?.activeMarket ?? null}>
+          {children}
+        </AdminBrandProvider>
       </main>
     </div>
   )

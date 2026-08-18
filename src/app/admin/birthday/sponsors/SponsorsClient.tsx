@@ -113,7 +113,7 @@ export function SponsorsClient({ initial }: { initial: Advertiser[] }) {
                       className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-portal-blue hover:bg-portal-bg rounded">
                       <Edit2 size={11} /> Edit profile
                     </button>
-                    <a href={`/birthday-party-guide/business/${r.slug}`} target="_blank" rel="noopener noreferrer"
+                    <a href={`/admin/go/birthday-party-guide/business/${r.slug}`} target="_blank" rel="noopener noreferrer"
                       className="text-portal-sub hover:text-portal-text"><ExternalLink size={11} /></a>
                   </td>
                 </tr>

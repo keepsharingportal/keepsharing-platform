@@ -628,7 +628,7 @@ export default function PartnerOpsPage() {
             <Link href="/admin/advertisers/pipeline" style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>Pipeline</Link>
             <Link href="/admin/advertisers/segments" style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>Segments</Link>
             <Link href="/admin/proposals" style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>Proposals</Link>
-            <Link href="/partners" style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>Public Partner Page →</Link>
+            <Link href="/admin/go/partners" style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>Public Partner Page →</Link>
           </div>
         </div>
 

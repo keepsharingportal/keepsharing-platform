@@ -60,7 +60,7 @@ export default async function BloggersAdminPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/mom-knows-best"
+            href="/admin/go/mom-knows-best"
             target="_blank"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-portal-border bg-white rounded-lg hover:bg-portal-bg text-portal-text"
           >
@@ -73,7 +73,7 @@ export default async function BloggersAdminPage() {
       <SectionHelp variant="info" title="Self-service login">
         Each blogger card shows whether she has portal access. Open a profile,
         add her email, and click <strong>Send Login Link</strong> — she&apos;ll get a
-        magic link that signs her into the <Link href="/blogger-portal" className="text-portal-blue hover:underline">Blogger Portal</Link> so she
+        magic link that signs her into the <Link href="/admin/go/blogger-portal" className="text-portal-blue hover:underline">Blogger Portal</Link> so she
         can write posts herself.
       </SectionHelp>
 

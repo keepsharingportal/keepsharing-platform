@@ -813,7 +813,7 @@ function EventRowItem({
                 <div className="absolute right-0 mt-1 z-20 w-44 bg-white border border-portal-border rounded-lg shadow py-1 text-xs">
                   {ev.slug && (
                     <a
-                      href={`/calendar/events/${ev.slug}`}
+                      href={`/admin/go/calendar/events/${ev.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setMenuOpen(false)}

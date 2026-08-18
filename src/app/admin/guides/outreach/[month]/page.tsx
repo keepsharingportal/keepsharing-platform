@@ -178,7 +178,7 @@ export default function GuidePage() {
                         </button>
                       )}
                       {listing.updateToken && (
-                        <a href={`/update/${listing.updateToken}`} target="_blank"
+                        <a href={`/admin/go/update/${listing.updateToken}`} target="_blank"
                           className="p-1.5 rounded text-portal-muted hover:text-portal-sub hover:bg-portal-row-hover transition-colors">
                           <ExternalLink size={13} />
                         </a>

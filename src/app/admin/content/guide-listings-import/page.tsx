@@ -752,7 +752,7 @@ export default function GuideListingsImportPage() {
               <button onClick={reset} className="px-4 py-2 text-sm text-portal-sub border border-portal-border-2 rounded-lg hover:bg-portal-bg">
                 Import another guide CSV
               </button>
-              <a href="/family-resource-guide" target="_blank" rel="noopener noreferrer"
+              <a href="/admin/go/family-resource-guide" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-border-2 rounded-lg hover:bg-portal-blue-lt">
                 <ExternalLink size={14} />
                 View {guideLabel}

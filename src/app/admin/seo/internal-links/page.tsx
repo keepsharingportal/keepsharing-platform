@@ -95,11 +95,11 @@ export default async function InternalLinksPage() {
                 return (
                   <div key={r.id} className="bg-white border border-portal-border rounded-lg p-3.5">
                     <div className="flex items-center gap-2 mb-2 text-[12px]">
-                      <Link href={`/columns/${src.column_slug}/${src.slug}`} target="_blank" className="text-portal-blue font-bold">
+                      <Link href={`/admin/go/columns/${src.column_slug}/${src.slug}`} target="_blank" className="text-portal-blue font-bold">
                         {src.title}
                       </Link>
                       <ArrowRight size={12} className="text-portal-sub" />
-                      <Link href={`/columns/${tgt.column_slug}/${tgt.slug}`} target="_blank" className="text-portal-blue font-bold">
+                      <Link href={`/admin/go/columns/${tgt.column_slug}/${tgt.slug}`} target="_blank" className="text-portal-blue font-bold">
                         {tgt.title}
                       </Link>
                       <span className="text-portal-sub text-[11px] ml-auto">

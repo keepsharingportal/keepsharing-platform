@@ -126,7 +126,7 @@ export default async function AdvertiserLayout({ children, params }: Props) {
             <div className="flex items-center gap-2 shrink-0">
               {slug && (
                 <Link
-                  href={`/partners/${slug}`}
+                  href={`/admin/go/partners/${slug}`}
                   target="_blank"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-portal-text bg-white border border-portal-border rounded-lg hover:bg-portal-bg"
                 >

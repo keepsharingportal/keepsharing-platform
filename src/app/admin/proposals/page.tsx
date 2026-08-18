@@ -80,7 +80,7 @@ export default async function ProposalsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Link href={`/admin/proposals/${p.id}`} className="text-xs text-portal-blue hover:text-portal-blue font-medium">Edit</Link>
-                          <Link href={`/proposal/${p.token_slug}`} target="_blank" className="text-xs text-portal-muted hover:text-portal-sub">View ↗</Link>
+                          <Link href={`/admin/go/proposal/${p.token_slug}`} target="_blank" className="text-xs text-portal-muted hover:text-portal-sub">View ↗</Link>
                         </div>
                       </td>
                     </tr>

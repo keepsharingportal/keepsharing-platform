@@ -71,7 +71,7 @@ export default async function OnboardingTab({ params, searchParams }: Props) {
             </p>
           </div>
           {advertiser.slug && (
-            <a href={`/${guideSlug === 'birthday-party' ? 'birthday-party-guide' : guideSlug + '-guide'}/listings/${advertiser.slug}`}
+            <a href={`/admin/go/${guideSlug === 'birthday-party' ? 'birthday-party-guide' : guideSlug + '-guide'}/listings/${advertiser.slug}`}
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-[12px] font-bold text-portal-blue hover:underline">
               <ExternalLink size={12} /> View live listing

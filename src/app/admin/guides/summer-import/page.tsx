@@ -403,7 +403,7 @@ export default function SummerGuideImportPage() {
             >
               Import another file
             </button>
-            <a href="/summer-fun-guide" target="_blank" rel="noopener noreferrer"
+            <a href="/admin/go/summer-fun-guide" target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-4 py-2 text-sm text-portal-blue border border-portal-blue/30 rounded-lg hover:bg-portal-blue/10 transition-colors">
               <FileText size={14} />
               View Summer Fun Guide
