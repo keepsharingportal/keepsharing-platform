@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { editorialStatusInfo, columnLabel, guideLabel } from '@/lib/content-taxonomy'
 import { articleHref } from '@/lib/articles/slug'
-import { marketShort } from '@/lib/markets'
+import { marketShort, publicUrl } from '@/lib/markets'
 
 export type SortKey = 'newest' | 'oldest' | 'views' | 'title'
 
@@ -403,15 +403,22 @@ export function ArticleBulkActionsTable({
                   >
                     Edit
                   </Link>
+                  {/* Absolute, on the article's OWN brand domain. A relative
+                      href resolved against app.keepsharing.com, which hosts the
+                      admin for every brand and serves none of these public
+                      routes — so "view live" 404'd. Keyed off the row's
+                      brand_slug rather than the switcher, so a syndicated
+                      article opens on the brand that published it. */}
                   {a.published && (
-                    <Link
-                      href={articleHref(a)}
+                    <a
+                      href={publicUrl(articleHref(a), a.brand_slug ?? 'rrp')}
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="p-1.5 text-portal-muted hover:text-portal-text rounded-lg hover:bg-portal-row-hover transition-colors"
                       title="View live article"
                     >
                       <Eye size={13} />
-                    </Link>
+                    </a>
                   )}
                 </div>
               </div>

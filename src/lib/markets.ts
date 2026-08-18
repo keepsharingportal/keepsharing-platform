@@ -78,22 +78,39 @@ export function marketDisplayName(slug: string): string {
   return MARKETS.find(m => m.slug === slug)?.displayName ?? slug
 }
 
-/** Absolute URL for a market's public pickup-location map. Uses the
- *  brand's publicHost so links open on the reader-facing domain instead
- *  of app.keepsharing.com (where the proxy rewrites /distribution to
- *  /admin/distribution and 404s). */
-export function publicMapUrl(slug: string): string {
-  const host = MARKETS.find(m => m.slug === slug)?.publicHost
-  if (!host) return `/distribution/${slug}/map`
-  return `https://${host}/distribution/${slug}/map`
+/**
+ * Absolute URL for a public page on a specific brand's own domain.
+ *
+ * THE RULE: any link from the admin to a reader-facing page must go through
+ * this. The admin is served from app.keepsharing.com, which hosts every brand,
+ * so a relative href like "/columns/play-ball/mark-hall" resolves to
+ * app.keepsharing.com/columns/... — a 404, because that path only exists on
+ * the brand domains. Selecting "River Region Parents" in the switcher changes
+ * which content you see; it cannot change how the browser resolves a relative
+ * URL.
+ *
+ * This was already being solved one link at a time — publicMapUrl and
+ * publicRequestUrl below are the same fix written twice — while 30-odd other
+ * admin links still point at the admin host. One helper, so the next brand
+ * that comes online works without anyone remembering this.
+ *
+ * Unknown or all-brands slug returns the path unchanged, which is the current
+ * behaviour rather than a fabricated host.
+ */
+export function publicUrl(path: string, slug: string | null | undefined): string {
+  const clean = path.startsWith('/') ? path : `/${path}`
+  const host  = slug ? MARKETS.find(m => m.slug === slug)?.publicHost : undefined
+  return host ? `https://${host}${clean}` : clean
 }
 
-/** Absolute URL for a market's public pickup-request form. Same
- *  rationale as publicMapUrl — the admin host proxies away /distribution. */
+/** Absolute URL for a market's public pickup-location map. */
+export function publicMapUrl(slug: string): string {
+  return publicUrl(`/distribution/${slug}/map`, slug)
+}
+
+/** Absolute URL for a market's public pickup-request form. */
 export function publicRequestUrl(slug: string): string {
-  const host = MARKETS.find(m => m.slug === slug)?.publicHost
-  if (!host) return `/distribution/${slug}/request`
-  return `https://${host}/distribution/${slug}/request`
+  return publicUrl(`/distribution/${slug}/request`, slug)
 }
 
 export function marketShort(slug: string): string {
