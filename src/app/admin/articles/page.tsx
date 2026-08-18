@@ -4,6 +4,9 @@ import { Plus, Trash2 } from 'lucide-react'
 import { ArticleBulkActionsTable, type SortKey } from './ArticleBulkActionsTable'
 import { ArticleFilterBar, type FilterOption } from './ArticleFilterBar'
 import { COLUMNS, SCHOOL_ZONE_COLUMN_SLUGS } from '@/lib/content-taxonomy'
+import { getAdminContext } from '@/lib/admin/auth'
+import { articleBrandFilter } from '@/lib/brand-context'
+import { ALL_MARKETS_SLUG } from '@/lib/markets'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Articles — Admin' }
@@ -102,6 +105,8 @@ async function fetchArticles(opts: {
   month:   string
   sort:    SortKey
   page:    number
+  /** Active brand from the switcher, or ALL_MARKETS_SLUG for every brand. */
+  brand:   string
 }) {
   const supabase = supabaseAdmin()
 
@@ -116,6 +121,18 @@ async function fetchArticles(opts: {
     .select('id, title, slug, published, editorial_review_status, import_status, column_slug, guide_slug, hero_image_url, published_at, source_issue_month, view_count, author_name, brand_slug, syndicated_to_brands', { count: 'exact' })
   if (hasTrashColumn) {
     query = query.is('deleted_at', null)  // trashed articles only show in /admin/articles/trash
+  }
+
+  // Brand. The switcher in the sidebar had no effect on this list — selecting
+  // River Region 50+ still showed all 94 RRP articles, because the query never
+  // looked at brand_slug even though it selects it. articleBrandFilter has
+  // existed for this since the syndication work, complete with a usage example
+  // in its docblock; nothing here called it.
+  //
+  // Includes articles syndicated INTO the brand, not just ones it authored —
+  // a cross-published piece belongs in both brands' lists.
+  if (opts.brand && opts.brand !== ALL_MARKETS_SLUG) {
+    query = query.or(articleBrandFilter(opts.brand))
   }
 
   // Search
@@ -200,7 +217,12 @@ export default async function ArticlesAdminPage({ searchParams }: PageProps) {
   const sort    = (VALID_SORTS.has(raw.sort ?? '') ? raw.sort! : 'newest') as SortKey
   const page    = Math.max(1, Number(raw.page) || 1)
 
-  const { rows, total } = await fetchArticles({ q, status, section, month, sort, page })
+  // The switcher's current selection. Super/admin roles can be in the
+  // all-brands view, in which case nothing is filtered out.
+  const ctx = await getAdminContext()
+  const brand = ctx?.activeMarket ?? ALL_MARKETS_SLUG
+
+  const { rows, total } = await fetchArticles({ q, status, section, month, sort, page, brand })
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const statusOptions  = STATUS_OPTIONS
