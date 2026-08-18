@@ -42,7 +42,13 @@ export interface MarketDef {
 }
 
 export const MARKETS: MarketDef[] = [
-  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'riverregionparents.com',     regionLabel: 'River Region',     serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
+  // www, not apex: riverregionparents.com 308-redirects to www in Vercel, so
+  // declaring the apex made every canonical, og:url, og:image, sitemap entry
+  // and generated share link point at a URL that immediately redirects. RRP is
+  // the only brand configured this way — the other four serve on the apex, and
+  // their entries below are correct as-is. If RRP's Vercel domain is ever
+  // flipped to apex-primary to match them, change this back.
+  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'www.riverregionparents.com', regionLabel: 'River Region',     serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
   // Fifty-plus brands. River Region 50+ was previously slugged 'boom' (the
   // "BOOM" brand) — migration 169 renames it and all user data references.
   // Future markets follow the same xx50plus pattern (mb50plus, es50plus,
