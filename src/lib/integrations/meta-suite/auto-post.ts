@@ -33,10 +33,16 @@ export async function autoPostArticle(articleId: string, brandSlug: string = 'rr
     // 1. Load the article.
     const { data: artData } = await db
       .from('guide_articles')
-      .select('id, title, subtitle, excerpt, slug, hero_image_url, column_slug, auto_post_to_social, auto_posted_at')
+      .select('id, title, subtitle, excerpt, slug, hero_image_url, column_slug, auto_post_to_social, auto_posted_at, social_mode, social_hook, social_fb_caption, social_ig_caption')
       .eq('id', articleId)
       .maybeSingle()
-    const article = artData as null | (ArticleSnapshot & { auto_post_to_social: boolean; auto_posted_at: string | null })
+    const article = artData as null | (ArticleSnapshot & {
+      auto_post_to_social: boolean; auto_posted_at: string | null
+      social_mode: 'hook' | 'per-platform' | null
+      social_hook: string | null
+      social_fb_caption: string | null
+      social_ig_caption: string | null
+    })
     if (!article) return { ok: false, error: 'Article not found' }
     if (!article.auto_post_to_social) return { ok: false, error: 'auto_post_to_social not enabled' }
     if (article.auto_posted_at) return { ok: false, error: 'Already auto-posted' }
@@ -66,18 +72,48 @@ export async function autoPostArticle(articleId: string, brandSlug: string = 'rr
       `Article URL: ${link}`,
     ].filter(Boolean).join('\n')
 
-    const captionResp = await runAI({
-      taskKind: 'caption',
-      caller:   'auto-post.article-published',
-      systemPrompt: `You write Facebook + Instagram captions for hyperlocal media.\n\n${brandFragment}\n\nWrite a caption that hooks in the first line, surfaces the most interesting angle of the article (not just the title), and ends with one sentence + the article link. Keep it 2-3 short paragraphs. Light emoji use only when it fits.`,
-      messages: [{ role: 'user', content: hint }],
-      maxTokens: 350,
-    })
-    const caption = captionResp.text.trim()
+    // The editor's own copy wins over anything we'd generate.
+    //
+    // This path used to run the AI unconditionally, so an article where
+    // someone had written per-platform captions — which the editor UI promises
+    // "post verbatim — no AI rewriting" — got a machine-written caption
+    // instead. The article PATCH route already honoured them; this one didn't,
+    // and it's the route the community-submission publish flow calls, so the
+    // two publish paths disagreed about whose words go out.
+    //
+    // Facebook and Instagram get their own caption when both are written,
+    // because they're different audiences and that's the whole point of the
+    // per-platform mode.
+    const mode = article.social_mode ?? 'hook'
+    const written = {
+      fb: mode === 'per-platform' ? article.social_fb_caption?.trim() : null,
+      ig: mode === 'per-platform' ? article.social_ig_caption?.trim() : null,
+    }
+    const hook = article.social_hook?.trim() || null
+
+    let generated: string | null = null
+    if (!written.fb || !written.ig) {
+      // Only spend an AI call when something still needs copy.
+      if (hook) {
+        generated = hook
+      } else {
+        const captionResp = await runAI({
+          taskKind: 'caption',
+          caller:   'auto-post.article-published',
+          systemPrompt: `You write Facebook + Instagram captions for hyperlocal media.\n\n${brandFragment}\n\nWrite a caption that hooks in the first line, surfaces the most interesting angle of the article (not just the title), and ends with one sentence + the article link. Keep it 2-3 short paragraphs. Light emoji use only when it fits.`,
+          messages: [{ role: 'user', content: hint }],
+          maxTokens: 350,
+        })
+        generated = captionResp.text.trim()
+      }
+    }
+
+    const fbCaption = written.fb || generated || article.title
+    const igCaption = written.ig || generated || article.title
 
     // 4. Post to Facebook.
     const fbResult = await createPagePost(page.fb_page_id, page.page_access_token, {
-      message:  caption,
+      message:  fbCaption,
       link,
       mediaUrl: article.hero_image_url ?? undefined,
     })
@@ -87,7 +123,7 @@ export async function autoPostArticle(articleId: string, brandSlug: string = 'rr
     if (page.ig_business_id && article.hero_image_url) {
       try {
         const ig = await createInstagramPost(page.ig_business_id, page.page_access_token, {
-          message:  caption,
+          message:  igCaption,
           mediaUrl: article.hero_image_url,
         })
         igMediaId = ig.id
@@ -101,7 +137,7 @@ export async function autoPostArticle(articleId: string, brandSlug: string = 'rr
     await db.from('facebook_page_posts').insert({
       page_id:           page.id,
       fb_post_id:        fbResult.id,
-      message:           caption,
+      message:           fbCaption,
       link,
       media_url:         article.hero_image_url ?? null,
       also_to_instagram: !!igMediaId,

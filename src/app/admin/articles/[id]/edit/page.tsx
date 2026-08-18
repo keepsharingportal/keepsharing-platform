@@ -778,6 +778,8 @@ export default function ArticleEditPage({ params }: Props) {
                 socialFbCaption={socialFbCaption}
                 socialIgCaption={socialIgCaption}
                 socialVoiceTone={socialVoiceTone}
+                autoPostToSocial={autoPostToSocial}
+                autoPostedAt={autoPostedAt}
                 onChangeSocialMode={setSocialMode}
                 onChangeSocialHook={setSocialHook}
                 onChangeSocialFbCaption={setSocialFbCaption}
@@ -1463,6 +1465,7 @@ function InlineSocialSharingPanel({
   title, excerpt, heroImageUrl,
   socialMode,
   socialHook, socialFbCaption, socialIgCaption, socialVoiceTone,
+  autoPostToSocial, autoPostedAt,
   onChangeSocialMode,
   onChangeSocialHook, onChangeSocialFbCaption, onChangeSocialIgCaption, onChangeSocialVoiceTone,
 }: {
@@ -1475,6 +1478,9 @@ function InlineSocialSharingPanel({
   socialFbCaption:          string
   socialIgCaption:          string
   socialVoiceTone:          string
+  /** Whether publishing will actually dispatch these captions. */
+  autoPostToSocial:         boolean
+  autoPostedAt:             string | null
   onChangeSocialMode:       (v: 'hook' | 'per-platform') => void
   onChangeSocialHook:       (v: string) => void
   onChangeSocialFbCaption:  (v: string) => void
@@ -1687,6 +1693,24 @@ function InlineSocialSharingPanel({
                 control. The hook field is hidden in this mode. Switching back to Hook mode clears both
                 captions on save.
               </p>
+
+              {/* Captions written but nothing will send them. This is the state
+                  the Mark Hall article was in: both captions saved, auto-post
+                  off, so publishing posted nothing and pasting the link into
+                  Facebook by hand used the SEO card instead. Neither is wrong,
+                  but nothing on this panel said so. */}
+              {!autoPostToSocial && !autoPostedAt && (socialFbCaption.trim() || socialIgCaption.trim()) && (
+                <div className="rounded-lg border border-portal-amber/40 bg-portal-amber-lt px-3 py-2.5">
+                  <p className="text-[11px] text-portal-amber font-bold mb-0.5">
+                    These captions won&apos;t be posted anywhere yet.
+                  </p>
+                  <p className="text-[11px] text-portal-sub leading-relaxed">
+                    They only send when <strong>Auto-post to Facebook + Instagram on publish</strong> is
+                    ticked in the right-hand panel. Pasting the article link into Facebook yourself uses
+                    the SEO title, description and image instead — never these captions.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
