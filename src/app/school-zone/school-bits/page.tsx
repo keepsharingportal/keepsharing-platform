@@ -5,6 +5,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { permanentRedirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
@@ -37,6 +38,25 @@ interface PageParams {
 // Default fallback uses the latest published bit's hero as the OG image so
 // the generic /school-zone/school-bits link always shares a "living" card,
 // not a static placeholder.
+/**
+ * Old ?focus=<uuid> links point at a bit's own page now.
+ *
+ * Those URLs are already out in texts, Facebook comments and school
+ * newsletters, so they have to keep working — and a redirect is better than
+ * leaving them on the feed, because the reader arrived wanting one specific
+ * bit. Permanent, so anything that has indexed the ugly URL consolidates onto
+ * the readable one.
+ */
+async function slugForFocusId(focusId: string): Promise<string | null> {
+  const { data } = await supabaseAdmin()
+    .from('school_bits')
+    .select('slug')
+    .eq('id', focusId)
+    .in('status', ['approved', 'published'])
+    .maybeSingle()
+  return (data as { slug: string | null } | null)?.slug ?? null
+}
+
 export async function generateMetadata({ searchParams }: PageParams): Promise<Metadata> {
   const params  = await searchParams
   const focusId = typeof params.focus  === 'string' ? params.focus  : null
@@ -242,10 +262,18 @@ export interface InlineAd {
 }
 
 export default async function SchoolBitsPage(_props: PageParams) {
-  // searchParams are read at the metadata level for OG cards; the browser
-  // (client component) reads them itself via useSearchParams so we can
-  // skip passing them through here.
-  void _props
+  // ?focus=<uuid> was how a single bit used to be shared. Send those to the
+  // bit's own page — the reader clicked one specific item, and landing them on
+  // the whole feed makes them hunt for it again. Falls through to the feed when
+  // the id is unknown or the bit has no slug yet, rather than 404ing a link
+  // someone has already sent.
+  const sp = await _props.searchParams
+  const focusParam = typeof sp.focus === 'string' ? sp.focus : null
+  if (focusParam) {
+    const slug = await slugForFocusId(focusParam)
+    if (slug) permanentRedirect(`/school-zone/school-bits/${slug}`)
+  }
+
   const supabase = supabaseAdmin()
   const probe = await supabase.from('school_bits').select('id').limit(1)
   if (probe.error) {
