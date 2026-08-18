@@ -98,12 +98,30 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
     : null
   const imageAlt = input.imageAlt ?? `${resolvedTitle} — ${brandName}`
 
+  // Social scrapers get a JPEG at exactly the size we declare, via /api/og-image.
+  //
+  // Two problems this solves. Our pipeline outputs WebP, and Facebook's WebP
+  // handling for og:image is unreliable — it's a known cause of the small
+  // side-thumbnail card rather than the full-width one. And the width/height
+  // below were hardcoded 1200×630 on every page regardless of the real file
+  // (the Play Ball hero is 1600×900), so a scraper that measures the image
+  // found it disagreeing with the declaration and fell back to the small
+  // layout. Routing through the converter makes the declared numbers true.
+  //
+  // Only for images we can actually convert — an off-site URL an editor pasted
+  // is passed through untouched rather than 403'd by the converter.
+  const canConvert = (u: string) =>
+    /(^https?:\/\/[^/]*\.supabase\.co\/)|(^https?:\/\/([^/]*\.)?riverregionparents\.com\/)/i.test(u)
+  const socialImage = imageAbsolute && canConvert(imageAbsolute)
+    ? `${origin}/api/og-image?src=${encodeURIComponent(imageAbsolute)}`
+    : imageAbsolute
+
   // Twitter inherits OG unless explicitly overridden.
   const twitterTitle = override?.twitterTitle?.trim()       || resolvedTitle
   const twitterDesc  = override?.twitterDescription?.trim() || resolvedDescription
   const twitterImg   = override?.twitterImageUrl?.trim()
     ? (override.twitterImageUrl.startsWith('http') ? override.twitterImageUrl : absoluteUrl(override.twitterImageUrl, origin))
-    : imageAbsolute
+    : socialImage
   const twitterCard  = override?.twitterCardType ?? 'summary_large_image'
 
   const md: Metadata = {
@@ -121,12 +139,16 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
       title:       resolvedTitle,
       description: resolvedDescription,
       locale:      'en_US',
-      ...(imageAbsolute && {
+      ...(socialImage && {
         images: [{
-          url:    imageAbsolute,
+          url:    socialImage,
           alt:    imageAlt,
+          // True now: /api/og-image produces exactly this. When the source is
+          // off-site and passed through unconverted these are a best guess, as
+          // they always were.
           width:  1200,
           height: 630,
+          type:   'image/jpeg',
         }],
       }),
       ...(input.type === 'article' && {
