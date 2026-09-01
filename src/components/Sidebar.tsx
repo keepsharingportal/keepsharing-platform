@@ -248,6 +248,9 @@ const NAV: NavItem[] = [
       { name: 'Route Order',       href: '/admin/circulation/route-order'                },
       { name: 'Users',             href: '/admin/circulation/drivers'                    },
       { name: 'Deliveries',        href: '/admin/circulation/deliveries', badgeKey: 'pending_deliveries' },
+      // Sits next to Deliveries because it reads the same monthly cycle, but
+      // ranked across every route so drop quantities can be rebalanced.
+      { name: 'Leftovers',         href: '/admin/circulation/leftovers'                  },
       { name: 'Changes',           href: '/admin/circulation/changes',    badgeKey: 'pending_changes'    },
       { name: 'Route Suggestions', href: '/admin/circulation/route-suggestions', badgeKey: 'pending_route_suggestions' },
       { name: 'Publications',      href: '/admin/circulation/publications'               },
