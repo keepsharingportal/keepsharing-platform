@@ -172,8 +172,13 @@ export function HeroImageUpload({
       return
     }
     if (isSupabaseUrl(u)) {
+      // Already ours, so nothing to re-optimize — but the saved original no
+      // longer corresponds to this image. Clearing it matters: leaving the old
+      // path in place meant a re-crop would silently crop the PREVIOUS photo.
+      // Re-crop still works, because the server falls back to the served image.
       onChange(u)
       setOptimized(true)
+      if (isRecropContext(context) && onOrigPathChange) onOrigPathChange(null)
       return
     }
     setOptimizing(true)
@@ -213,10 +218,6 @@ export function HeroImageUpload({
       setError(`Save the ${recropTarget(context, '').noun} first — re-crop needs a saved record.`)
       return
     }
-    if (!origPath) {
-      setError('Re-crop needs a saved original — re-upload a fresh image first.')
-      return
-    }
     const target = recropTarget(context, articleId)
     const urlKey = target.key
     setRecropBusy(gravity)
@@ -244,7 +245,10 @@ export function HeroImageUpload({
     }
   }
 
-  const canRecrop = isRecropContext(context) && !!articleId && !!origPath
+  // Re-crop no longer requires a saved original: the server falls back to the
+  // currently-served image, which is 1600px and ample for these crops. It only
+  // needs a saved record to act on and an image to act with.
+  const canRecrop = isRecropContext(context) && !!articleId && !!value
 
   return (
     <div className="space-y-2">
@@ -322,9 +326,14 @@ export function HeroImageUpload({
           hint={
             !articleId
               ? `Save the ${recropTarget(context, '').noun} once to enable re-crop.`
-              : !origPath
-                ? `Upload a fresh image to enable re-crop (pasted URLs and older ${context === 'article-profile' ? 'profile photos' : 'heroes'} have no saved original).`
-                : null
+              : !value
+                ? 'Add an image to enable re-crop.'
+                : !origPath
+                  // Works, just from the served image rather than the untouched
+                  // upload. Worth saying so — the result is marginally softer,
+                  // and re-uploading restores full quality.
+                  ? 'Re-cropping from the current image (no full-size original saved). Re-upload for best quality.'
+                  : null
           }
         />
       )}

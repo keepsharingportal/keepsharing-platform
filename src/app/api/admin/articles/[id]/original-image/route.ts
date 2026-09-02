@@ -43,19 +43,32 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const supabase = supabaseAdmin()
     const { data: article, error: lookupErr } = await supabase
       .from('guide_articles')
-      .select(column)
+      .select(`${column}, ${type === 'hero' ? 'hero_image_url' : 'profile_image_url'}`)
       .eq('id', id)
       .maybeSingle()
 
     if (lookupErr) return NextResponse.json({ error: lookupErr.message }, { status: 500 })
 
-    const origPath = (article as Record<string, string | null> | null)?.[column]
-    if (!origPath) return NextResponse.json({ error: `No saved original (${type})` }, { status: 404 })
+    // Falls back to the served image when there is no saved original, so the
+    // zoom-and-adjust modal still opens. Same reasoning as the recrop routes —
+    // see lib/images/crop-source. Without this the modal showed a broken image
+    // for any article predating the original-saving feature.
+    const row      = article as Record<string, string | null> | null
+    const origPath = row?.[column]
+    const fallback = row?.[type === 'hero' ? 'hero_image_url' : 'profile_image_url']
 
-    const dl = await supabase.storage.from(bucket).download(origPath)
-    if (dl.error || !dl.data) {
-      return NextResponse.json({ error: dl.error?.message ?? 'Download failed' }, { status: 500 })
+    let bytes: Blob | null = null
+    if (origPath) {
+      const orig = await supabase.storage.from(bucket).download(origPath)
+      if (!orig.error && orig.data) bytes = orig.data
     }
+    if (!bytes) {
+      if (!fallback) return NextResponse.json({ error: `No image to crop (${type})` }, { status: 404 })
+      const res = await fetch(fallback, { headers: { Accept: 'image/*' } })
+      if (!res.ok) return NextResponse.json({ error: `Could not read image (HTTP ${res.status})` }, { status: 502 })
+      bytes = await res.blob()
+    }
+    const dl = { data: bytes }
 
     // Stream the bytes back. Browser caches in-tab for the cropper session.
     // Cache-Control: private — never let a CDN tier hold onto it.

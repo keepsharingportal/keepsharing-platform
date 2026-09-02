@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import sharp from 'sharp'
+import { loadCropSource } from '@/lib/images/crop-source'
 
 const BUCKET            = 'article-media'
 const BUCKET_HERO_ORIG  = 'article-hero-orig'
@@ -71,24 +72,32 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     // re-crop isn't possible.
     const { data: article, error: lookupErr } = await supabase
       .from('guide_articles')
-      .select('hero_image_orig_path, slug, column_slug')
+      .select('hero_image_orig_path, hero_image_url, slug, column_slug')
       .eq('id', id)
       .maybeSingle()
 
     if (lookupErr) {
       return NextResponse.json({ error: lookupErr.message }, { status: 500 })
     }
-    const origPath = article?.hero_image_orig_path as string | null | undefined
-    if (!origPath) {
-      return NextResponse.json({ error: 'No saved original for this hero — upload a fresh image first.' }, { status: 400 })
+    // Prefer the untouched upload; fall back to the currently-served image
+    // when there isn't one. Refusing was the wrong trade: the served variant
+    // is 1600px on the long edge, comfortably above the 1600x900 this
+    // produces, so the crop is marginally softer at worst — and 11 articles
+    // predate the original-saving feature entirely, with more added every time
+    // someone pastes a URL that is already in our storage.
+    let buffer: Buffer, sourceKind: 'original' | 'derived'
+    try {
+      const src = await loadCropSource({
+        supabase,
+        origBucket:  BUCKET_HERO_ORIG,
+        origPath:    article?.hero_image_orig_path as string | null | undefined,
+        fallbackUrl: article?.hero_image_url as string | null | undefined,
+      })
+      buffer = src.buffer
+      sourceKind = src.from
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : 'Could not read the image' }, { status: 400 })
     }
-
-    // Download the original from the private bucket.
-    const dl = await supabase.storage.from(BUCKET_HERO_ORIG).download(origPath)
-    if (dl.error || !dl.data) {
-      return NextResponse.json({ error: `Could not read original: ${dl.error?.message ?? 'unknown'}` }, { status: 500 })
-    }
-    const buffer = Buffer.from(await dl.data.arrayBuffer())
 
     // Re-process. Same shape + quality as the original article-hero pipeline.
     // Region path: extract a user-drawn 16:9 rect, then resize to 1600×900.
@@ -172,7 +181,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ hero_image_url, mode: hasRegion ? 'region' : 'gravity' })
+    return NextResponse.json({ hero_image_url, mode: hasRegion ? 'region' : 'gravity', source: sourceKind })
   } catch (e) {
     console.error('[POST recrop-hero] error:', e)
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })

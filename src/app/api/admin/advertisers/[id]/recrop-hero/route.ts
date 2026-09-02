@@ -20,6 +20,7 @@ import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import sharp from 'sharp'
 import { requireAdmin } from '@/lib/admin/auth'
+import { loadCropSource } from '@/lib/images/crop-source'
 
 const BUCKET             = 'article-media'        // public — shared media bucket
 const BUCKET_LISTING_ORIG = 'listing-hero-orig'   // private — saved originals
@@ -75,27 +76,29 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const { data: acct, error: lookupErr } = await supabase
       .from('advertiser_accounts')
-      .select('hero_photo_orig_path, slug')
+      .select('hero_photo_orig_path, hero_photo_url, slug')
       .eq('id', id)
       .maybeSingle()
 
     if (lookupErr) return NextResponse.json({ error: lookupErr.message }, { status: 500 })
 
-    const origPath = acct?.hero_photo_orig_path as string | null | undefined
-    if (!origPath) {
-      // Heroes pasted in as a URL, or uploaded before migration 227, have no
-      // saved original — there is nothing loss-free to re-crop from.
-      return NextResponse.json(
-        { error: 'No saved original for this hero — upload a fresh image first.' },
-        { status: 400 },
-      )
+    // Untouched upload when we have one, the served image otherwise. Heroes
+    // pasted in as a URL and anything predating migration 227 have no saved
+    // original, and refusing to crop those left the editor with a dead button
+    // and no way forward. See lib/images/crop-source.
+    let buffer: Buffer, sourceKind: 'original' | 'derived'
+    try {
+      const src = await loadCropSource({
+        supabase,
+        origBucket:  BUCKET_LISTING_ORIG,
+        origPath:    acct?.hero_photo_orig_path as string | null | undefined,
+        fallbackUrl: acct?.hero_photo_url as string | null | undefined,
+      })
+      buffer = src.buffer
+      sourceKind = src.from
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : 'Could not read the image' }, { status: 400 })
     }
-
-    const dl = await supabase.storage.from(BUCKET_LISTING_ORIG).download(origPath)
-    if (dl.error || !dl.data) {
-      return NextResponse.json({ error: `Could not read original: ${dl.error?.message ?? 'unknown'}` }, { status: 500 })
-    }
-    const buffer = Buffer.from(await dl.data.arrayBuffer())
 
     let cardOut: Buffer
     if (hasRegion) {
@@ -174,7 +177,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       if (acct?.slug) revalidatePath(`/${urlSlug}/listings/${acct.slug}`)
     }
 
-    return NextResponse.json({ hero_photo_url, mode: hasRegion ? 'region' : 'gravity', revalidated: urlSlugs })
+    return NextResponse.json({ hero_photo_url, mode: hasRegion ? 'region' : 'gravity', source: sourceKind, revalidated: urlSlugs })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     console.error('[advertisers/recrop-hero] failed:', message)

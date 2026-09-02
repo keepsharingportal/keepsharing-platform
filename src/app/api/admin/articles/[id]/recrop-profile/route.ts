@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import sharp from 'sharp'
+import { loadCropSource } from '@/lib/images/crop-source'
 
 const BUCKET              = 'article-media'
 const BUCKET_PROFILE_ORIG = 'article-profile-orig'
@@ -68,23 +69,30 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const supabase = supabaseAdmin()
     const { data: article, error: lookupErr } = await supabase
       .from('guide_articles')
-      .select('profile_image_orig_path, slug, column_slug')
+      .select('profile_image_orig_path, profile_image_url, slug, column_slug')
       .eq('id', id)
       .maybeSingle()
 
     if (lookupErr) {
       return NextResponse.json({ error: lookupErr.message }, { status: 500 })
     }
-    const origPath = article?.profile_image_orig_path as string | null | undefined
-    if (!origPath) {
-      return NextResponse.json({ error: 'No saved original for this profile image — upload a fresh image first.' }, { status: 400 })
+    // Untouched upload when we have one, the served image otherwise. See
+    // lib/images/crop-source — refusing to crop left editors stuck on any
+    // article predating the feature, or any image set by pasting a URL that
+    // was already in our storage.
+    let buffer: Buffer, sourceKind: 'original' | 'derived'
+    try {
+      const src = await loadCropSource({
+        supabase,
+        origBucket:  BUCKET_PROFILE_ORIG,
+        origPath:    article?.profile_image_orig_path as string | null | undefined,
+        fallbackUrl: article?.profile_image_url as string | null | undefined,
+      })
+      buffer = src.buffer
+      sourceKind = src.from
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : 'Could not read the image' }, { status: 400 })
     }
-
-    const dl = await supabase.storage.from(BUCKET_PROFILE_ORIG).download(origPath)
-    if (dl.error || !dl.data) {
-      return NextResponse.json({ error: `Could not read original: ${dl.error?.message ?? 'unknown'}` }, { status: 500 })
-    }
-    const buffer = Buffer.from(await dl.data.arrayBuffer())
 
     // Two crop paths:
     //  Region: user drew a precise square — extract it, then resize to 800×800.
@@ -169,7 +177,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    return NextResponse.json({ profile_image_url, mode: hasRegion ? 'region' : 'gravity' })
+    return NextResponse.json({ profile_image_url, mode: hasRegion ? 'region' : 'gravity', source: sourceKind })
   } catch (e) {
     console.error('[POST recrop-profile] error:', e)
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
