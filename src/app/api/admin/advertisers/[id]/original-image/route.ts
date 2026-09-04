@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/admin/auth'
+import { isAllowedImageHost } from '@/lib/images/crop-source'
 
 const BUCKET_LISTING_ORIG = 'listing-hero-orig'
 
@@ -25,7 +26,7 @@ function supabaseAdmin() {
 
 interface RouteParams { params: Promise<{ id: string }> }
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: RouteParams) {
   await requireAdmin()
   try {
     const { id } = await params
@@ -34,14 +35,31 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     const supabase = supabaseAdmin()
     const { data: acct, error: lookupErr } = await supabase
       .from('advertiser_accounts')
-      .select('hero_photo_orig_path')
+      .select('hero_photo_orig_path, hero_photo_url')
       .eq('id', id)
       .maybeSingle()
 
     if (lookupErr) return NextResponse.json({ error: lookupErr.message }, { status: 500 })
 
-    const origPath = acct?.hero_photo_orig_path as string | null | undefined
-    if (!origPath) return NextResponse.json({ error: 'No saved original for this hero' }, { status: 404 })
+    // Same three-way source as the article version: the saved original, then
+    // whatever the editor has picked but not saved yet, then the served image.
+    // Cropping has to work on the image in front of them, not only on one the
+    // row already knows about.
+    const clientOrigPath = req.nextUrl.searchParams.get('origPath')
+    const clientSrc      = req.nextUrl.searchParams.get('src')
+    const origPath = (acct?.hero_photo_orig_path as string | null | undefined) ?? clientOrigPath
+
+    if (!origPath) {
+      const url = [clientSrc, acct?.hero_photo_url as string | null | undefined]
+        .find(u => u && isAllowedImageHost(u))
+      if (!url) return NextResponse.json({ error: 'No image to crop' }, { status: 404 })
+      const res = await fetch(url, { headers: { Accept: 'image/*' } })
+      if (!res.ok) return NextResponse.json({ error: `Could not read image (HTTP ${res.status})` }, { status: 502 })
+      return new NextResponse(await res.blob(), {
+        status: 200,
+        headers: { 'Content-Type': res.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'private, max-age=300' },
+      })
+    }
 
     const dl = await supabase.storage.from(BUCKET_LISTING_ORIG).download(origPath)
     if (dl.error || !dl.data) {

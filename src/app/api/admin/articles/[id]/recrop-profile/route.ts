@@ -57,6 +57,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     const body   = await req.json().catch(() => ({}))
     const region = body?.region as { x?: number; y?: number; size?: number } | undefined
+    // The editor may have picked an image that is not saved to the row yet.
+    // Without these, cropping is impossible until you save — which is exactly
+    // when you want to crop. Host-allowlisted inside loadCropSource.
+    const clientSrc      = typeof body?.src === 'string' ? body.src : null
+    const clientOrigPath = typeof body?.origPath === 'string' ? body.origPath : null
     const gravity = body?.gravity as string | undefined
 
     // Either region OR gravity must be present — and only one. Region wins
@@ -87,6 +92,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         origBucket:  BUCKET_PROFILE_ORIG,
         origPath:    article?.profile_image_orig_path as string | null | undefined,
         fallbackUrl: article?.profile_image_url as string | null | undefined,
+        clientOrigPath,
+        clientSrc,
       })
       buffer = src.buffer
       sourceKind = src.from

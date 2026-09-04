@@ -226,7 +226,7 @@ export function HeroImageUpload({
       const res  = await fetch(target.url, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ gravity }),
+        body:    JSON.stringify({ gravity, src: value || undefined, origPath: origPath ?? undefined }),
       })
       const json = await res.json().catch(() => ({}))
       const newUrl = json?.[urlKey] as string | undefined
@@ -343,6 +343,8 @@ export function HeroImageUpload({
           articleId={articleId}
           type={context === 'article-profile' ? 'profile' : 'hero'}
           entity={context === 'listing-hero' ? 'advertiser' : 'article'}
+          srcUrl={value}
+          origPath={origPath}
           onApply={(newUrl) => {
             onChange(newUrl)
             setUrlDraft(newUrl)

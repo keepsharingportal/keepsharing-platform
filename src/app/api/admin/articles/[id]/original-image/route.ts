@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { isAllowedImageHost } from '@/lib/images/crop-source'
 
 const BUCKET_HERO_ORIG    = 'article-hero-orig'
 const BUCKET_PROFILE_ORIG = 'article-profile-orig'
@@ -57,14 +58,23 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const origPath = row?.[column]
     const fallback = row?.[type === 'hero' ? 'hero_image_url' : 'profile_image_url']
 
+    // The editor may be cropping an image they just picked but have not saved,
+    // in which case the row still holds NULL and only the client knows the
+    // source. That is the common case — you choose a photo, then immediately
+    // want to frame it. Host-allowlisted, since this runs as service role.
+    const clientOrigPath = req.nextUrl.searchParams.get('origPath')
+    const clientSrc      = req.nextUrl.searchParams.get('src')
+
     let bytes: Blob | null = null
-    if (origPath) {
-      const orig = await supabase.storage.from(bucket).download(origPath)
+    for (const p of [origPath, clientOrigPath]) {
+      if (!p || bytes) continue
+      const orig = await supabase.storage.from(bucket).download(p)
       if (!orig.error && orig.data) bytes = orig.data
     }
     if (!bytes) {
-      if (!fallback) return NextResponse.json({ error: `No image to crop (${type})` }, { status: 404 })
-      const res = await fetch(fallback, { headers: { Accept: 'image/*' } })
+      const url = [clientSrc, fallback].find(u => u && isAllowedImageHost(u))
+      if (!url) return NextResponse.json({ error: `No image to crop (${type})` }, { status: 404 })
+      const res = await fetch(url, { headers: { Accept: 'image/*' } })
       if (!res.ok) return NextResponse.json({ error: `Could not read image (HTTP ${res.status})` }, { status: 502 })
       bytes = await res.blob()
     }

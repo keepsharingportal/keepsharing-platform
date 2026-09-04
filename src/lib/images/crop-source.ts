@@ -1,22 +1,26 @@
 // Where a re-crop reads its pixels from.
 //
-// The ideal source is the untouched upload kept in a private bucket, saved at
-// upload time precisely so a re-crop can re-frame without compounding loss.
-// But plenty of images have no such original:
+// Four candidates, best first:
 //
-//   * The 11 articles created 11-25 May 2026, before the feature existed.
-//   * Anything set by pasting a URL that was already in our own storage —
-//     that path short-circuits and never establishes an original.
-//   * Any upload where the private-bucket write failed; the public URL is
-//     still returned, deliberately, so a storage hiccup doesn't lose the image.
+//   1. origPath recorded on the row — the untouched upload in a private
+//      bucket, saved precisely so a re-crop can re-frame without compounding
+//      loss.
+//   2. origPath supplied by the client — the editor has uploaded an image in
+//      this session but has NOT saved the record yet, so the path exists only
+//      in form state. Without this, cropping is impossible until you save,
+//      which is exactly when an editor wants to crop.
+//   3. src supplied by the client — same situation, but the image was pasted
+//      as a URL rather than uploaded, so there is no original at all.
+//   4. The URL stored on the row — for images predating the original-saving
+//      feature, or where the private-bucket write failed.
 //
-// Refusing to crop those is the wrong trade. The served variant is already
-// 1600px on the long edge, which is more than a 1200x630 hero or an 800x800
-// profile needs — so a crop from it is very slightly softer than one from the
-// original, and enormously better than telling an editor the button doesn't
-// work for their article.
+// Refusing when there is no saved original was the wrong trade. The served
+// variant is 1600px on the long edge, comfortably above the 1600x900 hero and
+// 800x800 profile these produce, so cropping from it is marginally softer at
+// worst and enormously better than a dead button.
 //
-// Callers get told which source was used so the response can say so.
+// Client-supplied values are host-allowlisted: this runs with the service role,
+// so an unchecked URL would make it an SSRF proxy.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -26,34 +30,60 @@ export interface CropSource {
   from:   'original' | 'derived'
 }
 
+/** Our own storage and site only. */
+export function isAllowedImageHost(url: string): boolean {
+  try {
+    const h = new URL(url).hostname.toLowerCase()
+    return h.endsWith('.supabase.co') || h.endsWith('.supabase.in')
+        || h === 'riverregionparents.com' || h.endsWith('.riverregionparents.com')
+  } catch { return false }
+}
+
+async function download(supabase: SupabaseClient, bucket: string, path: string): Promise<Buffer | null> {
+  const dl = await supabase.storage.from(bucket).download(path)
+  if (dl.error || !dl.data) {
+    console.warn('[crop-source] could not read %s/%s: %s', bucket, path, dl.error?.message ?? 'no data')
+    return null
+  }
+  return Buffer.from(await dl.data.arrayBuffer())
+}
+
+async function fetchImage(url: string): Promise<Buffer> {
+  const res = await fetch(url, { headers: { Accept: 'image/*' }, signal: AbortSignal.timeout(15_000) })
+  if (!res.ok) throw new Error(`Could not read the image (HTTP ${res.status}).`)
+  return Buffer.from(await res.arrayBuffer())
+}
+
 export async function loadCropSource(args: {
   supabase:    SupabaseClient
   origBucket:  string
+  /** Path recorded on the row. */
   origPath:    string | null | undefined
-  /** Public URL of the currently-served image, used when there is no original. */
+  /** Public URL recorded on the row. */
   fallbackUrl: string | null | undefined
+  /** Path from unsaved editor state — image uploaded but record not saved. */
+  clientOrigPath?: string | null
+  /** URL from unsaved editor state. */
+  clientSrc?:      string | null
 }): Promise<CropSource> {
-  const { supabase, origBucket, origPath, fallbackUrl } = args
+  const { supabase, origBucket, origPath, fallbackUrl, clientOrigPath, clientSrc } = args
 
-  if (origPath) {
-    const dl = await supabase.storage.from(origBucket).download(origPath)
-    if (!dl.error && dl.data) {
-      return { buffer: Buffer.from(await dl.data.arrayBuffer()), from: 'original' }
+  for (const p of [origPath, clientOrigPath]) {
+    if (!p) continue
+    const buf = await download(supabase, origBucket, p)
+    if (buf) return { buffer: buf, from: 'original' }
+  }
+
+  // Unsaved paste beats the stored URL: it is the image the editor is looking
+  // at, which is the one they mean to crop.
+  for (const u of [clientSrc, fallbackUrl]) {
+    if (!u) continue
+    if (!isAllowedImageHost(u)) {
+      console.warn('[crop-source] refusing off-site image host: %s', u.slice(0, 120))
+      continue
     }
-    // Recorded but unreadable — bucket renamed, object pruned. Fall through
-    // rather than failing, since the served image is still croppable.
-    console.warn('[crop-source] original recorded but unreadable (%s/%s): %s',
-      origBucket, origPath, dl.error?.message ?? 'no data')
+    return { buffer: await fetchImage(u), from: 'derived' }
   }
 
-  if (!fallbackUrl) {
-    throw new Error('No image to crop — upload one first.')
-  }
-
-  const res = await fetch(fallbackUrl, {
-    headers: { Accept: 'image/*' },
-    signal:  AbortSignal.timeout(15_000),
-  })
-  if (!res.ok) throw new Error(`Could not read the current image (HTTP ${res.status}).`)
-  return { buffer: Buffer.from(await res.arrayBuffer()), from: 'derived' }
+  throw new Error('No image to crop — add an image first, then save.')
 }

@@ -34,6 +34,13 @@ interface Props {
    * the entity has to be explicit rather than inferred from `type`.
    */
   entity?:      'article' | 'advertiser'
+  /**
+   * The image the editor currently has selected, which may not be saved to
+   * the row yet. Without it the modal asks the server for an image the server
+   * has never heard of and shows 'Could not load the saved original'.
+   */
+  srcUrl?:      string | null
+  origPath?:    string | null
   /** Called with the new public URL on success so the parent can update its preview + form. */
   onApply:      (newUrl: string) => void
   onClose:      () => void
@@ -48,7 +55,7 @@ interface Box {
 
 const ASPECT = { hero: 16 / 9, profile: 1 } as const
 
-export function ArticleCropModal({ articleId, type, entity = 'article', onApply, onClose }: Props) {
+export function ArticleCropModal({ articleId, type, entity = 'article', srcUrl, origPath, onApply, onClose }: Props) {
   // Base path for both the source-image GET and the re-crop POST.
   const apiBase = entity === 'advertiser'
     ? `/api/admin/advertisers/${articleId}`
@@ -58,7 +65,11 @@ export function ArticleCropModal({ articleId, type, entity = 'article', onApply,
 
   // Source image — fetched from the private bucket via our admin endpoint.
   // `?t=` cache-busts when the modal reopens after a save.
-  const imageUrl = `${apiBase}/original-image?type=${type}`
+  // Tell the server what we're looking at, so an unsaved pick still loads.
+  const sourceQs = new URLSearchParams({ type })
+  if (srcUrl)   sourceQs.set('src', srcUrl)
+  if (origPath) sourceQs.set('origPath', origPath)
+  const imageUrl = `${apiBase}/original-image?${sourceQs.toString()}`
 
   const [imageReady, setImageReady] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
@@ -167,7 +178,7 @@ export function ArticleCropModal({ articleId, type, entity = 'article', onApply,
       const res  = await fetch(`${apiBase}/${endpoint}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ region }),
+        body:    JSON.stringify({ region, src: srcUrl ?? undefined, origPath: origPath ?? undefined }),
       })
       const json   = await res.json().catch(() => ({}))
       const newUrl = json?.[urlKey] as string | undefined
