@@ -23,6 +23,7 @@ import { ListingImagePlaceholder, ListingLogoPlaceholder } from '@/components/li
 import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { schemaForGuide } from '@/lib/guides/schemas'
+import { guideIsLive } from '@/lib/guides/live'
 import type { Metadata } from 'next'
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -36,16 +37,31 @@ function getSupabase() {
 
 // ── Metadata helper ───────────────────────────────────────────────────────────
 
-export async function generateListingMetadata(listingSlug: string): Promise<Metadata> {
-  const { data } = await getSupabase()
+export async function generateListingMetadata(listingSlug: string, urlSlug?: string): Promise<Metadata> {
+  const supabase = getSupabase()
+  const { data } = await supabase
     .from('advertiser_accounts')
     .select('business_name, detail_lead')
     .eq('slug', listingSlug)
     .single()
   if (!data) return { title: 'Listing Not Found' }
+
+  // Pass urlSlug and a listing under a not-yet-live seasonal guide is noindexed,
+  // so a preview link can't seed search results before the hub opens.
+  let live = true
+  if (urlSlug) {
+    const { data: guide } = await supabase.from('guide_types').select('*').eq('url_slug', urlSlug).maybeSingle()
+    if (guide) {
+      const { data: cfg } = await supabase
+        .from('guide_configs').select('is_active').eq('guide_type_slug', guide.slug).maybeSingle()
+      live = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, cfg)
+    }
+  }
+
   return {
     title:       `${data.business_name} | River Region Parents`,
     description: data.detail_lead ?? undefined,
+    ...(live ? {} : { robots: { index: false, follow: false } }),
   }
 }
 
@@ -65,6 +81,7 @@ const GUIDE_FIELD_LABELS: Record<string, Record<string, string>> = {
   'birthday-party': { capacity: 'Capacity', ages: 'Ages', price_range: 'Price Range', includes: 'Includes' },
   'afterschool':    { ages: 'Ages', hours: 'Hours', pickup_schools: 'Pickup From', programs: 'Programs' },
   'special-needs':  { ages: 'Ages Served', specialty: 'Specialty', services: 'Services', insurance: 'Insurance' },
+  'fall-festivities': { dates: 'Dates', cost: 'Admission', ages: 'Best For Ages', hours: 'Hours' },
 }
 
 // No gradient fallback map any more. Colour washes behind the hero fought the
@@ -86,6 +103,7 @@ const GUIDE_URL_MAP: Record<string, { displayName: string; urlSlug: string }> = 
   'birthday-party':  { displayName: 'Birthday Party Guide',     urlSlug: 'birthday-party-guide' },
   'afterschool':     { displayName: 'After-School Guide',       urlSlug: 'afterschool-guide' },
   'special-needs':   { displayName: 'Special Needs Guide',      urlSlug: 'special-needs-guide' },
+  'fall-festivities':{ displayName: 'Fall Festivities Guide',    urlSlug: 'fall-festivities-halloween-fun-guide' },
 }
 
 // Tiers that count as featured — a detail page, the big card, the badge.
@@ -111,11 +129,13 @@ interface Props {
   // Set false when the parent layout already renders Navigation + PublicFooter.
   // Prevents double-navigation on guide listing pages (e.g. /family-resource-guide/listings/*).
   includeShell?: boolean
+  /** Render a listing under a guide that isn't live yet, for pre-launch review. */
+  preview?: boolean
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = true }: Props) {
+export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = true, preview = false }: Props) {
   const supabase = getSupabase()
 
   // Step 1 — advertiser account (needed for all other queries)
@@ -132,9 +152,28 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   // so we cannot derive it with a string operation — we must query the table.
   const { data: guide } = await supabase
     .from('guide_types')
-    .select('slug, display_name, url_slug, hero_image_url')
+    // select('*') rather than naming columns: live_from / live_until only
+    // exist once migration 230 is applied, and PostgREST fails the whole query
+    // on an unknown column name.
+    .select('*')
     .eq('url_slug', urlSlug)
     .single()
+
+  // A listing is only as public as the guide it sits in. Without this, every
+  // one of the ~92 fall listings would be reachable (and indexable) by direct
+  // URL in September while the hub itself 404s.
+  let isPreviewingUnlaunched = false
+  if (guide) {
+    const { data: guideConfig } = await supabase
+      .from('guide_configs')
+      .select('is_active')
+      .eq('guide_type_slug', guide.slug)
+      .maybeSingle()
+    if (!guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)) {
+      if (!preview) notFound()
+      isPreviewingUnlaunched = true
+    }
+  }
 
   // The guide_listings table uses guide_types.slug (internal), not url_slug.
   const guideSlug = guide?.slug ?? urlSlug.replace(/-guide$/, '')
@@ -399,6 +438,16 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   return (
     <div className="min-h-screen bg-background font-sans">
       {includeShell && <Navigation />}
+
+      {/* Same banner the guide hub shows, so a reviewer proofing a listing
+          through ?preview=1 can't mistake it for a live page. */}
+      {isPreviewingUnlaunched && (
+        <div className="bg-amber-100 border-b-2 border-amber-400 text-amber-900">
+          <div className="container py-2.5 text-sm font-semibold text-center">
+            Preview — {guide?.display_name ?? 'this guide'} is not public yet.
+          </div>
+        </div>
+      )}
 
       {/* Breadcrumb trail — Home > [Guide Name] [> Category] > [Listing].
           Always renders regardless of includeShell, since the trail is

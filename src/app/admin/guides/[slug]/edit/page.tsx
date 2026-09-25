@@ -31,7 +31,10 @@ export default async function GuideEditPage({ params }: Props) {
   // does the same lookup, so all the writes still resolve correctly.
   const { data: guide } = await supabase
     .from('guide_types')
-    .select('slug, url_slug, display_name, short_description, pitch, editorial_intro, hero_image_url, publishes_annually')
+    // select('*') rather than a column list: live_from / live_until only exist
+    // once migration 230 is applied, and PostgREST fails the whole query on an
+    // unknown column name — which would 404 every guide's editor.
+    .select('*')
     .or(`slug.eq.${slug},url_slug.eq.${slug}`)
     .maybeSingle()
 
@@ -114,6 +117,10 @@ export default async function GuideEditPage({ params }: Props) {
           primary_cta_url:    config?.primary_cta_url    ?? '',
           is_active:          config?.is_active          ?? true,
           featured_month:     (config as { featured_month?: number | null } | null)?.featured_month ?? null,
+          // Seasonal window lives on guide_types. Reads back undefined until
+          // migration 230 is applied, which the '' default handles as evergreen.
+          live_from:          (guide as { live_from?: string | null }).live_from   ?? '',
+          live_until:         (guide as { live_until?: string | null }).live_until ?? '',
         }}
       />
 

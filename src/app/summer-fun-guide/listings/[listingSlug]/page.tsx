@@ -9,7 +9,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { listingSlug } = await params
-  return generateListingMetadata(listingSlug)
+  return generateListingMetadata(listingSlug, 'summer-fun-guide')
 }
 
 export default async function SummerFunGuideListingPage({ params }: Props) {

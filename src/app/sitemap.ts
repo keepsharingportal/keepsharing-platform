@@ -17,6 +17,7 @@ import type { MetadataRoute } from 'next'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createClient } from '@supabase/supabase-js'
+import { guideIsLive } from '@/lib/guides/live'
 import { loadBrandContext } from '@/lib/brand-context'
 import { GAMES } from '@/lib/games/types'
 import { authorNameToSlug } from '@/lib/seo/author-slug'
@@ -51,6 +52,7 @@ const PRIVATE_PREFIXES = [
   '/summer-fun-guide/',
   '/private-school-guide/listings/',
   '/special-needs-guide/listings/',
+  '/fall-festivities-halloween-fun-guide/listings/',
   '/newcomer-guide/articles/',
   '/newcomer-guide/listings/',
   '/local-guides/',
@@ -257,9 +259,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
+  // ── Seasonal guides that aren't live ──────────────────────────────
+  // Auto-discovery finds /fall-festivities-halloween-fun-guide the moment the
+  // route file exists, but the hub 404s until 1 Oct. Submitting a 404 is worse
+  // than omitting the URL — Search Console flags it and the page can be slower
+  // to index once it IS real. Same gate the page itself uses.
+  const [{ data: allGuides }, { data: guideConfigs }] = await Promise.all([
+    supabase.from('guide_types').select('*').not('url_slug', 'is', null),
+    supabase.from('guide_configs').select('guide_type_slug, is_active'),
+  ])
+  const cfgBySlug: Record<string, { is_active?: boolean | null }> =
+    Object.fromEntries((guideConfigs ?? []).map(c => [c.guide_type_slug, c]))
+  const darkGuidePrefixes = (allGuides ?? [])
+    .filter(g => !guideIsLive(g, cfgBySlug[g.slug] ?? null))
+    .map(g => `${origin}/${g.url_slug}`)
+  const isDark = (u: string) =>
+    darkGuidePrefixes.some(p => u === p || u.startsWith(`${p}/`))
+
   return [
-    ...hubs,
-    ...autoHubs,        // anything new added under src/app, auto-discovered
+    ...hubs.filter(h => !isDark(h.url)),
+    ...autoHubs.filter(h => !isDark(h.url)),   // anything new added under src/app, auto-discovered
     ...games,
     ...articleEntries,
     ...eventEntries,

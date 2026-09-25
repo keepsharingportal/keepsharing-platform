@@ -21,6 +21,9 @@ function supabaseAdmin() {
 // Fields editable on guide_types
 const TYPE_FIELDS = new Set([
   'display_name', 'pitch', 'editorial_intro', 'short_description', 'hero_image_url',
+  // Seasonal window (migration 230). Blank clears it, which makes the guide
+  // evergreen again — the '' -> null coercion below already handles that.
+  'live_from', 'live_until',
 ])
 
 // Fields editable on guide_configs

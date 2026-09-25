@@ -18,6 +18,7 @@ import {
   Music, Palette, Trophy, Dumbbell, BookOpen, Users, Waves, Bike,
   Drama, Sparkles, Target, Heart, Baby, GraduationCap, Stethoscope,
   Tent, PartyPopper, School, HandHeart, Shield, ArrowRight,
+  Ghost, Candy, Leaf, Tractor, Moon, Flame, Church, Popcorn,
 } from 'lucide-react'
 
 interface Identity { Icon: React.ElementType; gradient: string }
@@ -30,6 +31,7 @@ const CURATED: Array<[string, Identity]> = [
   ['gymnastic',   { Icon: Sparkles,    gradient: 'from-pink-500/85 via-rose-500/75 to-rose-700/70' }],
   ['martial',     { Icon: Shield,      gradient: 'from-red-600/85 via-red-500/75 to-orange-700/70' }],
   ['tutor',       { Icon: BookOpen,    gradient: 'from-blue-600/85 via-indigo-500/75 to-indigo-700/70' }],
+  ['party',       { Icon: PartyPopper, gradient: 'from-orange-500/85 via-amber-500/75 to-amber-700/70' }],
   ['art',         { Icon: Palette,     gradient: 'from-violet-500/85 via-purple-500/75 to-purple-700/70' }],
   ['music',       { Icon: Music,       gradient: 'from-violet-500/85 via-purple-500/75 to-purple-700/70' }],
   ['drama',       { Icon: Drama,       gradient: 'from-fuchsia-500/85 via-pink-500/75 to-pink-700/70' }],
@@ -49,8 +51,34 @@ const CURATED: Array<[string, Identity]> = [
   ['health',      { Icon: Stethoscope, gradient: 'from-emerald-500/85 via-teal-500/75 to-teal-700/70' }],
   ['medical',     { Icon: Stethoscope, gradient: 'from-emerald-500/85 via-teal-500/75 to-teal-700/70' }],
   ['special',     { Icon: Heart,       gradient: 'from-rose-500/85 via-pink-500/75 to-purple-700/70' }],
-  ['party',       { Icon: PartyPopper, gradient: 'from-orange-500/85 via-amber-500/75 to-amber-700/70' }],
   ['education',   { Icon: GraduationCap, gradient: 'from-blue-600/85 via-indigo-500/75 to-indigo-700/70' }],
+
+  // ── Fall Festivities & Halloween ──────────────────────────────────────────
+  // Autumn palette on purpose: these read as a seasonal set rather than nine
+  // unrelated colours. Ordered specific-to-generic like the rest — 'haunted'
+  // above 'house', 'trunk' above 'treat' — and placed after the year-round
+  // tokens so nothing above changes identity.
+  ['pumpkin',     { Icon: Leaf,        gradient: 'from-orange-500/85 via-orange-600/75 to-amber-800/70' }],
+  ['patch',       { Icon: Leaf,        gradient: 'from-orange-500/85 via-orange-600/75 to-amber-800/70' }],
+  ['corn',        { Icon: Tractor,     gradient: 'from-yellow-600/85 via-amber-600/75 to-orange-800/70' }],
+  ['maze',        { Icon: Tractor,     gradient: 'from-yellow-600/85 via-amber-600/75 to-orange-800/70' }],
+  ['hayride',     { Icon: Tractor,     gradient: 'from-amber-600/85 via-orange-700/75 to-amber-900/70' }],
+  ['farm',        { Icon: Tractor,     gradient: 'from-amber-600/85 via-orange-700/75 to-amber-900/70' }],
+  ['trunk',       { Icon: Candy,       gradient: 'from-purple-600/85 via-violet-600/75 to-indigo-800/70' }],
+  ['trick',       { Icon: Candy,       gradient: 'from-purple-600/85 via-violet-600/75 to-indigo-800/70' }],
+  ['treat',       { Icon: Candy,       gradient: 'from-purple-600/85 via-violet-600/75 to-indigo-800/70' }],
+  ['haunt',       { Icon: Ghost,       gradient: 'from-slate-700/85 via-purple-800/75 to-slate-900/70' }],
+  ['spook',       { Icon: Ghost,       gradient: 'from-slate-700/85 via-purple-800/75 to-slate-900/70' }],
+  ['scare',       { Icon: Ghost,       gradient: 'from-slate-700/85 via-purple-800/75 to-slate-900/70' }],
+  ['costume',     { Icon: Sparkles,    gradient: 'from-fuchsia-600/85 via-purple-600/75 to-violet-800/70' }],
+  ['church',      { Icon: Church,      gradient: 'from-sky-600/85 via-indigo-600/75 to-indigo-800/70' }],
+  ['fall',        { Icon: Leaf,        gradient: 'from-orange-600/85 via-red-600/75 to-amber-800/70' }],
+  ['autumn',      { Icon: Leaf,        gradient: 'from-orange-600/85 via-red-600/75 to-amber-800/70' }],
+  ['harvest',     { Icon: Leaf,        gradient: 'from-orange-600/85 via-red-600/75 to-amber-800/70' }],
+  ['halloween',   { Icon: Moon,        gradient: 'from-violet-700/85 via-purple-700/75 to-slate-900/70' }],
+  ['bonfire',     { Icon: Flame,       gradient: 'from-red-600/85 via-orange-600/75 to-amber-800/70' }],
+  ['movie',       { Icon: Popcorn,     gradient: 'from-red-700/85 via-rose-700/75 to-slate-900/70' }],
+  ['festival',    { Icon: PartyPopper, gradient: 'from-amber-500/85 via-orange-600/75 to-red-700/70' }],
 ]
 
 // Fallback palette for categories with no curated entry ("Miscellaneous", or

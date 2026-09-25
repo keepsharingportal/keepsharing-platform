@@ -213,6 +213,34 @@ export const GUIDE_SCHEMAS: Record<string, GuideSchema> = {
     ],
   },
 
+  // ── Fall Festivities & Halloween Fun Guide ──────────────────────
+  // Seasonal and event-shaped rather than program-shaped: a parent's four
+  // questions at a pumpkin patch are when, how much, what ages, and what
+  // time — not enrollment or tuition. 'dates' leads because a fall event that
+  // ran last weekend is worse than no listing at all. Location is deliberately
+  // NOT a chip here: the importer routes a 'City' column to the top-level
+  // city_state_zip field, which already renders above the blurb, so a 'city'
+  // chip would read from guide_data and always be empty.
+  'fall-festivities': {
+    headlineFacts: [
+      { key: 'dates',      label: 'Dates' },
+      { key: 'cost',       label: 'Admission' },
+      { key: 'ages',       label: 'Best For Ages' },
+      { key: 'hours',      label: 'Hours' },
+    ],
+    sections: [
+      { section_type: 'our_story',        defaultHeadline: 'About This Event' },
+      { section_type: 'whats_different',  defaultHeadline: 'Why Families Love It' },
+      { section_type: 'features_bullets', defaultHeadline: "What's There" },
+      { section_type: 'party_hours',      defaultHeadline: 'Dates & Hours' },
+      { section_type: 'best_for',         defaultHeadline: 'Best For' },
+      { section_type: 'parents_say',      defaultHeadline: 'Parents Say' },
+      { section_type: 'faq',              defaultHeadline: 'Before You Go' },
+      { section_type: 'booking_notes',    defaultHeadline: 'Tickets & Policies' },
+      { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
+    ],
+  },
+
   // ── Newcomer / Family Resource Guide ────────────────────────────
   'newcomer': {
     headlineFacts: [

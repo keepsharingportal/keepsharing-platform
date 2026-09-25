@@ -20,6 +20,9 @@ interface InitialState {
   primary_cta_url:    string
   is_active:          boolean
   featured_month:     number | null   // 1-12, drives homepage Featured Guide tile
+  // guide_types seasonal window. Blank = evergreen (always live).
+  live_from:          string
+  live_until:         string
 }
 
 const MONTHS = [
@@ -122,6 +125,26 @@ export function GuideEditClient({ slug, publicPath, initial }: Props) {
           <input type="checkbox" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="rounded" />
           Guide is active (shown on public site)
         </label>
+
+        <div className="pt-3 border-t border-portal-border">
+          <label className={lbl}>Seasonal window (optional)</label>
+          <p className="text-[11px] text-portal-muted mb-2">
+            For dated guides like Fall Festivities. Outside these dates the public
+            page returns Not Found instead of advertising last season&apos;s events —
+            add <code>?preview=1</code> to the URL to proof it early. Leave both blank
+            for an evergreen guide that&apos;s always live.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Live from</label>
+              <input type="date" className={inp} value={form.live_from} onChange={e => set('live_from', e.target.value)} />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-portal-sub">Live until</label>
+              <input type="date" className={inp} value={form.live_until} onChange={e => set('live_until', e.target.value)} />
+            </div>
+          </div>
+        </div>
 
         <div className="pt-3 border-t border-portal-border">
           <label className={lbl}>Featured in month</label>

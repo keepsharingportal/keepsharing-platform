@@ -15,6 +15,7 @@ import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import { GuideCategoryBlocks } from '@/components/guides/GuideCategoryBlocks'
+import { guideIsLive } from '@/lib/guides/live'
 import type { Metadata } from 'next'
 
 function getSupabase() {
@@ -25,24 +26,46 @@ function getSupabase() {
 }
 
 export async function generateGuideDetailMetadata(urlSlug: string): Promise<Metadata> {
-  const { data } = await getSupabase()
+  const supabase = getSupabase()
+  const { data } = await supabase
     .from('guide_types')
-    .select('display_name, short_description')
+    // select('*') on purpose: live_from / live_until only exist once migration
+    // 230 is applied, and PostgREST fails the whole query on an unknown column
+    // name — which would title EVERY guide 'Guide Not Found' in the meantime.
+    .select('*')
     .eq('url_slug', urlSlug)
     .single()
   if (!data) return { title: 'Guide Not Found' }
+
+  // A guide that isn't live must not be indexed, even when someone is looking
+  // at it through ?preview=1 — otherwise a preview link shared internally can
+  // put next month's hub into search results early.
+  const { data: cfg } = await supabase
+    .from('guide_configs')
+    .select('is_active')
+    .eq('guide_type_slug', data.slug)
+    .maybeSingle()
+  const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg)
+
   return {
     title:       `${data.display_name} | River Region Parents`,
     description: data.short_description ?? undefined,
+    ...(live ? {} : { robots: { index: false, follow: false } }),
   }
 }
 
 interface Props {
   urlSlug: string
   categoryFilter?: string
+  /**
+   * Render a seasonal guide that isn't live yet, for review before go-live.
+   * Adds a banner and noindex. Only bypasses the date window / active switch —
+   * it can't conjure a guide that doesn't exist.
+   */
+  preview?: boolean
 }
 
-export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
+export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false }: Props) {
   const supabase = getSupabase()
 
   const { data: guide } = await supabase
@@ -52,6 +75,19 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
     .single()
 
   if (!guide) notFound()
+
+  // Seasonal gate. live_from / live_until arrive with migration 230; select('*')
+  // simply returns undefined for them until it is applied, which reads as "no
+  // window" — so the is_active switch alone still holds the gate closed in the
+  // meantime. No probe needed, and no behaviour change for existing guides.
+  const { data: guideConfig } = await supabase
+    .from('guide_configs')
+    .select('is_active')
+    .eq('guide_type_slug', guide.slug)
+    .maybeSingle()
+
+  const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)
+  if (!isLive && !preview) notFound()
 
   // Featured listings — pull badge fields. We pull every featured listing
   // for this guide (or category when filtered) and pick the display set in
@@ -177,6 +213,18 @@ export async function GuideDetailPage({ urlSlug, categoryFilter }: Props) {
   return (
     <div className="min-h-screen bg-background public-page">
       <Navigation />
+
+      {/* Only reachable via ?preview=1 on a guide that isn't live yet. Loud on
+          purpose: the whole risk of a preview link is someone forgetting which
+          one they're looking at and reporting the unfinished version as broken. */}
+      {!isLive && preview && (
+        <div className="bg-amber-100 border-b-2 border-amber-400 text-amber-900">
+          <div className="container py-2.5 text-sm font-semibold text-center">
+            Preview — this guide is not public yet.
+            {guide.live_from ? ` Scheduled to go live ${guide.live_from}.` : ' Turn it on in guide settings when ready.'}
+          </div>
+        </div>
+      )}
 
       <PageHeader
         title={guide.display_name}

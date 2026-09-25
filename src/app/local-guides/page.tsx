@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BookOpen, MapPin, Star } from 'lucide-react'
 import { PageHeader, SectionHeader, ContentCard } from '@/components/theme'
+import { guideIsLive } from '@/lib/guides/live'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -27,6 +28,7 @@ const GUIDE_EMOJIS: Record<string, string> = {
   newcomer:       '🏡', 'private-school': '📚', 'summer-camp': '⛺',
   childcare:      '🧸', 'healthy-kids': '🩺', 'summer-fun': '☀️',
   'birthday-party':'🎂', afterschool: '🎨', 'special-needs': '💙',
+  'fall-festivities': '🎃',
 }
 
 async function getData() {
@@ -35,11 +37,25 @@ async function getData() {
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  const { data: guides } = await supabase
+  // select('*') rather than a column list: live_from / live_until only exist
+  // once migration 230 is applied, and PostgREST fails the whole query on an
+  // unknown column name — which would empty this page.
+  const { data: guidesRaw } = await supabase
     .from('guide_types')
-    .select('slug, url_slug, display_name, short_description, hero_image_url, pitch, display_order')
+    .select('*')
     .not('url_slug', 'is', null)
     .order('display_order', { ascending: true })
+
+  // A seasonal guide out of season must not show a card here: the card would
+  // link to a 404, which is worse than simply not being listed. Same gate the
+  // hub itself uses, so the two can't disagree.
+  const { data: configs } = await supabase
+    .from('guide_configs')
+    .select('guide_type_slug, is_active')
+  const configMap: Record<string, { is_active?: boolean | null }> =
+    Object.fromEntries((configs ?? []).map(c => [c.guide_type_slug, c]))
+
+  const guides = (guidesRaw ?? []).filter(g => guideIsLive(g, configMap[g.slug] ?? null))
 
   const counts = await Promise.all(
     (guides ?? []).map(g =>

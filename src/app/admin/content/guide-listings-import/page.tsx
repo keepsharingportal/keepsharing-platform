@@ -24,6 +24,7 @@ const GUIDE_TYPES = [
   { slug: 'special-needs',  label: 'Special Needs Guide' },
   { slug: 'summer-fun',     label: 'Summer Fun Guide' },
   { slug: 'summer-camp',    label: 'Summer Camp Guide' },
+  { slug: 'fall-festivities', label: 'Fall Festivities & Halloween Fun Guide' },
 ]
 
 // ── Flexible column mapper ────────────────────────────────────────────────────
