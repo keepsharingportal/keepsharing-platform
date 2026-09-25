@@ -29,7 +29,7 @@ function supabaseAdmin() {
 
 const RICH_COLS = ['reviewed_at', 'reviewed_by', 'deleted_at', 'is_featured', 'featured_until']
 
-type Action = 'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature'
+type Action = 'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature' | 'unpublish'
 const ALLOWED: Set<Action> = new Set([
   'approve','reject','cancel','reopen','delete','feature','unfeature',
 ])
@@ -96,6 +96,10 @@ export async function POST(req: NextRequest) {
     case 'cancel':    patch = { status: 'cancelled', reviewed_at: now }; break
     case 'reopen':    patch = { status: 'pending',   reviewed_at: null }; break
     case 'delete':    patch = { status: 'archived',  deleted_at:  now }; break
+    // Back to the editor's drafts, not to the public-submission review queue —
+    // 'reopen' already covers that. Pulling a live event down to fix a typo
+    // shouldn't look like a stranger's submission awaiting moderation.
+    case 'unpublish': patch = { status: 'draft',     reviewed_at: null }; break
     case 'feature':   patch = { is_featured: true }; break
     case 'unfeature': patch = { is_featured: false, featured_until: null }; break
   }

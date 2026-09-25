@@ -7,7 +7,8 @@
 //
 // On submit:
 //   POST /api/admin/events (action='create')
-//   → row inserted with status='pending' (so it lands in Pending Review).
+//   → status is chosen by the operator: draft (default), published, or
+//     pending (the public-submission review queue).
 //   onAdded() drops the new row into the list optimistically.
 
 import { useEffect, useState } from 'react'
@@ -54,7 +55,13 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
   const [category,    setCategory]    = useState('')
   const [sourceId,    setSourceId]    = useState('')
   const [heroUrl,     setHeroUrl]     = useState('')
-  const [autoPublish, setAutoPublish] = useState(false)
+  // What happens on save. Was a single 'publish immediately' checkbox, whose
+  // unchecked state meant 'pending' — the moderation queue for events the
+  // PUBLIC submitted. An editor jotting down an event they aren't ready to
+  // show had nowhere to put it except that queue, where it inflated the review
+  // badge and looked like someone else's submission. 'draft' is the editor's
+  // own shelf.
+  const [saveAs, setSaveAs] = useState<'draft' | 'pending' | 'published'>('draft')
 
   // Image pipeline outputs — held until submit so the event row carries
   // image_orig_path/width/height alongside hero_image_url and re-crop works
@@ -203,7 +210,7 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
           image_height:     imgH,
           source_id:        sourceId || null,
           source_name:      sourceName,
-          status:           autoPublish ? 'published' : 'pending',
+          status:           saveAs,
           recurrence_rule:  recurrenceRule,
           display_time_override: displayTimeOverride.trim() || null,
         }),
@@ -228,15 +235,30 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
         <h2 className="text-sm font-bold text-portal-navy inline-flex items-center gap-2">
           <Calendar size={14} /> Quick Add Event
         </h2>
-        <label className="inline-flex items-center gap-2 text-xs text-portal-navy cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoPublish}
-            onChange={e => setAutoPublish(e.target.checked)}
-            className="rounded"
-          />
-          Publish immediately (skip review)
-        </label>
+        {/* Three explicit destinations rather than a checkbox. The old
+            unchecked state silently meant "public submission review queue",
+            which is not where an editor's half-finished event belongs. */}
+        <div className="inline-flex rounded-lg border border-portal-blue/30 overflow-hidden text-xs">
+          {([
+            ['draft',     'Draft',   'Save without publishing. Lives in the Drafts tab.'],
+            ['published', 'Publish', 'Goes live on the public calendar straight away.'],
+            ['pending',   'Review',  'Into the same queue as events the public submits.'],
+          ] as const).map(([value, label, hint]) => (
+            <button
+              key={value}
+              type="button"
+              title={hint}
+              onClick={() => setSaveAs(value)}
+              className={`px-3 py-1.5 font-semibold transition-colors ${
+                saveAs === value
+                  ? 'bg-portal-navy text-white'
+                  : 'bg-white text-portal-blue hover:bg-portal-blue-lt'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-[200px_1fr] gap-4">
@@ -482,7 +504,10 @@ export function QuickAddEventPanel({ sources, onCancel, onAdded }: Props) {
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-portal-navy text-white rounded-lg hover:bg-portal-navy/90 disabled:opacity-40"
             >
               {busy ? <RefreshCw size={12} className="animate-spin" /> : <Plus size={12} />}
-              {busy ? 'Saving…' : (autoPublish ? 'Publish event' : 'Add to queue')}
+              {busy ? 'Saving…'
+                : saveAs === 'published' ? 'Publish event'
+                : saveAs === 'pending'   ? 'Add to review queue'
+                : 'Save draft'}
             </button>
             <button
               type="button"

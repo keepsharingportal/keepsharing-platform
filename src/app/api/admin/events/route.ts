@@ -3,7 +3,7 @@
 //
 // Body: { action: 'create', ...fields }
 //   - title + start_date required
-//   - status: 'pending' (default) or 'published'
+//   - status: 'pending' (default), 'draft', or 'published'
 //   - Auto-generates a unique slug from title + date.
 //   - Defensive: if migration 077 columns are missing the table will reject
 //     the insert; we strip them and retry once so the panel still works on
@@ -66,7 +66,7 @@ interface CreateBody {
   source_url?:      string | null
   recurrence_rule?: string | null
   display_time_override?: string | null
-  status?:          'pending' | 'published'
+  status?:          'pending' | 'published' | 'draft'
   market?:          string
 }
 
@@ -98,7 +98,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `No access to market "${wantedMarket}"` }, { status: 403 })
     }
 
-    const status = body.status === 'published' ? 'published' : 'pending'
+    // 'draft' is the editor's own unfinished work; 'pending' is the review
+    // queue for events the public submitted through /calendar/submit. Keeping
+    // them separate matters: a half-written draft in the review queue inflates
+    // the moderation badge and reads as someone else's submission waiting on
+    // you. Anything unrecognised still falls back to 'pending' rather than
+    // publishing by accident.
+    const status = body.status === 'published' ? 'published'
+                 : body.status === 'draft'     ? 'draft'
+                 : 'pending'
     const slug   = `${toSlug(title)}-${startDate}-${Math.random().toString(36).slice(2, 6)}`
 
     // Resolve source attribution. If a source_id was passed we can look up the

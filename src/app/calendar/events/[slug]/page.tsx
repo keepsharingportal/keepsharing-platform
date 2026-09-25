@@ -82,13 +82,15 @@ async function loadEventByParam<T>(
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const data = await loadEventByParam<{
-    title: string; description: string | null; hero_image_url: string | null;
+    title: string; description: string | null; hero_image_url: string | null; status: string | null;
   }>(
     getSupabase(),
     slug,
-    'title, description, hero_image_url',
+    'title, description, hero_image_url, status',
   )
-  if (!data) return { title: 'Event Not Found' }
+  // Status is selected here only so an unpublished event can't leak its title
+  // and description through <head> on a page whose body 404s.
+  if (!data || data.status !== 'published') return { title: 'Event Not Found' }
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
   return buildPageMetadata({
     title:       data.title,
@@ -126,7 +128,17 @@ export default async function EventDetailPage({ params }: Props) {
   const supabase = getSupabase()
 
   const ev = await loadEventByParam<AnyEvent>(supabase, slug, '*')
-  if (!ev || ev.status === 'cancelled' || ev.status === 'archived') notFound()
+  // Allowlist, not denylist. This used to block only 'cancelled' and
+  // 'archived', which meant anything else rendered publicly at its direct URL —
+  // including 'pending', i.e. an event a stranger submitted through
+  // /calendar/submit that no editor has approved yet. Every list view already
+  // filters to published; only this detail lookup didn't, so unreviewed
+  // submissions were reachable by anyone who knew or guessed the slug.
+  //
+  // Now that editors can save drafts, a denylist would leak those too, and
+  // every future status would be public-by-default until someone remembered to
+  // add it here. Published or nothing.
+  if (!ev || ev.status !== 'published') notFound()
 
   const today = new Date().toISOString().split('T')[0]
 

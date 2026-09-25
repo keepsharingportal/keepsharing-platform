@@ -21,13 +21,17 @@ import { compressIfLarge } from '@/lib/admin/compress-image'
 
 const PAGE_SIZE = 30
 
-const TABS = ['Upcoming', 'Past', 'Pending Review', 'Cancelled'] as const
+// Drafts sits next to Pending Review but is deliberately separate: a draft is
+// the editor's own unfinished event, Pending Review is the moderation queue for
+// what the public submitted through /calendar/submit.
+const TABS = ['Upcoming', 'Past', 'Drafts', 'Pending Review', 'Cancelled'] as const
 type TabName = typeof TABS[number]
 
 // Map tab → predicate over a row. Decoupled from status because "Upcoming"
 // and "Past" both look at published events; tab is a date filter, not a
 // status filter.
 function eventMatchesTab(row: EventRow, tab: TabName, todayIso: string): boolean {
+  if (tab === 'Drafts')         return row.status === 'draft'
   if (tab === 'Pending Review') return row.status === 'pending'
   if (tab === 'Cancelled')      return row.status === 'cancelled'
   // Upcoming / Past are both about published or approved events
@@ -88,6 +92,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
   const counts: Record<TabName, number> = useMemo(() => ({
     'Upcoming':       events.filter(e => eventMatchesTab(e, 'Upcoming',       todayIso)).length,
     'Past':           events.filter(e => eventMatchesTab(e, 'Past',           todayIso)).length,
+    'Drafts':         events.filter(e => eventMatchesTab(e, 'Drafts',         todayIso)).length,
     'Pending Review': events.filter(e => eventMatchesTab(e, 'Pending Review', todayIso)).length,
     'Cancelled':      events.filter(e => eventMatchesTab(e, 'Cancelled',      todayIso)).length,
   }), [events, todayIso])
@@ -176,7 +181,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
   // Single point of dispatch for every bulk button. Optimistic local update
   // mirrors what the server is about to write so the row state changes
   // immediately; router.refresh() reconciles after.
-  type BulkAction = 'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature'
+  type BulkAction = 'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature' | 'unpublish'
 
   async function runBulkAction(action: BulkAction): Promise<void> {
     if (selectedIds.size === 0) return
@@ -211,6 +216,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
         case 'reopen':    return { ...e, status: 'pending'   }
         case 'feature':   return { ...e, is_featured: true   }
         case 'unfeature': return { ...e, is_featured: false, featured_until: null }
+        case 'unpublish': return { ...e, status: 'draft'     }
         case 'delete':    return { ...e, status: 'archived'  }
       }
     }))
@@ -442,7 +448,7 @@ export function EventsAdminClient({ initialEvents, sources }: Props) {
 // "Trash" is soft delete — the rows survive in the DB with deleted_at set.
 
 type BulkActionKind =
-  'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature'
+  'approve' | 'reject' | 'cancel' | 'reopen' | 'delete' | 'feature' | 'unfeature' | 'unpublish'
 
 interface BulkButton {
   action: BulkActionKind
@@ -452,6 +458,14 @@ interface BulkButton {
 }
 
 const BUTTONS_BY_TAB: Record<TabName, BulkButton[]> = {
+  // 'approve' doubles as publish for a draft — it sets status='published' and
+  // stamps reviewed_at, which is exactly what publishing a draft means. No
+  // Reject here: rejecting your own draft is just trashing it.
+  'Drafts': [
+    { action: 'approve',   label: 'Publish %',   icon: CheckCircle2, tone: 'green' },
+    { action: 'feature',   label: 'Feature %',   icon: Star,         tone: 'amber' },
+    { action: 'delete',    label: 'Trash %',     icon: Trash2,       tone: 'rose'  },
+  ],
   'Pending Review': [
     { action: 'approve',   label: 'Approve %',   icon: CheckCircle2, tone: 'green' },
     { action: 'reject',    label: 'Reject %',    icon: X,            tone: 'red'   },
@@ -462,6 +476,10 @@ const BUTTONS_BY_TAB: Record<TabName, BulkButton[]> = {
   'Upcoming': [
     { action: 'feature',   label: 'Feature %',   icon: Star,   tone: 'amber' },
     { action: 'unfeature', label: 'Unfeature %', icon: Star,   tone: 'gray'  },
+    // Pull a live event back to drafts to fix it, rather than cancelling it.
+    // Cancel means "this event is not happening" and shows that way to readers;
+    // unpublish means "not ready to be seen yet".
+    { action: 'unpublish', label: 'Unpublish % to draft', icon: RotateCcw, tone: 'gray' },
     { action: 'cancel',    label: 'Cancel %',    icon: X,      tone: 'gray'  },
     { action: 'delete',    label: 'Trash %',     icon: Trash2, tone: 'rose'  },
   ],
