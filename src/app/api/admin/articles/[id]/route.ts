@@ -65,6 +65,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       'social_voice_tone', 'social_ai_seeded_at',
       // Sprint 9 — single-source-of-truth pin for social copy.
       'social_mode',
+      // Business Spotlight hub (migration 231) — industry drives the public
+      // filter chips, spotlight_featured pins into the Featured row.
+      'industry', 'spotlight_featured',
     ]
 
     const update: Record<string, unknown> = {}
@@ -149,6 +152,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     revalidatePath('/school-bits')
     revalidatePath('/school-zone')
     revalidatePath('/family-resource-guide')
+    // The spotlight hub is ISR-cached for 10 min. Without this, an editor who
+    // publishes a story or retags its industry sees no change until the cache
+    // expires and reasonably concludes it didn't save.
+    if (columnSlug === 'business-spotlight') revalidatePath('/business-spotlight')
     if (slug) {
       revalidatePath(`/articles/${slug}`)
       if (columnSlug) {

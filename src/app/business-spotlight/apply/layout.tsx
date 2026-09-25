@@ -1,13 +1,20 @@
-export default function BusinessSpotlightLayout({ children }: { children: React.ReactNode }) {
+// Narrow, form-focused chrome. Deliberately NOT the site Navigation: this is a
+// single-task page and the full header competes with the form.
+//
+// It used to sit at /business-spotlight/layout.tsx, where it would now also
+// wrap the reader-facing hub. Moved down a level so the hub gets the real site
+// shell and the form keeps this.
+
+export default function BusinessSpotlightApplyLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
             <div className="text-lg font-bold text-blue-700">River Region Parents</div>
-            <div className="text-xs text-gray-400">Montgomery's Family Magazine</div>
+            <div className="text-xs text-gray-400">Montgomery&apos;s Family Magazine</div>
           </div>
-          <div className="text-xs text-gray-500">River Region Parents</div>
+          <div className="text-xs text-gray-500">Business Spotlight</div>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-6 py-10">{children}</main>

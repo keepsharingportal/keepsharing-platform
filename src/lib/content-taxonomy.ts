@@ -67,6 +67,9 @@ export const COLUMNS: ColumnDef[] = [
     description: 'Curated "Best Of" list — Best Parks, Best Day Trips, Sweet Treats, etc. Appears on the Family Resource Guide home as a featured editorial card.' },
   { slug: 'frg-newcomer',            label: 'Newcomer Stories',          vertical: 'guides',
     description: 'Newcomer-focused story or guide — moving in, first-month tips, getting connected. Surfaces on the FRG getting-connected sub-page.' },
+  // ── Local Business ───────────────────────────────
+  { slug: 'business-spotlight',      label: 'Business Spotlight',        vertical: 'guides',
+    description: 'Editorial story about a local business. Appears on /business-spotlight — set an Industry so the hub’s filter chips can find it. Paid applications arrive separately in the review queue and never auto-publish.' },
   // ── General ──────────────────────────────────────
   { slug: 'feature',                 label: 'Feature Article',           vertical: 'general',
     description: 'Standalone feature article without a specific column. Use when nothing else fits.' },

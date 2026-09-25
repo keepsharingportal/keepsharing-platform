@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -53,8 +53,18 @@ interface PageParams {
   params: Promise<{ column: string }>
 }
 
+// Columns that have a purpose-built hub of their own. The generic archive
+// template below would render a second, weaker version of the same thing at a
+// second URL, so these send readers (and link equity) to the real one.
+// Only the index redirects — /columns/<slug>/<article> still renders here.
+const COLUMN_HUB_REDIRECTS: Record<string, string> = {
+  'business-spotlight': '/business-spotlight',
+}
+
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
   const { column } = await params
+  const hub = COLUMN_HUB_REDIRECTS[column]
+  if (hub) permanentRedirect(hub)
   const supabase = getSupabase()
   const { data } = await supabase
     .from('monthly_columns')
@@ -86,6 +96,10 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 
 export default async function ColumnLandingPage({ params }: PageParams) {
   const { column } = await params
+
+  const hub = COLUMN_HUB_REDIRECTS[column]
+  if (hub) permanentRedirect(hub)
+
   const supabase = getSupabase()
 
   const [columnRes, articlesRes, sectionSponsor] = await Promise.all([

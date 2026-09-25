@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
       // the query is carried as the focus keyword so the article starts
       // life targeting the right phrase. Editor can adjust on the SEO tab.
       seo_focus_keyword,
+      // Business Spotlight hub (migration 231)
+      industry, spotlight_featured,
     } = body
 
     if (!title?.trim() || !slug?.trim()) {
@@ -107,6 +109,10 @@ export async function POST(req: NextRequest) {
       gallery_images:          Array.isArray(gallery_images) ? gallery_images : [],
       // SEO seed from Query Brief (optional). Editor refines on SEO tab.
       seo_focus_keyword:       seo_focus_keyword?.trim() || null,
+      // Business Spotlight hub — only meaningful on that column, and forced
+      // off elsewhere so nothing else can claim a Featured slot.
+      industry:                column_slug === 'business-spotlight' ? (industry || null) : null,
+      spotlight_featured:      column_slug === 'business-spotlight' ? Boolean(spotlight_featured) : false,
     }
 
     const { data: created, error } = await supabase
@@ -126,6 +132,9 @@ export async function POST(req: NextRequest) {
       if (column_slug === 'school-bits') {
         revalidatePath('/school-bits')
         revalidatePath('/school-zone')
+      }
+      if (column_slug === 'business-spotlight') {
+        revalidatePath('/business-spotlight')
       }
 
       // Auto-generate social copy when a new article is published direct from

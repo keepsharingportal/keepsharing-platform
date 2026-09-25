@@ -39,6 +39,7 @@ const COLUMN_LABELS: Record<string, string> = {
   'teens-tweens-screens': 'Teens, Tweens & Screens',
   'meeting-kids':       'Meeting Kids Where They Are',
   'summer-fun':         'Summer Fun',
+  'business-spotlight': 'Business Spotlight',
 }
 
 const COLUMN_BADGE_STYLE: Record<string, string> = {
@@ -46,6 +47,7 @@ const COLUMN_BADGE_STYLE: Record<string, string> = {
   'teacher-of-month':  'bg-amber-500/90 text-white',
   'mom-to-mom':        'bg-rose-500/90 text-white',
   'summer-fun':        'bg-amber-400/90 text-white',
+  'business-spotlight':'bg-emerald-600/90 text-white',
 }
 
 interface Props {

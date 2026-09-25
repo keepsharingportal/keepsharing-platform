@@ -26,6 +26,7 @@ import { ArticleBody } from '@/components/articles/ArticleBody'
 import Image from 'next/image'
 import { getFallbackByContext } from '@/lib/image-fallbacks'
 import { SPOTLIGHT_ENABLED_COLUMNS } from '@/lib/articles/spotlight-templates'
+import { INDUSTRIES as BUSINESS_SPOTLIGHT_INDUSTRIES } from '@/lib/business-spotlight/industries'
 
 const CONTRIBUTOR_COLUMNS = ['mom-to-mom', 'grumpy-but-grateful', 'grands-greatest', 'dave-says', 'meeting-kids', 'teens-tweens-screens']
 
@@ -259,6 +260,12 @@ export default function ArticleEditPage({ params }: Props) {
   // Play Ball Spotlight — only relevant for column_slug = 'play-ball'.
   // spotlightType picks the template (athlete/coach/volunteer); spotlightData
   // is the JSONB blob keyed by template field key.
+  // Business Spotlight — industry drives the public hub's filter chips,
+  // spotlight_featured pins the story into its Featured row. Only rendered
+  // for column_slug = 'business-spotlight'.
+  const [industry,          setIndustry]          = useState<string>('')
+  const [spotlightFeatured, setSpotlightFeatured] = useState(false)
+
   const [spotlightType, setSpotlightType] = useState<string>('')
   const [spotlightData, setSpotlightData] = useState<Record<string, string>>({})
   // Structured Q&A pairs — stored inside spotlight_data.qa_pairs on save
@@ -340,6 +347,8 @@ export default function ArticleEditPage({ params }: Props) {
         setTopics(Array.isArray(data.topics) ? data.topics as string[] : [])
         setBrandSlug((data.brand_slug as string) ?? 'rrp')
         setSyndicatedTo(Array.isArray(data.syndicated_to_brands) ? data.syndicated_to_brands as string[] : [])
+        setIndustry         ((data.industry as string | null) ?? '')
+        setSpotlightFeatured(Boolean(data.spotlight_featured))
         setSeoTitle      ((data.seo_title       as string | null) ?? '')
         setSeoDescription((data.seo_description as string | null) ?? '')
         setSocialHook       ((data.social_hook        as string | null) ?? '')
@@ -481,6 +490,11 @@ export default function ArticleEditPage({ params }: Props) {
       queue_newsletter_draft:  queueNewsletter,
       queue_for_print:         queueForPrint,
       print_issue_month:       printIssueMonth.trim() || null,
+      // Both are Business Spotlight-only. Cleared when the article is moved
+      // to another column so a story can't keep a stale industry chip or stay
+      // pinned to a hub it no longer belongs to.
+      industry:                form.column_slug === 'business-spotlight' ? (industry || null) : null,
+      spotlight_featured:      form.column_slug === 'business-spotlight' ? spotlightFeatured  : false,
       brand_slug:              brandSlug || 'rrp',
       syndicated_to_brands:    syndicatedTo,
       // Inline SEO fields (edited on the dedicated /seo page) — passed
@@ -1167,6 +1181,45 @@ export default function ArticleEditPage({ params }: Props) {
                 <p className="text-[11px] text-portal-muted mt-1">
                   Required for Mom Knows Best posts so they link to her profile.
                   Manage bloggers at <a href="/admin/bloggers" className="text-portal-blue hover:underline">/admin/bloggers</a>.
+                </p>
+              </div>
+            )}
+
+            {/* ── Business Spotlight ──
+                Industry is what the public hub's filter chips read. A story
+                published without one still appears in All Stories, but is
+                unreachable from any chip — hence the warning rather than a
+                hard block: an editor may legitimately not know yet. */}
+            {form.column_slug === 'business-spotlight' && (
+              <div className="rounded-lg border border-portal-border bg-portal-surface p-4 space-y-3">
+                <div className="text-[11px] font-bold text-portal-sub uppercase tracking-wider">Business Spotlight</div>
+                <div>
+                  <label className="block text-[11px] font-bold text-portal-sub uppercase tracking-wider mb-1.5">Industry</label>
+                  <select className={sel} value={industry} onChange={e => setIndustry(e.target.value)}>
+                    <option value="">— Not set —</option>
+                    {BUSINESS_SPOTLIGHT_INDUSTRIES.map(i => (
+                      <option key={i.slug} value={i.label}>{i.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-portal-muted mt-1">
+                    {industry
+                      ? <>Shows under the <strong>{industry}</strong> chip on <a href="/business-spotlight" className="text-portal-blue hover:underline">/business-spotlight</a>.</>
+                      : 'Without an industry this story still lists under All Stories, but no filter chip will find it.'}
+                  </p>
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={spotlightFeatured}
+                    onChange={e => setSpotlightFeatured(e.target.checked)}
+                  />
+                  Feature on the Business Spotlight hub
+                </label>
+                <p className="text-[11px] text-portal-muted">
+                  Pins this story to the hub&apos;s Featured row. Newest three pinned
+                  stories show; when nothing is pinned the row falls back to the
+                  three most recent.
                 </p>
               </div>
             )}

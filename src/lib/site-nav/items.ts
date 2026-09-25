@@ -56,6 +56,7 @@ export const HEADER_LOCAL: NavItem[] = [
   { key: 'header.local.teacher',          label: 'Teacher of the Month',   href: '/columns/teacher-of-month',      parentKey: 'header.local.dropdown' },
   { key: 'header.local.grands',           label: 'Grands Are The Greatest',href: '/columns/grands-greatest',       parentKey: 'header.local.dropdown' },
   { key: 'header.local.mom-to-mom',       label: 'Mom to Mom',             href: '/columns/mom-to-mom',            parentKey: 'header.local.dropdown' },
+  { key: 'header.local.business-spotlight', label: 'Business Spotlights',  href: '/business-spotlight',            parentKey: 'header.local.dropdown' },
 ]
 
 // "Calendar" dropdown — promoted from a flat link so submitters can
@@ -103,6 +104,7 @@ export const FOOTER_EXPLORE: NavItem[] = [
   { key: 'footer.explore.calendar',     label: 'Event Calendar',        href: '/calendar'              },
   { key: 'footer.explore.articles',     label: 'Articles',              href: '/articles'              },
   { key: 'footer.explore.local-guides', label: 'All Local Guides',      href: '/local-guides'          },
+  { key: 'footer.explore.business-spotlight', label: 'Business Spotlights', href: '/business-spotlight' },
 ]
 
 export const FOOTER_CONNECT: NavItem[] = [
