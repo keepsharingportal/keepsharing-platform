@@ -28,6 +28,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { guardPublish } from '@/lib/calendar/promo-denylist'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin, type AdminContext } from '@/lib/admin/auth'
 import {
@@ -132,9 +133,25 @@ export async function PATCH(req: NextRequest, routeCtx: { params: Promise<{ id: 
 
   let patch: Record<string, unknown> = {}
   switch (body.action) {
-    case 'approve':
+    case 'approve': {
+      // Family Calendar policy — see src/lib/calendar/promo-denylist.ts.
+      // Approve is the main way a bar weekly reaches the public calendar: it
+      // arrives from an iCal pull as 'pending' and someone clicks through the
+      // queue. Read the row first so the guard has the venue and the rule.
+      const { data: row } = await supabase
+        .from('calendar_events')
+        .select('title, location_name, recurrence_rule')
+        .eq('id', id)
+        .maybeSingle()
+      if (row) {
+        const guard = guardPublish(row, 'admin/events PATCH approve', body.allow_promo === true)
+        if (guard.blocked) {
+          return NextResponse.json({ error: guard.reason, code: 'promo_denylist' }, { status: 422 })
+        }
+      }
       patch = { status: 'published', reviewed_at: now }
       break
+    }
     case 'reject':
       patch = { status: 'rejected', reviewed_at: now }
       break

@@ -21,44 +21,12 @@
 //   - future: iCal ingest (auto-flag suspected dupes for review)
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { normalizeTitle, titleSimilarity } from './title-match'
 
-// Words that don't help distinguish events. Stripped before similarity
-// scoring so "The Annual Spring Fest" ≈ "Spring Fest".
-const FILLER_WORDS = new Set([
-  'the', 'a', 'an', 'and', 'or', 'of', 'at', 'in', 'on', 'for', 'with',
-  'to', 'by', 'from', 'this', 'that', 'these', 'those', 'is', 'are',
-  'annual', 'monthly', 'weekly', 'event', 'events',
-])
-
-/**
- * Normalize a title for comparison: lowercase, strip punctuation, drop
- * filler words, collapse whitespace. The result is a space-joined token
- * string suitable for Jaccard.
- */
-export function normalizeTitle(t: string): string {
-  return t
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')   // strip punctuation, keep letters/digits/whitespace
-    .split(/\s+/)
-    .filter(w => w.length > 0 && !FILLER_WORDS.has(w))
-    .join(' ')
-}
-
-/**
- * Jaccard similarity on word sets. Returns 0..1 — 1 means identical word
- * sets, 0 means no overlap. We use this instead of full Levenshtein because
- * it's order-insensitive ("Library Storytime" ~= "Storytime at the Library")
- * and dramatically cheaper to compute over many candidates.
- */
-export function titleSimilarity(a: string, b: string): number {
-  const A = new Set(normalizeTitle(a).split(' ').filter(Boolean))
-  const B = new Set(normalizeTitle(b).split(' ').filter(Boolean))
-  if (A.size === 0 || B.size === 0) return 0
-  let intersection = 0
-  for (const w of A) if (B.has(w)) intersection++
-  const union = A.size + B.size - intersection
-  return union === 0 ? 0 : intersection / union
-}
+// normalizeTitle + titleSimilarity moved to ./title-match so the display path
+// can compare titles without importing a Supabase client. Re-exported here
+// because plenty of callers import them from this module.
+export { normalizeTitle, titleSimilarity } from './title-match'
 
 export interface DuplicateMatch {
   id:            string

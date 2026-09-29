@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { guardPublish } from '@/lib/calendar/promo-denylist'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { ALL_MARKETS_SLUG, isKnownMarket } from '@/lib/markets'
@@ -68,6 +69,8 @@ interface CreateBody {
   display_time_override?: string | null
   status?:          'pending' | 'published' | 'draft'
   market?:          string
+  /** Editor's deliberate "publish it anyway" past the promo denylist. */
+  allow_promo?:     boolean
 }
 
 export async function POST(req: NextRequest) {
@@ -107,6 +110,26 @@ export async function POST(req: NextRequest) {
     const status = body.status === 'published' ? 'published'
                  : body.status === 'draft'     ? 'draft'
                  : 'pending'
+
+    // Family Calendar policy — see src/lib/calendar/promo-denylist.ts for the
+    // rule and why it needs two conditions rather than a keyword alone.
+    // Only PUBLISH is gated: a draft or a pending submission is untouched, so
+    // an editor can always park the row rather than lose the work.
+    if (status === 'published') {
+      const guard = guardPublish(
+        {
+          title,
+          location_name:   body.location_name ?? null,
+          recurrence_rule: body.recurrence_rule ?? null,
+        },
+        'admin/events POST',
+        body.allow_promo === true,
+      )
+      if (guard.blocked) {
+        return NextResponse.json({ error: guard.reason, code: 'promo_denylist' }, { status: 422 })
+      }
+    }
+
     const slug   = `${toSlug(title)}-${startDate}-${Math.random().toString(36).slice(2, 6)}`
 
     // Resolve source attribution. If a source_id was passed we can look up the

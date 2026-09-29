@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { expandRecurrences, type ExpandableEvent } from '@/lib/calendar/expand-recurrences'
+import { rankFeed } from '@/lib/calendar/feed-rank'
 
 export const runtime = 'nodejs'
 
@@ -23,6 +24,7 @@ type ExpandableEventRow = ExpandableEvent & {
   hero_image_url?:  string | null
   registration_url?: string | null
   organizer_name?:  string | null
+  is_featured?:     boolean | null
 }
 
 // Compute the YYYY-MM-DD date window for a "when" preset.
@@ -83,9 +85,15 @@ export async function GET(req: NextRequest) {
 
   const { start, end } = dateWindow(when)
 
-  // Probe for the new tags column (added in migration 077). Falls back gracefully.
-  const probe = await supabase.from('calendar_events').select('tags').limit(1)
-  const hasTagsColumn = !probe.error
+  // Probe for the columns added in migration 077. Falls back gracefully on a
+  // partially-migrated DB — PostgREST fails the whole query on an unknown
+  // column name, so asking first is cheaper than retrying the real fetch.
+  const [tagsProbe, featuredProbe] = await Promise.all([
+    supabase.from('calendar_events').select('tags').limit(1),
+    supabase.from('calendar_events').select('is_featured').limit(1),
+  ])
+  const hasTagsColumn     = !tagsProbe.error
+  const hasFeaturedColumn = !featuredProbe.error
 
   // Two-pass fetch so recurring events that started BEFORE the window
   // still surface their occurrences IN the window:
@@ -94,7 +102,9 @@ export async function GET(req: NextRequest) {
   //      not null) — their occurrences may fall inside the window
   // Both lists run through expandRecurrences, which leaves non-recurring
   // rows alone and expands recurring rows into virtual occurrence rows.
+  // is_featured feeds the +2 in the family score — see feed-rank.ts.
   const baseCols = 'id, slug, title, start_date, end_date, start_time, end_time, location_name, address, city, is_free, cost_text, description, category, hero_image_url, registration_url, organizer_name, recurrence_rule'
+    + (hasFeaturedColumn ? ', is_featured' : '')
 
   let query = supabase
     .from('calendar_events')
@@ -134,9 +144,12 @@ export async function GET(req: NextRequest) {
   if (inWindowRes.error)        return NextResponse.json({ error: inWindowRes.error.message },        { status: 500 })
   if (recurringPastRes.error)   return NextResponse.json({ error: recurringPastRes.error.message },   { status: 500 })
 
+  // Cast through unknown: baseCols is assembled at runtime (is_featured is
+  // only appended when the column exists), so supabase-js can't infer the row
+  // shape from a literal select string. Same pattern as /calendar/page.tsx.
   const merged = [
-    ...(inWindowRes.data        ?? []) as ExpandableEventRow[],
-    ...(recurringPastRes.data   ?? []) as ExpandableEventRow[],
+    ...(inWindowRes.data        ?? []) as unknown as ExpandableEventRow[],
+    ...(recurringPastRes.data   ?? []) as unknown as ExpandableEventRow[],
   ]
   const expanded = expandRecurrences(
     merged,
@@ -144,11 +157,22 @@ export async function GET(req: NextRequest) {
     new Date(`${end}T23:59:59Z`),
   )
 
+  // ── Family-relevance ordering ──────────────────────────────────────────
+  // Product rule (Jason, 2026-09-29): this is a free public hub for families,
+  // not a restaurant specials board. Layer 1 (lib/calendar/promo-denylist.ts)
+  // keeps the bar weeklies out at publish time; this is layer 2 — of what
+  // legitimately remains, lead each day with what a parent is looking for.
+  //
+  // Order only. Chronology holds, nothing is dropped, and paid placements
+  // stay in the labelled ad_placements system where a reader can see them.
+  // Must run BEFORE pagination or page 1 gets the wrong twelve.
+  const ranked = rankFeed(expanded)
+
   // Re-paginate after expansion. The DB count is no longer accurate (it
-  // counted templates, not occurrences); use the expanded length so the
+  // counted templates, not occurrences); use the ranked length so the
   // public side gets a real "total."
-  const total = expanded.length
-  const paged = expanded.slice((page - 1) * limit, page * limit)
+  const total = ranked.length
+  const paged = ranked.slice((page - 1) * limit, page * limit)
 
   return NextResponse.json({
     events:  paged,

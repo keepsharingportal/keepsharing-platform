@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { guardPublish } from '@/lib/calendar/promo-denylist'
 
 export type EventImportRow = {
   title:         string
@@ -94,6 +95,25 @@ export async function POST(req: NextRequest) {
         if (existingKeys.has(dedupKey)) {
           result.skipped++
           result.rowResults.push({ title: row.title, status: 'skipped', message: 'Event already exists for this date' })
+          continue
+        }
+
+        // Family Calendar policy — see src/lib/calendar/promo-denylist.ts.
+        // This route inserts straight to 'published' with no review step, so
+        // it is the one path where a denylisted row would go live unseen.
+        // Skip rather than fail the import: the operator gets a per-row
+        // reason in rowResults and the other 49 rows still land.
+        const guard = guardPublish(
+          {
+            title:           row.title,
+            location_name:   row.location_name ?? null,
+            recurrence_rule: null,   // this importer has no recurrence column
+          },
+          'events-csv-import',
+        )
+        if (guard.blocked) {
+          result.skipped++
+          result.rowResults.push({ title: row.title, status: 'skipped', message: guard.reason! })
           continue
         }
 

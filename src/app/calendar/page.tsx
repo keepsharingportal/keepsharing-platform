@@ -7,6 +7,7 @@ import { SplitColoredTitle } from '@/components/verticals/SplitColoredTitle'
 import { HeroSponsorCard, type HeroSponsor } from '@/components/verticals/HeroSponsorCard'
 import { getActiveAds, type ActiveAd } from '@/lib/get-active-ads'
 import { expandRecurrences, type ExpandableEvent } from '@/lib/calendar/expand-recurrences'
+import { rankFeed } from '@/lib/calendar/feed-rank'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -116,7 +117,13 @@ export default async function CalendarPage() {
         new Date(`${monthEnd}T23:59:59Z`),
       )
     : []
-  const initialEvents = expanded.slice(0, 50)
+
+  // Same family-relevance ordering the feed API applies — see
+  // lib/calendar/feed-rank.ts and the product rule it cites. This page
+  // server-renders the first 50 cards and the client paginates the rest
+  // through /api/calendar/events, so ranking in only one of the two would
+  // leave the first screen (the part that actually matters) unranked.
+  const initialEvents = rankFeed(expanded).slice(0, 50)
 
   // ── Ad lookups (all use the existing ad_placements system) ──────────────
   // Hero sponsor: uses the shared 'section_sponsor' placement with

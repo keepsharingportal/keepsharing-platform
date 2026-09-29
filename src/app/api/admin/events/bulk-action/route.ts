@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { guardPublish } from '@/lib/calendar/promo-denylist'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin, type AdminContext } from '@/lib/admin/auth'
 
@@ -37,6 +38,8 @@ const ALLOWED: Set<Action> = new Set([
 interface Body {
   ids?:    string[]
   action?: Action
+  /** Editor's deliberate "approve them anyway" past the promo denylist. */
+  allow_promo?: boolean
 }
 
 export async function POST(req: NextRequest) {
@@ -89,6 +92,36 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Family Calendar policy — see src/lib/calendar/promo-denylist.ts.
+  // Bulk approve is how a whole iCal pull lands at once, so this is where the
+  // guard earns its keep. Blocked rows are SKIPPED rather than failing the
+  // batch: an operator clearing 40 pending events should not lose 39 good
+  // approvals because one of them was Taco Tuesday. The response names what
+  // was skipped and why.
+  let workingIds = ids
+  const skipped: Array<{ id: string; title: string; reason: string }> = []
+  if (action === 'approve') {
+    const { data: rows } = await supabase
+      .from('calendar_events')
+      .select('id, title, location_name, recurrence_rule')
+      .in('id', ids)
+    const allowPromo = body?.allow_promo === true
+    for (const row of (rows ?? []) as Array<{ id: string; title: string; location_name: string | null; recurrence_rule: string | null }>) {
+      const guard = guardPublish(row, 'admin/events bulk approve', allowPromo)
+      if (guard.blocked) skipped.push({ id: row.id, title: row.title, reason: guard.reason! })
+    }
+    if (skipped.length > 0) {
+      const blockedIds = new Set(skipped.map(s => s.id))
+      workingIds = ids.filter(id => !blockedIds.has(id))
+      if (workingIds.length === 0) {
+        return NextResponse.json(
+          { error: 'Every event in this batch is blocked by Family Calendar policy.', code: 'promo_denylist', skipped },
+          { status: 422 },
+        )
+      }
+    }
+  }
+
   let patch: Record<string, unknown>
   switch (action) {
     case 'approve':   patch = { status: 'published', reviewed_at: now }; break
@@ -107,7 +140,7 @@ export async function POST(req: NextRequest) {
   let { error, count } = await supabase
     .from('calendar_events')
     .update(patch, { count: 'exact' })
-    .in('id', ids)
+    .in('id', workingIds)
 
   if (error && /column .* does not exist/i.test(error.message)) {
     const fallback = { ...patch }
@@ -117,7 +150,7 @@ export async function POST(req: NextRequest) {
       const { error: e2, count: c2 } = await supabase
         .from('calendar_events')
         .delete({ count: 'exact' })
-        .in('id', ids)
+        .in('id', workingIds)
       if (e2) return NextResponse.json({ error: e2.message }, { status: 500 })
       revalidatePath('/admin/events')
       revalidatePath('/calendar')
@@ -126,7 +159,7 @@ export async function POST(req: NextRequest) {
     ;({ error, count } = await supabase
       .from('calendar_events')
       .update(fallback, { count: 'exact' })
-      .in('id', ids))
+      .in('id', workingIds))
   }
 
   if (error) {
@@ -138,5 +171,9 @@ export async function POST(req: NextRequest) {
   revalidatePath('/admin/events/pending')
   revalidatePath('/calendar')
   revalidatePath('/')
-  return NextResponse.json({ affected: count ?? 0, action })
+  return NextResponse.json({
+    affected: count ?? 0,
+    action,
+    ...(skipped.length > 0 ? { skipped } : {}),
+  })
 }
