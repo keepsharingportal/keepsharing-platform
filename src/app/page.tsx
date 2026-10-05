@@ -662,16 +662,25 @@ export default async function HomePage() {
                   return (
                     <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {/* Doubled from w-16/md:w-20 (Oct 2026) — the faces were
+                          too small to recognise anyone, which is the entire
+                          point of this block. The hero beside it is h-full
+                          lg:min-h-[500px], so it grows with this column rather
+                          than leaving a gap. */}
                       <img
                         src={avatarSrc}
                         alt={sp.title}
-                        className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover group-hover:scale-105 transition-transform border-2 md:border-4 border-background shadow-sm shrink-0"
+                        className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover group-hover:scale-105 transition-transform border-4 border-background shadow-sm shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider mb-1.5 px-2.5 py-0.5 ${badgeCls}`}>
                           {labelText}
                         </span>
-                        <h3 className="font-bold text-base md:text-lg leading-tight text-foreground line-clamp-2">
+                        {/* line-clamp-3, not 2: the bigger avatar leaves ~166px
+                            for the title on desktop, so a two-line clamp cut
+                            "Hunter Philhower - A Story of Trust and Teamwork"
+                            off mid-phrase. */}
+                        <h3 className="font-bold text-base md:text-lg leading-tight text-foreground line-clamp-3">
                           {sp.title}
                         </h3>
                       </div>
