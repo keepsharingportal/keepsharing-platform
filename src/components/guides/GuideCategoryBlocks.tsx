@@ -104,9 +104,11 @@ interface Props {
   categories:   Array<[string, number]>
   urlSlug:      string
   activeFilter?: string
+  /** Keep ?preview=1 on category links while a dark guide is being reviewed. */
+  preview?:     boolean
 }
 
-export function GuideCategoryBlocks({ categories, urlSlug, activeFilter }: Props) {
+export function GuideCategoryBlocks({ categories, urlSlug, activeFilter, preview = false }: Props) {
   if (categories.length === 0) return null
 
   return (
@@ -117,7 +119,7 @@ export function GuideCategoryBlocks({ categories, urlSlug, activeFilter }: Props
         return (
           <Link
             key={cat}
-            href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}
+            href={`/${urlSlug}?category=${encodeURIComponent(cat)}${preview ? '&preview=1' : ''}`}
             className={`group relative overflow-hidden rounded-2xl min-h-[150px] md:min-h-[180px] flex flex-col justify-end hover:shadow-lg transition-shadow ${
               active ? 'ring-4 ring-primary ring-offset-2' : ''
             }`}
