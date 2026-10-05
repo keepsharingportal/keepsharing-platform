@@ -16,6 +16,17 @@ import { articleHref } from '@/lib/articles/slug'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import { GuideCategoryBlocks } from '@/components/guides/GuideCategoryBlocks'
 import { guideIsLive } from '@/lib/guides/live'
+import {
+  categoryListingRenderable,
+  coerceJoin,
+  datedEventCardFacts,
+  freeListingFromRow,
+  isDatedEventGuide,
+  resolveCompactCard,
+  type CompactCardModel,
+  type InlineListingIdentity,
+} from '@/lib/guides/free-listings'
+import type { ListingData } from '@/components/theme/ListingCard'
 import type { Metadata } from 'next'
 
 function getSupabase() {
@@ -52,6 +63,65 @@ export async function generateGuideDetailMetadata(urlSlug: string): Promise<Meta
     description: data.short_description ?? undefined,
     ...(live ? {} : { robots: { index: false, follow: false } }),
   }
+}
+
+// Fisher-Yates. Called per request so no advertiser permanently owns the
+// top featured slot. Kept outside the page component so the randomness
+// isn't inside render.
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function CompactListingGrid({
+  cards,
+  guideUrlSlug,
+  guideContext,
+  ad,
+}: {
+  cards: Array<{ id: string } & CompactCardModel>
+  guideUrlSlug: string
+  guideContext: string
+  ad?: {
+    ad_headline?: string | null
+    ad_description?: string | null
+    ad_cta_label?: string | null
+    ad_link?: string | null
+  } | null
+}) {
+  return (
+    <div className="grid sm:grid-cols-2 gap-4">
+      {cards.map((card, i) => (
+        <div key={card.id}>
+          {i === 4 && ad && (
+            <Card className="col-span-full mb-0 border-secondary/30 bg-secondary/5">
+              <CardContent className="p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">AD</p>
+                {ad.ad_headline && <p className="font-semibold text-sm text-foreground mb-1">{ad.ad_headline}</p>}
+                {ad.ad_description && <p className="text-xs text-muted-foreground mb-2">{ad.ad_description}</p>}
+                {ad.ad_cta_label && ad.ad_link && (
+                  <Button asChild size="sm" variant="secondary" className="rounded-full">
+                    <Link href={ad.ad_link}>{ad.ad_cta_label}</Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <ListingCard
+            listing={card.listing}
+            guideUrlSlug={guideUrlSlug}
+            guideContext={guideContext}
+            variant="compact"
+            facts={card.facts}
+          />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 interface Props {
@@ -96,6 +166,8 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
     .from('guide_listings')
     .select(`
       id, listing_tier, category, guide_data,
+      business_name, card_hook, office_phone, mobile_phone, website_url,
+      contact_email, address, city_state_zip, neighborhood, hero_photo_url,
       advertiser_accounts (
         id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip,
         website_url, office_phone,
@@ -110,16 +182,6 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   if (categoryFilter) featuredQuery = featuredQuery.eq('category', categoryFilter)
   const { data: featuredAll } = await featuredQuery
 
-  // Home view rotates featured (Fisher-Yates shuffle, then 3 shown).
-  // Category view shows every featured listing for that category.
-  function shuffle<T>(arr: T[]): T[] {
-    const a = [...arr]
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[a[i], a[j]] = [a[j], a[i]]
-    }
-    return a
-  }
   // Every featured listing shows on the guide home page, not a rotating 3.
   // These are the paying advertisers and there are rarely more than a dozen
   // per guide — hiding two thirds of them behind a reload sells them short and
@@ -129,45 +191,66 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
     ? (featuredAll ?? [])
     : shuffle(featuredAll ?? [])
 
-  // Standard listings — only loaded when a category is selected. On the guide
-  // home page we intentionally don't show the standard directory; users pick
-  // a category first.
-  type StandardRow = {
-    id: string; listing_tier: string; category: string | null
+  // Dated event guides (Fall Festivities today) are a directory of free
+  // events, so the home page has to show the cards. Program guides still
+  // keep the standard directory behind a category pick — featured advertisers
+  // stay the only listings on those home pages.
+  const isEventGuide = isDatedEventGuide(guide.slug)
+
+  // Standard listings. Category view is capped at 50, same as before.
+  // An event-guide home page loads the whole free directory so each
+  // category section can render its cards.
+  type StandardRow = InlineListingIdentity & {
+    listing_tier: string
+    category: string | null
     guide_data: Record<string, unknown> | null
     advertiser_accounts: {
-      slug: string; business_name: string; card_hook?: string | null
-      hero_photo_url?: string | null; neighborhood?: string | null; city_state_zip?: string | null
+      id?: string
+      slug: string
+      business_name: string
+      card_hook?: string | null
+      hero_photo_url?: string | null
+      neighborhood?: string | null
+      city_state_zip?: string | null
     } | null
   }
   let standard: StandardRow[] | null = null
-  if (categoryFilter) {
-    const { data } = await supabase
+  if (categoryFilter || isEventGuide) {
+    let standardQuery = supabase
       .from('guide_listings')
       .select(`
         id, listing_tier, category, guide_data,
+        business_name, card_hook, office_phone, mobile_phone, website_url,
+        contact_email, address, city_state_zip, neighborhood, hero_photo_url,
         advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip )
       `)
       .eq('guide_type_slug', guide.slug)
       .eq('is_published', true)
       .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
-      .eq('category', categoryFilter)
       .order('display_order', { ascending: true })
-      .range(0, 49)
+    if (categoryFilter) {
+      standardQuery = standardQuery.eq('category', categoryFilter).range(0, 49)
+    } else {
+      standardQuery = standardQuery.limit(500)
+    }
+    const { data } = await standardQuery
     standard = (data ?? null) as unknown as StandardRow[] | null
   }
 
-  // Category counts
+  // Category counts — only listings a card can actually render. A category
+  // whose rows all lack both an advertiser and an inline name used to show
+  // up as a header over an empty grid.
   const { data: catRows } = await supabase
     .from('guide_listings')
-    .select('category')
+    .select('category, business_name, advertiser_accounts(business_name)')
     .eq('guide_type_slug', guide.slug)
     .eq('is_published', true)
     .not('category', 'is', null)
 
   const catMap: Record<string, number> = {}
   for (const r of catRows ?? []) {
-    if (r.category) catMap[r.category] = (catMap[r.category] ?? 0) + 1
+    if (!r.category || !categoryListingRenderable(r)) continue
+    catMap[r.category] = (catMap[r.category] ?? 0) + 1
   }
   const categories = Object.entries(catMap).sort((a, b) => b[1] - a[1])
 
@@ -207,8 +290,67 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   const article  = articles[0] ?? null   // sidebar "Editor's Pick"
 
   // True guide-wide total (independent of any active category filter).
-  const totalListings = (catRows ?? []).length
+  // Counts renderable listings only, so the header matches the cards below.
+  const totalListings = Object.values(catMap).reduce((sum, n) => sum + n, 0)
   const guideName = (guide.display_name as string).replace(' Guide', '').replace(' guide', '')
+
+  // Category links drop every other query param. While a guide is only
+  // reachable with ?preview=1, losing that flag 404s the next click. The
+  // gate itself is unchanged — this only keeps the flag on links that
+  // already came from a preview.
+  const guideHref = (category?: string) => {
+    const parts = [
+      category ? `category=${encodeURIComponent(category)}` : '',
+      preview ? 'preview=1' : '',
+    ].filter(Boolean)
+    return parts.length > 0 ? `/${urlSlug}?${parts.join('&')}` : `/${urlSlug}`
+  }
+
+  // Linked featured cards keep the advertiser account as their whole identity.
+  // A featured row with no account (there isn't one on the guides that sell
+  // this tier) falls back to the inline columns and renders compact, because
+  // a detail page needs an advertiser slug.
+  type GuideCard = {
+    key: string
+    variant: 'featured' | 'compact'
+    listing: ListingData
+    facts?: CompactCardModel['facts']
+  }
+  const featuredCards: GuideCard[] = featured.flatMap((l): GuideCard[] => {
+    const raw = l.advertiser_accounts as unknown as ListingData | ListingData[] | null
+    const a = coerceJoin(raw)
+    const gd = (l.guide_data ?? {}) as Record<string, string>
+    if (a) {
+      // Description fills an empty card_hook. Featured cards were the ones
+      // most likely to render with no copy — on the After-School Guide that
+      // was 5 of 10 paying advertisers — and the compact cards already did this.
+      const withHook = a.card_hook ? a : { ...a, card_hook: gd.description ?? null }
+      return [{ key: l.id, variant: 'featured', listing: withHook }]
+    }
+    const free = freeListingFromRow(l as unknown as InlineListingIdentity)
+    if (!free) return []
+    return [{
+      key: l.id,
+      variant: 'compact',
+      listing: free.card_hook ? free : { ...free, card_hook: gd.description ?? null },
+      facts: isEventGuide ? datedEventCardFacts((l.guide_data ?? null) as Record<string, unknown> | null) : [],
+    }]
+  })
+
+  const compactCards = (standard ?? []).flatMap(row => {
+    const card = resolveCompactCard(row, isEventGuide)
+    return card ? [{ id: row.id, category: row.category, ...card }] : []
+  })
+  const uncategorizedCards = compactCards.filter(card => !card.category)
+  const hubSections = (!categoryFilter && isEventGuide)
+    ? [
+        ...categories.flatMap(([cat]) => {
+          const cards = compactCards.filter(card => card.category === cat)
+          return cards.length > 0 ? [{ cat, cards }] : []
+        }),
+        ...(uncategorizedCards.length > 0 ? [{ cat: 'Other', cards: uncategorizedCards }] : []),
+      ]
+    : []
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -303,13 +445,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                   categories={categories}
                   urlSlug={urlSlug}
                   activeFilter={categoryFilter}
+                  preview={preview}
                 />
               </section>
             )}
 
             {/* Featured providers — every one of them, on both the guide home
                 page and the category view. */}
-            {featured && featured.length > 0 && (
+            {featuredCards.length > 0 && (
               <section>
                 <SectionHeader
                   title={categoryFilter ? `Featured in ${categoryFilter}` : 'Featured Providers'}
@@ -322,28 +465,16 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                     into an unreadably long scroll. Stays single-column below lg
                     so the card's own two-column split doesn't get crushed. */}
                 <div className="grid gap-5 lg:grid-cols-2">
-                  {featured.map(l => {
-                    const a = l.advertiser_accounts as unknown as Parameters<typeof ListingCard>[0]['listing'] | null
-                    if (!a) return null
-                    // Fall back to the guide's own description when the account
-                    // has no card_hook — the standard cards below already do
-                    // this, but featured didn't, so the most prominent cards on
-                    // the page were the ones most likely to render with no
-                    // copy at all. On the After-School Guide that was 5 of the
-                    // 10 featured listings, every one of them a paying
-                    // advertiser.
-                    const gd = (l.guide_data ?? {}) as Record<string, string>
-                    const withHook = a.card_hook ? a : { ...a, card_hook: gd.description ?? null }
-                    return (
-                      <ListingCard
-                        key={l.id}
-                        listing={withHook}
-                        guideUrlSlug={urlSlug}
-                        guideContext={guide.slug}
-                        variant="featured"
-                      />
-                    )
-                  })}
+                  {featuredCards.map(card => (
+                    <ListingCard
+                      key={card.key}
+                      listing={card.listing}
+                      guideUrlSlug={urlSlug}
+                      guideContext={guide.slug}
+                      variant={card.variant}
+                      facts={card.variant === 'compact' ? card.facts : undefined}
+                    />
+                  ))}
                 </div>
               </section>
             )}
@@ -377,11 +508,12 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
               </section>
             )}
 
-            {/* Directory — only shown when a category is selected. On the
-                guide home page the directory is replaced by a "pick a
-                category" prompt above (the Browse by Category cards) so
-                featured listings are the only listings users see at first. */}
-            {!categoryFilter && (
+            {/* Program guides keep the directory behind a category pick so
+                featured advertisers are what you see first. A dated event
+                guide has no paying tier to lead with — the events are the
+                page — so each category renders its cards here. A category
+                with nothing renderable is left out rather than shown empty. */}
+            {!categoryFilter && hubSections.length === 0 && (
               <section className="rounded-2xl border border-primary/20 bg-primary/5 p-7 text-center">
                 <Filter className="h-6 w-6 text-primary mx-auto mb-3" />
                 <h3 className="text-lg font-bold text-foreground mb-1">
@@ -393,6 +525,17 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
               </section>
             )}
 
+            {hubSections.map(section => (
+              <section key={section.cat}>
+                <h2 className="text-2xl font-bold text-foreground mb-6">{section.cat}</h2>
+                <CompactListingGrid
+                  cards={section.cards}
+                  guideUrlSlug={urlSlug}
+                  guideContext={guide.slug}
+                />
+              </section>
+            ))}
+
             {categoryFilter && (
             <section>
               <div className="flex items-center justify-between mb-6">
@@ -400,53 +543,17 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                   More in {categoryFilter}
                 </h2>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${urlSlug}`}>Show All ×</Link>
+                  <Link href={guideHref()}>Show All ×</Link>
                 </Button>
               </div>
 
-              {standard && standard.length > 0 ? (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {standard.map((l, i) => {
-                    const a = l.advertiser_accounts as unknown as {
-                      slug: string; business_name: string; card_hook?: string | null;
-                      hero_photo_url?: string | null; neighborhood?: string | null; city_state_zip?: string | null
-                    } | null
-                    if (!a) return null
-                    const gd = (l.guide_data ?? {}) as Record<string, string>
-                    const hook = a.card_hook ?? gd.description ?? null
-                    return (
-                      <div key={l.id}>
-                        {/* Inline ad after 4th listing */}
-                        {i === 4 && ad && (
-                          <Card key="inline-ad" className="col-span-full mb-0 border-secondary/30 bg-secondary/5">
-                            <CardContent className="p-4">
-                              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">AD</p>
-                              {ad.ad_headline && <p className="font-semibold text-sm text-foreground mb-1">{ad.ad_headline}</p>}
-                              {ad.ad_description && <p className="text-xs text-muted-foreground mb-2">{ad.ad_description}</p>}
-                              {ad.ad_cta_label && ad.ad_link && (
-                                <Button asChild size="sm" variant="secondary" className="rounded-full">
-                                  <Link href={ad.ad_link}>{ad.ad_cta_label}</Link>
-                                </Button>
-                              )}
-                            </CardContent>
-                          </Card>
-                        )}
-                        {/* Free listings sit under the featured ones and get
-                            deliberately less: no photo, a clamped description,
-                            and no detail page — just the name, area, and
-                            tappable phone and website a parent needs to make
-                            contact. Featured keeps the photo, the full copy,
-                            and a page of its own. */}
-                        <ListingCard
-                          listing={{ ...a, card_hook: hook } as Parameters<typeof ListingCard>[0]['listing']}
-                          guideUrlSlug={urlSlug}
-                          guideContext={guide.slug}
-                          variant="compact"
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
+              {compactCards.length > 0 ? (
+                <CompactListingGrid
+                  cards={compactCards}
+                  guideUrlSlug={urlSlug}
+                  guideContext={guide.slug}
+                  ad={ad}
+                />
               ) : (
                 <div className="rounded-2xl border-2 border-dashed border-border/60 bg-muted/20 px-8 py-14 text-center">
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
@@ -470,7 +577,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                     </Button>
                     {categoryFilter && (
                       <Button asChild variant="outline" className="rounded-full">
-                        <Link href={`/${urlSlug}`}>View All Categories</Link>
+                        <Link href={guideHref()}>View All Categories</Link>
                       </Button>
                     )}
                   </div>
@@ -536,11 +643,11 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
             {categories.length > 0 && (
               <SidebarWidget title="Filter Results" icon={Filter}>
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/${urlSlug}`}>
+                  <Link href={guideHref()}>
                     <Badge variant={!categoryFilter ? 'default' : 'outline'} className="cursor-pointer">All</Badge>
                   </Link>
                   {categories.map(([cat, cnt]) => (
-                    <Link key={cat} href={`/${urlSlug}?category=${encodeURIComponent(cat)}`}>
+                    <Link key={cat} href={guideHref(cat)}>
                       <Badge variant={categoryFilter === cat ? 'default' : 'outline'} className="cursor-pointer">
                         {cat} ({cnt})
                       </Badge>

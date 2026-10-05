@@ -1,8 +1,9 @@
+import type { ElementType } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, Phone, Globe, ChevronRight, Star } from 'lucide-react'
+import { MapPin, Phone, Globe, ChevronRight, Star, CalendarDays, Ticket, Clock, Mail } from 'lucide-react'
 import { ListingImagePlaceholder } from '@/components/listings/ListingImagePlaceholder'
 import { ListingBadges } from '@/components/listings/ListingBadges'
 
@@ -21,6 +22,14 @@ export interface ListingData {
   is_woman_owned?:        boolean | null
   is_minority_owned?:     boolean | null
   is_locally_owned?:      boolean | null
+  /** Free listings store this on the row. Linked cards leave it unset. */
+  contact_email?:         string | null
+}
+
+export interface ListingCardFact {
+  key:   string
+  label: string
+  value: string
 }
 
 interface Props {
@@ -41,6 +50,12 @@ interface Props {
    * featured cards and any other caller keep their existing behaviour.
    */
   linkToDetail?: boolean
+  /**
+   * Scan chips for compact cards on dated event guides (when, how much,
+   * and hours when the value is short enough to sit on the card).
+   * Ignored by featured and standard variants so those cards stay as they are.
+   */
+  facts?: ListingCardFact[]
 }
 
 function fmtPhone(p: string | null | undefined): string | null {
@@ -77,7 +92,13 @@ function rootDomain(url: string | null | undefined): string | null {
 
 // guideContext stays in Props (every call site passes it) but is no longer
 // read — it only ever selected which stock photo to fake.
-export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkToDetail = true }: Props) {
+const FACT_ICONS: Record<string, ElementType> = {
+  dates: CalendarDays,
+  cost:  Ticket,
+  hours: Clock,
+}
+
+export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkToDetail = true, facts }: Props) {
   // Only the business's own photo. A stock fallback put a picture of somebody
   // else's studio on this card and readers reasonably took it for this one —
   // and it hid which listings still need a photo, because every card looked
@@ -191,7 +212,24 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
             {listing.card_hook}
           </p>
         )}
-        {(telHref || webHref) && (
+        {facts && facts.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {facts.map(fact => {
+              const Icon = FACT_ICONS[fact.key]
+              return (
+                <span
+                  key={fact.key}
+                  className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground bg-muted/60 rounded-full px-2.5 py-1 max-w-full"
+                >
+                  {Icon && <Icon className="h-3 w-3 shrink-0" aria-hidden />}
+                  <span className="sr-only">{fact.label}: </span>
+                  <span className="break-words">{fact.value}</span>
+                </span>
+              )
+            })}
+          </div>
+        )}
+        {(telHref || webHref || listing.contact_email) && (
           <div className="flex flex-wrap items-center gap-2 mt-2.5">
             {telHref && phone && (
               <a
@@ -212,6 +250,15 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
                 <span className="truncate">{domain}</span>
               </a>
             )}
+            {listing.contact_email && (
+              <a
+                href={`mailto:${listing.contact_email}`}
+                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground bg-muted/60 hover:bg-muted rounded-full px-2.5 py-1 transition-colors max-w-[220px]"
+              >
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{listing.contact_email}</span>
+              </a>
+            )}
           </div>
         )}
       </div>
@@ -223,14 +270,7 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
   // not be wrapped in one, so the phone and website inside them are reachable
   // — nesting interactive elements inside an anchor is invalid and swallows
   // the taps that matter most to a parent on a phone.
-  const Wrapper = linkToDetail
-    ? ({ children }: { children: React.ReactNode }) => (
-        <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} className="group block h-full">{children}</Link>
-      )
-    : ({ children }: { children: React.ReactNode }) => <div className="group block h-full">{children}</div>
-
-  return (
-    <Wrapper>
+  const card = (
       <div className="overflow-hidden rounded-2xl border border-border hover:border-primary/30 hover:shadow-sm transition-all bg-card flex flex-col h-full">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted shrink-0">
@@ -307,6 +347,14 @@ export function ListingCard({ listing, guideUrlSlug, variant = 'standard', linkT
           )}
         </div>
       </div>
-    </Wrapper>
   )
+
+  if (linkToDetail) {
+    return (
+      <Link href={`/${guideUrlSlug}/listings/${listing.slug}`} className="group block h-full">
+        {card}
+      </Link>
+    )
+  }
+  return <div className="group block h-full">{card}</div>
 }
