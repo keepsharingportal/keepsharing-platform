@@ -131,10 +131,10 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
   // Featured is editor-pinned, newest first, capped at 3. When nobody has
   // pinned anything it falls back to the newest stories rather than
   // disappearing — an empty Featured band above a full grid reads as broken.
-  const pinned      = visible.filter(s => s.spotlight_featured)
-  const featured    = (pinned.length > 0 ? pinned : visible).slice(0, 3)
-  const featuredIds = new Set(featured.map(f => f.id))
-  const rest        = visible.filter(s => !featuredIds.has(s.id))
+  // All Stories is the full visible set: every published spotlight in this
+  // view, including ones that also appear in Featured.
+  const pinned   = visible.filter(s => s.spotlight_featured)
+  const featured = (pinned.length > 0 ? pinned : visible).slice(0, 3)
 
   const ctx = await loadBrandContext()
   const seo = getBrandSeoConfig(ctx.market, ctx.publicOrigin)
@@ -242,16 +242,12 @@ export default async function BusinessSpotlightHubPage({ searchParams }: Props) 
                 size="md"
                 withDivider
               />
-              {rest.length > 0 ? (
+              {visible.length > 0 ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {rest.map(s => (
+                  {visible.map(s => (
                     <ArticleCard key={s.id} article={s} showAuthor={false} />
                   ))}
                 </div>
-              ) : visible.length > 0 ? (
-                <p className="text-muted-foreground py-4">
-                  That&rsquo;s everything here so far — more on the way.
-                </p>
               ) : (
                 /* An industry chip only renders when it has stories, so this
                    is reachable only from a hand-typed or stale URL. */
