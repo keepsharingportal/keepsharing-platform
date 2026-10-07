@@ -660,28 +660,59 @@ export default async function HomePage() {
                   const rawCol = sp.column_slug ?? col
                   const href = articleHref({ slug: sp.slug, title: sp.title, column_slug: rawCol })
                   return (
-                    <Link key={sp.id} href={href} className={`flex items-center gap-3 md:gap-5 group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {/* 96px / 120px. Was w-16/md:w-20, where the faces were
-                          too small to recognise anyone — which is the entire
-                          point of this block — then briefly double that, which
-                          overshot. This is 75% of the doubled size. The hero
-                          beside it is h-full lg:min-h-[500px], so it tracks
-                          this column's height rather than leaving a gap. */}
-                      <img
-                        src={avatarSrc}
-                        alt={sp.title}
-                        className="w-24 h-24 md:w-30 md:h-30 rounded-full object-cover group-hover:scale-105 transition-transform border-4 border-background shadow-sm shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className={`inline-block rounded-full text-[10px] font-bold uppercase tracking-wider mb-1.5 px-2.5 py-0.5 ${badgeCls}`}>
-                          {labelText}
-                        </span>
+                    <Link key={sp.id} href={href} className={`@container block group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
+                      {/* Column badge, doubled from 10px to 20px (Oct 2026).
+                          Two things that took to make it work, both measured in
+                          a real browser rather than estimated:
+
+                          It sits on its own full-width line instead of beside
+                          the photo. The longest label, "GRANDS ARE THE
+                          GREATEST", is 324px at 20px; the text column next to a
+                          120px avatar has only ~206px, so it wrapped there.
+                          Across the card it has ~347px and fits.
+
+                          The size is fluid against the CARD, not the viewport
+                          (hence @container on the Link and cqw here). This
+                          column is full width on a phone, ~628px at md, then
+                          drops to ~251px at lg before growing back to ~379px on
+                          a wide screen — so viewport units get it wrong exactly
+                          where it matters: a pinned 20px wrapped on every
+                          1024–1390px laptop.
+
+                          calc(6.6cqw - 2.4px) is the line "largest size whose
+                          longest label still fits on one line", fitted to the
+                          measured 324px pill at 20px and then given a little
+                          headroom. Note cqw resolves against the container's
+                          CONTENT box, not its border box — calibrating against
+                          the outer width silently left desktop at 18.7px.
+                          It reaches the 20px cap at ~371px of card, so every
+                          real desktop is exactly double, and eases to the 12px
+                          floor in the narrow lg sidebar and on a 320px phone.
+
+                          tracking-wide rather than wider for the same reason:
+                          it buys back ~11px. */}
+                      <span className={`inline-block rounded-full text-[clamp(0.75rem,calc(6.6cqw-2.4px),1.25rem)] leading-none font-bold uppercase tracking-wide px-4 py-2 ${badgeCls}`}>
+                        {labelText}
+                      </span>
+                      <div className="flex items-center gap-3 md:gap-5 mt-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {/* 96px / 120px. Was w-16/md:w-20, where the faces were
+                            too small to recognise anyone — which is the entire
+                            point of this block — then briefly double that,
+                            which overshot. This is 75% of the doubled size. The
+                            hero beside it is h-full lg:min-h-[500px], so it
+                            tracks this column's height rather than leaving a
+                            gap. */}
+                        <img
+                          src={avatarSrc}
+                          alt={sp.title}
+                          className="w-24 h-24 md:w-30 md:h-30 rounded-full object-cover group-hover:scale-105 transition-transform border-4 border-background shadow-sm shrink-0"
+                        />
                         {/* line-clamp-3, not 2: the larger avatar leaves ~206px
-                            for the title on desktop, so a two-line clamp still
-                            cuts "Hunter Philhower - A Story of Trust and
-                            Teamwork" off mid-phrase. */}
-                        <h3 className="font-bold text-base md:text-lg leading-tight text-foreground line-clamp-3">
+                            for the title on desktop, so a two-line clamp cuts
+                            "Hunter Philhower - A Story of Trust and Teamwork"
+                            off mid-phrase. */}
+                        <h3 className="flex-1 min-w-0 font-bold text-base md:text-lg leading-tight text-foreground line-clamp-3">
                           {sp.title}
                         </h3>
                       </div>
