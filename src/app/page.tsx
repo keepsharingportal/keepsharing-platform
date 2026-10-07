@@ -661,37 +661,40 @@ export default async function HomePage() {
                   const href = articleHref({ slug: sp.slug, title: sp.title, column_slug: rawCol })
                   return (
                     <Link key={sp.id} href={href} className={`@container block group cursor-pointer p-3 md:p-4 rounded-2xl border transition-all ${cardTint}`}>
-                      {/* Column badge, doubled from 10px to 20px (Oct 2026).
+                      {/* Column badge. 14px, up from the original 10px (Oct 2026).
                           Two things that took to make it work, both measured in
                           a real browser rather than estimated:
 
                           It sits on its own full-width line instead of beside
                           the photo. The longest label, "GRANDS ARE THE
-                          GREATEST", is 324px at 20px; the text column next to a
-                          120px avatar has only ~206px, so it wrapped there.
-                          Across the card it has ~347px and fits.
+                          GREATEST", is a ~255px pill at 14px, and the text
+                          column next to a 120px avatar has only ~206px — so it
+                          still would not fit there even at this smaller size.
+                          Across the card it has ~347px.
 
                           The size is fluid against the CARD, not the viewport
                           (hence @container on the Link and cqw here). This
-                          column is full width on a phone, ~628px at md, then
-                          drops to ~251px at lg before growing back to ~379px on
+                          column is full width on a phone, ~670px at md, then
+                          drops to ~254px at lg before growing back to ~379px on
                           a wide screen — so viewport units get it wrong exactly
-                          where it matters: a pinned 20px wrapped on every
-                          1024–1390px laptop.
+                          where it matters, in the narrow lg sidebar that most
+                          laptops land in.
 
-                          calc(6.6cqw - 2.4px) is the line "largest size whose
-                          longest label still fits on one line", fitted to the
-                          measured 324px pill at 20px and then given a little
-                          headroom. Note cqw resolves against the container's
-                          CONTENT box, not its border box — calibrating against
-                          the outer width silently left desktop at 18.7px.
-                          It reaches the 20px cap at ~371px of card, so every
-                          real desktop is exactly double, and eases to the 12px
-                          floor in the narrow lg sidebar and on a 320px phone.
+                          calc(6.7cqw - 2.1px) is the line "largest size whose
+                          longest label still fits on one line". Note cqw
+                          resolves against the container's CONTENT box, not its
+                          border box — calibrating against the outer width
+                          silently undershoots.
+
+                          The 14px cap now binds nearly everywhere, so the badge
+                          reads at one consistent size from a 268px card upward;
+                          the fluid term only does work in the narrow lg sidebar
+                          (~254px card) and on a 320px phone, where it eases to
+                          the 12px floor instead of wrapping.
 
                           tracking-wide rather than wider for the same reason:
-                          it buys back ~11px. */}
-                      <span className={`inline-block rounded-full text-[clamp(0.75rem,calc(6.6cqw-2.4px),1.25rem)] leading-none font-bold uppercase tracking-wide px-4 py-2 ${badgeCls}`}>
+                          it buys back a few px. */}
+                      <span className={`inline-block rounded-full text-[clamp(0.75rem,calc(6.7cqw-2.1px),0.875rem)] leading-none font-bold uppercase tracking-wide px-3.5 py-1.5 ${badgeCls}`}>
                         {labelText}
                       </span>
                       <div className="flex items-center gap-3 md:gap-5 mt-3">
