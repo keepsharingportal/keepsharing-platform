@@ -11,7 +11,8 @@
     "import-articles": "npx tsx scripts/import-articles.ts",
     "import-guides": "npx tsx --env-file=.env.local scripts/import-guides.ts",
     "fetch-event-images": "npx tsx --env-file=.env.local scripts/fetch-event-images.ts",
-    "download-heroes": "npx tsx scripts/download-hero-images.ts"
+    "download-heroes": "npx tsx scripts/download-hero-images.ts",
+    "test:calendar-recurrence": "npx tsx --test src/lib/calendar/expand-recurrences.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
