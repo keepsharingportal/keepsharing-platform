@@ -5,6 +5,8 @@
 // admin's 404 monitor sees the hit and can turn it into a redirect.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { Search, Home, ArrowRight } from 'lucide-react'
@@ -18,10 +20,17 @@ export default async function NotFound() {
   const h = await headers()
   const path = h.get('x-next-pathname') ?? h.get('next-url') ?? ''
 
+  // Chrome has to follow the brand like every other page. Without this the
+  // 404 rendered River Region's nav, tagline and "Serving Montgomery,
+  // Prattville…" footer on every brand — and a new brand 404s a lot while its
+  // guides are still switched off, so it was one of the most-seen pages.
+  const ctx    = await loadBrandContext()
+  const chrome = chromeForBrand(ctx.brand)
+
   return (
     <div className="min-h-screen bg-background">
       <NotFoundLogger path={path} />
-      <Navigation />
+      <Navigation brandSlug={ctx.slug} chrome={chrome} />
       <main className="container py-16 md:py-24 max-w-2xl text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">404</p>
         <h1 className="text-4xl md:text-5xl font-black text-foreground leading-tight mb-4">
@@ -59,7 +68,7 @@ export default async function NotFound() {
           </div>
         </div>
       </main>
-      <PublicFooter />
+      <PublicFooter brandSlug={ctx.slug} chrome={chrome} />
     </div>
   )
 }

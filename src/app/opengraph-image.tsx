@@ -16,7 +16,11 @@ import { getBrandSeoConfig } from '@/lib/seo/brand-seo'
 export const runtime    = 'nodejs'
 export const contentType = 'image/png'
 export const size = { width: 1200, height: 630 }
-export const alt  = 'River Region Parents — Local Stories & Events'
+// Brand-neutral on purpose. Next requires `alt` to be a static module export,
+// so it cannot vary per request the way the image itself does (the handler
+// below reads the brand and renders that brand's card). Naming one brand here
+// meant every other brand's shared links carried River Region's alt text.
+export const alt  = 'Local Stories & Events'
 
 export default async function OG() {
   const ctx = await loadBrandContext()

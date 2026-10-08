@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -65,7 +66,7 @@ export async function generateListingMetadata(listingSlug: string, urlSlug?: str
   }
 
   return {
-    title:       `${data.business_name} | River Region Parents`,
+    title:       `${data.business_name} | ${(await loadBrandContext()).market.displayName}`,
     description: data.detail_lead ?? undefined,
     ...(live ? {} : { robots: { index: false, follow: false } }),
   }

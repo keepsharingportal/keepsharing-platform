@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -64,7 +65,10 @@ export async function generateGuideDetailMetadata(urlSlug: string): Promise<Meta
   const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg)
 
   return {
-    title:       `${data.display_name} | River Region Parents`,
+    // Brand name from the request, not baked in — a Pensacola guide titled
+    // "| River Region Parents" is wrong in the tab, in search results and in
+    // every link anyone shares.
+    title:       `${data.display_name} | ${(await loadBrandContext()).market.displayName}`,
     description: data.short_description ?? undefined,
     ...(live ? {} : { robots: { index: false, follow: false } }),
   }
