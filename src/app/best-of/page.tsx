@@ -6,6 +6,8 @@
 // regardless of entry point.
 
 import type { Metadata } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
@@ -58,11 +60,14 @@ interface BestOfArticle {
 export default async function BestOfLandingPage() {
   const supabase = getSupabase()
 
+    // Brand filter — one deployment serves every brand's domain.
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const { data: articlesData } = await supabase
     .from('guide_articles')
     .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug')
     .eq('column_slug', 'frg-best-of')
     .eq('published', true)
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false, nullsFirst: false })
 
   const articles = (articlesData ?? []) as BestOfArticle[]

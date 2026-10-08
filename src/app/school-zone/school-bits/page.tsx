@@ -4,6 +4,7 @@
 // to localStorage so it's the default the next time they visit.
 
 import type { Metadata } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import { permanentRedirect } from 'next/navigation'
 import { Suspense } from 'react'
@@ -177,7 +178,7 @@ async function fetchLatestHero(supabase: ReturnType<typeof supabaseAdmin>): Prom
   const { data } = await supabase
     .from('school_bits')
     .select('image_web_url')
-    .eq('market', MARKET)
+    .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
     .in('status', ['approved', 'published'])
     .not('image_web_url', 'is', null)
     .lte('published_at', new Date().toISOString())
@@ -191,7 +192,7 @@ async function fetchLatestHeroForSchool(supabase: ReturnType<typeof supabaseAdmi
   const { data } = await supabase
     .from('school_bits')
     .select('image_web_url')
-    .eq('market', MARKET)
+    .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
     .eq('school_id', schoolId)
     .in('status', ['approved', 'published'])
     .not('image_web_url', 'is', null)
@@ -209,7 +210,11 @@ function supabaseAdmin() {
   )
 }
 
-const MARKET = 'rrp'
+// Was a module constant pinning this whole page to River Region. One
+// deployment serves every brand's domain, so it has to be resolved per
+// request. currentBrandSlug() is cached for the render, so the repeated
+// calls below are one header read, not many.
+const MARKET_FALLBACK = 'rrp'
 
 export interface PublicSchoolBit {
   id:             string
@@ -290,7 +295,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
     supabase
       .from('school_bits')
       .select('id, school_id, school_name, title, blurb, image_web_url, image_width, image_height, published_at, created_at')
-      .eq('market', MARKET)
+      .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
       .in('status', ['approved', 'published'])
       .lte('published_at', nowIso)
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -299,7 +304,7 @@ export default async function SchoolBitsPage(_props: PageParams) {
     supabase
       .from('schools')
       .select('id, name, area, is_private')
-      .eq('market', MARKET)
+      .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
       .eq('status', 'active')
       .order('name', { ascending: true }),
 

@@ -3,6 +3,8 @@
 // bloggers + their latest posts.
 
 import Link from 'next/link'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
@@ -65,7 +67,10 @@ export default async function MomKnowsBestPage() {
     { data: posts },
     { data: verticalRow },
     { data: sponsorRow },
-  ] = await Promise.all([
+  ] = await (async () => {
+  // Brand filter — one deployment serves every brand's domain.
+  const mkbBrand = (await currentBrandSlug()) ?? 'rrp'
+  return Promise.all([
     supabase.from('bloggers')
       .select('id, slug, display_name, tagline, profile_image_url, bio')
       .eq('is_active', true)
@@ -75,6 +80,7 @@ export default async function MomKnowsBestPage() {
       .select('id, slug, title, excerpt, hero_image_url, profile_image_url, author_name, author_blogger_id, published_at, created_at, column_slug')
       .eq('column_slug', 'mom-knows-best')
       .eq('published', true)
+      .or(articleBrandFilter(mkbBrand))
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(9),
     supabase.from('verticals')
@@ -90,6 +96,7 @@ export default async function MomKnowsBestPage() {
       .limit(1)
       .maybeSingle(),
   ])
+  })()
 
   const bloggersById: Record<string, Blogger> = {}
   for (const b of (bloggers ?? []) as Blogger[]) bloggersById[b.id] = b

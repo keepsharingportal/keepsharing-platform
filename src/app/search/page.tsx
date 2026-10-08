@@ -6,6 +6,8 @@
 // they're looking for instead of relying on Google to do it for them.
 
 import type { Metadata } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
@@ -61,11 +63,14 @@ async function searchArticles(q: string): Promise<ArticleHit[]> {
   // could use plainto_tsquery against a stored tsvector column when we
   // add one — this is the no-migration variant that already works.
   const like = `%${q.replace(/[\\%_]/g, '\\$&')}%`
+  // Brand filter — search must not surface another brand's articles.
+  const brandSlug = (await currentBrandSlug()) ?? 'rrp'
   const { data } = await sb
     .from('guide_articles')
     .select('id, title, slug, column_slug, excerpt, dek, hero_image_url, author_name, published_at')
     .eq('published', true)
     .or(`title.ilike.${like},excerpt.ilike.${like},dek.ilike.${like}`)
+    .or(articleBrandFilter(brandSlug))
     .order('published_at', { ascending: false })
     .limit(40)
   return (data ?? []) as ArticleHit[]
