@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { BookOpen, MapPin, Star } from 'lucide-react'
 import { PageHeader, SectionHeader, ContentCard } from '@/components/theme'
 import { guideIsLive } from '@/lib/guides/live'
+import { guideScope } from '@/lib/guides/brand-scope'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -49,27 +50,43 @@ async function getData() {
   // A seasonal guide out of season must not show a card here: the card would
   // link to a 404, which is worse than simply not being listed. Same gate the
   // hub itself uses, so the two can't disagree.
-  const { data: configs } = await supabase
+  // Per-brand from migration 232: this lists the guides THIS brand runs, not
+  // every guide in the catalog. A brand with nothing configured yet shows an
+  // empty library rather than another market's line-up.
+  const scope = await guideScope(supabase)
+
+  const configQuery = supabase
     .from('guide_configs')
     .select('guide_type_slug, is_active')
+  if (scope.active) configQuery.eq('market', scope.market)
+  const { data: configs } = await configQuery
+
   const configMap: Record<string, { is_active?: boolean | null }> =
     Object.fromEntries((configs ?? []).map(c => [c.guide_type_slug, c]))
 
-  const guides = (guidesRaw ?? []).filter(g => guideIsLive(g, configMap[g.slug] ?? null))
+  // Once scoped, a guide with NO config row for this brand is not part of its
+  // library at all — previously a missing row meant "no opinion, show it",
+  // which is right for one brand and wrong for six.
+  const guides = (guidesRaw ?? []).filter(g =>
+    (!scope.active || configMap[g.slug] !== undefined) &&
+    guideIsLive(g, configMap[g.slug] ?? null))
 
   const counts = await Promise.all(
     (guides ?? []).map(g =>
-      supabase
-        .from('guide_listings')
-        .select('id', { count: 'exact', head: true })
-        .eq('guide_type_slug', g.slug)
-        .eq('is_published', true)
-        .then(({ count }) => ({ slug: g.slug, count: count ?? 0 }))
+      (() => {
+        const q = supabase
+          .from('guide_listings')
+          .select('id', { count: 'exact', head: true })
+          .eq('guide_type_slug', g.slug)
+          .eq('is_published', true)
+        if (scope.active) q.eq('market', scope.market)
+        return q.then(({ count }) => ({ slug: g.slug, count: count ?? 0 }))
+      })()
     )
   )
   const countMap = Object.fromEntries(counts.map(c => [c.slug, c.count]))
 
-  const { data: featured } = await supabase
+  const featuredQuery = supabase
     .from('guide_listings')
     .select(`
       id, listing_tier, guide_type_slug,
@@ -79,6 +96,8 @@ async function getData() {
     .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-3-business-spotlight'])
     .eq('is_published', true)
     .limit(2)
+  if (scope.active) featuredQuery.eq('market', scope.market)
+  const { data: featured } = await featuredQuery
 
   return {
     guides: (guides ?? []).map(g => ({ ...g, count: countMap[g.slug] ?? 0 })),

@@ -76,21 +76,30 @@ function NewAdInner() {
 
   async function save() {
     setSaving(true)
-    const { error } = await supabase.from('ad_placements').insert({
-      ...form,
-      context_slug:           form.context_slug || null,
-      advertiser_account_id:  form.advertiser_account_id || null,
-      ad_eyebrow:             form.ad_eyebrow || null,
-      ad_headline:            form.ad_headline || null,
-      ad_description:         form.ad_description || null,
-      ad_cta_label:           form.ad_cta_label || null,
-      ad_link:                form.ad_link || null,
-      ad_image_url:           form.ad_image_url || null,
-      ends_at:                form.ends_at || null,
+    // Posts to the API rather than inserting straight from the browser. The
+    // server stamps `market` from whichever brand the switcher is on — a
+    // client has no way to know that, and an unstamped placement would run
+    // free on every brand's site as a house ad.
+    const res = await fetch('/api/admin/ads/item', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        ...form,
+        context_slug:           form.context_slug || null,
+        advertiser_account_id:  form.advertiser_account_id || null,
+        ad_eyebrow:             form.ad_eyebrow || null,
+        ad_headline:            form.ad_headline || null,
+        ad_description:         form.ad_description || null,
+        ad_cta_label:           form.ad_cta_label || null,
+        ad_link:                form.ad_link || null,
+        ad_image_url:           form.ad_image_url || null,
+        ends_at:                form.ends_at || null,
+      }),
     })
+    const json = await res.json().catch(() => ({}))
     setSaving(false)
-    if (!error) router.push('/admin/ads')
-    else alert(`Error: ${error.message}`)
+    if (res.ok) router.push('/admin/ads')
+    else alert(`Error: ${json?.error ?? res.status}`)
   }
 
   const contextSlugs = CONTEXT_SLUGS[form.context_type] ?? []

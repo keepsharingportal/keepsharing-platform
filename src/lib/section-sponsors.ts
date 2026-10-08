@@ -10,6 +10,7 @@
 // to change — we map the ad_placements row back to the legacy shape.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { currentBrandSlug } from './current-brand'
 import { cache } from 'react'
 
 export interface SectionSponsor {
@@ -44,21 +45,36 @@ export const getActiveSectionSponsor = cache(async (
   if (!columnSlug) return null
 
   const nowIso = new Date().toISOString()
+  // Section sponsors are sold per brand like any other placement — see
+  // get-active-ads.ts for why NULL market is house-wide rather than unscoped.
+  const market = await currentBrandSlug()
 
   // Newest active sponsor wins if more than one is configured for the
   // column. starts_at/ends_at are timestamptz; we compare against now().
-  const { data, error } = await supabase
-    .from('ad_placements')
-    .select('id, context_slug, advertiser_account_id, ad_eyebrow, ad_headline, ad_description, ad_link, ad_cta_label, ad_image_url, logo_url, sponsor_tagline, accent_color, starts_at, ends_at')
-    .eq('placement_type', 'section_sponsor')
-    .eq('context_slug',   columnSlug)
-    .eq('is_active',      true)
-    .lte('starts_at', nowIso)
-    .or(`ends_at.is.null,ends_at.gte.${nowIso}`)
-    .order('starts_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  //
+  // scopeToMarket=false is the pre-migration-232 retry: that database has no
+  // market column, and dropping every section sponsor on the site is a worse
+  // failure than serving the one brand that has any.
+  async function run(scopeToMarket: boolean) {
+    const q = supabase
+      .from('ad_placements')
+      .select('id, context_slug, advertiser_account_id, ad_eyebrow, ad_headline, ad_description, ad_link, ad_cta_label, ad_image_url, logo_url, sponsor_tagline, accent_color, starts_at, ends_at')
+      .eq('placement_type', 'section_sponsor')
+      .eq('context_slug',   columnSlug)
+      .eq('is_active',      true)
+      .lte('starts_at', nowIso)
+      .or(`ends_at.is.null,ends_at.gte.${nowIso}`)
+      .order('starts_at', { ascending: false })
+      .limit(1)
+    // Second .or() — PostgREST ANDs successive or-groups together.
+    if (scopeToMarket && market) q.or(`market.eq.${market},market.is.null`)
+    return q.maybeSingle()
+  }
 
+  let { data, error } = await run(true)
+  if (error && /column .*market.* does not exist/i.test(error.message)) {
+    ;({ data, error } = await run(false))
+  }
   if (error || !data) return null
 
   // Map ad_placements back to the SectionSponsor shape that the render

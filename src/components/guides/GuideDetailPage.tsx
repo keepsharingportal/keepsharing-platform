@@ -16,6 +16,7 @@ import { articleHref } from '@/lib/articles/slug'
 import { PageHeader, SectionHeader, SidebarWidget, ListingCard } from '@/components/theme'
 import { GuideCategoryBlocks } from '@/components/guides/GuideCategoryBlocks'
 import { guideIsLive } from '@/lib/guides/live'
+import { guideScope } from '@/lib/guides/brand-scope'
 import {
   categoryListingRenderable,
   coerceJoin,
@@ -146,15 +147,21 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
 
   if (!guide) notFound()
 
+  // Which brand's guide is this? Configs and listings are per-brand from
+  // migration 232 — Greater Pensacola runs its own Childcare Guide with its
+  // own listings, off the shared guide_types catalog.
+  const scope = await guideScope(supabase)
+
   // Seasonal gate. live_from / live_until arrive with migration 230; select('*')
   // simply returns undefined for them until it is applied, which reads as "no
   // window" — so the is_active switch alone still holds the gate closed in the
   // meantime. No probe needed, and no behaviour change for existing guides.
-  const { data: guideConfig } = await supabase
+  const configQuery = supabase
     .from('guide_configs')
     .select('is_active')
     .eq('guide_type_slug', guide.slug)
-    .maybeSingle()
+  if (scope.active) configQuery.eq('market', scope.market)
+  const { data: guideConfig } = await configQuery.maybeSingle()
 
   const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)
   if (!isLive && !preview) notFound()
@@ -179,6 +186,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
     .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'])
     .order('display_order', { ascending: true })
 
+  if (scope.active)   featuredQuery = featuredQuery.eq('market', scope.market)
   if (categoryFilter) featuredQuery = featuredQuery.eq('category', categoryFilter)
   const { data: featuredAll } = await featuredQuery
 
@@ -228,6 +236,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
       .eq('is_published', true)
       .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
       .order('display_order', { ascending: true })
+    if (scope.active) standardQuery = standardQuery.eq('market', scope.market)
     if (categoryFilter) {
       standardQuery = standardQuery.eq('category', categoryFilter).range(0, 49)
     } else {
@@ -240,12 +249,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // Category counts — only listings a card can actually render. A category
   // whose rows all lack both an advertiser and an inline name used to show
   // up as a header over an empty grid.
-  const { data: catRows } = await supabase
+  const catQuery = supabase
     .from('guide_listings')
     .select('category, business_name, advertiser_accounts(business_name)')
     .eq('guide_type_slug', guide.slug)
     .eq('is_published', true)
     .not('category', 'is', null)
+  if (scope.active) catQuery.eq('market', scope.market)
+  const { data: catRows } = await catQuery
 
   const catMap: Record<string, number> = {}
   for (const r of catRows ?? []) {

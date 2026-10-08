@@ -7,6 +7,7 @@ import { SplitColoredTitle } from '@/components/verticals/SplitColoredTitle'
 import { HeroSponsorCard, type HeroSponsor } from '@/components/verticals/HeroSponsorCard'
 import { getActiveAds, type ActiveAd } from '@/lib/get-active-ads'
 import { expandRecurrences, type ExpandableEvent } from '@/lib/calendar/expand-recurrences'
+import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -67,8 +68,12 @@ export default async function CalendarPage() {
   // start_date sits BEFORE the window (their occurrences can still fall
   // inside). expandRecurrences merges and turns recurring rows into
   // virtual one-off rows for [today, monthEnd].
+  // One deployment serves every brand's domain, so an unscoped event query
+  // puts River Region's calendar on Greater Pensacola's site.
+  const evScope = await marketScope(supabase, 'calendar_events')
+
   const [rich, recurringPast] = await Promise.all([
-    supabase
+    scopeToMarket(supabase
       .from('calendar_events')
       .select(richCols)
       .eq('status', 'published')
@@ -76,20 +81,20 @@ export default async function CalendarPage() {
       .lte('start_date', monthEnd)
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true, nullsFirst: true })
-      .limit(100),
-    supabase
+      .limit(100), evScope),
+    scopeToMarket(supabase
       .from('calendar_events')
       .select(richCols)
       .eq('status', 'published')
       .not('recurrence_rule', 'is', null)
       .lt('start_date', today)
-      .limit(200),
+      .limit(200), evScope),
   ])
 
   if (rich.error && /column .* does not exist/i.test(rich.error.message ?? '')) {
     // Pre-077 schema (no recurrence_rule column yet). Fall back to the
     // base column set and skip the recurring-past union.
-    const base = await supabase
+    const base = await scopeToMarket(supabase
       .from('calendar_events')
       .select(baseCols)
       .eq('status', 'published')
@@ -97,7 +102,7 @@ export default async function CalendarPage() {
       .lte('start_date', monthEnd)
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true, nullsFirst: true })
-      .limit(50)
+      .limit(50), evScope)
     data = (base.data ?? null) as CalRow[] | null
   } else {
     data = [

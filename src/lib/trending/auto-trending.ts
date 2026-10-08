@@ -70,6 +70,14 @@ export async function buildAutoTrendingItems(
   raw: RawTrendingPath[],
   excludeLinks: Set<string>,
   limit: number,
+  /**
+   * Brand whose articles may appear. The analytics view counts page paths
+   * and knows nothing about brands, so without this a popular River Region
+   * story surfaces in Greater Pensacola's trending bar — the resolution step
+   * is the only place that can tell them apart. Omit for no filter (the
+   * admin preview, which deliberately shows every brand).
+   */
+  brandFilter?: string | null,
 ): Promise<AutoTrendingItem[]> {
   // Filter out already-pinned paths and obvious non-content (homepage,
   // submit forms, thank-you pages). We don't want "/" itself in the bar.
@@ -152,11 +160,15 @@ export async function buildAutoTrendingItems(
   // titles, and the path falls back to its humanized last segment.
   const articleTitleBySlug = new Map<string, string>()
   if (articleSlugByPath.size > 0) {
-    const { data } = await supabase
+    const q = supabase
       .from('guide_articles')
       .select('slug, title')
       .in('slug', Array.from(articleSlugByPath.values()))
       .eq('published', true)
+    // An article the brand neither wrote nor was syndicated is not its
+    // trending story, however many views the path has.
+    if (brandFilter) q.or(`brand_slug.eq.${brandFilter},syndicated_to_brands.cs.{${brandFilter}}`)
+    const { data } = await q
     for (const row of (data ?? []) as MinimalArticleRow[]) {
       articleTitleBySlug.set(row.slug, row.title)
     }

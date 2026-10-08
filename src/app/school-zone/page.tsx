@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
@@ -144,6 +146,13 @@ function EmptySection({ message, cta, href }: { message: string; cta: string; hr
 export default async function SchoolZonePage() {
   const supabase = getSupabase()
 
+  // Every query below read River Region unconditionally — three of them via a
+  // hardcoded market string, the rest by not asking at all. One deployment
+  // serves all six brand domains, so School Zone showed Montgomery school news
+  // to whichever brand loaded it.
+  const brandSlug   = (await currentBrandSlug()) ?? 'rrp'
+  const brandFilter = articleBrandFilter(brandSlug)
+
   const [
     verticalRes, sponsorRes,
     latestBitsRes, teacherRes, educationMattersRes,
@@ -167,6 +176,7 @@ export default async function SchoolZonePage() {
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, published_at, editorial_notes')
       .eq('column_slug', 'school-bits').eq('published', true)
+      .or(brandFilter)
       .order('published_at', { ascending: false, nullsFirst: false }).limit(6),
 
     // Teacher of the Month — pull 4 so we get 1 featured + 3 past for
@@ -176,32 +186,38 @@ export default async function SchoolZonePage() {
       .select('id, slug, title, excerpt, hero_image_url, published_at')
       .eq('published', true).eq('column_slug', 'teacher-of-month')
       .is('deleted_at', null)
+      .or(brandFilter)
       .order('published_at', { ascending: false, nullsFirst: false }).limit(4),
 
     supabase.from('guide_articles')
       .select('id, slug, title, excerpt, published_at, author_name')
       .eq('published', true)
       .or('column_slug.eq.education-matters,column_slug.eq.superintendent-updates,title.ilike.%education matters%')
+      .or(brandFilter)
       .order('published_at', { ascending: false, nullsFirst: false }).limit(3),
 
     supabase.from('guide_articles').select('id', { count: 'exact', head: true })
       .eq('column_slug', 'school-bits').eq('published', true)
+      .or(brandFilter)
       .ilike('editorial_notes', '%montgomery-county%'),
     supabase.from('guide_articles').select('id', { count: 'exact', head: true })
       .eq('column_slug', 'school-bits').eq('published', true)
+      .or(brandFilter)
       .ilike('editorial_notes', '%autauga-prattville%'),
     supabase.from('guide_articles').select('id', { count: 'exact', head: true })
       .eq('column_slug', 'school-bits').eq('published', true)
+      .or(brandFilter)
       .ilike('editorial_notes', '%pike-road%'),
     supabase.from('guide_articles').select('id', { count: 'exact', head: true })
       .eq('column_slug', 'school-bits').eq('published', true)
+      .or(brandFilter)
       .ilike('editorial_notes', '%private-schools%'),
 
     // NEW school_bits table (cards-style submissions from the new submit flow).
     // Time-gated so future-dated/drip-scheduled bits stay hidden until their moment.
     supabase.from('school_bits')
       .select('id, school_id, school_name, title, blurb, image_web_url, published_at, created_at')
-      .eq('market', 'rrp')
+      .eq('market', brandSlug)
       .in('status', ['approved', 'published'])
       .lte('published_at', new Date().toISOString())
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -212,7 +228,7 @@ export default async function SchoolZonePage() {
     // (low hundreds) so loading the full list up-front is fine.
     supabase.from('schools')
       .select('id, name, area, is_private')
-      .eq('market', 'rrp')
+      .eq('market', brandSlug)
       .eq('status', 'active')
       .order('name', { ascending: true }),
   ])

@@ -3,6 +3,8 @@
 // the Best Of column. Pulls articles with column_slug='frg-best-of'.
 
 import Link from 'next/link'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { Star, ArrowRight } from 'lucide-react'
@@ -20,11 +22,16 @@ async function getBestOfArticles(): Promise<Article[]> {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     )
+    // Brand filter: these blocks render inside the homepage, which is served
+    // on every brand's domain from one deployment. Without it a Greater
+    // Pensacola reader sees River Region's school news.
+    const brandSlug = (await currentBrandSlug()) ?? 'rrp'
     const { data } = await supabase
       .from('guide_articles')
       .select('id, slug, title, excerpt, subtitle, hero_image_url, published_at')
       .eq('column_slug', 'frg-best-of')
       .eq('published', true)
+      .or(articleBrandFilter(brandSlug))
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(8)
 

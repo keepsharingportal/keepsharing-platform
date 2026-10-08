@@ -3,6 +3,8 @@
 // Server component. Surfaces image-bearing articles first.
 
 import Link from 'next/link'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { GraduationCap, ArrowRight, Trophy, Star } from 'lucide-react'
@@ -30,12 +32,17 @@ async function getSchoolArticles(): Promise<Article[]> {
     // without going through the API) still gets excluded. Migration 076
     // added deleted_at — if the column is missing the .is() filter
     // errors out, the outer try/catch returns [], and the block hides.
+    // Brand filter: these blocks render inside the homepage, which is served
+    // on every brand's domain from one deployment. Without it a Greater
+    // Pensacola reader sees River Region's school news.
+    const brandSlug = (await currentBrandSlug()) ?? 'rrp'
     const { data } = await supabase
       .from('guide_articles')
       .select('id, slug, title, excerpt, hero_image_url, published_at, column_slug, editorial_notes')
       .in('column_slug', ['school-bits', 'teacher-of-month', 'student-spotlights'])
       .eq('published', true)
       .is('deleted_at', null)
+      .or(articleBrandFilter(brandSlug))
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(16)
 

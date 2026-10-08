@@ -11,7 +11,7 @@
 // Auth: admin session required.
 
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/admin/auth'
+import { requireAdmin, marketsToQuery } from '@/lib/admin/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime  = 'nodejs'
@@ -40,15 +40,28 @@ const MIN_SELECT = `
 `
 
 export async function GET() {
-  await requireAdmin()
+  const ctx = await requireAdmin()
   const supabase = createAdminClient()
 
+  // Scope to the brand in the switcher. A publisher scoped to one market
+  // sees only their own inventory; a super-admin on "All brands" sees
+  // everything, which is the asymmetry the owner asked for — they can audit
+  // every market, their publishers cannot see each other's.
+  const markets = marketsToQuery(ctx)
+  const scopeAds = <T,>(q: T): T => {
+    if (!ctx.viewingAll) {
+      (q as unknown as { or: (f: string) => unknown })
+        .or(`market.in.(${markets.join(',')}),market.is.null`)
+    }
+    return q
+  }
+
   let data, error
-  ({ data, error } = await supabase
+  ({ data, error } = await scopeAds(supabase
     .from('ad_placements')
     .select(FULL_SELECT)
     .order('is_active',        { ascending: false })
-    .order('display_priority', { ascending: false }))
+    .order('display_priority', { ascending: false })))
 
   // Migration 093 not applied yet → fall back to the pre-093 column set.
   // Surface a hint so the editor knows what to apply (Vercel logs).

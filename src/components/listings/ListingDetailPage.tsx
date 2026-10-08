@@ -24,6 +24,7 @@ import { shouldSkipNextOptimizer } from '@/lib/images'
 import { articleHref } from '@/lib/articles/slug'
 import { schemaForGuide } from '@/lib/guides/schemas'
 import { guideIsLive } from '@/lib/guides/live'
+import { guideScope, scoped } from '@/lib/guides/brand-scope'
 import type { Metadata } from 'next'
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -159,16 +160,21 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     .eq('url_slug', urlSlug)
     .single()
 
+  // Per-brand guides (migration 232): this listing belongs to one brand's
+  // directory, and the guide's on/off switch is that brand's too.
+  const scope = await guideScope(supabase)
+
   // A listing is only as public as the guide it sits in. Without this, every
   // one of the ~92 fall listings would be reachable (and indexable) by direct
   // URL in September while the hub itself 404s.
   let isPreviewingUnlaunched = false
   if (guide) {
-    const { data: guideConfig } = await supabase
+    const cfgQuery = supabase
       .from('guide_configs')
       .select('is_active')
       .eq('guide_type_slug', guide.slug)
-      .maybeSingle()
+    if (scope.active) cfgQuery.eq('market', scope.market)
+    const { data: guideConfig } = await cfgQuery.maybeSingle()
     if (!guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)) {
       if (!preview) notFound()
       isPreviewingUnlaunched = true
@@ -187,11 +193,11 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     { data: guideArticles },
     { data: siblingCategoryRows },
   ] = await Promise.all([
-    supabase
+    scoped(supabase
       .from('guide_listings')
       .select('*')
       .eq('advertiser_account_id', acct.id)
-      .eq('guide_type_slug', guideSlug)
+      .eq('guide_type_slug', guideSlug), scope)
       .maybeSingle(),
     supabase
       .from('listing_sections')
@@ -203,23 +209,23 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     // in JS so a vendor listed under multiple categories doesn't render
     // twice in the "More in" rail. The 3-card display set is sliced
     // after dedup below.
-    supabase
+    scoped(supabase
       .from('guide_listings')
       .select('id, advertiser_account_id, advertiser_accounts ( slug, business_name, neighborhood, city_state_zip, hero_photo_url )')
       .eq('guide_type_slug', guideSlug)
       .eq('is_published', true)
       .neq('advertiser_account_id', acct.id)
       .order('listing_tier', { ascending: true })
-      .limit(20),
+      .limit(20), scope),
     // All guides this advertiser is published in (for "Featured in Guides"
     // chips). Tier and category come along because they decide where each chip
     // should point: a featured listing has its own page in that guide, a free
     // one doesn't and should land on its category instead.
-    supabase
+    scoped(supabase
       .from('guide_listings')
       .select('guide_type_slug, listing_tier, category')
       .eq('advertiser_account_id', acct.id)
-      .eq('is_published', true),
+      .eq('is_published', true), scope),
     // Editorial articles from this guide — guide_articles.guide_slug stores the URL slug
     supabase
       .from('guide_articles')
@@ -232,13 +238,13 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
     // widget. Pulls every distinct category for this guide; counts
     // computed in JS. Excludes the current listing's category from the
     // displayed list so the widget surfaces alternatives.
-    supabase
+    scoped(supabase
       .from('guide_listings')
       .select('category')
       .eq('guide_type_slug', guideSlug)
       .eq('is_published', true)
       .not('category', 'is', null)
-      .limit(1000),
+      .limit(1000), scope),
   ])
 
   // ── Data processing ───────────────────────────────────────────────────────

@@ -6,6 +6,8 @@ import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { columnToVerticalRowSlug } from '@/lib/content-taxonomy'
 import { slugifyForUrl } from '@/lib/articles/slug'
+import { requireAdmin } from '@/lib/admin/auth'
+import { ALL_MARKETS_SLUG, isKnownMarket } from '@/lib/markets'
 
 function supabaseAdmin() {
   return createClient(
@@ -16,6 +18,13 @@ function supabaseAdmin() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Needed for the brand stamp below. The proxy already gated /api/admin,
+    // so this is about WHICH admin, not whether — but it also closes the gap
+    // where this route did no authorization check of its own at all.
+    let ctx
+    try { ctx = await requireAdmin() }
+    catch (e) { if (e instanceof Response) return e; throw e }
+
     const body = await req.json()
 
     const {
@@ -36,10 +45,34 @@ export async function POST(req: NextRequest) {
       seo_focus_keyword,
       // Business Spotlight hub (migration 231)
       industry, spotlight_featured,
+      // Which brand this article belongs to. Normally omitted — see below.
+      brand_slug,
     } = body
 
     if (!title?.trim() || !slug?.trim()) {
       return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 })
+    }
+
+    // ── Brand stamp ───────────────────────────────────────────────────────
+    // This route previously set no brand at all, so every article created
+    // through /admin/articles/new took the column default and belonged to
+    // River Region — including ones written while the sidebar switcher said
+    // Greater Pensacola. Switching the dropdown changed what you could SEE
+    // and not what you MADE, which is the sharp edge of a multi-brand admin.
+    //
+    // The active market is the default; an explicit brand_slug in the body
+    // wins only if the caller may actually write to it. 'all' is a viewing
+    // mode, not a place to file an article — fall back to the caller's first
+    // real market rather than inventing one.
+    const wantedBrand = typeof brand_slug === 'string' && brand_slug.trim()
+      ? brand_slug.trim()
+      : (ctx.activeMarket === ALL_MARKETS_SLUG ? (ctx.allowedMarkets[0] ?? 'rrp') : ctx.activeMarket)
+
+    if (!isKnownMarket(wantedBrand)) {
+      return NextResponse.json({ error: `Unknown brand "${wantedBrand}"` }, { status: 400 })
+    }
+    if (ctx.role !== 'super' && ctx.role !== 'admin' && !ctx.allowedMarkets.includes(wantedBrand)) {
+      return NextResponse.json({ error: `No access to brand "${wantedBrand}"` }, { status: 403 })
     }
 
     // Force the slug to canonical form on the way in. This is the line of
@@ -113,6 +146,7 @@ export async function POST(req: NextRequest) {
       // off elsewhere so nothing else can claim a Featured slot.
       industry:                column_slug === 'business-spotlight' ? (industry || null) : null,
       spotlight_featured:      column_slug === 'business-spotlight' ? Boolean(spotlight_featured) : false,
+      brand_slug:              wantedBrand,
     }
 
     const { data: created, error } = await supabase

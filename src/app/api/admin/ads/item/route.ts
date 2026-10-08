@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
+import { ALL_MARKETS_SLUG } from '@/lib/markets'
 import { requireAal2 } from '@/lib/admin/mfa-gate'
 import { recordAuditEvent } from '@/lib/admin/audit'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -78,6 +79,64 @@ const ALLOWED_FIELDS = new Set([
   // Creative mode (migration 125)
   'creative_mode',
 ])
+
+/**
+ * Create a placement.
+ *
+ * This used to be a direct supabase.insert() from the 'use client' new-ad
+ * page, which had two problems the moment a second brand existed: a browser
+ * has no idea which market the admin is switched to, and an unconstrained
+ * client-side insert can write any column. Both are fixed by owning the
+ * write here, where the admin context and the field allowlist already live.
+ */
+export async function POST(req: NextRequest) {
+  const ctx = await requireAdmin()
+  const gate = await requireAal2()
+  if (!gate.ok) return gate.response
+
+  const body = await req.json().catch(() => ({})) as Record<string, unknown>
+
+  const record: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(body)) {
+    if (ALLOWED_FIELDS.has(k)) record[k] = v === '' ? null : v
+  }
+  if (!record.placement_type) {
+    return NextResponse.json({ error: 'placement_type is required' }, { status: 400 })
+  }
+
+  // The brand this placement serves. 'all' is a viewing mode, not somewhere
+  // an ad can be sold — fall back to the caller's first real market so a
+  // super-admin who forgot to pick a brand doesn't create an accidental
+  // house ad that runs free on all six sites.
+  const market = ctx.activeMarket === ALL_MARKETS_SLUG
+    ? (ctx.allowedMarkets[0] ?? 'rrp')
+    : ctx.activeMarket
+  if (ctx.role !== 'super' && ctx.role !== 'admin' && !ctx.allowedMarkets.includes(market)) {
+    return NextResponse.json({ error: `No access to market "${market}"` }, { status: 403 })
+  }
+  record.market = market
+
+  const supabase = createAdminClient()
+  let { data, error } = await supabase.from('ad_placements').insert(record).select('id').single()
+
+  // Pre-232 database: no market column. Retry without it rather than
+  // blocking the editor on a migration they may not have run yet.
+  if (error && /column .*market.* does not exist/i.test(error.message)) {
+    delete record.market
+    ;({ data, error } = await supabase.from('ad_placements').insert(record).select('id').single())
+  }
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await recordAuditEvent({
+    ctx, req,
+    action:       'ad_placement.created',
+    target_table: 'ad_placements',
+    target_id:    data!.id,
+    after:        record,
+  })
+  return NextResponse.json({ ok: true, id: data!.id })
+}
 
 export async function PATCH(req: NextRequest) {
   const ctx = await requireAdmin()

@@ -25,6 +25,7 @@ import { ClaimSpotButton } from '@/components/ClaimSpotButton'
 import { ArticleCard, SectionHeader } from '@/components/theme'
 import { buildAutoTrendingItems } from '@/lib/trending/auto-trending'
 import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
+import { marketScope, scopeToMarket, scopeToMarketOrShared } from '@/lib/market-scope'
 import { chromeForBrand } from '@/lib/brands'
 import { FiftyPlusHomePage } from '@/components/fifty-plus/HomePage'
 
@@ -92,6 +93,18 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
   // syndicated to. Shared filter helper so this stays consistent with
   // /articles, article detail, related rails.
   const brandFilter = articleBrandFilter(brandSlug)
+
+  // Everything below guide_articles was brand-blind: the event feed, all four
+  // homepage ad slots, the magazine rail and the trending strip all read
+  // River Region's rows regardless of which brand's domain served the page.
+  // Scope resolution is per-table because migration 232 adds the column to
+  // some of them — see lib/market-scope.ts.
+  const [adScope, trendScope, eventScope, magScope] = await Promise.all([
+    marketScope(supabase, 'ad_placements'),
+    marketScope(supabase, 'trending_items'),
+    marketScope(supabase, 'calendar_events'),
+    marketScope(supabase, 'magazine_issues'),
+  ])
   // Rotation slugs: brand-configured override OR the RRP legacy defaults
   // (with their historic alternate-spelling siblings to catch old rows).
   const useDefaultRotation = rotationColumns.length === 0 ||
@@ -122,12 +135,12 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     // start_at/end_at are nullable; null means "no bound on that side."
     // archived_at filter is applied client-side below to stay tolerant of
     // pre-migration-117 DBs where the column doesn't exist yet.
-    supabase.from('trending_items')
+    scopeToMarketOrShared(supabase.from('trending_items')
       .select('*')
       .eq('is_active', true)
       .or(`start_at.is.null,start_at.lte.${nowIso}`)
       .or(`end_at.is.null,end_at.gte.${nowIso}`)
-      .order('display_order'),
+      .order('display_order'), trendScope),
     // Auto-trending — top paths from the last 7 days, used to fill any
     // trending-bar slots the pinned items don't take. Resolved into
     // {label, link, emoji} below in buildAutoTrendingItems(). Missing
@@ -161,10 +174,10 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     // so pulling 6 here would leave gaps in the 6-card grid whenever a pair
     // collapses. Secondary sort on start_time keeps same-day events in a
     // sensible order rather than whatever the planner returns.
-    supabase.from('calendar_events')
+    scopeToMarket(supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published').gte('start_date', today)
-      .order('start_date').order('start_time', { nullsFirst: false }).limit(18),
+      .order('start_date').order('start_time', { nullsFirst: false }).limit(18), eventScope),
     supabase.from('guide_articles')
       // body included so ArticleCard can auto-derive a ~160-char
       // teaser when the editor hasn't written an excerpt. Payload
@@ -188,30 +201,30 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     // to "show the one ad"), so "exclusive" buyers don't need a separate
     // code path. 3 is the per-slot cap so rotation never dilutes
     // impressions below 33% per buyer.
-    supabase.from('ad_placements')
+    scopeToMarketOrShared(supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_inline_ad').eq('is_active', true)
       .is('archived_at', null)
       .order('display_priority', { ascending: false })
-      .limit(3),
-    supabase.from('ad_placements')
+      .limit(3), adScope),
+    scopeToMarketOrShared(supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_sidebar_ad').eq('is_active', true)
       .is('archived_at', null)
       .order('display_priority', { ascending: false })
-      .limit(3),
-    supabase.from('ad_placements')
+      .limit(3), adScope),
+    scopeToMarketOrShared(supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_business_spotlight').eq('is_active', true)
       .is('archived_at', null)
       .order('display_priority', { ascending: false })
-      .limit(3),
-    supabase.from('ad_placements')
+      .limit(3), adScope),
+    scopeToMarketOrShared(supabase.from('ad_placements')
       .select('*, advertiser:advertiser_accounts(business_name, slug, website_url)')
       .eq('placement_type', 'homepage_bottom_ad').eq('is_active', true)
       .is('archived_at', null)
       .order('display_priority', { ascending: false })
-      .limit(3),
+      .limit(3), adScope),
     // Mom Knows Best — sidebar block on the homepage. Pulls the 3 most
     // recent published blogger posts. When empty, the render falls back to
     // the Meet the Moms grid (bloggersRes below).
@@ -240,7 +253,7 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     // 6 here too so the sort/limit math matches.
     supabase.from('magazine_issues')
       .select('id, label, tagline, issue_month, cover_url, issuu_url, is_current')
-      .eq('market', 'rrp')
+      .eq('market', brandSlug)
       .order('is_current', { ascending: false })
       .order('issue_month', { ascending: false })
       .limit(6),
@@ -446,6 +459,7 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
         (autoTrendingRes.data ?? []) as Array<{ path: string; unique_views: number }>,
         excludeLinks,
         remainingSlots,
+        brandSlug,
       )
     : []
 
