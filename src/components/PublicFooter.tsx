@@ -158,9 +158,11 @@ export async function PublicFooter(props: FooterBrandProps = {}) {
              *  Names the towns rather than leaning on the insider "River Region"
              *  label: newcomers and search engines both need the town names.
              *  Renders nothing for brands whose serviceArea isn't filled in. */}
-            {market.serviceArea.length > 0 && (
+            {(market.serviceAreaLine || market.serviceArea.length > 0) && (
               <p className="text-muted-foreground max-w-sm mb-6">
-                Serving {market.serviceArea.join(', ')} and more.
+                {market.serviceAreaLine
+                  ? market.serviceAreaLine
+                  : `Serving ${market.serviceArea.join(', ')} and more.`}
               </p>
             )}
             <div className="flex items-center gap-3 text-muted-foreground">

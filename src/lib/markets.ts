@@ -39,6 +39,14 @@ export interface MarketDef {
    *
    *  Empty array renders nothing. Sibling brands: fill these in. */
   serviceArea: string[]
+  /** Full replacement for the footer's "Serving …" line, rendered verbatim.
+   *
+   *  Exists because not every brand defines itself by a town list. Mobile Bay
+   *  covers a metro rather than a handful of named towns, and its publisher
+   *  asked for one phrase — which the `join(', ') + " and more."` template
+   *  cannot produce without reading like a bad mail merge. When set, this wins
+   *  and serviceArea is ignored. */
+  serviceAreaLine?: string
 }
 
 export const MARKETS: MarketDef[] = [
@@ -56,9 +64,9 @@ export const MARKETS: MarketDef[] = [
   // turns "+" into "%2B" which is ugly + breaks share links.
   { slug: 'rr50plus', short: 'R50+', displayName: 'River Region 50+',          city: 'Montgomery', state: 'AL', family: 'fifty-plus', publicHost: 'riverregion50plus.com',      regionLabel: 'River Region',      serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
   { slug: 'aop',      short: 'AOP',  displayName: 'Auburn Opelika Parents',    city: 'Auburn',     state: 'AL', family: 'parents',    publicHost: 'auburnopelikaparents.com',   regionLabel: 'Auburn Opelika',    serviceArea: [] },
-  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay',        serviceArea: [] },
-  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore',     serviceArea: [] },
-  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola', serviceArea: [] },
+  { slug: 'mbp',      short: 'MBP',  displayName: 'Mobile Bay Parents',        city: 'Mobile',     state: 'AL', family: 'parents',    publicHost: 'mobilebayparents.com',       regionLabel: 'Mobile Bay',        serviceArea: [], serviceAreaLine: 'Serving the families of the Greater Mobile area!' },
+  { slug: 'esp',      short: 'ESP',  displayName: 'Eastern Shore Parents',     city: 'Daphne',     state: 'AL', family: 'parents',    publicHost: 'easternshoreparents.com',    regionLabel: 'Eastern Shore',     serviceArea: ['Fairhope', 'Daphne', 'Spanish Fort', 'Montrose', 'Foley'] },
+  { slug: 'gpp',      short: 'GPP',  displayName: 'Greater Pensacola Parents', city: 'Pensacola',  state: 'FL', family: 'parents',    publicHost: 'greaterpensacolaparents.com', regionLabel: 'Greater Pensacola', serviceArea: ['Pensacola', 'Gulf Breeze', 'Cantonment', 'Pace', 'Milton'] },
 ]
 
 export const ALL_MARKET_SLUGS: string[] = MARKETS.map(m => m.slug)
