@@ -2,6 +2,7 @@
 // No fake categories, no random Unsplash fallback.
 
 import Link from 'next/link'
+import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { Sun, ArrowRight, Calendar } from 'lucide-react'
@@ -47,11 +48,17 @@ async function getData(): Promise<{
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     )
 
+    // Listings and config are both per-brand from migration 232.
+    const [cfgScope, listScope] = await Promise.all([
+      marketScope(supabase, 'guide_configs'),
+      marketScope(supabase, 'guide_listings'),
+    ])
+
     // Total + per-category counts (real data)
     const [{ count: totalCount }, { data: catRows }, { data: configRow }] = await Promise.all([
-      supabase.from('guide_listings').select('id', { count: 'exact', head: true }).eq('guide_type_slug', 'summer-fun').eq('is_published', true),
-      supabase.from('guide_listings').select('category').eq('guide_type_slug', 'summer-fun').eq('is_published', true).not('category', 'is', null),
-      supabase.from('guide_configs').select('title, subtitle, hero_image_url, homepage_image_url, primary_cta_label, primary_cta_url').eq('guide_type_slug', 'summer-fun').maybeSingle(),
+      scopeToMarket(supabase.from('guide_listings').select('id', { count: 'exact', head: true }).eq('guide_type_slug', 'summer-fun').eq('is_published', true), listScope),
+      scopeToMarket(supabase.from('guide_listings').select('category').eq('guide_type_slug', 'summer-fun').eq('is_published', true).not('category', 'is', null), listScope),
+      scopeToMarket(supabase.from('guide_configs').select('title, subtitle, hero_image_url, homepage_image_url, primary_cta_label, primary_cta_url').eq('guide_type_slug', 'summer-fun'), cfgScope).maybeSingle(),
     ])
 
     // Tally categories

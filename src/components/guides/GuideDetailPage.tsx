@@ -52,11 +52,15 @@ export async function generateGuideDetailMetadata(urlSlug: string): Promise<Meta
   // A guide that isn't live must not be indexed, even when someone is looking
   // at it through ?preview=1 — otherwise a preview link shared internally can
   // put next month's hub into search results early.
-  const { data: cfg } = await supabase
+  // Scoped: once each brand has its own config row, an unscoped lookup on
+  // guide_type_slug matches six rows and .maybeSingle() throws.
+  const metaScope = await guideScope(supabase)
+  const cfgQuery = supabase
     .from('guide_configs')
     .select('is_active')
     .eq('guide_type_slug', data.slug)
-    .maybeSingle()
+  if (metaScope.active) cfgQuery.eq('market', metaScope.market)
+  const { data: cfg } = await cfgQuery.maybeSingle()
   const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg)
 
   return {

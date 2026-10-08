@@ -8,6 +8,8 @@
 // The slug is the guide_types.slug (e.g. 'summer-fun', 'newcomer').
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/admin/auth'
+import { ALL_MARKETS_SLUG } from '@/lib/markets'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
@@ -50,6 +52,11 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: str
     return NextResponse.json({ error: 'No allowed fields' }, { status: 400 })
   }
 
+  const adminCtx = await requireAdmin()
+  const market = adminCtx.activeMarket === ALL_MARKETS_SLUG
+    ? (adminCtx.allowedMarkets[0] ?? 'rrp')
+    : adminCtx.activeMarket
+
   const supabase = supabaseAdmin()
 
   // ── 1. Resolve the guide ─────────────────────────────────────────────────
@@ -77,17 +84,25 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ slug: str
   // ── 3. Upsert guide_configs ──────────────────────────────────────────────
   // A row should exist (migration 066 backfills), but upsert defensively.
   if (Object.keys(configUpdates).length > 0) {
-    const { error } = await supabase
+    // Upsert against (market, guide_type_slug) — the composite key migration
+    // 232 installs. Editing Greater Pensacola's Childcare Guide must not
+    // overwrite River Region's.
+    const base = {
+      guide_type_slug: canonicalSlug,
+      title:           (typeUpdates.display_name as string | undefined) ?? guide.display_name,
+      ...configUpdates,
+      updated_at:      new Date().toISOString(),
+    }
+    let { error } = await supabase
       .from('guide_configs')
-      .upsert(
-        {
-          guide_type_slug: canonicalSlug,
-          title:           (typeUpdates.display_name as string | undefined) ?? guide.display_name,
-          ...configUpdates,
-          updated_at:      new Date().toISOString(),
-        },
-        { onConflict: 'guide_type_slug' },
-      )
+      .upsert({ ...base, market }, { onConflict: 'market,guide_type_slug' })
+
+    // Pre-232 database: no market column and the old single-column key.
+    if (error && /column .*market.* does not exist|constraint matching/i.test(error.message)) {
+      ;({ error } = await supabase
+        .from('guide_configs')
+        .upsert(base, { onConflict: 'guide_type_slug' }))
+    }
     if (error) {
       console.error('[admin/guides] guide_configs upsert error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })

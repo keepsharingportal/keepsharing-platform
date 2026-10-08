@@ -5,6 +5,9 @@
 // Navigation + PublicFooter come from the family-resource-guide layout — don't render them again here.
 
 import { createClient } from '@supabase/supabase-js'
+import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
+import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ClaimSpotButton } from '@/components/ClaimSpotButton'
@@ -110,7 +113,14 @@ export default async function FamilyResourceGuidePage() {
     { data: schoolsData },
     { data: inlineAdRow },
     { data: sidebarAdRow },
-  ] = await Promise.all([
+  ] = await (async () => {
+  // Guide configs are per-brand from migration 232; an unscoped lookup matches
+  // every brand's row and .maybeSingle() throws.
+  const frgCfgScope = await marketScope(supabase, 'guide_configs')
+  // Articles carry brand_slug + syndicated_to_brands rather than market.
+  const frgBrand  = (await currentBrandSlug()) ?? 'rrp'
+  const frgFilter = articleBrandFilter(frgBrand)
+  return Promise.all([
     // Hero identity — canonical from guide_types. Query by url_slug since
     // that's the stable public identifier (the internal slug is the legacy
     // 'newcomer' value). The OR variant we had was returning null when
@@ -125,10 +135,10 @@ export default async function FamilyResourceGuidePage() {
     // fallback if guide_types.hero_image_url is empty.
     // Also fetches print_cover_url + issuu_url for the From-the-Magazine
     // block.
-    supabase.from('guide_configs')
+    scopeToMarket(supabase.from('guide_configs')
       .select('homepage_image_url, fallback_image_url, print_cover_url, issuu_url')
       .in('guide_type_slug', ['newcomer', 'family-resource-guide'])
-      .limit(1)
+      .limit(1), frgCfgScope)
       .maybeSingle(),
 
     // Legacy hero copy fallback
@@ -142,6 +152,7 @@ export default async function FamilyResourceGuidePage() {
       .select('id, slug, title, subtitle, excerpt, hero_image_url, published_at')
       .eq('column_slug', 'frg-best-of')
       .eq('published', true)
+      .or(frgFilter)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(5),
 
@@ -199,6 +210,7 @@ export default async function FamilyResourceGuidePage() {
         'grands-greatest',  'grands-are-the-greatest',
         'play-ball',
       ])
+      .or(frgFilter)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(20),
 
@@ -210,6 +222,7 @@ export default async function FamilyResourceGuidePage() {
       .select('id, slug, title, excerpt, hero_image_url, author_name, published_at, column_slug, topics')
       .eq('published', true)
       .not('topics', 'is', null)
+      .or(frgFilter)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(6),
 
@@ -254,6 +267,7 @@ export default async function FamilyResourceGuidePage() {
       .limit(1)
       .maybeSingle(),
   ])
+  })()
 
   // ── Identity (admin-editable, with fallbacks) ────────────────────────────
   // Hero image fallback chain — every place an admin might have set one:

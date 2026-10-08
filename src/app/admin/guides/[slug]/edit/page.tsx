@@ -10,6 +10,8 @@
 // Both written via PATCH /api/admin/guides/[slug].
 
 import Link from 'next/link'
+import { getAdminContext } from '@/lib/admin/auth'
+import { ALL_MARKETS_SLUG } from '@/lib/markets'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
@@ -23,6 +25,11 @@ interface Props { params: Promise<{ slug: string }> }
 export default async function GuideEditPage({ params }: Props) {
   const { slug } = await params
   const supabase = createAdminClient()
+
+  const adminCtx    = await getAdminContext()
+  const adminMarket = adminCtx && !adminCtx.viewingAll && adminCtx.activeMarket !== ALL_MARKETS_SLUG
+    ? adminCtx.activeMarket
+    : null
 
   // ── Guide identity + editorial fields ─────────────────────────────────────
   // Look up by EITHER slug or url_slug so admins can use the friendly
@@ -43,11 +50,15 @@ export default async function GuideEditPage({ params }: Props) {
   // ── Config (editable display fields) ──────────────────────────────────────
   // guide_configs is keyed by the internal guide_types.slug, so use that
   // regardless of which slug variant the admin typed.
-  const { data: config } = await supabase
+  // Per-brand from migration 232 — an unscoped lookup matches every brand's
+  // row and .maybeSingle() throws. Editing always targets the brand currently
+  // selected in the switcher.
+  const cfgQuery = supabase
     .from('guide_configs')
     .select('*')
     .eq('guide_type_slug', guide.slug)
-    .maybeSingle()
+  if (adminMarket) cfgQuery.eq('market', adminMarket)
+  const { data: config } = await cfgQuery.maybeSingle()
 
   // ── Connected articles ────────────────────────────────────────────────────
   const { data: articles } = await supabase

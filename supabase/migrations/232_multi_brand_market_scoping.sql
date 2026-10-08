@@ -49,10 +49,14 @@ COMMENT ON COLUMN ad_placements.market IS
 -- Backfill: every existing placement was sold against River Region, EXCEPT the
 -- self-promo filler, which should stay house-wide. Identified by pointing at
 -- /advertise with no advertiser revenue attached.
+-- COALESCE on ad_link matters: a row with a NULL link would make the whole
+-- NOT(...) evaluate to NULL, the row would be skipped, and it would silently
+-- stay NULL — i.e. become a house ad running free on all six brands. The
+-- opposite of what this backfill is for.
 UPDATE ad_placements
    SET market = 'rrp'
  WHERE market IS NULL
-   AND NOT (ad_link = '/advertise' AND price_monthly IS NULL);
+   AND NOT (COALESCE(ad_link, '') = '/advertise' AND price_monthly IS NULL);
 
 CREATE INDEX IF NOT EXISTS idx_ad_placements_market_serving
   ON ad_placements (market, placement_type, is_active)
@@ -92,30 +96,40 @@ ALTER TABLE guide_configs
 COMMENT ON COLUMN guide_configs.market IS
   'Which brand this guide configuration belongs to. One row per (market, guide_type_slug).';
 
+-- Migration 065 declared `guide_type_slug text unique not null`, which Postgres
+-- names <table>_<column>_key. Drop it by that name.
+ALTER TABLE guide_configs
+  DROP CONSTRAINT IF EXISTS guide_configs_guide_type_slug_key;
+
+-- Safety net for a database where that constraint was created under a
+-- different name: drop any remaining SINGLE-column unique constraint on
+-- guide_type_slug.
+--
+-- Comparing a.attname directly rather than aggregating the column list into an
+-- array — attname is type `name`, so array_agg gives name[], and `name[] =
+-- text[]` has no operator. That is what failed the first run of this file.
 DO $$
 DECLARE
   con RECORD;
 BEGIN
-  -- Drop whatever single-column unique currently sits on guide_type_slug,
-  -- whichever name it was created with.
   FOR con IN
     SELECT c.conname
       FROM pg_constraint c
-      JOIN pg_class t ON t.oid = c.conrelid
-     WHERE t.relname = 'guide_configs'
+      JOIN pg_class     t ON t.oid = c.conrelid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+      JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+     WHERE n.nspname = 'public'
+       AND t.relname = 'guide_configs'
        AND c.contype = 'u'
-       AND (SELECT array_agg(a.attname ORDER BY a.attname)
-              FROM unnest(c.conkey) k
-              JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k)
-           = ARRAY['guide_type_slug']
+       AND array_length(c.conkey, 1) = 1
+       AND a.attname = 'guide_type_slug'
   LOOP
-    EXECUTE format('ALTER TABLE guide_configs DROP CONSTRAINT %I', con.conname);
+    EXECUTE format('ALTER TABLE public.guide_configs DROP CONSTRAINT %I', con.conname);
   END LOOP;
 END $$;
 
--- Also drop a bare unique INDEX (as opposed to constraint) if one exists.
-DROP INDEX IF EXISTS guide_configs_guide_type_slug_key;
-DROP INDEX IF EXISTS idx_guide_configs_guide_type_slug;
+-- Note: 065's non-unique guide_configs_slug_idx stays. It still helps lookups
+-- and never blocked a second brand.
 
 ALTER TABLE guide_configs
   DROP CONSTRAINT IF EXISTS guide_configs_market_guide_type_slug_key;
@@ -150,10 +164,12 @@ COMMENT ON COLUMN trending_items.market IS
 
 -- Existing pinned items point at River Region articles, except generic
 -- destinations that are right on any brand.
+-- COALESCE for the same reason as ad_placements above: NULL NOT IN (...) is
+-- NULL, not true, so a link-less row would be skipped and left house-wide.
 UPDATE trending_items
    SET market = 'rrp'
  WHERE market IS NULL
-   AND link NOT IN ('/calendar', '/local-guides', '/articles', '/nominate');
+   AND COALESCE(link, '') NOT IN ('/calendar', '/local-guides', '/articles', '/nominate');
 
 -- ── 5. Turn the parenting brands on ─────────────────────────────────────────
 -- publications.is_active gates nothing in code today, but it is the row an

@@ -99,11 +99,12 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
   // River Region's rows regardless of which brand's domain served the page.
   // Scope resolution is per-table because migration 232 adds the column to
   // some of them — see lib/market-scope.ts.
-  const [adScope, trendScope, eventScope, magScope] = await Promise.all([
+  const [adScope, trendScope, eventScope, magScope, cfgScope] = await Promise.all([
     marketScope(supabase, 'ad_placements'),
     marketScope(supabase, 'trending_items'),
     marketScope(supabase, 'calendar_events'),
     marketScope(supabase, 'magazine_issues'),
+    marketScope(supabase, 'guide_configs'),
   ])
   // Rotation slugs: brand-configured override OR the RRP legacy defaults
   // (with their historic alternate-spelling siblings to catch old rows).
@@ -161,13 +162,13 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       .in('column_slug', rotationQuerySlugs)
       .order('published_at', { ascending: false, nullsFirst: false }),
     // Featured guide tile (top-right): which guide is featured this month?
-    supabase.from('guide_configs')
+    scopeToMarket(supabase.from('guide_configs')
       .select(`
         guide_type_slug, homepage_image_url, hero_image_url, title, subtitle,
         primary_cta_label, primary_cta_url, featured_month
       `)
       .eq('featured_month', currentMonth)
-      .eq('is_active', true)
+      .eq('is_active', true), cfgScope)
       .maybeSingle(),
     // Over-fetch: exact duplicates are collapsed below (calendar feeds +
     // manual adds both land in this table and the create route only warns),

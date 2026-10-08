@@ -53,8 +53,13 @@ export async function generateListingMetadata(listingSlug: string, urlSlug?: str
   if (urlSlug) {
     const { data: guide } = await supabase.from('guide_types').select('*').eq('url_slug', urlSlug).maybeSingle()
     if (guide) {
-      const { data: cfg } = await supabase
-        .from('guide_configs').select('is_active').eq('guide_type_slug', guide.slug).maybeSingle()
+  // Scoped: once each brand has its own config row, an unscoped lookup on
+  // guide_type_slug matches six rows and .maybeSingle() throws.
+      const metaScope = await guideScope(supabase)
+      const cfgQ = supabase
+        .from('guide_configs').select('is_active').eq('guide_type_slug', guide.slug)
+      if (metaScope.active) cfgQ.eq('market', metaScope.market)
+      const { data: cfg } = await cfgQ.maybeSingle()
       live = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, cfg)
     }
   }

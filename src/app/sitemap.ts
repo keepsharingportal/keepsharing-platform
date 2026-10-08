@@ -14,6 +14,7 @@
 // the sitemap 50k limit.
 
 import type { MetadataRoute } from 'next'
+import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createClient } from '@supabase/supabase-js'
@@ -266,7 +267,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // to index once it IS real. Same gate the page itself uses.
   const [{ data: allGuides }, { data: guideConfigs }] = await Promise.all([
     supabase.from('guide_types').select('*').not('url_slug', 'is', null),
-    supabase.from('guide_configs').select('guide_type_slug, is_active'),
+    scopeToMarket(supabase.from('guide_configs').select('guide_type_slug, is_active'), await marketScope(supabase, 'guide_configs')),
   ])
   const cfgBySlug: Record<string, { is_active?: boolean | null }> =
     Object.fromEntries((guideConfigs ?? []).map(c => [c.guide_type_slug, c]))

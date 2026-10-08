@@ -4,6 +4,8 @@
 // identity. Listing-outreach tracking moved to /admin/guides/outreach.
 
 import Link from 'next/link'
+import { getAdminContext } from '@/lib/admin/auth'
+import { ALL_MARKETS_SLUG } from '@/lib/markets'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { BookOpen, ChevronRight, Image as ImageIcon, ExternalLink, Mail, AlertCircle } from 'lucide-react'
@@ -40,15 +42,26 @@ export default async function GuidesAdminPage() {
     { data: listingRows },
     { data: articleRows },
     { data: sponsorRows },
-  ] = await Promise.all([
+  ] = await (async () => {
+  // Guides are per-brand from migration 232. Scope to the switcher, except on
+  // "All brands" where the owner should see every market's configuration.
+  const adminCtx    = await getAdminContext()
+  const adminMarket = adminCtx && !adminCtx.viewingAll && adminCtx.activeMarket !== ALL_MARKETS_SLUG
+    ? adminCtx.activeMarket
+    : null
+  const adminScoped = <T,>(q: T): T => {
+    if (adminMarket) (q as unknown as { eq: (c: string, v: string) => unknown }).eq('market', adminMarket)
+    return q
+  }
+  return Promise.all([
     supabase.from('guide_types')
       .select('slug, url_slug, display_name, short_description, pitch, hero_image_url, display_order')
       .order('display_order', { ascending: true, nullsFirst: false }),
-    supabase.from('guide_configs')
-      .select('guide_type_slug, homepage_image_url, print_cover_url, issuu_url, is_active'),
-    supabase.from('guide_listings')
+    adminScoped(supabase.from('guide_configs')
+      .select('guide_type_slug, homepage_image_url, print_cover_url, issuu_url, is_active')),
+    adminScoped(supabase.from('guide_listings')
       .select('guide_type_slug')
-      .eq('is_published', true),
+      .eq('is_published', true)),
     supabase.from('guide_articles')
       .select('guide_slug')
       .eq('published', true),
@@ -57,6 +70,7 @@ export default async function GuidesAdminPage() {
       .eq('placement_type', 'section_sponsor')
       .eq('is_active', true),
   ])
+  })()
 
   const configBySlug = new Map<string, ConfigRow>(
     (configs ?? []).map((c: ConfigRow) => [c.guide_type_slug, c]),
