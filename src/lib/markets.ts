@@ -133,11 +133,20 @@ export function siblingBrandsInFamily(slug: string): MarketDef[] {
  *  or 404 based on env. Strips port + www, lowercases. */
 export function brandFromHost(host: string | null | undefined): string | null {
   if (!host) return null
-  const cleaned = host.toLowerCase().replace(/^www\./, '').split(':')[0]
+  const strip   = (h: string) => h.toLowerCase().replace(/^www\./, '').split(':')[0]
+  const cleaned = strip(host)
   for (const m of MARKETS) {
-    if (cleaned === m.publicHost) return m.slug
+    // Compare both sides www-stripped. RRP's publicHost is 'www.riverregion
+    // parents.com' (Vercel 308s the apex to www), and the request host was
+    // being stripped while the stored value was not — so the real production
+    // host never matched its own entry. It resolved to RRP anyway, purely
+    // because the caller's `?? 'rrp'` fallback happens to be RRP. Any change
+    // to that default would have silently broken the live site.
+    if (cleaned === strip(m.publicHost)) return m.slug
     // Also accept subdomain pattern <slug>.<anyparent> for staging /
-    // preview deployments where you don't yet own the separate domains.
+    // preview deployments where you don't yet own the separate domains —
+    // e.g. gpp.keepsharing.com serves Greater Pensacola before its own
+    // domain is wired up.
     if (cleaned.startsWith(`${m.slug}.`)) return m.slug
   }
   return null
