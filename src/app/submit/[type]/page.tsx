@@ -4,6 +4,8 @@
 // on success and renders the thank-you view from the same route.
 
 import type { Metadata }       from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
+import { brandifyCopy, brandifyFields } from '@/lib/brandify'
 import type { ReactNode }      from 'react'
 import { redirect, notFound }  from 'next/navigation'
 import Link                    from 'next/link'
@@ -45,10 +47,17 @@ export async function generateMetadata(
   { params }: { params: Promise<{ type: string }> }
 ): Promise<Metadata> {
   const { type } = await params
-  const config   = getSubmissionType(type)
+  const rawConfig = getSubmissionType(type)
+  const { market } = await loadBrandContext()
+  // submissions.ts is a static config module written in River Region's words.
+  // Rewrite the reader-facing strings for whichever brand is serving — an
+  // identity transform on RRP.
+  const config = rawConfig ? brandifyFields(rawConfig, market, [
+    'label', 'description', 'headline', 'whoShouldUse', 'whatHappensNext', 'photoHint',
+  ]) : rawConfig
   if (!config) return { title: 'Submit — River Region Parents' }
   return {
-    title:       `${config.label} — River Region Parents`,
+    title:       `${config.label} — ${market.displayName}`,
     description: config.description,
   }
 }
@@ -65,7 +74,12 @@ export default async function SubmitTypePage({
   const { type }      = await params
   const { submitted, error: errorParam } = await searchParams
 
-  const config = getSubmissionType(type)
+  const rawPageConfig = getSubmissionType(type)
+  const { market: pageMarket } = await loadBrandContext()
+  // Same rewrite as generateMetadata above — see brandify.ts.
+  const config = rawPageConfig ? brandifyFields(rawPageConfig, pageMarket, [
+    'label', 'description', 'headline', 'whoShouldUse', 'whatHappensNext', 'photoHint',
+  ]) : rawPageConfig
   if (!config || config.externalUrl) notFound()
 
   // Resolve the column brand for this submission type. Types tied to a
@@ -600,7 +614,7 @@ export default async function SubmitTypePage({
               Submit {config.shortLabel} <ArrowRight className="h-4 w-4" />
             </button>
             <p className="text-xs text-muted-foreground leading-relaxed mt-3 max-w-md">
-              Our editorial team reads every submission. We may not feature everything, but we appreciate your participation in the River Region community.
+              Our editorial team reads every submission. We may not feature everything, but we appreciate your participation in the {pageMarket.regionLabel} community.
             </p>
           </div>
 

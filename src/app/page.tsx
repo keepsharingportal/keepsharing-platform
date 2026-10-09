@@ -236,6 +236,10 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
       .eq('published', true)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
+    // Bloggers have no market column, so this returns River Region's roster
+    // whatever brand is asking. Suppressed below for other brands rather than
+    // introducing a column before anyone has a second roster to put in it —
+    // see the bloggers gate after this Promise.all.
     supabase.from('bloggers')
       .select('id, slug, display_name, tagline, profile_image_url')
       .eq('is_active', true)
@@ -486,7 +490,10 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
     trending: [...pinned, ...autoItems],
     mainFeature,
     momKnowsPosts:     momKnowsPostsRes.data ?? [],
-    bloggers:          bloggersRes.data ?? [],
+    // Mom Knows Best is River Region's blogger programme. Other brands get an
+    // empty roster — which collapses the homepage block — until they have
+    // their own contributors and bloggers carries a market.
+    bloggers:          brandSlug === 'rrp' ? (bloggersRes.data ?? []) : [],
     featuredGuide,
     spotlights,
     // Collapse exact dupes (same title + date + time), then take the 6 the

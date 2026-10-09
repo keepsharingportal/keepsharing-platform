@@ -3,6 +3,7 @@
 // the Best Of column. Pulls articles with column_slug='frg-best-of'.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
@@ -138,6 +139,14 @@ export async function BestOfBlock() {
   const articles = await getBestOfArticles()
 
   if (articles.length === 0) {
+    // The placeholder below is a deliberate "coming soon" teaser for a brand
+    // that runs this column and is still filling it. On a brand with no Best
+    // Of content at all it is just an empty promise taking up the page, so it
+    // renders nothing until that brand has its first list. Hidden, not
+    // deleted — publish one frg-best-of article and the real block appears.
+    const { market } = await loadBrandContext()
+    if (market.slug !== 'rrp') return null
+
     return (
       <section className="border border-dashed border-amber-200 rounded-3xl p-8 md:p-10 bg-amber-50/40">
         <div className="flex items-center gap-2 mb-3">

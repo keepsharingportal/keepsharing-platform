@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
@@ -70,7 +71,7 @@ const AREA_CARDS = [
 const EDUCATION_GUIDE = {
   label: 'Private & Independent School Guide',
   href:  '/private-school-guide',
-  desc:  'Faith-based, independent, magnet, and charter schools across the River Region — tuition ranges, application timelines, and what makes each one distinct.',
+  desc:  'Faith-based, independent, magnet, and charter schools in your area — tuition ranges, application timelines, and what makes each one distinct.',
   cta:   'Browse schools',
 }
 
@@ -151,6 +152,10 @@ export default async function SchoolZonePage() {
   // serves all six brand domains, so School Zone showed Montgomery school news
   // to whichever brand loaded it.
   const brandSlug   = (await currentBrandSlug()) ?? 'rrp'
+  // Region phrase for the visible copy. 'River Region' on RRP, so the live
+  // site reads exactly as before.
+  const { market: brandMarket } = await loadBrandContext()
+  const region = brandMarket.regionLabel
   const brandFilter = articleBrandFilter(brandSlug)
 
   const [
@@ -307,7 +312,7 @@ export default async function SchoolZonePage() {
 
   const heroImage    = vertical?.hero_image_url    || HERO_BG
   const heroTitle    = vertical?.display_name      || 'The School Zone'
-  const heroSubtitle = vertical?.subtitle          || 'Celebrating student achievements, sharing district news, and keeping you connected to education across the River Region.'
+  const heroSubtitle = vertical?.subtitle          || `Celebrating student achievements, sharing district news, and keeping you connected to education across ${region}.`
   const sponsorLabel = vertical?.sponsor_label     || 'Proudly Presented By'
 
   return (
@@ -356,6 +361,7 @@ export default async function SchoolZonePage() {
 
         {/* ── Magazine-style featured block — big hero bit + sidebar personalization + 3-up below ── */}
         <SchoolBitsDiscoveryPanel
+          regionLabel={region}
           initialBits={latestNewBits}
           initialSchools={panelSchools}
         />
@@ -372,7 +378,7 @@ export default async function SchoolZonePage() {
                 School Zone is Coming to Life
               </h2>
               <p className="text-muted-foreground mb-7 leading-relaxed max-w-lg">
-                We&apos;re building the River Region&apos;s education hub — and we need your help. Submit a school story,
+                We&apos;re building {region}&apos;s education hub — and we need your help. Submit a school story,
                 nominate a teacher, or share an achievement to put your school on the map.
               </p>
               <div className="grid sm:grid-cols-3 gap-3">
@@ -423,7 +429,7 @@ export default async function SchoolZonePage() {
               />
               {teacherArticles.length === 0 ? (
                 <EmptySection
-                  message="Know an outstanding River Region educator? Nominations for Teacher of the Month are always open."
+                  message={`Know an outstanding ${region} educator? Nominations for Teacher of the Month are always open.`}
                   cta="Nominate a Teacher"
                   href="/nominate/teacher"
                 />
@@ -520,7 +526,7 @@ export default async function SchoolZonePage() {
               <SectionHead icon={BookOpen} title="Education Matters" />
           {educationMatters.length === 0 ? (
             <EmptySection
-              message="Superintendent updates, district news, and education policy coverage for River Region families."
+              message={`Superintendent updates, district news, and education policy coverage for ${region} families.`}
               cta="Submit School News"
               href="/calendar/submit"
             />
@@ -573,7 +579,7 @@ export default async function SchoolZonePage() {
                     <Trophy className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">Nominate a Teacher</p>
-                      <p className="text-xs text-muted-foreground leading-snug">Recognize an outstanding River Region educator.</p>
+                      <p className="text-xs text-muted-foreground leading-snug">Recognize an outstanding {region} educator.</p>
                     </div>
                   </Link>
                 </li>
@@ -665,7 +671,7 @@ export default async function SchoolZonePage() {
               </div>
               <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">School events, performances & more</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Plays, concerts, fundraisers, sports — see what's happening across River Region schools.
+                Plays, concerts, fundraisers, sports — see what's happening across {region} schools.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3">

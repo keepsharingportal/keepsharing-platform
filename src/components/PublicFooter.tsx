@@ -5,6 +5,8 @@
 // isn't a per-request DB hit in practice.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
+import { chromeForBrand } from '@/lib/brands'
 import { NewsletterSignup } from '@/components/NewsletterSignup'
 import { Mail } from 'lucide-react'
 import {
@@ -94,9 +96,19 @@ export async function PublicFooter(props: FooterBrandProps = {}) {
   // Brand chrome comes from the caller. Server-component pages that want
   // brand-aware rendering call loadBrandContext()+chromeForBrand() and
   // pass the result. 'use client' pages fall back to the RRP defaults.
-  const brandSlug = props.brandSlug ?? DEFAULT_BRAND_SLUG
+  // Resolve the brand ourselves when the caller didn't pass one.
+  //
+  // Forty pages render this component without props, and the old default was
+  // a hardcoded 'rrp' — so every one of them announced River Region on
+  // Greater Pensacola's domain, masthead included. Patching forty call sites
+  // would have left the forty-first to be found by a reader.
+  //
+  // Explicit props still win, for the admin's brand preview and for any page
+  // that already resolved the context for its own use.
+  const ctx = props.brandSlug && props.chrome ? null : await loadBrandContext()
+  const brandSlug = props.brandSlug ?? ctx?.slug ?? DEFAULT_BRAND_SLUG
   const market: MarketDef = MARKETS.find(m => m.slug === brandSlug) ?? MARKETS[0]
-  const chrome = props.chrome ?? RRP_CHROME_FALLBACK
+  const chrome = props.chrome ?? (ctx ? chromeForBrand(ctx.brand) : RRP_CHROME_FALLBACK)
   const displayName = market.displayName
   // Wordmark split: last word in primary color, matching Navigation.
   const lastSpace = displayName.lastIndexOf(' ')

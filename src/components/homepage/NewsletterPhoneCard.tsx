@@ -8,9 +8,17 @@
 // and never gates the build on a missing image file.
 
 import { NewsletterSignup } from '@/components/NewsletterSignup'
+import { loadBrandContext } from '@/lib/brand-context'
 import { Mail, Sparkles } from 'lucide-react'
 
-export function NewsletterPhoneCard() {
+export async function NewsletterPhoneCard() {
+  // Brand-aware. On RRP these resolve to "RRP", "River Region" and "River
+  // Region Parents" — byte-identical to the strings that were hardcoded here,
+  // so the live site does not move.
+  const { market } = await loadBrandContext()
+  const short      = market.short              // RRP / GPP / ESP
+  const region     = market.regionLabel        // River Region / Greater Pensacola
+
   return (
     <div id="newsletter" className="rounded-3xl overflow-hidden border border-primary/15 bg-gradient-to-br from-primary/8 via-background to-secondary/8 shadow-sm">
 
@@ -45,9 +53,9 @@ export function NewsletterPhoneCard() {
                   <div className="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center">
                     <Mail className="h-2 w-2 text-primary-foreground" />
                   </div>
-                  <span className="text-[8px] font-bold text-foreground tracking-tight">RRP Weekly</span>
+                  <span className="text-[8px] font-bold text-foreground tracking-tight">{short} Weekly</span>
                 </div>
-                <p className="text-[6.5px] text-muted-foreground mt-0.5 truncate">This week in River Region…</p>
+                <p className="text-[6.5px] text-muted-foreground mt-0.5 truncate">This week in {region}…</p>
               </div>
 
               {/* Fake email body */}
@@ -91,7 +99,7 @@ export function NewsletterPhoneCard() {
       <div className="px-6 pb-6 pt-2 text-center">
         <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Free Weekly</p>
         <h3 className="text-lg font-black text-foreground leading-tight mb-1">
-          The Best of River Region — in Your Inbox
+          The Best of {region} — in Your Inbox
         </h3>
         <p className="text-xs text-muted-foreground leading-relaxed mb-4">
           Local events, parenting stories, and the guides moms ask about. One short email, every week.

@@ -13,6 +13,7 @@
 // URL building, default image fallback) flows from defaults.
 
 import type { Metadata } from 'next'
+import { brandifyCopy } from '@/lib/brandify'
 import { loadBrandContext } from '@/lib/brand-context'
 import { chromeForBrand } from '@/lib/brands'
 
@@ -81,8 +82,16 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
   const override = await loadPageMetadataOverride(input.path, input.brandSlug ?? ctx.market.slug)
 
   // Resolved values — override wins, then input, then fall back.
-  const resolvedTitle       = override?.ogTitle?.trim()       || input.title
-  const resolvedDescription = override?.ogDescription?.trim() || input.description
+  //
+  // brandifyCopy rewrites River-Region-worded strings for whichever brand is
+  // being served. Thirty pages call this helper with titles, descriptions and
+  // keywords written when there was one brand, so without it Greater
+  // Pensacola's tabs, search snippets and share cards all said River Region.
+  // An identity transform on RRP — see lib/brandify.ts.
+  const brandify = (t: string) => brandifyCopy(t, ctx.market)
+
+  const resolvedTitle       = brandify(override?.ogTitle?.trim()       || input.title)
+  const resolvedDescription = brandify(override?.ogDescription?.trim() || input.description)
   const resolvedImage       = override?.ogImageUrl?.trim()    || input.image || null
   const resolvedNoIndex     = override?.noindex ?? !!input.noIndex
   const resolvedCanonical   = override?.canonicalOverride?.trim()
@@ -128,7 +137,7 @@ export async function buildPageMetadata(input: BuildPageMetadataInput): Promise<
     metadataBase: new URL(origin),
     title:       tabTitle,
     description: resolvedDescription,
-    keywords:    input.keywords,
+    keywords:    input.keywords?.map(brandify),
     alternates: {
       canonical: resolvedCanonical,
     },

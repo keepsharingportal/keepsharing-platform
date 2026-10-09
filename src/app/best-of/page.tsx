@@ -22,22 +22,19 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents
 
 export const revalidate = 600
 
-export const metadata: Metadata = {
-  title:       'Best Of — River Region Parents',
-  description: 'The lists River Region families text to their friends. Best parks, sweet treats, day trips, and more — new lists added throughout the year.',
-  alternates:  { canonical: `${SITE_URL}/best-of` },
-  openGraph:   {
-    title:       'The Best Of — for River Region Families',
-    description: 'New lists added throughout the year. Best parks, day trips, sweet treats, and more.',
-    url:         `${SITE_URL}/best-of`,
+// Was a static `export const metadata` object, which cannot read the request —
+// so every brand's tab, canonical, og:site_name and share card said River
+// Region. buildPageMetadata resolves the brand and runs the copy through
+// brandifyCopy, an identity transform on RRP.
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Best Of',
+    description: 'The lists River Region families text to their friends. Best parks, sweet treats, day trips, and more — new lists added throughout the year.',
+    path:        '/best-of',
     type:        'website',
-    siteName:    'River Region Parents',
-  },
-  twitter: {
-    card:        'summary_large_image',
-    title:       'The Best Of — for River Region Families',
-    description: 'New lists added throughout the year. Best parks, day trips, sweet treats, and more.',
-  },
+    keywords:    ['best of River Region', 'family favorites', 'local lists'],
+  })
 }
 
 function getSupabase() {

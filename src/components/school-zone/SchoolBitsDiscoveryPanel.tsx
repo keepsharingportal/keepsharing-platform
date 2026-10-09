@@ -54,11 +54,15 @@ interface Props {
   initialBits:    BitForFeatured[]
   /** Active schools roster — powers the typeahead. */
   initialSchools: SchoolForFeatured[]
+  /** Region phrase for the panel header. Passed in because this is a client
+   *  component and cannot read the request's brand itself. Defaults to River
+   *  Region so existing call sites are unaffected. */
+  regionLabel?:   string
 }
 
 type AreaSelection = Area | 'private' | null
 
-export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props) {
+export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools, regionLabel = 'River Region' }: Props) {
   const [mounted, setMounted] = useState(false)
 
   const [areaSelected,   setAreaSelected]   = useState<AreaSelection>(null)
@@ -169,7 +173,7 @@ export function SchoolBitsDiscoveryPanel({ initialBits, initialSchools }: Props)
   // Quick label helpers for the panel header
   const sectionEyebrow = selectedSchoolObj ? 'Your School'
                        : selectedAreaLabel ? 'Your Area'
-                       :                     'Latest Across the River Region'
+                       :                     `Latest Across ${regionLabel}`
   const sectionTitle   = selectedSchoolObj ? selectedSchoolObj.name
                        : selectedAreaLabel ?? 'School Bits'
 

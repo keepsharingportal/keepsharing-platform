@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -71,6 +72,8 @@ export default async function CalendarPage() {
   // One deployment serves every brand's domain, so an unscoped event query
   // puts River Region's calendar on Greater Pensacola's site.
   const evScope = await marketScope(supabase, 'calendar_events')
+  const { market: calMarket } = await loadBrandContext()
+  const region = calMarket.regionLabel
 
   const [rich, recurringPast] = await Promise.all([
     scopeToMarket(supabase
@@ -199,7 +202,7 @@ export default async function CalendarPage() {
             <SplitColoredTitle title="Family Calendar" />
           </h1>
           <p className="text-base md:text-lg text-white/90 leading-snug max-w-2xl mx-auto mb-10 md:mb-12">
-            Local Events, Festivals, and Activities for River Region Families — Updated Weekly.
+            Local Events, Festivals, and Activities for {region} Families — Updated Weekly.
           </p>
 
           {/* Sponsor card — reads from ad_placements via getActiveAds, same
@@ -210,7 +213,7 @@ export default async function CalendarPage() {
             aboveLabel="The Family Calendar Is Sponsored By"
             verticalSlug="calendar"
             placeholderName="Own the Family Calendar for the year"
-            placeholderTagline="One advertiser, every weekend plan. River Region families check this page when they're deciding where to go — be the brand they see while they decide."
+            placeholderTagline={`One advertiser, every weekend plan. ${region} families check this page when they're deciding where to go — be the brand they see while they decide.`}
             placeholderCtaLabel="Claim This Spot"
           />
         </div>
