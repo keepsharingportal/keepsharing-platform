@@ -8,6 +8,7 @@
 // editor can refresh a link the business reports as lost / forwarded.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
 import { randomUUID } from 'node:crypto'
 import { Resend } from 'resend'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -30,9 +31,10 @@ function publicOrigin(): string {
       ?? 'https://riverregionparents.com'
 }
 
-function fromAddress(): string {
-  return process.env.ADVERTISER_FROM_EMAIL
-      ?? 'River Region Parents <hello@riverregionparents.com>'
+function fromAddress(marketSlug?: string | null): string {
+  // The advertiser's own market decides who this appears to be from — see
+  // lib/email/brand-sender.ts for why only the display name varies.
+  return brandSender(marketSlug, process.env.ADVERTISER_FROM_EMAIL).from
 }
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   const sb = createAdminClient()
   const { data: acct, error: fetchErr } = await sb
     .from('advertiser_accounts')
-    .select('id, business_name, contact_email, slug')
+    .select('id, business_name, contact_email, slug, market')
     .eq('id', id)
     .maybeSingle()
   if (fetchErr || !acct) {
@@ -84,7 +86,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   if (apiKey) {
     try {
       await new Resend(apiKey).emails.send({
-        from:    fromAddress(),
+        from:    fromAddress((acct as { market?: string | null }).market),
         to:      recipient,
         subject: `Your River Region Parents listing is ready to edit — ${acct.business_name}`,
         html: `

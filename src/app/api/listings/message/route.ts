@@ -16,6 +16,8 @@
 // middle.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender, type BrandSender } from '@/lib/email/brand-sender'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
@@ -27,6 +29,8 @@ const GHL_BASE    = 'https://services.leadconnectorhq.com'
 const GHL_VERSION = '2021-07-28'
 
 async function notifyAdmin(args: {
+  /** Per-brand email identity — see lib/email/brand-sender.ts. */
+  sender:        BrandSender
   businessName:  string
   contactEmail:  string | null
   contactPhone:  string | null
@@ -43,7 +47,7 @@ async function notifyAdmin(args: {
   const body = `
 <html><body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #333;">
   <div style="background: #1a2744; padding: 18px 22px; border-radius: 10px 10px 0 0;">
-    <p style="color: #d4a843; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 4px;">River Region Parents</p>
+    <p style="color: #d4a843; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 4px;">${args.sender.market.displayName}</p>
     <h1 style="color: white; font-size: 18px; margin: 0;">📩 New listing inquiry — ${args.businessName}</h1>
   </div>
   <div style="background: white; border: 1px solid #e5e7eb; border-top: none; padding: 22px; border-radius: 0 0 10px 10px;">
@@ -106,6 +110,8 @@ async function notifyAdmin(args: {
  * if it goes quiet, without having to forward anything.
  */
 async function notifyBusiness(args: {
+  /** Per-brand email identity — see lib/email/brand-sender.ts. */
+  sender:        BrandSender
   businessEmail: string
   businessName:  string
   guideName:     string
@@ -123,14 +129,14 @@ async function notifyBusiness(args: {
   try {
     const { Resend } = await import('resend')
     await new Resend(key).emails.send({
-      from:    process.env.SUBMISSIONS_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>',
+      from:    args.sender.from,
       to:      [args.businessEmail],
       cc:      [ADMIN_EMAIL],
       replyTo: args.parentEmail,
-      subject: `A River Region Parents reader is asking about ${args.businessName}`,
+      subject: `A ${args.sender.market.displayName} reader is asking about ${args.businessName}`,
       html: `
         <p>Hi ${esc(args.businessName)},</p>
-        <p>A River Region Parents follower is requesting more info from
+        <p>A ${args.sender.market.displayName} follower is requesting more info from
            ${esc(listingLine)}. Their question is below —
            <strong>just hit reply</strong> and your response goes straight to them.</p>
         <div style="border-left:3px solid #ff7a59;padding:10px 14px;margin:16px 0;background:#fff7f5">
@@ -140,17 +146,17 @@ async function notifyBusiness(args: {
           <p style="margin:0;white-space:pre-wrap">${esc(args.message)}</p>
         </div>
         <p style="font-size:12px;color:#666">You're receiving this because you're listed in
-           ${esc(args.guideName)} at River Region Parents. We've copied our editor so we know it
+           ${esc(args.guideName)} at ${args.sender.market.displayName}. We've copied our editor so we know it
            reached you.</p>
         <p style="font-size:11px;color:#999">Inquiry ${esc(args.inquiryId)}${
           args.sourceUrl ? ` &middot; <a href="${esc(args.sourceUrl)}">${esc(args.sourceUrl)}</a>` : ''}</p>`,
       text:
         `Hi ${args.businessName},\n\n` +
-        `A River Region Parents follower is requesting more info from ${listingLine}. ` +
+        `A ${args.sender.market.displayName} follower is requesting more info from ${listingLine}. ` +
         `Their question is below — just hit reply and your response goes straight to them.\n\n` +
         `${args.parentName}\n${args.parentEmail}${args.parentPhone ? ` · ${args.parentPhone}` : ''}\n\n` +
         `${args.message}\n\n` +
-        `You're receiving this because you're listed in ${args.guideName} at River Region Parents. ` +
+        `You're receiving this because you're listed in ${args.guideName} at ${args.sender.market.displayName}. ` +
         `We've copied our editor so we know it reached you.\n` +
         `Inquiry ${args.inquiryId}${args.sourceUrl ? ` · ${args.sourceUrl}` : ''}`,
     })
@@ -189,7 +195,7 @@ async function notifyAdminViaResend(
     const { Resend } = await import('resend')
     const contact = [args.contactEmail, args.contactPhone].filter(Boolean).join(' · ') || 'no contact on file'
     await new Resend(key).emails.send({
-      from:    process.env.SUBMISSIONS_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>',
+      from:    args.sender.from,
       to:      [ADMIN_EMAIL],
       replyTo: args.parentEmail,
       subject: `Listing inquiry — ${args.businessName} (from ${args.parentName})`,
@@ -248,13 +254,21 @@ export async function POST(req: NextRequest) {
   // Look up the business's contact info so we can include it in the admin email
   const { data: acct } = await supabase
     .from('advertiser_accounts')
-    .select('business_name, contact_email, office_phone, contact_phone, mobile_phone')
+    .select('*')
     .eq('id', body.advertiser_account_id)
     .maybeSingle()
 
   // Don't fail the request if notification is down — the inquiry is already
   // saved and reviewable in admin.
+  // Which brand is this inquiry for? The advertiser's home market, falling
+  // back to the request's brand when the account predates market scoping.
+  const sender = brandSender(
+    (acct as { market?: string | null } | null)?.market ?? (await currentBrandSlug()),
+    process.env.SUBMISSIONS_FROM_EMAIL,
+  )
+
   const args = {
+    sender,
     businessName:  acct?.business_name ?? 'Unknown business',
     contactEmail:  acct?.contact_email ?? null,
     contactPhone:  acct?.office_phone ?? acct?.contact_phone ?? acct?.mobile_phone ?? null,
@@ -278,7 +292,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
   const guideName =
     (guideRow as { guide_types?: { display_name?: string } } | null)?.guide_types?.display_name
-    ?? 'River Region Parents guide'
+    ?? `${sender.market.displayName} guide`
 
   const businessEmail = acct?.contact_email ?? null
 
@@ -289,6 +303,7 @@ export async function POST(req: NextRequest) {
 
   if (businessEmail) {
     notification = await notifyBusiness({
+      sender,
       businessEmail,
       businessName: args.businessName,
       guideName,

@@ -299,6 +299,7 @@ export default async function SubmitTypePage({
     try {
       const { notifyEditorOfSubmission } = await import('@/lib/notify/submission-email')
       await notifyEditorOfSubmission({
+        marketSlug: pageMarket.slug,
         submissionType: type,
         submitterName:  submitter_name,
         submitterEmail: submitter_email,

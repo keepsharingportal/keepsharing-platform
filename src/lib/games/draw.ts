@@ -51,6 +51,7 @@
 // rehearsal.
 
 import { randomInt } from 'node:crypto'
+import { brandSender } from '@/lib/email/brand-sender'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { isoWeek } from './weekly'
@@ -145,9 +146,8 @@ function ownerEmail(): string {
   return ownerEmails().join(', ')
 }
 
-function fromAddress(): string {
-  return process.env.SUBMISSIONS_FROM_EMAIL
-      ?? 'River Region Parents <hello@riverregionparents.com>'
+function fromAddress(marketSlug?: string | null): string {
+  return brandSender(marketSlug, process.env.SUBMISSIONS_FROM_EMAIL).from
 }
 
 function siteUrl(): string {
@@ -345,7 +345,7 @@ async function emailWinners(
   try {
     for (const w of winners) {
       await client.emails.send({
-        from:    fromAddress(),
+        from:    fromAddress(MARKET),
         to:      mode === 'preview' ? previewTo : w.email,
         // The body tells the winner to reply to arrange payment, but From is
         // hello@ — a send-only address. Without this, every "yes please, here's
@@ -393,7 +393,7 @@ async function emailOwnerResult(
   const live  = mode !== 'preview'
   try {
     await client.emails.send({
-      from:    fromAddress(),
+      from:    fromAddress(MARKET),
       to:      live ? ownerEmails() : [previewTo],
       subject: subjectFor(mode, `Action needed: pay ${winners.length === 1 ? 'this week\'s winner' : 'this week\'s winners'} ($${total}) — ${weekIso}`),
       html: `
@@ -445,7 +445,7 @@ async function emailOwnerNoEntries(
   if (!client) return 'not_configured'
   try {
     await client.emails.send({
-      from:    fromAddress(),
+      from:    fromAddress(MARKET),
       to:      mode === 'preview' ? [previewTo] : ownerEmails(),
       subject: subjectFor(mode, `No Family Brain Games entries this week — ${weekIso}`),
       html: `

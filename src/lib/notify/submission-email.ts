@@ -8,9 +8,13 @@
 // itself never blocks on email delivery.
 
 import { Resend } from 'resend'
+import { brandSender } from '@/lib/email/brand-sender'
 import { SUBMISSION_TYPES } from '@/lib/submissions'
 
 interface NotifyArgs {
+  /** Brand this submission came in on. Decides the From: name, the site
+   *  links in the body, and which editor inbox hears about it. */
+  marketSlug?:     string | null
   submissionType:  string
   submitterName:   string
   submitterEmail:  string
@@ -20,8 +24,11 @@ interface NotifyArgs {
   photoCount:      number
 }
 
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+function siteUrl(marketSlug?: string | null): string {
+  // Brand's own origin so the "review it" link in the editor email lands on
+  // the right site. Falls back to the configured default.
+  const sender = brandSender(marketSlug)
+  return sender.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || 'https://riverregionparents.com'
 }
 
 function editorEmail(): string {
@@ -30,17 +37,17 @@ function editorEmail(): string {
   return process.env.SUBMISSIONS_EDITOR_EMAIL ?? 'jason@riverregionparents.com'
 }
 
-function fromAddress(): string {
-  // Same Resend-verified sender used for the magic-link / circulation
-  // emails. If you want a different "From:" on nominations, set
-  // SUBMISSIONS_FROM_EMAIL in Vercel env.
-  return process.env.SUBMISSIONS_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>'
+function fromAddress(marketSlug?: string | null): string {
+  // Brand display name over the Resend-verified address — see
+  // lib/email/brand-sender.ts for why those two halves move separately.
+  return brandSender(marketSlug, process.env.SUBMISSIONS_FROM_EMAIL).from
 }
 
 export async function notifyEditorOfSubmission(args: NotifyArgs): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) return  // env not set → silently skip
 
+  const sender = brandSender(args.marketSlug, process.env.SUBMISSIONS_FROM_EMAIL)
   const config = SUBMISSION_TYPES.find(t => t.type === args.submissionType)
   const typeLabel = config?.label ?? args.submissionType
 
@@ -61,7 +68,7 @@ export async function notifyEditorOfSubmission(args: NotifyArgs): Promise<void> 
         `<p style="margin:0 0 10px;"><strong style="color:#0f172a;">${escapeHtml(r.label)}:</strong><br><span style="color:#334155;">${escapeHtml(r.value).replace(/\n/g, '<br>')}</span></p>`
       ).join('')
 
-  const adminLink = `${siteUrl()}/admin/community?type=${encodeURIComponent(args.submissionType)}`
+  const adminLink = `${siteUrl(args.marketSlug)}/admin/community?type=${encodeURIComponent(args.submissionType)}`
 
   const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;">
   <div style="background:#0f172a;padding:24px 28px;">
@@ -86,7 +93,7 @@ export async function notifyEditorOfSubmission(args: NotifyArgs): Promise<void> 
     </p>
   </div>
   <div style="background:#f8fafc;padding:14px 28px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;">
-    Sent automatically when a nomination is submitted at ${siteUrl()}/submit/${escapeHtml(args.submissionType)}.
+    Sent automatically when a nomination is submitted at ${siteUrl(args.marketSlug)}/submit/${escapeHtml(args.submissionType)}.
   </div>
 </div>`
 
@@ -94,7 +101,7 @@ export async function notifyEditorOfSubmission(args: NotifyArgs): Promise<void> 
 
   const resend = new Resend(apiKey)
   await resend.emails.send({
-    from:    fromAddress(),
+    from:    fromAddress(args.marketSlug),
     to:      [editorEmail()],
     replyTo: args.submitterEmail || undefined,
     subject,

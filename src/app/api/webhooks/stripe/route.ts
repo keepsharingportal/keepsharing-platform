@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -255,6 +256,15 @@ async function provisionFeaturedListing(input: {
     onboarding_status:           'invited',
   }).eq('id', advertiserId)
 
+  // Which brand sold this? The advertiser's home market, so the welcome
+  // email comes from the magazine they actually bought from.
+  const { data: advRow } = await supabase
+    .from('advertiser_accounts')
+    .select('market')
+    .eq('id', advertiserId)
+    .maybeSingle()
+  const advertiserMarket = (advRow as { market?: string | null } | null)?.market ?? null
+
   // Email the magic link
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -267,7 +277,7 @@ async function provisionFeaturedListing(input: {
   const wizardUrl = `${publicOrigin}/advertise/edit/${token}?guide=${encodeURIComponent(input.guide_slug)}`
   try {
     await new Resend(apiKey).emails.send({
-      from:    process.env.ADVERTISER_FROM_EMAIL ?? 'River Region Parents <hello@riverregionparents.com>',
+      from:    brandSender(advertiserMarket, process.env.ADVERTISER_FROM_EMAIL).from,
       to:      input.email,
       subject: `Welcome aboard — your featured ${input.business_name} listing is ready`,
       html: `

@@ -10,6 +10,8 @@
 // way so the business can fill it out immediately.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { randomUUID } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
@@ -40,9 +42,9 @@ function publicOrigin(): string {
       ?? 'https://riverregionparents.com'
 }
 
-function fromAddress(): string {
-  return process.env.ADVERTISER_FROM_EMAIL
-      ?? 'River Region Parents <hello@riverregionparents.com>'
+async function fromAddress(): Promise<string> {
+  // Brand display name over whatever verified address is configured.
+  return brandSender(await currentBrandSlug(), process.env.ADVERTISER_FROM_EMAIL).from
 }
 
 const ALLOWED_GUIDES = new Set([
@@ -154,7 +156,7 @@ export async function POST(req: NextRequest) {
   if (apiKey) {
     try {
       await new Resend(apiKey).emails.send({
-        from:    fromAddress(),
+        from:    await fromAddress(),
         to:      email,
         subject: `Welcome to River Region Parents — your listing editor is ready`,
         html: `

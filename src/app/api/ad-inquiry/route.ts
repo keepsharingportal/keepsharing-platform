@@ -12,6 +12,8 @@
 // see real traffic shape.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { findPlacementType } from '@/lib/ads/placement-types'
@@ -76,7 +78,8 @@ export async function POST(req: NextRequest) {
     try {
       const resend  = new Resend(apiKey)
       const editorEmail = process.env.AD_INQUIRY_EDITOR_EMAIL ?? 'jason@riverregionparents.com'
-      const fromAddress = process.env.SUBMISSIONS_FROM_EMAIL  ?? 'River Region Parents <hello@riverregionparents.com>'
+      // Brand display name over the verified address — brand-sender.ts.
+      const fromAddress = brandSender(await currentBrandSlug(), process.env.SUBMISSIONS_FROM_EMAIL).from
 
       const html = `<div style="font-family: Arial, sans-serif; max-width: 600px;">
   <div style="background: #0f172a; padding: 24px;">

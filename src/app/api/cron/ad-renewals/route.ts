@@ -13,6 +13,7 @@
 // Auth: x-vercel-cron header OR ?secret=$CRON_SECRET for manual fire.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest) {
     supabase
       .from('ad_placements')
       .select(`
-        id, placement_type, ad_headline, ad_link, ends_at,
+        id, placement_type, ad_headline, ad_link, ends_at, market,
         advertiser_email, sales_rep_email,
         advertiser:advertiser_account_id(business_name, email)
       `)
@@ -131,7 +132,8 @@ export async function GET(req: NextRequest) {
   }
 
   const resend = new Resend(apiKey)
-  const fromAddress = process.env.AD_RENEWAL_FROM ?? 'River Region Parents <hello@riverregionparents.com>'
+  // Per-placement below — a renewal notice must come from the brand that
+  // sold the placement, and this cron sweeps every market at once.
 
   let sent = 0, skipped = 0, failed = 0
   const details: Array<{ placement_id: string; template: string; status: string }> = []
@@ -187,7 +189,7 @@ export async function GET(req: NextRequest) {
       if (dupErr) throw new Error(dupErr.message)
 
       await resend.emails.send({
-        from:    fromAddress,
+        from:    brandSender((pl as { market?: string | null }).market, process.env.AD_RENEWAL_FROM).from,
         to:      [recipient],
         cc:      tpl.notify_sales && pl.sales_rep_email ? [pl.sales_rep_email] : undefined,
         subject,
