@@ -4,7 +4,7 @@
 
 import Link from 'next/link'
 import { currentBrandSlug } from '@/lib/current-brand'
-import { articleBrandFilter } from '@/lib/brand-context'
+import { articleBrandFilter, loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import { Navigation } from '@/components/Navigation'
@@ -60,6 +60,10 @@ interface Post {
 }
 
 export default async function MomKnowsBestPage() {
+  // Region phrase for the visible copy — 'River Region' on RRP, so the live
+  // site reads exactly as before.
+  const region = (await loadBrandContext()).market.regionLabel
+
   const supabase = getSupabase()
 
   const [
@@ -123,7 +127,7 @@ export default async function MomKnowsBestPage() {
     : null
 
   const heroTitle    = vertical?.display_name  || 'Mom Knows Best'
-  const heroSubtitle = vertical?.subtitle      || 'Real River Region moms writing about real River Region life — favorite spots, hard-won lessons, family routines, and the chaos in between.'
+  const heroSubtitle = vertical?.subtitle      || `Real ${region} moms writing about real ${region} life — favorite spots, hard-won lessons, family routines, and the chaos in between.`
   const heroImage    = vertical?.hero_image_url || null
   const sponsorLabel = vertical?.sponsor_label || 'Proudly Presented By'
 
@@ -142,7 +146,7 @@ export default async function MomKnowsBestPage() {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <Users className="h-4 w-4 text-primary" />
-            {(bloggers ?? []).length} River Region moms
+            {(bloggers ?? []).length} {region} moms
           </span>
         </div>
       </PageHeader>
@@ -171,7 +175,7 @@ export default async function MomKnowsBestPage() {
               <Users className="h-10 w-10 text-primary/40 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-foreground mb-1">Bloggers coming soon</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                We&apos;re onboarding a small group of River Region moms to share what they&apos;re doing around town. Check back soon.
+                We&apos;re onboarding a small group of {region} moms to share what they&apos;re doing around town. Check back soon.
               </p>
             </div>
           ) : (
@@ -251,7 +255,7 @@ export default async function MomKnowsBestPage() {
             Mom Knows Best is growing.
           </h2>
           <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-6 leading-relaxed">
-            If you&apos;re a River Region mom who loves writing about local family life, we&apos;d love to talk. Real voices, real recommendations, real reach.
+            If you&apos;re a {region} mom who loves writing about local family life, we&apos;d love to talk. Real voices, real recommendations, real reach.
           </p>
           <Link
             href="mailto:hello@riverregionparents.com?subject=Mom%20Knows%20Best%20%E2%80%94%20I%27d%20like%20to%20write"

@@ -3,6 +3,7 @@
 // Quick Takes Q&A, and a grid of their posts.
 
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .maybeSingle()
   if (!data) return { title: 'Mom Knows Best' }
   return {
-    title:       `${data.display_name} — Mom Knows Best | River Region Parents`,
+    title:       `${data.display_name} — Mom Knows Best | ${(await loadBrandContext()).market.displayName}`,
     description: data.tagline ?? data.bio?.slice(0, 160) ?? undefined,
   }
 }

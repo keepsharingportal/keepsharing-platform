@@ -1,12 +1,21 @@
 import Link from 'next/link'
+import { loadBrandContext } from '@/lib/brand-context'
+import { brandifyFields } from '@/lib/brandify'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
 import { GraduationCap, Trophy, Heart, Users, ArrowRight } from 'lucide-react'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title:       'Nominate Someone — River Region Parents',
-  description: 'Nominate a teacher, student athlete, grandparent, or community member for monthly recognition in River Region Parents.',
+// generateMetadata, not a static object: buildPageMetadata resolves the brand
+// and runs the copy through brandifyCopy. Identity transform on RRP.
+export async function generateMetadata(): Promise<Metadata> {
+  const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  return buildPageMetadata({
+    title:       'Nominate Someone',
+    description: 'Nominate a teacher, student athlete, grandparent, or community member for monthly recognition in River Region Parents.',
+    path:        '/nominate',
+    type:        'website',
+  })
 }
 
 const CATEGORIES = [
@@ -52,7 +61,12 @@ const CATEGORIES = [
   },
 ]
 
-export default function NominateLandingPage() {
+export default async function NominatePage() {
+  // The CATEGORIES config above is module-level and written in River Region's
+  // words. Rewrite the reader-facing fields for whichever brand is serving.
+  const { market } = await loadBrandContext()
+  const region     = market.regionLabel
+  const categories = CATEGORIES.map(c => brandifyFields(c, market, ['description', 'detail']))
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -69,7 +83,7 @@ export default function NominateLandingPage() {
               Nominate Someone Amazing
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
-              Every month we celebrate the teachers, athletes, grandparents, and moms who make the River Region a great place to grow up. Know someone who deserves recognition? Tell us about them.
+              Every month we celebrate the teachers, athletes, grandparents, and moms who make {region} a great place to grow up. Know someone who deserves recognition? Tell us about them.
             </p>
           </div>
         </div>
@@ -77,7 +91,7 @@ export default function NominateLandingPage() {
 
       <main className="container py-10 md:py-14">
         <div className="grid sm:grid-cols-2 gap-5 max-w-3xl">
-          {CATEGORIES.map(cat => {
+          {categories.map(cat => {
             const Icon = cat.icon
             return (
               <Link
@@ -109,8 +123,8 @@ export default function NominateLandingPage() {
           <div className="space-y-4">
             {[
               { step: '1', title: 'Submit your nomination',        body: 'Fill out the short form. Tell us why this person deserves recognition. It takes less than 5 minutes.' },
-              { step: '2', title: 'Our editors review',            body: 'We read every nomination and select honorees that represent the heart of the River Region community.' },
-              { step: '3', title: 'We publish their story',        body: 'Honorees are featured in River Region Parents print and digital issues, reaching thousands of local families.' },
+              { step: '2', title: 'Our editors review',            body: `We read every nomination and select honorees that represent the heart of the ${region} community.` },
+              { step: '3', title: 'We publish their story',        body: `Honorees are featured in ${market.displayName} print and digital issues, reaching thousands of local families.` },
               { step: '4', title: 'Share the celebration',         body: 'We\'ll notify you when the story is live so you can share it with family, friends, and the community.' },
             ].map(s => (
               <div key={s.step} className="flex gap-4">

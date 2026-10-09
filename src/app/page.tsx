@@ -842,7 +842,7 @@ export default async function HomePage() {
               >
                 <Image
                   src="/images/heroes/birthday-party-hero.jpg"
-                  alt="The Big Birthday Bash — River Region Birthday Planning Portal"
+                  alt={`The Big Birthday Bash — ${brandCtx.market.regionLabel} Birthday Planning Portal`}
                   fill
                   style={{ objectFit: 'cover' }}
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -861,7 +861,7 @@ export default async function HomePage() {
                     The Big Birthday Bash
                   </h3>
                   <p className="text-white/85 text-sm md:text-[15px] mt-1.5 mb-3 max-w-md leading-snug line-clamp-3" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Venues, cakes, entertainers, rentals, and gift shops — every River Region birthday vendor in one place. Plan the party without the tab avalanche.
+                    Venues, cakes, entertainers, rentals, and gift shops — every {brandCtx.market.regionLabel} birthday vendor in one place. Plan the party without the tab avalanche.
                   </p>
                   <div className="flex items-center text-sm font-bold text-accent">
                     Explore the Guide <ArrowRight className="ml-1 h-4 w-4" />
