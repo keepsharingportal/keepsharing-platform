@@ -6,6 +6,7 @@
 // browser tab isn't the only way to follow along.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { MARKETS } from '@/lib/markets'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 
@@ -91,10 +92,18 @@ function icsAllDay(date: string): string {
   return date.replace(/-/g, '')
 }
 
-function buildVEvent(ev: PublishedEvent): string {
+function buildVEvent(ev: PublishedEvent, uidDomain: string): string {
   const lines: string[] = []
   lines.push('BEGIN:VEVENT')
-  lines.push(`UID:${ev.id}@riverregionparents.com`)
+  // The UID domain is the brand's APEX host, deliberately not its publicHost.
+  //
+  // RRP's publicHost is 'www.riverregionparents.com' while every UID ever
+  // emitted used the bare apex. A UID is an event's identity to a calendar
+  // app: change it and every existing subscriber gets a duplicate of every
+  // event rather than an update. Stripping www keeps River Region's UIDs
+  // byte-identical to what has already been published, while giving each
+  // other brand its own namespace.
+  lines.push(`UID:${ev.id}@${uidDomain}`)
   lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]|\.\d{3}/g, '')}`)
 
   if (ev.start_time) {
@@ -184,17 +193,24 @@ export async function GET(_req: NextRequest) {
   // Compatibility shim: feed loop expects a non-null array
   const evts = events ?? []
 
+  // Subscribers see X-WR-CALNAME as the calendar's name in their phone, so a
+  // Greater Pensacola subscriber was adding a calendar literally labelled
+  // "River Region Parents — Family Calendar".
+  const icsMarketDef = MARKETS.find(m => m.slug === icsMarket) ?? MARKETS[0]
+  const brandName    = icsMarketDef.displayName
+  const uidDomain    = icsMarketDef.publicHost.replace(/^www./, '')
+
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//River Region Parents//Family Calendar//EN',
+    `PRODID:-//${brandName}//Family Calendar//EN`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:River Region Parents — Family Calendar`,
-    `X-WR-CALDESC:Family-friendly events curated by River Region Parents`,
+    `X-WR-CALNAME:${brandName} — Family Calendar`,
+    `X-WR-CALDESC:Family-friendly events curated by ${brandName}`,
     `X-WR-TIMEZONE:${TZID}`,
   ]
-  for (const ev of evts) lines.push(buildVEvent(ev))
+  for (const ev of evts) lines.push(buildVEvent(ev, uidDomain))
   lines.push('END:VCALENDAR')
 
   const body = lines.join('\r\n')

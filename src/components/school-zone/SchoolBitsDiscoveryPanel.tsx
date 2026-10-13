@@ -522,7 +522,15 @@ function SupportingCardSkeleton() {
 // area; clicking a school narrows further. Fills the available vertical
 // space inside the card so the panel no longer has a giant whitespace gap.
 
-const AREA_TABS: Array<{ key: AreaSelection; label: string; badge: string }> = [
+// The area taxonomy is River Region's — Montgomery, Autauga, Elmore, Pike
+// Road are counties in one market. Showing a Pike Road chip on Greater
+// Pensacola is just wrong, so the tabs are filtered below to the areas that
+// this brand's school roster actually contains. A brand with no schools yet
+// shows no area chips rather than another market's counties.
+//
+// Proper fix is a per-brand area table; deriving from the roster gets the UI
+// right today without a migration and a type-level rework of `Area`.
+const ALL_AREA_TABS: Array<{ key: AreaSelection; label: string; badge: string }> = [
   { key: 'montgomery', label: AREA_SHORT_LABELS.montgomery, badge: AREA_BADGE_CLASS.montgomery },
   { key: 'autauga',    label: AREA_SHORT_LABELS.autauga,    badge: AREA_BADGE_CLASS.autauga    },
   { key: 'elmore',     label: AREA_SHORT_LABELS.elmore,     badge: AREA_BADGE_CLASS.elmore     },
@@ -539,6 +547,13 @@ function AreaSchoolPicker({
   onPickArea:       (area: AreaSelection) => void
   onPickSchool:     (id: string) => void
 }) {
+  // Only the areas this brand actually has schools in — see ALL_AREA_TABS.
+  const areaTabs = useMemo(() => {
+    const present = new Set<string>(schools.map(sc => (sc.is_private ? 'private' : sc.area) as string))
+    const tabs = ALL_AREA_TABS.filter(t => t.key !== null && present.has(String(t.key)))
+    return tabs.length > 0 ? tabs : []
+  }, [schools])
+
   // Schools for the active tab, alphabetical
   const listForTab = useMemo(() => {
     if (!activeTab) return []
@@ -550,7 +565,7 @@ function AreaSchoolPicker({
     <div className="flex-1 min-h-0 flex flex-col">
       {/* Area tabs */}
       <div className="flex gap-1 mb-2 flex-wrap">
-        {AREA_TABS.map(t => {
+        {areaTabs.map(t => {
           const isActive = activeTab === t.key
           return (
             <button

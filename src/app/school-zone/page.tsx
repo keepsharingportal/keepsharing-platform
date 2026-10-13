@@ -22,12 +22,17 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { buildPageMetadata } = await import('@/lib/seo/metadata')
+  // The county list and 'Montgomery schools' keyword are River Region's own —
+  // brandifyCopy can't rewrite them because they never say 'River Region'.
+  // Named towns come from the brand's serviceArea instead.
+  const { market } = await loadBrandContext()
+  const towns = market.serviceArea.length > 0 ? market.serviceArea.join(', ') : market.regionLabel
   return buildPageMetadata({
     title:       'School Zone',
-    description: 'Celebrating student achievements, sharing district news, and keeping families connected to education across Montgomery, Autauga, Elmore, Pike Road, and private schools. Submit a School Bit free.',
+    description: `Celebrating student achievements, sharing district news, and keeping families connected to education across ${towns}, and private schools. Submit a School Bit free.`,
     path:        '/school-zone',
     type:        'website',
-    keywords:    ['River Region schools', 'Montgomery schools', 'student achievements', 'school news', 'Teacher of the Month'],
+    keywords:    [`${market.regionLabel} schools`, 'student achievements', 'school news', 'Teacher of the Month'],
   })
 }
 
@@ -267,6 +272,13 @@ export default async function SchoolZonePage() {
     is_private: boolean
   }
   const panelSchools = (schoolsRes.data ?? []) as PanelSchool[]
+
+  // AREA_CARDS are River Region counties. Show only the areas this brand has
+  // schools in, so Greater Pensacola does not offer a Pike Road link that
+  // filters to nothing.
+  const brandAreas = new Set<string>(panelSchools.map(sc => String(sc.area)))
+  const areaCards  = AREA_CARDS.filter(c =>
+    brandAreas.has(c.region.replace('-county', '').replace('-prattville', '').replace('-schools', '')))
 
   const hasAnyContent = latestBits.length > 0 || teacherArticles.length > 0
     || educationMatters.length > 0
@@ -599,7 +611,7 @@ export default async function SchoolZonePage() {
             <section className="bg-muted/40 border border-border/40 rounded-2xl p-5">
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Browse School Bits</h3>
               <div className="grid grid-cols-2 gap-2">
-                {AREA_CARDS.map(a => (
+                {areaCards.map(a => (
                   <Link key={a.slug} href={`/school-zone/school-bits?area=${a.region.replace('-county', '').replace('-prattville', '').replace('-schools', '')}`}
                     className="text-xs font-semibold text-foreground hover:text-primary px-3 py-2 rounded-lg bg-card border border-border/50 hover:border-primary/30 transition-colors text-center">
                     {a.label}

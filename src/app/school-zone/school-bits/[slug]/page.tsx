@@ -10,6 +10,7 @@
 // Old ?focus= links still work; the feed page 301s them here.
 
 import { notFound } from 'next/navigation'
+import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
@@ -45,6 +46,7 @@ async function loadBit(slug: string): Promise<Bit | null> {
     .from('school_bits')
     .select('id, slug, title, blurb, school_name, image_web_url, image_width, image_height, source_url, published_at, created_at')
     .eq('slug', slug)
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .in('status', ['approved', 'published'])
     .maybeSingle()
   return (data as Bit | null) ?? null
@@ -85,6 +87,7 @@ export default async function SchoolBitPage({ params }: PageParams) {
   const { data: moreData } = await supabaseAdmin()
     .from('school_bits')
     .select('slug, title, school_name, image_web_url')
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .in('status', ['approved', 'published'])
     .not('slug', 'is', null)
     .neq('id', bit.id)

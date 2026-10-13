@@ -53,6 +53,7 @@ async function slugForFocusId(focusId: string): Promise<string | null> {
     .from('school_bits')
     .select('slug')
     .eq('id', focusId)
+    .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
     .in('status', ['approved', 'published'])
     .maybeSingle()
   return (data as { slug: string | null } | null)?.slug ?? null
@@ -72,6 +73,7 @@ export async function generateMetadata({ searchParams }: PageParams): Promise<Me
       .from('school_bits')
       .select('title, school_name, blurb, image_web_url')
       .eq('id', focusId)
+      .eq('market', (await currentBrandSlug()) ?? MARKET_FALLBACK)
       .in('status', ['approved', 'published'])
       .maybeSingle()
     if (bit) {

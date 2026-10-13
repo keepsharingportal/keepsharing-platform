@@ -168,10 +168,14 @@ export default async function EventDetailPage({ params }: Props) {
     .order('start_date', { ascending: true })
     .limit(3)
   if (!related || related.length < 3) {
+    // Scoped like the category query above. I fixed that one and missed this
+    // fallback, which is the path that actually ran — a Pensacola event has
+    // few category matches, so the rail filled with River Region events.
     const { data: backfill } = await supabase
       .from('calendar_events')
       .select('id, slug, title, start_date, end_date, start_time, end_time, location_name, category, hero_image_url, is_free, is_featured')
       .eq('status', 'published')
+      .eq('market', (await currentBrandSlug()) ?? 'rrp')
       .neq('id', ev.id)
       .gte('start_date', today)
       .order('start_date', { ascending: true })

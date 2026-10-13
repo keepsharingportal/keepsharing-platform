@@ -54,6 +54,15 @@ export function SchoolBitsBrowser({
   const router       = useRouter()
   const pathname     = usePathname()
 
+  // Area chips come from the brand's own school roster, not the global AREAS
+  // list. Those areas (Montgomery, Autauga, Elmore, Pike Road) are River
+  // Region counties, so Greater Pensacola was offering a Pike Road filter.
+  // A brand with no schools yet shows no area chips at all.
+  const presentAreas = useMemo(
+    () => AREAS.filter(a => schools.some(sc => !sc.is_private && sc.area === a)),
+    [schools],
+  )
+
   // ── URL params drive initial state ────────────────────────────────────────
   //   ?focus=<bit_id> → pull a specific bit to the top + give it the
   //                     primary-color highlight ring so it's immediately
@@ -199,7 +208,7 @@ export function SchoolBitsBrowser({
           <FilterChip active={areaFilter === 'all' && !schoolFilter} onClick={() => { setAreaFilter('all'); clearSchool() }}>
             All schools
           </FilterChip>
-          {AREAS.map(a => (
+          {presentAreas.map(a => (
             <FilterChip key={a} active={areaFilter === a && !schoolFilter} onClick={() => { setAreaFilter(a); clearSchool() }}>
               <MapPin className="h-3 w-3" /> {AREA_LABELS[a]}
             </FilterChip>

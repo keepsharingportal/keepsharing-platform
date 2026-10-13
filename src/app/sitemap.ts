@@ -15,6 +15,7 @@
 
 import type { MetadataRoute } from 'next'
 import { currentBrandSlug } from '@/lib/current-brand'
+import { articleBrandFilter } from '@/lib/brand-context'
 import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -124,6 +125,7 @@ function getSupabase() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ctx       = await loadBrandContext()
   const origin    = ctx.publicOrigin.replace(/\/$/, '')
+  const sitemapBrand = (await currentBrandSlug()) ?? 'rrp'
   const supabase  = getSupabase()
   const now       = new Date()
 
@@ -189,6 +191,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('guide_articles')
     .select('column_slug, slug, updated_at, published_at')
     .eq('published', true)
+    // Each brand submits only its own articles. River Region was listing a
+    // Greater Pensacola article at a riverregionparents.com address that
+    // 404s — the worst thing to hand Google: a URL you promised exists.
+    .or(articleBrandFilter(sitemapBrand))
     .order('published_at', { ascending: false })
     .limit(2000)
 
@@ -207,8 +213,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const todayIso = now.toISOString().slice(0, 10)
   const { data: events } = await supabase
     .from('calendar_events')
-    .select('slug, updated_at, start_date')
-    .eq('published', true)
+    // Two wrong column names here meant this query errored on every run, so
+    // NO event has ever reached any sitemap — 69 River Region events were
+    // never submitted to Google. calendar_events has no 'published' column
+    // (it is 'status') and no 'updated_at' (only 'created_at'). The
+    // destructure took only .data, so the error was silently discarded and
+    // the sitemap just came out short.
+    .select('slug, created_at, start_date')
+    .eq('status', 'published')
     // Each brand's sitemap lists only its own events — submitting another
     // market's URLs would have them indexed against the wrong domain.
     .eq('market', (await currentBrandSlug()) ?? 'rrp')
@@ -220,7 +232,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter(e => e.slug)
     .map(e => ({
       url:            `${origin}/calendar/events/${e.slug}`,
-      lastModified:   e.updated_at ?? now,
+      lastModified:   e.created_at ?? now,
       changeFrequency: 'weekly',
       priority:       0.7,
     }))
@@ -247,6 +259,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('guide_articles')
     .select('author_name, updated_at')
     .eq('published', true)
+    .or(articleBrandFilter(sitemapBrand))
     .not('author_name', 'is', null)
     .order('updated_at', { ascending: false })
     .limit(5000)
