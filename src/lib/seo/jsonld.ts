@@ -19,7 +19,7 @@ import { absoluteUrl } from './metadata'
 export interface OrganizationInput {
   name:         string
   url:          string
-  logoUrl:      string | null
+  logoUrl: string | null | null
   socialUrls?:  string[]   // Facebook, Instagram, etc.
 }
 
@@ -47,7 +47,7 @@ export interface NewsMediaOrganizationInput {
   name:                  string
   legalName?:            string
   url:                   string
-  logoUrl:               string
+  logoUrl:          string | null
   slogan:                string
   foundingYear?:         number
   socialUrls?:           string[]
@@ -61,7 +61,7 @@ export interface NewsMediaOrganizationInput {
   addressLocality:       string
   addressRegion:         string
   addressCountry:        string
-  contactEmail?:         string
+  contactEmail?:         string | null
   /** Editorial transparency URLs — heavily weighted by Google for
    *  news-publisher E-E-A-T. */
   editorialPolicyUrl?:   string
@@ -80,10 +80,9 @@ export function newsMediaOrganizationJsonLd(input: NewsMediaOrganizationInput) {
     ...(input.legalName && { legalName: input.legalName }),
     url:         input.url,
     slogan:      input.slogan,
-    logo: {
-      '@type': 'ImageObject',
-      url:     input.logoUrl,
-    },
+    // Omitted rather than null when a brand has no logo of its own —
+    // publishing another brand's mark here is worse than publishing none.
+    ...(input.logoUrl ? { logo: { '@type': 'ImageObject', url: input.logoUrl } } : {}),
     ...(input.foundingYear && { foundingDate: `${input.foundingYear}-01-01` }),
     ...(input.socialUrls?.length && { sameAs: input.socialUrls }),
     ...(input.knowsAbout?.length && { knowsAbout: input.knowsAbout }),

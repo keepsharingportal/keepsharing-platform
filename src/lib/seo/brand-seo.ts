@@ -23,7 +23,7 @@ export interface BrandSeoConfig {
   organizationName: string
   legalName?:       string
   url:              string
-  logoUrl:          string
+  logoUrl:          string | null
   slogan:           string
   /** ISO year the brand started publishing — emits as foundingDate.
    *  E-E-A-T signal that this isn't a fly-by-night blog. */
@@ -66,7 +66,7 @@ export interface BrandSeoConfig {
   correctionsPolicyUrl?: string
   /** Where the masthead (about the publication) lives. */
   aboutUrl?:           string
-  contactEmail?:       string
+  contactEmail?:       string | null
 }
 
 // ── Per-brand overrides ─────────────────────────────────────────────────────
@@ -74,6 +74,9 @@ export interface BrandSeoConfig {
 // flows from MARKETS + sensible defaults.
 
 interface BrandOverride {
+  /** Per-brand logo + contact for the Organization JSON-LD. */
+  logoUrl?:          string
+  contactEmail?:     string
   foundingYear?:     number
   socialUrls?:       string[]
   knowsAbout?:       string[]
@@ -218,7 +221,12 @@ export function getBrandSeoConfig(market: MarketDef, publicOrigin: string): Bran
     organizationName: market.displayName,
     legalName:        o.legalName,
     url:              origin,
-    logoUrl:          `${origin}/images/advertise/rrp-logo.png`,
+    // rrp-logo.png is River Region's mark. It was being published in every
+    // brand's Organization JSON-LD — which is what search engines and social
+    // cards read for "this publisher's logo" — so Greater Pensacola was
+    // declaring River Region's logo as its own. Null for a brand with no
+    // logo configured; the consumers below already omit the field.
+    logoUrl:          o.logoUrl ?? (market.slug === 'rrp' ? `${origin}/images/advertise/rrp-logo.png` : null),
     slogan:           `The Go-To Resource for ${market.regionLabel} Families`,
     foundingYear:     o.foundingYear,
     socialUrls:       o.socialUrls ?? [],
@@ -244,6 +252,10 @@ export function getBrandSeoConfig(market: MarketDef, publicOrigin: string): Bran
     ethicsPolicyUrl:      `${origin}/about/editorial-policy`,
     correctionsPolicyUrl: `${origin}/about/corrections`,
     aboutUrl:             `${origin}/about`,
-    contactEmail:         'hello@riverregionparents.com',
+    // Same reasoning as brands.ts: no cross-brand fallback. A brand that has
+    // not set an address publishes none rather than another magazine's.
+    contactEmail:         o.contactEmail ?? (
+      market.slug === 'rrp'      ? 'hello@riverregionparents.com' :
+      market.slug === 'rr50plus' ? 'hello@riverregion50plus.com'  : null),
   }
 }

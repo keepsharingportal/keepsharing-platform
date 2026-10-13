@@ -56,7 +56,7 @@ export interface BrandChrome {
   tertiaryColorHex: string
   backgroundColorHex: string
   foregroundColorHex: string
-  contactEmail:     string
+  contactEmail:     string | null
   socialFacebook:   string | null
   socialInstagram:  string | null
   /** Column slugs to feature in the homepage rotation block. */
@@ -92,6 +92,7 @@ export function chromeForBrand(brand: Brand): BrandChrome {
   const v = brand.voice
   const family = (v?.template_family ?? brand.market?.family ?? 'parents') as 'parents' | 'fifty-plus'
   const D = family === 'fifty-plus' ? FIFTY_PLUS_DEFAULTS : PARENTS_DEFAULTS
+  const slug = brand.slug
   return {
     // Family defaults. Each brand overrides via brand_voice.tagline; the
     // parents default is the shared cover line rather than a generated string
@@ -103,7 +104,15 @@ export function chromeForBrand(brand: Brand): BrandChrome {
     tertiaryColorHex:        v?.tertiary_color_hex        ?? D.tertiary,
     backgroundColorHex:      v?.background_color_hex      ?? D.background,
     foregroundColorHex:      v?.foreground_color_hex      ?? D.foreground,
-    contactEmail:            v?.contact_email             ?? (family === 'fifty-plus' ? 'hello@riverregion50plus.com' : 'hello@riverregionparents.com'),
+    // No cross-brand fallback. A Greater Pensacola reader shown
+    // hello@riverregionparents.com writes to the wrong magazine, and both the
+    // footer and the JSON-LD already omit the field when it is null — so an
+    // unconfigured brand shows no email rather than someone else's. The two
+    // below are genuinely those brands' own addresses. Set the rest at
+    // /admin/settings/brands.
+    contactEmail:            v?.contact_email ?? (
+      slug === 'rrp'      ? 'hello@riverregionparents.com' :
+      slug === 'rr50plus' ? 'hello@riverregion50plus.com'  : null),
     socialFacebook:          v?.social_facebook           ?? null,
     socialInstagram:         v?.social_instagram          ?? null,
     homepageRotationColumns: v?.homepage_rotation_columns ?? D.rotation,
