@@ -6,10 +6,10 @@
 // and word count so the designer can size the layout properly.
 
 import type { Metadata } from 'next'
+import { loadBrandContext } from '@/lib/brand-context'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { findArticleBySlug } from '@/lib/articles/slug'
-import { loadBrandContext } from '@/lib/brand-context'
 import { publicOriginForBrand } from '@/lib/markets'
 
 export const dynamic = 'force-dynamic'
@@ -45,7 +45,7 @@ export default async function PrintArticleView({ params }: Props) {
   const { slug } = await params
   const supabase = getSupabase()
 
-  const data = await findArticleBySlug<ArticleData>(supabase, slug, 'id, title, subtitle, body, author_name, published_at, pull_quotes, brand_slug, slug, excerpt')
+  const data = await findArticleBySlug<ArticleData>(supabase, slug, 'id, title, subtitle, body, author_name, published_at, pull_quotes, brand_slug, slug, excerpt', (await loadBrandContext()).slug)
   if (!data) notFound()
 
   const ctx = await loadBrandContext()

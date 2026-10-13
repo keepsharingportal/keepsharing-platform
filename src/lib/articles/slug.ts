@@ -78,15 +78,34 @@ export async function findArticleBySlug<T extends Record<string, unknown>>(
   supabase: SupabaseClient,
   urlSlug: string,
   cols = '*',
+  /**
+   * Brand the page is being served for. When given, only articles that brand
+   * published or was syndicated are found — everything else reads as "no such
+   * article" and the caller 404s.
+   *
+   * Not optional in spirit: one deployment serves every brand's domain, so a
+   * lookup by slug alone opens River Region's articles on Greater Pensacola's
+   * site and vice versa. It stays optional only so the print view and any
+   * internal caller can opt out deliberately.
+   *
+   * The filter is inlined rather than imported from brand-context, which is
+   * marked server-only — this module is reachable from client components via
+   * articleHref().
+   */
+  brandSlug?: string | null,
 ): Promise<T | null> {
+  const brandFilter = brandSlug
+    ? `brand_slug.eq.${brandSlug},syndicated_to_brands.cs.{${brandSlug}}`
+    : null
   try {
     // 1. Literal exact match — the common case once data is canonicalized
-    const literal = await supabase
+    const literalQ = supabase
       .from('guide_articles')
       .select(cols)
       .eq('slug', urlSlug)
       .eq('published', true)
-      .maybeSingle()
+    if (brandFilter) literalQ.or(brandFilter)
+    const literal = await literalQ.maybeSingle()
     if (literal.error) {
       console.error('[findArticleBySlug] literal lookup error:', literal.error.message)
     }
@@ -102,12 +121,13 @@ export async function findArticleBySlug<T extends Record<string, unknown>>(
       .join(' ')
 
     if (titleish) {
-      const tc = await supabase
+      const tcQ = supabase
         .from('guide_articles')
         .select(cols)
         .ilike('slug', titleish)   // case-insensitive equality
         .eq('published', true)
-        .maybeSingle()
+      if (brandFilter) tcQ.or(brandFilter)
+      const tc = await tcQ.maybeSingle()
       if (tc.error) {
         console.error('[findArticleBySlug] title-case lookup error:', tc.error.message)
       }
@@ -117,12 +137,14 @@ export async function findArticleBySlug<T extends Record<string, unknown>>(
     // 3. Last-resort wildcarded scan + JS-side slugify check.
     //    Bounded to 50 to avoid pulling the whole table.
     const wildcard = urlSlug.replace(/-/g, '%')
-    const candidates = await supabase
+    const candQ = supabase
       .from('guide_articles')
       .select(cols)
       .eq('published', true)
       .ilike('slug', `%${wildcard}%`)
       .limit(50)
+    if (brandFilter) candQ.or(brandFilter)
+    const candidates = await candQ
     if (candidates.error) {
       console.error('[findArticleBySlug] wildcard scan error:', candidates.error.message)
       return null

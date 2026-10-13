@@ -63,7 +63,7 @@ import { buildPageMetadata } from '@/lib/seo/metadata'
 import {
   articleJsonLd, breadcrumbJsonLd, jsonLdScript,
 } from '@/lib/seo/jsonld'
-import { loadBrandContext } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 
 export const revalidate = 600
 
@@ -103,6 +103,13 @@ interface PageParams {
 async function getArticleData(columnSlug: string, articleSlug: string) {
   const supabase = getSupabase()
 
+  // One deployment serves every brand's domain, so looking an article up by
+  // slug alone opened River Region's stories under Greater Pensacola's
+  // masthead and vice versa. An article this brand neither published nor was
+  // syndicated now finds nothing, and the caller 404s.
+  const artBrand  = (await loadBrandContext()).slug
+  const artFilter = articleBrandFilter(artBrand)
+
   // Historically slugs were stored with the column prefix (e.g.
   // 'mom-to-mom-hayley-denny'); newer articles may save just the bare slug
   // ('harper-loves-perfect-season'). Look up both within this column.
@@ -122,6 +129,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .in('slug', candidates)
       .eq('column_slug', columnSlug)
       .eq('published', true)
+      .or(artFilter)
       .order('slug', { ascending: false })  // prefer the prefixed form when both exist
       .limit(1)
       .maybeSingle(),
@@ -132,6 +140,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
     supabase.from('guide_articles')
       .select('id, title, slug, hero_image_url, column_slug, guide_slug, created_at')
       .eq('published', true)
+      .or(artFilter)
       .neq('slug', fullSlug)
       .order('created_at', { ascending: false })
       .limit(3),
@@ -141,6 +150,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .select('id, title, slug, hero_image_url, column_slug, published_at, created_at')
       .eq('column_slug', columnSlug)
       .eq('published', true)
+      .or(artFilter)
       .not('slug', 'in', `(${candidates.map(s => `"${s.replace(/"/g, '')}"`).join(',')})`)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(3),
@@ -175,6 +185,7 @@ async function getArticleData(columnSlug: string, articleSlug: string) {
       .select('id, title, slug, hero_image_url, column_slug, author_name, published_at, created_at')
       .in('column_slug', otherSpotlightSlugs)
       .eq('published', true)
+      .or(artFilter)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(12),
   ])

@@ -46,12 +46,14 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const { slug } = await params
   const supabase = getSupabase()
   // Tolerate legacy rows with non-canonical slugs (capitalization, spaces).
+  const metaCtx = await loadBrandContext()
   const data = await findArticleBySlug<{ title: string; excerpt: string | null; brand_slug: string | null }>(
     supabase,
     slug,
     'title, excerpt, brand_slug',
+    metaCtx.slug,
   )
-  const ctx = await loadBrandContext()
+  const ctx = metaCtx
   if (!data) return { title: `Article — ${ctx.market.displayName}` }
 
   // Cross-publish SEO: when this article is being viewed on a syndicated
@@ -83,7 +85,10 @@ export default async function ArticleFallbackPage({ params }: PageParams) {
     // Slug-tolerant lookup — finds the row even when the DB has a legacy
     // slug with spaces/capitalization (URL is always canonicalized via
     // articleHref).
-    findArticleBySlug<Record<string, unknown>>(supabase, slug, '*'),
+    // Brand-scoped: an article this brand neither published nor was
+    // syndicated must read as "no such article" and 404, not open under the
+    // wrong masthead.
+    findArticleBySlug<Record<string, unknown>>(supabase, slug, '*', brandCtx.slug),
     // Pull up to 6 active inline ads. The body renderer below distributes
     // them across 1-3 positions based on article length, weighted by
     // rotation_weight so full-page advertisers get more visibility than

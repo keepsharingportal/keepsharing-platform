@@ -1,4 +1,5 @@
 import { notFound, permanentRedirect } from 'next/navigation'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -102,6 +103,12 @@ export default async function ColumnLandingPage({ params }: PageParams) {
 
   const supabase = getSupabase()
 
+  // One deployment serves every brand's domain. Without this the Mom to Mom
+  // archive on River Region listed Greater Pensacola's articles and vice
+  // versa — the column pages were reading by column_slug alone.
+  const colBrand  = (await loadBrandContext()).slug
+  const colFilter = articleBrandFilter(colBrand)
+
   const [columnRes, articlesRes, sectionSponsor] = await Promise.all([
     supabase.from('monthly_columns').select('*').eq('slug', column).maybeSingle(),
     supabase.from('guide_articles')
@@ -110,6 +117,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
       .select('id, title, slug, excerpt, body, hero_image_url, author_name, published_at')
       .eq('column_slug', column)
       .eq('published', true)
+      .or(colFilter)
       .order('published_at', { ascending: false, nullsFirst: false }),
     getActiveSectionSponsor(supabase, column),
   ])
@@ -161,6 +169,7 @@ export default async function ColumnLandingPage({ params }: PageParams) {
       .select('slug, column_slug, published_at')
       .in('column_slug', otherSlugs)
       .eq('published', true)
+      .or(colFilter)
       .order('published_at', { ascending: false, nullsFirst: false })
       .limit(20)
     const peerLatest = (peerLatestRaw ?? []) as Array<{ slug: string; column_slug: string }>

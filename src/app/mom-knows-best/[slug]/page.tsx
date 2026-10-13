@@ -3,7 +3,7 @@
 // Quick Takes Q&A, and a grid of their posts.
 
 import Link from 'next/link'
-import { loadBrandContext } from '@/lib/brand-context'
+import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -60,6 +60,8 @@ export default async function BloggerProfilePage({ params }: Props) {
     .eq('column_slug', 'mom-knows-best')
     .eq('author_blogger_id', blogger.id)
     .eq('published', true)
+    // Brand filter — one deployment, many domains.
+    .or(articleBrandFilter((await loadBrandContext()).slug))
     .order('published_at', { ascending: false, nullsFirst: false })
 
   const quickTakes = Array.isArray(blogger.quick_takes)
