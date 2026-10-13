@@ -9,6 +9,7 @@
 // featured pros / no active deal silently skips that slot.
 
 import Link from 'next/link'
+import { birthdayBuckets } from './BirthdayCategoryHubCards'
 import { loadBrandContext } from '@/lib/brand-context'
 import { ArrowRight, Star, Tag, Sparkles } from 'lucide-react'
 import { BIRTHDAY_CATEGORY_BUCKETS, type CategoryBucket } from './BirthdayCategoryHubCards'
@@ -41,6 +42,7 @@ export async function BirthdayCategorySidebar({
   currentBucketSlug, featuredSpotlights = [], deal,
 }: Props) {
   const { market } = await loadBrandContext()
+  const sidebarBuckets = await birthdayBuckets()
   const region       = market.regionLabel
   return (
     <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-24 lg:self-start">
@@ -88,7 +90,7 @@ export async function BirthdayCategorySidebar({
           </span>
         </div>
         <div className="p-2">
-          {BIRTHDAY_CATEGORY_BUCKETS(market).map(b => {
+          {sidebarBuckets.map(b => {
             const isCurrent = b.slug === currentBucketSlug
             const Icon = b.Icon
             return (

@@ -25,13 +25,28 @@ const GPP_URLS = [
   ['article (feature route)', '/articles/zztest-gpp-feature'],
   ['article print view',      '/articles/zztest-gpp-feature/print'],
   ['event detail',            '/calendar/events/zztest-gpp-event'],
-  ['guide listing detail',    '/childcare-guide/listings/zztest-gpp-childcare'],
+  // Guide listings live inside a guide, so they are only reachable when
+  // that guide is active for the brand. Greater Pensacola's guides are all
+  // is_active=false until launch, so this URL is expected to 404 on BOTH
+  // brands: on RRP because the row is Greater Pensacola's, on GPP because
+  // the guide is not open yet. Asserted separately below.
   ['school bit detail',       '/school-zone/school-bits/zztest-gpp-school-bit'],
 ]
 for (const [name, url] of GPP_URLS) {
   const g = await get(url, GPP)
   const r = await get(url)
   record(name, url, g.status === 200 && r.status === 404, `GPP ${g.status} / RRP ${r.status}`)
+}
+
+// A GPP guide listing while GPP's guides are closed: unreachable from
+// either brand. If this ever 200s on GPP it means a guide opened; if it
+// 200s on RRP that is a real leak.
+{
+  const url = '/childcare-guide/listings/zztest-gpp-childcare'
+  const g = await get(url, GPP)
+  const r = await get(url)
+  record('guide listing detail (guide closed)', url,
+    g.status !== 200 && r.status !== 200, `GPP ${g.status} / RRP ${r.status}`)
 }
 
 // ── lists, feeds, metadata: GPP marker must appear only on GPP ─────────────

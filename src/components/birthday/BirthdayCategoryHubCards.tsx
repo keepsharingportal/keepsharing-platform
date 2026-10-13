@@ -9,6 +9,8 @@
 // at /birthday-party-guide/category/[slug] to drive its query).
 
 import Link from 'next/link'
+import { bucketsFromCategoryOrder, type DerivedBucket } from '@/lib/guides/buckets-from-order'
+import { createClient } from '@supabase/supabase-js'
 import { theRegion } from '@/lib/brandify'
 import type { MarketDef } from '@/lib/markets'
 import { loadBrandContext } from '@/lib/brand-context'
@@ -299,14 +301,44 @@ export function BirthdaySubCategoryCards({
   )
 }
 
+/**
+ * Buckets for the brand being served.
+ *
+ * River Region's hand-authored table maps to ITS csv category names
+ * ('Cakes/Finger Foods'); Greater Pensacola's listings use different names
+ * entirely, so on Greater Pensacola every bucket matched nothing while
+ * printing River Region's labels. When a brand declares category_order the
+ * buckets come from that instead — label, slug and category all from its
+ * own data.
+ */
+export async function birthdayBuckets(
+  countsByCategory?: Record<string, number>,
+): Promise<Array<CategoryBucket | DerivedBucket>> {
+  const { market } = await loadBrandContext()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  const { data: cfg } = await supabase
+    .from('guide_configs')
+    .select('category_order')
+    .eq('guide_type_slug', 'birthday-party')
+    .eq('market', market.slug)
+    .maybeSingle()
+  const order = (cfg as { category_order?: unknown } | null)?.category_order
+  if (!order) return BIRTHDAY_CATEGORY_BUCKETS(market)
+  // Only categories that actually have listings become cards.
+  return bucketsFromCategoryOrder(order, Object.keys(countsByCategory ?? {}))
+}
+
 export async function BirthdayCategoryHubCards({ countsByCategory }: {
   // Optional: { csvCategory → count } so each card can render its size.
   // Page component computes from the same guide_listings query that
   // feeds everything else, no separate round trip.
   countsByCategory?: Record<string, number>
 }) {
-  const { market } = await loadBrandContext()
-  function bucketCount(b: CategoryBucket): number {
+  const buckets = await birthdayBuckets(countsByCategory)
+  function bucketCount(b: CategoryBucket | DerivedBucket): number {
     if (!countsByCategory) return 0
     return b.categories.reduce((sum, c) => sum + (countsByCategory[c] ?? 0), 0)
   }
@@ -329,7 +361,7 @@ export async function BirthdayCategoryHubCards({ countsByCategory }: {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {BIRTHDAY_CATEGORY_BUCKETS(market).map(b => {
+        {buckets.map(b => {
           const Icon = b.Icon
           const count = bucketCount(b)
           return (
@@ -345,17 +377,25 @@ export async function BirthdayCategoryHubCards({ countsByCategory }: {
               </div>
 
               <div className="relative p-4 md:p-5 z-10">
-                <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.18em] text-white/85 mb-1.5">
-                  {b.eyebrow}
-                </p>
+                {/* Omit rather than leave an empty line: a derived bucket has
+                    an eyebrow only when it came from a group. */}
+                {b.eyebrow && (
+                  <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.18em] text-white/85 mb-1.5">
+                    {b.eyebrow}
+                  </p>
+                )}
                 <h3 className="text-lg md:text-xl font-black text-white leading-tight mb-1.5 drop-shadow-sm">
                   {b.label}
                 </h3>
-                <div className="hidden md:block mb-3">
-                  <p className="text-xs text-white/85 leading-snug line-clamp-2">
-                    {b.blurb}
-                  </p>
-                </div>
+                {/* Derived buckets carry no blurb — nothing invents one — so
+                    the block disappears instead of reserving empty space. */}
+                {b.blurb && (
+                  <div className="hidden md:block mb-3">
+                    <p className="text-xs text-white/85 leading-snug line-clamp-2">
+                      {b.blurb}
+                    </p>
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-white group-hover:gap-1.5 transition-all">
                     Explore <ArrowRight className="h-3 w-3" />
