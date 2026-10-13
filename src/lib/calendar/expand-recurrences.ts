@@ -6,23 +6,31 @@
 //
 // Used by:
 //   - /api/calendar/events/route.ts  (the calendar feed API)
+//   - /api/calendar/feed.ics/route.ts (the subscribe-able iCal feed)
 //   - /app/calendar/page.tsx         (the calendar page query)
 //
 // Inputs: events from a Supabase query + a date window. Recurring rows
 // are EXPANDED into virtual occurrences within the window; non-recurring
 // rows pass through unchanged. Virtual rows are clones of the template
-// with `start_date` overridden to the occurrence date.
+// with `start_date` set to the occurrence date and `end_date` moved with
+// that occurrence when the stored end belongs to an earlier week.
+//
+// The master row is never rewritten. Detail pages and Event JSON-LD read
+// the canonical row, so a weekly series stays a single-day event there
+// instead of stretching out to its UNTIL date.
 //
 // Important: the SELECT that feeds this should NOT filter recurring
 // events by start_date (a weekly event that started a year ago is still
-// producing occurrences today). Use the broader query helper
-// `buildRecurringSafeFilter` below for the calendar feed.
+// producing occurrences today). Use `recurringOutOfWindowFilter` below
+// for the calendar feed.
 
 import { rrulestr } from 'rrule'
 
 export interface ExpandableEvent {
   start_date:       string                  // 'YYYY-MM-DD'
+  end_date?:        string | null           // 'YYYY-MM-DD'
   start_time?:      string | null           // 'HH:MM:SS' (optional)
+  end_time?:        string | null
   recurrence_rule?: string | null
 }
 
@@ -41,7 +49,9 @@ export function expandRecurrences<T extends ExpandableEvent>(
     if (!ev.recurrence_rule) {
       // Non-recurring — keep if it falls inside the window. The caller
       // typically already filtered for this, but we double-check so the
-      // function is safe to use with mixed inputs.
+      // function is safe to use with mixed inputs. A continuous multi-day
+      // master (Alabama National Fair, Oct 8–18) has no per-day split, so
+      // its real end_date passes through untouched.
       if (inWindow(ev.start_date, windowStart, windowEnd)) out.push(ev)
       continue
     }
@@ -51,7 +61,7 @@ export function expandRecurrences<T extends ExpandableEvent>(
       const rule    = rrulestr(ev.recurrence_rule, { dtstart })
       const occurrences = rule.between(windowStart, windowEnd, true /* inclusive */)
       for (const occ of occurrences) {
-        out.push({ ...ev, start_date: toIsoDate(occ) })
+        out.push(withOccurrenceDates(ev, occ))
       }
     } catch {
       // Bad rule string — fall through and treat the row as one-off so
@@ -79,6 +89,62 @@ export function recurringOutOfWindowFilter(windowStartIso: string): string {
   return `recurrence_rule.not.is.null,start_date.lt.${windowStartIso}`
 }
 
+/**
+ * Point a virtual occurrence at its own dates.
+ *
+ * Weekly (and similar) masters store end_date as the first occurrence's
+ * end — often the same day as start_date. Copying that end onto a later
+ * week makes start_date > end_date. Shift the end forward by the original
+ * length so a one-day trivia night stays one day, and a Fri–Sun repeat
+ * still ends on Sunday.
+ *
+ * Leave the end alone when it is still on or after this occurrence.
+ * FREQ=DAILY series such as NewSouth (Sep 30–Oct 3) keep the real series
+ * end on each expanded day, and an unsplit multi-day master never reaches
+ * this function.
+ */
+function withOccurrenceDates<T extends ExpandableEvent>(ev: T, occ: Date): T {
+  const start_date = toIsoDate(occ)
+  if (!ev.end_date || ev.end_date >= start_date) {
+    return { ...ev, start_date }
+  }
+  return {
+    ...ev,
+    start_date,
+    end_date: shiftedEndDate(ev.start_date, ev.end_date, start_date, ev.recurrence_rule ?? ''),
+  }
+}
+
+function shiftedEndDate(
+  masterStart: string,
+  masterEnd:   string,
+  occStart:    string,
+  rule:        string,
+): string {
+  let span = utcDayNumber(masterEnd) - utcDayNumber(masterStart)
+  if (!Number.isFinite(span) || span < 0) span = 0
+  // A span that reaches the next repeat is a series boundary parked on
+  // the master, not the length of one night. Snap to the occurrence day
+  // so a weekly row cannot render as a months-long event.
+  const intervalDays = recurrenceIntervalDays(rule)
+  if (intervalDays !== null && span >= intervalDays) span = 0
+  return addUtcDays(occStart, span)
+}
+
+function recurrenceIntervalDays(rule: string): number | null {
+  const freq = rule.match(/FREQ=(SECONDLY|MINUTELY|HOURLY|DAILY|WEEKLY|MONTHLY|YEARLY)/i)?.[1]?.toUpperCase()
+  if (!freq) return null
+  const interval = Number(rule.match(/INTERVAL=(\d+)/i)?.[1] ?? '1')
+  const step = Number.isFinite(interval) && interval >= 1 ? interval : 1
+  const base =
+    freq === 'DAILY'   ? 1   :
+    freq === 'WEEKLY'  ? 7   :
+    freq === 'MONTHLY' ? 28  :
+    freq === 'YEARLY'  ? 365 :
+    1
+  return base * step
+}
+
 function parseDtstart(dateStr: string, timeStr: string | null): Date {
   // The DB stores start_date as a plain DATE and start_time as TIME
   // without timezone. We anchor everything to UTC for rrule expansion
@@ -86,6 +152,16 @@ function parseDtstart(dateStr: string, timeStr: string | null): Date {
   // renderers already treat start_date as a wall-clock date.
   const t = (timeStr ?? '00:00:00').slice(0, 8)
   return new Date(`${dateStr}T${t}Z`)
+}
+
+function utcDayNumber(isoDate: string): number {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  return Math.floor(Date.UTC(y, (m ?? 1) - 1, d ?? 1) / 86_400_000)
+}
+
+function addUtcDays(isoDate: string, days: number): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  return toIsoDate(new Date(Date.UTC(y, (m ?? 1) - 1, (d ?? 1) + days)))
 }
 
 function toIsoDate(d: Date): string {

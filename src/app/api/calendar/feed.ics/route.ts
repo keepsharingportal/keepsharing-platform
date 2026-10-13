@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { expandRecurrences } from '@/lib/calendar/expand-recurrences'
 
 export const runtime  = 'nodejs'
 export const revalidate = 1800   // refresh the feed every 30 minutes
@@ -28,6 +29,10 @@ interface PublishedEvent {
   organizer_name?:   string | null
   is_free:          boolean | null
   cost_text:        string | null
+  // Present once migration 077 is applied. Expansion uses it; the UID
+  // for a virtual occurrence includes the occurrence date so subscribers
+  // don't collapse every week into one event.
+  recurrence_rule?: string | null
 }
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
@@ -93,7 +98,10 @@ function icsAllDay(date: string): string {
 function buildVEvent(ev: PublishedEvent): string {
   const lines: string[] = []
   lines.push('BEGIN:VEVENT')
-  lines.push(`UID:${ev.id}@riverregionparents.com`)
+  const uid = ev.recurrence_rule
+    ? `${ev.id}-${ev.start_date}@riverregionparents.com`
+    : `${ev.id}@riverregionparents.com`
+  lines.push(`UID:${uid}`)
   lines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]|\.\d{3}/g, '')}`)
 
   if (ev.start_time) {
@@ -145,7 +153,7 @@ export async function GET(_req: NextRequest) {
   // Same explicit-typing pattern as /admin/events/pending — the two selects
   // produce different inferred shapes, so we hold the result in a typed
   // local instead of letting TS infer from the first query.
-  const richCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, registration_url, organizer_name, is_free, cost_text'
+  const richCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, registration_url, organizer_name, is_free, cost_text, recurrence_rule'
   const baseCols = 'id, slug, title, description, start_date, end_date, start_time, end_time, location_name, address, city, is_free, cost_text'
 
   let events: PublishedEvent[] | null = null
@@ -171,6 +179,27 @@ export async function GET(_req: NextRequest) {
       .order('start_date', { ascending: true })
     events = (base.data ?? null) as PublishedEvent[] | null
     error  = base.error
+  } else if (!error) {
+    // Masters that started before today still have occurrences inside the
+    // feed window. Same two-pass fetch as /api/calendar/events.
+    const recurringPast = await supabase
+      .from('calendar_events')
+      .select(richCols)
+      .eq('status', 'published')
+      .not('recurrence_rule', 'is', null)
+      .lt('start_date', today)
+      .limit(500)
+    if (recurringPast.error) {
+      return new NextResponse('Calendar feed unavailable', { status: 500 })
+    }
+    events = expandRecurrences(
+      [
+        ...(events ?? []),
+        ...((recurringPast.data ?? []) as PublishedEvent[]),
+      ],
+      new Date(`${today}T00:00:00Z`),
+      new Date(`${cap}T23:59:59Z`),
+    )
   }
 
   if (error) return new NextResponse('Calendar feed unavailable', { status: 500 })
