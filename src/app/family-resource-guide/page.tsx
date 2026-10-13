@@ -192,6 +192,7 @@ export default async function FamilyResourceGuidePage() {
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url, category, is_free')
       .eq('status', 'published')
+      .eq('market', frgBrand)
       .gte('start_date', new Date().toISOString().split('T')[0])
       .order('start_date', { ascending: true })
       .order('start_time', { ascending: true, nullsFirst: true })

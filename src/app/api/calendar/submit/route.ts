@@ -4,6 +4,7 @@
 // and publish later via /admin/events/pending. No auto-publish.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
@@ -81,7 +82,13 @@ export async function POST(req: NextRequest) {
     body.editor_notes?.trim()  ? `Editor notes: ${body.editor_notes.trim()}` : null,
   ].filter(Boolean).join('\n') || null
 
+  // Stamp the brand the form was served on. Without it a Pensacola parent's
+  // submission lands in River Region's review queue and, once approved, on
+  // River Region's calendar.
+  const submitMarket = (await currentBrandSlug()) ?? 'rrp'
+
   const row = {
+    market:           submitMarket,
     title:            body.title.trim(),
     slug,
     description:      body.description.trim(),

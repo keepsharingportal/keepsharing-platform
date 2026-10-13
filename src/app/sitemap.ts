@@ -14,6 +14,7 @@
 // the sitemap 50k limit.
 
 import type { MetadataRoute } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { marketScope, scopeToMarket } from '@/lib/market-scope'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -208,6 +209,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('calendar_events')
     .select('slug, updated_at, start_date')
     .eq('published', true)
+    // Each brand's sitemap lists only its own events — submitting another
+    // market's URLs would have them indexed against the wrong domain.
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .gte('start_date', todayIso)
     .order('start_date', { ascending: true })
     .limit(1000)

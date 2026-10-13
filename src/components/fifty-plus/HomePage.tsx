@@ -187,7 +187,7 @@ export async function FiftyPlusHomePage({ brandCtx }: Props) {
       .limit(8),
     supabase.from('calendar_events')
       .select('id, slug, title, start_date, start_time, location_name, hero_image_url')
-      .eq('status', 'published').gte('start_date', today)
+      .eq('status', 'published').eq('market', brandCtx.slug).gte('start_date', today)
       .order('start_date').limit(3),
     // Active weekly poll: brand-scoped first, then all-brands fallback.
     supabase.from('weekly_polls')

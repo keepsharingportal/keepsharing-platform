@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 import { expandRecurrences, type ExpandableEvent } from '@/lib/calendar/expand-recurrences'
 
@@ -83,6 +84,11 @@ export async function GET(req: NextRequest) {
 
   const { start, end } = dateWindow(when)
 
+  // The SSR calendar page was already brand-filtered; this API was not, so
+  // the first screen was correct and every subsequent page, filter or search
+  // pulled in other brands' events.
+  const market = (await currentBrandSlug()) ?? 'rrp'
+
   // Probe for the new tags column (added in migration 077). Falls back gracefully.
   const probe = await supabase.from('calendar_events').select('tags').limit(1)
   const hasTagsColumn = !probe.error
@@ -100,6 +106,7 @@ export async function GET(req: NextRequest) {
     .from('calendar_events')
     .select(baseCols, { count: 'exact' })
     .eq('status', 'published')
+    .eq('market', market)
     .gte('start_date', start)
     .lte('start_date', end)
     .order('start_date', { ascending: true })
@@ -125,6 +132,7 @@ export async function GET(req: NextRequest) {
     .from('calendar_events')
     .select(baseCols)
     .eq('status', 'published')
+    .eq('market', market)
     .not('recurrence_rule', 'is', null)
     .lt('start_date', start)
     .limit(500)  // bounded so a runaway accumulation never balloons the request

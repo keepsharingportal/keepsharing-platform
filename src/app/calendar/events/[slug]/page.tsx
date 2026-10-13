@@ -27,6 +27,7 @@
 // while a reader scrolls through About + Location + Organizer.
 
 import { notFound } from 'next/navigation'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -62,11 +63,22 @@ async function loadEventByParam<T>(
   param: string,
   cols: string,
 ): Promise<T | null> {
+  // Brand scope. One deployment serves every brand's domain, so looking an
+  // event up by slug alone opened a Greater Pensacola pumpkin patch on
+  // riverregionparents.com — the list was already filtered, the direct URL
+  // was not. An event this brand does not own now reads as "no such event"
+  // and the page 404s.
+  //
+  // calendar_events.market has been NOT NULL since before multi-brand, so
+  // unlike the guide tables there is no missing-column case to degrade for.
+  const market = (await currentBrandSlug()) ?? 'rrp'
+
   // Slug lookup is the common case
   const bySlug = await supabase
     .from('calendar_events')
     .select(cols)
     .eq('slug', param)
+    .eq('market', market)
     .maybeSingle()
   if (bySlug.data) return bySlug.data as unknown as T
   // Fall back to id only if it actually looks like a UUID
@@ -75,6 +87,7 @@ async function loadEventByParam<T>(
     .from('calendar_events')
     .select(cols)
     .eq('id', param)
+    .eq('market', market)
     .maybeSingle()
   return (byId.data ?? null) as unknown as T | null
 }
@@ -148,6 +161,7 @@ export default async function EventDetailPage({ params }: Props) {
     .from('calendar_events')
     .select('id, slug, title, start_date, end_date, start_time, end_time, location_name, category, hero_image_url, is_free, is_featured')
     .eq('status', 'published')
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .neq('id', ev.id)
     .gte('start_date', today)
     .eq('category', ev.category)

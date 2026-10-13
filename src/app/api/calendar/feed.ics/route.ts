@@ -6,6 +6,7 @@
 // browser tab isn't the only way to follow along.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime  = 'nodejs'
@@ -139,6 +140,7 @@ export async function GET(_req: NextRequest) {
   )
 
   const today = new Date().toISOString().split('T')[0]
+  const icsMarket = (await currentBrandSlug()) ?? 'rrp'
   const cap   = new Date(Date.now() + 180 * 86400 * 1000).toISOString().split('T')[0]
 
   // Pull rich fields, but fall back to the legacy column set if migration 077 isn't applied.
@@ -155,6 +157,9 @@ export async function GET(_req: NextRequest) {
     .from('calendar_events')
     .select(richCols)
     .eq('status', 'published')
+    // A reader who subscribed from greaterpensacolaparents.com must not get
+    // River Region's events pushed into their phone calendar every week.
+    .eq('market', icsMarket)
     .gte('start_date', today)
     .lte('start_date', cap)
     .order('start_date', { ascending: true })
@@ -166,6 +171,7 @@ export async function GET(_req: NextRequest) {
       .from('calendar_events')
       .select(baseCols)
       .eq('status', 'published')
+      .eq('market', icsMarket)
       .gte('start_date', today)
       .lte('start_date', cap)
       .order('start_date', { ascending: true })
