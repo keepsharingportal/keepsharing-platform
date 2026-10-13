@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { orderCategories, categoriesOf, categoryLabel } from '@/lib/guides/category-order'
+import { guideMarketCopy } from '@/lib/guides/market-copy'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { theRegion } from '@/lib/brandify'
 import { loadBrandContext, articleBrandFilter } from '@/lib/brand-context'
@@ -65,13 +67,14 @@ export async function generateGuideDetailMetadata(urlSlug: string): Promise<Meta
   if (metaScope.active) cfgQuery.eq('market', metaScope.market)
   const { data: cfg } = await cfgQuery.maybeSingle()
   const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg)
+  const metaCopy = await guideMarketCopy(data.slug as string, data as Record<string, unknown>)
 
   return {
     // Brand name from the request, not baked in — a Pensacola guide titled
     // "| River Region Parents" is wrong in the tab, in search results and in
     // every link anyone shares.
-    title:       `${data.display_name} | ${(await loadBrandContext()).market.displayName}`,
-    description: data.short_description ?? undefined,
+    title:       `${metaCopy.displayName ?? data.display_name} | ${(await loadBrandContext()).market.displayName}`,
+    description: metaCopy.shortDescription ?? metaCopy.pitch ?? undefined,
     ...(live ? {} : { robots: { index: false, follow: false } }),
   }
 }
@@ -147,6 +150,10 @@ interface Props {
 }
 
 export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false }: Props) {
+  // Preview shows the guide as it WILL look, so it includes listings that
+  // are imported but not yet published — an unlaunched guide otherwise
+  // previews as an empty page. Everywhere else is published-only.
+  const visibleStates = preview ? [true, false] : [true]
   const gdpBrandSlug = (await currentBrandSlug()) ?? 'rrp'
   const { market } = await loadBrandContext()
   const regionPhrase = theRegion(market)
@@ -172,13 +179,18 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // meantime. No probe needed, and no behaviour change for existing guides.
   const configQuery = supabase
     .from('guide_configs')
-    .select('is_active')
+    .select('is_active, category_order')
     .eq('guide_type_slug', guide.slug)
   if (scope.active) configQuery.eq('market', scope.market)
   const { data: guideConfig } = await configQuery.maybeSingle()
 
   const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)
   if (!isLive && !preview) notFound()
+
+  // Editorial copy for THIS brand. The guide_types row is passed as the
+  // legacy fallback, which market-copy only honours for the brand whose
+  // words those columns are — see LEGACY_COPY_MARKET.
+  const marketCopy = await guideMarketCopy(guide.slug as string, guide as Record<string, unknown>)
 
   // Featured listings — pull badge fields. We pull every featured listing
   // for this guide (or category when filtered) and pick the display set in
@@ -196,7 +208,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
       )
     `)
     .eq('guide_type_slug', guide.slug)
-    .eq('is_published', true)
+    .in('is_published', visibleStates)
     .in('listing_tier', ['featured', 'tier-1-featured-listing', 'tier-2-spotlight', 'tier-3-business-spotlight'])
     .order('display_order', { ascending: true })
 
@@ -247,7 +259,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
         advertiser_accounts ( id, slug, business_name, card_hook, hero_photo_url, neighborhood, city_state_zip )
       `)
       .eq('guide_type_slug', guide.slug)
-      .eq('is_published', true)
+      .in('is_published', visibleStates)
       .not('listing_tier', 'in', '(featured,tier-1-featured-listing,tier-2-spotlight,tier-3-business-spotlight)')
       .order('display_order', { ascending: true })
     if (scope.active) standardQuery = standardQuery.eq('market', scope.market)
@@ -265,19 +277,30 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // up as a header over an empty grid.
   const catQuery = supabase
     .from('guide_listings')
-    .select('category, business_name, advertiser_accounts(business_name)')
+    .select('category, extra_categories, business_name, advertiser_accounts(business_name)')
     .eq('guide_type_slug', guide.slug)
-    .eq('is_published', true)
-    .not('category', 'is', null)
+    .in('is_published', visibleStates)
   if (scope.active) catQuery.eq('market', scope.market)
   const { data: catRows } = await catQuery
 
   const catMap: Record<string, number> = {}
   for (const r of catRows ?? []) {
-    if (!r.category || !categoryListingRenderable(r)) continue
-    catMap[r.category] = (catMap[r.category] ?? 0) + 1
+    if (!categoryListingRenderable(r)) continue
+    // Count a listing under its primary category AND each extra, so a
+    // listing filed in three sections appears in all three.
+    for (const c of categoriesOf(r)) catMap[c] = (catMap[c] ?? 0) + 1
   }
-  const categories = Object.entries(catMap).sort((a, b) => b[1] - a[1])
+
+  // The brand's own section order, when it has one. A brand with no
+  // category_order keeps the previous count-descending sort, which is why
+  // River Region's pages are untouched by this.
+  const catOrder = (guideConfig as { category_order?: unknown } | null)?.category_order
+  const ordered  = orderCategories(catOrder, Object.keys(catMap))
+  const categories: Array<[string, number]> = catOrder
+    ? ordered.flat.map(c => [c, catMap[c] ?? 0])
+    : Object.entries(catMap).sort((a, b) => b[1] - a[1])
+  // Group headings, when the config declares any.
+  const categoryTree = catOrder ? ordered.tree : null
 
   // Check for active section sponsor for this guide
   const { data: sectionSponsor } = await supabase
@@ -396,7 +419,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
 
       <PageHeader
         title={guide.display_name}
-        subtitle={guide.pitch ?? guide.hub_intro_paragraph ?? guide.short_description}
+        subtitle={marketCopy.pitch ?? marketCopy.hubIntroParagraph ?? marketCopy.shortDescription ?? undefined}
         badge={{ text: `${new Date().getFullYear()} Edition`, variant: 'default' }}
         variant="primary"
         size="lg"
@@ -672,13 +695,41 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
                   <Link href={guideHref()}>
                     <Badge variant={!categoryFilter ? 'default' : 'outline'} className="cursor-pointer">All</Badge>
                   </Link>
-                  {categories.map(([cat, cnt]) => (
-                    <Link key={cat} href={guideHref(cat)}>
-                      <Badge variant={categoryFilter === cat ? 'default' : 'outline'} className="cursor-pointer">
-                        {cat} ({cnt})
-                      </Badge>
-                    </Link>
-                  ))}
+                  {/* Grouped when the brand's category_order declares groups
+                      (Special Needs nests ten conditions under "Specific
+                      Resources"); otherwise the flat list as before. */}
+                  {categoryTree
+                    ? categoryTree.map(node =>
+                        typeof node === 'string' ? (
+                          <Link key={node} href={guideHref(node)}>
+                            <Badge variant={categoryFilter === node ? 'default' : 'outline'} className="cursor-pointer">
+                              {node} ({catMap[node] ?? 0})
+                            </Badge>
+                          </Link>
+                        ) : (
+                          <div key={node.group} className="w-full mt-1">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                              {node.group}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {node.categories.map(cat => (
+                                <Link key={cat} href={guideHref(cat)}>
+                                  <Badge variant={categoryFilter === cat ? 'default' : 'outline'} className="cursor-pointer">
+                                    {categoryLabel(cat, node.group)} ({catMap[cat] ?? 0})
+                                  </Badge>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ),
+                      )
+                    : categories.map(([cat, cnt]) => (
+                        <Link key={cat} href={guideHref(cat)}>
+                          <Badge variant={categoryFilter === cat ? 'default' : 'outline'} className="cursor-pointer">
+                            {cat} ({cnt})
+                          </Badge>
+                        </Link>
+                      ))}
                 </div>
               </SidebarWidget>
             )}
@@ -687,22 +738,22 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
             <GuideMapCard guideName={guideName} listingCount={totalListings} />
 
             {/* Editorial intro */}
-            {guide.editorial_intro && (
+            {marketCopy.editorialIntro && (
               <SidebarWidget title="About This Guide">
                 <p className="text-sm text-muted-foreground leading-relaxed line-clamp-6">
-                  {(guide.editorial_intro as string).split('\n\n')[0]}
+                  {marketCopy.editorialIntro.split('\n\n')[0]}
                 </p>
               </SidebarWidget>
             )}
 
             {/* Insider tips */}
-            {Array.isArray(guide.insider_tips) && guide.insider_tips.length > 0 && (
+            {marketCopy.insiderTips && marketCopy.insiderTips.length > 0 && (
               <SidebarWidget>
                 <h3 className="font-bold mb-3 text-foreground flex items-center gap-2">
                   <Star className="h-4 w-4 text-accent fill-accent" />Insider Tips
                 </h3>
                 <ul className="space-y-4">
-                  {(guide.insider_tips as Array<{ tip: string }>).slice(0, 4).map((t, i) => (
+                  {marketCopy.insiderTips.slice(0, 4).map((t, i) => (
                     <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
                       <span className="text-primary font-bold shrink-0">→</span>
                       <span>{t.tip}</span>

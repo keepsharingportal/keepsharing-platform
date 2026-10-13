@@ -24,14 +24,23 @@ export function BrandContactLink({
   className,
   subject,
   children,
+  role,
 }: {
   className?: string
+  /** Which inbox. 'editorial' for submissions and story tips, 'sales' for
+   *  sponsorships and listings. Falls back to the brand's general address,
+   *  then renders nothing. */
+  role?: 'editorial' | 'sales'
   /** Prefills the mail subject. */
   subject?: string
   /** Link text. Defaults to the address itself. */
   children?: React.ReactNode
 }) {
-  const { contactEmail } = useBrandCopy()
+  const copy = useBrandCopy()
+  const contactEmail =
+    (role === 'editorial' ? copy.contactEmailEditorial : null) ??
+    (role === 'sales'     ? copy.contactEmailSales     : null) ??
+    copy.contactEmail
   if (!contactEmail) return null
 
   const href = subject
@@ -48,6 +57,9 @@ export function BrandContactLink({
 /** The address as a bare string, for copy that names it inline rather than
  *  linking it. Returns null when the brand has none — callers must handle
  *  that rather than substituting a default. */
-export function useBrandContactEmail(): string | null {
-  return useBrandCopy().contactEmail
+export function useBrandContactEmail(role?: 'editorial' | 'sales'): string | null {
+  const copy = useBrandCopy()
+  return (role === 'editorial' ? copy.contactEmailEditorial : null)
+      ?? (role === 'sales'     ? copy.contactEmailSales     : null)
+      ?? copy.contactEmail
 }

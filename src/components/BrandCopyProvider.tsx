@@ -40,6 +40,10 @@ export interface BrandCopy {
   contactEmail: string | null
   /** The brand's public phone, or null. Same omit-rather-than-borrow rule. */
   contactPhone: string | null
+  /** Editorial inbox (school news, submissions), or null. */
+  contactEmailEditorial: string | null
+  /** Sales inbox (sponsorships, listings), or null. */
+  contactEmailSales:     string | null
   /** The towns the brand covers, most-recognizable first. Empty for a brand
    *  that has not filled them in — render nothing rather than another
    *  brand's towns. */

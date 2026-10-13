@@ -237,6 +237,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             state:        ctx.market.state,
             contactEmail: chromeForBrand(ctx.brand).contactEmail,
             contactPhone: chromeForBrand(ctx.brand).contactPhone,
+            contactEmailEditorial: chromeForBrand(ctx.brand).contactEmailEditorial,
+            contactEmailSales:     chromeForBrand(ctx.brand).contactEmailSales,
             towns:        ctx.market.serviceArea,
             tenureClaim:  ctx.market.tenureClaim ?? null,
             ownsTestimonials: ctx.market.slug === 'rrp',

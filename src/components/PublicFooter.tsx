@@ -60,6 +60,8 @@ const RRP_CHROME_FALLBACK: BrandChrome = {
   // RRP's own fallback chrome, used only when no brand resolves.
   contactEmail:            'hello@riverregionparents.com',
   contactPhone:            '(334) 328-5189',
+  contactEmailEditorial:   'editor@riverregionparents.com',
+  contactEmailSales:       'advertise@riverregionparents.com',
   socialFacebook:          null,
   socialInstagram:         null,
   homepageRotationColumns: [],

@@ -62,6 +62,13 @@ export interface BrandChrome {
    *  pages. No DB column yet — set a brand's number below until one
    *  exists, and show nothing rather than someone else's line. */
   contactPhone:     string | null
+  /** Editorial inbox — school news, submissions, story tips. Falls back to
+   *  contactEmail, then null. Kept separate because collapsing all three
+   *  roles into one address sent River Region's school submissions to its
+   *  general inbox. */
+  contactEmailEditorial: string | null
+  /** Sales inbox — sponsorships, listings, advertising. Same fallback. */
+  contactEmailSales:     string | null
   socialFacebook:   string | null
   socialInstagram:  string | null
   /** Column slugs to feature in the homepage rotation block. */
@@ -121,6 +128,14 @@ export function chromeForBrand(brand: Brand): BrandChrome {
     contactPhone:            (
       slug === 'rrp'      ? '(334) 328-5189' :
       slug === 'rr50plus' ? '(334) 328-5189' : null),
+    // Role inboxes. River Region routes editorial and sales separately, so
+    // collapsing them into contactEmail changed where school submissions and
+    // sponsorship enquiries landed. A brand with none set shows nothing
+    // rather than borrowing another brand's.
+    contactEmailEditorial:   (
+      slug === 'rrp' ? 'editor@riverregionparents.com' : null),
+    contactEmailSales:       (
+      slug === 'rrp' ? 'advertise@riverregionparents.com' : null),
     socialFacebook:          v?.social_facebook           ?? null,
     socialInstagram:         v?.social_instagram          ?? null,
     homepageRotationColumns: v?.homepage_rotation_columns ?? D.rotation,

@@ -104,7 +104,7 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
             <p className="text-base font-bold text-amber-900 mb-1">Submission system not yet activated</p>
             <p className="text-sm text-amber-800">
               We&apos;re still setting up School Bits — check back soon, or email{' '}
-              <BrandContactLink className="underline font-semibold" />{' '}
+              <BrandContactLink role="editorial" className="underline font-semibold" />{' '}
               to submit your news directly.
             </p>
           </div>
@@ -127,7 +127,7 @@ export default async function SubmitSchoolBitPage({ searchParams }: PageProps) {
               <FootCard
                 icon={<Mail className="h-5 w-5" />}
                 title="Need help?"
-                body={<>Email <BrandContactLink className="text-primary hover:underline" /> if you can&apos;t find your school or have questions.</>}
+                body={<>Email <BrandContactLink role="editorial" className="text-primary hover:underline" /> if you can&apos;t find your school or have questions.</>}
               />
             </div>
           </>

@@ -20,7 +20,9 @@ const MAX_BLURB   = 600
 const MAX_IMAGES  = 3
 
 export function SubmitForm({ schools: initialSchools, prefilledSchoolId }: Props) {
-  const { contactEmail: sfContact } = useBrandCopy()
+  // Editorial inbox: these are school submissions, not sales enquiries.
+  const sfCopy = useBrandCopy()
+  const sfContact = sfCopy.contactEmailEditorial ?? sfCopy.contactEmail
   const router = useRouter()
   const schools = initialSchools.map(s => ({ ...s, area: s.area as Area })) as TypeaheadSchool[]
 

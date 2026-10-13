@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 export const revalidate = 3600
 
 interface Props {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; preview?: string }>
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,6 +18,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SummerFunGuidePage({ searchParams }: Props) {
-  const { category } = await searchParams
-  return <GuideDetailPage urlSlug="summer-fun-guide" categoryFilter={category} />
+  const { category, preview } = await searchParams
+  return <GuideDetailPage urlSlug="summer-fun-guide" categoryFilter={category} preview={preview === '1'} />
 }

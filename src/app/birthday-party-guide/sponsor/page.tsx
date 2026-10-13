@@ -125,7 +125,8 @@ const COMPARE_ROWS: Array<{ feature: string; standard: string | boolean; feature
 ]
 
 export default async function SponsorPackagesPage() {
-  const sponsorContact = chromeForBrand((await loadBrandContext()).brand).contactEmail
+  const sponsorChrome  = chromeForBrand((await loadBrandContext()).brand)
+  const sponsorContact = sponsorChrome.contactEmailSales ?? sponsorChrome.contactEmail
   const { market } = await loadBrandContext()
   const region       = market.regionLabel
   return (

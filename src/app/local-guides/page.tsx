@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { guideMarketCopyMany } from '@/lib/guides/market-copy'
 import { theRegion } from '@/lib/brandify'
 import { loadBrandContext } from '@/lib/brand-context'
 import Link from 'next/link'
@@ -75,6 +76,13 @@ async function getData() {
     (!scope.active || configMap[g.slug] !== undefined) &&
     guideIsLive(g, configMap[g.slug] ?? null))
 
+  // Card blurbs per brand. guide_types.pitch is River Region's wording;
+  // market-copy only lets that through on River Region itself.
+  const guideCopy = await guideMarketCopyMany(
+    guides.map(g => g.slug as string),
+    Object.fromEntries(guides.map(g => [g.slug as string, g as Record<string, unknown>])),
+  )
+
   const counts = await Promise.all(
     (guides ?? []).map(g =>
       (() => {
@@ -106,6 +114,7 @@ async function getData() {
   return {
     guides: (guides ?? []).map(g => ({ ...g, count: countMap[g.slug] ?? 0 })),
     featured: featured ?? [],
+    guideCopy,
   }
 }
 
@@ -113,7 +122,7 @@ export default async function LocalGuidesPage() {
   const { market } = await loadBrandContext()
   const regionPhrase = theRegion(market)
   const region       = market.regionLabel
-  const { guides, featured } = await getData()
+  const { guides, featured, guideCopy } = await getData()
 
   return (
     <div className="min-h-screen bg-background public-page">
@@ -213,7 +222,7 @@ export default async function LocalGuidesPage() {
                         {g.display_name}
                       </h3>
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {g.pitch ?? g.short_description}
+                        {guideCopy[g.slug as string]?.pitch ?? guideCopy[g.slug as string]?.shortDescription}
                       </p>
                     </CardContent>
                   </Card>

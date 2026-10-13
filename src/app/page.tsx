@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { guideMarketCopy } from '@/lib/guides/market-copy'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/Navigation'
@@ -285,7 +286,9 @@ async function getHomepageData(brandSlug: string, rotationColumns: string[]) {
         url_slug:       gt.url_slug,
         display_name:   cfg.title ?? gt.display_name,
         hero_image_url: cfg.homepage_image_url ?? cfg.hero_image_url ?? gt.hero_image_url,
-        pitch:          cfg.subtitle ?? gt.pitch,
+        // cfg.subtitle is already per-brand (guide_configs is scoped);
+        // gt.pitch is River Region's, so it goes through market-copy.
+        pitch:          cfg.subtitle ?? (await guideMarketCopy(gt.slug, gt as Record<string, unknown>)).pitch ?? null,
       }
     }
   }
