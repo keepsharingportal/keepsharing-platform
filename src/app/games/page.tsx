@@ -4,6 +4,7 @@
 // every ISO week.
 
 import type { Metadata } from 'next'
+import { currentBrandSlug } from '@/lib/current-brand'
 import Link from 'next/link'
 import { Navigation } from '@/components/Navigation'
 import { PublicFooter } from '@/components/PublicFooter'
@@ -71,7 +72,7 @@ async function lastWeeksWinners(): Promise<LastWeekWinners | null> {
   const { data } = await supabase
     .from('game_winners')
     .select('slot, first_name, last_initial, week_iso')
-    .eq('market', 'rrp')
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .not('week_iso', 'is', null)
     .neq('week_iso', currentWeek)
     .order('week_iso', { ascending: false })

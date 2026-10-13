@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { currentBrandSlug } from '@/lib/current-brand'
 import { loadBrandContext } from '@/lib/brand-context'
 import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
@@ -45,6 +46,9 @@ export async function generateListingMetadata(listingSlug: string, urlSlug?: str
     .from('advertiser_accounts')
     .select('business_name, detail_lead')
     .eq('slug', listingSlug)
+    // Scoped like the page body — otherwise the tab title and share card
+    // still named another brand's business before the page 404'd.
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
     .single()
   if (!data) return { title: 'Listing Not Found' }
 
@@ -145,12 +149,22 @@ interface Props {
 export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = true, preview = false }: Props) {
   const supabase = getSupabase()
 
-  // Step 1 — advertiser account (needed for all other queries)
-  const { data: acct } = await supabase
+  // Step 1 — advertiser account (needed for all other queries).
+  //
+  // Brand-scoped, and this is load-bearing: everything downstream was already
+  // filtered by market, but THIS lookup wasn't, so the page still rendered a
+  // Pensacola business under River Region's masthead with its name, city and
+  // guide heading. The scoped queries below just came back empty around it.
+  // A page is only as scoped as its first query.
+  //
+  // advertiser_accounts.market is NOT NULL with a default from migration 232,
+  // so there is no missing-column case to degrade for.
+  const acctQuery = supabase
     .from('advertiser_accounts')
     .select('*')
     .eq('slug', listingSlug)
-    .single()
+    .eq('market', (await currentBrandSlug()) ?? 'rrp')
+  const { data: acct } = await acctQuery.single()
 
   if (!acct) notFound()
 

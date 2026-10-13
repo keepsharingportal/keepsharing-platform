@@ -233,7 +233,7 @@ export default async function FamilyResourceGuidePage() {
     // their published_at lands.
     supabase.from('school_bits')
       .select('id, school_id, school_name, title, blurb, image_web_url, published_at, created_at')
-      .eq('market', 'rrp')
+      .eq('market', frgBrand)
       .in('status', ['approved', 'published'])
       .lte('published_at', new Date().toISOString())
       .order('published_at', { ascending: false, nullsFirst: false })
@@ -244,7 +244,7 @@ export default async function FamilyResourceGuidePage() {
     // (low hundreds) so loading the full list up-front is fine.
     supabase.from('schools')
       .select('id, name, area, is_private')
-      .eq('market', 'rrp')
+      .eq('market', frgBrand)
       .eq('status', 'active')
       .order('name', { ascending: true }),
 
