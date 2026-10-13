@@ -259,6 +259,26 @@ export const GUIDE_SCHEMAS: Record<string, GuideSchema> = {
       { section_type: 'special_offer',    defaultHeadline: 'Special Offer' },
     ],
   },
+
+  // ── Grown-Up Time ───────────────────────────────
+  // Adult classes, clubs and recreation. A plain directory: who, where,
+  // how to reach them. No ages or capacity — the audience is the adult
+  // reading it — and no dates, because these are standing activities
+  // rather than events, which is why it is not a dated event guide.
+  'grown-up-time': {
+    headlineFacts: [
+      { key: 'category', label: 'Activity' },
+      { key: 'address',  label: 'Where' },
+      { key: 'phone',    label: 'Phone' },
+      { key: 'website',  label: 'Website' },
+      { key: 'email',    label: 'Email' },
+    ],
+    sections: [
+      { section_type: 'about',            defaultHeadline: 'About' },
+      { section_type: 'features_bullets', defaultHeadline: 'What They Offer' },
+      { section_type: 'party_hours',      defaultHeadline: 'Hours' },
+    ],
+  },
 }
 
 export function schemaForGuide(guideSlug: string): GuideSchema | null {

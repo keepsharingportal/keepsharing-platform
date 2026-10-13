@@ -3,6 +3,7 @@
 // with metadata that the webhook handler will read to activate the spot.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { checkoutOrigin } from '@/lib/checkout-origin'
 import { createClient } from '@supabase/supabase-js'
 import { createCheckoutSession, loadStripe, StripeApiError } from '@/lib/integrations/stripe/client'
 
@@ -49,14 +50,17 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ placementI
     return NextResponse.json({ ok: false, error: 'Product not linked to this placement' }, { status: 400 })
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+  // Return the advertiser to their OWN brand — see checkout-origin.ts.
+  const { origin: base, brand: checkoutBrand } = checkoutOrigin(req)
   try {
     const session = await createCheckoutSession(stripe.secret_key, {
       priceId:     product.stripe_price_id,
       mode:        product.interval ? 'subscription' : 'payment',
       successUrl:  `${base}/claim/${placementId}?success=1`,
       cancelUrl:   `${base}/claim/${placementId}?canceled=1`,
-      metadata:    { source: 'claim_spot', placement_id: placementId },
+      // Recorded so the webhook and any later reconciliation know which
+      // brand the money came through.
+      metadata:    { source: 'claim_spot', placement_id: placementId, brand: checkoutBrand },
     })
 
     // Mirror the session locally so the webhook can route on completion.

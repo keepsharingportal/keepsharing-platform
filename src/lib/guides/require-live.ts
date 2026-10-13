@@ -48,7 +48,11 @@ export const guideIsLiveForBrand = cache(async (guideTypeSlug: string): Promise<
     // select('*'): live_from / live_until only exist once migration 230 is
     // applied, and PostgREST fails the whole query on an unknown column.
     supabase.from('guide_types').select('*').eq('slug', guideTypeSlug).maybeSingle(),
-    supabase.from('guide_configs').select('is_active, market')
+    // select('*') for the same reason as guide_types above:
+    // live_from / live_until arrive with migration 234, and PostgREST fails
+    // the WHOLE query on an unknown column name. Naming them would hide
+    // every guide between deploy and migration.
+    supabase.from('guide_configs').select('*')
       .eq('guide_type_slug', guideTypeSlug).eq('market', market).maybeSingle(),
   ])
 

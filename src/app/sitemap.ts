@@ -284,12 +284,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // to index once it IS real. Same gate the page itself uses.
   const [{ data: allGuides }, { data: guideConfigs }] = await Promise.all([
     supabase.from('guide_types').select('*').not('url_slug', 'is', null),
-    scopeToMarket(supabase.from('guide_configs').select('guide_type_slug, is_active'), await marketScope(supabase, 'guide_configs')),
+    scopeToMarket(supabase.from('guide_configs').select('*'), await marketScope(supabase, 'guide_configs')),
   ])
   const cfgBySlug: Record<string, { is_active?: boolean | null }> =
     Object.fromEntries((guideConfigs ?? []).map(c => [c.guide_type_slug, c]))
   const darkGuidePrefixes = (allGuides ?? [])
-    .filter(g => !guideIsLive(g, cfgBySlug[g.slug] ?? null))
+    .filter(g => !guideIsLive(g, cfgBySlug[g.slug] ?? null, { requireConfig: true }))
     .map(g => `${origin}/${g.url_slug}`)
   const isDark = (u: string) =>
     darkGuidePrefixes.some(p => u === p || u.startsWith(`${p}/`))

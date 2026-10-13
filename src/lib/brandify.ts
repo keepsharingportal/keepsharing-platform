@@ -23,6 +23,11 @@
 
 import type { MarketDef } from './markets'
 
+/** Nouns that "the River Region" can modify, where the article belongs to the
+ *  noun rather than to the region. Kept in step with the same list in the
+ *  build-time source rewrite, so stored copy and inline copy read alike. */
+const ADJECTIVAL_NOUNS = /^\s+(communit(?:y|ies)|famil(?:y|ies)|moms?|dads?|parents?|kids?|children|area|business(?:es)?|schools?|residents?|readers?|teachers?|students?|market|edition|ecosystem|calendar|newsletter)\b/
+
 /** Longest-first so "River Region Parents" is consumed before "River Region"
  *  can match its prefix and leave a stray " Parents" behind. */
 export function brandifyCopy(text: string, market: MarketDef): string {
@@ -30,12 +35,22 @@ export function brandifyCopy(text: string, market: MarketDef): string {
   // Fast path: River Region is the identity transform.
   if (market.slug === 'rrp') return text
   return text
+    // Submission configs told every brand's readers to send photos to
+    // photos@riverregionparents.com. A brand with its own inbox gets it;
+    // a brand without one loses the sentence, because an address nobody
+    // monitors swallows a reader's photo without telling them.
+    .replace(/\s*Email to photos@riverregionparents\.com([^.]*)\./g,
+      (_m, tail) => market.photoEmail ? ` Email to ${market.photoEmail}${tail}.` : '')
     .replace(/River Region Parents/g, market.displayName)
-    // "the River Region" is one noun phrase. Substituting regionLabel alone
-    // left "across the Greater Pensacola", so the article is replaced with
-    // the region together and dropped for brands that don't take one.
-    .replace(/\bthe River Region\b/g, theRegion(market))
-    .replace(/\bThe River Region\b/g, theRegion(market, true))
+    // "the River Region" is sometimes a noun phrase ("families across the
+    // River Region") and sometimes an adjective on a following noun ("the
+    // River Region community"). In the second case the article belongs to
+    // the noun and has to stay, or Greater Pensacola reads "voted on by
+    // Greater Pensacola community".
+    .replace(/\b([Tt])he River Region\b(.?.{0,12})/g, (_m, T: string, rest: string) =>
+      ADJECTIVAL_NOUNS.test(rest)
+        ? `${T}he ${market.regionLabel}${rest}`
+        : `${theRegion(market, T === 'T')}${rest}`)
     .replace(/River Region/g,         market.regionLabel)
 }
 

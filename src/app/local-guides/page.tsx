@@ -62,7 +62,9 @@ async function getData() {
 
   const configQuery = supabase
     .from('guide_configs')
-    .select('guide_type_slug, is_active')
+    // select('*'): live_from / live_until arrive with migration 234, and
+    // PostgREST fails the whole query on an unknown column.
+    .select('*')
   if (scope.active) configQuery.eq('market', scope.market)
   const { data: configs } = await configQuery
 
@@ -74,7 +76,7 @@ async function getData() {
   // which is right for one brand and wrong for six.
   const guides = (guidesRaw ?? []).filter(g =>
     (!scope.active || configMap[g.slug] !== undefined) &&
-    guideIsLive(g, configMap[g.slug] ?? null))
+    guideIsLive(g, configMap[g.slug] ?? null, { requireConfig: scope.active }))
 
   // Card blurbs per brand. guide_types.pitch is River Region's wording;
   // market-copy only lets that through on River Region itself.

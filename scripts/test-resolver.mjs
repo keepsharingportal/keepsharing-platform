@@ -37,6 +37,14 @@ function firstExisting(base) {
 }
 
 export async function resolve(specifier, context, next) {
+  // `server-only` exists to throw if a module reaches a client bundle. Under
+  // `node --test` there is no bundler and no client, so it throws on every
+  // server module and nothing server-side is testable. Stubbed here only;
+  // the real guard still runs in the build, which is where it matters.
+  if (specifier === 'server-only' || specifier === 'client-only') {
+    return { url: 'data:text/javascript,export{}', shortCircuit: true }
+  }
+
   // @/x → src/x
   if (specifier.startsWith('@/')) {
     const hit = firstExisting(path.join(SRC, specifier.slice(2)))

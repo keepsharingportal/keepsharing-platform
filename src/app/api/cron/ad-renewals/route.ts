@@ -13,6 +13,7 @@
 // Auth: x-vercel-cron header OR ?secret=$CRON_SECRET for manual fire.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { brandSender } from '@/lib/email/brand-sender'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
@@ -167,7 +168,8 @@ export async function GET(req: NextRequest) {
       advertiser_name:   advertiserName,
       placement_label:   pl.ad_headline ?? pl.placement_type.replace(/_/g, ' '),
       ends_at:           fmtEndDate(pl.ends_at),
-      renewal_url:       pl.ad_link ?? 'https://riverregionparents.com/advertise',
+      renewal_url:       pl.ad_link
+        ?? `${publicOriginForBrand((pl as { market?: string | null }).market ?? 'rrp')}/advertise`,
     }
 
     const subject = renderTemplate(tpl.subject, vars)

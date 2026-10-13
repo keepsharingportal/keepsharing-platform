@@ -5,6 +5,7 @@
 // subscription is bound back to the right ad_placements row.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { checkoutOrigin } from '@/lib/checkout-origin'
 import { createClient } from '@supabase/supabase-js'
 import { createCheckoutSession, loadStripe, StripeApiError } from '@/lib/integrations/stripe/client'
 
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
     return NextResponse.json({ ok: false, error: 'product_not_recurring' }, { status: 400 })
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+  // Return the advertiser to their OWN brand — see checkout-origin.ts.
+  const { origin: base, brand: checkoutBrand } = checkoutOrigin(req)
   try {
     const session = await createCheckoutSession(stripe.secret_key, {
       priceId:       product.stripe_price_id,
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
       customerEmail: body.customerEmail,
       metadata: {
         source:       'placement_renewal',
+        brand:        checkoutBrand,
         placement_id: body.placementId,
         product_id:   body.productId,
       },

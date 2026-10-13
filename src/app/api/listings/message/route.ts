@@ -16,6 +16,7 @@
 // middle.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { publicOriginForBrand } from '@/lib/markets'
 import { brandSender, type BrandSender } from '@/lib/email/brand-sender'
 import { currentBrandSlug } from '@/lib/current-brand'
 import { createClient } from '@supabase/supabase-js'
@@ -277,7 +278,8 @@ export async function POST(req: NextRequest) {
     parentEmail:   body.parent_email,
     parentPhone:   body.parent_phone ?? null,
     message:       body.message,
-    sourceUrl:     body.source_url ?? `${SITE_URL}/`,
+    // The brand the enquiry came through, not the deployment default.
+    sourceUrl:     body.source_url ?? `${publicOriginForBrand((acct as { market?: string | null } | null)?.market ?? (await currentBrandSlug()) ?? 'rrp')}/`,
   }
 
   // Which guide is this listing in? Only used for the line "your After-School

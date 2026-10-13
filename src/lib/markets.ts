@@ -39,6 +39,13 @@ export interface MarketDef {
    *
    *  Empty array renders nothing. Sibling brands: fill these in. */
   serviceArea: string[]
+  /** Inbox that photo submissions go to, when the brand has one.
+   *
+   *  The submission configs told every brand's readers to email
+   *  photos@riverregionparents.com. brandifyCopy rewrites that to this
+   *  address, and drops the sentence entirely for a brand without one —
+   *  an unmonitored mailbox loses a reader's photo silently. */
+  photoEmail?: string
   /** The tenure claim this brand has actually earned, as it appears in sales
    *  copy ("over 30 years"). Undefined for a brand that cannot make one.
    *
@@ -75,7 +82,7 @@ export const MARKETS: MarketDef[] = [
   // the only brand configured this way — the other four serve on the apex, and
   // their entries below are correct as-is. If RRP's Vercel domain is ever
   // flipped to apex-primary to match them, change this back.
-  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'www.riverregionparents.com', regionLabel: 'River Region',     tenureClaim: 'over 30 years', regionTakesArticle: true, serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
+  { slug: 'rrp',      short: 'RRP',  displayName: 'River Region Parents',      city: 'Montgomery', state: 'AL', family: 'parents',    publicHost: 'www.riverregionparents.com', regionLabel: 'River Region',     tenureClaim: 'over 30 years', photoEmail: 'photos@riverregionparents.com', regionTakesArticle: true, serviceArea: ['Montgomery', 'Prattville', 'Wetumpka', 'Pike Road'] },
   // Fifty-plus brands. River Region 50+ was previously slugged 'boom' (the
   // "BOOM" brand) — migration 169 renames it and all user data references.
   // Future markets follow the same xx50plus pattern (mb50plus, es50plus,
@@ -182,4 +189,36 @@ export function brandFromHost(host: string | null | undefined): string | null {
 export function publicOriginForBrand(slug: string): string {
   const m = MARKETS.find(x => x.slug === slug)
   return m ? `https://${m.publicHost}` : ''
+}
+
+/** The parent domain our staging / pre-launch subdomains live on. */
+const STAGING_PARENT = 'keepsharing.com'
+
+/**
+ * Is this host one of OUR hosts — strictly?
+ *
+ * ── Why this is not brandFromHost ───────────────────────────────────────────
+ * brandFromHost is deliberately loose: its last rule accepts `<slug>.<any
+ * parent>` so a pre-launch brand works on whatever subdomain it is served
+ * from. That is right for routing, where the Host header comes from our own
+ * infrastructure. It is wrong for an allowlist fed by user input, because
+ * `gpp.evil.com` starts with `gpp.` and would be accepted.
+ *
+ * The image routes take a URL from a query parameter and fetch it server
+ * side, so a loose check there is an SSRF vector and a way to burn our
+ * bandwidth on someone else's images. Those allowlists previously named only
+ * riverregionparents.com, which was safe but meant every other brand's
+ * images were rejected outright.
+ *
+ * This accepts exact brand hosts (with or without www) and `<slug>`.
+ * keepsharing.com for the one parent domain we control. Nothing else.
+ */
+export function isOwnBrandHost(host: string | null | undefined): boolean {
+  if (!host) return false
+  const h = host.toLowerCase().split(':')[0].replace(/^www\./, '')
+  for (const m of MARKETS) {
+    if (h === m.publicHost.toLowerCase().replace(/^www\./, '')) return true
+    if (h === `${m.slug}.${STAGING_PARENT}`) return true
+  }
+  return h === STAGING_PARENT || h === `www.${STAGING_PARENT}`.replace(/^www\./, '')
 }

@@ -27,9 +27,31 @@ export interface GuideMarketCopy {
   editorialIntro?:    string | null
   insiderTips?:       Array<{ tip?: string }> | null
   heroImageUrl?:      string | null
+  /**
+   * The hub subtitle, resolved market-first.
+   *
+   * The page wants "pitch, else hub intro, else short description", and
+   * resolving each of those field-by-field across markets gets the
+   * precedence backwards: a brand that writes a hub intro but no pitch was
+   * shown the NEUTRAL pitch, because pitch is consulted first and the
+   * neutral row has one. Its own words lost to a generic sentence.
+   *
+   * So the whole chain is tried against the brand's own row before any of
+   * it falls back.
+   */
+  subtitle?:          string | null
 }
 
 const NEUTRAL_MARKET = '*'
+
+/** First non-empty of the subtitle chain within a SINGLE row. */
+function subtitleOf(row: Partial<Row> | null | undefined): string | null {
+  for (const k of ['pitch', 'hub_intro_paragraph', 'short_description'] as const) {
+    const v = row?.[k]
+    if (typeof v === 'string' && v.trim()) return v
+  }
+  return null
+}
 
 /**
  * The brand whose words the legacy guide_types columns actually are.
@@ -118,6 +140,8 @@ export async function guideMarketCopy(
 
   const tips = pick('insider_tips')
   return {
+    // Market-first across the whole chain — see GuideMarketCopy.subtitle.
+    subtitle:          subtitleOf(own) ?? subtitleOf(neutral) ?? subtitleOf(legacyForThisBrand),
     displayName:       pick('display_name') as string | null,
     shortDescription:  pick('short_description') as string | null,
     hubIntroParagraph: pick('hub_intro_paragraph') as string | null,
@@ -163,6 +187,7 @@ export const guideMarketCopyMany = cache(async (
     }
     const tips = pick('insider_tips')
     out[slug] = {
+      subtitle:          subtitleOf(own) ?? subtitleOf(neutral) ?? subtitleOf(legacy),
       displayName:       pick('display_name') as string | null,
       shortDescription:  pick('short_description') as string | null,
       hubIntroParagraph: pick('hub_intro_paragraph') as string | null,

@@ -62,10 +62,11 @@ export async function generateListingMetadata(listingSlug: string, urlSlug?: str
   // guide_type_slug matches six rows and .maybeSingle() throws.
       const metaScope = await guideScope(supabase)
       const cfgQ = supabase
-        .from('guide_configs').select('is_active').eq('guide_type_slug', guide.slug)
+        .from('guide_configs').select('*').eq('guide_type_slug', guide.slug)
       if (metaScope.active) cfgQ.eq('market', metaScope.market)
       const { data: cfg } = await cfgQ.maybeSingle()
-      live = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, cfg)
+      live = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, cfg,
+        { requireConfig: metaScope.active })
     }
   }
 
@@ -193,11 +194,13 @@ export async function ListingDetailPage({ urlSlug, listingSlug, includeShell = t
   if (guide) {
     const cfgQuery = supabase
       .from('guide_configs')
-      .select('is_active')
+      // select('*'): live_from / live_until arrive with migration 234.
+      .select('*')
       .eq('guide_type_slug', guide.slug)
     if (scope.active) cfgQuery.eq('market', scope.market)
     const { data: guideConfig } = await cfgQuery.maybeSingle()
-    if (!guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)) {
+    if (!guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig,
+          { requireConfig: scope.active })) {
       if (!preview) notFound()
       isPreviewingUnlaunched = true
     }

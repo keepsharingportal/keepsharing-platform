@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { partitionByDate, isExpired } from '@/lib/guides/dated-events'
 import { orderCategories, categoriesOf, categoryLabel } from '@/lib/guides/category-order'
 import { guideMarketCopy } from '@/lib/guides/market-copy'
 import { currentBrandSlug } from '@/lib/current-brand'
@@ -62,11 +63,12 @@ export async function generateGuideDetailMetadata(urlSlug: string): Promise<Meta
   const metaScope = await guideScope(supabase)
   const cfgQuery = supabase
     .from('guide_configs')
-    .select('is_active')
+    .select('*')
     .eq('guide_type_slug', data.slug)
   if (metaScope.active) cfgQuery.eq('market', metaScope.market)
   const { data: cfg } = await cfgQuery.maybeSingle()
-  const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg)
+  const live = guideIsLive(data as { live_from?: string | null; live_until?: string | null }, cfg,
+    { requireConfig: metaScope.active })
   const metaCopy = await guideMarketCopy(data.slug as string, data as Record<string, unknown>)
 
   return {
@@ -179,12 +181,14 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // meantime. No probe needed, and no behaviour change for existing guides.
   const configQuery = supabase
     .from('guide_configs')
-    .select('is_active, category_order')
+    // select('*'): live_from / live_until arrive with migration 234.
+    .select('*')
     .eq('guide_type_slug', guide.slug)
   if (scope.active) configQuery.eq('market', scope.market)
   const { data: guideConfig } = await configQuery.maybeSingle()
 
-  const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig)
+  const isLive = guideIsLive(guide as { live_from?: string | null; live_until?: string | null }, guideConfig,
+    { requireConfig: scope.active })
   if (!isLive && !preview) notFound()
 
   // Editorial copy for THIS brand. The guide_types row is passed as the
@@ -221,15 +225,24 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
   // per guide — hiding two thirds of them behind a reload sells them short and
   // makes the page's most valuable content the least reliable to find. Order is
   // still shuffled so no one advertiser permanently owns the top slot.
+  const isEventGuide = isDatedEventGuide(guide.slug)
+
+  // On a dated guide, a featured listing whose event has finished is still a
+  // finished event. The paid slot does not exempt it: the hub's sections drop
+  // expired listings, and leaving them in the featured block above put a
+  // pumpkin patch that closed three days ago at the top of the page.
+  const featuredLive = isEventGuide
+    ? (featuredAll ?? []).filter(l => !isExpired((l.guide_data ?? null) as Record<string, unknown> | null))
+    : (featuredAll ?? [])
+
   const featured = categoryFilter
-    ? (featuredAll ?? [])
-    : shuffle(featuredAll ?? [])
+    ? featuredLive
+    : shuffle(featuredLive)
 
   // Dated event guides (Fall Festivities today) are a directory of free
   // events, so the home page has to show the cards. Program guides still
   // keep the standard directory behind a category pick — featured advertisers
   // stay the only listings on those home pages.
-  const isEventGuide = isDatedEventGuide(guide.slug)
 
   // Standard listings. Category view is capped at 50, same as before.
   // An event-guide home page loads the whole free directory so each
@@ -388,10 +401,38 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
 
   const compactCards = (standard ?? []).flatMap(row => {
     const card = resolveCompactCard(row, isEventGuide)
-    return card ? [{ id: row.id, category: row.category, ...card }] : []
+    return card ? [{
+      id: row.id,
+      category: row.category,
+      // For date ordering only — see partitionByDate.
+      guide_data: row.guide_data,
+      business_name: row.business_name,
+      ...card,
+    }] : []
   })
   const uncategorizedCards = compactCards.filter(card => !card.category)
-  const hubSections = (!categoryFilter && isEventGuide)
+
+  // A dated guide reads by WHEN, not by category. Fall Festivities carried a
+  // free-text `dates` string that sorted not at all, so the hub came out in
+  // query order with finished events sitting at the top looking current.
+  // Structured start_date / end_date in guide_data drive three things now:
+  // events on today first, then soonest-first, and anything already over
+  // drops out without an editor remembering to unpublish it.
+  //
+  // Undated listings are kept and shown last: "Weekends through October" is
+  // a real answer, not missing data.
+  const datedParts = isEventGuide ? partitionByDate(compactCards, undefined) : null
+
+  const hubSections = (!categoryFilter && isEventGuide && datedParts)
+    ? [
+        ...(datedParts.happeningNow.length > 0
+          ? [{ cat: 'Happening Now', cards: datedParts.happeningNow }] : []),
+        ...(datedParts.upcoming.length > 0
+          ? [{ cat: 'Coming Up', cards: datedParts.upcoming }] : []),
+        ...(datedParts.undated.length > 0
+          ? [{ cat: 'All Season', cards: datedParts.undated }] : []),
+      ]
+    : (!categoryFilter && isEventGuide)
     ? [
         ...categories.flatMap(([cat]) => {
           const cards = compactCards.filter(card => card.category === cat)
@@ -419,7 +460,7 @@ export async function GuideDetailPage({ urlSlug, categoryFilter, preview = false
 
       <PageHeader
         title={guide.display_name}
-        subtitle={marketCopy.pitch ?? marketCopy.hubIntroParagraph ?? marketCopy.shortDescription ?? undefined}
+        subtitle={marketCopy.subtitle ?? undefined}
         badge={{ text: `${new Date().getFullYear()} Edition`, variant: 'default' }}
         variant="primary"
         size="lg"

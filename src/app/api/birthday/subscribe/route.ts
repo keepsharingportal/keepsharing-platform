@@ -12,6 +12,7 @@
 // subscriber row is saved either way.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { brandSender } from '@/lib/email/brand-sender'
 import { loadBrandContext } from '@/lib/brand-context'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
@@ -61,11 +62,18 @@ function renderTemplate(tpl: string, vars: Record<string, string>): string {
     .replaceAll('{{party_date}}', vars.party_date || '')
 }
 
-function fromAddress(fromName: string | null | undefined, brandName: string): string {
-  const name = (fromName?.trim()) || brandName
-  const env  = process.env.BIRTHDAY_FROM_EMAIL
+function fromAddress(fromName: string | null | undefined, marketSlug: string | null): string {
+  const env = process.env.BIRTHDAY_FROM_EMAIL
   if (env) return env
-  return `${name} <hello@riverregionparents.com>`
+  // brandSender keeps the display name per brand while holding the address
+  // on the verified sending domain — see lib/email/brand-sender.ts.
+  const sender = brandSender(marketSlug, process.env.SUBMISSIONS_FROM_EMAIL)
+  const name = fromName?.trim()
+  if (!name) return sender.from
+  // Editor-supplied display name, but never a different address: Resend only
+  // accepts a domain it has verified.
+  const address = sender.from.match(/<([^>]+)>/)?.[1] ?? sender.from
+  return `${name} <${address}>`
 }
 
 async function findLeadMagnet(brandSlug: string, source: string): Promise<LeadMagnetRow | null> {
@@ -103,7 +111,7 @@ async function sendMagnetEmail(args: {
   })
   try {
     await new Resend(apiKey).emails.send({
-      from:    fromAddress(magnet.from_name, (await loadBrandContext()).market.displayName),
+      from:    fromAddress(magnet.from_name, (await loadBrandContext()).slug),
       to:      args.email,
       subject: magnet.email_subject,
       html,

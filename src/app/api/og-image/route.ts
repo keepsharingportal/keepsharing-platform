@@ -19,6 +19,7 @@
 // cost is negligible; the response is cached hard at the CDN regardless.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { isOwnBrandHost } from '@/lib/markets'
 import sharp from 'sharp'
 
 export const runtime = 'nodejs'
@@ -33,11 +34,7 @@ const QUALITY   = 85
 // way to burn our bandwidth on someone else's images.
 function isAllowed(url: URL): boolean {
   const host = url.hostname.toLowerCase()
-  return (
-    host.endsWith('.supabase.co') ||
-    host === 'riverregionparents.com' ||
-    host.endsWith('.riverregionparents.com')
-  )
+  return host.endsWith('.supabase.co') || isOwnBrandHost(host)
 }
 
 export async function GET(req: NextRequest) {

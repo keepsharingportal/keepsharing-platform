@@ -23,6 +23,7 @@
 // so an unchecked URL would make it an SSRF proxy.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { isOwnBrandHost } from '@/lib/markets'
 
 export interface CropSource {
   buffer: Buffer
@@ -35,7 +36,7 @@ export function isAllowedImageHost(url: string): boolean {
   try {
     const h = new URL(url).hostname.toLowerCase()
     return h.endsWith('.supabase.co') || h.endsWith('.supabase.in')
-        || h === 'riverregionparents.com' || h.endsWith('.riverregionparents.com')
+        || isOwnBrandHost(h)
   } catch { return false }
 }
 
