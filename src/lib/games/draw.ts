@@ -51,12 +51,16 @@
 // rehearsal.
 
 import { randomInt } from 'node:crypto'
+import { publicOriginForBrand } from '@/lib/markets'
 import { brandSender } from '@/lib/email/brand-sender'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { isoWeek } from './weekly'
 import { GAMES_PRIZE, prizeAmount } from './prize'
 
+// The weekly prize draw is a River Region feature: one market, one set of
+// sponsors, one set of prize rules. Passed explicitly to fromAddress and
+// siteUrl so both are right by construction rather than by coincidence.
 const MARKET = 'rrp'
 
 /** DB key in site_settings holding the armed flag. */
@@ -150,8 +154,10 @@ function fromAddress(marketSlug?: string | null): string {
   return brandSender(marketSlug, process.env.SUBMISSIONS_FROM_EMAIL).from
 }
 
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
+function siteUrl(marketSlug?: string | null): string {
+  // Per brand, like fromAddress above: NEXT_PUBLIC_SITE_URL is one value
+  // for a deployment that serves six domains.
+  return marketSlug ? publicOriginForBrand(marketSlug) : (process.env.NEXT_PUBLIC_SITE_URL ?? '')
 }
 
 function esc(s: string): string {
@@ -360,7 +366,7 @@ async function emailWinners(
              (${esc(weekIso)}). Congratulations!</p>
           <p>Just reply to this email and we'll arrange getting your ${prizeAmount()} to you.</p>
           <p>Thanks for playing — new puzzles go up every morning at
-             <a href="${siteUrl()}/games">${siteUrl().replace(/^https?:\/\//, '')}/games</a>.</p>
+             <a href="${siteUrl(MARKET)}/games">${siteUrl(MARKET).replace(/^https?:\/\//, '')}/games</a>.</p>
           <p>— River Region Parents</p>
         `,
         // Every send carries a text/plain alternative. An HTML-only message is
@@ -372,7 +378,7 @@ async function emailWinners(
           `Hi ${w.first_name},\n\n` +
           `You won this week's ${prizeAmount()} Family Brain Games drawing (${weekIso}). Congratulations!\n\n` +
           `Just reply to this email and we'll arrange getting your ${prizeAmount()} to you.\n\n` +
-          `Thanks for playing — new puzzles go up every morning at ${siteUrl()}/games\n\n` +
+          `Thanks for playing — new puzzles go up every morning at ${siteUrl(MARKET)}/games\n\n` +
           `— River Region Parents`,
       })
     }
@@ -410,7 +416,7 @@ async function emailOwnerResult(
         ${live
           ? `<p>${winners.length === 1 ? 'The winner has' : 'Winners have'} already been emailed and
                told to reply to arrange payment. ${winners.length === 1 ? 'They are' : 'They are'}
-               live on <a href="${siteUrl()}/games">the games page</a>.</p>`
+               live on <a href="${siteUrl(MARKET)}/games">the games page</a>.</p>`
           : `<p>Nobody was emailed, nothing was recorded, and this week is still
                available for a real draw. The live run would pick again from the
                same pool — the name above is one possible outcome, not a
@@ -426,7 +432,7 @@ async function emailOwnerResult(
         `\n\n` +
         (live
           ? `${winners.length === 1 ? 'The winner has' : 'Winners have'} already been emailed and told ` +
-            `to reply to arrange payment. They are live on ${siteUrl()}/games`
+            `to reply to arrange payment. They are live on ${siteUrl(MARKET)}/games`
           : `Nobody was emailed, nothing was recorded, and this week is still available for a real ` +
             `draw. The live run would pick again from the same pool — the name above is one possible ` +
             `outcome, not a reservation.`),

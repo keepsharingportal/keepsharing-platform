@@ -33,7 +33,6 @@ interface PublishedEvent {
   cost_text:        string | null
 }
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'
 const TZID = 'America/Chicago'
 
 /** Escape a string per RFC 5545 §3.3.11. */
@@ -93,7 +92,7 @@ function icsAllDay(date: string): string {
   return date.replace(/-/g, '')
 }
 
-function buildVEvent(ev: PublishedEvent, uidDomain: string): string {
+function buildVEvent(ev: PublishedEvent, uidDomain: string, siteOrigin: string): string {
   const lines: string[] = []
   lines.push('BEGIN:VEVENT')
   // The UID domain is the brand's APEX host, deliberately not its publicHost.
@@ -131,7 +130,7 @@ function buildVEvent(ev: PublishedEvent, uidDomain: string): string {
   if (ev.is_free) descParts.push('Free event')
   else if (ev.cost_text) descParts.push(`Cost: ${ev.cost_text}`)
   if (ev.registration_url) descParts.push(`Register: ${ev.registration_url}`)
-  descParts.push(`More details: ${SITE}/calendar/events/${ev.slug ?? ev.id}`)
+  descParts.push(`More details: ${siteOrigin}/calendar/events/${ev.slug ?? ev.id}`)
   lines.push(fold(`DESCRIPTION:${icsEscape(descParts.join('\n'))}`))
 
   const location = [ev.location_name, ev.address, ev.city].filter(Boolean).join(', ')
@@ -200,6 +199,9 @@ export async function GET(_req: NextRequest) {
   const icsMarketDef = MARKETS.find(m => m.slug === icsMarket) ?? MARKETS[0]
   const brandName    = icsMarketDef.displayName
   const uidDomain    = icsMarketDef.publicHost.replace(/^www./, '')
+  // Links go to the brand the subscriber actually subscribed to. Uses the
+  // full publicHost (www included where that is canonical), unlike uidDomain.
+  const siteOrigin   = `https://${icsMarketDef.publicHost}`
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -211,7 +213,7 @@ export async function GET(_req: NextRequest) {
     `X-WR-CALDESC:Family-friendly events curated by ${brandName}`,
     `X-WR-TIMEZONE:${TZID}`,
   ]
-  for (const ev of evts) lines.push(buildVEvent(ev, uidDomain))
+  for (const ev of evts) lines.push(buildVEvent(ev, uidDomain, siteOrigin))
   lines.push('END:VCALENDAR')
 
   const body = lines.join('\r\n')

@@ -1,6 +1,8 @@
 import type { PartnerPageData } from './types'
+import { loadBrandContext } from '@/lib/brand-context'
 
-export function PartnerSEO({ data }: { data: PartnerPageData }) {
+export async function PartnerSEO({ data }: { data: PartnerPageData }) {
+  const { market, publicOrigin } = await loadBrandContext()
   const { account, offer, locations, testimonials } = data
   const primary = locations.find(l => l.is_primary) ?? locations[0]
   const avgRating = testimonials.length
@@ -11,13 +13,13 @@ export function PartnerSEO({ data }: { data: PartnerPageData }) {
     '@context': 'https://schema.org',
     '@type': account.category === 'healthcare' ? 'Dentist' : account.category === 'education' ? 'School' : 'LocalBusiness',
     name: account.business_name,
-    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://riverregionparents.com'}/partners/${account.slug}`,
+    url: `${publicOrigin}/partners/${account.slug}`,
     telephone: account.contact_phone ?? undefined,
     address: primary ? {
       '@type': 'PostalAddress',
       streetAddress: primary.address_line_1 ?? undefined,
-      addressLocality: primary.city ?? 'Montgomery',
-      addressRegion: primary.state ?? 'AL',
+      addressLocality: primary.city ?? market.city,
+      addressRegion: primary.state ?? market.state,
       postalCode: primary.zip ?? undefined,
       addressCountry: 'US',
     } : undefined,
